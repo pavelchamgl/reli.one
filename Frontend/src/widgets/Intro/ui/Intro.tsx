@@ -10,10 +10,10 @@ export const Intro: React.FC = () => {
         <div className={ cls.IntroContainer }>
             <div className={ cls.BackIntro }>
                 <div className={ cls.IntroHeader }>
-                    <h1> {t('Udržte s námi')} <span>{t('ekologii a ušetřete')}</span>  </h1>
+                    <h1> {t('Spojujeme kupující a')} <span>{t('prodávající z celého světa')}</span>  </h1>
                 </div>
             </div>
-            <LinkCustom to={PathRouts.project} state={StateLink.LINKINTRO} classes={cls.linkMargin}>{t('Jad Objednat?')}</LinkCustom>
+            <LinkCustom to={PathRouts.project} state={StateLink.LINKINTRO} classes={cls.linkMargin}>{t('Jak Objednat?')}</LinkCustom>
         </div>
     </>)
 }
