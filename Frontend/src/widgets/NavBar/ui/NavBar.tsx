@@ -42,7 +42,7 @@ export const NavBar: React.FC = memo(() => {
                 }
                 <img className={cls.hideImg} src={search}/>
                 <LanguageSwitcher classe={cls.Switcher}/>
-                <img  className={cls.hideImg} src={shop}/>
+                <LinkCustom to = {"/Basket"} state={StateLink.NAVBAR}><img  className={cls.hideImg} src={shop}/></LinkCustom>
             </div>
         </div>
 
