@@ -22,6 +22,7 @@ export const authUser = createAsyncThunk<User | string, UserInfo, ThunkConfig<Er
         }
         userFiled.close()
         userFiled.OpenModalLog()
+        userFiled.navigate('/verify')
         return data.data
     } catch (error) {
         errors.push(ErrorAuth.ERROR_SERVER)

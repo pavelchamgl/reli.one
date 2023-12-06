@@ -44,9 +44,7 @@ const AutoForm: React.FC<LoginFormProps> = ({ close, OpenLogForm }: LoginFormPro
         dispatch(setEmail(e))
     }, [email])
     const ClickHandler = useCallback(() => {
-        dispatch(authUser({ email, password, lastname, name, close: close})).then(() => {
-            navigate('/verify')
-        })
+        dispatch(authUser({ email, password, lastname, name, close: close, navigate: navigate}))
     }, [password, name, lastname, email, dispatch, close, open, setOpen])
     const ClickHandlerVerifyClose = useCallback(() => {
         setOpen(false)

@@ -1,3 +1,4 @@
+import { NavigateFunction } from 'react-router-dom'
 export interface UserInfo {
     email: string
     password: string
@@ -5,6 +6,7 @@ export interface UserInfo {
     lastname?: string
     close?: () => void
     OpenModalLog?: () => void
+    navigate: NavigateFunction
 }
 
 
