@@ -6,7 +6,7 @@ export interface UserInfo {
     lastname?: string
     close?: () => void
     OpenModalLog?: () => void
-    navigate: NavigateFunction
+    navigate?: NavigateFunction
 }
 
 
