@@ -1,0 +1,18 @@
+.dFlex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+p {
+    font: var(--font-n)
+}
+span {
+    font-weight: 500;
+    color: #000;
+}
+.textGreen {color: #047857;}
+.textSilver {color: #888}
+
+.btop {
+    border-top: 1px solid #CED4D7;
+}

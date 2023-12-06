@@ -1,0 +1,28 @@
+.AccordionContainer {
+  height: 49px;
+  overflow: hidden;
+  font: var(--font-n);
+  font-size: 16px !important;
+}
+
+.AccordionContainer p {
+  position: relative;
+  max-width: 140px;
+  width: 100%;
+  padding: 15px 160px 15px 10px;
+}
+
+.AccordionContainer p:before {
+  position: absolute;
+  content: "";
+  background-color: transparent;
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  border-top: 1px solid gray;
+  border-right: 1px solid gray;
+  right: 0;
+}
+.Open {
+  height: 100%;
+}

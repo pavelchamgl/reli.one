@@ -1,0 +1,12 @@
+.innerComment {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid black;
+  margin-top: 20px;
+  padding: 20px;
+  span {
+    font-weight: 600;
+  }
+}
+
+

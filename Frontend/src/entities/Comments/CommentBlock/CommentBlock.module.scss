@@ -1,0 +1,28 @@
+.CommentsContainer {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  padding-bottom: 120px;
+  h2 {
+    font-size: 30px;
+  }
+}
+
+.InnerCommentsContainer {
+  margin-top: 20px;
+  padding-right: 20px;
+   overflow-y: auto;
+   max-height: 470px;
+}
+
+.InnerCommentsContainer::-webkit-scrollbar {
+  background-color: #7f7f7f;
+  border-radius: 20px;
+  width: 6px;
+}
+
+.InnerCommentsContainer div:first-child {
+  margin: 0 !important;
+
+}
+

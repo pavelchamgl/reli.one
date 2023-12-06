@@ -1,0 +1,1 @@
+export  { AsyncPayment as Payment } from './ui/AsyncPayment'

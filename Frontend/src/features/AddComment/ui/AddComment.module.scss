@@ -1,0 +1,20 @@
+.AddContainer {
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+}
+.InputCustom {
+  margin-bottom: 20px;
+}
+
+.ButtonSend {
+  padding: 20px;
+  align-self: start;
+}
+
+
+.Error {
+  color: red;
+}

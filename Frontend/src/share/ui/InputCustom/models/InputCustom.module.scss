@@ -1,0 +1,51 @@
+
+.InputCustom {
+  position: relative;
+  margin: 0;
+  outline:none;
+
+
+}
+
+.modalInput {
+   padding: 10px 100px 10px 20px;
+   border: 1px solid gray;
+
+}
+
+.resetInput {
+  border-bottom: 2px solid black;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  background-color: transparent;
+  margin-left: 10px;
+}
+
+.resetInput:hover:focus {
+  border-bottom: 2px solid black;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+
+}
+
+.CommentInput {
+  border : 1px solid black;
+  padding: 20px;
+}
+
+
+.InputPayment {
+  width: 100%;
+  height: 46px;
+  background-color: white;
+  border: 1px solid var(--Grey, #CED4D7);
+}
+
+
+
+
+
+
+

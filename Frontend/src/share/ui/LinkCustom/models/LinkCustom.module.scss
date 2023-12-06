@@ -1,0 +1,65 @@
+.link{
+  color: #000000;
+  text-decoration: unset;
+  font: var(--font-n);
+  font-size: 16px !important;
+}
+.reset {
+  margin: 0;
+  padding: 0;
+
+}
+.NavBar{
+  padding: 30px;
+  font-weight: 300 !important;
+}
+
+
+.UnderNavBar{
+  text-transform: uppercase;
+  padding: 30px;
+  transition: all 0.3s linear;
+
+}
+
+.UnderNavBar:hover{
+  background-color: #FFFFFF;
+
+  transition: all 0.3s linear;
+}
+
+.LinkIntro {
+  background-color: black;
+  text-transform: uppercase;
+  font-weight: 600!important;
+  color: white;
+  padding: 15px 147px;
+
+  transition: all 0.3s linear;
+}
+
+.LinkIntro:hover {
+  background-color: #FFFFFF;
+  color: black;
+
+  transition: all 0.3s linear;
+}
+
+
+.LinkMobile {
+  position: relative;
+  padding: 15px 160px 15px 10px;
+
+}
+
+.LinkMobile:before {
+  position: absolute;
+  content: "";
+  background-color: transparent;
+  width: 10px;
+  height: 10px;
+  transform: rotate(45deg);
+  border-top: 1px solid gray;
+  border-right: 1px solid gray;
+  right: 0;
+}

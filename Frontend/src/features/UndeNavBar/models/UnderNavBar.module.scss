@@ -1,0 +1,21 @@
+.UnderNavbarContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 20px;
+  background-color: #F0F0F0;
+
+  height: 0;
+
+  overflow: hidden;
+
+  transition: all 0.3s linear;
+
+}
+.open {
+  height: 63px;
+  transition: all 0.3s linear;
+}

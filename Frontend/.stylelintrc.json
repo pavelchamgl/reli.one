@@ -1,0 +1,13 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "rules": {
+    "scss/dollar-variable-empty-line-before": null,
+    "custom-property-empty-line-before": null,
+    "rule-empty-line-before": "always",
+    "selector-pseudo-element-colon-notation": null,
+    "shorthand-property-no-redundant-values": null,
+    "at-rule-empty-line-before": "always",
+    "scss/at-import-partial-extension": null,
+    "declaration-empty-line-before": null
+  }
+}

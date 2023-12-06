@@ -1,0 +1,27 @@
+.Container_About {
+  font: var(--font-n);
+  max-width: 1000px;
+  padding: 60px 20px;
+  margin: 0 auto;
+  height: 100vh;
+}
+
+
+.Order_container {
+  display: flex;
+  align-items: center;
+  padding-bottom: 20px;
+  img {
+    height: 70%;
+    width: 20px;
+  }
+  h2{
+    margin-left: 10px;
+  }
+
+}
+
+p {
+  font-weight: 600;
+}
+

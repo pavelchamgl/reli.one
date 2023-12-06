@@ -1,0 +1,64 @@
+.ProfileContainer {
+  padding: 30px;
+  font: var(--font-n)
+}
+
+.FlexContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+
+  padding-top: 40px;
+}
+
+
+.FlexContainer h1:first-child {
+  align-self: center;
+}
+
+.ContentContainer {
+  display: flex;
+  align-items: center;
+  margin-top: 40px;
+}
+
+.ContentContainer img {
+  height: 18px;
+  width: 18px;
+}
+
+.ContentContainer a {
+  margin: 0 0 0 8px;
+  padding: 0;
+}
+
+.ContentContainerSet {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 0;
+  background-color: transparent;
+  overflow: hidden;
+  transition: all 0.3s linear;
+  border-left: 1px solid #D0D5DD;
+  padding-left: 15px;
+  margin-left: 10px;
+}
+
+
+
+.InputContainer {
+  display: flex;
+  align-items: center;
+}
+
+.open {
+  margin-top: 10px;
+  height: 80px;
+  transition: all 0.3s linear;
+}
+
+.error {
+  font-size: 15px;
+  color: red;
+}

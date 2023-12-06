@@ -1,0 +1,38 @@
+name: main
+
+on:
+  push:
+    branches: [Front-end]
+  pull_request:
+    branches: [Front-end]
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+
+
+      - name: Install node_modules
+        run: npm i
+
+      - name: Build
+        run: npm run build:prod
+
+      - name: Run Unit Test
+        run: npm run test
+
+      - name: Run Eslint
+        run: npm run eslint:ts
+
+
+      - name: Run StyleLint
+        run: npm run stylelint:scss
+
+
+      - name: Build Storybook
+        run: npm run build-storybook

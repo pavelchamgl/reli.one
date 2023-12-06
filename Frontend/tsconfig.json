@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+      "outDir": "./dist/",
+      "noImplicitAny": true,
+      "module": "ES2022",
+      "sourceMap": true,
+      "target": "es5",
+      "jsx": "react-jsx",
+      "allowJs": true,
+      "allowSyntheticDefaultImports" : true,
+      "moduleResolution": "Node",
+      "esModuleInterop": true,
+      "baseUrl": ".",
+      "paths": {
+        "*": ["src/*"]
+      }
+    },
+    "ts-node": {
+        "compilerOptions": {
+          "module": "commonjs"
+        }
+    }
+  }

@@ -1,0 +1,40 @@
+
+
+$font-size-n: 14px;
+$font-height-n: 21px;
+$font-weight-n: 300;
+$font-family-n: 'Raleway', sans-serif;
+
+$font-size-l: 28px;
+$font-height-l: 21px;
+$font-weight-l: 600;
+$font-family-l: 'Raleway', sans-serif;
+
+$font-size-h: 90px;
+$font-height-h: 117px;
+$font-weight-h: 400;
+$font-family-h: 'Montserrat', sans-serif;
+
+$font-size-button: 20px;
+$font-size-order: 32px;
+$navbar-height: 80px;
+
+$skeleton-color: #79798e;
+$skeleton-shadow: #c2c2dc;
+
+:root{
+ --font-l: #{$font-weight-l} #{$font-size-l}/#{$font-height-l} #{$font-family-l};
+
+ --font-n: #{$font-weight-n} #{$font-size-n}/#{$font-height-n} #{$font-family-n};
+
+ --font-h: #{$font-weight-h} #{$font-size-h}/#{$font-height-h} #{$font-family-h};
+
+
+ --font-size-button: #{$font-size-button};
+ --font-size-order: #{$font-size-order};
+ --navbar-height: #{$navbar-height};
+
+ --skeleton-color: #{$skeleton-color};
+ --skeleton-shadow:  #{$skeleton-shadow};
+
+}

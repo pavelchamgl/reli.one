@@ -1,0 +1,179 @@
+.buttonC{
+  font: var(--font-l);
+  padding: 30px;
+}
+
+.reset{
+  position: relative;
+  background: none repeat scroll 0 0 transparent;
+  border: medium none;
+  border-spacing: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 1.42rem;
+  list-style: none outside none;
+  margin: 0;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+}
+
+.NavBarButton {
+  position: relative;
+  background: none repeat scroll 0 0 transparent;
+  border: medium none;
+  border-spacing: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 1.42rem;
+  list-style: none outside none;
+  margin: 0;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+  padding: 0;
+}
+
+
+
+.buttonModal {
+  background-color: #191919;
+  padding: 10px 60px;
+  color: white;
+}
+
+
+.ButtonClose {
+  position: absolute;
+  background-color: transparent;
+  right: 40px;
+  border: none;
+}
+
+
+.ButtonClose:after {
+  content: "";
+  position: absolute;
+  width: 34px;
+  height: 4px;
+  background-color: #111111;
+  transform: rotate(40deg);
+}
+
+.ButtonClose:before{
+  content: "";
+  position: absolute;
+  width: 34px;
+  height: 4px;
+  background-color: #111111;
+  transform: rotate(-40deg);
+}
+
+.ButtonBurger {
+  position: relative;
+  background-color: black;
+  border: none;
+  width: 30px;
+  height: 1px;
+  padding: 0;
+}
+
+.ButtonEdit {
+  padding: 10px;
+  background-color: gainsboro;
+  border: none;
+  color: gray;
+  font: var(--font-n);
+}
+
+.ButtonCancle {
+  padding: 10px;
+  background-color: transparent;
+  border: 1px solid red;
+  color: red;
+  font: var(--font-n);
+}
+
+.ButtonPurchase {
+  background-color: black;
+  color: #FFFFFF;
+  font-weight: 300 !important;
+  padding: 25px 160px;
+}
+
+.ButtonInfo {
+  background: none repeat scroll 0 0 transparent;
+  border: 2px solid black;
+  margin: 0;
+  text-align: center;
+  transition: all 0.3s linear;
+}
+
+.ButtonInfo:hover {
+  background-color: black;
+  color: white;
+  transition: all 0.3s linear;
+}
+
+.ButtonPurchase:hover {
+  background-color: white;
+  color: black;
+  transition: all 0.3s linear;
+}
+
+
+
+.AutoButton{
+  position: relative;
+  background: none repeat scroll 0 0 transparent;
+  border: medium none;
+  border-spacing: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 1.42rem;
+  list-style: none outside none;
+  margin: 0;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+  color: green;
+}
+
+.ButtonBasket{
+  position: relative;
+  background: none repeat scroll 0 0 transparent;
+  border: medium none;
+  border-spacing: 0;
+  color: #000000;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 1.42rem;
+  list-style: none outside none;
+  margin: 0;
+  text-align: left;
+  text-decoration: none;
+  text-indent: 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

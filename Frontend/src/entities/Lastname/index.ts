@@ -1,0 +1,5 @@
+export { getStateLastName } from 'entities/Lastname/models/selectors/getStateLastName/getStateLastName'
+export { getLastName } from 'entities/Lastname/models/selectors/getLastName/getLastName'
+export { setLastName } from './models/slice/lastNameSlice'
+export { lastNameReducer } from './models/slice/lastNameSlice'
+export { type LastNameSchema } from './models/types/LastNameTypes'
