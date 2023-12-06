@@ -8,7 +8,7 @@ User = get_user_model()
 @receiver(post_save, sender=User)
 def create_chips_basket(sender, instance, created, **kwargs):
     if created:
-        chips_basket = ChipBasket.objects.create(user=instance)
+        chips_basket = ChipBasket.objects.create()
         instance.chips_basket = chips_basket
         instance.save()
 

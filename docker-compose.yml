@@ -23,12 +23,14 @@ services:
     ports:
       - 3000:3000
       - 443:443
+    volumes:
+      - ./backend:/app
 
   backend:
     container_name: backend
     build:
-      context: Backend/
-    command: bash -c "python /app/manage.py makemigrations && python /app/manage.py migrate --noinput && python /app/manage.py runserver_plus  0.0.0.0:8081 --cert /www.solopharma.shop.crt --key-file /www.solopharma.shop.key"
+      context: backend/
+    command: bash -c "python manage.py collectstatic && python /app/manage.py makemigrations && python /app/manage.py migrate --noinput && python /app/manage.py runserver  0.0.0.0:8081"
     volumes:
       - ./backend/:/app
     ports:

@@ -15,6 +15,10 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+SECURE_SSL_REDIRECT = False
+
 MEDIA_URL = '/base_product_images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'base_product_images')
 
@@ -26,6 +30,16 @@ SECRET_KEY = 'django-insecure-=aq+%ja=ny41y1hvyzzm+jo4=p+ka=h1af19_z)qn1i*1w_yf6
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('X-FORWARDED-PROTO', 'https')
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 
 ALLOWED_HOSTS = ['*']
@@ -53,7 +67,6 @@ INSTALLED_APPS = [
     'promocode',
     'payment',
     'corsheaders',
-    'django_extensions',
 ]
 PAYPAL_RECEIVER_EMAIL = 'novapiple228@gmail.com'
 
@@ -145,7 +158,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static'
-STATIC_ROOT = os.path.join(BASE_DIR, STATIC_URL)
+STATIC_ROOT = "/app/static"
 STATIC_URL += '/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -172,11 +185,6 @@ SPECTACULAR_SETTINGS = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIRECT_DOMAIN = 'http://localhost:8000'
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = [
-    "https://localhost:8000",
-]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://localhost:8000",
-]
+CORS_ALLOW_ALL_ORIGINS = True
+
