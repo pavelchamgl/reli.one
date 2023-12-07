@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ParameterName, BaseProduct, ParameterValue, BaseProductImage
+from .models import ParameterName, BaseProduct, ParameterValue, BaseProductImage, Category
 
 
 class ParameterStorageSerializer(serializers.ModelSerializer):
@@ -19,9 +19,8 @@ class BaseProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseProduct
-        fields = ('id', 'name', 'image', 'product_description', 'price', 'parameters')
+        fields = ('id', 'name', 'image', 'product_description', 'price', 'parameters', 'category')
         depth = 2
-
 
     def get_parameters(self, obj):
         # Создаем список параметров в формате ключ-значение (name-value)
@@ -35,5 +34,13 @@ class BaseProductSerializer(serializers.ModelSerializer):
 class ValueStorageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParameterValue
+        fields = '__all__'
+        depth = 2
+
+
+class CategorySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Category
         fields = '__all__'
         depth = 2

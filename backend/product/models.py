@@ -16,14 +16,23 @@ class ParameterValue(models.Model):
         return f"{self.value} {self.parameter.name}"
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+
 class BaseProductImage(models.Model):
     image = models.ImageField(upload_to='base_product_images/')
 
     def __str__(self):
         return str(self.image)
 
+
 class BaseProduct(models.Model):
     image = models.ManyToManyField(BaseProductImage, related_name='base_products')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     product_description = models.TextField()
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')

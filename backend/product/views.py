@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from .filters import CombinedFilter
 from django_filters import rest_framework as filters
 from rest_framework import generics
-from .models import ParameterName, BaseProduct, ParameterValue, BaseProductImage
-from .serializers import ParameterStorageSerializer, BaseProductSerializer, ValueStorageSerializer
+from .models import ParameterName, BaseProduct, ParameterValue, Category
+from .serializers import ParameterStorageSerializer, BaseProductSerializer, ValueStorageSerializer, CategorySerializer
 
 
 class ParameterStorageListCreateView(generics.ListAPIView):
@@ -21,6 +21,7 @@ class ValueStorageListCreateView(generics.ListAPIView):
     queryset = ParameterValue.objects.all()
     serializer_class = ValueStorageSerializer
 
+
 @permission_classes([AllowAny])
 class BaseProductListView(generics.ListAPIView):
     queryset = BaseProduct.objects.all()
@@ -32,3 +33,8 @@ class BaseProductListView(generics.ListAPIView):
 class BaseProductRetrieveView(generics.RetrieveAPIView):
     queryset = BaseProduct.objects.all()
     serializer_class = BaseProductSerializer
+
+
+class CategoryListView(generics.ListAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer

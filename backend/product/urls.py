@@ -4,7 +4,7 @@ from .views import (
     BaseProductListCreateView,
     ValueStorageListCreateView,
     BaseProductListView,
-    BaseProductRetrieveView
+    BaseProductRetrieveView, CategoryListView
 )
 
 urlpatterns = [
@@ -12,5 +12,6 @@ urlpatterns = [
     path('products/<int:pk>/', BaseProductRetrieveView.as_view(), name='baseproduct-detail'),
     path('base-products/', BaseProductListCreateView.as_view()),
     path('value-storages/', ValueStorageListCreateView.as_view()),
-    path('BaseProductListView/', BaseProductListView.as_view(), name='product-list')
+    path('BaseProductListView/', BaseProductListView.as_view(), name='product-list'),
+    path('category/',CategoryListView.as_view(), name='category-list')
 ]

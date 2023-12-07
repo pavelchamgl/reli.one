@@ -31,11 +31,10 @@ SECRET_KEY = 'django-insecure-=aq+%ja=ny41y1hvyzzm+jo4=p+ka=h1af19_z)qn1i*1w_yf6
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CSRF_TRUSTED_ORIGINS = ['https://solopharma.shop','https://localhost']
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('X-FORWARDED-PROTO', 'https')
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
