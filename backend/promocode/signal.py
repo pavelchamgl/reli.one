@@ -14,8 +14,7 @@ def create_stripe_promo_code(sender, instance, created, **kwargs):
             "code": instance.code,  # Код промокода
             "discount_percentage": instance.discount_percentage,
             "max_usage": instance.max_usage,
-            "valid_until": instance.valid_until,
-            "valid_from" : instance.valid_from
+            "duration_in_months": instance.duration_in_months,
         }
         coupon = stripe.Coupon.create(
             id=instance.code,
@@ -23,7 +22,7 @@ def create_stripe_promo_code(sender, instance, created, **kwargs):
             max_redemptions=instance.max_usage,
             redeem_by=instance.valid_until,
             duration="repeating",
-            duration_in_months=3,
+            duration_in_months=instance.duration_in_months,
         )
         stripe.PromotionCode.create(
             code=instance.code,
@@ -31,5 +30,5 @@ def create_stripe_promo_code(sender, instance, created, **kwargs):
         )
 
 @receiver(post_save, sender=PromoCode)
-def deletePromoCode(sender, instance, deleted, **kwargs):
+def create_paypal_promo_code(sender, instance, created, **kwargs):
     pass

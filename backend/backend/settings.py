@@ -14,9 +14,9 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+os.environ.get("STRIPE_SECRET_KEY_TEST")
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
+STRIPE_SECRET_KEY_TEST="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"
 SECURE_SSL_REDIRECT = False
 
 MEDIA_URL = '/base_product_images/'
