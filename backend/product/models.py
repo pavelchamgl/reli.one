@@ -1,5 +1,5 @@
 from django.db import models
-
+from PIL import Image
 
 class ParameterName(models.Model):
     name = models.CharField(max_length=100)
@@ -28,6 +28,16 @@ class BaseProductImage(models.Model):
 
     def __str__(self):
         return str(self.image)
+
+    def save(self, *args, **kwargs):
+        instance = super(BaseProductImage, self).save(*args, **kwargs)
+        print(instance)
+        image = Image.open(self.image.path)
+        target_size = (1263,1209)
+        resized_image = image.resize(target_size)
+        resized_image.save(self.image.path, quality=200, optimize=True)
+        return resized_image
+
 
 
 class BaseProduct(models.Model):
