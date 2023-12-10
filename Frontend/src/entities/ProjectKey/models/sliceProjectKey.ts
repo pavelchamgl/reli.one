@@ -63,4 +63,4 @@ const sliceProjectKey = createSlice({
 export const projectKeyReducer = sliceProjectKey.reducer
 
 
-export const {setAdresse, setCompanyName, setEmail, setMessage , setPhone } = sliceProjectKey.actions
+export const {setAdresse, setCompanyName, setEmail, setMessage , setPhone, setName } = sliceProjectKey.actions

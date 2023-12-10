@@ -36,12 +36,14 @@ const ChangePasswordWindow: React.FC<VerifyWindowProps> = memo(({ isOpen, close 
     return (<>
         <Portal element={document.body}>
             <Modal zIndex={100} lazy={true} isOpen={isOpen} close={close}>
-                   <div>
+                <div style={{padding:40}}>
+                 <div>
                     {errors && errors?.map((error: ErrorsPasswordUpdate) => <h1>{validate[error]}</h1>)}
                      <h1>{t('Změnit heslo')}</h1>
                      <InputCustom placeholder= {t('zadejte heslo')} state= {InputState.INPUTPAYMENT} value= {password} onChange={onChangePassword}/>
                    </div>
                    <ButtonCustom onClick={onClick} state= {ButtonCustomState.BUTTONAUTO}>{t('změnit heslo')}</ButtonCustom>
+                </div>
             </Modal>
         </Portal>
     </>)

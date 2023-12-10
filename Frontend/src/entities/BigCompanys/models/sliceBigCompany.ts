@@ -4,7 +4,7 @@
     PayloadAction
 } from '@reduxjs/toolkit'
 import { type BigCompanyForm, type BigCompanyFormSchema } from './type'
-import { sendBigCompany } from './actions/sendProjectKey'
+import { sendBigCompany } from './actions/sendBigComapnys'
 
 
 
@@ -63,4 +63,4 @@ const BigCompanySlice = createSlice({
 export const BigCompanyReducer = BigCompanySlice.reducer
 
 
-export const {setAdresse, setCompanyName, setEmail, setMessage , setPhone } = BigCompanySlice.actions
+export const {setAdresse, setCompanyName, setEmail, setMessage , setPhone, setName } = BigCompanySlice.actions

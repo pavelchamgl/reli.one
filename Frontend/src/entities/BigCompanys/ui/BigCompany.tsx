@@ -6,9 +6,8 @@ import { useCallback } from 'react'
 import { useSelector } from 'react-redux'
 import { getFormBigComapny } from '../models/selectorBigCompany'
 import { useAppDispatch } from 'share/libs/useRedux/useRedux'
-import { setAdresse, setCompanyName, setEmail, setMessage, setPhone } from '../models/sliceBigCompany'
-import { setName } from 'entities/Name'
-import { sendBigCompany } from '../models/actions/sendProjectKey'
+import { setAdresse, setCompanyName, setEmail, setMessage, setName, setPhone } from '../models/sliceBigCompany'
+import { sendBigCompany } from '../models/actions/sendBigComapnys'
 import { ReduxProvider } from 'app/providers/Redux/ui/ReduxProvider'
 
  const BigCompany: React.FC = () => {

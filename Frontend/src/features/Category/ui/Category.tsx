@@ -10,6 +10,7 @@ import { setSearchMain } from 'pages/GoodsPage/models/sliceGoods/sliceGoods'
 import { useSelector } from 'react-redux'
 import { getCategorys } from 'entities/Category'
 import { Category } from 'entities/Category/models/type'
+import { fetchCategory } from 'entities/Category/models/actions/fetchCategorys'
 
 export const Categorys: React.FC = memo(() => {
     const { t } = useTranslation('profile')
@@ -19,43 +20,13 @@ export const Categorys: React.FC = memo(() => {
         dispatch(setSearchMain(e.name))
         dispatch(fetchSortPageGood({ replace: true }))
     }, [dispatch])
-
-    // const clickKonektor = useCallback(() => {
-    //     dispatch(setSearchMain('konektor'))
-    //     dispatch(fetchSortPageGood({ replace: true }))
-    // }, [dispatch])
-
-    // const clickKabel = useCallback(() => {
-    //     dispatch(setSearchMain('kabel'))
-    //     dispatch(fetchSortPageGood({ replace: true }))
-    // }, [dispatch])
-
-    // const clickBatarie = useCallback(() => {
-    //     dispatch(setSearchMain('batarie'))
-    //     dispatch(fetchSortPageGood({ replace: true }))
-    // }, [dispatch])
-
-    // const clickMaterial = useCallback(() => {
-    //     dispatch(setSearchMain('material'))
-    //     dispatch(fetchSortPageGood({ replace: true }))
-    // }, [dispatch])
-
-    // const clickConverter = useCallback(() => {
-    //     dispatch(setSearchMain('converter'))
-    //     dispatch(fetchSortPageGood({ replace: true }))
-    // }, [dispatch])
+ 
     return (<>
         <div className={cls.ContainerCategory} >
             <div className={cls.InnerCategory}>
                 {
-                    categorys.map((category) => <ButtonCustom onClick={(() => clickHandler(category))} classes={cls.LintC} state={ButtonCustomState.RESET}>{`${category.name}`}</ButtonCustom>)
+                    categorys?.map((category) => <ButtonCustom onClick={(() => clickHandler(category))} classes={cls.LintC} state={ButtonCustomState.RESET}>{`${category.name}`}</ButtonCustom>)
                 }
-                {/* <ButtonCustom onClick={clickPanel} classes={cls.LintC} state={ButtonCustomState.RESET}>{t('solární panel')}</ButtonCustom>
-                <ButtonCustom onClick={clickKabel} classes={cls.LintC} state={ButtonCustomState.RESET}>{t('Kabela')}</ButtonCustom>
-                <ButtonCustom onClick={clickKonektor} classes={cls.LintC} state={ButtonCustomState.RESET}>{t('Konektor')}</ButtonCustom>
-                <ButtonCustom onClick={clickConverter} classes={cls.LintC} state={ButtonCustomState.RESET}>{t('Měnič')}</ButtonCustom>
-                <ButtonCustom onClick={clickBatarie} classes={cls.LintC} state={ButtonCustomState.RESET}>{t('Baterie')}</ButtonCustom>
-                <ButtonCustom onClick={clickMaterial} classes={cls.LintC} state={ButtonCustomState.RESET}>{t('Montážní materiály')}</ButtonCustom> */}
             </div>
             <hr/>
         </div>
