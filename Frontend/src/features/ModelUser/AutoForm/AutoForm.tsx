@@ -91,7 +91,6 @@ const AutoForm: React.FC<LoginFormProps> = ({ close, OpenLogForm }: LoginFormPro
                 </div>
                 <ButtonCustom onClick={ClickHandler} classes={cls.BottanLogin} state={ButtonCustomState.BUTTONMODAL}>{t('Registrovat')}</ButtonCustom>
             </div>
-            <VerifyWindow isOpen = {open} close={ClickHandlerVerifyClose} />
         </div>
     )
 

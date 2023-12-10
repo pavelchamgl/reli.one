@@ -13,10 +13,11 @@ export const fetchSortPageGood = createAsyncThunk<Good[], fetchSortPageGood, Thu
     const search = getSearchMainGoods(getState()) || ''
     const api = new API()
     try {
-        const data = await api.apiInstance.get<Good[]>('/BaseProductListView', {
+        const data = await api.apiInstance.get<Good[]>(`/BaseProductListView?`, {
             params: {
-                product_description: search,
-                name: sort
+                // name__icontains: search,
+                name__icontains: sort,
+                category__name: search
             }
         })
         if (!data.data) {

@@ -12,6 +12,9 @@ import { type NameSchema } from 'entities/Name'
 import { type LastNameSchema } from 'entities/Lastname'
 import { PasswordProfileSchema } from 'features/Profile/models/passwordSlice/passwordSlice'
 import { ResetPasswordSchema } from 'pages/ResePassword/models/types/ResetPasswordSchema'
+import { CategorySchema } from 'entities/Category/models/type'
+import { ProjectKeyFormSchema } from 'entities/ProjectKey/models/type'
+import { BigCompanyFormSchema } from 'entities/BigCompanys/models/type'
 
 export interface GlobalScheme {
     user: UserScheme
@@ -26,7 +29,10 @@ export interface GlobalScheme {
     addComment: AddCommentSchema
     goodsPage: GoodsPageSchema,
     profilePassword: PasswordProfileSchema,
-    resetPassword: ResetPasswordSchema
+    resetPassword: ResetPasswordSchema,
+    category: CategorySchema,
+    projectKey: ProjectKeyFormSchema,
+    bigCompany: BigCompanyFormSchema
 
 }
 

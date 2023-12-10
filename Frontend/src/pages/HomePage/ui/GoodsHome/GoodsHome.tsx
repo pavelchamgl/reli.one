@@ -7,14 +7,17 @@ import { useEffect } from 'react'
 import { useAppDispatch } from 'share/libs/useRedux/useRedux'
 import { fetchSortPageGood } from 'pages/GoodsPage/models/actions/fetchSortPageGood'
 import cls from './GoodsHome.module.scss'
+import { fetchCategory } from 'entities/Category/models/actions/fetchCategorys'
 export const GoodsHome: React.FC = () => {
     const isLoadgin = useSelector(getLoadingGoodsPage)
     const arrGoods = useSelector(getGoods.selectAll)
     const error = useSelector(getErrorGoodsPage)
     const dispatch = useAppDispatch()
     const { t } = useTranslation('main')
+
     useEffect(() => {
         dispatch(fetchSortPageGood({ replace: true }))
+        dispatch(fetchCategory())
 
         return () => {
             dispatch(setSearch(undefined))

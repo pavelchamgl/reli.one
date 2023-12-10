@@ -7,6 +7,8 @@ import { Basket } from 'pages/Basket'
 import { Payment } from 'pages/Payment'
 import { MessageVerify } from 'pages/MessageVerify'
 import { ResetPassword } from 'pages/ResePassword'
+import { ProjectKey } from 'entities/ProjectKey'
+import { BigCompany } from 'entities/BigCompanys'
 
 
 export type AppRouteProps = RouteProps & {
@@ -21,7 +23,9 @@ enum Routs {
     BASKET = 'basket',
     PAYMENT = 'payment',
     VERIFY = 'verify',
-    RESET = 'reset'
+    RESET = 'reset',
+    PROJECTKEY = 'projectkey',
+    BIGCOMPANY = 'bigcompany'
 }
 
 export const PathRouts: Record<Routs, string> = {
@@ -32,7 +36,9 @@ export const PathRouts: Record<Routs, string> = {
     [Routs.BASKET]: '/basket',
     [Routs.PAYMENT]: '/payment',
     [Routs.VERIFY]: '/verify',
-    [Routs.RESET]: '/reset'
+    [Routs.RESET]: '/reset',
+    [Routs.PROJECTKEY]: '/projectKey',
+    [Routs.BIGCOMPANY]: '/bigCompany'
 }
 
 export const Store: Record<Routs, AppRouteProps> = {
@@ -43,7 +49,6 @@ export const Store: Record<Routs, AppRouteProps> = {
     [Routs.GOODS]: {
         path: PathRouts.goods,
         element: <GoodsPage/>,
-        isAuth: true
     },
 
     [Routs.PROJECT]: {
@@ -53,7 +58,6 @@ export const Store: Record<Routs, AppRouteProps> = {
     [Routs.GOODS_DETAILS]: {
         path: `${PathRouts.goods_detail}:id`,
         element: <DetailGoods/>,
-        isAuth: true
     },
     [Routs.BASKET]: {
         path: `${PathRouts.basket}`,
@@ -71,6 +75,14 @@ export const Store: Record<Routs, AppRouteProps> = {
     [Routs.RESET]: {
         path: `${PathRouts.reset}`,
         element: <ResetPassword/>
+    },
+    [Routs.PROJECTKEY]: {
+        path: `${PathRouts.projectkey}`,
+        element: <ProjectKey/>
+    },
+    [Routs.BIGCOMPANY]: {
+        path: `${PathRouts.bigcompany}`,
+        element: <BigCompany/>
     }
 
 }

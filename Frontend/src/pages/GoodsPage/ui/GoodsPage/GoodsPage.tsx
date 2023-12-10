@@ -9,6 +9,7 @@ import { Page } from 'share/ui/Page/Page'
 import { SearchGoods } from 'pages/GoodsPage/ui/SearchGoods/ui/SearchGoods'
 import { fetchSortPageGood } from 'pages/GoodsPage/models/actions/fetchSortPageGood'
 import { getSearchMainGoods } from 'pages/GoodsPage/models/selectors/goodsPageSelector'
+import { Category } from 'features/Category'
 
 const GoodsPage: React.FC = () => {
     const arrGoods = useSelector(getGoods.selectAll)
@@ -41,6 +42,7 @@ const GoodsPage: React.FC = () => {
 
         <Page>
             <div className={cls.InputConatiner}><SearchGoods/></div>
+            <Category/>
             <GoodsList goods={arrGoods}/>
             {isLoading && <SkeletonsLoader/>}
         </Page>

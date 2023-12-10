@@ -30,9 +30,9 @@ export const NavBar: React.FC = memo(() => {
             <nav className = {cls.navigate_container}>
                 <LinkCustom to = {PathRouts.home} state={StateLink.NAVBAR}>{t('Domů')}</LinkCustom>
                 <LinkCustom to = {PathRouts.goods} data-testid = 'ButtonNavbar' state={StateLink.NAVBAR}>{t('Zboží')}</LinkCustom>
-                <LinkCustom to= {'#'} state={StateLink.NAVBAR}>{t('Velkoobchodník')}</LinkCustom>
-                <LinkCustom to= {PathRouts.project} state={StateLink.NAVBAR}>{t('Projekt na klíč')}</LinkCustom>
-                <LinkCustom to= {'#'} state={StateLink.NAVBAR}>{t('O společnosti')}</LinkCustom>
+                <LinkCustom to= {PathRouts.bigcompany} state={StateLink.NAVBAR}>{t('Velkoobchodník')}</LinkCustom>
+                <LinkCustom to= {PathRouts.projectkey} state={StateLink.NAVBAR}>{t('Projekt na klíč')}</LinkCustom>
+                <LinkCustom to= {PathRouts.project} state={StateLink.NAVBAR}>{t('O společnosti')}</LinkCustom>
             </nav>
             <div className={cls.NavigatePanel}>
                 {
@@ -40,7 +40,7 @@ export const NavBar: React.FC = memo(() => {
                         ? <ButtonCustom onClick={HandlerSideBarToggle} state={ButtonCustomState.NAVBARBUTTON}> <img src={profile}/> </ButtonCustom>
                         : <ButtonCustom onClick={OpenModalLogin} state={ButtonCustomState.NAVBARBUTTON}> <img src={profile}/> </ButtonCustom>
                 }
-                <img className={cls.hideImg} src={search}/>
+                <LinkCustom  to = {PathRouts.goods} state={StateLink.NAVBAR}><img className={cls.hideImg} src={search}/></LinkCustom>
                 <LanguageSwitcher classe={cls.Switcher}/>
                 <LinkCustom to = {"/Basket"} state={StateLink.NAVBAR}><img  className={cls.hideImg} src={shop}/></LinkCustom>
             </div>

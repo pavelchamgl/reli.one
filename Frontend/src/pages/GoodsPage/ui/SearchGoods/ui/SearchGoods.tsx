@@ -6,11 +6,13 @@ import { useSelector } from 'react-redux'
 import cls from './SearchGoods.module.scss'
 import { getSearchMainGoods } from 'pages/GoodsPage/models/selectors/goodsPageSelector'
 import { setSearchMain } from 'pages/GoodsPage/models/sliceGoods/sliceGoods'
+import { fetchSortPageGood } from 'pages/GoodsPage/models/actions/fetchSortPageGood'
 export const SearchGoods: React.FC = () => {
     const dispatch = useAppDispatch()
-    const search = useSelector(getSearchMainGoods)
+    const search = useSelector(getSearchGoods)
     const SearchChange = useCallback((e: string) => {
-        dispatch(setSearchMain(e))
+        dispatch(setSearch(e))
+        dispatch(fetchSortPageGood({replace: false}))
     }, [dispatch])
     return (<>
         <InputCustom classe={cls.InputSearch} value={search} onChange={SearchChange} placeholder={'Search...'} state={InputState.COMMENTINPUT}/>

@@ -4,12 +4,18 @@ import { type GlobalScheme } from 'app/providers/Redux/models/types/ReduxType'
 import { createReducerManager } from 'app/providers/Redux/store/reducerManager'
 import { type Reducer, type CombinedState } from 'redux'
 import { goodsPageReducer } from 'pages/GoodsPage'
+import { categoryReducer } from 'entities/Category'
+import { projectKeyReducer } from 'entities/ProjectKey/models/sliceProjectKey'
+import { BigCompanyReducer } from 'entities/BigCompanys/models/sliceBigCompany'
 
 export function ReduxSetUp (initialState?: GlobalScheme, asyncReducer?: ReducersMapObject<GlobalScheme>) {
     const Reducers: ReducersMapObject<GlobalScheme> = {
         ...asyncReducer,
         user: userReducer,
-        goodsPage: goodsPageReducer
+        goodsPage: goodsPageReducer,
+        category: categoryReducer,
+        projectKey: projectKeyReducer,
+        bigCompany: BigCompanyReducer
     }
     const reducerManager = createReducerManager(Reducers)
     const store = configureStore<GlobalScheme>({

@@ -7,6 +7,7 @@ import { API } from 'share/api/api'
 import { type ThunkConfig } from 'app/providers/Redux/models/types/ReduxType'
 import { validateErrorAuth } from '../actions/validateErrorAuth'
 import Cookies from 'js-cookie'
+import { PathRouts } from 'app/providers/Routing/lib/Store'
 
 export const authUser = createAsyncThunk<User | string, UserInfo, ThunkConfig<ErrorAuth[]>>('auth/user', async (userFiled, thunkApi) => {
     const { dispatch, rejectWithValue } = thunkApi
@@ -20,9 +21,7 @@ export const authUser = createAsyncThunk<User | string, UserInfo, ThunkConfig<Er
         if (!data.data ) {
             throw new Error()
         }
-        userFiled.close()
-        userFiled.OpenModalLog()
-        userFiled.navigate('/verify')
+        userFiled.navigate(PathRouts.verify)
         return data.data
     } catch (error) {
         errors.push(ErrorAuth.ERROR_SERVER)
