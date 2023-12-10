@@ -15,19 +15,19 @@ class ImageSerializer(serializers.Serializer):
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
     parameters = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseProduct
-        fields = ('id', 'name', 'image', 'product_description', 'price', 'parameters', 'category')
+        fields = ('id', 'name', 'images', 'product_description', 'price', 'parameters', 'category')
         depth = 2
 
-    def get_image(self, obj):
+    def get_images(self, obj):
         images = obj.image.all()
         if images:
-            # Берем первое изображение и возвращаем только абсолютный путь
-            return f'/app{images[0].image.url}'
+            # Return an array of absolute paths for all images
+            return [f'{image.image.url}' for image in images]
         return None
 
     def get_parameters(self, obj):
@@ -36,6 +36,7 @@ class BaseProductSerializer(serializers.ModelSerializer):
             parameters[param.parameter.name] = param.value
 
         return parameters
+
 
 
 class ValueStorageSerializer(serializers.ModelSerializer):

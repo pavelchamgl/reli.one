@@ -24,7 +24,7 @@ services:
       - 3000:3000
       - 443:443
     volumes:
-      - ./backend:/app
+      - ./backend/base_product_images:/data/www/base_product_images
 
   backend:
     container_name: backend
