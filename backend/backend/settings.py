@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     'payment',
     'corsheaders',
     'contactform',
+    'news',
+    'vacancies'
 ]
 PAYPAL_RECEIVER_EMAIL = 'novapiple228@gmail.com'
 
