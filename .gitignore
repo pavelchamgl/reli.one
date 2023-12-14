@@ -9,4 +9,6 @@ Frontend/dist
 /backend/order/migrations/
 /backend/chipBasket/migrations/
 /backend/account/migrations/
+/backend/contactform/migrations
+/backend/contactform/__pycache__/
 /backend/db.sqlite3

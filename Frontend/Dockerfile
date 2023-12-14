@@ -7,9 +7,11 @@ RUN npm install
 RUN npm run build:prod
 
 
+
+
 FROM nginx:latest as production
 
-COPY --from=builder frontend/dist /data/www/
+COPY --from=builder frontend/dist /data/www/onlineshop/
 COPY /nginx/devopsbyexample.conf /etc/nginx/conf.d/devopsbyexample.conf
 
 COPY /nginx/www.solopharma.shop.crt /etc/nginx/www.solopharma.shop.crt

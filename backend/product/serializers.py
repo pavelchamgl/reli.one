@@ -27,7 +27,7 @@ class BaseProductSerializer(serializers.ModelSerializer):
         images = obj.image.all()
         if images:
             # Return an array of absolute paths for all images
-            return [f'{image.image.url}' for image in images]
+            return [f'https://solopharma.shop{image.image.url}' for image in images]
         return None
 
     def get_parameters(self, obj):
