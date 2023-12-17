@@ -10,7 +10,7 @@ export const GoodsList: React.FC<GoodsListProps> = memo((props: GoodsListProps) 
     const { goods } = props
     const renderItem = (item: Good) => {
         return (<>
-            <GoodsListItem imgs={item?.image} id= {item?.id} key = {item?.id} model={item?.name} params={item.parameters} />
+            <GoodsListItem images={item?.images} id= {item?.id} key = {item?.id} model={item?.name} params={item.parameters} />
         </>)
     }
 

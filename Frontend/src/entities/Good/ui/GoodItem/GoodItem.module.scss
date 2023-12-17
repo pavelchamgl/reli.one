@@ -58,18 +58,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  max-width: 834px;
 
 }
 
 
 .ImgItem {
   text-align: center;
-}
-
-
-.item1 {
-  grid-row-start: 1;
-  grid-row-end: 3;
 }
 
 .Panel {
@@ -93,8 +88,15 @@
 }
 
 
+.img1{
+  grid-row-start: 1;
+  grid-row-end: 3;
+  max-width: 581px;
+}
 
-
+.img2{
+  max-width: 236px;
+}
 
 
 
@@ -105,10 +107,10 @@
     padding: 10px;
 
   }
-  #img1 {
+  .img1 {
     width: 100%;
   }
-  #img2 {
+  .img2 {
     display: none;
   }
 

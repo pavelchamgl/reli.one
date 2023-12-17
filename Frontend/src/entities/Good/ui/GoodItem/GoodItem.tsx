@@ -15,7 +15,7 @@ import { addCommentReducer } from 'features/AddComment'
 interface GoodItemProps {
     id: string
     parametrs: Record<string, string>
-    imgs: Array<{image: string}>,
+    imgs: Array<string>,
     model: string
     price: string
 
@@ -57,7 +57,7 @@ export const GoodItem: React.FC<GoodItemProps> = memo((props: GoodItemProps) => 
                     {
                         imgs?.map((img,index) =>
                         index === 0 ? 
-                        <img id={cls.img1} className={useClassName({ cls: cls.ImgItem, mode: {}, classes: [cls.item, cls.item1] })} src={img.image}/> :  <img id={cls.img2} className={useClassName({ cls: cls.ImgItem, mode: {}, classes: [] })} src={img.image}/> )
+                        <img className={useClassName({ cls: cls.ImgItem, mode: {}, classes: [cls.item, cls.img1] })} src={img}/> :  <img  className={useClassName({ cls: cls.ImgItem, mode: {}, classes: [cls.img2] })} src={img}/> )
                     }
                 </div>
                 <div className={cls.Panel}>

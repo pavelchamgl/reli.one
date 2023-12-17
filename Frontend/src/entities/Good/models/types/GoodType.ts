@@ -3,7 +3,7 @@
 export interface Good {
     id: string
     name: string
-    image: Array<{image: string}>
+    images: Array<string>
     parameters: Record<string, string>
     price: string
 }
