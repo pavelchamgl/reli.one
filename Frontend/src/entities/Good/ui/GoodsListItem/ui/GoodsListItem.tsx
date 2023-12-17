@@ -9,7 +9,7 @@ import { PathRouts } from 'app/providers/Routing/lib/Store'
 interface GoodsListItemProps {
     id: string
     model: string,
-    imgs: Array<{image: string}>,
+    images: Array<string>,
     params : Record<string,string>
 
 }
@@ -17,7 +17,7 @@ export const GoodsListItem: React.FC<GoodsListItemProps> = memo((props: GoodsLis
     const {
         params,
         model,
-        imgs,
+        images,
         id
     } = props
     const navigate = useNavigate()
@@ -26,11 +26,13 @@ export const GoodsListItem: React.FC<GoodsListItemProps> = memo((props: GoodsLis
     }, [])
     const { t } = useTranslation('goods')
 
+    console.log(images)
+
 
     return (<>
         <div onClick={NavigateClick}>
             <Cart classe={cls.ListItemContainer} state={CartListState.SALECART}>
-                {imgs?.map((img, index) => index === 0 ? <img src={img.image}/> : undefined )}
+                {images?.map((img, index) => index === 0 ? <img src={img}/> : undefined )}
                 
                 <h2>{t('MODEL')}: {t(model)}</h2>
                 {

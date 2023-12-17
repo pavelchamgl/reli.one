@@ -42,7 +42,7 @@ const DetailGoods: React.FC = () => {
     return (<>
         <DynamicProvider DynamicReducers={{ goods: goodReducer, comments: commentReducer }}>
             {
-                data && !isLoading ? <GoodItem imgs={data.image} price= {data.price} model={data.name} parametrs={data.parameters} id={id.id}/> : <SkeletonProvide/>
+                data && !isLoading ? <GoodItem imgs={data.images} price= {data.price} model={data.name} parametrs={data.parameters} id={id.id}/> : <SkeletonProvide/>
             }
         </DynamicProvider>
     </>)
