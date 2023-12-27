@@ -25,6 +25,8 @@ class BasketItemListCreateView(ListAPIView):
 class BasketItemCreateView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = BasketItemSerializer(data=request.data)
+        print(request.data)
+        print(serializer)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

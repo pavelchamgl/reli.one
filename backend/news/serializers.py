@@ -7,8 +7,8 @@ class NewsImageSerializer(serializers.ModelSerializer):
         fields = ('image',)
 
 class NewsSerializer(serializers.ModelSerializer):
-    images = NewsImageSerializer(many=True, read_only=True)
 
     class Meta:
+        depth = 2
         model = News
-        fields = ('id', 'title', 'content', 'images')
+        fields = ('id', 'title', 'content', 'image')

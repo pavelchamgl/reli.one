@@ -48,5 +48,7 @@ class BaseProduct(models.Model):
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
     price = models.IntegerField()
 
+
+
     def __str__(self):
         return self.name

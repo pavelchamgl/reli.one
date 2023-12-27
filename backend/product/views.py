@@ -22,6 +22,7 @@ class ValueStorageListCreateView(generics.ListAPIView):
     serializer_class = ValueStorageSerializer
 
 
+
 @permission_classes([AllowAny])
 class BaseProductListView(generics.ListAPIView):
     queryset = BaseProduct.objects.all()

@@ -9,11 +9,10 @@ class BaseProductSerializer(serializers.ModelSerializer):
         deph = 2
 
 class BasketItemSerializer(serializers.ModelSerializer):
-    product = BaseProductSerializer()
 
     class Meta:
         model = BasketItem
-        fields = '__all__'
+        fields = ('basket', 'product', 'quantity')
         depth = 2
 
 

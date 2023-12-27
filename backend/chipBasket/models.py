@@ -13,8 +13,6 @@ class ChipBasket(models.Model):
         owner = User.objects.get(chips_basket=self)
         return f"User: {str(owner.first_name)}: email: {str(owner.email)}"
 
-
-
     def calculate_total_price(self):
         total_price = sum(item.product.price * item.quantity for item in self.basketitem_set.all())
         return total_price

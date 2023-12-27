@@ -10,7 +10,7 @@ class ParameterStorageSerializer(serializers.ModelSerializer):
 
 
 class ImageSerializer(serializers.Serializer):
-    image = serializers.ImageField(use_url=False, )
+    image = serializers.ImageField(use_url=False)
 
 
 
