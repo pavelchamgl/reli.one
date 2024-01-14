@@ -6,6 +6,7 @@ class NewsImageSerializer(serializers.ModelSerializer):
         model = NewsImage
         fields = ('image',)
 
+
 class NewsSerializer(serializers.ModelSerializer):
 
     class Meta:

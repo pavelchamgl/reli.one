@@ -57,38 +57,54 @@ def create_checkout_session(request):
 
     if user_basket:
         basket_items = BasketItem.objects.filter(basket=user_basket)
-
     else:
         return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     line_items = []
 
+    total_price = 0  # Variable to store the total price
+
     for item in range(len(basket_items)):
-        name = basket_items[item].product
+        product = basket_items[item].product
         currency = 'czk'
-        price = basket_items[item].product.price
+        price = product.price
+        quantity = basket_items[item].quantity
+
+        # Check if a promo code is provided and is valid
+        if promocode:
+            promo_code = PromoCode.objects.filter(code=promocode).first()
+
+            if promo_code and promo_code.is_valid():
+                # Apply discount to the price
+                discounted_price = price - (price * promo_code.discount_percentage / 100)
+                price = discounted_price
+                # Increment the promo code used count
+                promo_code.increment_used_count()
+
         item = {
             'price_data': {
                 'currency': currency,
                 'unit_amount': price * 100,
                 'product_data': {
-                    'name': name
+                    'name': str(product),
                 }
             },
-            'quantity': basket_items[item].quantity,
+            'quantity': quantity,
         }
         line_items.append(item)
+        total_price += price * quantity
+
     checkout_session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=line_items,
         mode='payment',
         allow_promotion_codes=True,
         customer_creation='always',
-        success_url=settings.REDIRECT_DOMAIN + '/api/stripe_check_session?session_id={CHECKOUT_SESSION_ID}',
+        success_url=settings.REDIRECT_DOMAIN + f'/api/stripe_check_session?session_id={{CHECKOUT_SESSION_ID}}&total_price={total_price}',
         cancel_url=settings.REDIRECT_DOMAIN + '/payment_cancelled',
     )
-    return Response({'url': checkout_session.url}, status=status.HTTP_200_OK)
 
+    return Response({'url': checkout_session.url}, status=status.HTTP_200_OK)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -140,56 +156,59 @@ def PaypalToken(client_ID, client_Secret):
 
 class CreateOrderViewRemote(APIView):
     def get(self, request):
-        url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
-        token = PaypalToken(clientID, clientSecret)
+        paypal_url = "https://api-m.sandbox.paypal.com/v2/checkout/orders"
+        client_id = settings.PAYPAL_CLIENT_ID
+        client_secret = settings.PAYPAL_CLIENT_SECRET
+        token = PaypalToken(client_id, client_secret)
+
         user_basket = request.user.chips_basket
+
         if user_basket:
             basket_items = BasketItem.objects.filter(basket=user_basket)
-
         else:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         items = []
         total_price = 0
+
         for item in range(len(basket_items)):
             name = basket_items[item].product.name
-            currency = 'czk'
+            currency = 'CZK'
             price = basket_items[item].product.price
-            item = {
+            item_data = {
                 "name": name,
                 "quantity": basket_items[item].quantity,
                 "unit_amount": {
-                    "currency_code": "CZK",
-                    "value": price
-                }
-
+                    "currency_code": currency,
+                    "value": str(price),
+                },
             }
             total_price += price
-            items.append(item)
+            items.append(item_data)
 
         headers = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + token
+            "Authorization": "Bearer " + token,
         }
-        total_value = sum(item["quantity"] * item["unit_amount"]["value"] for item in items)
+
         json_data = {
             "intent": "CAPTURE",
             "application_context": {
-                "return_url": REDIRECT_DOMAIN + "/api/check_and_create_order/",
-                "cancel_url": REDIRECT_DOMAIN,
+                "return_url": settings.REDIRECT_DOMAIN + "/api/check_and_create_order/",
+                "cancel_url": settings.REDIRECT_DOMAIN,
             },
             "purchase_units": [
                 {
                     'reference_id': "default",
                     "amount": {
-                        "currency_code": "CZK",
-                        "value": str(total_value),
+                        "currency_code": currency,
+                        "value": str(total_price),
                         "breakdown": {
                             "item_total": {
-                                "currency_code": "CZK",
-                                "value": str(total_value),
-                            }
-                        }
+                                "currency_code": currency,
+                                "value": str(total_price),
+                            },
+                        },
                     },
                     "items": items,
                     "payment_instruction": {
@@ -197,16 +216,19 @@ class CreateOrderViewRemote(APIView):
                     },
                     "payment_capture": {
                         "payment_mode": "INSTANT_CAPTURE",
-                    }
-                }
-            ]
+                    },
+                },
+            ],
         }
 
-        response = requests.post(url, json=json_data, headers=headers)
-        order_id = response.json()["id"]
+        response = requests.post(paypal_url, json=json_data, headers=headers)
 
-        return_url = REDIRECT_DOMAIN + f"/api/check_and_create_order/?order_id={order_id}"
-        return Response(response)
+        if response.status_code == 201:
+            order_id = response.json()["id"]
+            return_url = settings.REDIRECT_DOMAIN + f"/api/check_and_create_order/?order_id={order_id}"
+            return Response({'url': return_url}, status=status.HTTP_200_OK)
+        else:
+            return Response(response.json(), status=response.status_code)
 
 
 @api_view(('GET',))
