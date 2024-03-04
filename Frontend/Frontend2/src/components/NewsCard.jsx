@@ -15,7 +15,13 @@ const NewsCard = (props) => {
         </div>
         <div>
           <button>
-            <span className="text-xs text-[#EABB01] xl:text-sm">Číst dále</span>
+            <span
+              className="text-xs text-[#EABB01] xl:text-sm"
+              onClick={() => {
+                props.openCard(props.id);
+              }}>
+              Číst dále
+            </span>
           </button>
         </div>
       </div>

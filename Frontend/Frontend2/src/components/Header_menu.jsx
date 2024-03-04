@@ -16,17 +16,20 @@ const Header = () => {
   openMenu
     ? (document.body.style.overflow = 'hidden')
     : (document.body.style.overflow = 'auto');
+  const changeState = () => {
+    setOpenMenu(!openMenu);
+  };
   return (
     <>
       {openMenu && (
         <Portal_menu>
           <div className="absolute top-0 h-[100vh] w-full bg-[#333333] p-7">
             <div className="flex justify-end">
-              <button onClick={() => setOpenMenu(!openMenu)}>
+              <button onClick={() => changeState()}>
                 <img src={close_menu_button}></img>
               </button>
             </div>
-            <Menu_links />
+            <Menu_links stateFunc={changeState} />
           </div>
         </Portal_menu>
       )}
