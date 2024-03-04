@@ -13,7 +13,6 @@ RUN npm run build:prod
 
 
 
-
 FROM node:18 as build
 
 WORKDIR /app
@@ -27,17 +26,16 @@ RUN npm run build
 
 
 
-
 FROM nginx:latest as production
 
 COPY --from=builder frontend/dist /data/www/onlineshop/
 
 COPY --from=build /app/dist /data/www/landing/
 
-COPY /nginx/devopsbyexample.conf /etc/nginx/conf.d/devopsbyexample.conf
+COPY /nginx/default.conf /etc/nginx/conf.d/default.conf
 
-COPY /nginx/www.solopharma.shop.crt /etc/nginx/www.solopharma.shop.crt
+COPY /nginx/reli.crt /etc/nginx/reli.crt
 
-COPY /nginx/www.solopharma.shop.key /etc/nginx/www.solopharma.shop.key
+COPY /nginx/reli.key /etc/nginx/reli.key
 
 CMD ["nginx", "-g", "daemon off;"]

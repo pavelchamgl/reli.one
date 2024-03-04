@@ -21,9 +21,7 @@ services:
   frontend1:
     build: ./Frontend
     ports:
-      - 5000:5000
-      - 3000:3000
-      - 443:443
+      - 80:80
     volumes:
       - ./backend/base_product_images:/data/www/base_product_images
 
