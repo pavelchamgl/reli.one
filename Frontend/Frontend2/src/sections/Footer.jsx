@@ -1,5 +1,6 @@
 import React from 'react';
 import SoloPharma_footer_logo from '../assets/SoloPharma-footer-logo.png';
+import ReliLogo from '../assets/Main logo white.svg'
 import { Link } from 'react-scroll';
 
 const Footer = () => {
@@ -65,11 +66,11 @@ const Footer = () => {
           </p>
         </div>
         <div className="flex flex-col items-center justify-end gap-5">
-          <img src={SoloPharma_footer_logo} className="w-[200px]" alt="" />
-          <p className="text-xs">(c) Copyright 2023 Solopharma Group</p>
+          <img src={ReliLogo} className="w-[200px] mb-3" alt="" />
+          <p className="text-xs">(c) Copyright 2023 Reli group</p>
         </div>
         <div className="hidden flex-col justify-between xl:flex">
-          <p className="text-2xl text-[#FFCC00]">Solopharma Group, s.r.o</p>
+          <p className="text-2xl text-[#FFCC00]">Reli Group, s.r.o</p>
           <p>Number: +420 797 837 856</p>
           <p>Email: oshchepkova.solar@gmail.com</p>
           <p>

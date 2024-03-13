@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import SoloPharma_logo from '../assets/SoloPharma-logo.png';
+import Reli_Logo from '../assets/Main logo.svg';
 import SoloPharma_logo_PC from '../assets/SoloPharma-logo-laptop.png';
 import close_menu_button from '../assets/close_menu_button.png';
 import Menu_button from './menu/Menu_button';
@@ -36,11 +36,11 @@ const Header = () => {
       <div className="flex items-center justify-between pt-3 lg:justify-normal">
         <div className="lg:mr-20 xl:mr-32">
           <img
-            src={SoloPharma_logo}
+            src={Reli_Logo}
             className="h-ful w-full lg:hidden"
             alt=""
           />
-          <img src={SoloPharma_logo_PC} className="hidden lg:block" alt="" />
+          <img src={Reli_Logo} className="hidden lg:block" alt="" />
         </div>
         <div className="lg:hidden">
           <button onClick={() => setOpenMenu(!openMenu)}>

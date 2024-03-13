@@ -4,7 +4,7 @@ import Tmrk_button from '../assets/Tmrk_button.png';
 
 const To_marketplace = () => {
   return (
-    <a href="https://solopharma.shop/">
+    <a href="https://reli.one">
       <div className="mt-8 inline-block rounded-br-xl rounded-tl-xl bg-[#333333] p-2 lg:rounded-br-3xl lg:rounded-tl-3xl lg:px-6 lg:py-3">
         <div className="flex items-center gap-3">
           <p className="text-[12px] font-semibold text-white lg:text-[26px]">

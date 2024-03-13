@@ -7,7 +7,7 @@ const Hodne_Zakazniku = () => {
       <div>
         <img
           src={techny_segment}
-          className="h-full max-w-[200px] xl:max-w-[280px]"
+          className="h-full max-w-[200px] xl:max-w-[280px] max-h-[200px] xl:max-h-none"
           alt=""
         />
       </div>

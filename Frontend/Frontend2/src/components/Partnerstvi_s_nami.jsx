@@ -7,7 +7,7 @@ const Partnerstvi_s_nami = () => {
       <div className="">
         <img
           src={techny_regulatory}
-          className="h-full max-w-[160px] xl:max-w-[250px]"
+          className="h-full max-w-[160px] xl:max-w-[250px] max-h-[160px] xl:max-h-none"
           alt=""
         />
       </div>
