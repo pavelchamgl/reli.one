@@ -22,7 +22,7 @@ const Kontakt = () => {
                   Ing. Daria Oshchepkova
                 </p>
                 <p className="text-center text-[12px] font-medium">
-                  Generální manažerkas
+                  Generální manažerka
                 </p>
               </div>
             </div>
@@ -48,7 +48,7 @@ const Kontakt = () => {
                 <img src={email_icon} alt="" />
               </div>
               <p className="text-xl font-bold xl:text-3xl">Email</p>
-              <p className="xl:text-xl">oshchepkova.solar@gmail.com</p>
+              <p className="xl:text-xl">oshchepkova.reli@gmail.com</p>
             </div>
             <div className="hidden h-5 rounded-full bg-[#FFCC00] xl:block"></div>
             <div className="flex items-end rounded-2xl bg-[#F5F5F5] p-2 px-5 xl:p-5">
