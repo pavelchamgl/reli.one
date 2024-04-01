@@ -1,6 +1,7 @@
 from django.db import models
 from PIL import Image
 
+
 class ParameterName(models.Model):
     name = models.CharField(max_length=100)
 
@@ -39,7 +40,6 @@ class BaseProductImage(models.Model):
         return resized_image
 
 
-
 class BaseProduct(models.Model):
     image = models.ManyToManyField(BaseProductImage, related_name='base_products')
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
@@ -48,7 +48,13 @@ class BaseProduct(models.Model):
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
     price = models.IntegerField()
 
-
-
     def __str__(self):
         return self.name
+
+
+class LicenseFile(models.Model):
+    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='license_files')
+    file = models.FileField(upload_to='license_files/')
+
+    def __str__(self):
+        return f"License file for {self.product.name}"
