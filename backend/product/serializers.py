@@ -1,6 +1,8 @@
 from rest_framework import serializers
-from .models import ParameterName, BaseProduct, ParameterValue, BaseProductImage, Category
-from PIL import Image
+
+from favorites.models import Favorite
+from .models import ParameterName, BaseProduct, ParameterValue, Category
+
 
 class ParameterStorageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,10 +15,10 @@ class ImageSerializer(serializers.Serializer):
     image = serializers.ImageField(use_url=False)
 
 
-
 class BaseProductSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     parameters = serializers.SerializerMethodField()
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseProduct
@@ -37,6 +39,12 @@ class BaseProductSerializer(serializers.ModelSerializer):
 
         return parameters
 
+    def get_is_favorite(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user = request.user
+            return Favorite.objects.filter(user=user, product=obj).exists()
+        return False
 
 
 class ValueStorageSerializer(serializers.ModelSerializer):
