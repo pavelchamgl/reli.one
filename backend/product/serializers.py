@@ -22,7 +22,16 @@ class BaseProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseProduct
-        fields = ('id', 'name', 'images', 'product_description', 'price', 'parameters', 'category')
+        fields = (
+            'id',
+            'name',
+            'images',
+            'product_description',
+            'price',
+            'parameters',
+            'category',
+            'is_favorite',
+        )
         depth = 2
 
     def get_images(self, obj):
