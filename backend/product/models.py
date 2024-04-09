@@ -1,8 +1,6 @@
 from django.db import models
 from PIL import Image
 
-from account.models import User
-
 
 class ParameterName(models.Model):
     name = models.CharField(max_length=100)
@@ -49,7 +47,6 @@ class BaseProduct(models.Model):
     product_description = models.TextField()
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
     price = models.IntegerField()
-    likes = models.ManyToManyField(User, related_name='liked_products', blank=True)
 
     def __str__(self):
         return self.name
