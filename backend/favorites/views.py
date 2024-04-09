@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Favorite
 from product.models import BaseProduct
+from product.serializers import BaseProductSerializer
 
 
 class ToggleFavoriteAPIView(APIView):
@@ -35,3 +36,20 @@ class ToggleFavoriteAPIView(APIView):
         else:
             favorite.delete()
             return Response({'message': 'Product removed from favorites.'}, status=status.HTTP_200_OK)
+
+
+class FavoriteProductListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        description="Retrieve all favorite products of the current authenticated user.",
+        responses={200: BaseProductSerializer(many=True)}
+    )
+    def get(self, request):
+        """
+        Retrieve all favorite products of the current authenticated user.
+        """
+        user = request.user
+        favorite_products = BaseProduct.objects.filter(favorite__user=user)
+        serializer = BaseProductSerializer(favorite_products, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
