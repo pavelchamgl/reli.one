@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Favorite
@@ -43,13 +43,28 @@ class FavoriteProductListAPIView(APIView):
 
     @extend_schema(
         description="Retrieve all favorite products of the current authenticated user.",
+        parameters=[
+            OpenApiParameter(
+                name='sort_by',
+                description='Sort products by popularity, ascending price, or descending price.',
+                type=str,
+                enum=['popular', 'price_asc', 'price_desc'],
+                required=False
+            ),
+        ],
         responses={200: BaseProductSerializer(many=True)}
     )
     def get(self, request):
-        """
-        Retrieve all favorite products of the current authenticated user.
-        """
         user = request.user
+        sort_by = request.query_params.get('sort_by', None)
         favorite_products = BaseProduct.objects.filter(favorite__user=user)
+
+        if sort_by == 'popular':
+            favorite_products = favorite_products.order_by('-reviews__rating')
+        elif sort_by == 'price_asc':
+            favorite_products = favorite_products.order_by('price')
+        elif sort_by == 'price_desc':
+            favorite_products = favorite_products.order_by('-price')
+
         serializer = BaseProductSerializer(favorite_products, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
