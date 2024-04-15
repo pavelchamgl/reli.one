@@ -15,10 +15,25 @@ class ImageSerializer(serializers.Serializer):
     image = serializers.ImageField(use_url=False)
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    children = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+    def get_children(self, obj):
+        children = obj.children.all()
+        if children:
+            return CategorySerializer(children, many=True).data
+        return None
+
+
 class BaseProductSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     parameters = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
+    category = CategorySerializer()
 
     class Meta:
         model = BaseProduct
@@ -59,13 +74,5 @@ class BaseProductSerializer(serializers.ModelSerializer):
 class ValueStorageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParameterValue
-        fields = '__all__'
-        depth = 2
-
-
-class CategorySerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Category
         fields = '__all__'
         depth = 2

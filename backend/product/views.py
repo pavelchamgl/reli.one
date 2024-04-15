@@ -37,5 +37,5 @@ class BaseProductRetrieveView(generics.RetrieveAPIView):
 
 
 class CategoryListView(generics.ListAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    queryset = Category.objects.filter(parent=None)
+    xserializer_class = CategorySerializer

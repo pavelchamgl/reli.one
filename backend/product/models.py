@@ -19,6 +19,7 @@ class ParameterValue(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
@@ -42,7 +43,7 @@ class BaseProductImage(models.Model):
 
 class BaseProduct(models.Model):
     image = models.ManyToManyField(BaseProductImage, related_name='base_products')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=100)
     product_description = models.TextField()
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
