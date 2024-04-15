@@ -15,18 +15,19 @@ class ImageSerializer(serializers.Serializer):
     image = serializers.ImageField(use_url=False)
 
 
+class RecursiveSerializer(serializers.Serializer):
+    def to_representation(self, value):
+        serializer = self.parent.parent.__class__(value, context=self.context)
+        return serializer.data
+
+
 class CategorySerializer(serializers.ModelSerializer):
-    children = serializers.SerializerMethodField()
+    image = serializers.ImageField(source='image.url', read_only=True)
+    children = RecursiveSerializer(many=True, read_only=True)
 
     class Meta:
         model = Category
         fields = '__all__'
-
-    def get_children(self, obj):
-        children = obj.children.all()
-        if children:
-            return CategorySerializer(children, many=True).data
-        return None
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
