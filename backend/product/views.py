@@ -40,7 +40,7 @@ class BaseProductRetrieveView(generics.RetrieveAPIView):
 
 class CategoryListView(generics.ListAPIView):
     queryset = Category.objects.filter(parent=None)
-    xserializer_class = CategorySerializer
+    serializer_class = CategorySerializer
 
     @extend_schema(
         description="Список корневых категорий с возможностью рекурсивного отображения дочерних категорий.",
