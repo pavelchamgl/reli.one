@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Import .env.dev vars
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,6 +25,9 @@ SECURE_SSL_REDIRECT = False
 
 MEDIA_URL = '/base_product_images/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'base_product_images')
+
+CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -57,6 +64,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     'drf_spectacular',
+    'cloudinary',
+
     'chipBasket',
     'order',
     'product',
@@ -68,7 +77,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'contactform',
     'news',
-    'vacancies'
+    'vacancies',
+    'favorites',
 ]
 PAYPAL_RECEIVER_EMAIL = 'novapiple228@gmail.com'
 

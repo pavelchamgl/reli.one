@@ -1,15 +1,18 @@
 import django_filters
 from rest_framework.decorators import permission_classes
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import AllowAny
 
 from .models import ParameterName, ParameterValue, BaseProduct, Category
 from django_filters import rest_framework as filters
+
+
 class ParameterNameFilter(django_filters.FilterSet):
     class Meta:
         model = ParameterName
         fields = {
             'name': ['exact', 'icontains'],
         }
+
 
 class CategoryFilter(django_filters.FilterSet):
     class Meta:
@@ -26,6 +29,8 @@ class ParameterValueFilter(django_filters.FilterSet):
             'parameter__name': ['exact', 'icontains'],
             'value': ['exact', 'icontains'],
         }
+
+
 @permission_classes([AllowAny])
 class BaseProductFilter(django_filters.FilterSet):
     class Meta:
