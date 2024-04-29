@@ -20,6 +20,7 @@ class OrderStatusSerializer(serializers.ModelSerializer):
             'name',
         )
 
+
 class SelfPickupStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = SelfPickupStatus
