@@ -123,7 +123,9 @@ def stripe_check_session(request):
                               order_date=timezone.now(),
                               total_amount=total_price,
                               promo_code=promo_code,
-                              user_basket=request.user.chips_basket)
+                              user_basket=request.user.chips_basket,
+                              delivery_type=request.data.get('delivery_type')
+                              )
             order.save()
             return Response(status=status.HTTP_200_OK)
     elif statusStripe == 'unpaid':
@@ -257,7 +259,9 @@ def check_and_create_order(request):
                               order_date=timezone.now(),
                               total_amount=total_price,
                               promo_code=promo_code,
-                              user_basket=request.user.chips_basket)
+                              user_basket=request.user.chips_basket,
+                              delivery_type=request.data.get('delivery_type')
+                              )
             order.save()
             return Response(status=status.HTTP_200_OK)
         else:

@@ -3,28 +3,31 @@ from rest_framework import serializers
 from .models import OrderItem, DeliveryType, OrderStatus, SelfPickupStatus
 
 
-class EnumSerializer(serializers.ModelSerializer):
-    value = serializers.CharField(source='value')
-    display_name = serializers.CharField(source='name')
-
+class DeliveryTypeSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('value', 'display_name')
-        read_only_fields = ('value', 'display_name')
-
-
-class DeliveryTypeSerializer(EnumSerializer):
-    class Meta(EnumSerializer.Meta):
         model = DeliveryType
+        fields = (
+            'id',
+            'name',
+        )
 
 
-class OrderStatusSerializer(EnumSerializer):
-    class Meta(EnumSerializer.Meta):
+class OrderStatusSerializer(serializers.ModelSerializer):
+    class Meta:
         model = OrderStatus
+        fields = (
+            'id',
+            'name',
+        )
 
 
-class SelfPickupStatusSerializer(EnumSerializer):
-    class Meta(EnumSerializer.Meta):
+class SelfPickupStatusSerializer(serializers.ModelSerializer):
+    class Meta:
         model = SelfPickupStatus
+        fields = (
+            'id',
+            'name',
+        )
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
