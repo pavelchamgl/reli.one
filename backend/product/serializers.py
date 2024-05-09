@@ -1,7 +1,13 @@
 from rest_framework import serializers
 
 from favorites.models import Favorite
-from .models import ParameterName, BaseProduct, ParameterValue, Category
+from .models import (
+    ParameterName,
+    BaseProduct,
+    ParameterValue,
+    Category,
+    LicenseFile,
+)
 
 
 class ParameterStorageSerializer(serializers.ModelSerializer):
@@ -22,12 +28,34 @@ class RecursiveSerializer(serializers.Serializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(source='image.url', read_only=True)
+    image = serializers.SerializerMethodField()
     children = RecursiveSerializer(many=True, read_only=True)
+
+    def get_image(self, obj):
+        if obj.image:
+            return f'https://reli.one{obj.image.url}'
+        else:
+            return "None"
 
     class Meta:
         model = Category
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'image',
+            'children',
+        )
+
+
+class LicenseFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LicenseFile
+        fields = (
+            'id',
+            'name',
+            'file',
+            'product',
+        )
 
 
 class BaseProductSerializer(serializers.ModelSerializer):
@@ -35,6 +63,7 @@ class BaseProductSerializer(serializers.ModelSerializer):
     parameters = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     category = CategorySerializer()
+    license_file = LicenseFileSerializer(read_only=True, source='license_files')
 
     class Meta:
         model = BaseProduct
@@ -46,6 +75,7 @@ class BaseProductSerializer(serializers.ModelSerializer):
             'price',
             'parameters',
             'category',
+            'license_file',
             'is_favorite',
         )
         depth = 2
