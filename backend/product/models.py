@@ -1,5 +1,8 @@
-from django.db import models
 from PIL import Image
+from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.template.defaultfilters import filesizeformat
 
 
 class ParameterName(models.Model):
@@ -54,9 +57,28 @@ class BaseProduct(models.Model):
         return self.name
 
 
+def validate_file_extension(value):
+    import os
+    ext = os.path.splitext(value.name)[1]
+    valid_extensions = ['.pdf', '.docx']
+    if not ext.lower() in valid_extensions:
+        raise ValidationError(
+            'Invalid file format. Valid formats: .pdf, .docx'
+        )
+
+
+def validate_file_size(value):
+    filesize = value.size
+    if filesize > settings.MAX_UPLOAD_SIZE:
+        raise ValidationError(
+            f'File size exceeds the maximum allowable file size: {filesizeformat(settings.MAX_UPLOAD_SIZE)}.'
+        )
+
+
 class LicenseFile(models.Model):
-    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='license_files')
-    file = models.FileField(upload_to='license_files/')
+    name = models.CharField(max_length=100, blank=True, null=True)
+    file = models.FileField(upload_to='license_files/', validators=[validate_file_extension, validate_file_size])
+    product = models.OneToOneField('BaseProduct', on_delete=models.CASCADE, related_name='license_files')
 
     def __str__(self):
-        return f"License file for {self.product.name}"
+        return f"License file id:{self.pk} - name:{self.name}"

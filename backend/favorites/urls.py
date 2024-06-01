@@ -7,5 +7,5 @@ from .views import (
 
 urlpatterns = [
     path('toggle-favorite/<int:product_id>/', ToggleFavoriteAPIView.as_view(), name='toggle-favorite'),
-    path('favorites/', FavoriteProductListAPIView.as_view(), name='favorite-products'),
+    path('products/', FavoriteProductListAPIView.as_view(), name='favorite-products'),
 ]

@@ -155,6 +155,8 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
+MAX_UPLOAD_SIZE = 13 * 1024 * 1024  # 13 MB
+
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
