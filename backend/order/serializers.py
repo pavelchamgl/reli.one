@@ -1,15 +1,41 @@
 from rest_framework import serializers
-from .models import OrderItem, OrderStatus
 
-class OrderStatusSerializer(serializers.Serializer):
-    value = serializers.CharField(max_length=50)
-    display_name = serializers.CharField(max_length=50)
+from .models import OrderItem, DeliveryType, OrderStatus, SelfPickupStatus
+
+
+class DeliveryTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryType
+        fields = (
+            'id',
+            'name',
+        )
+
+
+class OrderStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderStatus
+        fields = (
+            'id',
+            'name',
+        )
+
+
+class SelfPickupStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SelfPickupStatus
+        fields = (
+            'id',
+            'name',
+        )
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    delivery_type = DeliveryTypeSerializer()
+    order_status = OrderStatusSerializer()
+    self_pickup_status = SelfPickupStatusSerializer()
+
     class Meta:
         model = OrderItem
         fields = '__all__'
         depth = 2
-
-
-
