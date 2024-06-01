@@ -1,0 +1,23 @@
+.main {
+  //   background: #ebebeb;
+  background-color: transparent;
+  border-radius: 2px;
+  width: 289px;
+  height: 45px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  div {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  p {
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 117%;
+    letter-spacing: -0.02em;
+    color: #000;
+  }
+}

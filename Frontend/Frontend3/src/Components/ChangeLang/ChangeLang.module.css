@@ -1,0 +1,54 @@
+.wrap {
+    position: relative;
+}
+
+.selectBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 21px;
+    outline: none;
+    border: none;
+    background-color: transparent;
+    font-weight: 400;
+    font-size: 16px;
+    color: #000;
+}
+
+.selectDiv {
+    position: absolute;
+    top: 25px;
+
+    box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
+    background: #eee;
+    display: flex;
+    padding: 13px 11px;
+    flex-direction: column;
+    gap: 14px;
+    width: 145px;
+    height: 96px;
+    transition: transform 0.5s ease;
+    transform: scale(1);
+
+}
+
+.selectDivHid {
+    position: absolute;
+    transform: scale(0);
+}
+
+
+.radioInpBtn {
+    background-color: transparent;
+    font-weight: 400;
+    font-size: 14px;
+    color: #000;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.radioInpBtn img {
+    width: 14px;
+}

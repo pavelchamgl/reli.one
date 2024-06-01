@@ -39,3 +39,6 @@ COPY /nginx/reli.crt /etc/nginx/reli.crt
 COPY /nginx/reli.key /etc/nginx/reli.key
 
 CMD ["nginx", "-g", "daemon off;"]
+
+
+

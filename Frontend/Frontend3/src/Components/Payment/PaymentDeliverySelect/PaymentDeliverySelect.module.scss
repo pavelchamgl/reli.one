@@ -1,0 +1,58 @@
+.selectBlock {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 21px;
+  border: 1px solid #ced4d7;
+  background-color: white;
+}
+.freeText {
+  font-weight: 600;
+  font-size: 14px;
+  color: #000;
+}
+.selectBlockBtn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 21px;
+  border: 1px solid #ced4d7;
+  background-color: white;
+}
+
+.selectBlockNotAcc {
+  background-color: rgb(255, 255, 255); /* Установите цвет фона, если нужно */
+  transform-origin: top; /* Ось трансформации - верх блока */
+  transform: scaleY(0);
+  height: 0;
+  overflow: hidden;
+  transition: transform 0.3s ease, height 0s ease 0.3s; /* Плавный переход scaleY, затем высоты */
+}
+
+.selectBlockAcc {
+  background-color: rgb(
+    255,
+    255,
+    255
+  ); /* Убедитесь, что фон нужен в обоих состояниях */
+  transform-origin: top; /* Ось трансформации - верх блока */
+  transform: scaleY(1);
+  height: auto; /* или фиксированная высота, если известна */
+  overflow: hidden;
+  transition: height 0s ease, transform 0.3s ease; /* Плавный переход высоты, затем scaleY */
+}
+
+.price {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 140%;
+  color: #000;
+}
+
+.radioImageDiv {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}

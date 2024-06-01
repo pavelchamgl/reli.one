@@ -1,0 +1,78 @@
+.main {
+  max-width: 865px;
+  padding: 63px 131px 35px 97px;
+  display: flex;
+  flex-direction: column;
+  gap: 27px;
+}
+.title {
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 130%;
+  color: #333;
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 130%;
+  color: #333;
+}
+
+.smallInpDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  input {
+    width: 267px;
+  }
+}
+.inpDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checkDiv {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adressDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.buttonDiv {
+  display: flex;
+  justify-content: space-between;
+  button:nth-child(1) {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 146%;
+    color: #047857;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    padding-left: 5px;
+    background-color: transparent;
+  }
+  button:nth-child(2) {
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+    color: #fff;
+    border: 0.1px solid #fff;
+    padding: 15px 24px 15px 24px;
+    width: 191px;
+    height: 46px;
+    background: #047857;
+    &:hover {
+      background-color: #06664b;
+    }
+  }
+}

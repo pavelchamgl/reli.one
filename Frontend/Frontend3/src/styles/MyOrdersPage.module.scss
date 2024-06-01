@@ -1,0 +1,66 @@
+.titleDiv {
+  padding: 45px 95px 0;
+  border-bottom: 2px solid #d3d4d5;
+  @media (max-width: 500px) {
+    padding: 22px 17px 0;
+  }
+}
+
+.buttonDiv {
+  display: flex;
+}
+.buttonAcc {
+  padding: 29px 60px 13px 60px;
+  width: 189px;
+  height: 66px;
+  font-weight: 600;
+  font-size: clamp(12px, 2.5vw, 16px);
+  line-height: 123%;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+  color: #000;
+  //   border-bottom: 1px solid black;
+  background-color: transparent;
+  box-shadow: 0 2px 0 0 black;
+  @media (max-width: 500px) {
+    width: 96px;
+    padding: 29px 20px 13px 20px;
+  }
+}
+.button {
+  padding: 29px 60px 13px 60px;
+  width: 189px;
+  height: 66px;
+  font-weight: 300;
+  font-size: clamp(12px, 2.5vw, 16px);
+  line-height: 150%;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+  color: #212a2f;
+  background-color: transparent;
+  @media (max-width: 500px) {
+    width: 96px;
+    padding: 29px 20px 13px 20px;
+  }
+}
+
+.title {
+  font-weight: 600;
+  font-size: clamp(20px, 2.5vw, 24px);
+  line-height: 87%;
+  color: #000;
+}
+
+.likedProdWrap {
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 25px;
+  flex-wrap: wrap;
+}
+
+.filterDiv {
+  display: flex;
+  justify-content: flex-end;
+}

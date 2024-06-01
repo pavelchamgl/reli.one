@@ -1,0 +1,87 @@
+.main {
+  margin: 40px 0 100px;
+}
+.prodNumber {
+  font-weight: 400;
+  font-size: clamp(12px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #888;
+  span {
+    font-weight: 500;
+    color: #000;
+  }
+}
+
+.delivTimeText {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #047857;
+}
+
+.timeTextWrap {
+  margin-top: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap-reverse;
+  gap: 5px;
+}
+
+.prodDescDiv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  p {
+    font-weight: 600;
+    font-size: clamp(12px, 2.5vw, 14px);
+    line-height: 140%;
+    text-align: right;
+    color: #000;
+  }
+  p:first-child {
+    color: #535353;
+  }
+}
+
+.prodDescWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 15px 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #afafaf;
+}
+
+.totalDiv {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  p {
+    font-weight: 500;
+    font-size: clamp(14px, 2.5vw, 16px);
+    line-height: 114%;
+    color: #323232;
+  }
+}
+
+.priceDiv {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  p {
+    font-weight: 700;
+    font-size: clamp(18px, 2.5vw, 24px);
+    line-height: 100%;
+    letter-spacing: -0.04em;
+    text-align: right;
+    color: #323232;
+  }
+  span {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 152%;
+    text-align: right;
+    color: #717171;
+  }
+}

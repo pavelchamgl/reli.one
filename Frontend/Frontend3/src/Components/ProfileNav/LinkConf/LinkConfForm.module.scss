@@ -1,0 +1,23 @@
+@import "../EmailConf/EmailConfFrom.module.scss";
+
+.desc {
+  width: 450px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 179%;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+  color: #111;
+  @media (max-width: 460px) {
+    width: 286px;
+  }
+}
+
+.timerText {
+  font-weight: 500;
+  font-size: clamp(10px, 2.5vw, 12px);
+  line-height: 209%;
+  letter-spacing: 0.19em;
+  color: #828b8d;
+  text-align: center;
+}

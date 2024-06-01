@@ -1,0 +1,32 @@
+.boldText {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 130%;
+  color: #000;
+}
+
+.lightText {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 130%;
+  color: #7d7b7c;
+}
+
+.commentDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  img {
+    margin-top: 15px;
+    border-radius: 2px;
+    width: 231px;
+    height: 230px;
+    object-fit: cover;
+  }
+}
+
+.main {
+  display: flex;
+  align-items: flex-start;
+  gap: 50px;
+}

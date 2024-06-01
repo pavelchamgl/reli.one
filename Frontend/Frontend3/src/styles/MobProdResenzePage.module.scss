@@ -1,0 +1,20 @@
+.returnBtn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background-color: transparent;
+  p {
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 129%;
+    color: #000;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 25px;
+  margin-bottom: 50px;
+}

@@ -1,0 +1,52 @@
+.prodRate {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  p:first-child {
+    font-family: var(--font-family);
+    font-weight: 500;
+    font-size: 32px;
+    line-height: 95%;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #000;
+  }
+  p {
+    font-family: var(--font-family);
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 120%;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+}
+
+.writeBtn {
+  width: 181px;
+  height: 40px;
+  border: 2px solid black;
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 187%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #000;
+  background-color: transparent;
+}
+
+.commentWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 65px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 45px;
+  position: relative;
+}
+
+

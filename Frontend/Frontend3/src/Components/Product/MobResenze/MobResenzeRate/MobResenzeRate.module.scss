@@ -1,0 +1,62 @@
+.ratingDiv {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  p {
+    font-weight: 500;
+    font-size: clamp(16px, 2.5vw, 20px);
+    line-height: 120%;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+}
+
+.rateWrap {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  & .rate {
+    font-weight: 500;
+    font-size: 32px;
+    line-height: 75%;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #000;
+  }
+}
+
+.imageDiv {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  img {
+    border-radius: 2px;
+    width: 66px;
+    height: 72px;
+  }
+  button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 2px;
+    width: 58px;
+    height: 72px;
+    background: #d4d0d0;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 150%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fff;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}

@@ -1,0 +1,13 @@
+@import "../SignUp/SignUpForm.module.scss";
+
+.text {
+  width: 348px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 179%;
+  letter-spacing: 0.01em;
+  color: #111;
+  @media (max-width: 400px) {
+    width: 286px;
+  }
+}

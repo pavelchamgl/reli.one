@@ -1,0 +1,123 @@
+.modal {
+  width: 580px;
+  height: 422px;
+  padding: 30px;
+}
+
+.modalTitleDiv {
+  display: flex;
+  justify-content: space-between;
+  height: 43px;
+  border-bottom: 2px solid black;
+  align-items: flex-start;
+  p {
+    padding-top: 2px;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 130%;
+    letter-spacing: 0.02em;
+    text-transform: capitalize;
+    color: #191919;
+  }
+  button{
+    background-color: transparent;
+  }
+}
+
+.submitBtnAcc {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 79%;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  text-align: center;
+  color: #fafafa;
+  border-radius: 2px;
+  padding: 14px 35px 14px 34px;
+  width: 223px;
+  height: 40px;
+  background: #191919;
+}
+
+.submitBtn {
+  border: 1px solid #191919;
+  border-radius: 2px;
+  padding: 14px 35px 14px 34px;
+  width: 223px;
+  height: 40px;
+  background: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 79%;
+  letter-spacing: 0.16em;
+  text-transform: lowercase;
+  text-align: center;
+  color: #000000;
+}
+
+.link {
+  font-weight: 500;
+  font-size: 12px;
+  text-align: right;
+  color: #047857;
+  text-decoration: none;
+}
+
+.mainContentDiv {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100% - 43px);
+}
+
+.mainContentWrap {
+  width: 252px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.inpLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  p {
+    font-weight: 500;
+    font-size: 14px;
+    color: #191d23;
+    display: block;
+  }
+}
+
+.forgotPassWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.checkDiv {
+  display: flex;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 14px;
+  color: #191d23;
+}
+
+.btnDiv {
+  display: flex;
+  justify-content: center;
+}
+
+.registerLink {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 120%;
+  text-align: center;
+  color: #191919;
+  a {
+    text-decoration: none;
+    margin-left: 5px;
+    color: #047857;
+  }
+}

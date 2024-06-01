@@ -1,0 +1,124 @@
+.main {
+  width: 599px;
+  height: 100vh;
+  padding: 63px 59px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  border-left: 2px solid #e1e1e1;
+}
+
+.mainContent {
+  width: 418px;
+  height: 500px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 27px;
+}
+
+.inpDiv {
+  display: flex;
+  input {
+    border: 1px solid #ced4d7;
+    outline: none;
+    padding: 14px 11px 14px 11px;
+    width: 100%;
+    height: 44px;
+    font-weight: 400;
+    font-size: 14px;
+    color: #000;
+  }
+  button {
+    border: 1px solid #aaa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 9px;
+    padding: 14px 11px;
+    height: 44px;
+    background: #fff;
+    span {
+      font-weight: 600;
+      font-size: 14px;
+      color: #3a3a3a;
+    }
+  }
+}
+
+.textDiv {
+  padding-top: 22px;
+  padding-bottom: 22px;
+  border-top: 1px solid rgba(175, 175, 175, 0.34);
+  border-bottom: 1px solid rgba(175, 175, 175, 0.34);
+}
+
+.priceDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  span {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 130%;
+    color: #535353;
+  }
+  p {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 140%;
+    text-align: right;
+    color: #000;
+  }
+}
+
+.calculateDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  span:first-child {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 130%;
+    color: #535353;
+  }
+  span {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 152%;
+    text-align: right;
+    color: #717171;
+  }
+}
+
+.totalDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  p {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 114%;
+    color: #323232;
+  }
+  span {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 152%;
+    text-align: right;
+    color: #717171;
+  }
+  strong {
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 100%;
+    letter-spacing: -0.04em;
+    text-align: right;
+    color: #323232;
+  }
+  div{
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+}

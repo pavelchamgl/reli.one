@@ -1,0 +1,10 @@
+.wrap {
+    width: 149px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 23px;
+    background-color: #F7CD56;
+    font-size: 18px;
+}

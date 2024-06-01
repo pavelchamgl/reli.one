@@ -1,0 +1,28 @@
+.main {
+  display: flex;
+  height: 500px;
+  width: 100vw;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 32px);
+  line-height: 61%;
+  color: #ced4d7;
+  p {
+    line-height: normal;
+  }
+  img {
+    @media (max-width: 768px) {
+      width: 46px;
+    }
+    @media (max-width: 425px) {
+      width: 36px;
+    }
+  }
+  @media (max-width: 425px) {
+    height: 400px;
+  }
+}

@@ -1,0 +1,44 @@
+.dateRateDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  p {
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 180%;
+    color: #7d7b7c;
+  }
+}
+
+.name {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 167%;
+  color: #000;
+}
+
+.commentText {
+  width: 184px;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 180%;
+  color: #000;
+  margin-top: 10px;
+}
+
+.commentImages {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  img {
+    border-radius: 2px;
+    width: 66px;
+    height: 72px;
+    object-fit: cover;
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+}

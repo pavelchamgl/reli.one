@@ -1,0 +1,53 @@
+.img {
+  width: 73px;
+  height: 69px;
+}
+
+.main {
+  height: 87px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #afafaf;
+  border-bottom: 1px solid #afafaf;
+}
+
+.descDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 10px;
+  p {
+    font-weight: 600;
+    font-size: 12px;
+    color: #000;
+  }
+  span {
+    font-weight: 300;
+    font-size: 10px;
+    line-height: 196%;
+    color: #000;
+  }
+}
+
+.descAndImageWrap {
+  display: flex;
+  gap: 10px;
+}
+
+.price {
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 140%;
+  color: #000;
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+
+  strong {
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 163%;
+    color: #000;
+  }
+}

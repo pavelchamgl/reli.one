@@ -1,0 +1,141 @@
+.main {
+  width: 230px;
+  height: 380px;
+  background: #fff;
+  padding: 9px 16px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  display: flex;
+  align-items: flex-end;
+  transition: 0.5s ease;
+  position: relative;
+}
+
+.likeBtn {
+  position: absolute;
+  top: 18px;
+  right: 26px;
+  background-color: transparent;
+}
+
+.priceDiv {
+  display: flex;
+  height: 22px;
+  gap: 3px;
+}
+
+.price {
+  font-weight: 600;
+  font-size: clamp(10px, 2.5vw, 20px);
+  line-height: 98%;
+  color: #000;
+}
+
+.priceSale {
+  font-weight: 600;
+  font-size: clamp(8px, 2.5vw, 12px);
+  line-height: 163%;
+  align-self: flex-end;
+  text-decoration: line-through;
+  color: #64748b;
+}
+
+.prodName {
+  font-weight: 500;
+  font-size: clamp(10px, 2.5vw, 14px);
+  line-height: 140%;
+  color: #000;
+}
+
+.rateDiv {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  p {
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 133%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748b;
+  }
+}
+
+.descWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.buyBtn {
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 117%;
+  letter-spacing: -0.02em;
+  color: #fff;
+  background: #047857;
+  border-radius: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 112px;
+  height: 31px;
+}
+
+@media only screen and (max-width: 600px) {
+  .main {
+    width: 132px;
+    height: 238px;
+    padding: 8px 4px;
+  }
+  .likeBtn {
+    img {
+      width: 15px;
+      height: 13px;
+    }
+  }
+  .rateDiv {
+    gap: 3px;
+    p {
+      font-weight: 500;
+      font-size: 11px;
+      line-height: 133%;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+  }
+  .descWrap {
+    gap: 7px;
+  }
+  .buyBtn {
+    border-radius: 2px;
+    width: 67px;
+    height: 18px;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 91%;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-top: 0;
+  }
+  .priceDiv {
+    height: auto;
+  }
+  .likeBtn {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+// @media only screen and (max-width: 450px) {
+//   .main {
+//     width: 91px;
+//     height: 102px;
+//     background-position: bottom;
+//     background-repeat: no-repeat;
+//     background-size: contain;
+//     padding-top: 18px;
+//   }
+// }

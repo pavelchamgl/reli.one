@@ -1,0 +1,61 @@
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 140%;
+  text-transform: lowercase;
+  color: #7d7b7c;
+  background-color: transparent;
+  margin-bottom: 10px;
+}
+
+.main {
+  position: relative;
+  margin-top: 12px;
+}
+
+.selectDiv {
+  position: absolute;
+  z-index: 6;
+  right: 0;
+  box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
+  background: #fdfdfd;
+  width: 145px;
+  height: 96px;
+  transform: scale(1);
+  transition: 0.3s ease;
+  padding: 13px 11px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.selectDivHid {
+  position: absolute;
+  z-index: 6;
+  right: 0;
+  box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
+  background: #fdfdfd;
+  width: 145px;
+  height: 96px;
+  transform: scale(0);
+  transition: 0.5s ease;
+}
+
+.radioInpBtn {
+  background-color: transparent;
+  font-weight: 400;
+  font-size: 14px;
+  text-transform: lowercase;
+  color: #000;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  img {
+    width: 14px;
+  }
+}
+

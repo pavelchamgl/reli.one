@@ -1,0 +1,53 @@
+.title {
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 130%;
+  color: #333;
+  margin-bottom: 14px;
+}
+
+.checkBoxDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 25px 0;
+  & > div {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    p {
+      font-weight: 400;
+      font-size: 18px;
+      line-height: 139%;
+      letter-spacing: -0.02em;
+      color: #000;
+    }
+  }
+  span {
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 139%;
+    letter-spacing: -0.02em;
+    color: #64748b;
+  }
+}
+
+.main {
+  max-width: 865px;
+  padding: 63px 35px 35px 97px;
+}
+
+.emptyDiv {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 733px;
+  height: calc(100vh - 272px);
+  p {
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 139%;
+    letter-spacing: -0.02em;
+    color: #000;
+  }
+}

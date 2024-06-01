@@ -1,0 +1,90 @@
+.main {
+  display: flex;
+  align-items: center;
+  gap: 90px;
+  height: 166px;
+  border-bottom: 1px solid #ced4d7;
+  border-top: 1px solid #ced4d7;
+  position: relative;
+}
+
+.img {
+  width: 120px;
+  height: 114px;
+}
+
+.imageTextWrap {
+  display: flex;
+  gap: 13px;
+}
+
+.textDiv {
+  h3 {
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 123%;
+    color: #000;
+  }
+  p {
+    font-weight: 300;
+    font-size: 13px;
+    line-height: 151%;
+    color: #000;
+  }
+}
+
+.countDiv {
+  padding: 5px 11px;
+  display: flex;
+  gap: 21px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #465060;
+
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 98%;
+  color: #465060;
+  button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.priceDiv {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  p {
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 98%;
+    color: #000;
+  }
+  span {
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 140%;
+    color: #64748b;
+    text-decoration: line-through;
+  }
+}
+
+.deleteLikeDiv {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 83px;
+  button {
+    background-color: transparent;
+  }
+}
+
+.cardChecked {
+  position: absolute;
+  top: 26px;
+}

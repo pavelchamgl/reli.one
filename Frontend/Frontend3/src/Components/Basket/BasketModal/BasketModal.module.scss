@@ -1,0 +1,62 @@
+.main {
+  border-radius: 2px;
+  width: 963px;
+  height: 408px;
+  max-width: auto !important;
+  padding: 44px 56px 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.title {
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 84%;
+  color: #333;
+}
+
+.buttonDiv {
+  display: flex;
+  align-items: center;
+  gap: 45px;
+  button {
+    padding: 7px 24px 7px 24px;
+    width: 230px;
+    height: 35px;
+    background: #3f7f6d;
+    font-weight: 500;
+    font-size: 18px;
+    text-transform: lowercase;
+    text-align: center;
+    color: #fff;
+  }
+  a {
+    font-weight: 500;
+    font-size: 18px;
+    text-transform: lowercase;
+    text-align: center;
+    color: #3f7f6d;
+    text-decoration: none;
+  }
+}
+
+.cardAndButtonWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 23px;
+}
+
+.closeBtn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background-color: transparent;
+  img {
+    width: 20px;
+  }
+}

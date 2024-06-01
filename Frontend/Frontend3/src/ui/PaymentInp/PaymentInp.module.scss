@@ -1,0 +1,22 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  span {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 143%;
+    letter-spacing: -0.02em;
+    color: #828b8d;
+  }
+  input {
+    background: #fff;
+    border: 1px solid #ced4d7;
+    height: 46px;
+    outline: none;
+    padding-left: 14px;
+    font-weight: 400;
+    font-size: 14px;
+    color: #787778;
+  }
+}

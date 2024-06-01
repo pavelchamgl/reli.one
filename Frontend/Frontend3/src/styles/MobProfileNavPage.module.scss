@@ -1,0 +1,174 @@
+.main {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 62px 27px;
+  @media (max-width: 350px) {
+    padding: 32px 15px 62px;
+    justify-content: stretch;
+  }
+}
+
+.logOutWrap {
+  @media (max-width: 400px) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 284px;
+  }
+}
+
+.title {
+  font-weight: 500;
+  font-size: 28px;
+  line-height: 86%;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  text-align: center;
+  color: #000;
+  margin-bottom: 44px;
+}
+
+.name {
+  font-weight: 400;
+  font-size: 20px;
+  color: #191d23;
+  text-align: left;
+  padding-left: 12px;
+  margin-bottom: 23px;
+}
+
+.navBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  &:hover {
+    background: #e8eee7;
+  }
+  span {
+    font-weight: 400;
+    font-size: 16px;
+    color: #191d23;
+  }
+}
+
+.navSettingsBtn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: white;
+  border-radius: 4px;
+  div {
+    display: flex;
+    align-items: center;
+  }
+  &:hover {
+    background: #e8eee7;
+  }
+  span {
+    font-weight: 400;
+    font-size: 16px;
+    color: #191d23;
+    margin-left: 8px;
+  }
+  @media (max-width: 450px) {
+    width: 284px;
+  }
+}
+
+.settingsDiv {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: 24px;
+  border-left: 1px solid #d0d5dd;
+  gap: 8px;
+  transform: scaleY(1);
+  transition: transform 1s ease;
+  button {
+    text-align: left;
+    padding: 8px;
+    width: 207px;
+    height: 33px;
+    font-weight: 400;
+    font-size: 16px;
+    color: #191d23;
+    background-color: transparent;
+    @media (max-width: 450px) {
+      width: 240px;
+    }
+  }
+  button:hover {
+    background: #e8eee7;
+  }
+}
+.settingsHid {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-left: 24px;
+  border-left: 1px solid #d0d5dd;
+  gap: 8px;
+  transform: scaleY(0);
+  transition: transform 1s ease;
+  button {
+    text-align: left;
+    padding: 8px;
+    width: 207px;
+    height: 33px;
+    font-weight: 400;
+    font-size: 16px;
+    color: #191d23;
+    background-color: transparent;
+    @media (max-width: 400px) {
+        width: 284px;
+      }
+  }
+  button:hover {
+    background: #e8eee7;
+  }
+}
+
+.btnDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.logOutText {
+  margin-bottom: 23px;
+  text-align: left;
+  font-weight: 400;
+  font-size: 16px;
+  color: #191d23;
+}
+
+.logBtnDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  button {
+    border-radius: 2px;
+    padding: 14px 35px 14px 34px;
+    width: 98px;
+    height: 40px;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 100%;
+    letter-spacing: 0.2em;
+    text-transform: capitalize;
+    color: #fafafa;
+  }
+  button:first-child {
+    background: #d33300;
+  }
+  button:nth-child(2) {
+    background-color: #047857;
+  }
+}

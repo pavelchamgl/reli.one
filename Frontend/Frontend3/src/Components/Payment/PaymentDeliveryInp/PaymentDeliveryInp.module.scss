@@ -1,0 +1,44 @@
+.main {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 143%;
+  letter-spacing: -0.02em;
+  color: #252829;
+}
+
+.inpBtnDiv {
+  display: flex;
+  align-items: center;
+  input {
+    width: 100%;
+    border: 1px solid #ced4d7;
+    height: 46px;
+    font-weight: 400;
+    font-size: 14px;
+    color: black;
+    outline: none;
+    padding-left: 10px;
+  }
+  button {
+    background: #fff;
+    border: 1px solid #aaa;
+    padding: 14px 11px 14px 11px;
+    width: 94px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #787778;
+    &:hover {
+      background: #047857;
+      color: #fff;
+    }
+  }
+}

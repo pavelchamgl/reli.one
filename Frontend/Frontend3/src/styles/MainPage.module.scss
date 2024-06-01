@@ -1,0 +1,73 @@
+.categoryWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  margin-top: 100px;
+  margin-bottom: 80px;
+}
+
+.title {
+  font-weight: 500;
+  font-size: clamp(20px, 2.5vw, 36px);
+  line-height: 58%;
+  letter-spacing: -0.01em;
+  color: #000;
+}
+
+.categoryCardWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.productCardWrapMain {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  margin-bottom: 80px;
+}
+
+.productCardWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 26px;
+}
+
+@media only screen and (max-width: 1350px) {
+  /* Стили для экранов шириной 600px и меньше */
+  .categoryWrap {
+    margin-top: 60px;
+  }
+}
+
+@media only screen and (max-width: 1150px) {
+  /* Стили для экранов шириной 600px и меньше */
+  .categoryWrap {
+    margin-top: 40px;
+  }
+}
+
+@media only screen and (max-width: 950px) {
+  /* Стили для экранов шириной 600px и меньше */
+  .categoryWrap {
+    margin-top: 20px;
+    gap: 30px;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  /* Стили для экранов шириной 600px и меньше */
+  .categoryCardWrap {
+    gap: 8px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid #afafaf;
+  }
+  .categoryWrap {
+
+    margin-bottom: 40px;
+  }
+}

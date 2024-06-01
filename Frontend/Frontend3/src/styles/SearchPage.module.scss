@@ -1,0 +1,56 @@
+.main {
+  padding-top: 36px;
+  padding-bottom: 100px;
+  @media (max-width: 400px) {
+    padding-top: 21px;
+  }
+}
+
+.categoryDiv {
+  background-color: #ebebeb;
+  width: 246px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 13px;
+  font-weight: 500;
+  font-size: clamp(12px, 2.5vw, 18px);
+  line-height: 117%;
+  letter-spacing: -0.02em;
+  color: #5b5b5b;
+  margin-bottom: 11px;
+  @media (max-width: 600px) {
+    width: 206px;
+    height: 30px;
+    & img {
+      width: 12px;
+    }
+  }
+  @media (max-width: 400px) {
+    width: 166px;
+    height: 30px;
+  }
+}
+
+.title {
+  font-weight: 600;
+  font-size: clamp(20px, 2.5vw, 32px);
+  line-height: 89%;
+  letter-spacing: 0.01em;
+  text-transform: capitalize;
+  color: #111;
+  margin-bottom: 21px;
+}
+
+.productDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.paginateDiv {
+  margin-top: 35px;
+}

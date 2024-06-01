@@ -1,0 +1,48 @@
+.main {
+  height: 100%;
+  padding: 138px 109px 57px 39px;
+  display: flex;
+  gap: 70px;
+}
+
+.catalogItemWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.catalogTitle {
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 32px;
+  color: #000;
+}
+
+.categoryCardWrap {
+  display: flex;
+  // justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.categoryTextDiv {
+  margin-top: 55px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.categoryText {
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 117%;
+  letter-spacing: -0.02em;
+  color: #000;
+  transition: color 0.5s ease;
+  &:hover {
+    color: #f7cd56;
+  }
+}

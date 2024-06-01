@@ -1,0 +1,38 @@
+.prodNumber {
+  font-weight: 400;
+  font-size: clamp(12px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #888;
+  span {
+    font-weight: 500;
+    color: #000;
+  }
+}
+.main {
+  margin: 40px 0 100px;
+}
+
+.buttonDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  button {
+    background-color: transparent;
+    margin-bottom: 15px;
+  }
+}
+
+.delivTimeText {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #047857;
+}
+
+.timeTextWrap {
+  margin-top: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap-reverse;
+}

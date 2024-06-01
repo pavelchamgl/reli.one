@@ -1,0 +1,89 @@
+.main {
+  width: 360px;
+  height: 267px;
+  @media (max-width:450px) {
+    width: 286px;
+  }
+}
+
+.prodNumberDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.prodNumber {
+  font-weight: 400;
+  font-size: clamp(12px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #888;
+  span {
+    font-weight: 500;
+    color: #000;
+  }
+}
+
+.delivTimeText {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #047857;
+}
+
+.imageDiv {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid #ced4d7;
+  border-top: 1px solid #ced4d7;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  img {
+   
+    width: 120px;
+    height: 114px;
+    object-fit: cover;
+    @media (max-width:450px) {
+      width: 73px;
+      height: 69px;
+    }
+  }
+}
+
+.totalDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  p {
+    font-weight: 700;
+    font-size: clamp(14px, 2.5vw, 16px);
+    line-height: 150%;
+    letter-spacing: -0.06em;
+    color: #323232;
+  }
+  p:first-child {
+    font-weight: 500;
+    font-size: clamp(14px, 2.5vw, 16px);
+    line-height: 114%;
+    color: #323232;
+  }
+}
+
+.commentBtn {
+  width: 360px;
+  height: 40px;
+  border: 2px solid #000;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 187%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #000;
+  background-color: transparent;
+  @media (max-width:450px) {
+  width: 100%;
+    
+  }
+}

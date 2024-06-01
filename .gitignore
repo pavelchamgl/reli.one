@@ -1,7 +1,14 @@
+
 # It was in the project before me
 
 backend/static/
 Frontend/node_modules
+
+# backend/static/
+Frontend/Frontend1/node_modules
+Frontend/Frontend2/node_modules
+Frontend/Frontend3/node_modules
+
 Frontend/dist
 */__pycache__
 */migrations
@@ -169,3 +176,8 @@ cython_debug/
 .idea/
 
 #test
+=======
+backend
+Frontend/nginx/reli.crt
+Frontend/nginx/reli.key
+>>>>>>> ebeefe3 (first commit)
