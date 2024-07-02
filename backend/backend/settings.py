@@ -60,21 +60,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     'rest_framework',
     'rest_framework.authtoken',
     'django_filters',
     'drf_spectacular',
     'cloudinary',
+    'corsheaders',
 
-    'chipBasket',
+    'accounts',
     'order',
     'product',
     'reviews',
-    'authemail',
-    'account',
     'promocode',
     'payment',
-    'corsheaders',
     'contactform',
     'news',
     'vacancies',
@@ -82,7 +81,7 @@ INSTALLED_APPS = [
 ]
 PAYPAL_RECEIVER_EMAIL = 'novapiple228@gmail.com'
 
-AUTH_USER_MODEL = 'account.User'
+AUTH_USER_MODEL = "accounts.CustomUser"
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
