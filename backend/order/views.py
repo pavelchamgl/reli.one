@@ -1,9 +1,9 @@
 from rest_framework import generics
-from .models import OrderItem
+from .models import Order
 from .serializers import OrderItemSerializer
 
 
 class OrderItemListCreateView(generics.ListAPIView):
-    queryset = OrderItem.objects.all()
+    queryset = Order.objects.all()
     serializer_class = OrderItemSerializer
 

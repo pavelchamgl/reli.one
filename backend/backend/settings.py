@@ -202,3 +202,41 @@ REDIRECT_DOMAIN = 'http://localhost:8000'
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+PAYPAL_CLIENT_ID = 'AXEZG1puHKBW5ccFE7PYG8Xet2eWZULwKhGIIZ8C7PExHNO2QiHyLQbCO7fOcAEcHCIjrm9a5NCDz_e6'
+PAYPAL_CLIENT_SECRET = 'EPSaetqnRDsodizl9GBdAdUV9Q8JVnfncIPU7n-fh3tgXj_wum4952OhLPhFmicDYZOOiXOTdSzu40bn'
+PAYPAL_WEBHOOK_ID = '0G956522WE998125E'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'paypal_webhook.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'payment': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
