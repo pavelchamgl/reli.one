@@ -1,7 +1,7 @@
 from django.db import models
 
 from promocode.models import PromoCode
-from account.models import User
+from accounts.models import CustomUser
 from product.models import BaseProduct
 
 
@@ -31,7 +31,7 @@ class SelfPickupStatus(models.Model):
 
 
 class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     order_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.IntegerField()
     promo_code = models.ForeignKey(PromoCode, on_delete=models.SET_NULL, null=True, blank=True)

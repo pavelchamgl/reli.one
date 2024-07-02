@@ -17,7 +17,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import api_view, permission_classes
 
-from account.models import User
+from accounts.models import CustomUser
 from product.models import BaseProduct
 from order.models import DeliveryType
 from promocode.models import PromoCode
@@ -144,7 +144,7 @@ def stripe_webhook(request):
         total_amount = int(session['amount_total'] / 100)
 
         delivery_type = DeliveryType.objects.get(id=delivery_type_id)
-        user = User.objects.get(id=user_id)
+        user = CustomUser.objects.get(id=user_id)
 
         order = Order.objects.create(
             user=user,
@@ -308,7 +308,7 @@ class PayPalWebhookView(APIView):
         logger.debug(f"Decoded custom_id data: {custom_data}")
 
         try:
-            user = User.objects.get(id=user_id)
+            user = CustomUser.objects.get(id=user_id)
             if delivery_type:
                 delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
             else:
@@ -335,7 +335,7 @@ class PayPalWebhookView(APIView):
             logger.info(f"Order {order.id} created successfully from webhook")
             return True
 
-        except User.DoesNotExist:
+        except CustomUser.DoesNotExist:
             logger.error(f"User with id {user_id} does not exist.")
             return False
 
