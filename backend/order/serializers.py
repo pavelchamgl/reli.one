@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import OrderItem, DeliveryType, OrderStatus, SelfPickupStatus
+from .models import Order, DeliveryType, OrderStatus, SelfPickupStatus
 
 
 class DeliveryTypeSerializer(serializers.ModelSerializer):
@@ -36,6 +36,6 @@ class OrderItemSerializer(serializers.ModelSerializer):
     self_pickup_status = SelfPickupStatusSerializer()
 
     class Meta:
-        model = OrderItem
+        model = Order
         fields = '__all__'
         depth = 2
