@@ -1,9 +1,11 @@
 from django.db import models
+
 from product.models import BaseProduct
-from account.models import User
+from accounts.models import CustomUser
+
 
 class Review(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
     rating = models.PositiveIntegerField(blank=True, null=True)
     product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='reviews')

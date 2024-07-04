@@ -51,7 +51,8 @@ class BaseProduct(models.Model):
     name = models.CharField(max_length=100)
     product_description = models.TextField()
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
-    price = models.IntegerField()
+    price = models.PositiveIntegerField()
+    supplier = models.CharField(max_length=150)
 
     def __str__(self):
         return self.name
