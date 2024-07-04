@@ -1,8 +1,8 @@
 from django.contrib import admin
-from .models import OrderItem, DeliveryType, OrderStatus, SelfPickupStatus
+from .models import Order, OrderProduct, DeliveryType, OrderStatus, SelfPickupStatus
 
 
-class OrderItemAdmin(admin.ModelAdmin):
+class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'total_amount', 'order_date', 'delivery_type', 'order_status', 'self_pickup_status')
     list_filter = ('delivery_type', 'order_status', 'self_pickup_status')
 
@@ -33,7 +33,8 @@ class OrderItemAdmin(admin.ModelAdmin):
     cancel_orders.short_description = 'Cancel selected orders'
 
 
-admin.site.register(OrderItem, OrderItemAdmin)
+admin.site.register(Order, OrderAdmin)
+admin.site.register(OrderProduct)
 admin.site.register(DeliveryType)
 admin.site.register(OrderStatus)
 admin.site.register(SelfPickupStatus)
