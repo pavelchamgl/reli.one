@@ -1,0 +1,55 @@
+{% load custom_filters %}
+<html>
+<head>
+    <title>Отчет по поставщику</title>
+</head>
+<body>
+    <h1>{{ subtitle }}</h1>
+    <form method="get" action="/reports/report/">
+        <label for="supplier">Поставщик:</label>
+        <select name="supplier_id" id="supplier">
+            {% for supplier in suppliers %}
+                <option value="{{ supplier.id }}" {% if supplier.id == supplier_id %}selected{% endif %}>{{ supplier.name }}</option>
+            {% endfor %}
+        </select>
+        {% if supplier_name %}
+            <span> ({{ supplier_name }})</span>
+        {% endif %}
+        <label for="from_date">От:</label>
+        <input type="date" name="from_date" id="from_date" value="{{ from_date }}">
+        <label for="to_date">По:</label>
+        <input type="date" name="to_date" id="to_date" value="{{ to_date }}">
+        <button type="submit">Создать отчет</button>
+    </form>
+    <h2>Результаты:</h2>
+    <p>Сумма всех проданных товаров: {{ total_sold }}</p>
+    <p>Сумма всех доставок: {{ total_delivery }}</p>
+    <p>Общая сумма долга поставщику: {{ total_debt }}</p>
+    <p>Сумма долга поставщику за вычетом суммы доставки: {{ total_debt_minus_delivery }}</p>
+    <p>Наша прибыль: {{ profit }}</p>
+    <p>Общее количество проданных товаров: {{ total_quantity }}</p>
+    <h2>Список проданных товаров:</h2>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>Название товара</th>
+                <th>Количество</th>
+                <th>Цена за единицу</th>
+                <th>Сумма</th>
+                <th>Дата получения</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in sold_products %}
+                <tr>
+                    <td>{{ product.product.name }}</td>
+                    <td>{{ product.quantity }}</td>
+                    <td>{{ product.product_price }}</td>
+                    <td>{{ product.quantity|multiply:product.product_price|floatformat:"2" }}</td>
+                    <td>{{ product.received_at }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

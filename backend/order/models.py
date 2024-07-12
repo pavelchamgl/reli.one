@@ -1,10 +1,18 @@
+import uuid
+from datetime import datetime
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 
-from promocode.models import PromoCode
-from accounts.models import CustomUser
+from supplier.models import Supplier
 from product.models import BaseProduct
 
 
+# Функция для генерации уникального номера заказа в формате ддммггччммсс + первые шесть символов из UUID
+def generate_order_number():
+    return datetime.now().strftime("%d%m%y%H%M%S") + str(uuid.uuid4().hex[:6])
+
+
+# Тип доставки: Courier или Self Pickup(самовывоз)(Enum)
 class DeliveryType(models.Model):
     name = models.CharField(max_length=50)
 
@@ -12,6 +20,7 @@ class DeliveryType(models.Model):
         return self.name
 
 
+# Статус заказа: Pending, Processing, Shipped, Delivered, Cancelled (Enum)
 class OrderStatus(models.Model):
     name = models.CharField(max_length=50)
 
@@ -23,6 +32,7 @@ class OrderStatus(models.Model):
         return self.name
 
 
+# Статус доставки самовывозом Assembling, On the Way, Sorting Center, Pickup Point (Enum)
 class SelfPickupStatus(models.Model):
     name = models.CharField(max_length=50)
 
@@ -30,29 +40,50 @@ class SelfPickupStatus(models.Model):
         return self.name
 
 
+class CourierService(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Order(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    order_number = models.CharField(max_length=50, unique=True, default=generate_order_number)
+    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    customer_email = models.EmailField()
     order_date = models.DateTimeField(auto_now_add=True)
-    total_amount = models.IntegerField()
-    promo_code = models.ForeignKey(PromoCode, on_delete=models.SET_NULL, null=True, blank=True)
-    delivery_type = models.ForeignKey(DeliveryType, on_delete=models.SET_NULL, null=True)
-    order_status = models.ForeignKey(OrderStatus, on_delete=models.SET_NULL, null=True, blank=True)
-    self_pickup_status = models.ForeignKey(SelfPickupStatus, on_delete=models.SET_NULL, null=True, blank=True)
+    total_amount = models.PositiveIntegerField()
+    promo_code = models.ForeignKey('promocode.PromoCode', on_delete=models.SET_NULL, null=True, blank=True)
+    delivery_type = models.ForeignKey('DeliveryType', on_delete=models.SET_NULL, null=True)
+    order_status = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)
+    self_pickup_status = models.ForeignKey('SelfPickupStatus', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_address = models.CharField(max_length=255, null=True, blank=True)
-    phone = models.CharField(max_length=20, null=True, blank=True)
+    phone_number = PhoneNumberField(blank=True, null=True)
+    delivery_cost = models.PositiveIntegerField(default=0)
+    refund_amount = models.PositiveIntegerField(default=0)
+    courier_service = models.ForeignKey(CourierService, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Order'
         verbose_name_plural = 'Orders'
 
     def __str__(self):
-        return f"{self.pk} {self.user} {self.total_amount} {self.order_date} "
+        return f"{self.pk} {self.user} {self.total_amount} {self.order_date}"
+
+    def calculate_refund(self):
+        refund_amount = sum(item.product_price * item.quantity for item in self.order_products.all() if not item.received)
+        return refund_amount
 
 
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, related_name='order_products', on_delete=models.CASCADE)
     product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    received = models.BooleanField(default=False)
+    delivery_cost = models.PositiveIntegerField(default=0)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    product_price = models.PositiveIntegerField(default=0)
+    received_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Order product'
@@ -60,3 +91,18 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return f"{self.quantity} of {self.product.name} in order {self.order.pk}"
+
+    def save(self, *args, **kwargs):
+        if not self.pk:  # if new instance
+            self.previous_received = self.received
+        else:
+            previous_instance = OrderProduct.objects.get(pk=self.pk)
+            self.previous_received = previous_instance.received
+
+        if self.received != self.previous_received:
+            if not self.received:
+                self.received_at = None
+            elif self.received:
+                self.received_at = datetime.now()
+
+        super().save(*args, **kwargs)

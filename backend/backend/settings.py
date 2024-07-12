@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     'news',
     'vacancies',
     'favorites',
+    'supplier',
+    'reports',
 ]
 PAYPAL_RECEIVER_EMAIL = 'novapiple228@gmail.com'
 
@@ -89,7 +91,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'account/templates'),
+            os.path.join(BASE_DIR, 'templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {

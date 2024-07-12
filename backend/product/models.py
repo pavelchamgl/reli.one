@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 
+from supplier.models import Supplier
+
 
 class ParameterName(models.Model):
     name = models.CharField(max_length=100)
@@ -27,6 +29,12 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_root_category(self):
+        category = self
+        while category.parent is not None:
+            category = category.parent
+        return category
 
 
 class BaseProductImage(models.Model):
@@ -52,7 +60,7 @@ class BaseProduct(models.Model):
     product_description = models.TextField()
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
     price = models.PositiveIntegerField()
-    supplier = models.CharField(max_length=150)
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)  # Используем новую модель
 
     def __str__(self):
         return self.name

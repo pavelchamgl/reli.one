@@ -6,24 +6,27 @@ import stripe
 import logging
 import requests
 
-from django.conf import settings
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
+from django.conf import settings
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import ValidationError
-from rest_framework.decorators import api_view, permission_classes
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
+from .models import Payment
 from accounts.models import CustomUser
 from product.models import BaseProduct
 from order.models import DeliveryType
 from promocode.models import PromoCode
 from order.models import (
+    CourierService,
     Order,
     OrderProduct,
+    OrderStatus,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -31,7 +34,7 @@ clientID = os.environ.get("clientID")
 clientSecret = os.environ.get("clientSecret")
 
 stripe.api_key = "sk_test_51PNHLUFu0ltlaoJ6ODoNdt5MnlHG2HgbYBw2WfGSkPHPG6pDW5hS6u2mwougay1gp2H4Db3RiXFwQvtJ9csf3gKH00ZXistMnN"
-endpoint_secret = "whsec_5e2fbe344a3d42d347585d8c6ead0e6754b08f03fed825bc778d31f12e145caf"
+endpoint_secret = "whsec_A29lEPmZrtSuwrwQdGJuF8P3JYrytZy6"
 
 logger = logging.getLogger(__name__)
 
@@ -59,114 +62,213 @@ def apply_promo_code(promo_code, basket_items):
         raise ValidationError("Invalid promo code.")
 
 
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_checkout_session(request):
-    promocode = request.data.get("promocode")
-    delivery_type = request.data.get("delivery_type")
-    delivery_address = request.data.get("delivery_address")
-    phone = request.data.get("phone")
-    products = request.data.get("products")
+class CreateStripeCheckoutSession(APIView):
+    permission_classes = [AllowAny]
 
-    products_json = json.dumps(products)
+    def post(self, request, *args, **kwargs):
+        customer_email = request.data.get("customer_email")
+        promocode = request.data.get("promocode")
+        delivery_type = request.data.get("delivery_type")
+        delivery_address = request.data.get("delivery_address")
+        phone = request.data.get("phone")
+        delivery_cost = request.data.get("delivery_cost", 0)
+        courier_service_name = request.data.get("courier_service_name")
+        products = request.data.get("products")
 
-    line_items = []
-    total_price = 0
+        try:
+            delivery_cost = float(delivery_cost)
+        except ValueError:
+            delivery_cost = 0
 
-    for item in products:
-        product_id = item['product_id']
-        quantity = item['quantity']
-        product = BaseProduct.objects.get(id=product_id)
+        logger.debug(f"Delivery cost: {delivery_cost}")
 
-        price = product.price
-        currency = 'CZK'
+        products_json = json.dumps(products)
+        line_items = []
+        total_price = delivery_cost
 
-        if promocode:
-            promo_code = PromoCode.objects.filter(code=promocode).first()
-            if promo_code and promo_code.is_valid():
-                price = price - (price * promo_code.discount_percentage / 100)
-
-        line_items.append({
-            'price_data': {
-                'currency': currency,
-                'unit_amount': int(price * 100),
-                'product_data': {
-                    'name': product.name,
-                }
-            },
-            'quantity': quantity,
-        })
-        total_price += price * quantity
-
-    session = stripe.checkout.Session.create(
-        payment_method_types=['card'],
-        line_items=line_items,
-        mode='payment',
-        success_url=settings.REDIRECT_DOMAIN + '/payment/success?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url=settings.REDIRECT_DOMAIN + '/payment/cancel',
-        metadata={
-            'user_id': 1, #request.user.id,
-            'promo_code': promocode,
-            'delivery_type': delivery_type,
-            'delivery_address': delivery_address,
-            'phone': phone,
-            'products': products_json,
-        }
-    )
-
-    return Response({'url': session.url}, status=status.HTTP_200_OK)
-
-
-@csrf_exempt
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def stripe_webhook(request):
-    payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    except stripe.error.SignatureVerificationError as e:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        user_id = session['metadata']['user_id']
-        customer_email = session['customer_details']['email']
-        delivery_type_id = session['metadata']['delivery_type']
-        delivery_address = session['metadata'].get('delivery_address', None)
-        phone = session['metadata']['phone']
-        products = json.loads(session['metadata']['products'])
-        total_amount = int(session['amount_total'] / 100)
-
-        delivery_type = DeliveryType.objects.get(id=delivery_type_id)
-        user = CustomUser.objects.get(id=user_id)
-
-        order = Order.objects.create(
-            user=user,
-            delivery_type=delivery_type,
-            delivery_address=delivery_address,
-            phone=phone,
-            total_amount=total_amount,
-        )
-        order.save()
+        logger.debug(f"Initial total price including delivery cost: {total_price}")
 
         for item in products:
             product_id = item['product_id']
             quantity = item['quantity']
-            product = BaseProduct.objects.get(id=product_id)
 
-            OrderProduct.objects.create(
-                order=order,
-                product=product,
-                quantity=quantity,
+            try:
+                product = BaseProduct.objects.get(id=product_id)
+            except BaseProduct.DoesNotExist:
+                logger.error(f"Product with id {product_id} does not exist.")
+                return Response({"error": f"Product with id {product_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            price = product.price
+            currency = 'CZK'
+
+            if promocode:
+                promo_code = PromoCode.objects.filter(code=promocode).first()
+                if promo_code and promo_code.is_valid():
+                    price = price - (price * promo_code.discount_percentage / 100)
+
+            line_items.append({
+                'price_data': {
+                    'currency': currency,
+                    'unit_amount': int(price * 100),
+                    'product_data': {
+                        'name': product.name,
+                    }
+                },
+                'quantity': quantity,
+            })
+            total_price += price * quantity
+
+            logger.debug(f"Updated total price after adding product {product_id}: {total_price}")
+
+        if delivery_cost > 0:
+            line_items.append({
+                'price_data': {
+                    'currency': 'CZK',
+                    'unit_amount': int(delivery_cost * 100),
+                    'product_data': {
+                        'name': 'Delivery Cost',
+                    }
+                },
+                'quantity': 1,
+            })
+
+        logger.debug(f"Final total price including delivery cost: {total_price}")
+
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=line_items,
+            mode='payment',
+            success_url=settings.REDIRECT_DOMAIN + '/payment/success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=settings.REDIRECT_DOMAIN + '/payment/cancel',
+            metadata={
+                'user_id': 1,  # request.user.id,
+                'customer_email': customer_email,
+                'promo_code': promocode,
+                'delivery_type': delivery_type,
+                'delivery_address': delivery_address,
+                'delivery_cost': delivery_cost,
+                'courier_service_name': courier_service_name,
+                'phone': phone,
+                'products': products_json,
+            }
+        )
+
+        return Response({'url': session.url}, status=status.HTTP_200_OK)
+
+
+class StripeWebhookHandler(APIView):
+    permission_classes = [AllowAny]
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
+        logger.debug(f"Payload: {payload}")
+        logger.debug(f"Signature Header: {sig_header}")
+
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, endpoint_secret
             )
+        except ValueError as e:
+            logger.error(f"Invalid payload: {e}")
+            return Response(status=400)
+        except stripe.error.SignatureVerificationError as e:
+            logger.error(f"Signature verification failed: {e}")
+            return Response(status=400)
 
-    return Response(status=status.HTTP_200_OK)
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            user_id = session['metadata']['user_id']
+            customer_email = session['customer_details']['email']
+            delivery_type_id = session['metadata']['delivery_type']
+            delivery_address = session['metadata'].get('delivery_address', None)
+            delivery_cost = float(session['metadata']['delivery_cost'])
+            phone = session['metadata']['phone']
+            products = json.loads(session['metadata']['products'])
+            total_amount = int(session['amount_total'] / 100)
+            courier_service_name = session['metadata']['courier_service_name']
+            customer_id = session.get('customer')
+
+            try:
+                delivery_type = DeliveryType.objects.get(id=delivery_type_id)
+                user = CustomUser.objects.get(id=1)
+
+                if not CourierService.objects.filter(id=courier_service_name).exists():
+                    logger.error(f"Courier service with id {courier_service_name} does not exist.")
+                    return Response({"error": f"Courier service with id {courier_service_name} not found"}, status=status.HTTP_404_NOT_FOUND)
+
+                courier_service = CourierService.objects.get(id=courier_service_name)
+
+                try:
+                    order_status = OrderStatus.objects.get(name="Pending")
+                except OrderStatus.DoesNotExist:
+                    logger.error("Order status 'Pending' does not exist.")
+                    return Response({"error": "Order status 'Pending' not found"}, status=status.HTTP_404_NOT_FOUND)
+
+                order = Order.objects.create(
+                    user=user,
+                    customer_email=customer_email,
+                    delivery_type=delivery_type,
+                    delivery_address=delivery_address,
+                    delivery_cost=delivery_cost,
+                    order_status=order_status,
+                    phone_number=phone,
+                    total_amount=total_amount,
+                    courier_service=courier_service,
+                )
+
+                total_product_cost = sum(item['quantity'] * BaseProduct.objects.get(id=item['product_id']).price for item in products)
+                rounded_delivery_costs = []
+                total_rounded_delivery_cost = 0
+
+                for item in products:
+                    product_id = item['product_id']
+                    quantity = item['quantity']
+                    product = BaseProduct.objects.get(id=product_id)
+
+                    product_total_cost = quantity * product.price
+                    product_delivery_cost = round((product_total_cost / total_product_cost) * delivery_cost)
+                    rounded_delivery_costs.append((product, quantity, product_delivery_cost, product.price))
+                    total_rounded_delivery_cost += product_delivery_cost
+
+                difference = delivery_cost - total_rounded_delivery_cost
+                if rounded_delivery_costs:
+                    last_product, last_quantity, last_cost, last_price = rounded_delivery_costs[-1]
+                    rounded_delivery_costs[-1] = (last_product, last_quantity, last_cost + difference, last_price)
+
+                for product, quantity, delivery_cost, product_price in rounded_delivery_costs:
+                    OrderProduct.objects.create(
+                        order=order,
+                        product=product,
+                        quantity=quantity,
+                        delivery_cost=delivery_cost,
+                        supplier=product.supplier,
+                        product_price=product_price
+                    )
+
+                Payment.objects.create(
+                    order=order,
+                    payment_system='stripe',
+                    session_id=session['id'],
+                    customer_id=customer_id,
+                    payment_intent_id=session['payment_intent'],
+                    payment_method=session['payment_method_types'][0],
+                    amount_total=total_amount,
+                    currency=session['currency'].upper(),
+                    customer_email=customer_email,
+                )
+
+            except Exception as e:
+                logger.error(f"Error processing order: {e}")
+                return Response(status=500)
+        else:
+            logger.warning(f"Unhandled event type {event['type']}")
+
+        return Response(status=200)
 
 
 class CreatePayPalPaymentView(APIView):
