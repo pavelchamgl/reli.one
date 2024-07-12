@@ -1,26 +1,38 @@
 from decimal import Decimal
 from datetime import datetime
 from django.shortcuts import render
-from django.db.models import Sum, F
+from django.db.models import Sum, F, DecimalField
 
 from supplier.models import Supplier
 from order.models import OrderProduct, Order
 
 
-def get_profit_percentage(category_name):
-    categories_profit_percentage = {
-        "Electronics": 0.08,
-        "Children's goods": 0.10,
-        "Luggage": 0.15,
-        "Beauty and Health": 0.15,
-        "Clothes and shoes": 0.11,
-        "Furniture": 0.12,
-        "House and garden": 0.15,
-        "Office Supplies": 0.15,
-        "Pet Products": 0.15,
-        "Sport and relaxation": 0.15,
-    }
-    return categories_profit_percentage.get(category_name, 0.0)
+def get_profit_percentage(category_name, product_price):
+    if category_name == "Jewelery":
+        if product_price < Decimal('230.00'):
+            return Decimal('0.16')
+        else:
+            return Decimal('0.05')
+    elif category_name == "Watches":
+        if product_price < Decimal('1400.00'):
+            return Decimal('0.16')
+        else:
+            return Decimal('0.05')
+    else:
+        categories_profit_percentage = {
+            "Electronics": Decimal('0.08'),
+            "Children's goods": Decimal('0.10'),
+            "Luggage": Decimal('0.15'),
+            "Beauty and Health": Decimal('0.15'),
+            "Clothes and shoes": Decimal('0.11'),
+            "Furniture": Decimal('0.12'),
+            "House and garden": Decimal('0.15'),
+            "Office Supplies": Decimal('0.15'),
+            "Pet Products": Decimal('0.15'),
+            "Sport and relaxation": Decimal('0.15'),
+            "Toys/games": Decimal('0.15'),
+        }
+        return categories_profit_percentage.get(category_name, Decimal('0.00'))
 
 
 def generate_report(request):
@@ -44,7 +56,9 @@ def generate_report(request):
         )
 
         # Сумма всех проданных товаров
-        total_sold = order_products.aggregate(total=Sum(F('product_price') * F('quantity')))['total'] or Decimal('0.00')
+        total_sold = order_products.aggregate(
+            total=Sum(F('product_price') * F('quantity'), output_field=DecimalField())
+        )['total'] or Decimal('0.00')
 
         # Фильтруем заказы по дате и статусу "Closed"
         closed_orders = Order.objects.filter(
@@ -56,18 +70,27 @@ def generate_report(request):
         total_delivery = OrderProduct.objects.filter(
             order__in=closed_orders,
             supplier_id=supplier_id
-        ).aggregate(total=Sum('delivery_cost'))['total'] or Decimal('0.00')
+        ).aggregate(total=Sum('delivery_cost', output_field=DecimalField()))['total'] or Decimal('0.00')
 
         total_quantity = order_products.aggregate(total=Sum('quantity'))['total'] or 0
 
         total_profit = Decimal('0.00')
         for order_product in order_products:
             root_category = order_product.product.category.get_root_category()
-            profit_percentage = Decimal(str(get_profit_percentage(root_category.name)))
+            profit_percentage = get_profit_percentage(root_category.name, order_product.product_price)
             total_profit += order_product.quantity * order_product.product_price * profit_percentage
 
         total_debt = total_sold - total_profit
-        total_debt_minus_delivery = total_debt + total_delivery
+        total_debt_minus_delivery = total_debt - total_delivery
+
+        # Вычисляем сумму для каждого продукта
+        sold_products_with_sum = [
+            {
+                'product': product,
+                'sum': product.quantity * product.product_price
+            }
+            for product in order_products
+        ]
 
         # Вывод отладочной информации
         print(f"Total sold: {total_sold}, Total delivery: {total_delivery}, Total profit: {total_profit}")
@@ -84,7 +107,7 @@ def generate_report(request):
             'total_debt_minus_delivery': total_debt_minus_delivery,
             'profit': total_profit,
             'total_quantity': total_quantity,
-            'sold_products': order_products,
+            'sold_products': sold_products_with_sum,
             'supplier_name': supplier_name,
         }
     else:
