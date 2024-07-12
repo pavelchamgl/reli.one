@@ -1,6 +1,8 @@
 from PIL import Image
+from decimal import Decimal
 from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 
@@ -59,8 +61,8 @@ class BaseProduct(models.Model):
     name = models.CharField(max_length=100)
     product_description = models.TextField()
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
-    price = models.PositiveIntegerField()
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)  # Используем новую модель
+    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name

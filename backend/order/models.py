@@ -1,6 +1,8 @@
 import uuid
+from decimal import Decimal
 from datetime import datetime
 from django.db import models
+from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
 from supplier.models import Supplier
@@ -52,15 +54,15 @@ class Order(models.Model):
     user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
     customer_email = models.EmailField()
     order_date = models.DateTimeField(auto_now_add=True)
-    total_amount = models.PositiveIntegerField()
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
     promo_code = models.ForeignKey('promocode.PromoCode', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_type = models.ForeignKey('DeliveryType', on_delete=models.SET_NULL, null=True)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)
     self_pickup_status = models.ForeignKey('SelfPickupStatus', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_address = models.CharField(max_length=255, null=True, blank=True)
     phone_number = PhoneNumberField(blank=True, null=True)
-    delivery_cost = models.PositiveIntegerField(default=0)
-    refund_amount = models.PositiveIntegerField(default=0)
+    delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
+    refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     courier_service = models.ForeignKey(CourierService, on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
@@ -71,7 +73,14 @@ class Order(models.Model):
         return f"{self.pk} {self.user} {self.total_amount} {self.order_date}"
 
     def calculate_refund(self):
-        refund_amount = sum(item.product_price * item.quantity for item in self.order_products.all() if not item.received)
+        # Начальная сумма возврата - это стоимость всех незабранных товаров
+        refund_amount = sum(
+            item.product_price * item.quantity for item in self.order_products.all() if not item.received)
+
+        # Если хотя бы один товар не получен, добавляем всю стоимость доставки
+        if self.order_products.filter(received=False).exists():
+            refund_amount += self.delivery_cost
+
         return refund_amount
 
 
@@ -80,9 +89,9 @@ class OrderProduct(models.Model):
     product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     received = models.BooleanField(default=False)
-    delivery_cost = models.PositiveIntegerField(default=0)
+    delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-    product_price = models.PositiveIntegerField(default=0)
+    product_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     received_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
