@@ -37,14 +37,14 @@
         "model": "order.deliverytype",
         "pk": 1,
         "fields": {
-            "name": "ПВЗ"
+            "name": "Delivery point"
         }
     },
     {
         "model": "order.deliverytype",
         "pk": 2,
         "fields": {
-            "name": "Курьер"
+            "name": "Courier"
         }
     },
     {

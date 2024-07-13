@@ -1,55 +1,56 @@
 {% load custom_filters %}
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Отчет по поставщику</title>
 </head>
 <body>
-    <h1>{{ subtitle }}</h1>
-    <form method="get" action="/reports/report/">
+    <h1>Отчет по поставщику</h1>
+    <form method="get">
         <label for="supplier">Поставщик:</label>
         <select name="supplier_id" id="supplier">
             {% for supplier in suppliers %}
                 <option value="{{ supplier.id }}" {% if supplier.id == supplier_id %}selected{% endif %}>{{ supplier.name }}</option>
             {% endfor %}
         </select>
-        {% if supplier_name %}
-            <span> ({{ supplier_name }})</span>
-        {% endif %}
-        <label for="from_date">От:</label>
-        <input type="date" name="from_date" id="from_date" value="{{ from_date }}">
-        <label for="to_date">По:</label>
-        <input type="date" name="to_date" id="to_date" value="{{ to_date }}">
+        От: <input type="date" name="from_date" value="{{ from_date }}">
+        По: <input type="date" name="to_date" value="{{ to_date }}">
         <button type="submit">Создать отчет</button>
     </form>
-    <h2>Результаты:</h2>
-    <p>Сумма всех проданных товаров: {{ total_sold }}</p>
-    <p>Сумма всех доставок: {{ total_delivery }}</p>
-    <p>Общая сумма долга поставщику: {{ total_debt }}</p>
-    <p>Сумма долга поставщику за вычетом суммы доставки: {{ total_debt_minus_delivery }}</p>
-    <p>Наша прибыль: {{ profit }}</p>
-    <p>Общее количество проданных товаров: {{ total_quantity }}</p>
-    <h2>Список проданных товаров:</h2>
-    <table border="1">
-        <thead>
-            <tr>
-                <th>Название товара</th>
-                <th>Количество</th>
-                <th>Цена за единицу</th>
-                <th>Сумма</th>
-                <th>Дата получения</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for product in sold_products %}
+
+    {% if supplier_id and from_date and to_date %}
+        <h2>Результаты:</h2>
+        <p>Сумма всех проданных товаров: {{ total_sold|floatformat:2 }}</p>
+        <p>Сумма всех доставок: {{ total_delivery|floatformat:2 }}</p>
+        <p>Общая сумма долга поставщику: {{ total_debt|floatformat:2 }}</p>
+        <p>Сумма долга поставщику за вычетом суммы доставки: {{ total_debt_minus_delivery|floatformat:2 }}</p>
+        <p>Наша прибыль: {{ profit|floatformat:2 }}</p>
+        <p>Общее количество проданных товаров: {{ total_quantity }}</p>
+
+        <h2>Список проданных товаров:</h2>
+        <table border="1">
+            <thead>
                 <tr>
-                    <td>{{ product.product.name }}</td>
-                    <td>{{ product.quantity }}</td>
-                    <td>{{ product.product_price }}</td>
-                    <td>{{ product.quantity|multiply:product.product_price|floatformat:"2" }}</td>
-                    <td>{{ product.received_at }}</td>
+                    <th>Название товара</th>
+                    <th>Количество</th>
+                    <th>Цена за единицу</th>
+                    <th>Сумма</th>
+                    <th>Дата получения</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% for product in sold_products %}
+                    <tr>
+                        <td>{{ product.product.product.name }}</td>
+                        <td>{{ product.product.quantity }}</td>
+                        <td>{{ product.product.product_price|floatformat:2 }}</td>
+                        <td>{{ product.sum|floatformat:2 }}</td>
+                        <td>{{ product.product.received_at|date:"d F Y г. H:i" }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 </body>
 </html>
