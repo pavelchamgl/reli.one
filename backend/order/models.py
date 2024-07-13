@@ -11,7 +11,7 @@ from product.models import BaseProduct
 
 # Функция для генерации уникального номера заказа в формате ддммггччммсс + первые шесть символов из UUID
 def generate_order_number():
-    return datetime.now().strftime("%d%m%y%H%M%S") + str(uuid.uuid4().hex[:6])
+    return datetime.now().strftime("%d%m%y%H%M%S") + "-" + str(uuid.uuid4().hex[:6])
 
 
 # Тип доставки: Courier или Self Pickup(самовывоз)(Enum)
