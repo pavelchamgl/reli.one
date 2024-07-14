@@ -6,6 +6,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Review
+from .pagination import ReviewResultsSetPagination
 from .permissions import CanCreateReview
 from .serializers import ReviewSerializer, ReviewCreateSerializer
 from product.models import BaseProduct
@@ -30,7 +31,7 @@ from product.models import BaseProduct
 class ProductReviewListAPIView(generics.ListAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
-    pagination_class = PageNumberPagination
+    pagination_class = ReviewResultsSetPagination
     pagination_class.page_size = 5
 
     def get_queryset(self):
