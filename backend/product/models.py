@@ -2,7 +2,7 @@ from PIL import Image
 from decimal import Decimal
 from django.db import models
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 
@@ -30,7 +30,7 @@ class Category(models.Model):
     image = models.ImageField(upload_to='category_images/', null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f"PK: {self.pk} - {self.name}"
 
     def get_root_category(self):
         category = self
@@ -63,6 +63,13 @@ class BaseProduct(models.Model):
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
     price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    rating = models.DecimalField(
+        max_digits=2,
+        decimal_places=1,
+        default=Decimal('0.0'),
+        validators=[MinValueValidator(Decimal('1.0')), MaxValueValidator(Decimal('5.0'))]
+    )
+    total_reviews = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
