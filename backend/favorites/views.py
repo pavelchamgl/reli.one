@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Favorite
 from product.models import BaseProduct
-from product.serializers import BaseProductSerializer
+from product.serializers import BaseProductListSerializer
 
 
 class ToggleFavoriteAPIView(APIView):
@@ -57,7 +57,7 @@ class FavoriteProductListAPIView(APIView):
                 required=False
             ),
         ],
-        responses={200: BaseProductSerializer(many=True)},
+        responses={200: BaseProductListSerializer(many=True)},
         tags=["Favorite"],
     )
     def get(self, request):
