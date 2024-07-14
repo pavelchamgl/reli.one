@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.11'
 
 services:
   postgres_db:
@@ -30,9 +30,10 @@ services:
     container_name: backend
     build:
       context: backend/
-    command: bash -c "python /app/manage.py makemigrations && python3 manage.py collectstatic --no-input && python /app/manage.py migrate --noinput && gunicorn backend.wsgi:application -w 4 -b 0.0.0.0:8081"
+    command: bash -c "python3 /app/manage.py makemigrations && python3 manage.py collectstatic --no-input && python3 /app/manage.py migrate --noinput && python3 manage.py loaddata fixtures/all_data.json && gunicorn backend.wsgi:application -w 4 -b 0.0.0.0:8081"
     volumes:
       - ./backend/:/app
+      - ./media:/app/media
     ports:
       - "8081:8081"
     depends_on:
