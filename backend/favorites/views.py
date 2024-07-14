@@ -43,7 +43,11 @@ class FavoriteProductListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        description="Retrieve all favorite products of the current authenticated user.",
+        description=(
+            "Retrieve all favorite products of the current authenticated user. "
+            "You can sort the products by popularity (based on average rating of reviews), "
+            "ascending price, or descending price."
+        ),
         parameters=[
             OpenApiParameter(
                 name='sort_by',
