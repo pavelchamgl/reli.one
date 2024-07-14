@@ -28,23 +28,23 @@ class RecursiveSerializer(serializers.Serializer):
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    image = serializers.SerializerMethodField()
-    children = RecursiveSerializer(many=True, read_only=True)
-
-    def get_image(self, obj):
-        if obj.image:
-            return f'https://reli.one{obj.image.url}'
-        else:
-            return "None"
+    children = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Category
-        fields = (
-            'id',
-            'name',
-            'image',
-            'children',
-        )
+        fields = ['id', 'name', 'parent', 'image_url', 'children']
+
+    def get_children(self, obj):
+        if obj.children.exists():
+            return CategorySerializer(obj.children.all(), many=True).data
+        return None
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image and request:
+            return request.build_absolute_uri(obj.image.url)
+        return None
 
 
 class LicenseFileSerializer(serializers.ModelSerializer):

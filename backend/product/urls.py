@@ -13,5 +13,5 @@ urlpatterns = [
     path('base-products/', BaseProductListCreateView.as_view()),
     path('value-storages/', ValueStorageListCreateView.as_view()),
     path('BaseProductListView/', BaseProductListView.as_view(), name='product-list'),
-    path('category/',CategoryListView.as_view(), name='category-list')
+    path('category/', CategoryListView.as_view(), name='category-list')
 ]
