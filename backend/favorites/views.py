@@ -72,5 +72,5 @@ class FavoriteProductListAPIView(APIView):
         elif sort_by == 'price_desc':
             favorite_products = favorite_products.order_by('-price')
 
-        serializer = BaseProductSerializer(favorite_products, many=True, context={'request': request})
+        serializer = BaseProductListSerializer(favorite_products, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
