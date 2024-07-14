@@ -19,7 +19,8 @@ class ToggleFavoriteAPIView(APIView):
             status.HTTP_200_OK: OpenApiResponse(description="Product removed from favorites."),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(description="Invalid data."),
             status.HTTP_404_NOT_FOUND: OpenApiResponse(description="Product not found."),
-        }
+        },
+        tags=["Favorite"],
     )
     def post(self, request, product_id):
         user = request.user
@@ -52,7 +53,8 @@ class FavoriteProductListAPIView(APIView):
                 required=False
             ),
         ],
-        responses={200: BaseProductSerializer(many=True)}
+        responses={200: BaseProductSerializer(many=True)},
+        tags=["Favorite"],
     )
     def get(self, request):
         user = request.user
