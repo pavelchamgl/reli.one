@@ -14,8 +14,8 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = False
 
 # Media files
-MEDIA_URL = '/base_product_images/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'base_product_images')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 
@@ -152,6 +152,7 @@ REST_FRAMEWORK = {
     'DATETIME_FORMAT': '%d.%m.%Y %H:%M',
     'DATE_FORMAT': '%d.%m.%Y',
     'TIME_FORMAT': '%H:%M',
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
 }
 
 MAX_UPLOAD_SIZE = 13 * 1024 * 1024  # 13 MB
@@ -197,7 +198,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 PAYPAL_CLIENT_ID = 'AXEZG1puHKBW5ccFE7PYG8Xet2eWZULwKhGIIZ8C7PExHNO2QiHyLQbCO7fOcAEcHCIjrm9a5NCDz_e6'
 PAYPAL_CLIENT_SECRET = 'EPSaetqnRDsodizl9GBdAdUV9Q8JVnfncIPU7n-fh3tgXj_wum4952OhLPhFmicDYZOOiXOTdSzu40bn'
-PAYPAL_WEBHOOK_ID = '0G956522WE998125E'
+PAYPAL_WEBHOOK_ID = '8HC977153F956964T'
 
 LOGGING = {
     'version': 1,

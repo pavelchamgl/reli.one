@@ -1,17 +1,14 @@
 from django.urls import path
 from .views import (
-    ParameterStorageListCreateView,
-    BaseProductListCreateView,
-    ValueStorageListCreateView,
-    BaseProductListView,
-    BaseProductRetrieveView, CategoryListView
+    SearchView,
+    CategoryBaseProductListView,
+    BaseProductDetailAPIView,
+    CategoryListView,
 )
 
 urlpatterns = [
-    path('parameter-storages/', ParameterStorageListCreateView.as_view()),
-    path('products/<int:pk>/', BaseProductRetrieveView.as_view(), name='baseproduct-detail'),
-    path('base-products/', BaseProductListCreateView.as_view()),
-    path('value-storages/', ValueStorageListCreateView.as_view()),
-    path('BaseProductListView/', BaseProductListView.as_view(), name='product-list'),
-    path('category/',CategoryListView.as_view(), name='category-list')
+    path('categories/<int:category_id>/', CategoryBaseProductListView.as_view(), name='category-products'),
+    path('<int:id>/', BaseProductDetailAPIView.as_view(), name='product-detail'),
+    path('search/', SearchView.as_view(), name='search'),
+    path('category/', CategoryListView.as_view(), name='category-list')
 ]

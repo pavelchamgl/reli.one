@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Favorite
 from product.models import BaseProduct
-from product.serializers import BaseProductSerializer
+from product.serializers import BaseProductListSerializer
 
 
 class ToggleFavoriteAPIView(APIView):
@@ -19,7 +19,8 @@ class ToggleFavoriteAPIView(APIView):
             status.HTTP_200_OK: OpenApiResponse(description="Product removed from favorites."),
             status.HTTP_400_BAD_REQUEST: OpenApiResponse(description="Invalid data."),
             status.HTTP_404_NOT_FOUND: OpenApiResponse(description="Product not found."),
-        }
+        },
+        tags=["Favorite"],
     )
     def post(self, request, product_id):
         user = request.user
@@ -42,7 +43,11 @@ class FavoriteProductListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        description="Retrieve all favorite products of the current authenticated user.",
+        description=(
+            "Retrieve all favorite products of the current authenticated user. "
+            "You can sort the products by popularity (based on average rating of reviews), "
+            "ascending price, or descending price."
+        ),
         parameters=[
             OpenApiParameter(
                 name='sort_by',
@@ -52,7 +57,8 @@ class FavoriteProductListAPIView(APIView):
                 required=False
             ),
         ],
-        responses={200: BaseProductSerializer(many=True)}
+        responses={200: BaseProductListSerializer(many=True)},
+        tags=["Favorite"],
     )
     def get(self, request):
         user = request.user
@@ -66,5 +72,5 @@ class FavoriteProductListAPIView(APIView):
         elif sort_by == 'price_desc':
             favorite_products = favorite_products.order_by('-price')
 
-        serializer = BaseProductSerializer(favorite_products, many=True, context={'request': request})
+        serializer = BaseProductListSerializer(favorite_products, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
