@@ -249,6 +249,33 @@
         }
     },
     {
+        "model": "product.category",
+        "pk": 12,
+        "fields": {
+            "name": "Toys/games",
+            "parent": null,
+            "image": ""
+        }
+    },
+        {
+        "model": "product.category",
+        "pk": 13,
+        "fields": {
+            "name": "Jewelery",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 14,
+        "fields": {
+            "name": "Watches",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
         "model": "product.baseproductimage",
         "pk": 1,
         "fields": {
