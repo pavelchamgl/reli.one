@@ -153,7 +153,6 @@ REST_FRAMEWORK = {
     'DATE_FORMAT': '%d.%m.%Y',
     'TIME_FORMAT': '%H:%M',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 5
 }
 
 MAX_UPLOAD_SIZE = 13 * 1024 * 1024  # 13 MB
