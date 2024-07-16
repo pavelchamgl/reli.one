@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Favorite
 from product.models import BaseProduct
 from product.serializers import BaseProductListSerializer
+from product.pagination import StandardResultsSetPagination
 
 
 class ToggleFavoriteAPIView(APIView):
@@ -41,6 +42,7 @@ class ToggleFavoriteAPIView(APIView):
 
 class FavoriteProductListAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
 
     @extend_schema(
         description=(
@@ -73,5 +75,9 @@ class FavoriteProductListAPIView(APIView):
             favorite_products = favorite_products.order_by('-product__price')
 
         products = [favorite.product for favorite in favorite_products]
-        serializer = BaseProductListSerializer(products, many=True, context={'request': request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        paginator = self.pagination_class()
+        paginated_products = paginator.paginate_queryset(products, request)
+
+        serializer = BaseProductListSerializer(paginated_products, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
