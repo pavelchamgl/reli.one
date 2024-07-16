@@ -63,14 +63,15 @@ class FavoriteProductListAPIView(APIView):
     def get(self, request):
         user = request.user
         sort_by = request.query_params.get('sort_by', None)
-        favorite_products = BaseProduct.objects.filter(favorite__user=user)
+        favorite_products = Favorite.objects.filter(user=user).order_by('-added_at')
 
         if sort_by == 'popular':
-            favorite_products = favorite_products.order_by('-reviews__rating')
+            favorite_products = favorite_products.order_by('-product__rating')
         elif sort_by == 'price_asc':
-            favorite_products = favorite_products.order_by('price')
+            favorite_products = favorite_products.order_by('product__price')
         elif sort_by == 'price_desc':
-            favorite_products = favorite_products.order_by('-price')
+            favorite_products = favorite_products.order_by('-product__price')
 
-        serializer = BaseProductListSerializer(favorite_products, many=True, context={'request': request})
+        products = [favorite.product for favorite in favorite_products]
+        serializer = BaseProductListSerializer(products, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
