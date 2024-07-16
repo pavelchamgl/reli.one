@@ -139,6 +139,7 @@ from .serializers import (
 )
 class SearchView(generics.ListAPIView):
     serializer_class = BaseProductListSerializer
+    pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     search_fields = [
         'name',
@@ -155,19 +156,24 @@ class SearchView(generics.ListAPIView):
         query = request.query_params.get('q', '')
 
         products = BaseProduct.objects.filter(
-            Q(name__icontains=query) | Q(product_description__icontains=query) |
-            Q(parameters__parameter__name__icontains=query) | Q(parameters__value__icontains=query) |
+            Q(name__icontains=query) |
+            Q(product_description__icontains=query) |
+            Q(parameters__parameter__name__icontains=query) |
+            Q(parameters__value__icontains=query) |
             Q(category__name__icontains=query)
         ).distinct()
         categories = Category.objects.filter(name__icontains=query)
 
-        product_serializer = BaseProductListSerializer(products, many=True, context={'request': request})
+        paginator = self.pagination_class()
+        paginated_products = paginator.paginate_queryset(products, request)
+
+        product_serializer = BaseProductListSerializer(paginated_products, many=True, context={'request': request})
         category_serializer = CategorySearchViewSerializer(categories, many=True)
 
-        return Response({
+        return paginator.get_paginated_response({
             'products': product_serializer.data,
             'categories': category_serializer.data
-        }, status=status.HTTP_200_OK)
+        })
 
 
 @extend_schema(
