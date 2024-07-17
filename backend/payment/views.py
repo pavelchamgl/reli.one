@@ -1,18 +1,15 @@
 import os
 import json
-import base64
 import stripe
 import logging
-import binascii
 import requests
 
 from decimal import Decimal
 from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse, OpenApiExample
+from drf_spectacular.utils import extend_schema,  OpenApiResponse, OpenApiExample
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import ValidationError
@@ -65,7 +62,7 @@ def apply_promo_code(promo_code, basket_items):
 
 
 class CreateStripeCheckoutSession(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         description="Creates a Stripe checkout session for product payment",
@@ -183,7 +180,7 @@ class CreateStripeCheckoutSession(APIView):
         tags=['Stripe']
     )
     def post(self, request, *args, **kwargs):
-        user_id = 1  # request.user.id
+        user_id = request.user.id
         email = request.data.get("email")
         promocode = request.data.get("promocode")
         delivery_type = request.data.get("delivery_type")
@@ -256,7 +253,7 @@ class CreateStripeCheckoutSession(APIView):
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
-            success_url=settings.REDIRECT_DOMAIN + '/payment/success',
+            success_url=settings.REDIRECT_DOMAIN + '/payment_end/',
             cancel_url=settings.REDIRECT_DOMAIN + '/payment/cancel',
             metadata={
                 'user_id': user_id,
@@ -323,7 +320,7 @@ class StripeWebhookHandler(APIView):
 
             try:
                 delivery_type = DeliveryType.objects.get(id=delivery_type_id)
-                user = CustomUser.objects.get(id=1)
+                user = CustomUser.objects.get(id=user_id)
 
                 if not CourierService.objects.filter(id=courier_service_name).exists():
                     logger.error(f"Courier service with id {courier_service_name} does not exist.")
@@ -403,10 +400,131 @@ class StripeWebhookHandler(APIView):
 
 
 class CreatePayPalPaymentView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        description="Creates a PayPal payment for product purchase",
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'email': {
+                        'type': 'string',
+                        'description': 'Email of the user making the purchase'
+                    },
+                    'promocode': {
+                        'type': 'string',
+                        'description': 'Promocode for a discount on the purchase'
+                    },
+                    'delivery_type': {
+                        'type': 'number',
+                        'description': 'Type of delivery, e.g., 1 - Delivery point, 2 - Courier',
+                        'example': 1
+                    },
+                    'delivery_address': {
+                        'type': 'string',
+                        'description': 'Delivery address'
+                    },
+                    'phone': {
+                        'type': 'string',
+                        'description': 'Contact phone number'
+                    },
+                    'delivery_cost': {
+                        'type': 'number',
+                        'description': 'Cost of delivery'
+                    },
+                    'courier_service_name': {
+                        'type': 'number',
+                        'description': 'ID of the courier service, e.g., 1 - PPL, 2 - GEIS, 3 - DPD',
+                        'example': 1
+                    },
+                    'products': {
+                        'type': 'array',
+                        'description': 'List of products to be purchased',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'product_id': {
+                                    'type': 'integer',
+                                    'description': 'ID of the product'
+                                },
+                                'quantity': {
+                                    'type': 'integer',
+                                    'description': 'Quantity of the product'
+                                }
+                            }
+                        }
+                    }
+                },
+                'example': {
+                    'email': 'user@example.com',
+                    'promocode': 'SUMMER2024',
+                    'delivery_type': 1,
+                    'delivery_address': '123 Main St, City, Country',
+                    'phone': '+1234567890',
+                    'delivery_cost': 10.50,
+                    'courier_service_name': 1,
+                    'products': [
+                        {'product_id': 1, 'quantity': 2},
+                        {'product_id': 2, 'quantity': 1}
+                    ]
+                }
+            }
+        },
+        responses={
+            200: OpenApiResponse(
+                description='Order ID and approval URL for the created PayPal payment',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'order_id': {'type': 'string', 'description': 'ID of the created PayPal order'},
+                        'approval_url': {'type': 'string', 'description': 'URL to approve the PayPal payment'}
+                    }
+                }
+            ),
+            404: OpenApiResponse(description='Product not found'),
+            400: OpenApiResponse(description='Invalid request data'),
+        },
+        examples=[
+            OpenApiExample(
+                name="CourierServiceExamples",
+                value=[
+                    {
+                        "pk": 1,
+                        "name": "PPL"
+                    },
+                    {
+                        "pk": 2,
+                        "name": "GEIS"
+                    },
+                    {
+                        "pk": 3,
+                        "name": "DPD"
+                    }
+                ],
+                request_only=True,
+                response_only=False,
+            ),
+            OpenApiExample(
+                name="DeliveryTypeExamples",
+                value=[
+                    {
+                        "pk": 1,
+                        "name": "Delivery point"
+                    },
+                    {
+                        "pk": 2,
+                        "name": "Courier"
+                    }
+                ],
+                request_only=True,
+                response_only=False,
+            ),
+        ],
+        tags=['PayPal']
+    )
     def post(self, request):
-        user_id = 1  # request.user.id
+        user_id = request.user.id
         email = request.data.get("email")
         promocode = request.data.get("promocode")
         delivery_type = request.data.get("delivery_type")
@@ -505,7 +623,7 @@ class CreatePayPalPaymentView(APIView):
                 }
             ],
             "application_context": {
-                "return_url": settings.REDIRECT_DOMAIN + '/payment/success',
+                "return_url": settings.REDIRECT_DOMAIN + '/payment_end/',
                 "cancel_url": settings.REDIRECT_DOMAIN + '/payment/cancel',
             }
         }
@@ -533,6 +651,213 @@ class CreatePayPalPaymentView(APIView):
         return response_data['access_token']
 
 
+@extend_schema(
+    description="Handles PayPal webhook events to create orders and payments in the system",
+    request={
+        'application/json': {
+            'type': 'object',
+            'properties': {
+                'id': {'type': 'string', 'description': 'Event ID'},
+                'event_version': {'type': 'string', 'description': 'Event version'},
+                'create_time': {'type': 'string', 'description': 'Event creation time'},
+                'resource_type': {'type': 'string', 'description': 'Resource type'},
+                'resource_version': {'type': 'string', 'description': 'Resource version'},
+                'event_type': {'type': 'string', 'description': 'Event type'},
+                'summary': {'type': 'string', 'description': 'Event summary'},
+                'resource': {
+                    'type': 'object',
+                    'properties': {
+                        'create_time': {'type': 'string', 'description': 'Resource creation time'},
+                        'purchase_units': {
+                            'type': 'array',
+                            'items': {
+                                'type': 'object',
+                                'properties': {
+                                    'reference_id': {'type': 'string', 'description': 'Reference ID'},
+                                    'amount': {
+                                        'type': 'object',
+                                        'properties': {
+                                            'currency_code': {'type': 'string', 'description': 'Currency code'},
+                                            'value': {'type': 'string', 'description': 'Amount value'},
+                                            'breakdown': {
+                                                'type': 'object',
+                                                'properties': {
+                                                    'item_total': {
+                                                        'type': 'object',
+                                                        'properties': {
+                                                            'currency_code': {'type': 'string', 'description': 'Currency code'},
+                                                            'value': {'type': 'string', 'description': 'Item total value'}
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    'payee': {
+                                        'type': 'object',
+                                        'properties': {
+                                            'email_address': {'type': 'string', 'description': 'Payee email address'},
+                                            'merchant_id': {'type': 'string', 'description': 'Merchant ID'}
+                                        }
+                                    },
+                                    'description': {'type': 'string', 'description': 'Description data as JSON string'},
+                                    'custom_id': {'type': 'string', 'description': 'Custom data as JSON string'},
+                                    'invoice_id': {'type': 'string', 'description': 'Invoice data as JSON string'},
+                                    'items': {
+                                        'type': 'array',
+                                        'items': {
+                                            'type': 'object',
+                                            'properties': {
+                                                'name': {'type': 'string', 'description': 'Item name'},
+                                                'unit_amount': {
+                                                    'type': 'object',
+                                                    'properties': {
+                                                        'currency_code': {'type': 'string', 'description': 'Currency code'},
+                                                        'value': {'type': 'string', 'description': 'Unit amount value'}
+                                                    }
+                                                },
+                                                'quantity': {'type': 'string', 'description': 'Item quantity'},
+                                                'sku': {'type': 'string', 'description': 'Item SKU'}
+                                            }
+                                        }
+                                    },
+                                    'shipping': {
+                                        'type': 'object',
+                                        'properties': {
+                                            'name': {'type': 'object', 'properties': {'full_name': {'type': 'string', 'description': 'Full name'}}},
+                                            'address': {
+                                                'type': 'object',
+                                                'properties': {
+                                                    'address_line_1': {'type': 'string', 'description': 'Address line 1'},
+                                                    'admin_area_2': {'type': 'string', 'description': 'Admin area 2'},
+                                                    'admin_area_1': {'type': 'string', 'description': 'Admin area 1'},
+                                                    'postal_code': {'type': 'string', 'description': 'Postal code'},
+                                                    'country_code': {'type': 'string', 'description': 'Country code'}
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        'links': {
+                            'type': 'array',
+                            'items': {
+                                'type': 'object',
+                                'properties': {
+                                    'href': {'type': 'string', 'description': 'Link URL'},
+                                    'rel': {'type': 'string', 'description': 'Link relation'},
+                                    'method': {'type': 'string', 'description': 'HTTP method for the link'}
+                                }
+                            }
+                        },
+                        'id': {'type': 'string', 'description': 'Resource ID'},
+                        'payment_source': {
+                            'type': 'object',
+                            'properties': {
+                                'paypal': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'email_address': {'type': 'string', 'description': 'Payer email address'},
+                                        'account_id': {'type': 'string', 'description': 'Payer account ID'},
+                                        'account_status': {'type': 'string', 'description': 'Payer account status'},
+                                        'name': {
+                                            'type': 'object',
+                                            'properties': {
+                                                'given_name': {'type': 'string', 'description': 'Payer given name'},
+                                                'surname': {'type': 'string', 'description': 'Payer surname'}
+                                            }
+                                        },
+                                        'address': {'type': 'object', 'properties': {'country_code': {'type': 'string', 'description': 'Country code'}}}
+                                    }
+                                }
+                            }
+                        },
+                        'intent': {'type': 'string', 'description': 'Payment intent'},
+                        'payer': {
+                            'type': 'object',
+                            'properties': {
+                                'name': {
+                                    'type': 'object',
+                                    'properties': {
+                                        'given_name': {'type': 'string', 'description': 'Payer given name'},
+                                        'surname': {'type': 'string', 'description': 'Payer surname'}
+                                    }
+                                },
+                                'email_address': {'type': 'string', 'description': 'Payer email address'},
+                                'payer_id': {'type': 'string', 'description': 'Payer ID'},
+                                'address': {'type': 'object', 'properties': {'country_code': {'type': 'string', 'description': 'Country code'}}}
+                            }
+                        },
+                        'status': {'type': 'string', 'description': 'Order status'}
+                    }
+                }
+            },
+            'example': {
+                'id': 'WH-7U685702AP210252D-7TR69619RV252802B',
+                'event_version': '1.0',
+                'create_time': '2024-07-16T07:36:22.484Z',
+                'resource_type': 'checkout-order',
+                'resource_version': '2.0',
+                'event_type': 'CHECKOUT.ORDER.APPROVED',
+                'summary': 'An order has been approved by buyer',
+                'resource': {
+                    'create_time': '2024-07-16T07:35:57Z',
+                    'purchase_units': [{
+                        'reference_id': 'default',
+                        'amount': {'currency_code': 'EUR', 'value': '4300.99', 'breakdown': {'item_total': {'currency_code': 'EUR', 'value': '4300.99'}}},
+                        'payee': {'email_address': 'sb-qfikm31385026@business.example.com', 'merchant_id': 'LRJMHWR6YH3TC'},
+                        'description': '{"delivery_cost": "300.99", "courier_service_name": 1}',
+                        'custom_id': '{"user_id": 1, "email": "admin@admin.com", "promo_code": null, "phone": "+12345678901"}',
+                        'invoice_id': '{"delivery_type": 1, "delivery_address": "123 Main St, Springfield, USA"}',
+                        'items': [
+                            {'name': 'IPhone 14 Pro', 'unit_amount': {'currency_code': 'EUR', 'value': '1000.00'}, 'quantity': '3', 'sku': '1'},
+                            {'name': 'Galuxy 10', 'unit_amount': {'currency_code': 'EUR', 'value': '1000.00'}, 'quantity': '1', 'sku': '2'},
+                            {'name': 'Delivery Cost', 'unit_amount': {'currency_code': 'EUR', 'value': '300.99'}, 'quantity': '1'}
+                        ],
+                        'shipping': {
+                            'name': {'full_name': 'John Doe'},
+                            'address': {'address_line_1': '1 Main St', 'admin_area_2': 'San Jose', 'admin_area_1': 'CA', 'postal_code': '95131', 'country_code': 'US'}
+                        }
+                    }],
+                    'links': [
+                        {'href': 'https://api.sandbox.paypal.com/v2/checkout/orders/768804163A558803D', 'rel': 'self', 'method': 'GET'},
+                        {'href': 'https://api.sandbox.paypal.com/v2/checkout/orders/768804163A558803D', 'rel': 'update', 'method': 'PATCH'},
+                        {'href': 'https://api.sandbox.paypal.com/v2/checkout/orders/768804163A558803D/capture', 'rel': 'capture', 'method': 'POST'}
+                    ],
+                    'id': '768804163A558803D',
+                    'payment_source': {
+                        'paypal': {
+                            'email_address': 'sb-43g1wc31380570@personal.example.com',
+                            'account_id': 'CRCQUC8R9UCDE',
+                            'account_status': 'VERIFIED',
+                            'name': {'given_name': 'John', 'surname': 'Doe'},
+                            'address': {'country_code': 'US'}
+                        }
+                    },
+                    'intent': 'CAPTURE',
+                    'payer': {
+                        'name': {'given_name': 'John', 'surname': 'Doe'},
+                        'email_address': 'sb-43g1wc31380570@personal.example.com',
+                        'payer_id': 'CRCQUC8R9UCDE',
+                        'address': {'country_code': 'US'}
+                    },
+                    'status': 'APPROVED'
+                }
+            }
+        }
+    },
+    responses={
+        200: OpenApiResponse(
+            description='Order and Payment created successfully',
+            response={'type': 'object', 'properties': {'status': {'type': 'string'}}}
+        ),
+        400: OpenApiResponse(description='Invalid webhook signature'),
+        404: OpenApiResponse(description='Order status not found or user not found or courier service not found'),
+        500: OpenApiResponse(description='Error creating order and payment')
+    },
+    tags=['PayPal']
+)
 class PayPalWebhookView(APIView):
     permission_classes = [AllowAny]
 
@@ -540,34 +865,29 @@ class PayPalWebhookView(APIView):
         resource = data['resource']
         logger.debug(f"Resource data: {resource}")
 
-        purchase_units = resource.get('purchase_units', [])
-        if not purchase_units:
-            logger.error(f"purchase_units отсутствуют в данных ресурса: {resource}")
-            raise KeyError('purchase_units')
-
-        purchase_unit = purchase_units[0]
-        amount = Decimal(purchase_unit['amount']['breakdown']['item_total']['value'])
+        # Извлечение данных о заказе
+        purchase_unit = resource['purchase_units'][0]
+        amount = Decimal(purchase_unit['amount']['value'])
         currency = purchase_unit['amount']['currency_code']
         logger.debug(f"Amount: {amount}, Currency: {currency}")
 
-        logger.debug(f"PURCHASE UNIT: {purchase_unit=}")
-
-        custom_data = json.loads(purchase_unit.get('custom_id'))
-        invoice_data = json.loads(purchase_unit.get('invoice_id'))
-        description_data = json.loads(purchase_unit.get('description'))
+        # Извлечение кастомных данных
+        custom_data = json.loads(purchase_unit['custom_id'])
+        invoice_data = json.loads(purchase_unit['invoice_id'])
+        description_data = json.loads(purchase_unit['description'])
         logger.debug(f"Custom data: {custom_data}, Invoice data: {invoice_data}, Description data: {description_data}")
 
         user_id = custom_data.get('user_id')
         email = custom_data.get('email')
-        promocode = custom_data.get('promo_code')
         phone = custom_data.get('phone')
-        logger.debug(f"User data: user_id={user_id}, email={email}, promocode={promocode}, phone={phone}")
-
         delivery_type = invoice_data.get('delivery_type')
         delivery_address = invoice_data.get('delivery_address')
         delivery_cost = Decimal(description_data.get('delivery_cost'))
-        courier_service_name = description_data.get('courier_service_name')  # Не преобразуем в строку сразу
-        logger.debug(f"Delivery data: delivery_type={delivery_type}, delivery_address={delivery_address}, delivery_cost={delivery_cost}, courier_service_name={courier_service_name}")
+        courier_service_name = description_data.get('courier_service_name')
+        logger.debug(f"User data: user_id={user_id}, email={email}, phone={phone}, delivery_cost={delivery_cost}, courier_service_name={courier_service_name}, delivery_address={delivery_address}, delivery_type={delivery_type}")
+
+        products = purchase_unit.get('items', [])
+        logger.debug(f"Products: {products}")
 
         try:
             order_status = OrderStatus.objects.get(name="Pending")
@@ -577,29 +897,32 @@ class PayPalWebhookView(APIView):
 
         try:
             user = CustomUser.objects.get(id=user_id)
-            if delivery_type:
-                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
-            else:
-                delivery_type_obj = None
+        except CustomUser.DoesNotExist:
+            logger.error(f"User with id {user_id} does not exist.")
+            return False
 
-            if courier_service_name is None:
-                logger.error("Courier service name is None")
-                return Response({"error": "Courier service name is None"}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                courier_service_name = str(courier_service_name)
-                logger.debug(f"Courier service name: {courier_service_name}")
-                try:
-                    courier_service_id = int(courier_service_name)
-                except ValueError as e:
-                    logger.error(f"Error converting courier_service_name to int: {str(e)}")
-                    return Response({"error": f"Invalid courier service name: {courier_service_name}"}, status=status.HTTP_400_BAD_REQUEST)
-
+        if delivery_type:
             try:
-                courier_service = CourierService.objects.get(id=courier_service_id)
-            except CourierService.DoesNotExist:
-                logger.error(f"CourierService with id {courier_service_id} does not exist.")
-                return Response({"error": "CourierService not found"}, status=status.HTTP_404_NOT_FOUND)
+                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
+            except DeliveryType.DoesNotExist:
+                logger.error(f"DeliveryType with id {delivery_type} does not exist.")
+                return False
+        else:
+            delivery_type_obj = None
 
+        try:
+            courier_service_id = int(courier_service_name)
+        except (ValueError, TypeError):
+            logger.error(f"Invalid courier service name: {courier_service_name}")
+            return Response({"error": f"Invalid courier service name: {courier_service_name}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            courier_service = CourierService.objects.get(id=courier_service_id)
+        except CourierService.DoesNotExist:
+            logger.error(f"CourierService with id {courier_service_id} does not exist.")
+            return Response({"error": "CourierService not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
             order = Order.objects.create(
                 user=user,
                 customer_email=email,
@@ -608,30 +931,49 @@ class PayPalWebhookView(APIView):
                 delivery_cost=delivery_cost,
                 order_status=order_status,
                 phone_number=phone,
-                total_amount=amount + delivery_cost,
+                total_amount=amount,
                 courier_service=courier_service,
             )
             logger.debug(f"Order created: {order}")
 
-            for item in purchase_unit.get('items', []):
-                product_id = int(item.get('sku'))
-                quantity = int(item.get('quantity'))
-                product = get_object_or_404(BaseProduct, id=product_id)
+            # Рассчитать стоимость доставки для каждого товара
+            total_product_cost = sum(Decimal(item['quantity']) * BaseProduct.objects.get(id=item['sku']).price for item in products if item.get('sku'))
+            rounded_delivery_costs = []
+            total_rounded_delivery_cost = Decimal('0.00')
+
+            for item in products:
+                product_id = item.get('sku')
+                if not product_id:
+                    logger.debug(f"Ignoring item without SKU: {item}")
+                    continue
+                quantity = Decimal(item['quantity'])
+                product = BaseProduct.objects.get(id=product_id)
+
+                product_total_cost = quantity * product.price
+                product_delivery_cost = round((product_total_cost / total_product_cost) * delivery_cost, 2)
+                rounded_delivery_costs.append((product, quantity, product_delivery_cost, product.price))
+                total_rounded_delivery_cost += product_delivery_cost
+
+            difference = delivery_cost - total_rounded_delivery_cost
+            if rounded_delivery_costs:
+                last_product, last_quantity, last_cost, last_price = rounded_delivery_costs[-1]
+                rounded_delivery_costs[-1] = (last_product, last_quantity, last_cost + difference, last_price)
+
+            for product, quantity, delivery_cost, product_price in rounded_delivery_costs:
                 OrderProduct.objects.create(
                     order=order,
                     product=product,
                     quantity=quantity,
                     delivery_cost=delivery_cost,
                     supplier=product.supplier,
-                    product_price=product.price,
+                    product_price=product_price
                 )
-                logger.debug(f"OrderProduct created for product_id {product_id}")
+                logger.debug(f"OrderProduct created for product_id {product.id} with delivery cost {delivery_cost}")
 
             # Извлечение данных для платежа
             session_id = resource.get('id', 'unknown_session_id')
             payment_intent_id = resource.get('id', 'unknown_intent_id')
-            payment_source = resource.get('payment_source', {}).get('paypal', {})
-            payment_method = payment_source.get('name', {}).get('given_name', 'paypal')
+            payment_method = f"{resource['payment_source']['paypal']['name']['given_name']} {resource['payment_source']['paypal']['name']['surname']}"
 
             logger.debug(f"Payment data before creation: session_id={session_id}, payment_intent_id={payment_intent_id}, payment_method={payment_method}, amount_total={amount}, currency={currency}")
 
@@ -652,24 +994,8 @@ class PayPalWebhookView(APIView):
                 logger.error(f"Error creating payment: {str(e)}")
                 return False
 
-            logger.info(f"Order {order.id} created successfully from webhook")
+            logger.info(f"Order {order.id} and Payment created successfully from webhook")
             return True
-
-        except CustomUser.DoesNotExist:
-            logger.error(f"User with id {user_id} does not exist.")
-            return False
-
-        except DeliveryType.DoesNotExist:
-            logger.error(f"DeliveryType with id {delivery_type} does not exist.")
-            return False
-
-        except CourierService.DoesNotExist:
-            logger.error(f"CourierService with id {courier_service_name} does not exist.")
-            return False
-
-        except BaseProduct.DoesNotExist:
-            logger.error(f"Product with id {product_id} does not exist.")
-            return False
 
         except Exception as e:
             logger.error(f"Error creating order: {str(e)}")
@@ -680,10 +1006,6 @@ class PayPalWebhookView(APIView):
         logger.debug(f"Received webhook data: {data}")
         event_type = data.get('event_type')
         accepted_webhooks = (
-            'PAYMENT.CAPTURE.REVERSED',
-            'PAYMENT.CAPTURE.REFUNDED',
-            'PAYMENT.CAPTURE.DENIED',
-            'PAYMENT.CAPTURE.COMPLETED',
             'CHECKOUT.ORDER.APPROVED',
         )
 
@@ -704,13 +1026,13 @@ class PayPalWebhookView(APIView):
                 logger.warning(f"Webhook verification failed for event: {event_type}")
                 return Response({'error': 'Invalid webhook signature'}, status=403)
 
-            if event_type in ['PAYMENT.CAPTURE.COMPLETED', 'CHECKOUT.ORDER.APPROVED']:
+            if event_type in ['CHECKOUT.ORDER.APPROVED']:
                 success = self.create_order_from_webhook(data)
                 if success:
-                    return Response({'status': 'Order created successfully'}, status=200)
+                    return Response({'status': 'Order and Payment created successfully'}, status=200)
                 else:
-                    logger.error(f"Error creating order for event: {event_type}")
-                    return Response({'error': 'Error creating order'}, status=500)
+                    logger.error(f"Error creating order and payment for event: {event_type}")
+                    return Response({'error': 'Error creating order and payment'}, status=500)
 
         logger.info(f"Unhandled event type: {event_type}")
         return Response({'status': 'event not handled'}, status=200)
