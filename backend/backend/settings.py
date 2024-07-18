@@ -20,10 +20,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=aq+%ja=ny41y1hvyzzm+jo4=p+ka=h1af19_z)qn1i*1w_yf6'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG")
 
 CSRF_TRUSTED_ORIGINS = ['https://solopharma.shop','https://localhost']
 
@@ -174,16 +174,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 EMAIL_FROM = 'novapiple228@gmail.com'
 EMAIL_BCC = 'novapiple228@gmail.com'
 
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'novapiple228@gmail.com'
-EMAIL_HOST_PASSWORD = 'hiym azto ehqc spfk '
-EMAIL_USE_TLS = True
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
+EMAIL_HOST = os.getenv("EMAIL_HOST")
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_SSL = False
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Чехский сайт API',
-    'DESCRIPTION': 'ура победа',
+    'TITLE': 'Reli market API',
+    'DESCRIPTION': 'European marketplace',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     # OTHER SETTINGS
