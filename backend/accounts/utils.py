@@ -1,3 +1,5 @@
+import datetime
+from datetime import datetime
 from django.utils import timezone
 from django.conf import settings
 from random import randint
@@ -11,12 +13,13 @@ def create_and_send_otp(user, otp_title):
     try:
         otp = OTP.objects.get(user=user, title=otp_title)
         otp.value = value
+        otp.expired_date = datetime.now() + settings.OTP_LIFETIME
     except OTP.DoesNotExist:
         otp = OTP.objects.create(
             user=user,
             title=otp_title,
             value=value,
-            expired_date=timezone.now() + settings.OTP_LIFETIME)
+            expired_date=datetime.now() + settings.OTP_LIFETIME)
 
     otp.save()
 

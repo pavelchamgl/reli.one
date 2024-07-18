@@ -13,6 +13,7 @@ from .views import (
     UserProfileUpdateAPIView,
     AccountDeletionAPIView,
     SendOTPForPasswordResetAPIView,
+    CheckingOTPPasswordResetAPIView,
 )
 
 urlpatterns = [
@@ -22,6 +23,7 @@ urlpatterns = [
     path('email/otp/resend/', SendOTPForEmailVerificationAPIView.as_view(), name='resend_otp_for_email_verification'),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('logout/', CustomLogoutView.as_view(), name='logout'),
+    path('check-otp-password-reset/', CheckingOTPPasswordResetAPIView.as_view(), name='check-otp-password-reset'),
     path('password/reset/confirmation/', PasswordResetConfirmationAPIView.as_view(), name='reset_password_confirmation'),
     path('profile/me/', UserProfileGetAPIView.as_view(), name='my_profile'),
     path('profile/update/', UserProfileUpdateAPIView.as_view(), name='my_profile'),

@@ -2,6 +2,7 @@ import re
 
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth.hashers import make_password
 
 from .models import CustomUser
 
@@ -65,11 +66,19 @@ class EmailConfirmationSerializer(serializers.Serializer):
         return data
 
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
+class PasswordResetConfirmSerializer(PasswordValidateMixin, serializers.Serializer):
     email = serializers.EmailField(required=True)
     otp = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
     confirm_password = serializers.CharField(required=True)
+
+    def save(self, **kwargs):
+        email = self.validated_data['email']
+        password = self.validated_data['password']
+
+        user = CustomUser.objects.get(email=email)
+        user.password = make_password(password)
+        user.save()
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):

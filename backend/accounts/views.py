@@ -520,9 +520,100 @@ class SendOTPForPasswordResetAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class CheckingOTPPasswordResetAPIView(APIView):
+    @extend_schema(
+        description="Verify OTP before allowing password reset.This endpoint confirms the OTP sent to the user's email for the purpose of password reset.",
+        request=EmailConfirmationSerializer,
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                response={
+                    'message': 'string',
+                },
+                description='OTP for password reset successfully confirmed.',
+                examples=[
+                    OpenApiExample(
+                        "Success Response",
+                        value={
+                            'message': 'OTP for password reset successfully confirmed',
+                        },
+                        response_only=True,
+                        status_codes=["200"]
+                    )
+                ]
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response={'error': 'string'},
+                description='OTP expired or invalid.',
+                examples=[
+                    OpenApiExample(
+                        "OTP Invalid or Expired",
+                        value={'error': 'The specified OTP has expired or is invalid'},
+                        response_only=True,
+                        status_codes=["400"]
+                    )
+                ]
+            ),
+            status.HTTP_404_NOT_FOUND: OpenApiResponse(
+                response={'error': 'string'},
+                description='User not found.',
+                examples=[
+                    OpenApiExample(
+                        "User Not Found",
+                        value={'error': 'User with the specified email address not found'},
+                        response_only=True,
+                        status_codes=["404"]
+                    )
+                ]
+            ),
+        },
+        tags=["Accounts"]
+    )
+    def post(self, request):
+        serializer = EmailConfirmationSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data.get('email')
+            otp_value = serializer.validated_data.get('otp')
+
+            try:
+                user = CustomUser.objects.get(email=email)
+            except CustomUser.DoesNotExist:
+                return Response(
+                    {'error': 'User with the specified email address not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            try:
+                otp = OTP.objects.get(user=user, title="PasswordReset", value=otp_value)
+                if otp.expired_date < timezone.now() or not otp_value.isdigit():
+                    return Response(
+                        {'error': 'The specified OTP has expired or is invalid'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except OTP.DoesNotExist:
+                return Response(
+                    {'error': 'The specified OTP is invalid or does not match the specified email'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            return Response({
+                'message': 'OTP for password reset successfully confirmed',
+            },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class PasswordResetConfirmationAPIView(APIView):
     @extend_schema(
-        description="Confirm password reset using OTP.",
+        description=(
+            "Confirm password reset using OTP. "
+            "Requirements for the new password:\n"
+            "- Password fields must match.\n"
+            "- Password must be at least 8 characters long.\n"
+            "- Password must contain at least one uppercase letter (A-Z).\n"
+            "- Password must contain at least one special character (!@#$%^&*).\n"
+        ),
         request=PasswordResetConfirmSerializer,
         responses={
             status.HTTP_200_OK: OpenApiResponse(
