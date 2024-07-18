@@ -612,6 +612,7 @@ class PasswordResetConfirmationAPIView(APIView):
             "- Password fields must match.\n"
             "- Password must be at least 8 characters long.\n"
             "- Password must contain at least one uppercase letter (A-Z).\n"
+            "- Password must contain at least one digit (0-9).\n"
             "- Password must contain at least one special character (!@#$%^&*).\n"
         ),
         request=PasswordResetConfirmSerializer,

@@ -20,6 +20,10 @@ class PasswordValidateMixin(serializers.Serializer):
             raise serializers.ValidationError(
                 {'password': "Password must contain at least one uppercase letter."}
             )
+        if not re.search(r'\d', password):
+            raise serializers.ValidationError(
+                {'password': "Password must contain at least one digit."}
+            )
         if not re.search(r'[!@#$%^&*]', password):
             raise serializers.ValidationError(
                 {'password': "Password must contain at least one special character (!@#$%^&*)."}
