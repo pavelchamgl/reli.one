@@ -66,7 +66,7 @@ def apply_promo_code(promo_code, basket_items):
         raise ValidationError("Invalid promo code.")
 
 
-class CreateStripeCheckoutSession(APIView):
+class CreateStripePaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
