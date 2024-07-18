@@ -1,4 +1,3 @@
-import os
 import json
 import stripe
 import logging
@@ -29,11 +28,17 @@ from order.models import (
 )
 
 logging.basicConfig(level=logging.INFO)
-clientID = os.environ.get("clientID")
-clientSecret = os.environ.get("clientSecret")
 
-stripe.api_key = "sk_test_51PNHLUFu0ltlaoJ6ODoNdt5MnlHG2HgbYBw2WfGSkPHPG6pDW5hS6u2mwougay1gp2H4Db3RiXFwQvtJ9csf3gKH00ZXistMnN"
-endpoint_secret = "whsec_A29lEPmZrtSuwrwQdGJuF8P3JYrytZy6"
+# Paypal secret fields
+client_id = settings.PAYPAL_CLIENT_ID
+client_secret = settings.PAYPAL_CLIENT_SECRET
+webhook_id = settings.PAYPAL_WEBHOOK_ID
+oauth2_url = settings.PAYPAL_OAUTH2_URL
+checkout_url = settings.PAYPAL_CHECKOUT_URL
+
+# Stripe secret fields
+stripe.api_key = settings.STRIPE_API_SECRET_KEY
+endpoint_secret = settings.STRIPE_WEBHOOK_ENDPOINT_SECRET
 
 logger = logging.getLogger(__name__)
 
@@ -253,8 +258,8 @@ class CreateStripeCheckoutSession(APIView):
             payment_method_types=['card'],
             line_items=line_items,
             mode='payment',
-            success_url=settings.REDIRECT_DOMAIN + '/payment_end/',
-            cancel_url=settings.REDIRECT_DOMAIN + '/payment/cancel',
+            success_url=settings.REDIRECT_DOMAIN + 'payment_end/',
+            cancel_url=settings.REDIRECT_DOMAIN + 'payment_cancel/',
             metadata={
                 'user_id': user_id,
                 'email': email,
@@ -623,12 +628,12 @@ class CreatePayPalPaymentView(APIView):
                 }
             ],
             "application_context": {
-                "return_url": settings.REDIRECT_DOMAIN + '/payment_end/',
-                "cancel_url": settings.REDIRECT_DOMAIN + '/payment/cancel',
+                "return_url": settings.REDIRECT_DOMAIN + 'payment_end/',
+                "cancel_url": settings.REDIRECT_DOMAIN + 'payment_cancel/',
             }
         }
 
-        response = requests.post("https://api-m.sandbox.paypal.com/v2/checkout/orders", headers=headers, data=json.dumps(data))
+        response = requests.post(checkout_url, headers=headers, data=json.dumps(data))
 
         if response.status_code == 201:
             order_response = response.json()
@@ -637,10 +642,8 @@ class CreatePayPalPaymentView(APIView):
             return Response(response.json(), status=response.status_code)
 
     def get_paypal_access_token(self):
-        client_id = settings.PAYPAL_CLIENT_ID
-        client_secret = settings.PAYPAL_CLIENT_SECRET
         response = requests.post(
-            'https://api-m.sandbox.paypal.com/v1/oauth2/token',
+            oauth2_url,
             headers={
                 'Accept': 'application/json',
             },
