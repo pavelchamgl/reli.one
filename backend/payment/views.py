@@ -259,7 +259,7 @@ class CreateStripePaymentView(APIView):
             line_items=line_items,
             mode='payment',
             success_url=settings.REDIRECT_DOMAIN + 'payment_end/',
-            cancel_url=settings.REDIRECT_DOMAIN + 'payment_cancel/',
+            cancel_url=settings.REDIRECT_DOMAIN + 'basket/',
             metadata={
                 'user_id': user_id,
                 'email': email,
@@ -629,7 +629,7 @@ class CreatePayPalPaymentView(APIView):
             ],
             "application_context": {
                 "return_url": settings.REDIRECT_DOMAIN + 'payment_end/',
-                "cancel_url": settings.REDIRECT_DOMAIN + 'payment_cancel/',
+                "cancel_url": settings.REDIRECT_DOMAIN + 'basket/',
             }
         }
 
