@@ -67,7 +67,9 @@ class BaseProduct(models.Model):
         max_digits=2,
         decimal_places=1,
         default=Decimal('0.0'),
-        validators=[MinValueValidator(Decimal('1.0')), MaxValueValidator(Decimal('5.0'))]
+        validators=[MinValueValidator(Decimal('1.0')), MaxValueValidator(Decimal('5.0'))],
+        blank=True,
+        null=True,
     )
     total_reviews = models.IntegerField(default=0)
 
