@@ -25,7 +25,12 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG")
 
-CSRF_TRUSTED_ORIGINS = ['https://solopharma.shop','https://localhost']
+CSRF_TRUSTED_ORIGINS = [
+    'https://reli.one',
+    'https://www.reli.one',
+    'https://localhost',
+    'http://localhost',
+]
 
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ('X-FORWARDED-PROTO', 'https')
@@ -168,7 +173,7 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
+STATIC_URL = '/reli.one/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 EMAIL_FROM = 'novapiple228@gmail.com'
