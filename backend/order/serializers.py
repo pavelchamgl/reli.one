@@ -48,8 +48,13 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'order_number', 'order_date', 'order_status',
-            'total_amount', 'delivery_cost', 'order_products'
+            'id',
+            'order_number',
+            'order_date',
+            'order_status',
+            'total_amount',
+            'delivery_cost',
+            'order_products',
         ]
 
 
@@ -59,7 +64,14 @@ class OrderListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['order_number', 'order_date', 'received_date', 'images', 'total_amount']
+        fields = [
+            'id',
+            'order_number',
+            'order_date',
+            'received_date',
+            'images',
+            'total_amount',
+        ]
 
     def get_received_date(self, obj):
         # Получение самой поздней даты получения из связанных OrderProduct
