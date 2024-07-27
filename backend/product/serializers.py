@@ -70,12 +70,23 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
 
 
 class BaseProductListSerializer(serializers.ModelSerializer):
+    parameters = ParameterValueSerializer(many=True)
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseProduct
-        fields = ['id', 'name', 'image', 'price', 'rating', 'total_reviews', 'is_favorite']
+        fields = [
+            'id',
+            'name',
+            'product_description',
+            'parameters',
+            'image',
+            'price',
+            'rating',
+            'total_reviews',
+            'is_favorite',
+        ]
 
     def get_image(self, obj):
         request = self.context.get('request')

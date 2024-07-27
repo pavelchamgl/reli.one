@@ -224,26 +224,79 @@ class SearchView(generics.ListAPIView):
             name="Product List Example",
             value=[
                 {
-                    "id": 1,
-                    "name": "IPhone 14 Pro",
-                    "images": [
-                      "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg"
-                    ],
-                    "price": "1000.00",
-                    "rating": "4.4",
-                    "total_reviews": 10,
-                    "is_favorite": False
-                },
-                {
-                    "id": 2,
-                    "name": "Galuxy 10",
-                    "images": [
-                      "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg"
-                    ],
-                    "price": "1000.00",
-                    "rating": "4.2",
-                    "total_reviews": 5,
-                    "is_favorite": True
+                    "count": 4,
+                    "next": "null",
+                    "previous": "null",
+                    "results": [
+                        {
+                            "id": 1,
+                            "name": "IPhone 14 Pro",
+                            "product_description": "phone",
+                            "parameters": [
+                                {
+                                    "parameter_name": "Вес",
+                                    "value": "250"
+                                },
+                                {
+                                    "parameter_name": "Высота",
+                                    "value": "70 мм"
+                                }
+                            ],
+                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
+                            "price": "1000.00",
+                            "rating": "0.0",
+                            "total_reviews": 0,
+                            "is_favorite": "false",
+                        },
+                        {
+                            "id": 2,
+                            "name": "Galuxy 10",
+                            "product_description": "phone",
+                            "parameters": [
+                                {
+                                    "parameter_name": "Вес",
+                                    "value": "220"
+                                }
+                            ],
+                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
+                            "price": "1000.00",
+                            "rating": "0.0",
+                            "total_reviews": 0,
+                            "is_favorite": "false"
+                        },
+                        {
+                            "id": 3,
+                            "name": "IPhone 15 Pro MAX",
+                            "product_description": "phone",
+                            "parameters": [
+                                {
+                                    "parameter_name": "Вес",
+                                    "value": "270"
+                                }
+                            ],
+                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
+                            "price": "1500.00",
+                            "rating": "0.0",
+                            "total_reviews": 0,
+                            "is_favorite": "false"
+                        },
+                        {
+                            "id": 4,
+                            "name": "3310",
+                            "product_description": "phone",
+                            "parameters": [
+                                {
+                                    "parameter_name": "Вес",
+                                    "value": "300"
+                                }
+                            ],
+                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
+                            "price": "100.00",
+                            "rating": "0.0",
+                            "total_reviews": 0,
+                            "is_favorite": "false"
+                        }
+                    ]
                 }
             ],
             request_only=False,
