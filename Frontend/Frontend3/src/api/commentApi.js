@@ -3,7 +3,7 @@ import { postApi, getApi } from ".";
 
 export const getComments = async (id, page) => {
     try {
-        const res = await getApi(`http://45.147.248.21:8081/api/reviews/${id}/product/?page=${page}&product_id=${id}&page_size=5`)
+        const res = await getApi(`https://reli.one/api/reviews/${id}/product/?page=${page}&product_id=${id}&page_size=5`)
         return res
     } catch (error) {
         throw error

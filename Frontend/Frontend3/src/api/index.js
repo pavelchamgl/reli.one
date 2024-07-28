@@ -1,7 +1,7 @@
 import axios from "axios"
 import { ErrToast } from "../ui/Toastify";
 
-const BaseURL = "" || "http://45.147.248.21:8081/api"
+const BaseURL = "" || "https://reli.one/api"
 
 
 // Создание axios экземпляра
@@ -37,7 +37,7 @@ mainInstance.interceptors.response.use(
           try {
             const parsedToken = JSON.parse(tokenData);
             const { data } = await axios.post(
-              "http://45.147.248.21:8081/api/accounts/token/refresh/",
+              "https://reli.one/api/accounts/token/refresh/",
               {
                 refresh: parsedToken.refresh,
               }
@@ -95,7 +95,7 @@ mainInstance.interceptors.response.use(
 //         }
 
 //         // Обновление токена
-//         const response = await axios.post('http://45.147.248.21:8081/api/accounts/token/refresh/', {
+//         const response = await axios.post('https://reli.one/api/accounts/token/refresh/', {
 //           refresh: refreshToken
 //         });
 

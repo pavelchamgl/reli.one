@@ -8,7 +8,7 @@ export const fetchGetProducts = createAsyncThunk(
         try {
             const state = getState().products
             console.log(state);
-            const res = await axios.get(`http://45.147.248.21:8081/api/products/categories/${state.category}/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=15`)
+            const res = await axios.get(`https://reli.one/api/products/categories/${state.category}/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=15`)
             console.log(res);
             return res.data
         } catch (error) {
@@ -35,7 +35,7 @@ export const fetchSearchProducts = createAsyncThunk(
         try {
             const state = getState().products
             console.log(state);
-            const res = await axios.get(`http://45.147.248.21:8081/api/products/search/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.searchPage}&q=${text}&page_size=15`)
+            const res = await axios.get(`https://reli.one/api/products/search/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.searchPage}&q=${text}&page_size=15`)
             console.log(res);
             return res.data
         } catch (error) {
