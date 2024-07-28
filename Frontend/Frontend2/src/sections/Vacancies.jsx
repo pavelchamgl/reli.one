@@ -4,7 +4,7 @@ const Vacancies = () => {
   const [data, setData] = useState([]);
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('http://localhost:8081/api/vacancies/');
+      const response = await fetch('https://reli.one/api/vacancies/');
       const result = await response.json();
       setData(result);
       console.log(result[0].id);

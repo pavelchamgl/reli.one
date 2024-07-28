@@ -9,6 +9,25 @@
   line-height: 87%;
   letter-spacing: -0.01em;
   color: #000;
+  background-color: #f0f0f0;
+}
+
+.sceleton {
+  border-radius: 10px;
+  width: 222px;
+  height: 220px;
+  padding-top: 18px;
+  border: 1px solid #a1a1a1;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  & div {
+    width: 80%;
+    height: 20px;
+    background-color: #a1a1a1;
+    border-radius: 5px;
+  }
 }
 
 @media only screen and (max-width: 600px) {
@@ -18,8 +37,11 @@
     background-position: bottom;
     background-repeat: no-repeat;
     background-size: contain;
-  padding-top: 18px;
-
+    padding-top: 18px;
+  }
+  .sceleton {
+    width: 172px;
+    height: 170px;
   }
 }
 
@@ -30,7 +52,10 @@
     background-position: bottom;
     background-repeat: no-repeat;
     background-size: contain;
-  padding-top: 18px;
-
+    padding-top: 18px;
+  }
+  .sceleton {
+    width: 91px;
+    height: 102px;
   }
 }

@@ -1,44 +1,35 @@
-FROM node:18.16-alpine as builder
+FROM node:18.16-alpine as builder-frontend3
 
-WORKDIR /frontend/
+WORKDIR /Frontend3
 
-COPY ./Frontend1/ .
+COPY ./Frontend3/ .
 
 RUN export NODE_OPTIONS=--max-old-space-size=9000
-
-RUN npm install
-
-RUN npm run build:prod
-
-
-
-
-FROM node:18 as build
-
-WORKDIR /app
-
-COPY ./Frontend2 .
 
 RUN npm install
 
 RUN npm run build
 
 
+FROM node:18 as builder-frontend2
+
+WORKDIR /Frontend2
+
+COPY ./Frontend2/ .
+
+RUN npm install
+
+RUN npm run build
 
 
 FROM nginx:latest as production
 
-COPY --from=builder frontend/dist /data/www/onlineshop/
+# Копируем сборку Frontend3
+COPY --from=builder-frontend3 /Frontend3/dist /data/www/onlineshop/
 
-COPY --from=build /app/dist /data/www/landing/
-
+# Копируем конфигурацию nginx и сертификаты
 COPY /nginx/default.conf /etc/nginx/conf.d/default.conf
-
 COPY /nginx/reli.crt /etc/nginx/reli.crt
-
 COPY /nginx/reli.key /etc/nginx/reli.key
 
 CMD ["nginx", "-g", "daemon off;"]
-
-
-

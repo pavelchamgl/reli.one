@@ -1,44 +1,91 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { useActions } from "../../../hook/useAction";
 
 import OrdersListAndDesc from "../OrdersListAndDesc/OrdersListAndDesc";
 import arrTop from "../../../assets/Order/arrTop.svg";
-
-import styles from "./HistorySection.module.scss";
 import HistorySmallCard from "../HistorySmallCard/HistorySmallCard";
 
+import styles from "./HistorySection.module.scss";
+import NoContentText from "../../../ui/NoContentText/NoContentText";
+import Loader from "../../../ui/Loader/Loader";
+
 const HistorySection = () => {
-  const [small, setSmall] = useState(true);
+  const [small, setSmall] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+
+  const { t } = useTranslation();
+
+  const { fetchGetOrders, fetchGetDetalOrders } = useActions();
+
+  const { orders, order, ordersStatus, orderStatus } = useSelector(
+    (state) => state.orders
+  );
+
+  useEffect(() => {
+    fetchGetOrders();
+  }, [fetchGetOrders]);
+
+  useEffect(() => {
+    if (small && orderId) {
+      fetchGetDetalOrders(orderId);
+    }
+  }, [small, orderId, fetchGetDetalOrders]);
 
   if (small) {
-    return (
-      <div className={styles.main}>
-        <div>
-          <div className={styles.buttonDiv}>
-            <p className={styles.prodNumber}>
-              Objednat <span>№123121</span>
-            </p>
-            <button onClick={()=>setSmall(!small)}>
-              <img src={arrTop} alt="" />
-            </button>
-          </div>
-          <div className={styles.timeTextWrap}>
-            <p className={styles.prodNumber}>
-              Čas objednávky: <span>16:08 20.08.2023</span>
-            </p>
-            <p className={styles.delivTimeText}>
-              Doručovat budeme do 1. listopadu
-            </p>
-          </div>
+    if (orderStatus === "loading") {
+      return (
+        <div className={styles.loaderWrap}>
+          <Loader />
         </div>
-        <OrdersListAndDesc />
-      </div>
-    );
+      );
+    } else {
+      return (
+        <div className={styles.main}>
+          <div>
+            <div className={styles.buttonDiv}>
+              <p className={styles.prodNumber}>
+                {t("order")} <span>№{order?.order_number}</span>
+              </p>
+              <button onClick={() => setSmall(false)}>
+                <img src={arrTop} alt="" />
+              </button>
+            </div>
+            <div className={styles.timeTextWrap}>
+              <p className={styles.prodNumber}>
+                {t("order_time")}: <span>{order?.order_date}</span>
+              </p>
+            </div>
+          </div>
+          <OrdersListAndDesc />
+        </div>
+      );
+    }
   } else {
-    return (
-      <div onClick={()=>setSmall(!small)} className={styles.main}>
-        <HistorySmallCard />
-      </div>
-    );
+    if (ordersStatus === "loading") {
+      return <Loader />;
+    } else {
+      return (
+        <div className={styles.smallCardDiv}>
+          {orders && orders.length > 0 ? (
+            orders.map((item) => (
+              <div
+                key={item.id} // Добавлен ключ для уникальности элемента
+                onClick={() => {
+                  setOrderId(item.id);
+                }}
+                className={styles.main}
+              >
+                <HistorySmallCard item={item} setSmall={setSmall}/>
+              </div>
+            ))
+          ) : (
+            <NoContentText />
+          )}
+        </div>
+      );
+    }
   }
 };
 

@@ -5,6 +5,8 @@ import styles from "./checkBox.module.scss";
 const CheckBox = ({ check }) => {
   const [isChecked, setIsChecked] = useState(false);
 
+  const basketTotal = JSON.parse(localStorage.getItem("basketTotal"));
+
   useEffect(() => {
     setIsChecked(check);
   }, [check]);

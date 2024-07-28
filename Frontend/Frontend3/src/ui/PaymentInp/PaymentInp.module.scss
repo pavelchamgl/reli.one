@@ -20,3 +20,31 @@
     color: #787778;
   }
 }
+.mainErr {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  span {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 143%;
+    letter-spacing: -0.02em;
+    color: #828b8d;
+  }
+  input {
+    background: #fff;
+    border: 1px solid #ff0000;
+    height: 46px;
+    outline: none;
+    padding-left: 14px;
+    font-weight: 400;
+    font-size: 14px;
+    color: #ff0000;
+  }
+}
+
+.errText {
+  font-weight: 300;
+  font-size: 14px;
+  color: #dc2626;
+}

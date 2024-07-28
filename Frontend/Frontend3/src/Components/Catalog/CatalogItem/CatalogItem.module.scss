@@ -8,6 +8,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  @media (max-width: 750px) {
+    width: 250px;
+  }
+  @media (max-width: 460px) {
+    width: 230px;
+  }
+  @media (max-width:426px) {
+    width: calc(100vw - 34px);
+  }
   div {
     display: flex;
     gap: 20px;
@@ -19,5 +28,8 @@
     line-height: 117%;
     letter-spacing: -0.02em;
     color: #000;
+  }
+  button {
+    background-color: transparent;
   }
 }

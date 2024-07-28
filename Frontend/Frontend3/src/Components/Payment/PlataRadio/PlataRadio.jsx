@@ -1,25 +1,38 @@
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
 import payPal from "../../../assets/Payment/payPal.svg";
-
 import styles from "./PlataRadio.module.scss";
 
-const PlataRadio = () => {
+const PlataRadio = ({ setPlata }) => {
+  const { t } = useTranslation();
+  const [selectedValue, setSelectedValue] = useState("paypal");
+
+  const handleChange = (event) => {
+    setSelectedValue(event.target.value);
+  };
+
+  useEffect(() => {
+    setPlata(selectedValue);
+  }, [selectedValue]);
+
   return (
     <FormControl fullWidth>
       <RadioGroup
         aria-labelledby="demo-radio-buttons-group-label"
-        defaultValue="female"
+        value={selectedValue}
+        onChange={handleChange}
         name="radio-buttons-group"
       >
         <div className={styles.selectBlock}>
           <FormControlLabel
+            disabled={true}
             value="card"
             control={<Radio color="success" />}
-            label="Debetní/Kreditní karty"
+            label={t("debit_credit")}
           />
         </div>
         <div className={styles.selectBlock}>

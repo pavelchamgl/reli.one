@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
-import closeIcon from "../assets/loginModal/loginModalX.svg";
+import { deleteAccount, logout } from "../api/auth";
 import packetIcon from "../assets/profileNav/packetIcon.svg";
 import logOutIcon from "../assets/profileNav/logOut.svg";
 import settingsIcon from "../assets/profileNav/settingsIcon.svg";
@@ -13,28 +15,94 @@ const MobProfileNavPage = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [logOut, setLogout] = useState(false);
 
+  const { t } = useTranslation();
+
+  const navigate = useNavigate();
+
+  const [userData, setUserData] = useState({
+    firstName: "",
+    lastName: "",
+    refresh: "",
+  });
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Получаем данные из localStorage
+    const tokenData = localStorage.getItem("token");
+
+    // Проверяем, есть ли данные в localStorage
+    if (tokenData) {
+      try {
+        // Парсим данные из JSON-формата
+        const parsedToken = JSON.parse(tokenData);
+
+        // Проверяем наличие необходимых полей
+        const { first_name, last_name, refresh } = parsedToken;
+
+        // Проверяем, что все поля существуют
+        if (first_name && last_name && refresh) {
+          setUserData({
+            firstName: first_name,
+            lastName: last_name,
+            refresh: refresh,
+          });
+        } else {
+          setError("Отсутствуют необходимые поля в токене.");
+        }
+      } catch (error) {
+        setError("Ошибка парсинга данных из localStorage.");
+        console.error("Ошибка парсинга данных из localStorage:", error);
+      }
+    } else {
+      setError("Токен не найден в localStorage.");
+    }
+  }, []);
+
+  const handleLogout = () => {
+    logout({ refresh_token: userData?.refresh }).then((res) => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("basket");
+      localStorage.removeItem("selectedProducts");
+      localStorage.removeItem("basketTotal");
+      window.location.reload();
+    });
+  };
+
+  const handleDeleteAgree = () => {
+    deleteAccount().then((res) => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("basket");
+      localStorage.removeItem("selectedProducts");
+      localStorage.removeItem("basketTotal");
+      window.location.reload();
+    });
+  };
+
   return (
     <div className={styles.main}>
       <div>
-        <h3 className={styles.title}>účet</h3>
-        <p className={styles.name}>Nikita Malgin</p>
+        <h3 className={styles.title}>{t("account")}</h3>
+        <p
+          className={styles.name}
+        >{`${userData?.firstName} ${userData?.lastName}`}</p>
         {logOut ? (
           <div className={styles.logOutWrap}>
             <div>
-              <p className={styles.logOutText}>
-                Opravdu chcete smazat svůj účet?
-              </p>
+              <p className={styles.logOutText}>{t("delete_account_desc")}</p>
               <div className={styles.logBtnDiv}>
-                <button>Ano</button>
-                <button onClick={() => setLogout(false)}>Ne</button>
+                <button onClick={handleDeleteAgree}>{t("yes")}</button>
+                <button onClick={() => setLogout(false)}>{t("no")}</button>
               </div>
             </div>
           </div>
         ) : (
           <div className={styles.btnDiv}>
-            <button className={styles.navBtn}>
+            <button
+              onClick={() => navigate("/my_orders")}
+              className={styles.navBtn}
+            >
               <img src={packetIcon} alt="" />
-              <span>Moje objednávky</span>
+              <span>{t("my_orders")}</span>
             </button>
             <button
               onClick={() => setSettingsOpen(!settingsOpen)}
@@ -42,19 +110,23 @@ const MobProfileNavPage = () => {
             >
               <div>
                 <img src={settingsIcon} alt="" />
-                <span>Nastavení</span>
+                <span>{t("settings")}</span>
               </div>
               <img src={settingsOpen ? arrDown : arrRight} alt="" />
             </button>
             {settingsOpen && (
               <div className={styles.settingsDiv}>
-                <button>Změna hesla</button>
-                <button onClick={() => setLogout(true)}>Smazat účet</button>
+                <button onClick={() => navigate("/email_pass_conf")}>
+                  {t("change_pass")}
+                </button>
+                <button onClick={() => setLogout(true)}>
+                  {t("delete_account")}
+                </button>
               </div>
             )}
-            <button className={styles.navBtn}>
+            <button onClick={handleLogout} className={styles.navBtn}>
               <img src={logOutIcon} alt="" />
-              <span>Vystupte</span>
+              <span>{t("log_out")}</span>
             </button>
           </div>
         )}

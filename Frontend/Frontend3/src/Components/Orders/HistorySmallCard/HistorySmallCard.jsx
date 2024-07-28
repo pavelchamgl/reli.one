@@ -1,29 +1,66 @@
+import { useTranslation } from "react-i18next";
+import {useNavigate} from "react-router-dom"
+
 import testImage from "../../../assets/Product/ProductTestImage.svg";
 
 import styles from "./HistorySmallCard.module.scss";
+import { useEffect, useState } from "react";
 
-const HistorySmallCard = () => {
+const HistorySmallCard = ({ item = null, setSmall }) => {
+  console.log(item);
+  const { t } = useTranslation();
+  const [deliveredTime, setDeliveredTime] = useState("");
+  const navigate = useNavigate()
+
+  function formatDate(date) {
+    const options = { year: "numeric", month: "long", day: "numeric" };
+    return new Intl.DateTimeFormat("en-US", options).format(date);
+  }
+
+  function addDaysToDate(date, days) {
+    const result = new Date(date);
+    result.setDate(result.getDate() + days);
+    return result;
+  }
+
+  const orderDateStr = item?.order_date;
+  const orderDateParts = orderDateStr.split(" ");
+  const dateParts = orderDateParts[0].split(".");
+  const timeParts = orderDateParts[1].split(":");
+
+  const orderDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`);
+
+  const deliveryDate = addDaysToDate(orderDate, 39); // 29 days (8 days in August + 21 days in July)
+
+  useEffect(() => {
+    setDeliveredTime(formatDate(deliveryDate));
+  }, [deliveryDate]);
+
   return (
     <div className={styles.main}>
-      <div className={styles.prodNumberDiv}>
-        <p className={styles.prodNumber}>
-          Objednat <span>№123121</span>
-        </p>
-        <p className={styles.prodNumber}>
-          Čas objednávky: <span>16:08 20.08.2023</span>
-        </p>
+      <div onClick={() => setSmall(true)}>
+        <div className={styles.prodNumberDiv}>
+          <p className={styles.prodNumber}>
+            {t("order")} <span>№{item?.order_number}</span>
+          </p>
+          <p className={styles.prodNumber}>
+            {t("order_time")}: <span>{item?.order_date}</span>
+          </p>
+        </div>
+        <p className={styles.delivTimeText}>{`${t(
+          "delivered_on"
+        )} ${deliveredTime}`}</p>
+        <div className={styles.imageDiv}>
+          {item?.images &&
+            item?.images > 0 &&
+            item.images.map((image) => <img src={image} alt="" />)}
+        </div>
+        <div className={styles.totalDiv}>
+          <p>{t("total")}</p>
+          <p>{item?.total_amount} €</p>
+        </div>
       </div>
-      <p className={styles.delivTimeText}>Doručeno 29. srpna</p>
-      <div className={styles.imageDiv}>
-        <img src={testImage} alt="" />
-        <img src={testImage} alt="" />
-        <img src={testImage} alt="" />
-      </div>
-      <div className={styles.totalDiv}>
-        <p>Celkem</p>
-        <p>300.00 Kč</p>
-      </div>
-      <button className={styles.commentBtn}>Napsat recenzi</button>
+      <button onClick={()=>navigate(`/product/${item.id}`)} className={styles.commentBtn}>{t("write_review")}</button>
     </div>
   );
 };

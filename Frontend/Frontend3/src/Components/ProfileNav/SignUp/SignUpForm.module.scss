@@ -1,1 +1,8 @@
 @import "../ProfileChangePass/ProfileChangePass.module.scss";
+
+.mainReg {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  height: auto;
+}

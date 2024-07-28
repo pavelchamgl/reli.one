@@ -1,16 +1,63 @@
 .main {
   display: flex;
   align-items: center;
-  gap: 90px;
+  justify-content: space-between;
   height: 166px;
   border-bottom: 1px solid #ced4d7;
   border-top: 1px solid #ced4d7;
   position: relative;
+  width: 732px;
+
+  @media (max-width: 1440px) {
+    width: calc(100vw - 200px);
+  }
+  @media (max-width: 1000px) {
+    gap: 20px;
+  }
+  @media (max-width: 800px) {
+    gap: 0;
+    width: calc(100vw - 100px);
+  }
+  @media (max-width: 426px) {
+    width: calc(100vw - 34px);
+    gap: 40px;
+  }
+  @media (max-width: 376px) {
+    gap: 25px;
+  }
 }
 
 .img {
-  width: 120px;
+  width: 120px !important;
   height: 114px;
+  object-fit: cover;
+  @media (max-width: 426px) {
+    width: 81px;
+    height: 89px;
+  }
+}
+
+.adaptiveWrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-direction: column-reverse;
+  gap: 80px;
+
+  @media (max-width: 700px) {
+    width: 200px;
+    flex-wrap: wrap-reverse;
+    gap: 20px;
+  }
+  @media (max-width: 376px) {
+    width: 150px;
+    flex-wrap: wrap-reverse;
+    gap: 20px;
+  }
+  @media (max-width: 320px) {
+    width: auto;
+    flex-wrap: wrap-reverse;
+  }
 }
 
 .imageTextWrap {
@@ -19,16 +66,27 @@
 }
 
 .textDiv {
+  margin-top: 20px;
+  width: 200px;
   h3 {
     font-weight: 600;
-    font-size: 16px;
+    font-size: clamp(14px, 2.5vw, 16px);
     line-height: 123%;
     color: #000;
   }
   p {
     font-weight: 300;
-    font-size: 13px;
+    font-size: clamp(12px, 2.5vw, 13px);
     line-height: 151%;
+    color: #000;
+  }
+}
+
+.mobTextDiv {
+  p {
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 150%;
     color: #000;
   }
 }
@@ -53,6 +111,10 @@
     width: 15px;
     height: 15px;
   }
+  @media (max-width: 426px) {
+    order: -3;
+    gap: 10px;
+  }
 }
 
 .priceDiv {
@@ -61,16 +123,18 @@
   gap: 5px;
   p {
     font-weight: 600;
-    font-size: 20px;
+    font-size: clamp(14px, 2.5vw, 20px);
     line-height: 98%;
     color: #000;
+    text-wrap: nowrap;
   }
   span {
     font-weight: 600;
-    font-size: 14px;
+    font-size: clamp(12px, 2.5vw, 14px);
     line-height: 140%;
     color: #64748b;
     text-decoration: line-through;
+    text-wrap: nowrap;
   }
 }
 
@@ -81,10 +145,16 @@
   gap: 83px;
   button {
     background-color: transparent;
+    img {
+      @media (max-width: 376px) {
+        width: 15px;
+      }
+    }
   }
 }
 
 .cardChecked {
   position: absolute;
-  top: 26px;
+  top: 8px;
+  left: -18px;
 }

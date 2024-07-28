@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import closeEyeIcon from "../../assets/Input/closeEyesIcon.svg";
 import openEyeIcon from "../../assets/Input/openEyesIcon.svg";
 
 import styles from "./AuthInp.module.scss";
 
-const AuthInp = ({ type, width, ...props }) => {
+const AuthInp = ({ type, width, err = null, ...props }) => {
   const [inpType, setInpType] = useState("password");
 
   const changeType = () => {
@@ -19,7 +19,7 @@ const AuthInp = ({ type, width, ...props }) => {
     return (
       <input
         style={{ width: width }}
-        className={styles.textInp}
+        className={err ? styles.textInpErr : styles.textInp}
         type="text"
         {...props}
       />
@@ -27,8 +27,11 @@ const AuthInp = ({ type, width, ...props }) => {
   }
   if (type === "password") {
     return (
-      <div style={{ width: width }} className={styles.passInp}>
-        <input type={inpType} />
+      <div
+        style={{ width: width }}
+        className={err ? styles.passInpErr : styles.passInp}
+      >
+        <input type={inpType} {...props} />
         <button onClick={changeType}>
           <img
             src={inpType === "password" ? closeEyeIcon : openEyeIcon}

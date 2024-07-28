@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import store from "./redux/index.js";
 
 import HomePage from "./pages/HomePage.jsx";
 import MainPage from "./pages/MainPage.jsx";
@@ -18,11 +20,19 @@ import PaymentEnd from "./pages/PaymentEnd.jsx";
 import ChangePassPage from "./pages/ChangePassPage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
 import EmailConfirmPage from "./pages/EmailConfirmPage.jsx";
-import LinkConfPage from "./pages/LinkConfPage.jsx";
 import MobProdResenzePage from "./pages/MobProdResenzePage.jsx";
 import MobCreateResenze from "./pages/MobCreateResenze.jsx";
 import MobLoginPage from "./pages/MobLoginPage.jsx";
 import MobProfileNavPage from "./pages/MobProfileNavPage.jsx";
+import MobCategoryPage from "./pages/MobCategoryPage.jsx";
+import OtpConfirmPage from "./pages/OtpConfirmPage.jsx";
+import CategoryPage from "./pages/CategoryPage.jsx";
+
+import i18n from "../language/i18next.js";
+import { I18nextProvider } from "react-i18next";
+import PassEmailConfirmPage from "./pages/PassEmailConfirmPage.jsx";
+import OtpPassConfirmPage from "./pages/OtpPassConf.jsx";
+import CreateNewPass from "./pages/CreateNewPass.jsx";
 
 const router = createBrowserRouter([
   {
@@ -44,18 +54,24 @@ const router = createBrowserRouter([
       { path: "/for_buy", element: <ForBuyersPage /> },
       { path: "/liked", element: <LikedPage /> },
       { path: "/my_orders", element: <MyOrdersPage /> },
-      { path: "/product", element: <ProductPage /> },
+      { path: "/product/:id", element: <ProductPage /> },
       { path: "/payment_end", element: <PaymentEnd /> },
       { path: "/change_pass", element: <ChangePassPage /> },
       { path: "/sign_up", element: <SignUpPage /> },
       { path: "/email_conf", element: <EmailConfirmPage /> },
-      { path: "/link_conf", element: <LinkConfPage /> },
+      { path: "/email_pass_conf", element: <PassEmailConfirmPage /> },
+      { path: "/otp_pass_conf", element: <OtpPassConfirmPage /> },
+      { path: "/otp_conf", element: <OtpConfirmPage /> },
+      { path: "/create_new_pass", element: <CreateNewPass /> },
       { path: "/test", element: <Test /> },
 
-      { path: "/mob_resenze", element: <MobProdResenzePage /> },
-      { path: "/mob_resenze_create", element: <MobCreateResenze /> },
+      { path: "/mob_resenze/:id", element: <MobProdResenzePage /> },
+      { path: "/mob_resenze_create/:id", element: <MobCreateResenze /> },
       { path: "/mob_login", element: <MobLoginPage /> },
       { path: "/mob_profile_nav", element: <MobProfileNavPage /> },
+      { path: "/mob_basket", element: <BasketPage /> },
+      { path: "/mob_category", element: <MobCategoryPage /> },
+      { path: "/product_category", element: <CategoryPage /> },
     ],
   },
   {
@@ -70,12 +86,20 @@ const router = createBrowserRouter([
     path: "/payment",
     element: <PaymentPage />,
   },
+  {
+    path: "*",
+    element: <HomePage />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router}>
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  </RouterProvider>
+  <Provider store={store}>
+    <RouterProvider router={router}>
+      <I18nextProvider i18n={i18n}>
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      </I18nextProvider>
+    </RouterProvider>
+  </Provider>
 );

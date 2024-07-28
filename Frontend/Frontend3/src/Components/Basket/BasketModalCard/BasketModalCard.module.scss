@@ -1,0 +1,129 @@
+.main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  // gap: 80px;
+  height: 166px;
+  border-bottom: 1px solid #ced4d7;
+  border-top: 1px solid #ced4d7;
+  position: relative;
+  // @media (max-width: 1440px) {
+  //   width: calc(100vw - 200px);
+  // }
+  // @media (max-width: 1000px) {
+  //   gap: 20px;
+  // }
+  // @media (max-width: 800px) {
+  //   gap: 40px;
+  // }
+  // @media (max-width: 426px) {
+  //   width: calc(100vw - 34px);
+  //   gap: 40px;
+  // }
+  // @media (max-width: 376px) {
+  //   gap: 25px;
+  // }
+}
+
+.img {
+  width: 120px;
+  height: 114px;
+  object-fit: cover;
+  @media (max-width: 800px) {
+    width: 81px;
+    height: 89px;
+  }
+}
+
+.imageTextWrap {
+  display: flex;
+  gap: 13px;
+}
+
+.textDiv {
+  margin-top: 20px;
+  h3 {
+    font-weight: 600;
+    font-size: clamp(14px, 2.5vw, 16px);
+    line-height: 123%;
+    color: #000;
+  }
+  p {
+    font-weight: 300;
+    font-size: clamp(12px, 2.5vw, 13px);
+    line-height: 151%;
+    color: #000;
+  }
+}
+
+.mobTextDiv {
+  p {
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 150%;
+    color: #000;
+  }
+}
+
+.countDiv {
+  padding: 5px 11px;
+  display: flex;
+  gap: 21px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #465060;
+
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 98%;
+  color: #465060;
+  button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.priceDiv {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  p {
+    font-weight: 600;
+    font-size: clamp(14px, 2.5vw, 20px);
+    line-height: 98%;
+    color: #000;
+    text-wrap: nowrap;
+  }
+  span {
+    font-weight: 600;
+    font-size: clamp(12px, 2.5vw, 14px);
+    line-height: 140%;
+    color: #64748b;
+    text-decoration: line-through;
+    text-wrap: nowrap;
+  }
+}
+
+.deleteLikeDiv {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 83px;
+  button {
+    background-color: transparent;
+    img {
+      @media (max-width: 376px) {
+        width: 15px;
+      }
+    }
+  }
+}
+
+.cardChecked {
+  position: absolute;
+  top: 26px;
+}

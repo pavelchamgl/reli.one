@@ -1,22 +1,59 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useMediaQuery } from "react-responsive";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteFromBasket, selectProduct } from "../../../redux/basketSlice";
+import { Checkbox } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
+import { toggleFavorite } from "../../../api/favorite";
 import testImage from "../../../assets/Product/ProductTestImage.svg";
 import deleteIcon from "../../../assets/Basket/deleteIcon.svg";
 import likeIcon from "../../../assets/Basket/likeIcon.svg";
+import likeIconAcc from "../../../assets/Basket/likeAcc.svg";
 import plusIcon from "../../../assets/Basket/plusIcon.svg";
 import minusIcon from "../../../assets/Basket/minusIcon.svg";
 
 import styles from "./BasketCard.module.scss";
-import CheckBox from "../../../ui/CheckBox/CheckBox";
 
-const BasketCard = ({ all, section }) => {
-  const [count, setCount] = useState(0);
+const BasketCard = ({ all, section, productData }) => {
+  const [count, setCount] = useState(productData.count);
+  const [checkboxValue, setCheckboxValue] = useState(productData.selected);
+  const [like, setLike] = useState(
+    productData ? productData.is_favorite : false
+  );
+
+  const { product } = productData;
+
+  const navigate = useNavigate();
+
+  console.log(product);
+
+  const dispatch = useDispatch();
+
+  const isMobile = useMediaQuery({ maxWidth: 700 });
 
   const handleMinus = () => {
-    if (!count) {
-      setCount(count);
-    } else {
-      setCount((prev) => prev - 1);
+    setCount((prev) => (prev > 0 ? prev - 1 : 0));
+  };
+
+  const handleCheckboxChange = (event) => {
+    const newCheckboxValue = event.target.checked;
+    setCheckboxValue(newCheckboxValue);
+    dispatch(selectProduct({ id: product.id, selected: newCheckboxValue }));
+  };
+
+  useEffect(() => {
+    setCheckboxValue(productData.selected);
+  }, [productData.selected]);
+
+  const handleToggleLike = async () => {
+    const newLike = !like;
+    setLike(newLike);
+    try {
+      await toggleFavorite(productData.id);
+    } catch (error) {
+      // Обработка ошибки
+      setLike(!newLike); // Вернуть предыдущее состояние в случае ошибки
     }
   };
 
@@ -24,37 +61,72 @@ const BasketCard = ({ all, section }) => {
     <div className={styles.main}>
       {section === "basket" && (
         <div className={styles.cardChecked}>
-          <CheckBox check={all} />
+          <Checkbox
+            checked={checkboxValue}
+            onChange={handleCheckboxChange}
+            color="success"
+          />
         </div>
       )}
-      <div className={styles.imageTextWrap}>
-        <img className={styles.img} src={testImage} alt="" />
-        <div className={styles.textDiv}>
-          <h3>SUNERGY 435w-450w</h3>
-          <p>SUN 78MD-HFS</p>
-        </div>
-      </div>
 
-      <div className={styles.countDiv}>
-        <button onClick={handleMinus}>
-          <img src={minusIcon} alt="" />
-        </button>
-        <p>{count}</p>
-        <button onClick={() => setCount(count + 1)}>
-          <img src={plusIcon} alt="" />
-        </button>
-      </div>
+      {isMobile ? (
+        <>
+          <img className={styles.img} src={product?.image} alt="" />
+          <div className={styles.adaptiveWrap}>
+            <div
+              onClick={() => navigate(`/product/${product?.id}`)}
+              className={styles.mobTextDiv}
+            >
+              <p>{product?.name}</p>
+            </div>
+            <div className={styles.countDiv}>
+              <button onClick={handleMinus}>
+                <img src={minusIcon} alt="" />
+              </button>
+              <p>{count}</p>
+              <button onClick={() => setCount(count + 1)}>
+                <img src={plusIcon} alt="" />
+              </button>
+            </div>
+            <div className={styles.priceDiv}>
+              <p>{product ? product.price : 0} €</p>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className={styles.imageTextWrap}>
+            <img className={styles.img} src={product?.image} alt="" />
+            <div className={styles.textDiv}>
+              <h3 onClick={() => navigate(`/product/${product?.id}`)}>
+                {product?.name}
+              </h3>
+              <p>{product?.category?.name}</p>
+            </div>
+          </div>
 
-      <div className={styles.priceDiv}>
-        <p>150.00 Kč</p>
-        <span>300.00 Kč</span>
-      </div>
+          <div className={styles.countDiv}>
+            <button onClick={handleMinus}>
+              <img src={minusIcon} alt="" />
+            </button>
+            <p>{count}</p>
+            <button onClick={() => setCount(count + 1)}>
+              <img src={plusIcon} alt="" />
+            </button>
+          </div>
+
+          <div className={styles.priceDiv}>
+            <p>{product?.price} €</p>
+            {/* <span>{product.price} Kč</span> */}
+          </div>
+        </>
+      )}
 
       <div className={styles.deleteLikeDiv}>
-        <button>
-          <img src={likeIcon} alt="" />
+        <button onClick={handleToggleLike}>
+          <img src={like ? likeIconAcc : likeIcon} alt="" />
         </button>
-        <button>
+        <button onClick={() => dispatch(deleteFromBasket({ id: product.id }))}>
           <img src={deleteIcon} alt="" />
         </button>
       </div>

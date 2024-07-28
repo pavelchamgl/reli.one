@@ -1,0 +1,17 @@
+.cardItem {
+    border-radius: 10px;
+    width: 91px;
+    height: 102px;
+    padding-top: 10px;
+    text-align: center;
+    background-size: cover;
+    background-position: center;
+    p {
+      font-weight: 600;
+      font-size: 12px;
+      line-height: 100%;
+      letter-spacing: -0.03em;
+      text-align: center;
+      color: #000;
+    }
+  }

@@ -8,7 +8,7 @@
 
 .categoryDiv {
   background-color: #ebebeb;
-  width: 246px;
+  padding: 7px 13px;
   height: 35px;
   display: flex;
   justify-content: center;
@@ -20,17 +20,17 @@
   letter-spacing: -0.02em;
   color: #5b5b5b;
   margin-bottom: 11px;
-  @media (max-width: 600px) {
-    width: 206px;
-    height: 30px;
-    & img {
-      width: 12px;
-    }
-  }
-  @media (max-width: 400px) {
-    width: 166px;
-    height: 30px;
-  }
+  // @media (max-width: 600px) {
+  //   width: 206px;
+  //   height: 30px;
+  //   & img {
+  //     width: 12px;
+  //   }
+  // }
+  // @media (max-width: 400px) {
+  //   width: 166px;
+  //   height: 30px;
+  // }
 }
 
 .title {
@@ -49,6 +49,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 25px;
+  margin-top: 10px;
 }
 
 .paginateDiv {

@@ -9,7 +9,7 @@ const News = () => {
   const [openinCard, setOpeninCard] = useState(false);
   useEffect(() => {
     const fetchData = async () => {
-      const response = await fetch('http://localhost:8081/api/news/');
+      const response = await fetch('https://reli.one/api/news/');
       const result = await response.json();
       setData(result);
     };

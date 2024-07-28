@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import styles from "./ProductTab.module.scss";
 
 const ProductTab = ({ setTab }) => {
   const [section, setSection] = useState("Charakteristika");
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     setTab(section);
@@ -15,19 +18,19 @@ const ProductTab = ({ setTab }) => {
         onClick={() => setSection("Charakteristika")}
         className={section === "Charakteristika" ? styles.tabAcc : styles.tab}
       >
-        Charakteristika
+        {t("characteristics")}
       </button>
       <button
         onClick={() => setSection("Recenze")}
         className={section === "Recenze" ? styles.tabAcc : styles.tab}
       >
-        Recenze
+        {t("review")}
       </button>
       <button
         onClick={() => setSection("Certifikáty")}
         className={section === "Certifikáty" ? styles.tabAcc : styles.tab}
       >
-        Certifikáty
+        {t("certificates")}
       </button>
     </div>
   );

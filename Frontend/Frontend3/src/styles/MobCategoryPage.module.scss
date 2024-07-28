@@ -1,0 +1,66 @@
+.returnBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background-color: transparent;
+  margin-top: 12px;
+  p {
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 105%;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: #000;
+  }
+}
+
+.cardItemWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 15px;
+  margin-bottom: 62px;
+}
+
+.cardItemWrap2 {
+  display: flex;
+  align-items: start;
+  flex-direction: column;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 15px;
+  margin-bottom: 62px;
+}
+
+.cardItemBtnWrap {
+  display: flex;
+  gap: 28px;
+  & .cardWrap {
+    padding-right: 26px;
+    border-right: 1px solid #ebebeb;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  & .btnWrap {
+    padding-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 17px;
+    button {
+      font-weight: 600;
+      font-size: 12px;
+      line-height: 100%;
+      letter-spacing: -0.03em;
+      text-transform: capitalize;
+      color: #000;
+      background-color: transparent;
+      transition: color 0.5s ease;
+      &:hover {
+        color: #f7cd56;
+      }
+    }
+  }
+}

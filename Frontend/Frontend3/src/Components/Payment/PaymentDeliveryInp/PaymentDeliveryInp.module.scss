@@ -23,6 +23,9 @@
     color: black;
     outline: none;
     padding-left: 10px;
+    @media (max-width: 426px) {
+      height: 36px;
+    }
   }
   button {
     background: #fff;
@@ -34,11 +37,16 @@
     align-items: center;
     gap: 6px;
     font-weight: 600;
-    font-size: 14px;
+    font-size:  14px;
     color: #787778;
     &:hover {
       background: #047857;
       color: #fff;
+    }
+    @media (max-width: 426px) {
+      height: 36px;
+      width: 72px;
+      font-size: 11px;
     }
   }
 }

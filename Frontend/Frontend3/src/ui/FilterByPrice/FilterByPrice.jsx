@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { styled, Slider, SliderThumb } from "@mui/material";
 import arrTop from "../../assets/Filter/arrTop.svg";
 import arrBottom from "../../assets/Filter/arrBottom.svg";
+import { useTranslation } from "react-i18next";
 
 import "./FilterByPrice.scss";
 
@@ -47,10 +48,13 @@ function AirbnbThumbComponent(props) {
   );
 }
 
-const FilterByPrice = () => {
-  const [value, setValue] = useState([0, 1.35]);
+const FilterByPrice = ({ handleFilter, filter, setMax, setMin }) => {
+  const [value, setValue] = useState([0, 1000]);
   const [open, setOpen] = useState(false);
   const modalRef = useRef(null);
+
+  const { t } = useTranslation();
+
 
   const handleSliderChange = (event, newValue) => {
     setValue(newValue);
@@ -69,6 +73,9 @@ const FilterByPrice = () => {
   const applyFilter = () => {
     console.log("Фильтр применен с ценами от", value[0], "до", value[1]);
     // Здесь можно добавить логику для применения фильтра
+    setMin(value[0]);
+    setMax(value[1]);
+    handleFilter(!filter);
   };
 
   const handleClickOutside = (event) => {
@@ -90,12 +97,12 @@ const FilterByPrice = () => {
   }, [open]);
 
   return (
-    <div className="price-filter_main">
+    <div ref={modalRef} className="price-filter_main">
       <button onClick={() => setOpen(!open)} className="btnFilter">
-        <p>Velikost</p>
+        <p>{t("price_filtr_text")}</p>
         <img src={open ? arrTop : arrBottom} alt="" />
       </button>
-      <div ref={modalRef} className={open ? "price-filter" : "price-filter_hid"}>
+      <div className={open ? "price-filter" : "price-filter_hid"}>
         <AirbnbSlider
           getAriaLabel={(index) =>
             index === 0 ? "Minimum price" : "Maximum price"
@@ -103,12 +110,12 @@ const FilterByPrice = () => {
           value={value}
           onChange={handleSliderChange}
           min={0}
-          max={1.35}
-          step={0.01}
+          max={1000}
+          step={10}
         />
         <div className="price-inputs">
           <div className="price-input">
-            <label>min. cena</label>
+            <label>{t("min_price")}</label>
             <input
               type="number"
               min="0"
@@ -120,7 +127,7 @@ const FilterByPrice = () => {
           </div>
           <div className="price-separator">-</div>
           <div className="price-input">
-            <label>max. cena</label>
+            <label>{t("max_price")}</label>
             <input
               type="number"
               min="0"
@@ -132,7 +139,7 @@ const FilterByPrice = () => {
           </div>
         </div>
         <button className="apply-button" onClick={applyFilter}>
-          Použít filtr
+          {t("apply_filtr")}
         </button>
       </div>
     </div>

@@ -61,6 +61,19 @@
     font-size: 16px;
 }
 
+.btnNavigate {
+    color: white !important;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 131%;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+    padding: 0 30px 30px 30px !important;
+    font-weight: 500;
+    font-size: 16px;
+    background-color: transparent;
+}
+
 .ButtonNavigate {
     color: white !important;
     padding: 0 30px 30px 30px !important;
@@ -153,7 +166,8 @@
     align-items: flex-start;
     gap: 10px;
     margin-bottom: 91px;
-    & p{
+
+    & p {
         text-align: left;
         color: #b1b1b1;
         font-weight: 600;

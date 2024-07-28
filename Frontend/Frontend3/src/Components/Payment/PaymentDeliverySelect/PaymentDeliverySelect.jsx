@@ -1,17 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { useActions } from "../../../hook/useAction.js";
 
+import {
+  ppl as pplPrice,
+  geis,
+  dpd as dpdPrice,
+  calculateBoxSize,
+} from "../../../code/deliveryCode.js";
+import { useSelector } from "react-redux";
 import {
   FormControl,
   FormControlLabel,
-  FormLabel,
   Radio,
   RadioGroup,
 } from "@mui/material";
 
 import arrRight from "../../../assets/Payment/arrRight.svg";
 import arrBottom from "../../../assets/Payment/arrBottom.svg";
-import dhl from "../../../assets/Payment/dhl.svg";
-import zasil from "../../../assets/Payment/zasil.svg";
+// import dhl from "../../../assets/Payment/dhl.svg";
+// import zasil from "../../../assets/Payment/zasil.svg";
 import ppl from "../../../assets/Payment/ppl.svg";
 import dpd from "../../../assets/Payment/dpd.svg";
 import globalLogistic from "../../../assets/Payment/globalLogistic.svg";
@@ -20,44 +28,141 @@ import styles from "./PaymentDeliverySelect.module.scss";
 
 const PaymentDeliverySelect = () => {
   const [open, setOpen] = useState(false);
-
   const [selectedValue, setSelectedValue] = useState("sclad");
-
+  const [weight, setWeight] = useState(0);
   const [deliImg, setDeliImg] = useState(null);
+  const [pplResult, setPplResult] = useState(0);
+  const [geisResult, setGeisResult] = useState(0);
+  const [dpdResult, setDpdResult] = useState(0);
+  const [price, setPrice] = useState(0);
+  const [boxSize, setBoxSize] = useState("s");
+
+  const { t } = useTranslation();
+
+  const { editValue } = useActions();
+
+  const selectedProducts = useSelector(
+    (state) => state.basket.selectedProducts
+  );
+
+  const calculateWeight = useCallback(() => {
+    if (selectedProducts.length > 0) {
+      const totalWeightInGrams = selectedProducts.reduce((acc, item) => {
+        // Найти параметр weight среди параметров продукта
+        const weightParam = item?.product?.parameters?.find(
+          (param) => param.parameter_name === "weight"
+        );
+        // Если параметр weight найден, добавить его значение к аккумулятору
+        const weight = weightParam ? Number(weightParam.value) : 0;
+        return acc + weight;
+      }, 0);
+
+      // Преобразовать общее значение из граммов в килограммы
+      const totalWeightInKg = totalWeightInGrams / 1000;
+      console.log(totalWeightInKg);
+
+      setWeight(totalWeightInKg);
+
+      selectedProducts.forEach((product) => {
+        const height = Number(
+          product.product.parameters.find(
+            (param) => param.parameter_name === "height"
+          ).value
+        );
+        const width = Number(
+          product.product.parameters.find(
+            (param) => param.parameter_name === "width"
+          ).value
+        );
+        const length = Number(
+          product.product.parameters.find(
+            (param) => param.parameter_name === "length"
+          ).value
+        );
+
+        const boxSize = calculateBoxSize(height, width, length);
+        setBoxSize(boxSize);
+
+      });
+    }
+  }, [selectedProducts]);
+
+  useEffect(() => {
+    calculateWeight();
+  }, [calculateWeight]);
+
+  useEffect(() => {
+    const pplFuncResult = pplPrice(boxSize, weight);
+    const geisFuncResult = geis(weight);
+    const dpdFuncResult = dpdPrice(weight);
+    setDpdResult(dpdFuncResult);
+    setGeisResult(geisFuncResult);
+    setPplResult(pplFuncResult);
+    console.log(pplFuncResult);
+    console.log(geisFuncResult);
+    console.log(dpdFuncResult);
+  }, [weight]);
 
   useEffect(() => {
     if (selectedValue !== "sclad" && selectedValue !== "adresu") {
-      setOpen(!open);
+      setOpen((prevOpen) => !prevOpen);
+    }
+    if (selectedValue === "sclad") {
+      editValue({ TK: selectedValue, price: 0, type: 0 });
+    } else {
+      let courirer;
+      if (selectedValue === "ppl") {
+        courirer = 1;
+      }
+      if (selectedValue === "dpd") {
+        courirer = 3;
+      }
+      if (selectedValue === "globalLogistic") {
+        courirer = 2;
+      }
+
+      editValue({
+        TK: selectedValue,
+        price: price,
+        type: 1,
+        courier_id: courirer,
+      });
     }
   }, [selectedValue]);
+
+  const handleChange = (event) => {
+    setSelectedValue(event.target.value);
+  };
 
   return (
     <div>
       <FormControl fullWidth>
         <RadioGroup
           aria-labelledby="demo-radio-buttons-group-label"
-          defaultValue="female"
+          defaultValue="sclad"
           name="radio-buttons-group"
           value={selectedValue}
-          onChange={(e) => {
-            setSelectedValue(e.target.value);
-          }}
+          onChange={handleChange}
         >
           <div className={styles.selectBlock}>
             <FormControlLabel
+              sx={{ fontSize: "12px" }}
               value="sclad"
               control={<Radio color="success" />}
-              label="Vyzvednutí ze skladu"
+              label={t("collection_warehouse")}
             />
-            <p className={styles.freeText}>Zdarma</p>
+            <p className={styles.freeText}>{t("free")}</p>
           </div>
-          <button onClick={() => setOpen(!open)} className={styles.selectBlock}>
+          <button
+            onClick={() => setOpen((prevOpen) => !prevOpen)}
+            className={styles.selectBlock}
+          >
             <div className={styles.radioImageDiv}>
               <FormControlLabel
                 sx={{ marginRight: "0px" }}
                 value="adresu"
                 control={<Radio color="success" />}
-                label={deliImg ? "" : "Doručení na adresu"}
+                label={deliImg ? "" : t("delivery_address")}
               />
               {deliImg && <img src={deliImg} alt="" />}
             </div>
@@ -66,66 +171,36 @@ const PaymentDeliverySelect = () => {
           <div
             className={open ? styles.selectBlockAcc : styles.selectBlockNotAcc}
           >
-            <div className={styles.selectBlock}>
-              <div className={styles.radioImageDiv}>
-                <FormControlLabel
-                  onClick={() => setDeliImg(dhl)}
-                  sx={{ marginRight: "0px" }}
-                  value="dhl"
-                  control={<Radio color="success" />}
-                />
-                <img src={dhl} alt="" />
+            {[
+              // { value: "dhl", img: dhl, price: 150 },
+              // { value: "zasilkovna", img: zasil, price: 150 },
+              { value: "ppl", img: ppl, price: pplResult?.price || pplResult },
+              { value: "dpd", img: dpd, price: dpdResult?.price || dpdResult },
+              {
+                value: "globalLogistic",
+                img: globalLogistic,
+                price: geisResult?.price || geisResult,
+              },
+            ].map(({ value, img, price }) => (
+              <div key={value} className={styles.selectBlock}>
+                <div className={styles.radioImageDiv}>
+                  <FormControlLabel
+                    disabled={typeof price !== "number"}
+                    onClick={() => {
+                      setDeliImg(img);
+                      setPrice(price);
+                    }}
+                    sx={{ marginRight: "0px" }}
+                    value={value}
+                    control={<Radio color="success" />}
+                  />
+                  <img src={img} alt="" />
+                </div>
+                <p className={styles.price}>
+                  {typeof price === "number" ? `${price} €` : price}
+                </p>
               </div>
-              <p className={styles.price}>150.00 Kč</p>
-            </div>
-            <div className={styles.selectBlock}>
-              <div className={styles.radioImageDiv}>
-                <FormControlLabel
-                  onClick={() => setDeliImg(zasil)}
-                  sx={{ marginRight: "0px" }}
-                  value="zasilkovna"
-                  control={<Radio color="success" />}
-                />
-                <img src={zasil} alt="" />
-              </div>
-              <p className={styles.price}>150.00 Kč</p>
-            </div>
-            <div className={styles.selectBlock}>
-              <div className={styles.radioImageDiv}>
-                <FormControlLabel
-                  onClick={() => setDeliImg(ppl)}
-                  sx={{ marginRight: "0px" }}
-                  value="ppl"
-                  control={<Radio color="success" />}
-                />
-                <img src={ppl} alt="" />
-              </div>
-              <p className={styles.price}>150.00 Kč</p>
-            </div>
-            <div className={styles.selectBlock}>
-              <div className={styles.radioImageDiv}>
-                <FormControlLabel
-                  onClick={() => setDeliImg(dpd)}
-                  sx={{ marginRight: "0px" }}
-                  value="dpd"
-                  control={<Radio color="success" />}
-                />
-                <img src={dpd} alt="" />
-              </div>
-              <p className={styles.price}>150.00 Kč</p>
-            </div>
-            <div className={styles.selectBlock}>
-              <div className={styles.radioImageDiv}>
-                <FormControlLabel
-                  onClick={() => setDeliImg(globalLogistic)}
-                  sx={{ marginRight: "0px" }}
-                  value="globalLogistic"
-                  control={<Radio color="success" />}
-                />
-                <img src={globalLogistic} alt="" />
-              </div>
-              <p className={styles.price}>150.00 Kč</p>
-            </div>
+            ))}
           </div>
         </RadioGroup>
       </FormControl>

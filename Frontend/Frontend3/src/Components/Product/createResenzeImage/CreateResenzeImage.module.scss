@@ -1,0 +1,103 @@
+.addBtn {
+  border: 2px solid #000;
+  width: 258px;
+  height: 33px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 33px;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  line-height: 167%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #000;
+  background: #fff;
+  cursor: pointer;
+  @media (max-width: 426px) {
+    width: 184px;
+    height: 34px;
+    & img {
+      width: 14px;
+    }
+  }
+}
+
+.imageWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.imageDiv {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  overflow-x: auto;
+  gap: 15px;
+  label {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 94px;
+    height: 94px;
+    border: 2px solid #717171;
+    font-weight: 200;
+    font-size: 48px;
+    line-height: 62%;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: #717171;
+    cursor: pointer;
+    padding: 36px;
+    @media (max-width: 426px) {
+      width: 66px;
+      height: 72px;
+    }
+  }
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 94px;
+    height: 94px;
+    border: 2px solid #717171;
+    font-weight: 200;
+    font-size: 48px;
+    line-height: 62%;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: #717171;
+    @media (max-width: 426px) {
+      width: 66px;
+      height: 72px;
+    }
+    & img {
+      width: 94px;
+      height: 94px;
+      object-fit: cover;
+      @media (max-width: 426px) {
+        width: 66px;
+        height: 72px;
+      }
+    }
+  }
+}
+
+.inpHidden {
+  display: none;
+  cursor: pointer;
+}
+
+.imageDiv::-webkit-scrollbar {
+  height: 4px; /* Высота полосы прокрутки */
+}
+
+.imageDiv::-webkit-scrollbar-thumb {
+  background-color: gray; /* Цвет ползунка */
+  border-radius: 10px; /* Радиус скругления ползунка */
+}
+
+.imageDiv::-webkit-scrollbar-track {
+  background-color: transparent; /* Цвет трека (фон полосы прокрутки) */
+}

@@ -1,11 +1,15 @@
+import { useTranslation } from "react-i18next";
+
 import styles from "./ForSellerTable.module.scss";
 
 const ForSellerTable = () => {
+  const { t } = useTranslation();
+
   return (
     <div>
       <div className={styles.tableItem}>
         <div>
-          <p>Appliances / gadgets</p>
+          <p>{t("table_gadgets")}</p>
         </div>
         <div>
           <p>8%</p>
@@ -13,7 +17,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Baby / kids goods</p>
+          <p>{t("table_baby")}</p>
         </div>
         <div>
           <p>10%</p>
@@ -21,7 +25,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Backpacks / bags</p>
+          <p>{t("table_bags")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -29,7 +33,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Beauty / health</p>
+          <p>{t("table_beauty")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -37,7 +41,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Clothing</p>
+          <p>{t("table_clothing")}</p>
         </div>
         <div>
           <p>11%</p>
@@ -45,7 +49,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Computers</p>
+          <p>{t("table_computers")}</p>
         </div>
         <div>
           <p>8%</p>
@@ -53,7 +57,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Electronics</p>
+          <p>{t("table_electronics")}</p>
         </div>
         <div>
           <p>8%</p>
@@ -61,7 +65,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Furniture</p>
+          <p>{t("table_furniture")}</p>
         </div>
         <div>
           <p>12%</p>
@@ -69,7 +73,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Home and kitchen</p>
+          <p>{t("table_home")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -77,20 +81,20 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableBigItem}>
         <div className={styles.forBigTableDiv}>
-          <p>Jewelry</p>
+          <p>{t("table_jewerly")}</p>
         </div>
         <div className={styles.forBigTableDiv}>
           <div>
-            <p>16% if the price of an item is up to</p>
+            <p>{t("table_price_text_1")}</p>
             <p>250$</p>
-            <p>5% if the price of an item more than</p>
+            <p>{t("table_price_text_2")}</p>
             <p>250$</p>
           </div>
         </div>
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Garden</p>
+          <p>{t("table_garden")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -98,7 +102,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Office products</p>
+          <p>{t("table_office")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -106,7 +110,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Pets goods</p>
+          <p>{t("table_pets")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -114,7 +118,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Sports</p>
+          <p>{t("table_sports")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -122,7 +126,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Toys / games</p>
+          <p>{t("table_toys")}</p>
         </div>
         <div>
           <p>15%</p>
@@ -130,13 +134,13 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableBigItem}>
         <div className={styles.forBigTableDiv}>
-          <p>Watches</p>
+          <p>{t("table_watches")}</p>
         </div>
         <div className={styles.forBigTableDiv}>
           <div>
-            <p>16% if the price of an item is up to</p>
+            <p>{t("table_price_text_1")}</p>
             <p>1500$</p>
-            <p>5% if the price of an item more than</p>
+            <p>{t("table_price_text_2")}</p>
             <p>1500$</p>
           </div>
         </div>

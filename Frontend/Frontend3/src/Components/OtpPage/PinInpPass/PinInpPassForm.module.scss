@@ -1,0 +1,67 @@
+.pinInp {
+  border: 1px solid #ced4d7;
+  border-radius: 5px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 400;
+  font-size: 16px;
+  color: #191d23;
+}
+
+.timerDiv {
+  margin-top: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  p {
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 209%;
+    letter-spacing: 0.19em;
+    color: #828b8d;
+  }
+  button {
+    background-color: transparent;
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 209%;
+    letter-spacing: 0.19em;
+    color: #000000;
+  }
+}
+
+.subBtn {
+  border: 1px solid #191919;
+  height: 49px;
+  background-color: #000000;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 187%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #fafafa;
+  margin-top: 5px;
+
+  &:disabled {
+    border: 1px solid #191919;
+    height: 49px;
+    background-color: #fafafa;
+    color: #000000;
+  }
+}
+
+.errText {
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 209%;
+  letter-spacing: 0.19em;
+  color: red;
+  margin-top: 5px;
+}

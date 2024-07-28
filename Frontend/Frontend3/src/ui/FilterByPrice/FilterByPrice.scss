@@ -28,6 +28,13 @@
   position: absolute;
   z-index: 3;
   right: 0;
+  @media (max-width: 426px) {
+    width: calc(100vw);
+  }
+}
+
+.priceWrap{
+  width: auto;
 }
 .price-filter_hid {
   transition: transform 1s ease;
