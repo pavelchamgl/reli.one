@@ -1,14 +1,37 @@
 .main {
   width: 230px;
-  height: 380px;
+  // height: 380px;
   background: #fff;
-  padding: 9px 16px;
   background-repeat: no-repeat;
-  background-size: contain;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 5px;
+
   transition: 0.5s ease;
   position: relative;
+}
+
+.mainSceleton {
+  width: 230px;
+  // height: 380px;
+  background: #aaa0a0;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  transition: 0.5s ease;
+  position: relative;
+}
+
+.main:hover {
+  background-color: #f0f0f0;
+}
+
+.image {
+  width: 100%;
+  height: 257px;
+  object-fit: cover;
 }
 
 .likeBtn {
@@ -21,21 +44,19 @@
 .priceDiv {
   display: flex;
   height: 22px;
+  align-items: flex-end;
   gap: 3px;
 }
 
 .price {
   font-weight: 600;
   font-size: clamp(10px, 2.5vw, 20px);
-  line-height: 98%;
   color: #000;
 }
 
 .priceSale {
   font-weight: 600;
   font-size: clamp(8px, 2.5vw, 12px);
-  line-height: 163%;
-  align-self: flex-end;
   text-decoration: line-through;
   color: #64748b;
 }
@@ -45,6 +66,7 @@
   font-size: clamp(10px, 2.5vw, 14px);
   line-height: 140%;
   color: #000;
+  cursor: pointer;
 }
 
 .rateDiv {
@@ -65,6 +87,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 0 16px 9px 16px;
 }
 
 .buyBtn {
@@ -83,11 +106,100 @@
   height: 31px;
 }
 
+.skeleton {
+  width: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: column;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  .skeletonImage {
+    width: 90%;
+    height: 157px;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    margin-bottom: 10px;
+  }
+
+  .skeletonDetails {
+    flex: 1;
+    margin-left: 10px;
+
+    .skeletonName {
+      width: 100%;
+      height: 20px;
+      background-color: #f0f0f0;
+      margin-bottom: 10px;
+    }
+
+    .skeletonPrice {
+      width: 60%;
+      height: 16px;
+      background-color: #f0f0f0;
+    }
+
+    .skeletonRate {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+
+      .skeletonRating {
+        width: 80px;
+        height: 16px;
+        background-color: #f0f0f0;
+        margin-right: 10px;
+      }
+
+      .skeletonCount {
+        width: 40px;
+        height: 16px;
+        background-color: #f0f0f0;
+      }
+    }
+
+    .skeletonButton {
+      width: 80px;
+      height: 30px;
+      background-color: #f0f0f0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  }
+}
+
 @media only screen and (max-width: 600px) {
   .main {
     width: 132px;
-    height: 238px;
-    padding: 8px 4px;
+  }
+  .skeleton {
+    width: 132px;
+    .skeletonDetails {
+      width: 90%;
+      flex: 1;
+
+      .skeletonName {
+        width: 90%;
+        height: 20px;
+        background-color: #f0f0f0;
+        margin-bottom: 10px;
+      }
+      .skeletonButton {
+        width: 80px;
+        height: 20px;
+        margin-top: 10px;
+      }
+    }
+    .skeletonImage {
+      height: 122px;
+    }
+  }
+  .image {
+    height: 142px;
   }
   .likeBtn {
     img {
@@ -108,6 +220,7 @@
   }
   .descWrap {
     gap: 7px;
+    padding: 8px 4px;
   }
   .buyBtn {
     border-radius: 2px;

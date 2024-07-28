@@ -1,1 +1,0 @@
-﻿export { AsyncBigCompany as BigCompany } from './ui/BigCompanyAsync'

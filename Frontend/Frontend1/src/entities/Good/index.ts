@@ -1,7 +1,0 @@
-export { goodReducer } from './models/goodSlice/goodSlice'
-export { type GoodSchema, type Good } from './models/types/GoodType'
-export { getGood, getStateGood, getErrorGood, getLoadingGood } from './models/selectors/goodSelector'
-export { GoodsList } from './ui/GoodsList/index'
-export { GoodItem } from './ui/GoodItem/GoodItem'
-export { DetailGoods } from './ui/DetailGoods/index'
-export { GoodsListItem } from './ui/GoodsListItem/index'

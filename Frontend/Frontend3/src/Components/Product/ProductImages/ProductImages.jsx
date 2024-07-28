@@ -1,31 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import styles from "./ProductImages.module.scss";
 
 const ProductImages = () => {
-  const [image, setImage] = useState(
-    "https://i.pinimg.com/564x/45/bf/76/45bf762e2550308ba48233b784a0d09e.jpg"
-  );
+  const product = useSelector((state) => state.products.product);
+  const [image, setImage] = useState("");
 
-  let src1 =
-    "https://i.pinimg.com/564x/45/bf/76/45bf762e2550308ba48233b784a0d09e.jpg";
-  let src2 =
-    "https://i.pinimg.com/564x/10/8b/a9/108ba9d7600078f072b4327ebe77add4.jpg";
-  let src3 =
-    "https://i.pinimg.com/564x/09/93/05/09930542a7712f58268ecca4e540e442.jpg";
+  const [src1, setSrc1] = useState("");
+  const [src2, setSrc2] = useState("");
+  const [src3, setSrc3] = useState("");
+
+  useEffect(() => {
+    console.log(product);
+    if (product?.images?.length > 0) {
+      setImage(product?.images[0]?.image_url);
+      setSrc1(product?.images[1]?.image_url);
+      setSrc2(product?.images[2]?.image_url);
+      setSrc3(product?.images[3]?.image_url);
+      // setImage("https://i.pinimg.com/564x/cb/2d/a9/cb2da9b8e06f5e2addc04d92d9fb64a1.jpg");
+      // setSrc1("https://i.pinimg.com/564x/dd/af/be/ddafbecd3f250a6dcbdb7ae4670035ec.jpg");
+      // setSrc2("https://i.pinimg.com/564x/22/e5/d6/22e5d6c5a18581f89bc97140674798cd.jpg");
+      // setSrc3(product.images[3]);
+    }
+  }, [product]);
 
   return (
     <div className={styles.main}>
-      <img className={styles.mainImage} src={image} alt="" />
+      {image && (
+        <img
+          className={styles.mainImage}
+          src={image}
+          alt="Main product"
+        />
+      )}
       <div className={styles.smallImageDiv}>
-        <button className={styles.smallImage} onClick={() => setImage(src1)}>
-          <img src={src1} alt="" />
-        </button>
-        <button className={styles.smallImage} onClick={() => setImage(src2)}>
-          <img src={src2} alt="" />
-        </button>
-        <button className={styles.smallImage} onClick={() => setImage(src3)}>
-          <img src={src3} alt="" />
-        </button>
+        {src1 && (
+          <button className={styles.smallImage} onClick={() => setImage(src1)}>
+            <img src={src1} alt="Thumbnail 1" />
+          </button>
+        )}
+        {src2 && (
+          <button className={styles.smallImage} onClick={() => setImage(src2)}>
+            <img src={src2} alt="Thumbnail 2" />
+          </button>
+        )}
+        {src3 && (
+          <button className={styles.smallImage} onClick={() => setImage(src3)}>
+            <img src={src3} alt="Thumbnail 3" />
+          </button>
+        )}
       </div>
     </div>
   );

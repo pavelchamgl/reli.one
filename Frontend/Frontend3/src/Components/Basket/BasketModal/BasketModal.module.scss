@@ -8,6 +8,12 @@
   flex-direction: column;
   justify-content: space-between;
   position: relative;
+  @media (max-width: 1060px) {
+    width: 750px;
+  }
+  @media (max-width: 800px) {
+    width: 650px;
+  }
 }
 
 .title {
@@ -32,7 +38,8 @@
     text-align: center;
     color: #fff;
   }
-  a {
+  button:nth-child(2) {
+    background-color: transparent;
     font-weight: 500;
     font-size: 18px;
     text-transform: lowercase;

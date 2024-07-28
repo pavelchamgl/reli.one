@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useActions } from "../../hook/useAction";
 
 import arrTop from "../../assets/Filter/arrTop.svg";
 import arrBottom from "../../assets/Filter/arrBottom.svg";
@@ -6,47 +8,92 @@ import checkedRadio from "../../assets/Filter/checkedRadio.svg";
 import notCheckedRadio from "../../assets/Filter/notCheckedRadio.svg";
 
 import styles from "./FilterByPopularity.module.scss";
+import { useLocation } from "react-router-dom";
 
-const FilterByPopularity = () => {
+const FilterByPopularity = ({
+  setOrderingState = null,
+  setOrdering = null,
+}) => {
   const [open, setOpen] = useState(false);
-  const [filterValue, setFilterValue] = useState("popularita");
+  const [filterValue, setFilterValue] = useState("rating");
+
+  const { t } = useTranslation();
+
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (setOrdering) {
+      if (pathname === "/liked") {
+        if (filterValue === "rating") {
+          setOrderingState("popular");
+          setOrdering("popular");
+        }
+        if (filterValue === "price") {
+          setOrderingState("price_asc");
+          setOrdering("price_asc");
+        }
+        if (filterValue === "-price") {
+          setOrderingState("price_desc");
+          setOrdering("price_desc");
+        }
+      } else {
+        setOrderingState(filterValue);
+        setOrdering(filterValue);
+      }
+    }
+  }, [filterValue]);
+
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [wrapperRef]);
 
   return (
-    <div className={styles.main}>
+    <div ref={wrapperRef} className={styles.main}>
       <button onClick={() => setOpen(!open)} className={styles.btn}>
-        <p>Popularita</p>
+        <p>{t("popularity")}</p>
         <img src={open ? arrTop : arrBottom} alt="" />
       </button>
       <div className={open ? styles.selectDiv : styles.selectDivHid}>
         <button
-          onClick={() => setFilterValue("popularita")}
+          onClick={() => setFilterValue("rating")}
           className={styles.radioInpBtn}
         >
           <img
-            src={filterValue === "popularita" ? checkedRadio : notCheckedRadio}
+            src={filterValue === "rating" ? checkedRadio : notCheckedRadio}
             alt=""
           />
-          <p>Popularita</p>
+          <p>{t("popularity")}</p>
         </button>
         <button
-          onClick={() => setFilterValue("Vzestupná cena")}
+          onClick={() => setFilterValue("price")}
           className={styles.radioInpBtn}
         >
           <img
-            src={filterValue === "Vzestupná cena" ? checkedRadio : notCheckedRadio}
+            src={filterValue === "price" ? checkedRadio : notCheckedRadio}
             alt=""
           />
-          <p>Vzestupná cena</p>
+          <p>{t("rising_price")}</p>
         </button>
         <button
-          onClick={() => setFilterValue("Cena sestupně")}
+          onClick={() => setFilterValue("-price")}
           className={styles.radioInpBtn}
         >
           <img
-            src={filterValue === "Cena sestupně" ? checkedRadio : notCheckedRadio}
+            src={filterValue === "-price" ? checkedRadio : notCheckedRadio}
             alt=""
           />
-          <p>Cena sestupně</p>
+          <p>{t("price_descending")}</p>
         </button>
       </div>
     </div>

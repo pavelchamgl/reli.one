@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
+import { useActions } from "../hook/useAction";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import Container from "../ui/Container/Container";
 import ProductImages from "../Components/Product/ProductImages/ProductImages";
@@ -9,38 +12,59 @@ import ProductCharak from "../Components/Product/ProductCharakteristica/ProductC
 import BreadCrumps from "../ui/BreadCrumps/BreadCrumps";
 import ProductComments from "../Components/Product/ProductComments/ProductComments";
 import ProductImageAndName from "../Components/Product/ProdMobileComp/ProdImageAndName/ProductImageAndName";
+import ProdMobileSwitch from "../Components/Product/ProdMobileComp/prodMobileSwitch/ProdMobileSwitch";
+import Loader from "../ui/Loader/Loader";
+import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
 
 import styles from "../styles/ProductPage.module.scss";
-import ProdMobileSwitch from "../Components/Product/ProdMobileComp/prodMobileSwitch/ProdMobileSwitch";
 
 const ProductPage = () => {
   const [section, setSection] = useState("Charakteristika");
 
   const isMobile = useMediaQuery({ maxWidth: 470 });
 
-  return (
-    <Container>
-      <div className={styles.main}>
-        {isMobile ? (
-          <div>
-            <ProductImageAndName />
-            <ProdMobileSwitch />
-          </div>
-        ) : (
-          <>
-            <BreadCrumps />
-            <div className={styles.imageRateDiv}>
-              <ProductImages />
-              <ProductNameRate />
+  const { id } = useParams();
+
+  const { fetchGetProductById, fetchGetComments } = useActions();
+
+  useEffect(() => {
+    fetchGetProductById(id);
+    fetchGetComments(id);
+  }, [id]);
+
+  const { product, status } = useSelector((state) => state.products);
+
+  if (status !== "loading") {
+    return (
+      <Container>
+        <div className={styles.main}>
+          {isMobile ? (
+            <div>
+              <ProductImageAndName />
+              <ProdMobileSwitch />
             </div>
-            <ProductTab setTab={setSection} />
-          </>
-        )}
-        {section === "Charakteristika" && <ProductCharak />}
-        {section === "Recenze" && <ProductComments />}
+          ) : (
+            <>
+              <CustomBreadcrumbs />
+              <div className={styles.imageRateDiv}>
+                <ProductImages />
+                <ProductNameRate />
+              </div>
+              <ProductTab setTab={setSection} />
+            </>
+          )}
+          {section === "Charakteristika" && <ProductCharak />}
+          {section === "Recenze" && <ProductComments />}
+        </div>
+      </Container>
+    );
+  } else {
+    return (
+      <div className={styles.loaderWrap}>
+        <Loader />
       </div>
-    </Container>
-  );
+    );
+  }
 };
 
 export default ProductPage;

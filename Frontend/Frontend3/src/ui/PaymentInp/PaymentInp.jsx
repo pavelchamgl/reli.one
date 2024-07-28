@@ -1,11 +1,12 @@
 import styles from "./PaymentInp.module.scss";
 
-const PaymentInp = ({title, ...props}) => {
+const PaymentInp = ({ title, err = null, ...props }) => {
   return (
     <>
-      <label className={styles.main}>
+      <label className={err ? styles.main : styles.main}>
         <span>{title}</span>
-        <input type="text" />
+        <input type="text" {...props} />
+        <p className={styles.errText}>{err}</p>
       </label>
     </>
   );

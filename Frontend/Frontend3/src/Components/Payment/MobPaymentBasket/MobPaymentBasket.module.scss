@@ -1,0 +1,25 @@
+.openBtn {
+  height: 41px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 13px 0 17px;
+  margin: 14px 0;
+  background-color: transparent;
+  border-top: 1px solid #888888;
+  border-bottom: 1px solid #888888;
+  div {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  p {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 131%;
+    letter-spacing: -0.02em;
+    text-transform: capitalize;
+    color: #047857;
+  }
+}

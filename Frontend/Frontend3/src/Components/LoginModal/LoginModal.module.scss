@@ -1,6 +1,6 @@
 .modal {
   width: 580px;
-  height: 422px;
+  min-height: 422px;
   padding: 30px;
 }
 
@@ -10,6 +10,7 @@
   height: 43px;
   border-bottom: 2px solid black;
   align-items: flex-start;
+  margin-bottom: 20px;
   p {
     padding-top: 2px;
     font-weight: 600;
@@ -19,24 +20,9 @@
     text-transform: capitalize;
     color: #191919;
   }
-  button{
+  button {
     background-color: transparent;
   }
-}
-
-.submitBtnAcc {
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 79%;
-  letter-spacing: 0.16em;
-  text-transform: lowercase;
-  text-align: center;
-  color: #fafafa;
-  border-radius: 2px;
-  padding: 14px 35px 14px 34px;
-  width: 223px;
-  height: 40px;
-  background: #191919;
 }
 
 .submitBtn {
@@ -45,14 +31,34 @@
   padding: 14px 35px 14px 34px;
   width: 223px;
   height: 40px;
-  background: #fff;
+  background: #000000;
   font-weight: 600;
   font-size: 14px;
   line-height: 79%;
   letter-spacing: 0.16em;
   text-transform: lowercase;
   text-align: center;
+  color: #ffffff;
+}
+
+.submitBtn:disabled {
+  background-color: #ffffff;
   color: #000000;
+  border: 2px solid black;
+}
+
+.errText {
+  font-weight: 500;
+  font-size: 14px;
+  color: red !important;
+  display: block;
+}
+.errTextPass {
+  font-weight: 500;
+  font-size: 14px;
+  color: red !important;
+  display: block;
+  margin-top: 5px;
 }
 
 .link {
@@ -94,6 +100,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 5px;
 }
 
 .checkDiv {

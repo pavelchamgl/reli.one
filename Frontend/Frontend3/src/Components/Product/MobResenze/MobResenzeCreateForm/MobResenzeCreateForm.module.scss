@@ -131,14 +131,18 @@
   line-height: 214%;
   letter-spacing: -0.02em;
   text-align: center;
-  color: #000;
+  color: #ffffff;
   border: 1px solid #000;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   height: 29px;
-  background-color: transparent;
+  background-color: black;
+  &:disabled {
+    background-color: transparent;
+    color: #000;
+  }
 }
 
 .submitBtnAcc {
@@ -169,4 +173,12 @@
   justify-content: center;
   align-items: center;
   margin-top: 30px;
+}
+
+.errText {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 125%;
+  letter-spacing: -0.02em;
+  color: #ff0000;
 }

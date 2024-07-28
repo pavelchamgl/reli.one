@@ -1,35 +1,51 @@
+import { useTranslation } from "react-i18next";
+
 import ActualOrdersCard from "../ActualOrdersCard/ActualOrdersCard";
 
 import styles from "../ActualSeaction/ActualSection.module.scss";
+import { useSelector } from "react-redux";
 
 const OrdersListAndDesc = () => {
+  const { t } = useTranslation();
+
+  const { order } = useSelector((state) => state.orders);
+
+  console.log(order);
+
   return (
     <div>
       <div>
-        <ActualOrdersCard />
+        {order?.order_products?.length > 0 ? (
+          order.order_products.map((item) => (
+            <ActualOrdersCard key={item.id} item={item} />
+          ))
+        ) : (
+          <div></div>
+        )}
+
         <ActualOrdersCard />
         <ActualOrdersCard />
         <ActualOrdersCard />
       </div>
       <div className={styles.prodDescWrap}>
         <div className={styles.prodDescDiv}>
-          <p>Mezisoučet:</p>
-          <p>450.00 Kč</p>
+          <p>{t("subtotal")}:</p>
+          <p>{order?.total_amount} €</p>
         </div>
         <div className={styles.prodDescDiv}>
-          <p>Přeprava:</p>
-          <p>Zdarma</p>
+          <p>{t("transportation")}:</p>
+          <p>{order?.delivery_cost}</p>
         </div>
-        <div className={styles.prodDescDiv}>
-          <p>Propagační kód</p>
+        {/* <div className={styles.prodDescDiv}>
+          <p>{t("promotional_code")}</p>
           <p style={{ color: "#047857" }}>-150.00 Kč</p>
-        </div>
+        </div> */}
       </div>
       <div className={styles.totalDiv}>
-        <p>Celkem</p>
+        <p>{t("total")}</p>
         <div className={styles.priceDiv}>
-          <span>CZK</span>
-          <p>300.00 Kč</p>
+          <span>EUR</span>
+          <p>{order?.total_amount} €</p>
         </div>
       </div>
     </div>

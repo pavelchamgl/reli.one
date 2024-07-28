@@ -46,6 +46,14 @@
     font-size: 14px;
     background-color: transparent;
 }
+.headerBottomLink:disabled {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    font-size: 14px;
+    background-color: transparent;
+}
 
 .headerLogo {
     display: flex;
@@ -58,6 +66,10 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
+    /* position: relative;
+    z-index: 1201;
+    background-color: #FFFFFF;
+    top:0px ; */
 }
 
 .headerMobTop {

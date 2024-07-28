@@ -8,6 +8,16 @@
   font-size: 14px;
   color: #191d23;
 }
+.textInpErr {
+  border: 2px solid red;
+  padding: 8px 12px;
+  width: 252px;
+  height: 40px;
+  outline: none;
+  font-weight: 400;
+  font-size: 14px;
+  color: red;
+}
 
 .passInp {
   display: flex;
@@ -23,6 +33,35 @@
     font-weight: 400;
     font-size: 14px;
     color: #191d23;
+    width: 100%;
+  }
+  button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+
+    img {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.passInpErr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid red;
+  padding: 8px 12px;
+  width: 252px;
+  height: 40px;
+  input {
+    border: none;
+    outline: none;
+    font-weight: 400;
+    font-size: 14px;
+    color: red;
     width: 100%;
   }
   button {

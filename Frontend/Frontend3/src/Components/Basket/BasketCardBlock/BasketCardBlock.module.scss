@@ -4,6 +4,8 @@
   line-height: 130%;
   color: #333;
   margin-bottom: 14px;
+  text-decoration: none;
+  margin-bottom: 10px;
 }
 
 .checkBoxDiv {
@@ -35,19 +37,58 @@
 .main {
   max-width: 865px;
   padding: 63px 35px 35px 97px;
+  @media (max-width: 1440px) {
+    max-width: max-content;
+    padding: 63px 100px;
+    width: 100%;
+  }
+  @media (max-width: 850px) {
+    max-width: max-content;
+    padding: 63px 50px;
+    width: 100%;
+  }
+  @media (max-width: 426px) {
+    max-width: max-content;
+    padding: 0 17px;
+  }
 }
 
 .emptyDiv {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 733px;
+  width: 736px;
   height: calc(100vh - 272px);
   p {
     font-weight: 400;
     font-size: 18px;
     line-height: 139%;
     letter-spacing: -0.02em;
+    color: #000;
+  }
+  @media (max-width: 1440px) {
+    width: calc(100vw - 200px);
+  }
+  @media (max-width: 850px) {
+    width: calc(100vw - 100px);
+  }
+  @media (max-width: 426px) {
+    width: calc(100vw - 34px);
+  }
+}
+
+.mobReturnBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background-color: transparent;
+  margin-top: 5px;
+  p {
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 105%;
+    letter-spacing: -0.02em;
+    text-transform: capitalize;
     color: #000;
   }
 }

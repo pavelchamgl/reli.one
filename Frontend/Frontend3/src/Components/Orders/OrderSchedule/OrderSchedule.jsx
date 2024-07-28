@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import CollectingIcon from "../../../assets/Order/CollectingIcon.svg";
 import DeliverIcon from "../../../assets/Order/DeliverIcon.svg";
@@ -7,9 +8,11 @@ import IssueIcon from "../../../assets/Order/IssueIcon.svg";
 
 import styles from "./OrderSchedule.module.scss";
 
-const OrderSchedule = () => {
+const OrderSchedule = ({ status }) => {
   const [percent, setPercent] = useState(0);
   const [style, setStyle] = useState({});
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (percent === 0) {
@@ -47,7 +50,7 @@ const OrderSchedule = () => {
               <img src={CollectingIcon} alt="" />
             </div>
             <p style={{ color: percent === 0 ? "#c6c6c6" : "#3f7f6d" }}>
-              Sestavení
+              {t("compilation")}
             </p>
           </div>
 
@@ -60,7 +63,7 @@ const OrderSchedule = () => {
             </div>
 
             <p style={{ color: percent >= 25 ? "#3f7f6d" : "#c6c6c6" }}>
-              Na cestě
+              {t("towards")}
             </p>
           </div>
 
@@ -72,7 +75,7 @@ const OrderSchedule = () => {
               <img src={SortingIcon} alt="" />
             </div>
             <p style={{ color: percent >= 50 ? "#3f7f6d" : "#c6c6c6" }}>
-              V třídicím centru
+              {t("in_sorting_center")}
             </p>
           </div>
 
@@ -84,7 +87,7 @@ const OrderSchedule = () => {
               <img src={IssueIcon} alt="" />
             </div>
             <p style={{ color: percent >= 75 ? "#3f7f6d" : "#c6c6c6" }}>
-              V místě vydání
+              {t("at_the_point")}
             </p>
           </div>
         </div>

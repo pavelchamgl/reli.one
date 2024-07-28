@@ -1,10 +1,28 @@
 import { Dialog } from "@mui/material";
-import BasketCard from "../BasketCard/BasketCard";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { AuthNeed } from "../../../ui/Toastify";
+
 import closeIcon from "../../../assets/loginModal/loginModalX.svg";
+import BasketModalCard from "../BasketModalCard/BasketModalCard";
 
 import styles from "./BasketModal.module.scss";
 
-const BasketModal = ({ open, handleClose }) => {
+const BasketModal = ({ open, handleClose, productData }) => {
+  const navigate = useNavigate();
+
+  const { t } = useTranslation();
+
+  const token = localStorage.getItem("token");
+
+  const handleNavigatePayment = () => {
+    if (token) {
+      navigate("/payment");
+    } else {
+      AuthNeed(t("toast.auth_required"));
+    }
+  };
+
   return (
     <div>
       <Dialog
@@ -18,12 +36,13 @@ const BasketModal = ({ open, handleClose }) => {
           <button onClick={handleClose} className={styles.closeBtn}>
             <img src={closeIcon} alt="" />
           </button>
-          <h3 className={styles.title}>Zboží přidáno do košíku</h3>
+          <h3 className={styles.title}>{t("basket_modal_title")}</h3>
           <div className={styles.cardAndButtonWrap}>
-            <BasketCard />
+            <BasketModalCard handleClose={handleClose} data={productData} />
             <div className={styles.buttonDiv}>
-              <button>Přejít na návrh</button>
-              <a href="#">Pokračovat v nákupu</a>
+              <button onClick={handleNavigatePayment}>{t("go_pay")}</button>
+              {/* здесь скорее всего добавление в корзину и закрытие модалки */}
+              <button onClick={handleClose}>{t("continue_shopping")}</button>
             </div>
           </div>
         </div>

@@ -10,6 +10,9 @@
 }
 .main {
   margin: 40px 0 100px;
+  @media (max-width: 400px) {
+    margin: 40px 0 50px;
+  }
 }
 
 .buttonDiv {
@@ -35,4 +38,19 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap-reverse;
+}
+
+.smallCardDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.loaderWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }

@@ -2,7 +2,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0px 17px;
   height: 600px;
+  @media (max-width: 426px) {
+    height: auto;
+    padding: 30px 17px 70px 17px;
+  }
 }
 
 .contentWrap {
@@ -10,21 +15,22 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  @media (max-width: 650px) {
+    width: auto;
+  }
 }
 
 .contentDesc {
   font-weight: 400;
-  font-size: 20px;
+  font-size: clamp(14px, 2.5vw, 20px);
   line-height: 220%;
   letter-spacing: -0.02em;
-  text-transform: uppercase;
   color: #000;
 }
 
 .title {
-  font-family: var(--font-family);
   font-weight: 600;
-  font-size: 24px;
+  font-size: clamp(20px, 2.5vw, 24px);
   line-height: 87%;
   letter-spacing: -0.01em;
   text-transform: capitalize;
@@ -49,10 +55,15 @@
     background-color: #000;
     color: white;
   }
+  @media (max-width: 550px) {
+    width: 100%;
+  }
 }
 
 .btnDiv {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
 }

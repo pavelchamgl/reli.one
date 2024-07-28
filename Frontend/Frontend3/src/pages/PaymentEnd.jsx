@@ -1,19 +1,25 @@
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 import styles from "../styles/PaymentEnd.module.scss";
 
 const PaymentEnd = () => {
+  const navigate = useNavigate();
+
+  const { t } = useTranslation();
+
   return (
     <div className={styles.main}>
       <div className={styles.contentWrap}>
-        <span className={styles.title}>
-          Vaše objednávka byla úspěšně zadána!
-        </span>
-        <p className={styles.contentDesc}>
-          Vaše objednávka №1210031 úspěšně vytvořena od 16:08 12.08.2023. Na
-          vaši e-mailovou adresu bude zaslán e-mail s informacemi o objednávce
-        </p>
+        <span className={styles.title}>{t("payment_end_title")}</span>
+        <p className={styles.contentDesc}>{t("payment_end_desc")}</p>
         <div className={styles.btnDiv}>
-          <button className={styles.btn}>Domů</button>
-          <button className={styles.btn}>Moje objednávky</button>
+          <button className={styles.btn} onClick={() => navigate("/")}>
+            {t("home_btn")}
+          </button>
+          <button className={styles.btn} onClick={() => navigate("/my_orders")}>
+            {t("my_orders")}
+          </button>
         </div>
       </div>
     </div>

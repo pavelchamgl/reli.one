@@ -1,30 +1,40 @@
+import { useSelector } from "react-redux";
 import { useMediaQuery } from "react-responsive";
+import { useTranslation } from "react-i18next";
 
 import styles from "./ProductCharak.module.scss";
 
 const ProductCharak = () => {
   const isMobile = useMediaQuery({ maxWidth: 400 });
 
+  const { t } = useTranslation();
+
+  const { parameters, product_description } = useSelector(
+    (state) => state.products.product
+  );
+
+  console.log(parameters);
+
   return (
     <div className={styles.main}>
-      {isMobile && <p className={styles.mobTitle}>Charakteristika</p>}
-      <p className={styles.modelText}>MODEL: SUN 78MD-HFS</p>
+      {isMobile && <p className={styles.mobTitle}>{t("characteristics")}</p>}
+      <p className={styles.modelText}>{product_description}</p>
 
       <div className={styles.totalTable}>
-        <div className={styles.blackTitle}>
-          Statická přenosová charakteristika
-        </div>
+        <div className={styles.blackTitle}>{t("transfer_charac")}</div>
 
         <div className={styles.tableWrap}>
-          <div className={styles.tableDiv}>
-            <div>
-              <p>Jmenovitý výkon</p>
+          {parameters?.map((item) => (
+            <div className={styles.tableDiv}>
+              <div>
+                <p>{item?.parameter_name}</p>
+              </div>
+              <div>
+                <p>{item?.value}</p>
+              </div>
             </div>
-            <div>
-              <p>200W</p>
-            </div>
-          </div>
-          <div className={styles.tableDiv}>
+          ))}
+          {/* <div className={styles.tableDiv}>
             <div>
               <p>Voc</p>
             </div>
@@ -93,7 +103,7 @@ const ProductCharak = () => {
       </div>
 
       <div className={styles.totalTable}>
-        <div className={styles.blackTitle}>Strukturální vlastnost</div>
+        <div className={styles.blackTitle}>{t("structural_property")}</div>
 
         <div className={styles.tableWrap}>
           <div className={styles.tableDiv}>
@@ -135,8 +145,8 @@ const ProductCharak = () => {
             <div>
               <p>IP68 (3 bypassové diody), konektory kompatibilní s MC4</p>
             </div>
-          </div>
-          <div className={styles.tableDiv}>
+          </div> */}
+          {/* <div className={styles.tableDiv}>
             <div>
               <p>Konektor</p>
             </div>
@@ -146,7 +156,7 @@ const ProductCharak = () => {
                 lze upravit na míru
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
