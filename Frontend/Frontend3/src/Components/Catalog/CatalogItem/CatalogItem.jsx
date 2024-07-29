@@ -2,7 +2,6 @@ import { useMediaQuery } from "react-responsive";
 import { useNavigate } from "react-router-dom";
 import { useActions } from "../../../hook/useAction";
 
-import catalogTestImage from "../../../assets/Catalog/Group 1123.svg"
 import testIcon from "../../../assets/Catalog/testImage.svg";
 import arrRight from "../../../assets/Catalog/arrRight.svg";
 
