@@ -30,6 +30,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.reli.one',
     'https://localhost',
     'http://localhost',
+    'http://45.147.248.21',
 ]
 
 USE_X_FORWARDED_HOST = True
@@ -201,6 +202,11 @@ REDIRECT_DOMAIN = 'https://reli.one/'
 
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://reli.one",
+    "http://45.147.248.21:8081",
+]
+
 
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
