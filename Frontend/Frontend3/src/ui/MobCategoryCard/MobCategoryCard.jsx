@@ -18,7 +18,7 @@ const MobCategoryCard = ({ item }) => {
     <div
       onClick={handleCategoryClick}
       className={styles.cardItem}
-      style={{ backgroundImage: `url(${categoryTestImage})` }}
+      style={{ backgroundImage: `url(${item?.image_url})` }}
     >
       <p>{item?.name}</p>
     </div>

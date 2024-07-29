@@ -41,6 +41,9 @@
   display: flex;
   gap: 67px;
   margin-top: 15px;
+  @media (max-width: 700px) {
+    gap: 20px;
+  }
 }
 
 .categoryCardDiv {
@@ -52,6 +55,9 @@
   flex-wrap: wrap;
   padding-right: 67px;
   border-right: 1px solid #ebebeb;
+  @media (max-width: 700px) {
+    padding-right: 20px;
+  }
 }
 
 .categoryTextDiv {
@@ -69,5 +75,8 @@
   transition: color 0.5s ease;
   &:hover {
     color: #f7cd56;
+  }
+  @media (max-width: 500px) {
+    font-size: 12px;
   }
 }

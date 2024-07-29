@@ -14,13 +14,19 @@
   @media (max-width: 460px) {
     width: 230px;
   }
-  @media (max-width:426px) {
+  @media (max-width: 426px) {
     width: calc(100vw - 34px);
   }
   div {
     display: flex;
-    gap: 20px;
+    gap: 10px;
     align-items: center;
+    & img{
+      width: 29px;
+      height: 29px;
+      border: none;
+      object-fit: cover;
+    }
   }
   p {
     font-weight: 500;

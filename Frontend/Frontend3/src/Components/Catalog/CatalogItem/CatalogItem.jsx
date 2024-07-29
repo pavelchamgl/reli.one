@@ -10,6 +10,7 @@ import styles from "./CatalogItem.module.scss";
 const CatalogItem = ({ data, handleClose }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const navigate = useNavigate();
+  console.log(data);
 
   const { setCategory } = useActions();
 
@@ -27,7 +28,7 @@ const CatalogItem = ({ data, handleClose }) => {
   return (
     <button onClick={handleClick} className={styles.main}>
       <div>
-        <img src={data?.image} alt="" />
+        <img src={data?.image_url} alt="" />
         <p>{data?.name}</p>
       </div>
       <button>

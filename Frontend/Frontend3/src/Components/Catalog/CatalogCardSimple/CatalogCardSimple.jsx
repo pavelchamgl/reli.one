@@ -20,7 +20,7 @@ const CatalogCardSimple = ({ item, handleClose }) => {
     <div
       onClick={() => handleCategoryClick()}
       className={styles.card}
-      style={{ backgroundImage: `url(${""})` }}
+      style={{ backgroundImage: `url(${item?.image_url})` }}
     >
       <p>{item?.name}</p>
     </div>
