@@ -119,7 +119,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_children(self, obj):
         if obj.children.exists():
-            return CategorySerializer(obj.children.all(), many=True).data
+            return CategorySerializer(obj.children.all(), many=True, context=self.context).data
         return None
 
     def get_image_url(self, obj):
