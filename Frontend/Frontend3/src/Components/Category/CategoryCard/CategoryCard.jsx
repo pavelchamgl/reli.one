@@ -9,6 +9,8 @@ const CategoryCard = ({ item }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
+  console.log(item);
+
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
@@ -33,7 +35,7 @@ const CategoryCard = ({ item }) => {
         )
       }
       className={styles.main}
-      style={{ backgroundImage: `url(${item.image})` }}
+      style={{ backgroundImage: `url(${item.image_url})` }}
     >
       <p>{item?.name}</p>
     </div>

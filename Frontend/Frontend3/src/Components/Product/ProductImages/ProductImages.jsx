@@ -14,9 +14,9 @@ const ProductImages = () => {
     console.log(product);
     if (product?.images?.length > 0) {
       setImage(product?.images[0]?.image_url);
-      setSrc1(product?.images[1]?.image_url);
-      setSrc2(product?.images[2]?.image_url);
-      setSrc3(product?.images[3]?.image_url);
+      setSrc1(product?.images[0]?.image_url);
+      setSrc2(product?.images[1]?.image_url);
+      setSrc3(product?.images[2]?.image_url);
       // setImage("https://i.pinimg.com/564x/cb/2d/a9/cb2da9b8e06f5e2addc04d92d9fb64a1.jpg");
       // setSrc1("https://i.pinimg.com/564x/dd/af/be/ddafbecd3f250a6dcbdb7ae4670035ec.jpg");
       // setSrc2("https://i.pinimg.com/564x/22/e5/d6/22e5d6c5a18581f89bc97140674798cd.jpg");
@@ -27,11 +27,7 @@ const ProductImages = () => {
   return (
     <div className={styles.main}>
       {image && (
-        <img
-          className={styles.mainImage}
-          src={image}
-          alt="Main product"
-        />
+        <img className={styles.mainImage} src={image} alt="Main product" />
       )}
       <div className={styles.smallImageDiv}>
         {src1 && (

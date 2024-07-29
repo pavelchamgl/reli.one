@@ -15,7 +15,7 @@ const MobCategoryCardBtn = ({ item }) => {
       onClick={() => setPodCategory(item)}
       className={styles.cardItem}
       style={{
-        backgroundImage: `url(${image})`,
+        backgroundImage: `url(${item?.image_url})`,
         backgroundColor: open ? "#D5D5D5" : "#F0F0F0",
       }}
     >

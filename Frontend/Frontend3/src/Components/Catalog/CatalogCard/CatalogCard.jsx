@@ -13,7 +13,7 @@ const CatalogCard = ({ item }) => {
     <div
       onClick={() => setPodCategory(item)}
       className={styles.main}
-      style={{ backgroundImage: `url(${item?.image})` }}
+      style={{ backgroundImage: `url(${item?.image_url})` }}
     >
       <div className={styles.titleDiv}>
         <img src={arrRight} alt="" />

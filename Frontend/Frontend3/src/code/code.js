@@ -4,9 +4,7 @@ export const getAllLowestLevelChildren = (data) => {
     const findLowestLevelChildren = (items) => {
         items.forEach(item => {
             if (item.children && item.children.length > 0) {
-                // Добавляем текущий объект в результат
-                result.push(item);
-                // Рекурсивно обрабатываем его детей
+                // Рекурсивно обрабатываем детей
                 findLowestLevelChildren(item.children);
             } else {
                 // Добавляем объект без детей
@@ -15,6 +13,13 @@ export const getAllLowestLevelChildren = (data) => {
         });
     };
 
-    findLowestLevelChildren(data);
+    // Начинаем с детей верхнего уровня
+    data.forEach(item => {
+        if (item.children && item.children.length > 0) {
+            findLowestLevelChildren(item.children);
+        }
+    });
+
     return result;
 };
+
