@@ -1,6 +1,7 @@
 import { useMediaQuery } from "react-responsive";
 import { useNavigate } from "react-router-dom";
 import { useActions } from "../../../hook/useAction";
+import { useTranslation } from "react-i18next";
 
 import testIcon from "../../../assets/Catalog/testImage.svg";
 import arrRight from "../../../assets/Catalog/arrRight.svg";
@@ -14,6 +15,7 @@ const CatalogItem = ({ data, handleClose }) => {
 
   const { setCategory } = useActions();
 
+  const { t } = useTranslation();
 
   const handleClick = () => {
     if (isMobile) {
@@ -25,11 +27,13 @@ const CatalogItem = ({ data, handleClose }) => {
     }
   };
 
+  const categoryName = data?.name?.toLowerCase();
+
   return (
     <button onClick={handleClick} className={styles.main}>
       <div>
         <img src={data?.image_url} alt="" />
-        <p>{data?.name}</p>
+        <p>{t(`${categoryName}`)}</p>
       </div>
       <button>
         <img src={arrRight} alt="" />

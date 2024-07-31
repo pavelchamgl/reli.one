@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useActions } from "../../../hook/useAction";
+import { useTranslation } from "react-i18next";
 
 import CatalogItem from "../CatalogItem/CatalogItem";
 import CatalogCard from "../CatalogCard/CatalogCard";
@@ -19,6 +20,8 @@ const CatalogDrawer = ({ open, handleClose }) => {
   const navigate = useNavigate();
 
   const { fetchGetCategory } = useActions();
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (open) {
@@ -39,6 +42,8 @@ const CatalogDrawer = ({ open, handleClose }) => {
     );
     handleClose();
   };
+
+  const categoryName = category?.name?.toLowerCase();
 
   return (
     <div>
@@ -63,7 +68,9 @@ const CatalogDrawer = ({ open, handleClose }) => {
           </div>
           {!isMobile && (
             <div>
-              <h4 className={styles.catalogTitle}>{category?.name}</h4>
+              <h4 className={styles.catalogTitle}>
+                {t(`${categoryName ? categoryName : ""}`)}
+              </h4>
               <div className={styles.categoryCardWrap}>
                 {categoryItem?.children?.map((item, index) => {
                   if (!item?.children) {

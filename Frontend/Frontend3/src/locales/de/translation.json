@@ -303,5 +303,18 @@
   },
   "toast": {
     "auth_required": "Authentifizierung erforderlich"
-}
+  },
+  "electronics": "Elektronik",
+  "clothes and shoes": "Kleidung und schuhe",
+  "house and garden": "Haus und garten",
+  "children's goods": "Kinderwaren",
+  "luggage": "Gepäck",
+  "beauty and health": "Schönheit & Gesundheit",
+  "sport and relaxation": "Sport und entspannung",
+  "pet products": "Haustierprodukte",
+  "furniture": "Möbel",
+  "office supplies": "Bürobedarf",
+  "toys/games": "Spielzeuge/spiele",
+  "jewelry": "Schmuck",
+  "watches": "Uhren"
 }

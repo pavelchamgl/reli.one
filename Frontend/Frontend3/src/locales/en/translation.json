@@ -8,10 +8,10 @@
     "for_seller": "For sellers",
     "for_buyers": "For buyers",
     "about_company": "About company",
-    "enter_account": "Enter",
+    "enter_account": "Log in",
     "orders": "Orders",
-    "choice": "Choice",
-    "bin": "Bin",
+    "choice": "Favorites",
+    "bin": "Basket",
     "phone": "Number",
     "email": "Email",
     "address": "Address",
@@ -20,7 +20,7 @@
     "home": "Home",
     "category": "Category",
     "_main": "_main",
-    "recommend": "We recommend for you",
+    "recommend": "We recommend",
     "_loginModal": "loginModal",
     "login": "Log in",
     "email_address": "Email address",
@@ -304,5 +304,19 @@
     },
     "toast": {
         "auth_required": "Authentication required"
-    }
+    },
+    "_categories": "",
+    "electronics": "Electronics",
+    "clothes and shoes": "Clothes and shoes",
+    "house and garden": "House and garden",
+    "children's goods": "Children's goods",
+    "luggage": "Luggage",
+    "beauty and health": "Beauty and health",
+    "sport and relaxation": "Sport and relaxation",
+    "pet products": "Pet products",
+    "furniture": "Furniture",
+    "office supplies": "Office supplies",
+    "toys/games": "Toys/games",
+    "jewelry": "Jewelry",
+    "watches": "Watches"
 }

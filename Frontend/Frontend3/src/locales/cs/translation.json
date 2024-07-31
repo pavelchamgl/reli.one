@@ -305,5 +305,18 @@
   },
   "toast": {
     "auth_required": "Vyžadováno ověření"
-}
+  },
+  "electronics": "Elektronika",
+  "clothes and shoes": "Oblečení a boty",
+  "house and garden": "Dům a zahrada",
+  "children's goods": "Dětské zboží",
+  "luggage": "Zavazadla",
+  "beauty and health": "Krása a zdraví",
+  "sport and relaxation": "Sport a relaxace",
+  "pet products": "Zboží pro zvířata",
+  "furniture": "Nábytek",
+  "office supplies": "Kancelářské potřeby",
+  "toys/games": "Hračky/hry",
+  "jewelry": "Šperky",
+  "watches": "Hodinky"
 }
