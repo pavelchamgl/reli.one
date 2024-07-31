@@ -30,7 +30,7 @@ const Footer = () => {
               {t("for_buyers")}
             </Link>
           </div>
-          <a className={cls.mobileLink} href="#">
+          <a className={cls.mobileLink} href="https://info.reli.one">
             {t("about_company")}
           </a>
         </div>
@@ -74,14 +74,14 @@ const Footer = () => {
             <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
               {t("for_buyers")}
             </Link>
-            <Link className={cls.LinkNavigate} href="#">
+            <Link className={cls.LinkNavigate} to="https://info.reli.one">
               {t("about_company")}
             </Link>
           </nav>
           <div className={cls.Info_Container}>
             <h1>Reli Group, s.r.o</h1>
             <p>{t("phone")}: +420 797 837 856</p>
-            <p>{t("email")}: oshchepkova.solar@gmail.com</p>
+            <p>{t("email")}: oshchepkova.reli@gmail.com</p>
             <p>
               {t("address")}: {t("reli_address")}
             </p>
