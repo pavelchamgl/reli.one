@@ -1,0 +1,187 @@
+[
+    {
+        "model": "accounts.customuser",
+        "pk": 1,
+        "fields": {
+            "password": "pbkdf2_sha256$720000$FfQAwF4oaCAFcv9FomC9kf$3p67H8ZrDhaNQEjb7sqZisZCEvXShXFUo9LausRcAKw=",
+            "last_login": "2024-07-31T17:21:10.545Z",
+            "is_superuser": true,
+            "first_name": "Admin",
+            "last_name": "Reli",
+            "address": null,
+            "email": "reli@admin.com",
+            "image": "",
+            "phone_number": null,
+            "role": "Customer",
+            "phone_number_confirmed": false,
+            "email_confirmed": false,
+            "date_created": "2024-07-31T17:20:41.481Z",
+            "date_updated": "2024-07-31T17:20:41.481Z",
+            "is_staff": true,
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "accounts.customuser",
+        "pk": 2,
+        "fields": {
+            "password": "pbkdf2_sha256$720000$DEEZWBKQojuuFnzU77Zjis$JOFA7RwCt1tF8U5PgUHkc7sMCfGbkH0HQsW1KJm3ooI=",
+            "last_login": "2024-07-31T17:26:49.344Z",
+            "is_superuser": true,
+            "first_name": "Дарья",
+            "last_name": "Ощепкова",
+            "address": null,
+            "email": "oshchepkova.reli@gmail.com",
+            "image": "",
+            "phone_number": null,
+            "role": "Customer",
+            "phone_number_confirmed": false,
+            "email_confirmed": false,
+            "date_created": "2024-07-31T17:25:00.619Z",
+            "date_updated": "2024-07-31T17:25:00.620Z",
+            "is_staff": true,
+            "is_active": true,
+            "groups": [],
+            "user_permissions": []
+        }
+    },
+    {
+        "model": "accounts.otp",
+        "pk": 1,
+        "fields": {
+            "user": 1,
+            "title": "EmailConfirmation",
+            "value": 316224,
+            "expired_date": "2024-07-31T17:35:41.493Z"
+        }
+    },
+    {
+        "model": "accounts.otp",
+        "pk": 2,
+        "fields": {
+            "user": 2,
+            "title": "EmailConfirmation",
+            "value": 416438,
+            "expired_date": "2024-07-31T17:40:00.627Z"
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 1,
+        "fields": {
+            "name": "Electronics",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 2,
+        "fields": {
+            "name": "Clothes and shoes",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 3,
+        "fields": {
+            "name": "House and garden",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 4,
+        "fields": {
+            "name": "Children's goods",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 5,
+        "fields": {
+            "name": "Luggage",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 6,
+        "fields": {
+            "name": "Beauty and Health",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 7,
+        "fields": {
+            "name": "Sport and relaxation",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 8,
+        "fields": {
+            "name": "Pet Products",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 9,
+        "fields": {
+            "name": "Furniture",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 10,
+        "fields": {
+            "name": "Office Supplies",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 11,
+        "fields": {
+            "name": "Toys/games",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 12,
+        "fields": {
+            "name": "Jewelery",
+            "parent": null,
+            "image": ""
+        }
+    },
+    {
+        "model": "product.category",
+        "pk": 13,
+        "fields": {
+            "name": "Watches",
+            "parent": null,
+            "image": ""
+        }
+    }
+]
