@@ -37,7 +37,7 @@ const PinInpForm = () => {
   const handleSubmit = () => {
     console.log(value);
     emailConfirm({
-      email: email.email,
+      email: email,
       otp: value,
     })
       .then((res) => {

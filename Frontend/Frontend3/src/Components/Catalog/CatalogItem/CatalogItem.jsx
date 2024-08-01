@@ -32,7 +32,7 @@ const CatalogItem = ({ data, handleClose }) => {
   return (
     <button onClick={handleClick} className={styles.main}>
       <div>
-        <img src={data?.image_url} alt="" />
+        {data && data?.image_url && <img src={data?.image_url} alt="" />}
         <p>{t(`${categoryName}`)}</p>
       </div>
       <button>

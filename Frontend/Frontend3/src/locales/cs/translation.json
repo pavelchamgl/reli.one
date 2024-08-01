@@ -81,6 +81,7 @@
   "transportation_calculate_text": "Vypočítáno v dalším kroku",
   "total": "Celkem",
   "basket_continue": "Pokračovat",
+  "basket_empty":"Košík je stále prázdný",
   "_mob_basket": "mob_basket",
   "shopping_card": "Nákupní košík",
   "_payment": "payment",

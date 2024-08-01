@@ -64,25 +64,23 @@ const PaymentDeliverySelect = () => {
       setWeight(totalWeightInKg);
 
       selectedProducts.forEach((product) => {
-        const height = Number(
-          product.product.parameters.find(
-            (param) => param.parameter_name === "height"
-          ).value
+        const heightParam = product.product.parameters.find(
+          (param) => param.parameter_name === "height"
         );
-        const width = Number(
-          product.product.parameters.find(
-            (param) => param.parameter_name === "width"
-          ).value
+        const widthParam = product.product.parameters.find(
+          (param) => param.parameter_name === "width"
         );
-        const length = Number(
-          product.product.parameters.find(
-            (param) => param.parameter_name === "length"
-          ).value
+        const lengthParam = product.product.parameters.find(
+          (param) => param.parameter_name === "length"
         );
 
+        const height = heightParam ? Number(heightParam.value) : 0;
+        const width = widthParam ? Number(widthParam.value) : 0;
+        const length = lengthParam ? Number(lengthParam.value) : 0;
+
+        // Теперь вы можете использовать height, width и length
         const boxSize = calculateBoxSize(height, width, length);
         setBoxSize(boxSize);
-
       });
     }
   }, [selectedProducts]);

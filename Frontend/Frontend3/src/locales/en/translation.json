@@ -80,6 +80,7 @@
     "transportation_calculate_text": "Shipping calculated in the next step",
     "total": "In total",
     "basket_continue": "Continue",
+    "basket_empty":"The basket is still empty",
     "_mob_basket": "mob_basket",
     "shopping_card": "Shopping card",
     "_payment": "payment",
