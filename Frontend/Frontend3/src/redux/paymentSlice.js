@@ -46,7 +46,7 @@ export const fetchCreatePayPalSession = createAsyncThunk(
 
             const state = getState().payment.paymentInfo
 
-            console.log(state);
+            console.log(state, selectedValue);
 
             const res = await createPayPalSession({
                 email: state.email,

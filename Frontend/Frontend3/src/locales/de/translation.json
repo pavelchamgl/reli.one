@@ -80,6 +80,7 @@
   "transportation_calculate_text": "Der versand wird im nächsten Schritt berechnet",
   "total": "In summe",
   "basket_continue": "Weitermachen",
+  "basket_empty":"Der warenkorb ist noch leer",
   "_mob_basket": "mob_basket",
   "shopping_card": "Einkaufswagen",
   "_payment": "payment",

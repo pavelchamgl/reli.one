@@ -96,7 +96,7 @@ const BasketCardBlock = () => {
           ))
         ) : (
           <div className={styles.emptyDiv}>
-            <p>The basket is still empty</p>
+            <p>{t("basket_empty")}</p>
           </div>
         )}
       </div>

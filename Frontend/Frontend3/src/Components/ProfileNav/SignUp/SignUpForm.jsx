@@ -64,7 +64,8 @@ const SignUpForm = () => {
         .then((res) => {
           console.log(res);
           setRegErr("");
-          navigate("/email_conf");
+          localStorage.setItem("email", JSON.stringify(values.email));
+          navigate("/otp_conf");
         })
         .catch((err) => {
           console.log(err);
