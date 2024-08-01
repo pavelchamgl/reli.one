@@ -1,10 +1,7 @@
-version: '3.11'
-
 services:
   postgres_db:
     container_name: postgres_db
-    image:
-      postgres:13.4-alpine
+    image: postgres:latest
     volumes:
       - .reli_db./postgres/:/var/lib/postgresql/data/
     ports:
@@ -18,13 +15,16 @@ services:
       - envs/database.env
     restart: always
 
-  frontend:
+  frontend1:
     build: ./Frontend
+    depends_on:
+    - backend
     ports:
       - 80:80
+      - 443:443
     volumes:
-      - ./backend/base_product_images:/data/www/base_product_images
-
+      - static_volume:/data/www/static
+      - /home/reli/reli.one/backend/media:/data/www/media
 
   backend:
     container_name: backend
@@ -33,7 +33,8 @@ services:
     command: bash -c "python3 /app/manage.py makemigrations && python3 manage.py collectstatic --no-input && python3 /app/manage.py migrate --noinput && python3 manage.py loaddata fixtures/all_data.json && gunicorn backend.wsgi:application -w 4 -b 0.0.0.0:8081"
     volumes:
       - ./backend/:/app
-      - ./media:/app/media
+      - static_volume:/app/static
+      - /home/reli/reli.one/backend/media:/app/media
     ports:
       - "8081:8081"
     depends_on:
@@ -42,3 +43,7 @@ services:
       - envs/database.env
       - envs/backend.env
     restart: always
+
+volumes:
+  static_volume:
+  media_volume:

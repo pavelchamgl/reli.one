@@ -111,45 +111,6 @@
         }
     },
     {
-        "model": "product.parametername",
-        "pk": 1,
-        "fields": {
-            "name": "Вес"
-        }
-    },
-    {
-        "model": "product.parametervalue",
-        "pk": 1,
-        "fields": {
-            "parameter": 1,
-            "value": "250"
-        }
-    },
-    {
-        "model": "product.parametervalue",
-        "pk": 2,
-        "fields": {
-            "parameter": 1,
-            "value": "220"
-        }
-    },
-    {
-        "model": "product.parametervalue",
-        "pk": 3,
-        "fields": {
-            "parameter": 1,
-            "value": "270"
-        }
-    },
-    {
-        "model": "product.parametervalue",
-        "pk": 4,
-        "fields": {
-            "parameter": 1,
-            "value": "300"
-        }
-    },
-    {
         "model": "product.category",
         "pk": 1,
         "fields": {
@@ -162,15 +123,6 @@
         "model": "product.category",
         "pk": 2,
         "fields": {
-            "name": "Phone",
-            "parent": 1,
-            "image": ""
-        }
-    },
-    {
-        "model": "product.category",
-        "pk": 3,
-        "fields": {
             "name": "Clothes and shoes",
             "parent": null,
             "image": ""
@@ -178,7 +130,7 @@
     },
     {
         "model": "product.category",
-        "pk": 4,
+        "pk": 3,
         "fields": {
             "name": "House and garden",
             "parent": null,
@@ -187,7 +139,7 @@
     },
     {
         "model": "product.category",
-        "pk": 5,
+        "pk": 4,
         "fields": {
             "name": "Children's goods",
             "parent": null,
@@ -196,7 +148,7 @@
     },
     {
         "model": "product.category",
-        "pk": 6,
+        "pk": 5,
         "fields": {
             "name": "Luggage",
             "parent": null,
@@ -205,7 +157,7 @@
     },
     {
         "model": "product.category",
-        "pk": 7,
+        "pk": 6,
         "fields": {
             "name": "Beauty and Health",
             "parent": null,
@@ -214,7 +166,7 @@
     },
     {
         "model": "product.category",
-        "pk": 8,
+        "pk": 7,
         "fields": {
             "name": "Sport and relaxation",
             "parent": null,
@@ -223,7 +175,7 @@
     },
     {
         "model": "product.category",
-        "pk": 9,
+        "pk": 8,
         "fields": {
             "name": "Pet Products",
             "parent": null,
@@ -232,7 +184,7 @@
     },
     {
         "model": "product.category",
-        "pk": 10,
+        "pk": 9,
         "fields": {
             "name": "Furniture",
             "parent": null,
@@ -241,7 +193,7 @@
     },
     {
         "model": "product.category",
-        "pk": 11,
+        "pk": 10,
         "fields": {
             "name": "Office Supplies",
             "parent": null,
@@ -250,7 +202,7 @@
     },
     {
         "model": "product.category",
-        "pk": 12,
+        "pk": 11,
         "fields": {
             "name": "Toys/games",
             "parent": null,
@@ -259,7 +211,7 @@
     },
         {
         "model": "product.category",
-        "pk": 13,
+        "pk": 12,
         "fields": {
             "name": "Jewelery",
             "parent": null,
@@ -268,107 +220,11 @@
     },
     {
         "model": "product.category",
-        "pk": 14,
+        "pk": 13,
         "fields": {
             "name": "Watches",
             "parent": null,
             "image": ""
-        }
-    },
-    {
-        "model": "product.baseproductimage",
-        "pk": 1,
-        "fields": {
-            "image": "base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg"
-        }
-    },
-    {
-        "model": "product.baseproduct",
-        "pk": 1,
-        "fields": {
-            "category": 2,
-            "name": "IPhone 14 Pro",
-            "product_description": "phone",
-            "price": 1000,
-            "supplier": 1,
-            "image": [
-                1
-            ],
-            "parameters": [
-                1
-            ]
-        }
-    },
-    {
-        "model": "product.baseproduct",
-        "pk": 2,
-        "fields": {
-            "category": 2,
-            "name": "Galuxy 10",
-            "product_description": "phone",
-            "price": 1000,
-            "supplier": 2,
-            "image": [
-                1
-            ],
-            "parameters": [
-                2
-            ]
-        }
-    },
-    {
-        "model": "product.baseproduct",
-        "pk": 3,
-        "fields": {
-            "category": 2,
-            "name": "IPhone 15 Pro MAX",
-            "product_description": "phone",
-            "price": 1500,
-            "supplier": 1,
-            "image": [
-                1
-            ],
-            "parameters": [
-                3
-            ]
-        }
-    },
-    {
-        "model": "product.baseproduct",
-        "pk": 4,
-        "fields": {
-            "category": 2,
-            "name": "3310",
-            "product_description": "phone",
-            "price": 100,
-            "supplier": 3,
-            "image": [
-                1
-            ],
-            "parameters": [
-                4
-            ]
-        }
-    },
-    {
-        "model": "supplier.supplier",
-        "pk": 1,
-        "fields": {
-            "name": "Apple"
-        }
-    },
-    {
-        "model": "supplier.supplier",
-        "pk": 2,
-        "fields": {
-            "name": "Samsung"
-        }
-    },
-    {
-        "model": "supplier.supplier",
-        "pk": 3,
-        "fields": {
-            "name": "Nokia"
         }
     }
 ]
