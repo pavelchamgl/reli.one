@@ -23,8 +23,9 @@ const BasketCard = ({ all, section, productData }) => {
     productData ? productData.is_favorite : false
   );
 
-
   const { product } = productData;
+
+  console.log(product.images[0]);
 
   const navigate = useNavigate();
 
@@ -41,7 +42,6 @@ const BasketCard = ({ all, section, productData }) => {
       return newCount;
     });
   };
-  
 
   const handlePlus = () => {
     setCount((prev) => {
@@ -86,7 +86,11 @@ const BasketCard = ({ all, section, productData }) => {
 
       {isMobile ? (
         <>
-          <img className={styles.img} src={product?.image} alt="" />
+          <img
+            className={styles.img}
+            src={product?.images[0]?.image_url}
+            alt=""
+          />
           <div className={styles.adaptiveWrap}>
             <div
               onClick={() => navigate(`/product/${product?.id}`)}
@@ -111,7 +115,11 @@ const BasketCard = ({ all, section, productData }) => {
       ) : (
         <>
           <div className={styles.imageTextWrap}>
-            <img className={styles.img} src={product?.image} alt="" />
+            <img
+              className={styles.img}
+              src={product?.images[0]?.image_url}
+              alt=""
+            />
             <div className={styles.textDiv}>
               <h3 onClick={() => navigate(`/product/${product?.id}`)}>
                 {product?.name}
