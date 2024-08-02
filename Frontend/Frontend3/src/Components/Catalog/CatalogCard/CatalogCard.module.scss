@@ -5,7 +5,7 @@
   padding: 20px 15px;
   background-color: #f0f0f0;
   background-size: cover;
-  background-position: 0 30px;
+  background-position: 0 0px;
   background-repeat: no-repeat;
   @media (max-width: 970px) {
     width: 182px;
@@ -49,5 +49,11 @@
   color: #000;
   img:nth-child(1) {
     opacity: 0;
+  }
+}
+
+.arrRight {
+  @media (max-width: 600px) {
+    width: 5px;
   }
 }

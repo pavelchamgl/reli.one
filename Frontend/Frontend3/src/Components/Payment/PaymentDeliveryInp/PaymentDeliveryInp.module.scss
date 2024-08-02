@@ -37,10 +37,14 @@
     align-items: center;
     gap: 6px;
     font-weight: 600;
-    font-size:  14px;
+    font-size: 14px;
     color: #787778;
     &:hover {
       background: #047857;
+      color: #fff;
+    }
+    &:disabled {
+      background: #595759;
       color: #fff;
     }
     @media (max-width: 426px) {
@@ -49,4 +53,13 @@
       font-size: 11px;
     }
   }
+}
+
+.errorText {
+  margin-top: 5px;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 143%;
+  letter-spacing: -0.02em;
+  color: #c41010;
 }

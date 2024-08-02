@@ -47,7 +47,7 @@ const LikedPage = () => {
   return (
     <>
       <div className={styles.titleDiv}>
-        <p className={styles.title}>Výbor</p>
+        <p className={styles.title}>Favorites</p>
       </div>
 
       <Container>

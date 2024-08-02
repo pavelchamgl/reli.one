@@ -72,92 +72,85 @@ const MobNav = () => {
 
   return (
     <div>
-      {showButton && (
-        <>
-          <div className={styles.navMain}>
-            <button onClick={() => navigate("/")} className={styles.navItem}>
-              <img
-                src={location.pathname === "/" ? homeIconAcc : homeIcon}
-                alt=""
-              />
-              <p
-                style={{
-                  color: location.pathname === "/" ? "#F5B80B" : "#a09e96",
-                }}
-              >
-                {t("home")}
-              </p>
-            </button>
-            <button onClick={() => setOpen(!open)} className={styles.navItem}>
-              <img src={categoryIcon} alt="" />
-              <p
-                style={
-                  {
-                    // color: location.pathname === "/" ? "#F5B80B" : "#a09e96",
-                  }
-                }
-              >
-                {t("category")}
-              </p>
-            </button>
-            <button onClick={handleBasketClick} className={styles.navItem}>
-              <img
-                src={
-                  location.pathname === "/mob_basket"
-                    ? basketIconAcc
-                    : basketIcon
-                }
-                alt=""
-              />
-              <p
-                style={{
-                  color:
-                    location.pathname === "/mob_basket" ? "#F5B80B" : "#a09e96",
-                }}
-              >
-                {t("bin")}
-              </p>
-            </button>
-            <button
-              onClick={() => navigate("/liked")}
-              className={styles.navItem}
+      <>
+        <div className={styles.navMain}>
+          <button onClick={() => navigate("/")} className={styles.navItem}>
+            <img
+              src={location.pathname === "/" ? homeIconAcc : homeIcon}
+              alt=""
+            />
+            <p
+              style={{
+                color: location.pathname === "/" ? "#F5B80B" : "#a09e96",
+              }}
             >
-              <img
-                src={location.pathname === "/liked" ? likeIconAcc : likeIcon}
-                alt=""
-              />
-              <p
-                style={{
-                  color: location.pathname === "/liked" ? "#F5B80B" : "#a09e96",
-                }}
-              >
-                {t("choice")}
-              </p>
-            </button>
-            {/* /mob_profile_nav */}
-            {/* /mob_login */}
-            <button onClick={handleLoginClick} className={styles.navItem}>
-              <img
-                src={
-                  location.pathname === "/mob_login"
-                    ? profileIconAcc
-                    : profileIcon
+              {t("home")}
+            </p>
+          </button>
+          <button onClick={() => setOpen(!open)} className={styles.navItem}>
+            <img src={categoryIcon} alt="" />
+            <p
+              style={
+                {
+                  // color: location.pathname === "/" ? "#F5B80B" : "#a09e96",
                 }
-                alt=""
-              />
-              <p
-                style={{
-                  color:
-                    location.pathname === "/mob_login" ? "#F5B80B" : "#a09e96",
-                }}
-              >
-                {t("enter_account")}
-              </p>
-            </button>
-          </div>
-          <CatalogDrawer open={open} handleClose={() => setOpen(false)} />
-        </>
-      )}
+              }
+            >
+              {t("category")}
+            </p>
+          </button>
+          <button onClick={handleBasketClick} className={styles.navItem}>
+            <img
+              src={
+                location.pathname === "/mob_basket" ? basketIconAcc : basketIcon
+              }
+              alt=""
+            />
+            <p
+              style={{
+                color:
+                  location.pathname === "/mob_basket" ? "#F5B80B" : "#a09e96",
+              }}
+            >
+              {t("bin")}
+            </p>
+          </button>
+          <button onClick={() => navigate("/liked")} className={styles.navItem}>
+            <img
+              src={location.pathname === "/liked" ? likeIconAcc : likeIcon}
+              alt=""
+            />
+            <p
+              style={{
+                color: location.pathname === "/liked" ? "#F5B80B" : "#a09e96",
+              }}
+            >
+              {t("choice")}
+            </p>
+          </button>
+          {/* /mob_profile_nav */}
+          {/* /mob_login */}
+          <button onClick={handleLoginClick} className={styles.navItem}>
+            <img
+              src={
+                location.pathname === "/mob_login"
+                  ? profileIconAcc
+                  : profileIcon
+              }
+              alt=""
+            />
+            <p
+              style={{
+                color:
+                  location.pathname === "/mob_login" ? "#F5B80B" : "#a09e96",
+              }}
+            >
+              {t("enter_account")}
+            </p>
+          </button>
+        </div>
+        <CatalogDrawer open={open} handleClose={() => setOpen(false)} />
+      </>
     </div>
   );
 };

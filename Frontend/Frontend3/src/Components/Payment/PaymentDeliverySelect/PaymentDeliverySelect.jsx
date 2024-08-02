@@ -99,6 +99,31 @@ const PaymentDeliverySelect = () => {
     console.log(pplFuncResult);
     console.log(geisFuncResult);
     console.log(dpdFuncResult);
+    localStorage.setItem(
+      "delivery",
+      JSON.stringify([
+        {
+          TK: "sclad",
+          price: 0,
+          type: 0,
+        },
+        {
+          TK: "ppl",
+          price: pplFuncResult?.price,
+          type: 1,
+        },
+        {
+          TK: "dpd",
+          price: dpdFuncResult,
+          type: 1,
+        },
+        {
+          TK: "globallogistics",
+          price: geisFuncResult,
+          type: 1,
+        },
+      ])
+    );
   }, [weight]);
 
   useEffect(() => {
@@ -115,7 +140,7 @@ const PaymentDeliverySelect = () => {
       if (selectedValue === "dpd") {
         courirer = 3;
       }
-      if (selectedValue === "globalLogistic") {
+      if (selectedValue === "globalLogistics") {
         courirer = 2;
       }
 
@@ -175,7 +200,7 @@ const PaymentDeliverySelect = () => {
               { value: "ppl", img: ppl, price: pplResult?.price || pplResult },
               { value: "dpd", img: dpd, price: dpdResult?.price || dpdResult },
               {
-                value: "globalLogistic",
+                value: "globalLogistics",
                 img: globalLogistic,
                 price: geisResult?.price || geisResult,
               },

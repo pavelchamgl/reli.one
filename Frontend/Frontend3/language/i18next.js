@@ -21,7 +21,7 @@ i18n
     .use(initReactI18next) // передаем i18n в react-i18next
     .init({
         resources,
-        lng: 'cs', // язык по умолчанию
+        lng: 'en', // язык по умолчанию
         fallbackLng: 'en', // язык, если перевод не найден
         interpolation: {
             escapeValue: false // для React не нужно экранирование

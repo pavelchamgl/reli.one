@@ -15,7 +15,6 @@ const CatalogItem = ({ data, handleClose }) => {
 
   const { setCategory } = useActions();
 
-  const { t } = useTranslation();
 
   const handleClick = () => {
     if (isMobile) {
@@ -27,13 +26,12 @@ const CatalogItem = ({ data, handleClose }) => {
     }
   };
 
-  const categoryName = data?.name?.toLowerCase();
 
   return (
     <button onClick={handleClick} className={styles.main}>
       <div>
         {data && data?.image_url && <img src={data?.image_url} alt="" />}
-        <p>{t(`${categoryName}`)}</p>
+        <p>{data?.name}</p>
       </div>
       <button>
         <img src={arrRight} alt="" />

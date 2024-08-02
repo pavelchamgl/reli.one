@@ -10,8 +10,8 @@
   letter-spacing: -0.01em;
   color: #000;
   background-color: #f0f0f0;
-  background-size: cover;
-  background-position: 0 30px;
+  background-size: contain;
+  background-position: 0 0px;
   background-repeat: no-repeat;
 }
 
@@ -39,7 +39,7 @@
     height: 170px;
     background-position: bottom;
     background-repeat: no-repeat;
-    background-position: 0 20px;
+    background-position: 0 0px;
     padding-top: 18px;
   }
   .sceleton {
@@ -54,7 +54,7 @@
     height: 102px;
     background-position: bottom;
     background-repeat: no-repeat;
-    background-position: 0 25px;
+    background-position: 0 10px;
     padding-top: 18px;
   }
   .sceleton {
