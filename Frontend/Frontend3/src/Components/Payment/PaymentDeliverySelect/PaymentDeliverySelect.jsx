@@ -99,6 +99,31 @@ const PaymentDeliverySelect = () => {
     console.log(pplFuncResult);
     console.log(geisFuncResult);
     console.log(dpdFuncResult);
+    localStorage.setItem(
+      "delivery",
+      JSON.stringify([
+        {
+          TK: "sclad",
+          price: 0,
+          type: 0,
+        },
+        {
+          TK: "ppl",
+          price: pplFuncResult?.price,
+          type: 1,
+        },
+        {
+          TK: "dpd",
+          price: dpdFuncResult,
+          type: 1,
+        },
+        {
+          TK: "globallogistics",
+          price: geisFuncResult,
+          type: 1,
+        },
+      ])
+    );
   }, [weight]);
 
   useEffect(() => {

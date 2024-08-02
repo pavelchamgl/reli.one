@@ -68,7 +68,7 @@ const Header = () => {
           <Link to={"/"}>
             <img className={styles.logo} src={logo} alt="" />
           </Link>
-          <ChangeLang />
+          {/* <ChangeLang /> */}
         </div>
         <SearchInp />
       </div>
@@ -79,7 +79,7 @@ const Header = () => {
     <div className={styles.main}>
       <div className={styles.headerTop}>
         <div className={styles.headerTopWrap}>
-          <ChangeLang />
+          {/* <ChangeLang /> */}
           <Link to={"/for_sell"}>{t("for_seller")}</Link>
           <Link to={"/for_buy"}>{t("for_buyers")}</Link>
           <a href="https://info.reli.one">{t("about_company")}</a>

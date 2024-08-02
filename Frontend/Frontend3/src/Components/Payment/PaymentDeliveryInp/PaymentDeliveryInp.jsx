@@ -9,15 +9,17 @@ import arrRightWhite from "../../../assets/Payment/arrRightWhite.svg";
 import styles from "./PaymentDeliveryInp.module.scss";
 
 const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
-  console.log(desc, title, value);
   const [hover, setHover] = useState(false);
   const [inpValue, setInpValue] = useState(value);
+  const [price, setPrice] = useState(0);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     setInpValue(value);
   }, [value]);
 
-  const paymentInfo = useSelector((state) => state.payment.paymentInfo);
+  const { paymentInfo, delivery } = useSelector((state) => state.payment);
+  const { totalCount } = useSelector((state) => state.basket);
   const { t } = useTranslation();
 
   const { editValue, plusMinusDelivery } = useActions();
@@ -34,12 +36,50 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
     }
 
     if (desc === "TK") {
-      if (setSection) {
-        plusMinusDelivery({ type: "minus", price: paymentInfo.price });
-        setSection(2);
-      }
+      plusMinusDelivery({ type: "minus", price: paymentInfo.price });
+      editValue({ TK: inpValue, price: price });
+      plusMinusDelivery({ type: "plus", price: price });
+      // if (setSection) {
+      //   setSection(2);
+      // }
     }
   };
+
+  useEffect(() => {
+    console.log(paymentInfo);
+    console.log(totalCount);
+  }, [totalCount, paymentInfo]);
+
+  useEffect(() => {
+    if (desc === "TK" && delivery) {
+      let foundPrice = 0; // Начальное значение цены
+
+      delivery.forEach((item) => {
+        if (
+          item?.TK.replace(/\s+/g, "") === inpValue.trim().replace(/\s+/g, "")
+        ) {
+          foundPrice = item?.price; // Обновляем цену, если условие выполняется
+        }
+      });
+
+      setPrice(foundPrice); // Устанавливаем цену один раз после цикла
+    }
+  }, [inpValue, desc, delivery]);
+
+  useEffect(() => {
+    if (desc === "TK") {
+      const normalizedValue = inpValue.trim().toLowerCase().replace(/\s+/g, "");
+
+      const isValid =
+        normalizedValue === "dpd" ||
+        normalizedValue === "ppl" ||
+        normalizedValue === "sclad" ||
+        normalizedValue === "globallogistics";
+
+      setError(!isValid);
+      console.log("Error state:", !isValid);
+    }
+  }, [inpValue]);
 
   return (
     <div className={styles.main}>
@@ -54,11 +94,18 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
           onClick={handleClick}
+          disabled={error}
         >
           <span>{t("pay_change")}</span>
-          <img src={hover ? arrRightWhite : arrRight} alt="" />
+          <img src={hover || error ? arrRightWhite : arrRight} alt="" />
         </button>
       </div>
+      {error && (
+        <p className={styles.errorText}>
+          We do not have such a transport company. Available companies: DPD,
+          PPL, Global logistics.
+        </p>
+      )}
     </div>
   );
 };

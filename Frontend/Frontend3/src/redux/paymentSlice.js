@@ -5,6 +5,9 @@ const initialPaymentInfo = JSON.parse(localStorage.getItem("payment")) || {};
 
 const selectedValue = JSON.parse(localStorage.getItem("selectedProducts")) || []
 
+const delivery = JSON.parse(localStorage.getItem("delivery")) || []
+
+
 
 export const fetchCreateStripeSession = createAsyncThunk(
     "payment/fetchCreateStripeSession",
@@ -77,7 +80,8 @@ const paymentSlice = createSlice({
     initialState: {
         paymentInfo: initialPaymentInfo,
         status: null,
-        err: null
+        err: null,
+        delivery: delivery
     },
     reducers: {
         editValue: (state, action) => {

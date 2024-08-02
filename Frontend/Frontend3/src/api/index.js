@@ -62,6 +62,7 @@ mainInstance.interceptors.response.use(
 
       if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
         // Обработка ошибок сети
+        ErrToast("Network error - please check your internet connection")
         console.log('Network error - please check your internet connection.');
         // Здесь вы можете показать пользователю уведомление о проблемах с сетью
       }

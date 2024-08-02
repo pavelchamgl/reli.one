@@ -52,7 +52,7 @@ const MainPage = () => {
         <div className={styles.categoryCardWrap}>
           {allCategory.length > 0 ? (
             allCategory
-              .slice(0, 18)
+              ?.slice(20, 38)?.reverse()
               .map((item) => <CategoryCard key={item.id} item={item} />)
           ) : (
             <NoContentText />

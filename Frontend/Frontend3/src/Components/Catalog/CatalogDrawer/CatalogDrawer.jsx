@@ -43,8 +43,6 @@ const CatalogDrawer = ({ open, handleClose }) => {
     handleClose();
   };
 
-  const categoryName = category?.name?.toLowerCase();
-
   return (
     <div>
       <Drawer open={open} anchor="top" onClose={handleClose}>
@@ -68,9 +66,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
           </div>
           {!isMobile && (
             <div>
-              <h4 className={styles.catalogTitle}>
-                {t(`${categoryName ? categoryName : ""}`)}
-              </h4>
+              <h4 className={styles.catalogTitle}>{category?.name}</h4>
               <div className={styles.categoryCardWrap}>
                 {categoryItem?.children?.map((item, index) => {
                   if (!item?.children) {

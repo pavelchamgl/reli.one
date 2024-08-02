@@ -1,7 +1,8 @@
-export function ppl(volume = 's', weight = 31.5, isHand = true, region = 'cz') {
-    /**
-     * ppl по чешской республике доставляет 1-2 дня и до 31.5кг
-     */
+export function ppl(volume = 'm', weight = 15, isHand = true, region = 'cz') {
+    // Проверка на null, undefined и 0
+    weight = (weight == null || weight === 0) ? 15 : weight;
+    console.log(weight);
+
     if (weight > 31.5) {
         return 'PPL не доставляет посылки больше 31.5кг';
     }
@@ -33,10 +34,12 @@ export function ppl(volume = 's', weight = 31.5, isHand = true, region = 'cz') {
     return { price, days };
 }
 
-// console.log(ppl("s",17));
 
+export function geis(weight = 75) {
+    // Проверка на null, undefined и 0
+    weight = (weight == null || weight === 0) ? 75 : weight;
+    console.log(weight);
 
-export function geis(weight) {
     let price = 0;
     const days = 1;
 
@@ -49,44 +52,25 @@ export function geis(weight) {
     } else if (weight <= 150) {
         price = 1500;
     } else {
-        return "Не доставляет посылки больше 150кг"
+        return "Не доставляет посылки больше 150кг";
     }
 
     return price;
 }
 
-const dpdPrice = [171,
-    177.17241379,
-    183.34482759,
-    189.51724138,
-    195.68965517,
-    201.86206897,
-    208.03448276,
-    214.20689655,
-    220.37931034,
-    226.55172414,
-    232.72413793,
-    238.89655172,
-    245.06896552,
-    251.24137931,
-    257.4137931,
-    263.5862069,
-    269.75862069,
-    275.93103448,
-    282.10344828,
-    288.27586207,
-    294.44827586,
-    300.62068966,
-    306.79310345,
-    312.96551724,
-    319.13793103,
-    325.31034483,
-    331.48275862,
-    337.65517241,
-    343.82758621,
-    350]
+const dpdPrice = [
+    171, 177.17241379, 183.34482759, 189.51724138, 195.68965517,
+    201.86206897, 208.03448276, 214.20689655, 220.37931034, 226.55172414,
+    232.72413793, 238.89655172, 245.06896552, 251.24137931, 257.4137931,
+    263.5862069, 269.75862069, 275.93103448, 282.10344828, 288.27586207,
+    294.44827586, 300.62068966, 306.79310345, 312.96551724, 319.13793103,
+    325.31034483, 331.48275862, 337.65517241, 343.82758621, 350
+];
 
-export const dpd = (weight) => {
+export const dpd = (weight = 15) => {
+    // Проверка на null, undefined и 0
+    weight = (weight == null || weight === 0) ? 15 : weight;
+
     const roundedWeight = Math.round(weight);
 
     if (roundedWeight > 30) {
@@ -101,8 +85,12 @@ export const dpd = (weight) => {
     }
 }
 
+export const calculateBoxSize = (height = 30, width = 30, length = 30) => {
+    // Проверка на null, undefined и 0
+    height = (height == null || height === 0) ? 30 : height;
+    width = (width == null || width === 0) ? 30 : width;
+    length = (length == null || length === 0) ? 30 : length;
 
-export const calculateBoxSize = (height, width, length) => {
     const sizes = {
         S: { height: 30, width: 30, length: 30 },
         M: { height: 40, width: 60, length: 30 },
@@ -118,7 +106,4 @@ export const calculateBoxSize = (height, width, length) => {
     } else {
         return 'Коробка превышает максимальные размеры L';
     }
-};
-
-
-
+}

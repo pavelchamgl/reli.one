@@ -37,7 +37,7 @@ const Footer = () => {
         <img className={cls.mobLogo} src={logo} alt="" />
         <div className={cls.mobInfoContainer}>
           <p>{t("phone")}: +420 797 837 856</p>
-          <p>{t("email")}: oshchepkova.solar@gmail.com</p>
+          <p>{t("email")}: oshchepkova.reli@gmail.com</p>
           <p>
             {t("address")}: {t("reli_address")}
           </p>

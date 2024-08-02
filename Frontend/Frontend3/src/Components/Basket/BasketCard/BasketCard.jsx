@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteFromBasket, selectProduct } from "../../../redux/basketSlice";
 import { Checkbox } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useActions } from "../../../hook/useAction";
 
 import { toggleFavorite } from "../../../api/favorite";
 import testImage from "../../../assets/Product/ProductTestImage.svg";
@@ -22,18 +23,32 @@ const BasketCard = ({ all, section, productData }) => {
     productData ? productData.is_favorite : false
   );
 
+
   const { product } = productData;
 
   const navigate = useNavigate();
 
-  console.log(product);
+  const { plusCardCount, minusCardCount } = useActions();
 
   const dispatch = useDispatch();
 
   const isMobile = useMediaQuery({ maxWidth: 700 });
 
   const handleMinus = () => {
-    setCount((prev) => (prev > 0 ? prev - 1 : 0));
+    setCount((prev) => {
+      const newCount = prev > 0 ? prev - 1 : 0;
+      minusCardCount({ id: product.id, count: newCount });
+      return newCount;
+    });
+  };
+  
+
+  const handlePlus = () => {
+    setCount((prev) => {
+      const newCount = prev + 1;
+      plusCardCount({ id: product.id, count: newCount });
+      return newCount;
+    });
   };
 
   const handleCheckboxChange = (event) => {
@@ -84,7 +99,7 @@ const BasketCard = ({ all, section, productData }) => {
                 <img src={minusIcon} alt="" />
               </button>
               <p>{count}</p>
-              <button onClick={() => setCount(count + 1)}>
+              <button onClick={handlePlus}>
                 <img src={plusIcon} alt="" />
               </button>
             </div>
@@ -110,7 +125,7 @@ const BasketCard = ({ all, section, productData }) => {
               <img src={minusIcon} alt="" />
             </button>
             <p>{count}</p>
-            <button onClick={() => setCount(count + 1)}>
+            <button onClick={handlePlus}>
               <img src={plusIcon} alt="" />
             </button>
           </div>

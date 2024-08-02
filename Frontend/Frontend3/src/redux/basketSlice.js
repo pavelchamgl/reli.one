@@ -27,6 +27,61 @@ const basketSlice = createSlice({
             }
         },
         plusCount: (state, action) => {
+            console.log("uihhubhb");
+            const newArr = state.basket.map((item) => {
+                if (item.id === action.payload.id) {
+                    return {
+                        ...item,
+                        count: action.payload.count
+                    };
+                }
+                return item;
+            });
+            localStorage.setItem("basket", JSON.stringify(newArr));
+            return {
+                ...state,
+                basket: newArr
+            };
+        },
+        plusCardCount: (state, action) => {
+            state.basket = state.basket.map((item) => {
+                if (item.id === action.payload.id) {
+                    item.count = action.payload.count;
+                }
+                return item;
+            });
+
+            // Пересчитываем общее количество товаров
+            let newTotalCount = 0;
+            state.basket.forEach((item) => {
+                console.log(item);
+                newTotalCount += item.count * item.product.price;
+            });
+            state.totalCount = newTotalCount;
+
+            localStorage.setItem("basket", JSON.stringify(state.basket));
+            localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
+        },
+        minusCardCount: (state, action) => {
+            state.basket = state.basket.map((item) => {
+                if (item.id === action.payload.id) {
+                    item.count = action.payload.count;
+                }
+                return item;
+            });
+        
+            // Пересчитываем общее количество товаров
+            let newTotalCount = 0;
+            state.basket.forEach((item) => {
+                console.log(item);
+                newTotalCount += item.count * item.product.price;
+            });
+            state.totalCount = newTotalCount;
+        
+            localStorage.setItem("basket", JSON.stringify(state.basket));
+            localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
+        },        
+        minusCount: (state, action) => {
             console.log(2);
             const newArr = state.basket.map((item) => {
                 if (item.id === action.payload.id) {
@@ -208,6 +263,6 @@ const basketSlice = createSlice({
     }
 });
 
-export const { addToBasket, plusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice } = basketSlice.actions;
+export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount } = basketSlice.actions;
 
 export const { reducer } = basketSlice;

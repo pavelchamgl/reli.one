@@ -151,7 +151,10 @@ const PaymentContentBlock = ({ setSection }) => {
           <img src={arrLeft} alt="" />
           <span>{t("back_to_basket")}</span>
         </button>
-        <button disabled={!formik.isValid} onClick={handleNext}>
+        <button
+          disabled={!formik.isValid || !formik.touched}
+          onClick={handleNext}
+        >
           {t("continue_sending")}
         </button>
       </div>

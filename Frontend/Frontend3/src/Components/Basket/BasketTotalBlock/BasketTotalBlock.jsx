@@ -26,6 +26,9 @@ const BasketTotalBlock = () => {
   const selectedProducts = useSelector(
     (state) => state.basket.selectedProducts
   );
+
+  const { paymentInfo } = useSelector((state) => state.payment);
+
   const dispatch = useDispatch();
 
   const { t } = useTranslation();
@@ -85,7 +88,11 @@ const BasketTotalBlock = () => {
             <div className={styles.calculateDiv}>
               <span>{t("transportation")}</span>
 
-              <span>{t("transportation_calculate_text")}</span>
+              <span>
+                {paymentInfo && paymentInfo.hasOwnProperty("price")
+                  ? paymentInfo.price
+                  : t("transportation_calculate_text")}
+              </span>
             </div>
           </div>
           <div className={styles.totalDiv}>
