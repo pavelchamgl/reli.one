@@ -15,7 +15,7 @@ import styles from "./CatalogDrawer.module.scss";
 
 const CatalogDrawer = ({ open, handleClose }) => {
   const isPlanshet = useMediaQuery({ maxWidth: 950 });
-  const isMobile = useMediaQuery({ maxWidth: 426 });
+  const isMobile = useMediaQuery({ maxWidth: 500 });
 
   const navigate = useNavigate();
 

@@ -60,6 +60,10 @@
     display: flex;
     gap: 36px;
     align-items: center;
+    
+    & img{
+        cursor: pointer;
+    }
 }
 
 .headerMobile {

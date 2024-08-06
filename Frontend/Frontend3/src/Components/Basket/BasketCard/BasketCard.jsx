@@ -25,7 +25,8 @@ const BasketCard = ({ all, section, productData }) => {
 
   const { product } = productData;
 
-  console.log(product.images[0]);
+  console.log(product);
+  
 
   const navigate = useNavigate();
 
@@ -88,7 +89,7 @@ const BasketCard = ({ all, section, productData }) => {
         <>
           <img
             className={styles.img}
-            src={product?.images[0]?.image_url}
+            src={product?.image}
             alt=""
           />
           <div className={styles.adaptiveWrap}>
@@ -117,7 +118,7 @@ const BasketCard = ({ all, section, productData }) => {
           <div className={styles.imageTextWrap}>
             <img
               className={styles.img}
-              src={product?.images[0]?.image_url}
+              src={product?.image}
               alt=""
             />
             <div className={styles.textDiv}>

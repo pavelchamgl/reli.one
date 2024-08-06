@@ -1,8 +1,9 @@
 import { Dialog } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useDispatch } from "react-redux";
 import { AuthNeed } from "../../../ui/Toastify";
-
+import { selectProduct, updateTotalPrice } from "../../../redux/basketSlice";
 import closeIcon from "../../../assets/loginModal/loginModalX.svg";
 import BasketModalCard from "../BasketModalCard/BasketModalCard";
 
@@ -10,13 +11,16 @@ import styles from "./BasketModal.module.scss";
 
 const BasketModal = ({ open, handleClose, productData }) => {
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const { t } = useTranslation();
+  console.log(productData);
 
   const token = localStorage.getItem("token");
 
   const handleNavigatePayment = () => {
     if (token) {
+      dispatch(selectProduct({ id: productData?.id, selected: true }));
+      dispatch(updateTotalPrice());
       navigate("/payment");
     } else {
       AuthNeed(t("toast.auth_required"));
@@ -41,7 +45,6 @@ const BasketModal = ({ open, handleClose, productData }) => {
             <BasketModalCard handleClose={handleClose} data={productData} />
             <div className={styles.buttonDiv}>
               <button onClick={handleNavigatePayment}>{t("go_pay")}</button>
-              {/* здесь скорее всего добавление в корзину и закрытие модалки */}
               <button onClick={handleClose}>{t("continue_shopping")}</button>
             </div>
           </div>

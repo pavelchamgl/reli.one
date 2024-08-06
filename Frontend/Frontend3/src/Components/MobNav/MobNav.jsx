@@ -88,13 +88,11 @@ const MobNav = () => {
             </p>
           </button>
           <button onClick={() => setOpen(!open)} className={styles.navItem}>
-            <img src={categoryIcon} alt="" />
+            <img src={open?categoryIconAcc:categoryIcon} alt="" />
             <p
-              style={
-                {
-                  // color: location.pathname === "/" ? "#F5B80B" : "#a09e96",
-                }
-              }
+              style={{
+                color: open ? "#F5B80B" : "#a09e96",
+              }}
             >
               {t("category")}
             </p>

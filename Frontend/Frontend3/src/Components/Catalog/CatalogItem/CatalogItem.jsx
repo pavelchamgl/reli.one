@@ -9,7 +9,7 @@ import arrRight from "../../../assets/Catalog/arrRight.svg";
 import styles from "./CatalogItem.module.scss";
 
 const CatalogItem = ({ data, handleClose }) => {
-  const isMobile = useMediaQuery({ maxWidth: 426 });
+  const isMobile = useMediaQuery({ maxWidth: 500 });
   const navigate = useNavigate();
   console.log(data);
 

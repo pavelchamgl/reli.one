@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 
 import Container from "../ui/Container/Container";
-
 import ProductCard from "../Components/Product/ProductCard/ProductCard";
 import FilterByPopularity from "../ui/FilterByPopularity/FilterByPopularity";
 import NoContentText from "../ui/NoContentText/NoContentText";
@@ -18,7 +17,7 @@ import { Pagination } from "@mui/material";
 const CategoryPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const [categoryValue, setCategoryValue] = useState("");
-  const [categoryId, setCategoryId] = useState(1);
+  const [categoryId, setCategoryId] = useState(null);
   const [productsData, setProductsData] = useState([]);
   const [orderingState, setOrderingState] = useState("rating");
   const [filter, setFilter] = useState(false);
@@ -39,14 +38,18 @@ const CategoryPage = () => {
     const searchParams = new URLSearchParams(search);
     const searchText = searchParams.get("categoryValue");
     const categoryID = searchParams.get("categoryID");
-    setCategoryId(categoryID);
-    setCategoryValue(searchText);
+    if (categoryID && searchText) {
+      setCategoryId(Number(categoryID));
+      setCategoryValue(searchText);
+    }
   }, [search]);
 
   useEffect(() => {
-    setCategoryForProduct(categoryId);
-    fetchGetProducts();
-  }, [categoryValue, orderingState, filter, page]);
+    if (categoryId !== null) {
+      setCategoryForProduct(categoryId);
+      fetchGetProducts();
+    }
+  }, [categoryId, categoryValue, orderingState, filter, page]);
 
   const { products, count } = useSelector((state) => state.products);
 
@@ -94,7 +97,9 @@ const CategoryPage = () => {
         </div>
         <div className={styles.likedProdWrap}>
           {productsData && productsData.length > 0 ? (
-            productsData.map((item) => <ProductCard data={item} />)
+            productsData.map((item) => (
+              <ProductCard key={item.id} data={item} />
+            ))
           ) : (
             <NoContentText />
           )}

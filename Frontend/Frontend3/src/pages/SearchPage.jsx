@@ -23,10 +23,8 @@ const SearchPage = () => {
     (state) => state.products.searchResult
   );
   const { count } = useSelector((state) => state.products);
-  const [productsData, setProductsData] = useState([]);
 
   const isMobile = useMediaQuery({ maxWidth: 426 });
-
   const location = useLocation();
 
   const { fetchSearchProducts, setMax, setMin, setOrdering, setSearchPage } =
@@ -40,16 +38,18 @@ const SearchPage = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const params = searchParams.get("searchValue");
-    setSearchValue(params);
-  }, [location]);
+    setSearchValue(params || ""); // Убедитесь, что searchValue всегда строка
+  }, [location.search]);
 
   useEffect(() => {
-    fetchSearchProducts(searchValue);
+    if (searchValue) {
+      fetchSearchProducts(searchValue); // Убедитесь, что fetchSearchProducts не вызывает бесконечные обновления
+    }
   }, [searchValue, orderingState, filter, page]);
 
   useEffect(() => {
-    setProductsData(products);
-  }, [products]);
+    setSearchPage(page);
+  }, [page]);
 
   return (
     <Container>
@@ -63,16 +63,12 @@ const SearchPage = () => {
         >
           <div>
             <h3 className={styles.title}>{searchValue}</h3>
-            <div key={categories.length > 0 ? categories[0].id : ""}>
-              {categories.length > 0 ? (
-                <div className={styles.categoryDiv}>
-                  <img src={xIcon} alt="" />
-                  <p>Kategorie: {categories[0].name}</p>
-                </div>
-              ) : (
-                ""
-              )}
-            </div>
+            {categories.length > 0 && (
+              <div className={styles.categoryDiv}>
+                <img src={xIcon} alt="" />
+                <p>Kategorie: {categories[0].name}</p>
+              </div>
+            )}
           </div>
           {!isMobile && (
             <div style={{ display: "flex", gap: "10px" }}>
@@ -100,8 +96,7 @@ const SearchPage = () => {
           />
         )}
         <div className={styles.productDiv}>
-          {/* {searchStatus === "loading" && <Loader />} */}
-          {productsData.map((item) => (
+          {products.map((item) => (
             <ProductCard data={item} key={item.id} />
           ))}
         </div>

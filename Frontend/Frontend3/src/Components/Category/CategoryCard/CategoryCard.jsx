@@ -9,8 +9,6 @@ const CategoryCard = ({ item }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
-  console.log(item);
-
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
@@ -25,21 +23,25 @@ const CategoryCard = ({ item }) => {
     );
   }
 
-  return (
-    <div
-      onClick={() =>
-        navigate(
-          `/product_category?categoryValue=${encodeURIComponent(
-            item?.name
-          )}&categoryID=${item?.id}`
-        )
-      }
-      className={styles.main}
-      style={{ backgroundImage: `url(${item.image_url})` }}
-    >
-      <p>{item?.name}</p>
-    </div>
-  );
+  if (item && item.image_url) {
+    return (
+      <div
+        onClick={() =>
+          navigate(
+            `/product_category?categoryValue=${encodeURIComponent(
+              item?.name
+            )}&categoryID=${item?.id}`
+          )
+        }
+        className={styles.main}
+        style={{ backgroundImage: `url(${item.image_url})` }}
+      >
+        <p>{item?.name}</p>
+      </div>
+    );
+  } else {
+    return <></>;
+  }
 };
 
 export default CategoryCard;
