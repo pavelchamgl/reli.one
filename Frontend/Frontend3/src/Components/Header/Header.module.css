@@ -46,7 +46,13 @@
     font-size: 14px;
     text-wrap: nowrap;
     background-color: transparent;
+
+    & p {
+        cursor: pointer !important;
+    }
+
 }
+
 .headerBottomLink:disabled {
     display: flex;
     flex-direction: column;
@@ -60,8 +66,8 @@
     display: flex;
     gap: 36px;
     align-items: center;
-    
-    & img{
+
+    & img {
         cursor: pointer;
     }
 }
@@ -82,7 +88,8 @@
     justify-content: space-between;
     align-items: center;
 }
-.logo{
+
+.logo {
     max-width: 100px;
 }
 

@@ -54,6 +54,7 @@
     font-weight: 400;
     font-size: 16px;
     color: #191d23;
+    cursor: pointer !important;
   }
 }
 
@@ -76,6 +77,7 @@
     font-size: 16px;
     color: #191d23;
     margin-left: 8px;
+    cursor: pointer !important;
   }
   @media (max-width: 450px) {
     width: 284px;
@@ -127,8 +129,8 @@
     color: #191d23;
     background-color: transparent;
     @media (max-width: 400px) {
-        width: 284px;
-      }
+      width: 284px;
+    }
   }
   button:hover {
     background: #e8eee7;

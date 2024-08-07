@@ -19,11 +19,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   p {
     font-weight: 600;
     font-size: 10px;
     line-height: 210%;
     letter-spacing: -0.03em;
     color: #a09e96;
+    cursor: pointer !important;
   }
 }

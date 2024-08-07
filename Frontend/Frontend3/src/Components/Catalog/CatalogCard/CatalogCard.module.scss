@@ -7,6 +7,7 @@
   background-size: cover;
   background-position: 0 0px;
   background-repeat: no-repeat;
+  cursor: pointer;
   @media (max-width: 970px) {
     width: 182px;
     height: 180px;
@@ -29,6 +30,8 @@
     line-height: 87%;
     letter-spacing: -0.01em;
     color: #000;
+    cursor: pointer !important;
+
     @media (max-width: 830px) {
       font-size: 18px;
     }

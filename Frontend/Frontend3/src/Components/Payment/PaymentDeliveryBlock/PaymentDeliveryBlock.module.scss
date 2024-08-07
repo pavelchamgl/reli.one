@@ -81,6 +81,9 @@
     gap: 7px;
     padding-left: 5px;
     background-color: transparent;
+    & span {
+      cursor: pointer !important;
+    }
     @media (max-width: 426px) {
       width: 100%;
     }
