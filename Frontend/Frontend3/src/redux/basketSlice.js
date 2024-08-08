@@ -58,8 +58,13 @@ const basketSlice = createSlice({
             });
             state.totalCount = newTotalCount;
 
+            state.selectedProducts = state.basket.filter((item) => item.selected)
+
+
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
+            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
+
         },
         minusCardCount: (state, action) => {
             state.basket = state.basket.map((item) => {
@@ -68,7 +73,7 @@ const basketSlice = createSlice({
                 }
                 return item;
             });
-        
+
             // Пересчитываем общее количество товаров
             let newTotalCount = 0;
             state.basket.forEach((item) => {
@@ -76,10 +81,13 @@ const basketSlice = createSlice({
                 newTotalCount += item.count * item.product.price;
             });
             state.totalCount = newTotalCount;
-        
+
+            state.selectedProducts = state.basket.filter((item) => item.selected)
+
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
-        },        
+            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
+        },
         minusCount: (state, action) => {
             console.log(2);
             const newArr = state.basket.map((item) => {
@@ -106,9 +114,12 @@ const basketSlice = createSlice({
             }
 
             state.basket = state.basket.filter(item => item.id !== action.payload.id);
+            state.selectedProducts = state.basket.filter((item) => item.selected)
+
 
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
             localStorage.setItem("basket", JSON.stringify(state.basket));
+            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
         },
         selectProduct: (state, action) => {
             let totalCount = Number(state.totalCount);
@@ -261,9 +272,9 @@ const basketSlice = createSlice({
                 }
                 return sum;
             }, 0);
-            
+
             localStorage.setItem("basketTotal", JSON.stringify(totalPrice));
-            
+
             return {
                 ...state,
                 totalCount: totalPrice

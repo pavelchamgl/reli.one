@@ -19,8 +19,6 @@ const BasketTotalBlock = () => {
 
   const totalPrice = useSelector((state) => state.basket.totalCount);
 
-  const localPrice = JSON.parse(localStorage.getItem("basketTotal"));
-
   const [price, setPrice] = useState(totalPrice);
 
   const selectedProducts = useSelector(
@@ -56,8 +54,8 @@ const BasketTotalBlock = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    setPrice(localPrice);
-  }, [localPrice]);
+    setPrice(totalPrice);
+  }, [totalPrice]);
 
   return (
     <>

@@ -152,7 +152,16 @@ const PaymentContentBlock = ({ setSection }) => {
           <span>{t("back_to_basket")}</span>
         </button>
         <button
-          disabled={!formik.isValid || !formik.touched}
+          disabled={
+            !formik.isValid ||
+            !formik.touched ||
+            !email ||
+            !address ||
+            !country ||
+            !name ||
+            !phone ||
+            !surename
+          }
           onClick={handleNext}
         >
           {t("continue_sending")}

@@ -98,6 +98,9 @@
     width: 191px;
     height: 46px;
     background: #047857;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     &:hover {
       background-color: #06664b;
     }
@@ -112,4 +115,10 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.errText {
+  font-weight: 300;
+  font-size: 14px;
+  color: #dc2626;
 }

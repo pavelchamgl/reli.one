@@ -26,7 +26,6 @@ const BasketCard = ({ all, section, productData }) => {
   const { product } = productData;
 
   console.log(product);
-  
 
   const navigate = useNavigate();
 
@@ -87,11 +86,7 @@ const BasketCard = ({ all, section, productData }) => {
 
       {isMobile ? (
         <>
-          <img
-            className={styles.img}
-            src={product?.image}
-            alt=""
-          />
+          <img className={styles.img} src={product?.image} alt="" />
           <div className={styles.adaptiveWrap}>
             <div
               onClick={() => navigate(`/product/${product?.id}`)}
@@ -109,18 +104,14 @@ const BasketCard = ({ all, section, productData }) => {
               </button>
             </div>
             <div className={styles.priceDiv}>
-              <p>{product ? product.price : 0} €</p>
+              <p>{product ? Number(product.price) * count : 0} €</p>
             </div>
           </div>
         </>
       ) : (
         <>
           <div className={styles.imageTextWrap}>
-            <img
-              className={styles.img}
-              src={product?.image}
-              alt=""
-            />
+            <img className={styles.img} src={product?.image} alt="" />
             <div className={styles.textDiv}>
               <h3 onClick={() => navigate(`/product/${product?.id}`)}>
                 {product?.name}
@@ -140,7 +131,7 @@ const BasketCard = ({ all, section, productData }) => {
           </div>
 
           <div className={styles.priceDiv}>
-            <p>{product?.price} €</p>
+            <p>{product ? Number(product.price) * count : 0} €</p>
             {/* <span>{product.price} Kč</span> */}
           </div>
         </>

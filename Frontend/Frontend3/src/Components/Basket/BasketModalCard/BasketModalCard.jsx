@@ -94,7 +94,7 @@ const BasketModalCard = ({ data, handleClose }) => {
         </div>
 
         <div className={styles.priceDiv}>
-          <p>{data.price} €</p>
+          <p>{data ? Number(data.price) * count : 0} €</p>
           {/* <span>{data.price} Kč</span> */}
         </div>
 

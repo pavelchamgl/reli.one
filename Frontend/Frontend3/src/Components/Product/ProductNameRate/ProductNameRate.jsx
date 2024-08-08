@@ -3,19 +3,28 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
+import { useParams } from "react-router-dom";
 
 import { addToBasket } from "../../../redux/basketSlice";
 import ProductDeliveryCar from "../../../assets/Product/productDeliveryCar.svg";
+import addBasketCheckIcon from "../../../assets/Product/addBasketCheckIcon.svg";
 
 import styles from "./ProductNameRate.module.scss";
+import { useEffect, useState } from "react";
 
 const ProductNameRate = () => {
+  const [inBasket, setInBasket] = useState(false);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { t } = useTranslation();
 
+  const { id } = useParams();
+
   const product = useSelector((state) => state.products.product);
+
+  const basket = useSelector((state) => state.basket.basket);
 
   console.log(product);
 
@@ -30,6 +39,22 @@ const ProductNameRate = () => {
     );
   };
 
+  useEffect(() => {
+    if (basket.some((item) => item.id === Number(id))) {
+      setInBasket(true);
+    } else {
+      setInBasket(false);
+    }
+  }, [id, basket]);
+
+  useEffect(() => {
+    console.log(basket);
+
+    console.log(id);
+
+    console.log(inBasket);
+  }, [inBasket]);
+
   return (
     <div className={styles.main}>
       <div className={styles.ratingDiv}>
@@ -42,6 +67,7 @@ const ProductNameRate = () => {
       </div>
       <p className={styles.price}>{product.price} €</p>
       <button className={styles.addBasketBtn} onClick={handleAddBasket}>
+        {inBasket && <img src={addBasketCheckIcon} alt="" />}
         {t("add_basket")}
       </button>
       <button className={styles.deliveryBtn}>

@@ -37,14 +37,14 @@ export const fetchCreateStripeSession = createAsyncThunk(
     }
 );
 
+
 export const fetchCreatePayPalSession = createAsyncThunk(
     "payment/fetchCreatePayPalSession",
-    async (_, { rejectWithValue, getState }) => {
+    async (selectedProducts, { rejectWithValue, getState }) => {
         try {
             const state = getState().payment;
-            const { paymentInfo, selectedProducts } = state;
+            const { paymentInfo } = state;
 
-            console.log(paymentInfo, selectedProducts);
 
             const res = await createPayPalSession({
                 email: paymentInfo.email,
@@ -74,7 +74,8 @@ const paymentSlice = createSlice({
     initialState: {
         paymentInfo: initialPaymentInfo,
         status: null,
-        err: null,
+        loading: false,
+        error: null,
         delivery: delivery,
         selectedProducts: JSON.parse(localStorage.getItem("selectedProducts")) || []
     },
@@ -98,14 +99,16 @@ const paymentSlice = createSlice({
                 state.err = action.payload;
             })
             .addCase(fetchCreatePayPalSession.pending, (state) => {
-                state.status = 'loading';
+                state.loading = true;
+                state.error = null;
             })
             .addCase(fetchCreatePayPalSession.fulfilled, (state) => {
-                state.status = 'succeeded';
+                state.loading = false;
+                state.error = null;
             })
             .addCase(fetchCreatePayPalSession.rejected, (state, action) => {
-                state.status = 'failed';
-                state.err = action.payload;
+                state.loading = false;
+                state.error = "Error executing request";
             });
     }
 });
