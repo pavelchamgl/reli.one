@@ -56,6 +56,7 @@ const MobNav = () => {
   }, [lastScrollTop]);
 
   const handleLoginClick = () => {
+    setOpen(false);
     if (token) {
       navigate("/mob_profile_nav");
     } else {
@@ -63,6 +64,7 @@ const MobNav = () => {
     }
   };
   const handleBasketClick = () => {
+    setOpen(false);
     if (token) {
       navigate("/mob_basket");
     } else {
@@ -74,7 +76,13 @@ const MobNav = () => {
     <div>
       <>
         <div className={styles.navMain}>
-          <button onClick={() => navigate("/")} className={styles.navItem}>
+          <button
+            onClick={() => {
+              setOpen(false);
+              navigate("/");
+            }}
+            className={styles.navItem}
+          >
             <img
               src={location.pathname === "/" ? homeIconAcc : homeIcon}
               alt=""
@@ -88,13 +96,11 @@ const MobNav = () => {
             </p>
           </button>
           <button onClick={() => setOpen(!open)} className={styles.navItem}>
-            <img src={categoryIcon} alt="" />
+            <img src={open ? categoryIconAcc : categoryIcon} alt="" />
             <p
-              style={
-                {
-                  // color: location.pathname === "/" ? "#F5B80B" : "#a09e96",
-                }
-              }
+              style={{
+                color: open ? "#F5B80B" : "#a09e96",
+              }}
             >
               {t("category")}
             </p>
@@ -115,7 +121,13 @@ const MobNav = () => {
               {t("bin")}
             </p>
           </button>
-          <button onClick={() => navigate("/liked")} className={styles.navItem}>
+          <button
+            onClick={() => {
+              setOpen(false);
+              navigate("/liked");
+            }}
+            className={styles.navItem}
+          >
             <img
               src={location.pathname === "/liked" ? likeIconAcc : likeIcon}
               alt=""

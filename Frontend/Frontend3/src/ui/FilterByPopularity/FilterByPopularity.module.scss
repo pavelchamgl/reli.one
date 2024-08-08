@@ -10,6 +10,9 @@
   color: #7d7b7c;
   background-color: transparent;
   margin-bottom: 10px;
+  & p {
+    cursor: pointer !important;
+  }
 }
 
 .main {

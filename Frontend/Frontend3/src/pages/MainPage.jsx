@@ -48,7 +48,6 @@ const MainPage = () => {
         <CustomBreadcrumbs />
       </div>
       <div className={styles.categoryWrap}>
-        <p className={styles.title}>{t("category")}</p>
         <div className={styles.categoryCardWrap}>
           {allCategory.length > 0 ? (
             allCategory

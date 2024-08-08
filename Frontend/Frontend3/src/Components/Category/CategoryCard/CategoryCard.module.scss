@@ -1,4 +1,5 @@
 .main {
+  cursor: pointer;
   border-radius: 10px;
   width: 222px;
   height: 220px;
@@ -13,6 +14,9 @@
   background-size: contain;
   background-position: 0 0px;
   background-repeat: no-repeat;
+  & p {
+    cursor: pointer !important;
+  }
 }
 
 .sceleton {

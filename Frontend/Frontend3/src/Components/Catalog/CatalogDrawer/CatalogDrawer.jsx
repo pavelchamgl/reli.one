@@ -1,7 +1,7 @@
 import { Drawer } from "@mui/material";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useActions } from "../../../hook/useAction";
 import { useTranslation } from "react-i18next";
@@ -15,7 +15,8 @@ import styles from "./CatalogDrawer.module.scss";
 
 const CatalogDrawer = ({ open, handleClose }) => {
   const isPlanshet = useMediaQuery({ maxWidth: 950 });
-  const isMobile = useMediaQuery({ maxWidth: 426 });
+  const isMobile = useMediaQuery({ maxWidth: 500 });
+  const [catalogCategory, setCatalogCategory] = useState("");
 
   const navigate = useNavigate();
 
@@ -51,14 +52,26 @@ const CatalogDrawer = ({ open, handleClose }) => {
           <div className={styles.catalogItemWrap}>
             {categories.map((item) => {
               if (item?.children) {
-                return <CatalogItem data={item} handleClose={handleClose} />;
+                return (
+                  <CatalogItem
+                    catalogCategory={catalogCategory}
+                    setCatalogCategory={setCatalogCategory}
+                    data={item}
+                    handleClose={handleClose}
+                  />
+                );
               } else {
                 return (
                   <button
                     className={styles.catalogItemBtn}
                     onClick={() => handleCategoryClick(item?.name, item?.id)}
                   >
-                    <CatalogItem data={item} handleClose={handleClose} />
+                    <CatalogItem
+                      catalogCategory={catalogCategory}
+                      setCatalogCategory={setCatalogCategory}
+                      data={item}
+                      handleClose={handleClose}
+                    />
                   </button>
                 );
               }

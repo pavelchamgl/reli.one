@@ -17,12 +17,15 @@
     display: flex;
     align-items: center;
     gap: 15px;
+    cursor: pointer;
     p {
       font-weight: 400;
       font-size: 18px;
       line-height: 139%;
       letter-spacing: -0.02em;
       color: #000;
+      cursor: pointer !important;
+
     }
   }
   span {

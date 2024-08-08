@@ -16,7 +16,6 @@ const basketSlice = createSlice({
     },
     reducers: {
         addToBasket: (state, action) => {
-            console.log(1);
             if (state.basket.every((item) => item.id !== action.payload.id)) {
                 const newBasket = [...state.basket, action.payload];
                 localStorage.setItem("basket", JSON.stringify(newBasket));
@@ -112,7 +111,6 @@ const basketSlice = createSlice({
             localStorage.setItem("basket", JSON.stringify(state.basket));
         },
         selectProduct: (state, action) => {
-            console.log(4);
             let totalCount = Number(state.totalCount);
 
             const selectedArr = state.basket.map((item) => {
@@ -256,6 +254,21 @@ const basketSlice = createSlice({
                 totalCount: totalPrice  // Предполагая, что вам нужно обновить `totalPrice`, а не `totalCount`
             };
         },
+        updateTotalPrice: (state) => {
+            const totalPrice = state.basket.reduce((sum, item) => {
+                if (item.selected) {
+                    return sum + (Number(item.product.price) * item.count);
+                }
+                return sum;
+            }, 0);
+            
+            localStorage.setItem("basketTotal", JSON.stringify(totalPrice));
+            
+            return {
+                ...state,
+                totalCount: totalPrice
+            };
+        },
     },
 
     extraReducers: builder => {
@@ -263,6 +276,6 @@ const basketSlice = createSlice({
     }
 });
 
-export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount } = basketSlice.actions;
+export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount, updateTotalPrice } = basketSlice.actions;
 
 export const { reducer } = basketSlice;

@@ -26,6 +26,8 @@ const ProductCard = ({ data = null }) => {
   const { status, searchStatus } = useSelector((state) => state.products);
   const statusFav = useSelector((state) => state.favorites.status);
 
+  console.log(data);
+
   const handleBuy = () => {
     if (isPlanshet) {
       navigate(`/product/${data.id}`);
@@ -94,7 +96,12 @@ const ProductCard = ({ data = null }) => {
           <img src={like ? likeAccIcon : likeIcon} alt="" />
         </button>
       )}
-      <img className={styles.image} src={data.image} alt="Product" />
+      <img
+        onClick={() => navigate(`/product/${data.id}`)}
+        className={styles.image}
+        src={data.image}
+        alt="Product"
+      />
       <div className={styles.descWrap}>
         <div className={styles.priceDiv}>
           <p className={styles.price}>{data.price}€</p>

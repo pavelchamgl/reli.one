@@ -14,28 +14,41 @@
   @media (max-width: 460px) {
     width: 230px;
   }
-  @media (max-width: 426px) {
+  @media (max-width: 500px) {
     width: calc(100vw - 34px);
   }
   div {
     display: flex;
     gap: 10px;
     align-items: center;
-    & img{
+    & img {
       width: 29px;
       height: 29px;
       border: none;
       object-fit: contain;
     }
   }
-  p {
-    font-weight: 500;
-    font-size: 18px;
-    line-height: 117%;
-    letter-spacing: -0.02em;
-    color: #000;
-  }
   button {
     background-color: transparent;
   }
+}
+
+.categoryName {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 117%;
+  letter-spacing: -0.02em;
+  color: #000;
+  text-align: left;
+  cursor: pointer !important;
+}
+
+.categoryNameAcc {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 117%;
+  letter-spacing: -0.02em;
+  color: #f5b80b;
+  text-align: left;
+  cursor: pointer !important;
 }

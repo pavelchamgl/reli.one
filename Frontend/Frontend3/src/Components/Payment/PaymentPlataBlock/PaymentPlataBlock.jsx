@@ -4,17 +4,18 @@ import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 
-import { createStripeSession } from "../../../api/payment";
 import MobPaymentBasket from "../MobPaymentBasket/MobPaymentBasket";
-import BreadCrumps from "../../../ui/BreadCrumps/BreadCrumps";
+import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
 import PaymentDeliveryInp from "../PaymentDeliveryInp/PaymentDeliveryInp";
 import CheckBox from "../../../ui/CheckBox/CheckBox";
 import PlataRadio from "../PlataRadio/PlataRadio";
 import arrLeft from "../../../assets/Payment/arrLeft.svg";
 
 import styles from "./PaymentPlataBlock.module.scss";
-import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
-import { useActions } from "../../../hook/useAction";
+import {
+  fetchCreateStripeSession,
+  fetchCreatePayPalSession,
+} from "../../../redux/paymentSlice";
 
 const PaymentPlataBlock = ({ setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -26,25 +27,22 @@ const PaymentPlataBlock = ({ setSection }) => {
     (state) => state.payment.paymentInfo
   );
 
-  const {
-    fetchCreateStripeSession,
-    plusMinusDelivery,
-    fetchCreatePayPalSession,
-  } = useActions();
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const returnBtn = () => {
-    dispatch(plusMinusDelivery({ type: "minus", price }));
+    dispatch({
+      type: "basket/plusMinusDelivery",
+      payload: { type: "minus", price },
+    });
     setSection(2);
   };
 
   const handleSubmit = () => {
     if (plataType === "card") {
-      fetchCreateStripeSession();
+      dispatch(fetchCreateStripeSession());
     } else {
-      fetchCreatePayPalSession();
+      dispatch(fetchCreatePayPalSession());
     }
   };
 
@@ -68,7 +66,6 @@ const PaymentPlataBlock = ({ setSection }) => {
           value={address}
           title={t("add_address")}
         />
-
         <PaymentDeliveryInp
           desc={"TK"}
           value={TK}
