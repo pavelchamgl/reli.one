@@ -36,6 +36,7 @@ const PaymentDeliverySelect = () => {
   const [dpdResult, setDpdResult] = useState(0);
   const [price, setPrice] = useState(0);
   const [boxSize, setBoxSize] = useState("s");
+  const [value, setValue] = useState("address");
 
   const { t } = useTranslation();
 
@@ -127,7 +128,7 @@ const PaymentDeliverySelect = () => {
   }, [weight]);
 
   useEffect(() => {
-    if (selectedValue !== "sclad" && selectedValue !== "adresu") {
+    if (selectedValue !== "sclad" && selectedValue !== "") {
       setOpen((prevOpen) => !prevOpen);
     }
     if (selectedValue === "sclad") {
@@ -154,7 +155,11 @@ const PaymentDeliverySelect = () => {
   }, [selectedValue]);
 
   const handleChange = (event) => {
-    setSelectedValue(event.target.value);
+    if (event.target.value === "address") {
+      setSelectedValue("sclad");
+    } else {
+      setSelectedValue(event.target.value);
+    }
   };
 
   return (
@@ -183,7 +188,7 @@ const PaymentDeliverySelect = () => {
             <div className={styles.radioImageDiv}>
               <FormControlLabel
                 sx={{ marginRight: "0px" }}
-                value="adresu"
+                value={value}
                 control={<Radio color="success" />}
                 label={deliImg ? "" : t("delivery_address")}
               />
@@ -212,6 +217,7 @@ const PaymentDeliverySelect = () => {
                     onClick={() => {
                       setDeliImg(img);
                       setPrice(price);
+                      setValue(value);
                     }}
                     sx={{ marginRight: "0px" }}
                     value={value}

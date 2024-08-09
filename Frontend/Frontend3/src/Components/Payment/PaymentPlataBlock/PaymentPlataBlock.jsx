@@ -4,6 +4,11 @@ import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 
+import {
+  fetchCreateStripeSession,
+  fetchCreatePayPalSession,
+} from "../../../redux/paymentSlice";
+import Spinner from "../../../ui/Spiner/Spiner";
 import MobPaymentBasket from "../MobPaymentBasket/MobPaymentBasket";
 import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
 import PaymentDeliveryInp from "../PaymentDeliveryInp/PaymentDeliveryInp";
@@ -12,10 +17,6 @@ import PlataRadio from "../PlataRadio/PlataRadio";
 import arrLeft from "../../../assets/Payment/arrLeft.svg";
 
 import styles from "./PaymentPlataBlock.module.scss";
-import {
-  fetchCreateStripeSession,
-  fetchCreatePayPalSession,
-} from "../../../redux/paymentSlice";
 
 const PaymentPlataBlock = ({ setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -25,6 +26,12 @@ const PaymentPlataBlock = ({ setSection }) => {
 
   const { email, address, price, TK } = useSelector(
     (state) => state.payment.paymentInfo
+  );
+
+  const { loading, error } = useSelector((state) => state.payment);
+
+  const selectedProducts = useSelector(
+    (state) => state.basket.selectedProducts
   );
 
   const dispatch = useDispatch();
@@ -42,7 +49,7 @@ const PaymentPlataBlock = ({ setSection }) => {
     if (plataType === "card") {
       dispatch(fetchCreateStripeSession());
     } else {
-      dispatch(fetchCreatePayPalSession());
+      dispatch(fetchCreatePayPalSession(selectedProducts));
     }
   };
 
@@ -83,12 +90,15 @@ const PaymentPlataBlock = ({ setSection }) => {
           </label>
         )}
       </div>
+      {error && <p className={styles.errText}>{error}</p>}
       <div className={styles.buttonDiv}>
         <button onClick={returnBtn}>
           <img src={arrLeft} alt="" />
           <span>{t("back_to_delivery")}</span>
         </button>
-        <button onClick={handleSubmit}>{t("pay_now")}</button>
+        <button onClick={handleSubmit}>
+          {loading ? <Spinner /> : <p>{t("pay_now")}</p>}
+        </button>
       </div>
     </div>
   );

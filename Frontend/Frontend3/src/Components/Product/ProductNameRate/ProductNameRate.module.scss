@@ -1,7 +1,7 @@
-.main{
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .ratingDiv {
@@ -59,6 +59,14 @@
   background-color: #000;
   width: 371px;
   height: 55px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  & img{
+    position: absolute;
+    left: 100px;
+  }
 }
 
 .deliveryBtn {

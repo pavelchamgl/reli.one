@@ -32,6 +32,7 @@ const ProductPage = () => {
     fetchGetComments(id);
   }, [id]);
 
+
   const { product, status } = useSelector((state) => state.products);
 
   if (status !== "loading") {
