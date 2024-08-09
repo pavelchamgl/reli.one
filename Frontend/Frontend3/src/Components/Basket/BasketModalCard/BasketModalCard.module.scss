@@ -2,36 +2,62 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  // gap: 80px;
   height: 166px;
   border-bottom: 1px solid #ced4d7;
   border-top: 1px solid #ced4d7;
   position: relative;
-  // @media (max-width: 1440px) {
-  //   width: calc(100vw - 200px);
-  // }
-  // @media (max-width: 1000px) {
-  //   gap: 20px;
-  // }
-  // @media (max-width: 800px) {
-  //   gap: 40px;
-  // }
-  // @media (max-width: 426px) {
-  //   width: calc(100vw - 34px);
-  //   gap: 40px;
-  // }
-  // @media (max-width: 376px) {
-  //   gap: 25px;
-  // }
+  width: 100%;
+
+  @media (max-width: 1000px) {
+    gap: 20px;
+  }
+  @media (max-width: 800px) {
+    gap: 0;
+  }
+  @media (max-width: 426px) {
+    gap: 40px;
+  }
+  @media (max-width: 376px) {
+    gap: 25px;
+  }
+  @media (max-width: 350px) {
+    gap: 15px;
+  }
 }
 
 .img {
-  width: 120px;
+  width: 120px !important;
   height: 114px;
   object-fit: cover;
-  @media (max-width: 800px) {
+  @media (max-width: 426px) {
     width: 81px;
     height: 89px;
+  }
+}
+
+.adaptiveWrap {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-direction: column-reverse;
+  gap: 80px;
+
+  @media (max-width: 700px) {
+    width: 200px;
+    flex-wrap: wrap-reverse;
+    gap: 20px;
+  }
+  @media (max-width: 376px) {
+    width: 150px;
+    flex-wrap: wrap-reverse;
+    gap: 20px;
+  }
+  @media (max-width: 320px) {
+    width: auto;
+    flex-wrap: wrap-reverse;
+  }
+  @media (max-width: 350px) {
+    gap: 15px;
   }
 }
 
@@ -42,6 +68,7 @@
 
 .textDiv {
   margin-top: 20px;
+  width: 200px;
   h3 {
     font-weight: 600;
     font-size: clamp(14px, 2.5vw, 16px);
@@ -85,6 +112,10 @@
     width: 15px;
     height: 15px;
   }
+  @media (max-width: 426px) {
+    order: -3;
+    gap: 10px;
+  }
 }
 
 .priceDiv {
@@ -125,5 +156,6 @@
 
 .cardChecked {
   position: absolute;
-  top: 26px;
+  top: 8px;
+  left: -18px;
 }

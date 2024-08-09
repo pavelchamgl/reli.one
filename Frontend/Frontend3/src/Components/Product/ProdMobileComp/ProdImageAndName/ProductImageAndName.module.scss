@@ -62,6 +62,15 @@
   letter-spacing: -0.02em;
   text-align: center;
   color: #fff;
+  position: relative;
+  & img {
+    position: absolute;
+    left: 80px;
+    width: 19px;
+    @media (max-width: 380px) {
+      left: 60px;
+    }
+  }
 }
 .basketBtn:hover {
   background-color: #356658;

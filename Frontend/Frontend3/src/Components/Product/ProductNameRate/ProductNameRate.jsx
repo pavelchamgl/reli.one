@@ -47,13 +47,7 @@ const ProductNameRate = () => {
     }
   }, [id, basket]);
 
-  useEffect(() => {
-    console.log(basket);
 
-    console.log(id);
-
-    console.log(inBasket);
-  }, [inBasket]);
 
   return (
     <div className={styles.main}>

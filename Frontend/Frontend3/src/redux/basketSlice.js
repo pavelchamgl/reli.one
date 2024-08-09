@@ -50,22 +50,22 @@ const basketSlice = createSlice({
                 return item;
             });
 
-            // Пересчитываем общее количество товаров
+            // Пересчитываем общее количество товаров только для выбранных продуктов
             let newTotalCount = 0;
             state.basket.forEach((item) => {
-                console.log(item);
-                newTotalCount += item.count * item.product.price;
+                if (item.selected) {
+                    newTotalCount += item.count * item.product.price;
+                }
             });
             state.totalCount = newTotalCount;
 
-            state.selectedProducts = state.basket.filter((item) => item.selected)
-
+            state.selectedProducts = state.basket.filter((item) => item.selected);
 
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
-            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
-
+            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts));
         },
+
         minusCardCount: (state, action) => {
             state.basket = state.basket.map((item) => {
                 if (item.id === action.payload.id) {
@@ -74,20 +74,22 @@ const basketSlice = createSlice({
                 return item;
             });
 
-            // Пересчитываем общее количество товаров
+            // Пересчитываем общее количество товаров только для выбранных продуктов
             let newTotalCount = 0;
             state.basket.forEach((item) => {
-                console.log(item);
-                newTotalCount += item.count * item.product.price;
+                if (item.selected) {
+                    newTotalCount += item.count * item.product.price;
+                }
             });
             state.totalCount = newTotalCount;
 
-            state.selectedProducts = state.basket.filter((item) => item.selected)
+            state.selectedProducts = state.basket.filter((item) => item.selected);
 
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
-            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
+            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts));
         },
+
         minusCount: (state, action) => {
             console.log(2);
             const newArr = state.basket.map((item) => {

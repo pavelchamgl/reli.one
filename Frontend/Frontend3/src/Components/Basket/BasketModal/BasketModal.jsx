@@ -3,13 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { AuthNeed } from "../../../ui/Toastify";
-import { selectProduct, updateTotalPrice } from "../../../redux/basketSlice";
+import {
+  deselectAllProducts,
+  selectProduct,
+  updateTotalPrice,
+} from "../../../redux/basketSlice";
 import closeIcon from "../../../assets/loginModal/loginModalX.svg";
 import BasketModalCard from "../BasketModalCard/BasketModalCard";
 
 import styles from "./BasketModal.module.scss";
+import { useState } from "react";
 
 const BasketModal = ({ open, handleClose, productData }) => {
+  const [count, setCount] = useState(0);
+
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t } = useTranslation();
@@ -19,6 +26,7 @@ const BasketModal = ({ open, handleClose, productData }) => {
 
   const handleNavigatePayment = () => {
     if (token) {
+      dispatch(deselectAllProducts());
       dispatch(selectProduct({ id: productData?.id, selected: true }));
       dispatch(updateTotalPrice());
       navigate("/payment");
@@ -42,9 +50,15 @@ const BasketModal = ({ open, handleClose, productData }) => {
           </button>
           <h3 className={styles.title}>{t("basket_modal_title")}</h3>
           <div className={styles.cardAndButtonWrap}>
-            <BasketModalCard handleClose={handleClose} data={productData} />
+            <BasketModalCard
+              setMainCount={setCount}
+              handleClose={handleClose}
+              data={productData}
+            />
             <div className={styles.buttonDiv}>
-              <button onClick={handleNavigatePayment}>{t("go_pay")}</button>
+              <button disabled={!count} onClick={handleNavigatePayment}>
+                {t("go_pay")}
+              </button>
               <button onClick={handleClose}>{t("continue_shopping")}</button>
             </div>
           </div>

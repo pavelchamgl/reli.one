@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
+import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.svg";
 
 import { toggleFavorite } from "../../../../api/favorite";
 import mobReturnIcon from "../../../../assets/mobileIcons/mobReturnIcon.svg";
@@ -16,10 +17,16 @@ import styles from "./ProductImageAndName.module.scss";
 
 const ProductImageAndName = () => {
   const product = useSelector((state) => state.products.product);
-  console.log(product);
+
+  const [inBasket, setInBasket] = useState(false);
+
   const [like, setLike] = useState(product ? product.is_favorite : false);
 
+  const basket = useSelector((state) => state.basket.basket);
+
   const navigate = useNavigate();
+
+  const { id } = useParams();
 
   const { t } = useTranslation();
 
@@ -35,6 +42,14 @@ const ProductImageAndName = () => {
       })
     );
   };
+
+  useEffect(() => {
+    if (basket.some((item) => item.id === Number(id))) {
+      setInBasket(true);
+    } else {
+      setInBasket(false);
+    }
+  }, [id, basket]);
 
   const handleLikeClick = async () => {
     const newLike = !like;
@@ -67,6 +82,7 @@ const ProductImageAndName = () => {
           {/* <span>400.00 Kč</span> */}
         </div>
         <button className={styles.basketBtn} onClick={handleAddBasket}>
+          {inBasket && <img src={addBasketCheckIcon} alt="" />}
           {t("add_basket")}
         </button>
         <button className={styles.deliveryBtn}>

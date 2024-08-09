@@ -5,6 +5,7 @@ import {
   plusCount,
   deleteFromBasket,
 } from "../../../redux/basketSlice";
+import { useMediaQuery } from "react-responsive";
 
 import { toggleFavorite } from "../../../api/favorite";
 import testImage from "../../../assets/Product/ProductTestImage.svg";
@@ -16,7 +17,7 @@ import minusIcon from "../../../assets/Basket/minusIcon.svg";
 
 import styles from "./BasketModalCard.module.scss";
 
-const BasketModalCard = ({ data, handleClose }) => {
+const BasketModalCard = ({ data, handleClose, setMainCount }) => {
   const [count, setCount] = useState(null);
   const [like, setLike] = useState(data ? data.is_favorite : false);
 
@@ -37,6 +38,11 @@ const BasketModalCard = ({ data, handleClose }) => {
   };
 
   useEffect(() => {
+    setMainCount(count);
+    if (count === 0) {
+      dispatch(deleteFromBasket({ id: data.id }));
+      handleClose();
+    }
     if (count === 1) {
       dispatch(
         addToBasket({
@@ -46,6 +52,7 @@ const BasketModalCard = ({ data, handleClose }) => {
           selected: false,
         })
       );
+      dispatch(plusCount({ id: data.id, count: count }));
     }
     if (count > 1) {
       dispatch(plusCount({ id: data.id, count: count }));
@@ -53,11 +60,12 @@ const BasketModalCard = ({ data, handleClose }) => {
   }, [count]);
 
   useEffect(() => {
+    setMainCount(count);
     const ourBasketItem = basket.filter((item) => item.id === data.id);
     if (ourBasketItem.length > 0) {
       setCount(ourBasketItem[0].count);
     } else {
-      setCount(0);
+      setCount(1);
     }
   }, []);
 
@@ -72,32 +80,63 @@ const BasketModalCard = ({ data, handleClose }) => {
     }
   };
 
+  const isMobile = useMediaQuery({ maxWidth: 700 });
+
   if (count !== null) {
     return (
       <div className={styles.main}>
-        <div className={styles.imageTextWrap}>
-          <img className={styles.img} src={data.image} alt="" />
-          <div className={styles.textDiv}>
-            <h3>{data.name}</h3>
-            <p>{data.name}</p>
-          </div>
-        </div>
-
-        <div className={styles.countDiv}>
-          <button onClick={handleMinus}>
-            <img src={minusIcon} alt="" />
-          </button>
-          <p>{count}</p>
-          <button onClick={() => setCount(count + 1)}>
-            <img src={plusIcon} alt="" />
-          </button>
-        </div>
-
-        <div className={styles.priceDiv}>
-          <p>{data ? Number(data.price) * count : 0} €</p>
-          {/* <span>{data.price} Kč</span> */}
-        </div>
-
+        {isMobile ? (
+          <>
+            <img
+              className={styles.img}
+              src={data?.image || data?.images?.[0]?.image_url}
+              alt=""
+            />
+            <div className={styles.adaptiveWrap}>
+              <div
+                onClick={() => navigate(`/product/${data?.id}`)}
+                className={styles.mobTextDiv}
+              >
+                <p>{data?.name}</p>
+              </div>
+              <div className={styles.countDiv}>
+                <button onClick={handleMinus}>
+                  <img src={minusIcon} alt="" />
+                </button>
+                <p>{count}</p>
+                <button onClick={() => setCount(count + 1)}>
+                  <img src={plusIcon} alt="" />
+                </button>
+              </div>
+              <div className={styles.priceDiv}>
+                <p>{data ? Number(data.price) * count : 0} €</p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className={styles.imageTextWrap}>
+              <img className={styles.img} src={data.image} alt="" />
+              <div className={styles.textDiv}>
+                <h3>{data.name}</h3>
+                <p>{data.name}</p>
+              </div>
+            </div>
+            <div className={styles.countDiv}>
+              <button onClick={handleMinus}>
+                <img src={minusIcon} alt="" />
+              </button>
+              <p>{count}</p>
+              <button onClick={() => setCount(count + 1)}>
+                <img src={plusIcon} alt="" />
+              </button>
+            </div>
+            <div className={styles.priceDiv}>
+              <p>{data ? Number(data.price) * count : 0} €</p>
+              {/* <span>{data.price} Kč</span> */}
+            </div>
+          </>
+        )}
         <div className={styles.deleteLikeDiv}>
           <button onClick={handleToggleLike}>
             <img src={like ? likeIconAcc : likeIcon} alt="" />
