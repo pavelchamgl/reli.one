@@ -487,7 +487,7 @@ class CreatePayPalPaymentView(APIView):
                     }
                 }
             ),
-            404: OpenApiResponse(description='Product not found'),
+            404: OpenApiResponse(description='Product not found or Delivery type not found'),
             400: OpenApiResponse(description='Invalid request data'),
         },
         examples=[
@@ -590,6 +590,13 @@ class CreatePayPalPaymentView(APIView):
             'promo_code': promocode,
             "phone": phone,
         }
+
+        if delivery_type:
+            try:
+                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
+            except DeliveryType.DoesNotExist:
+                logger.error(f"DeliveryType with id {delivery_type} does not exist.")
+                return Response({"error": "Delivery type not found"}, status=status.HTTP_404_NOT_FOUND)
 
         invoice_data = {
             "delivery_type": delivery_type,
@@ -855,8 +862,7 @@ class CreatePayPalPaymentView(APIView):
             description='Order and Payment created successfully',
             response={'type': 'object', 'properties': {'status': {'type': 'string'}}}
         ),
-        400: OpenApiResponse(description='Invalid webhook signature'),
-        404: OpenApiResponse(description='Order status not found or user not found or courier service not found'),
+        403: OpenApiResponse(description='Invalid webhook signature'),
         500: OpenApiResponse(description='Error creating order and payment')
     },
     tags=['PayPal']
@@ -892,50 +898,24 @@ class PayPalWebhookView(APIView):
         products = purchase_unit.get('items', [])
         logger.debug(f"Products: {products}")
 
+        order_status = None
+
         try:
             order_status = OrderStatus.objects.get(name="Pending")
         except OrderStatus.DoesNotExist:
             logger.error("Order status 'Pending' does not exist.")
-            return Response({"error": "Order status 'Pending' not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            user = CustomUser.objects.get(id=user_id)
-        except CustomUser.DoesNotExist:
-            logger.error(f"User with id {user_id} does not exist.")
-            return False
-
-        if delivery_type:
-            try:
-                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
-            except DeliveryType.DoesNotExist:
-                logger.error(f"DeliveryType with id {delivery_type} does not exist.")
-                return False
-        else:
-            delivery_type_obj = None
-
-        try:
-            courier_service_id = int(courier_service_name)
-        except (ValueError, TypeError):
-            logger.error(f"Invalid courier service name: {courier_service_name}")
-            return Response({"error": f"Invalid courier service name: {courier_service_name}"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            courier_service = CourierService.objects.get(id=courier_service_id)
-        except CourierService.DoesNotExist:
-            logger.error(f"CourierService with id {courier_service_id} does not exist.")
-            return Response({"error": "CourierService not found"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             order = Order.objects.create(
-                user=user,
+                user=user_id,
                 customer_email=email,
-                delivery_type=delivery_type_obj,
+                delivery_type=delivery_type,
                 delivery_address=delivery_address,
                 delivery_cost=delivery_cost,
                 order_status=order_status,
                 phone_number=phone,
                 total_amount=amount,
-                courier_service=courier_service,
+                courier_service=courier_service_name,
             )
             logger.debug(f"Order created: {order}")
 
@@ -985,7 +965,7 @@ class PayPalWebhookView(APIView):
                     order=order,
                     payment_system='paypal',
                     session_id=session_id,
-                    customer_id=user.id,
+                    customer_id=user_id,
                     payment_intent_id=payment_intent_id,
                     payment_method=payment_method,
                     amount_total=amount,
