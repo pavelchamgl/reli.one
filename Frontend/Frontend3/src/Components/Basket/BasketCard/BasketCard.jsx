@@ -86,7 +86,11 @@ const BasketCard = ({ all, section, productData }) => {
 
       {isMobile ? (
         <>
-          <img className={styles.img} src={product?.image} alt="" />
+          <img
+            className={styles.img}
+            src={product?.image || product?.images?.[0]?.image_url}
+            alt=""
+          />
           <div className={styles.adaptiveWrap}>
             <div
               onClick={() => navigate(`/product/${product?.id}`)}
@@ -111,7 +115,11 @@ const BasketCard = ({ all, section, productData }) => {
       ) : (
         <>
           <div className={styles.imageTextWrap}>
-            <img className={styles.img} src={product?.image} alt="" />
+            <img
+              className={styles.img}
+              src={product?.image || product?.images?.[0]?.image_url}
+              alt=""
+            />
             <div className={styles.textDiv}>
               <h3 onClick={() => navigate(`/product/${product?.id}`)}>
                 {product?.name}

@@ -8,9 +8,16 @@ import BasketTotalBlock from "../../Basket/BasketTotalBlock/BasketTotalBlock";
 import MobCardSecond from "../../../ui/MobCardSecond/MobCardSecond";
 
 import styles from "./MobPaymentBasket.module.scss";
+import { useSelector } from "react-redux";
 
 const MobPaymentBasket = () => {
   const [open, setOpen] = useState(false);
+  const selectedProducts = useSelector(
+    (state) => state.basket.selectedProducts
+  );
+
+  console.log(selectedProducts);
+
   return (
     <div>
       <button
@@ -26,7 +33,11 @@ const MobPaymentBasket = () => {
       </button>
       {open && (
         <div>
-          <MobCardSecond />
+          {selectedProducts &&
+            selectedProducts.length > 0 &&
+            selectedProducts.map((item) => (
+              <MobCardSecond product={item?.product} />
+            ))}
           <BasketTotalBlock />
         </div>
       )}

@@ -1,3 +1,7 @@
+* {
+  // border: 1px solid red;
+}
+
 .main {
   border-radius: 2px;
   width: 963px;
@@ -14,11 +18,21 @@
   @media (max-width: 800px) {
     width: 650px;
   }
+  @media (max-width: 720px) {
+    width: 500px;
+    padding: 30px 36px 50px;
+    height: 358px;
+  }
+  @media (max-width: 720px) {
+    width: auto;
+    padding: 20px 16px 20px;
+    height: 308px;
+  }
 }
 
 .title {
   font-weight: 500;
-  font-size: 28px;
+  font-size: clamp(16px, 2.5vw, 28px);
   line-height: 84%;
   color: #333;
 }
@@ -27,21 +41,31 @@
   display: flex;
   align-items: center;
   gap: 45px;
+  @media (max-width: 570px) {
+    gap: 25px;
+  }
   button {
     padding: 7px 24px 7px 24px;
     width: 230px;
     height: 35px;
     background: #3f7f6d;
     font-weight: 500;
-    font-size: 18px;
+    font-size: clamp(11px, 2.5vw, 18px);
     text-transform: lowercase;
     text-align: center;
     color: #fff;
+    &:disabled {
+      background-color: #b0b2b1;
+    }
+    @media (max-width: 570px) {
+      width: auto;
+      height: auto;
+    }
   }
   button:nth-child(2) {
     background-color: transparent;
     font-weight: 500;
-    font-size: 18px;
+    font-size: clamp(11px, 2.5vw, 18px);
     text-transform: lowercase;
     text-align: center;
     color: #3f7f6d;
@@ -65,5 +89,16 @@
   background-color: transparent;
   img {
     width: 20px;
+    @media (max-width: 720px) {
+      width: 16px;
+    }
+  }
+  @media (max-width: 720px) {
+    top: 28px;
+    right: 30px;
+  }
+  @media (max-width: 420px) {
+    top: 20px;
+    right: 20px;
   }
 }

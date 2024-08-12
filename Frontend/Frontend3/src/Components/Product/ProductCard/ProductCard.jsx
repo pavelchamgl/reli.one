@@ -29,11 +29,7 @@ const ProductCard = ({ data = null }) => {
   console.log(data);
 
   const handleBuy = () => {
-    if (isPlanshet) {
-      navigate(`/product/${data.id}`);
-    } else {
-      setModalOpen(true);
-    }
+    setModalOpen(true);
   };
 
   useEffect(() => {
