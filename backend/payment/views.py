@@ -906,8 +906,14 @@ class PayPalWebhookView(APIView):
             logger.error("Order status 'Pending' does not exist.")
 
         try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            logger.error(f"User with id {user_id} does not exist.")
+            return False
+
+        try:
             order = Order.objects.create(
-                user=user_id,
+                user=user,
                 customer_email=email,
                 delivery_type=delivery_type,
                 delivery_address=delivery_address,
@@ -965,7 +971,7 @@ class PayPalWebhookView(APIView):
                     order=order,
                     payment_system='paypal',
                     session_id=session_id,
-                    customer_id=user_id,
+                    customer_id=user.id,
                     payment_intent_id=payment_intent_id,
                     payment_method=payment_method,
                     amount_total=amount,
