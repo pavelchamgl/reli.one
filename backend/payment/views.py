@@ -911,11 +911,19 @@ class PayPalWebhookView(APIView):
             logger.error(f"User with id {user_id} does not exist.")
             return False
 
+        if delivery_type:
+            try:
+                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
+            except DeliveryType.DoesNotExist:
+                logger.error(f"DeliveryType with id {delivery_type} does not exist.")
+        else:
+            delivery_type_obj = None
+
         try:
             order = Order.objects.create(
                 user=user,
                 customer_email=email,
-                delivery_type=delivery_type,
+                delivery_type=delivery_type_obj,
                 delivery_address=delivery_address,
                 delivery_cost=delivery_cost,
                 order_status=order_status,
