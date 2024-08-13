@@ -30,8 +30,8 @@ COPY --from=build /app/dist /data/www/landing/
 
 COPY /nginx/default.conf /etc/nginx/conf.d/default.conf
 
-COPY /nginx/reli.crt /etc/nginx/fullchain.pem
+COPY /nginx/fullchain.pem /etc/nginx/fullchain.pem
 
-COPY /nginx/reli.key /etc/nginx/privkey.pem
+COPY /nginx/privkey.pem /etc/nginx/privkey.pem
 
 CMD ["nginx", "-g", "daemon off;"]
