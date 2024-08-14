@@ -644,6 +644,7 @@ class CreatePayPalPaymentView(APIView):
 
         if response.status_code == 201:
             order_response = response.json()
+            logger.debug(f"Order_id': {order_response['id']}, approval_url: {order_response['links'][1]['href']}")
             return Response({'order_id': order_response['id'], 'approval_url': order_response['links'][1]['href']}, status=status.HTTP_200_OK)
         else:
             return Response(response.json(), status=response.status_code)

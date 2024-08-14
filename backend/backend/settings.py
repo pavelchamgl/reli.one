@@ -233,26 +233,44 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'paypal_webhook.log'),
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'errors.log'),
             'formatter': 'verbose',
+            'maxBytes': 2.5 * 1024 * 1024,
+            'backupCount': 5,
+        },
+        'debug_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'debug.log'),
+            'formatter': 'verbose',
+            'maxBytes': 2.5 * 1024 * 1024,
+            'backupCount': 5,
+        },
+        'payment_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'payment.log'),
+            'formatter': 'verbose',
+            'maxBytes': 2.5 * 1024 * 1024,
+            'backupCount': 5,
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
+            'handlers': ['error_file', 'debug_file'],
             'level': 'DEBUG',
             'propagate': True,
         },
         'accounts': {
-            'handlers': ['file'],
+            'handlers': ['debug_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'payment': {
-            'handlers': ['file'],
+            'handlers': ['payment_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
