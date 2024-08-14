@@ -84,22 +84,33 @@ const MobNav = () => {
             className={styles.navItem}
           >
             <img
-              src={location.pathname === "/" ? homeIconAcc : homeIcon}
+              src={location.pathname === "/" && !open ? homeIconAcc : homeIcon}
               alt=""
             />
             <p
               style={{
-                color: location.pathname === "/" ? "#F5B80B" : "#a09e96",
+                color:
+                  location.pathname === "/" && !open ? "#F5B80B" : "#a09e96",
               }}
             >
               {t("home")}
             </p>
           </button>
           <button onClick={() => setOpen(!open)} className={styles.navItem}>
-            <img src={open ? categoryIconAcc : categoryIcon} alt="" />
+            <img
+              src={
+                open || location.pathname === "/mob_category"
+                  ? categoryIconAcc
+                  : categoryIcon
+              }
+              alt=""
+            />
             <p
               style={{
-                color: open ? "#F5B80B" : "#a09e96",
+                color:
+                  open || location.pathname === "/mob_category"
+                    ? "#F5B80B"
+                    : "#a09e96",
               }}
             >
               {t("category")}
@@ -108,14 +119,18 @@ const MobNav = () => {
           <button onClick={handleBasketClick} className={styles.navItem}>
             <img
               src={
-                location.pathname === "/mob_basket" ? basketIconAcc : basketIcon
+                location.pathname === "/mob_basket" && !open
+                  ? basketIconAcc
+                  : basketIcon
               }
               alt=""
             />
             <p
               style={{
                 color:
-                  location.pathname === "/mob_basket" ? "#F5B80B" : "#a09e96",
+                  location.pathname === "/mob_basket" && !open
+                    ? "#F5B80B"
+                    : "#a09e96",
               }}
             >
               {t("bin")}
@@ -129,12 +144,17 @@ const MobNav = () => {
             className={styles.navItem}
           >
             <img
-              src={location.pathname === "/liked" ? likeIconAcc : likeIcon}
+              src={
+                location.pathname === "/liked" && !open ? likeIconAcc : likeIcon
+              }
               alt=""
             />
             <p
               style={{
-                color: location.pathname === "/liked" ? "#F5B80B" : "#a09e96",
+                color:
+                  location.pathname === "/liked" && !open
+                    ? "#F5B80B"
+                    : "#a09e96",
               }}
             >
               {t("choice")}
@@ -145,7 +165,9 @@ const MobNav = () => {
           <button onClick={handleLoginClick} className={styles.navItem}>
             <img
               src={
-                location.pathname === "/mob_login"
+                (location.pathname === "/mob_login" ||
+                  location.pathname === "/mob_profile_nav") &&
+                !open
                   ? profileIconAcc
                   : profileIcon
               }
@@ -154,7 +176,11 @@ const MobNav = () => {
             <p
               style={{
                 color:
-                  location.pathname === "/mob_login" ? "#F5B80B" : "#a09e96",
+                  (location.pathname === "/mob_login" ||
+                    location.pathname === "/mob_profile_nav") &&
+                  !open
+                    ? "#F5B80B"
+                    : "#a09e96",
               }}
             >
               {t("enter_account")}
