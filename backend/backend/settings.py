@@ -165,7 +165,7 @@ MAX_UPLOAD_SIZE = 13 * 1024 * 1024  # 13 MB
 
 # Internationalization
 
-LANGUAGE_CODE = 'ru-RU'
+LANGUAGE_CODE = 'en'
 
 TIME_ZONE = 'Europe/Moscow'
 
