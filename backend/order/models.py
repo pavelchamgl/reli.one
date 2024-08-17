@@ -27,8 +27,8 @@ class OrderStatus(models.Model):
     name = models.CharField(max_length=50)
 
     class Meta:
-        verbose_name = 'Order status'
-        verbose_name_plural = 'Order status'
+        verbose_name = 'Ordered product'
+        verbose_name_plural = 'Ordered products'
 
     def __str__(self):
         return self.name
@@ -37,6 +37,10 @@ class OrderStatus(models.Model):
 # Статус доставки самовывозом Assembling, On the Way, Sorting Center, Pickup Point (Enum)
 class SelfPickupStatus(models.Model):
     name = models.CharField(max_length=50)
+
+    class Meta:
+        verbose_name = 'Self pickup status'
+        verbose_name_plural = 'Self pickup status'
 
     def __str__(self):
         return self.name
@@ -95,8 +99,8 @@ class OrderProduct(models.Model):
     received_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Order product'
-        verbose_name_plural = 'Order products'
+        verbose_name = 'Ordered product'
+        verbose_name_plural = 'Ordered products'
 
     def __str__(self):
         return f"{self.quantity} of {self.product.name} in order {self.order.pk}"

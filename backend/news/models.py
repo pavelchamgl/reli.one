@@ -12,3 +12,6 @@ class News(models.Model):
     content = models.TextField()
     image = models.ManyToManyField(NewsImage, null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'News'
+        verbose_name_plural = 'News'

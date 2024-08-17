@@ -29,6 +29,10 @@ class Category(models.Model):
     parent = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='category_images/', null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'Category'
+        verbose_name_plural = 'Categories'
+
     def __str__(self):
         return f"PK: {self.pk} - {self.name}"
 
