@@ -6,4 +6,4 @@ WORKDIR /app
 ADD . /app
 
 
-RUN pip install -r reqirements.txt
+RUN pip install -r requirements.txt
