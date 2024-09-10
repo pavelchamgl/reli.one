@@ -11,6 +11,7 @@ import addBasketCheckIcon from "../../../assets/Product/addBasketCheckIcon.svg";
 
 import styles from "./ProductNameRate.module.scss";
 import { useEffect, useState } from "react";
+import ProdCharackButtons from "../ProdCharakButtons/ProdCharackButtons";
 
 const ProductNameRate = () => {
   const [inBasket, setInBasket] = useState(false);
@@ -47,8 +48,6 @@ const ProductNameRate = () => {
     }
   }, [id, basket]);
 
-
-
   return (
     <div className={styles.main}>
       <div className={styles.ratingDiv}>
@@ -60,6 +59,7 @@ const ProductNameRate = () => {
         <span>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{product.price} €</p>
+      <ProdCharackButtons />
       <button className={styles.addBasketBtn} onClick={handleAddBasket}>
         {inBasket && <img src={addBasketCheckIcon} alt="" />}
         {t("add_basket")}

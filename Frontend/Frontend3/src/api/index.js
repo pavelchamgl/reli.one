@@ -53,6 +53,7 @@ mainInstance.interceptors.response.use(
           } catch (error) {
             // Обработка ошибки обновления токена
             ErrToast("Network Error")
+            localStorage.removeItem("token")
             console.log('Error refreshing token:', error);
             // Опционально: перенаправление пользователя на страницу входа
             // window.location.href = '/login';

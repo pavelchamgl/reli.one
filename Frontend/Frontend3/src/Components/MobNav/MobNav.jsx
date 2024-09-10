@@ -185,7 +185,7 @@ const MobNav = () => {
             >
               {t("enter_account")}
             </p>
-          </button>
+          </button> 
         </div>
         <CatalogDrawer open={open} handleClose={() => setOpen(false)} />
       </>

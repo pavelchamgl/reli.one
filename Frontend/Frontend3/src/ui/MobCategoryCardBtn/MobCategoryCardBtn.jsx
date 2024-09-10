@@ -20,7 +20,7 @@ const MobCategoryCardBtn = ({ item }) => {
       }}
     >
       <p>{item?.name}</p>
-      <img className={styles.arrImg} src={open ? arrLeft : arrRight} alt="" />
+      <img className={styles.arrImg} src={ arrRight} alt="" />
     </div>
   );
 };
