@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
 from supplier.models import Supplier
-from product.models import BaseProduct
+from product.models import ProductVariant
 
 
 # Функция для генерации уникального номера заказа в формате ддммггччммсс + первые шесть символов из UUID
@@ -90,7 +90,7 @@ class Order(models.Model):
 
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, related_name='order_products', on_delete=models.CASCADE)
-    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE)
+    product = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     received = models.BooleanField(default=False)
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
