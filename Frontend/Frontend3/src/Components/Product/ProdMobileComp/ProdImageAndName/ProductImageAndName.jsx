@@ -14,6 +14,7 @@ import MobileProdSwiper from "../../../../ui/MobileProdSlice/MobileProdSlice";
 import { addToBasket } from "../../../../redux/basketSlice";
 
 import styles from "./ProductImageAndName.module.scss";
+import ProdCharackButtons from "../../ProdCharakButtons/ProdCharackButtons";
 
 const ProductImageAndName = () => {
   const product = useSelector((state) => state.products.product);
@@ -77,6 +78,7 @@ const ProductImageAndName = () => {
       <MobileProdSwiper />
       <div className={styles.descAndBtnWrap}>
         <p className={styles.title}>{product?.name}</p>
+        <ProdCharackButtons />
         <div className={styles.priceWrap}>
           <p>{product?.price} €</p>
           {/* <span>400.00 Kč</span> */}

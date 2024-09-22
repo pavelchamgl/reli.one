@@ -8,6 +8,7 @@ import MobCategoryCard from "../ui/MobCategoryCard/MobCategoryCard";
 
 import styles from "../styles/MobCategoryPage.module.scss";
 import MobCategoryCardBtn from "../ui/MobCategoryCardBtn/MobCategoryCardBtn";
+import CatalogDrawer from "../Components/Catalog/CatalogDrawer/CatalogDrawer";
 
 const MobCategoryPage = () => {
   const navigate = useNavigate();
@@ -26,6 +27,8 @@ const MobCategoryPage = () => {
       )}&categoryID=${id}`
     );
   };
+
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const renderMobCategoryCard = () => {
     return categoryItem?.children?.map((item, index) => {
@@ -68,7 +71,12 @@ const MobCategoryPage = () => {
 
   return (
     <Container>
-      <button onClick={() => navigate(-1)} className={styles.returnBtn}>
+      <button
+        onClick={() => {
+          setCatalogOpen(true);
+        }}
+        className={styles.returnBtn}
+      >
         <img src={returnIcon} alt="" />
         <p>{category?.name}</p>
       </button>
@@ -79,6 +87,10 @@ const MobCategoryPage = () => {
       >
         {renderMobCategoryCard()}
       </div>
+      <CatalogDrawer
+        open={catalogOpen}
+        handleClose={() => setCatalogOpen(false)}
+      />
     </Container>
   );
 };
