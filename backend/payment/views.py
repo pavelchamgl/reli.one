@@ -17,7 +17,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment
 from accounts.models import CustomUser
-from product.models import BaseProduct
+from product.models import BaseProduct, ProductVariant
 from promocode.models import PromoCode
 from order.models import (
     CourierService,
@@ -445,13 +445,13 @@ class CreatePayPalPaymentView(APIView):
                     },
                     'products': {
                         'type': 'array',
-                        'description': 'List of products to be purchased',
+                        'description': 'List of product variants to be purchased',
                         'items': {
                             'type': 'object',
                             'properties': {
-                                'product_id': {
-                                    'type': 'integer',
-                                    'description': 'ID of the product'
+                                'sku': {
+                                    'type': 'string',
+                                    'description': 'SKU of the product variant'
                                 },
                                 'quantity': {
                                     'type': 'integer',
@@ -470,8 +470,8 @@ class CreatePayPalPaymentView(APIView):
                     'delivery_cost': 10.50,
                     'courier_service_name': 1,
                     'products': [
-                        {'product_id': 1, 'quantity': 2},
-                        {'product_id': 2, 'quantity': 1}
+                        {'sku': '123456789', 'quantity': 2},
+                        {'sku': '987654321', 'quantity': 1}
                     ]
                 }
             }
@@ -487,45 +487,9 @@ class CreatePayPalPaymentView(APIView):
                     }
                 }
             ),
-            404: OpenApiResponse(description='Product not found or Delivery type not found'),
+            404: OpenApiResponse(description='Product variant not found or Delivery type not found'),
             400: OpenApiResponse(description='Invalid request data'),
         },
-        examples=[
-            OpenApiExample(
-                name="CourierServiceExamples",
-                value=[
-                    {
-                        "pk": 1,
-                        "name": "PPL"
-                    },
-                    {
-                        "pk": 2,
-                        "name": "GEIS"
-                    },
-                    {
-                        "pk": 3,
-                        "name": "DPD"
-                    }
-                ],
-                request_only=True,
-                response_only=False,
-            ),
-            OpenApiExample(
-                name="DeliveryTypeExamples",
-                value=[
-                    {
-                        "pk": 1,
-                        "name": "Delivery point"
-                    },
-                    {
-                        "pk": 2,
-                        "name": "Courier"
-                    }
-                ],
-                request_only=True,
-                response_only=False,
-            ),
-        ],
         tags=['PayPal']
     )
     def post(self, request):
@@ -545,16 +509,16 @@ class CreatePayPalPaymentView(APIView):
         total_price = Decimal(0)
 
         for item in products:
-            product_id = item['product_id']
+            sku = item['sku']
             quantity = item['quantity']
 
             try:
-                product = BaseProduct.objects.get(id=product_id)
-            except BaseProduct.DoesNotExist:
-                logger.error(f"Product with id {product_id} does not exist.")
-                return Response({"error": f"Product with id {product_id} not found"}, status=status.HTTP_404_NOT_FOUND)
+                product_variant = ProductVariant.objects.get(sku=sku)
+            except ProductVariant.DoesNotExist:
+                logger.error(f"Product variant with SKU {sku} does not exist.")
+                return Response({"error": f"Product variant with SKU {sku} not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            price = Decimal(product.price)
+            price = Decimal(product_variant.price)
             currency = 'EUR'
 
             if promocode:
@@ -563,8 +527,8 @@ class CreatePayPalPaymentView(APIView):
                     price = price - (price * Decimal(promo_code.discount_percentage) / Decimal(100))
 
             line_items.append({
-                "sku": str(product.id),
-                "name": product.name,
+                "sku": product_variant.sku,
+                "name": f"{product_variant.product.name} - {product_variant.color.name} - {product_variant.size.name}",
                 "quantity": str(quantity),
                 "unit_amount": {
                     "currency_code": currency,
