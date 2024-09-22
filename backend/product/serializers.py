@@ -5,6 +5,7 @@ from .models import (
     BaseProduct,
     ParameterValue,
     Category,
+    ProductVariant,
 )
 from favorites.models import Favorite
 
@@ -31,12 +32,33 @@ class BaseProductImageSerializer(serializers.ModelSerializer):
         return None
 
 
+class ProductVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVariant
+        fields = [
+            'id',
+            'sku',
+            'name',
+            'text',
+            'image',
+            'price',
+        ]
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+        if instance.image and request:
+            representation['image'] = request.build_absolute_uri(instance.image.url)
+        return representation
+
+
 class BaseProductDetailSerializer(serializers.ModelSerializer):
     parameters = ParameterValueSerializer(many=True)
     license_file = serializers.SerializerMethodField()
     images = BaseProductImageSerializer(source='image', many=True)
     is_favorite = serializers.SerializerMethodField()
     category_name = serializers.CharField(source='category.name', read_only=True)
+    variants = ProductVariantSerializer(many=True, read_only=True)
 
     class Meta:
         model = BaseProduct
@@ -45,13 +67,13 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'category_name',
-            'price',
             'parameters',
             'rating',
             'total_reviews',
             'license_file',
             'images',
-            'is_favorite'
+            'is_favorite',
+            'variants',
         ]
 
     def get_license_file(self, obj):

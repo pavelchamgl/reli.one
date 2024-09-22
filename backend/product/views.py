@@ -323,7 +323,7 @@ class CategoryBaseProductListView(generics.ListAPIView):
 
 
 @extend_schema(
-    description="Retrieve detailed information about a specific product by its ID. The response includes product details such as name, description, price, parameters, rating, total number of reviews, license file, images, and whether the product is in the user's favorites.",
+    description="Retrieve detailed information about a specific product by its ID. The response includes product details such as name, description, parameters, rating, total number of reviews, license file, images, variants with prices, and whether the product is in the user's favorites.",
     parameters=[
         OpenApiParameter(
             name='id',
@@ -347,10 +347,9 @@ class CategoryBaseProductListView(generics.ListAPIView):
                 "id": 1,
                 "name": "Sample Product",
                 "product_description": "This is a sample product description.",
-                "price": "99.99",
                 "parameters": [
-                    {"parameter_name": "Color", "value": "Red"},
-                    {"parameter_name": "Size", "value": "M"}
+                    {"parameter": "Power", "value": "120W"},
+                    {"parameter": "Value", "value": "1m"}
                 ],
                 "rating": "4.4",
                 "total_reviews": 10,
@@ -360,7 +359,25 @@ class CategoryBaseProductListView(generics.ListAPIView):
                     {"image_url": "http://localhost:8081/media/base_product_images/sample2.jpg"}
                 ],
                 "is_favorite": True,
-                "category_name": "Sample Category"
+                "category_name": "Sample Category",
+                "variants": [
+                    {
+                        "id": 1,
+                        "sku": "123456789",
+                        "name": "Color",
+                        "text": "null",
+                        "image": "http://localhost:8081/media/base_product_images/variant/image1.jpg",
+                        "price": "99.99"
+                    },
+                    {
+                        "id": 2,
+                        "sku": "987654321",
+                        "name": "Color",
+                        "text": "null",
+                        "image": "http://localhost:8081/media/base_product_images/variant/image2.jpg",
+                        "price": "109.99"
+                    }
+                ]
             },
             request_only=False,
             response_only=True,
@@ -368,7 +385,12 @@ class CategoryBaseProductListView(generics.ListAPIView):
     ]
 )
 class BaseProductDetailAPIView(generics.RetrieveAPIView):
-    queryset = BaseProduct.objects.all()
+    queryset = BaseProduct.objects.select_related('category', 'license_files').prefetch_related(
+        'parameters',
+        'parameters__parameter',
+        'image',
+        'variants',
+    )
     serializer_class = BaseProductDetailSerializer
     lookup_field = 'id'
 
