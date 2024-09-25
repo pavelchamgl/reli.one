@@ -6,7 +6,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
+from django.db.models import Q, Min
 
 from .pagination import StandardResultsSetPagination
 from .filters import BaseProductFilter
@@ -178,10 +178,11 @@ class SearchView(generics.ListAPIView):
 
 @extend_schema(
     description=(
-        "Retrieve a list of all products belonging to a specific category. "
-        "Supports pagination, sorting by popularity (rating) in descending order, ascending/descending price, "
-        "and filtering by price range. Each product includes fields: id, name, images (one image), "
-        "price, rating, total_reviews, is_favorite."
+        "Retrieve a list of products belonging to a specific category. "
+        "Supports pagination, sorting by rating (popularity) in descending order, and ascending/descending price. "
+        "Allows filtering by price range (minimum and maximum price) and rating. "
+        "Each product includes fields: id, name, product_description, parameters, image (one image), "
+        "price (minimum price from variants), rating, total_reviews, and is_favorite."
     ),
     parameters=[
         OpenApiParameter(
@@ -193,7 +194,7 @@ class SearchView(generics.ListAPIView):
         ),
         OpenApiParameter(
             name='ordering',
-            description='Sort products by price or rating',
+            description='Sort products by price or rating. Use "-" prefix for descending order.',
             required=False,
             type=str,
             enum=['price', '-price', 'rating', '-rating']
@@ -210,6 +211,12 @@ class SearchView(generics.ListAPIView):
             required=False,
             type=float
         ),
+        OpenApiParameter(
+            name='rating',
+            description='Minimum rating to filter products',
+            required=False,
+            type=float
+        ),
     ],
     responses={
         200: OpenApiResponse(
@@ -222,83 +229,81 @@ class SearchView(generics.ListAPIView):
     examples=[
         OpenApiExample(
             name="Product List Example",
-            value=[
-                {
-                    "count": 4,
-                    "next": "null",
-                    "previous": "null",
-                    "results": [
-                        {
-                            "id": 1,
-                            "name": "IPhone 14 Pro",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "250"
-                                },
-                                {
-                                    "parameter_name": "Высота",
-                                    "value": "70 мм"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "1000.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false",
-                        },
-                        {
-                            "id": 2,
-                            "name": "Galuxy 10",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "220"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "1000.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false"
-                        },
-                        {
-                            "id": 3,
-                            "name": "IPhone 15 Pro MAX",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "270"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "1500.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false"
-                        },
-                        {
-                            "id": 4,
-                            "name": "3310",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "300"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "100.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false"
-                        }
-                    ]
-                }
-            ],
+            value={
+                "count": 4,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "id": 1,
+                        "name": "IPhone 14 Pro",
+                        "product_description": "Latest model of iPhone with advanced features.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "250g"
+                            },
+                            {
+                                "parameter_name": "Height",
+                                "value": "70mm"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/iphone14pro.jpg",
+                        "price": "1000.00",
+                        "rating": "4.8",
+                        "total_reviews": 120,
+                        "is_favorite": False
+                    },
+                    {
+                        "id": 2,
+                        "name": "Galaxy S21",
+                        "product_description": "Samsung's flagship smartphone with cutting-edge technology.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "220g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/galaxys21.jpg",
+                        "price": "950.00",
+                        "rating": "4.5",
+                        "total_reviews": 98,
+                        "is_favorite": False
+                    },
+                    {
+                        "id": 3,
+                        "name": "IPhone 15 Pro MAX",
+                        "product_description": "Upcoming model with enhanced performance.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "270g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/iphone15promax.jpg",
+                        "price": "1500.00",
+                        "rating": "0.0",
+                        "total_reviews": 0,
+                        "is_favorite": False
+                    },
+                    {
+                        "id": 4,
+                        "name": "Nokia 3310",
+                        "product_description": "Classic durable mobile phone.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "300g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/nokia3310.jpg",
+                        "price": "50.00",
+                        "rating": "4.0",
+                        "total_reviews": 250,
+                        "is_favorite": False
+                    }
+                ]
+            },
             request_only=False,
             response_only=True,
         ),
@@ -309,7 +314,10 @@ class CategoryBaseProductListView(generics.ListAPIView):
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = BaseProductFilter
-    ordering_fields = ['price', 'rating']
+    ordering_fields = {
+        'price': 'min_price',
+        'rating': 'rating',
+    }
     ordering = ['-rating']
 
     def get_queryset(self):
@@ -319,7 +327,19 @@ class CategoryBaseProductListView(generics.ListAPIView):
         except Category.DoesNotExist:
             return BaseProduct.objects.none()
 
-        return BaseProduct.objects.filter(category=category).distinct()
+        queryset = BaseProduct.objects.filter(category=category).annotate(
+            min_price=Min('variants__price')
+        ).filter(
+            min_price__isnull=False
+        ).prefetch_related(
+            'image',
+            'variants',
+            'variants__image',
+            'parameters',
+            'parameters__parameter',
+        )
+
+        return queryset.distinct()
 
 
 @extend_schema(

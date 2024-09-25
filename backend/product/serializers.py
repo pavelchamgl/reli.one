@@ -95,6 +95,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     parameters = ParameterValueSerializer(many=True)
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = BaseProduct
@@ -109,6 +110,9 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'total_reviews',
             'is_favorite',
         ]
+
+    def get_price(self, obj):
+        return obj.min_price
 
     def get_image(self, obj):
         request = self.context.get('request')
