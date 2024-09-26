@@ -55,7 +55,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 class BaseProductDetailSerializer(serializers.ModelSerializer):
     parameters = ParameterValueSerializer(many=True)
     license_file = serializers.SerializerMethodField()
-    images = BaseProductImageSerializer(source='image', many=True)
+    images = BaseProductImageSerializer(many=True, read_only=True)
     is_favorite = serializers.SerializerMethodField()
     category_name = serializers.CharField(source='category.name', read_only=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
@@ -95,7 +95,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     parameters = ParameterValueSerializer(many=True)
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    price = serializers.DecimalField(source='min_price', max_digits=10, decimal_places=2, read_only=True)
 
     class Meta:
         model = BaseProduct
@@ -116,8 +116,8 @@ class BaseProductListSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         request = self.context.get('request')
-        first_image = obj.image.first()
-        if first_image:
+        first_image = obj.images.first()
+        if first_image and first_image.image:
             return request.build_absolute_uri(first_image.image.url)
         return None
 
