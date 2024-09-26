@@ -45,31 +45,16 @@ class Category(models.Model):
         return category
 
 
-class BaseProductImage(models.Model):
-    image = models.ImageField(upload_to='base_product_images/')
-
-    def __str__(self):
-        return str(self.image)
-
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        image = Image.open(self.image.path)
-        target_size = (1263, 1209)
-        resized_image = image.resize(target_size)
-        resized_image.save(self.image.path, quality=95, optimize=True)
-
-
 class BaseProduct(models.Model):
-    sku = models.CharField(max_length=9, unique=True, editable=False)
     name = models.CharField(max_length=100)
     product_description = models.TextField()
-    image = models.ManyToManyField(BaseProductImage, related_name='base_products')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
     rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
+        # default=Decimal('1.0'),
         validators=[MinValueValidator(Decimal('1.0')), MaxValueValidator(Decimal('5.0'))],
         blank=True,
         null=True,
@@ -78,18 +63,6 @@ class BaseProduct(models.Model):
 
     def __str__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-        if not self.sku:
-            self.sku = self.generate_unique_sku()
-        super().save(*args, **kwargs)
-
-    def generate_unique_sku(self):
-        import uuid
-        while True:
-            sku = str(uuid.uuid4().int)[:9]
-            if not BaseProduct.objects.filter(sku=sku).exists():
-                return sku
 
 
 def validate_file_extension(value):
@@ -108,6 +81,21 @@ def validate_file_size(value):
         raise ValidationError(
             f'File size exceeds the maximum allowable file size: {filesizeformat(settings.MAX_UPLOAD_SIZE)}.'
         )
+
+
+class BaseProductImage(models.Model):
+    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='base_product_images/')
+
+    def __str__(self):
+        return str(self.image)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        image = Image.open(self.image.path)
+        target_size = (1263, 1209)
+        resized_image = image.resize(target_size)
+        resized_image.save(self.image.path, quality=95, optimize=True)
 
 
 class ProductVariant(models.Model):
@@ -150,7 +138,6 @@ class ProductVariant(models.Model):
         super().save(*args, **kwargs)
 
     def generate_unique_sku(self):
-        import uuid
         while True:
             sku = str(uuid.uuid4().int)[:9]
             if not ProductVariant.objects.filter(sku=sku).exists():
