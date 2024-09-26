@@ -6,7 +6,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q
+from django.db.models import Q, Min
 
 from .pagination import StandardResultsSetPagination
 from .filters import BaseProductFilter
@@ -24,43 +24,63 @@ from .serializers import (
 
 @extend_schema(
     description="""
-        Search for products, categories, and subcategories. Supports filtering by price range and sorting by rating or price.
+        Search for products and categories. Supports filtering by price range and sorting by rating or price.
 
-        Example response:
+        **Example response:**
+
         ```json
         {
-            "products": [
-                {
-                    "id": 1,
-                    "name": "IPhone 14 Pro",
-                    "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg"
-                    "price": "1000.00",
-                    "rating": "4.4",
-                    "total_reviews": 10,
-                    "is_favorite": false,
-                },
-                {
-                    "id": 2,
-                    "name": "Galaxy S21",
-                    "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg"
-                    "price": "900.00",
-                    "rating": "4.2",
-                    "total_reviews": 5,
-                    "is_favorite": true,
-                }
-            ],
-            "categories": [
-                {
-                    "id": 1,
-                    "name": "Electronics",
-                    "parent": null
-                },
-                {
-                    "id": 2,
-                    "name": "Smartphones",
-                    "parent": 1
-                }
-            ]
+            "count": 2,
+            "next": null,
+            "previous": null,
+            "results": {
+                "products": [
+                    {
+                        "id": 1,
+                        "name": "IPhone 14 Pro",
+                        "product_description": "Latest model of iPhone with advanced features.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "250g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/iphone14pro.jpg",
+                        "price": "1000.00",
+                        "rating": "4.8",
+                        "total_reviews": 120,
+                        "is_favorite": false
+                    },
+                    {
+                        "id": 2,
+                        "name": "Galaxy S21",
+                        "product_description": "Samsung's flagship smartphone with cutting-edge technology.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "220g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/galaxys21.jpg",
+                        "price": "950.00",
+                        "rating": "4.5",
+                        "total_reviews": 98,
+                        "is_favorite": true
+                    }
+                ],
+                "categories": [
+                    {
+                        "id": 1,
+                        "name": "Electronics",
+                        "parent": null
+                    },
+                    {
+                        "id": 2,
+                        "name": "Smartphones",
+                        "parent": 1
+                    }
+                ]
+            }
         }
         ```
     """,
@@ -85,7 +105,7 @@ from .serializers import (
         ),
         OpenApiParameter(
             name='ordering',
-            description='Sort products by price or rating',
+            description='Sort products by price or rating. Use "-" prefix for descending order.',
             required=False,
             type=str,
             enum=['price', '-price', 'rating', '-rating']
@@ -98,38 +118,57 @@ from .serializers import (
                 OpenApiExample(
                     name="SearchExample",
                     value={
-                        "products": [
-                            {
-                                "id": 1,
-                                "name": "IPhone 14 Pro",
-                                "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                                "price": "1000.00",
-                                "rating": "4.4",
-                                "total_reviews": 10,
-                                "is_favorite": False,
-                            },
-                            {
-                                "id": 2,
-                                "name": "Galaxy S21",
-                                "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                                "price": "900.00",
-                                "rating": "4.2",
-                                "total_reviews": 5,
-                                "is_favorite": True,
-                            }
-                        ],
-                        "categories": [
-                            {
-                                "id": 1,
-                                "name": "Electronics",
-                                "parent": None
-                            },
-                            {
-                                "id": 2,
-                                "name": "Smartphones",
-                                "parent": 1
-                            }
-                        ]
+                        "count": 2,
+                        "next": None,
+                        "previous": None,
+                        "results": {
+                            "products": [
+                                {
+                                    "id": 1,
+                                    "name": "IPhone 14 Pro",
+                                    "product_description": "Latest model of iPhone with advanced features.",
+                                    "parameters": [
+                                        {
+                                            "parameter_name": "Weight",
+                                            "value": "250g"
+                                        }
+                                    ],
+                                    "image": "http://localhost:8081/media/base_product_images/iphone14pro.jpg",
+                                    "price": "1000.00",
+                                    "rating": "4.8",
+                                    "total_reviews": 120,
+                                    "is_favorite": False
+                                },
+                                {
+                                    "id": 2,
+                                    "name": "Galaxy S21",
+                                    "product_description": "Samsung's flagship smartphone with cutting-edge technology.",
+                                    "parameters": [
+                                        {
+                                            "parameter_name": "Weight",
+                                            "value": "220g"
+                                        }
+                                    ],
+                                    "image": "http://localhost:8081/media/base_product_images/galaxys21.jpg",
+                                    "price": "950.00",
+                                    "rating": "4.5",
+                                    "total_reviews": 98,
+                                    "is_favorite": True
+                                }
+                            ],
+                            "categories": [
+                                {
+                                    "id": 1,
+                                    "name": "Electronics",
+                                    "parent": None
+                                },
+                                {
+                                    "id": 2,
+                                    "name": "Smartphones",
+                                    "parent": 1
+                                }
+                            ]
+                        }
                     }
                 )
             ]
@@ -149,11 +188,16 @@ class SearchView(generics.ListAPIView):
         'category__name'
     ]
     filterset_class = BaseProductFilter
-    ordering_fields = ['price', 'rating']
+    ordering_fields = {
+        'price': 'min_price',
+        'rating': 'rating',
+    }
     ordering = ['-rating']
 
-    def list(self, request):
-        query = request.query_params.get('q', '')
+    def get_queryset(self):
+        query = self.request.query_params.get('q', '')
+        if not query.strip():
+            return BaseProduct.objects.none()
 
         products = BaseProduct.objects.filter(
             Q(name__icontains=query) |
@@ -161,16 +205,35 @@ class SearchView(generics.ListAPIView):
             Q(parameters__parameter__name__icontains=query) |
             Q(parameters__value__icontains=query) |
             Q(category__name__icontains=query)
+        ).annotate(
+            min_price=Min('variants__price')
+        ).filter(
+            min_price__isnull=False
+        ).prefetch_related(
+            'images',
+            'variants',
+            'parameters',
+            'parameters__parameter',
         ).distinct()
-        categories = Category.objects.filter(name__icontains=query)
+        return products
 
-        paginator = self.pagination_class()
-        paginated_products = paginator.paginate_queryset(products, request)
+    def list(self, request, *args, **kwargs):
+        products_queryset = self.filter_queryset(self.get_queryset())
 
-        product_serializer = BaseProductListSerializer(paginated_products, many=True, context={'request': request})
-        category_serializer = CategorySearchViewSerializer(categories, many=True)
+        page = self.paginate_queryset(products_queryset)
+        if page is not None:
+            product_serializer = self.get_serializer(page, many=True)
+        else:
+            product_serializer = self.get_serializer(products_queryset, many=True)
 
-        return paginator.get_paginated_response({
+        query = request.query_params.get('q', '')
+        if not query.strip():
+            categories = Category.objects.none()
+        else:
+            categories = Category.objects.filter(name__icontains=query)
+        category_serializer = CategorySearchViewSerializer(categories, many=True, context={'request': request})
+
+        return self.get_paginated_response({
             'products': product_serializer.data,
             'categories': category_serializer.data
         })
@@ -178,10 +241,11 @@ class SearchView(generics.ListAPIView):
 
 @extend_schema(
     description=(
-        "Retrieve a list of all products belonging to a specific category. "
-        "Supports pagination, sorting by popularity (rating) in descending order, ascending/descending price, "
-        "and filtering by price range. Each product includes fields: id, name, images (one image), "
-        "price, rating, total_reviews, is_favorite."
+        "Retrieve a list of products belonging to a specific category. "
+        "Supports pagination, sorting by rating (popularity) in descending order, and ascending/descending price. "
+        "Allows filtering by price range (minimum and maximum price) and rating. "
+        "Each product includes fields: id, name, product_description, parameters, image (URL of the first image), "
+        "price (minimum price from variants), rating, total_reviews, and is_favorite."
     ),
     parameters=[
         OpenApiParameter(
@@ -193,7 +257,7 @@ class SearchView(generics.ListAPIView):
         ),
         OpenApiParameter(
             name='ordering',
-            description='Sort products by price or rating',
+            description='Sort products by price or rating. Use "-" prefix for descending order.',
             required=False,
             type=str,
             enum=['price', '-price', 'rating', '-rating']
@@ -210,6 +274,12 @@ class SearchView(generics.ListAPIView):
             required=False,
             type=float
         ),
+        OpenApiParameter(
+            name='rating',
+            description='Minimum rating to filter products',
+            required=False,
+            type=float
+        ),
     ],
     responses={
         200: OpenApiResponse(
@@ -222,83 +292,81 @@ class SearchView(generics.ListAPIView):
     examples=[
         OpenApiExample(
             name="Product List Example",
-            value=[
-                {
-                    "count": 4,
-                    "next": "null",
-                    "previous": "null",
-                    "results": [
-                        {
-                            "id": 1,
-                            "name": "IPhone 14 Pro",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "250"
-                                },
-                                {
-                                    "parameter_name": "Высота",
-                                    "value": "70 мм"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "1000.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false",
-                        },
-                        {
-                            "id": 2,
-                            "name": "Galuxy 10",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "220"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "1000.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false"
-                        },
-                        {
-                            "id": 3,
-                            "name": "IPhone 15 Pro MAX",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "270"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "1500.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false"
-                        },
-                        {
-                            "id": 4,
-                            "name": "3310",
-                            "product_description": "phone",
-                            "parameters": [
-                                {
-                                    "parameter_name": "Вес",
-                                    "value": "300"
-                                }
-                            ],
-                            "image": "http://localhost:8081/media/base_product_images/Avatar_xpoy9j_Ap0sYWH.jpg",
-                            "price": "100.00",
-                            "rating": "0.0",
-                            "total_reviews": 0,
-                            "is_favorite": "false"
-                        }
-                    ]
-                }
-            ],
+            value={
+                "count": 4,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "id": 1,
+                        "name": "IPhone 14 Pro",
+                        "product_description": "Latest model of iPhone with advanced features.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "250g"
+                            },
+                            {
+                                "parameter_name": "Height",
+                                "value": "70mm"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/iphone14pro.jpg",
+                        "price": "1000.00",
+                        "rating": "4.8",
+                        "total_reviews": 120,
+                        "is_favorite": False
+                    },
+                    {
+                        "id": 2,
+                        "name": "Galaxy S21",
+                        "product_description": "Samsung's flagship smartphone with cutting-edge technology.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "220g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/galaxys21.jpg",
+                        "price": "950.00",
+                        "rating": "4.5",
+                        "total_reviews": 98,
+                        "is_favorite": False
+                    },
+                    {
+                        "id": 3,
+                        "name": "IPhone 15 Pro MAX",
+                        "product_description": "Upcoming model with enhanced performance.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "270g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/iphone15promax.jpg",
+                        "price": "1500.00",
+                        "rating": "0.0",
+                        "total_reviews": 0,
+                        "is_favorite": False
+                    },
+                    {
+                        "id": 4,
+                        "name": "Nokia 3310",
+                        "product_description": "Classic durable mobile phone.",
+                        "parameters": [
+                            {
+                                "parameter_name": "Weight",
+                                "value": "300g"
+                            }
+                        ],
+                        "image": "http://localhost:8081/media/base_product_images/nokia3310.jpg",
+                        "price": "50.00",
+                        "rating": "4.0",
+                        "total_reviews": 250,
+                        "is_favorite": False
+                    }
+                ]
+            },
             request_only=False,
             response_only=True,
         ),
@@ -309,7 +377,10 @@ class CategoryBaseProductListView(generics.ListAPIView):
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = BaseProductFilter
-    ordering_fields = ['price', 'rating']
+    ordering_fields = {
+        'price': 'min_price',
+        'rating': 'rating',
+    }
     ordering = ['-rating']
 
     def get_queryset(self):
@@ -319,11 +390,22 @@ class CategoryBaseProductListView(generics.ListAPIView):
         except Category.DoesNotExist:
             return BaseProduct.objects.none()
 
-        return BaseProduct.objects.filter(category=category).distinct()
+        queryset = BaseProduct.objects.filter(category=category).annotate(
+            min_price=Min('variants__price')
+        ).filter(
+            min_price__isnull=False
+        ).prefetch_related(
+            'images',
+            'variants',
+            'parameters',
+            'parameters__parameter',
+        )
+
+        return queryset.distinct()
 
 
 @extend_schema(
-    description="Retrieve detailed information about a specific product by its ID. The response includes product details such as name, description, price, parameters, rating, total number of reviews, license file, images, and whether the product is in the user's favorites.",
+    description="Retrieve detailed information about a specific product by its ID. The response includes product details such as name, description, parameters, rating, total number of reviews, license file, images, variants with prices, and whether the product is in the user's favorites.",
     parameters=[
         OpenApiParameter(
             name='id',
@@ -347,10 +429,9 @@ class CategoryBaseProductListView(generics.ListAPIView):
                 "id": 1,
                 "name": "Sample Product",
                 "product_description": "This is a sample product description.",
-                "price": "99.99",
                 "parameters": [
-                    {"parameter_name": "Color", "value": "Red"},
-                    {"parameter_name": "Size", "value": "M"}
+                    {"parameter_name": "Power", "value": "120W"},
+                    {"parameter_name": "Length", "value": "1m"}
                 ],
                 "rating": "4.4",
                 "total_reviews": 10,
@@ -360,7 +441,25 @@ class CategoryBaseProductListView(generics.ListAPIView):
                     {"image_url": "http://localhost:8081/media/base_product_images/sample2.jpg"}
                 ],
                 "is_favorite": True,
-                "category_name": "Sample Category"
+                "category_name": "Sample Category",
+                "variants": [
+                    {
+                        "id": 1,
+                        "sku": "123456789",
+                        "name": "Color",
+                        "text": None,
+                        "image": "http://localhost:8081/media/base_product_images/variant/image1.jpg",
+                        "price": "99.99"
+                    },
+                    {
+                        "id": 2,
+                        "sku": "987654321",
+                        "name": "Color",
+                        "text": None,
+                        "image": "http://localhost:8081/media/base_product_images/variant/image2.jpg",
+                        "price": "109.99"
+                    }
+                ]
             },
             request_only=False,
             response_only=True,
@@ -368,7 +467,12 @@ class CategoryBaseProductListView(generics.ListAPIView):
     ]
 )
 class BaseProductDetailAPIView(generics.RetrieveAPIView):
-    queryset = BaseProduct.objects.all()
+    queryset = BaseProduct.objects.select_related('category', 'license_files').prefetch_related(
+        'parameters',
+        'parameters__parameter',
+        'images',
+        'variants',
+    )
     serializer_class = BaseProductDetailSerializer
     lookup_field = 'id'
 

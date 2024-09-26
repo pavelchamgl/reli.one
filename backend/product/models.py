@@ -1,3 +1,5 @@
+import uuid
+
 from PIL import Image
 from decimal import Decimal
 from django.db import models
@@ -43,34 +45,16 @@ class Category(models.Model):
         return category
 
 
-class BaseProductImage(models.Model):
-    image = models.ImageField(upload_to='base_product_images/')
-
-    def __str__(self):
-        return str(self.image)
-
-    def save(self, *args, **kwargs):
-        instance = super(BaseProductImage, self).save(*args, **kwargs)
-        print(instance)
-        image = Image.open(self.image.path)
-        target_size = (1263,1209)
-        resized_image = image.resize(target_size)
-        resized_image.save(self.image.path, quality=200, optimize=True)
-        return resized_image
-
-
 class BaseProduct(models.Model):
-    image = models.ManyToManyField(BaseProductImage, related_name='base_products')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=100)
     product_description = models.TextField()
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
     supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
     rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
-        default=Decimal('0.0'),
+        # default=Decimal('1.0'),
         validators=[MinValueValidator(Decimal('1.0')), MaxValueValidator(Decimal('5.0'))],
         blank=True,
         null=True,
@@ -97,6 +81,67 @@ def validate_file_size(value):
         raise ValidationError(
             f'File size exceeds the maximum allowable file size: {filesizeformat(settings.MAX_UPLOAD_SIZE)}.'
         )
+
+
+class BaseProductImage(models.Model):
+    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='base_product_images/')
+
+    def __str__(self):
+        return str(self.image)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        image = Image.open(self.image.path)
+        target_size = (1263, 1209)
+        resized_image = image.resize(target_size)
+        resized_image.save(self.image.path, quality=95, optimize=True)
+
+
+class ProductVariant(models.Model):
+    sku = models.CharField(max_length=9, unique=True, editable=False)
+    product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='variants')
+    name = models.CharField(max_length=50)
+    text = models.CharField(max_length=150, blank=True, null=True)
+    image = models.ImageField(upload_to='base_product_images/variant/', blank=True, null=True)
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))]
+    )
+
+    def __str__(self):
+        return f"{self.product.name} - {self.name} price: {self.price}"
+
+    def clean(self):
+        # Ensure only one of 'text' or 'image' is filled
+        if self.text and self.image:
+            raise ValidationError("Fields 'text' and 'image' cannot both be filled. Please fill only one of them.")
+        if not self.text and not self.image:
+            raise ValidationError("One of the fields 'text' or 'image' must be filled.")
+
+        # Ensure all variants of a product have the same 'name'
+        existing_variants = ProductVariant.objects.filter(product=self.product).exclude(pk=self.pk)
+        if existing_variants.exists():
+            first_variant = existing_variants.first()
+            if first_variant.name != self.name:
+                raise ValidationError("All variants of a product must have the same 'name' field.")
+
+            # Prevent mixing variants with 'text' and 'image'
+            if (first_variant.text and self.image) or (first_variant.image and self.text):
+                raise ValidationError(
+                    "Cannot add a variant with 'text' if a variant with 'image' already exists, and vice versa."
+                )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Validate before saving
+        if not self.sku:
+            self.sku = self.generate_unique_sku()
+        super().save(*args, **kwargs)
+
+    def generate_unique_sku(self):
+        while True:
+            sku = str(uuid.uuid4().int)[:9]
+            if not ProductVariant.objects.filter(sku=sku).exists():
+                return sku
 
 
 class LicenseFile(models.Model):
