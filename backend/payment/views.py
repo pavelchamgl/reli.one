@@ -528,7 +528,7 @@ class CreatePayPalPaymentView(APIView):
 
             line_items.append({
                 "sku": product_variant.sku,
-                "name": f"{product_variant.product.name} - {product_variant.color.name} - {product_variant.size.name}",
+                "name": f"{product_variant.product.name} - {product_variant.name}",
                 "quantity": str(quantity),
                 "unit_amount": {
                     "currency_code": currency,
