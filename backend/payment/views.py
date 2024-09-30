@@ -16,6 +16,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment
+from .mixins import PayPalMixin
 from accounts.models import CustomUser
 from product.models import BaseProduct, ProductVariant
 from promocode.models import PromoCode
@@ -32,9 +33,7 @@ logging.basicConfig(level=logging.INFO)
 # Paypal secret fields
 client_id = settings.PAYPAL_CLIENT_ID
 client_secret = settings.PAYPAL_CLIENT_SECRET
-webhook_id = settings.PAYPAL_WEBHOOK_ID
-oauth2_url = settings.PAYPAL_OAUTH2_URL
-checkout_url = settings.PAYPAL_CHECKOUT_URL
+PAYPAL_API_URL = settings.PAYPAL_API_URL
 
 # Stripe secret fields
 stripe.api_key = settings.STRIPE_API_SECRET_KEY
@@ -404,7 +403,7 @@ class StripeWebhookHandler(APIView):
         return Response(status=200)
 
 
-class CreatePayPalPaymentView(APIView):
+class CreatePayPalPaymentView(PayPalMixin, APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -412,6 +411,7 @@ class CreatePayPalPaymentView(APIView):
         request={
             'application/json': {
                 'type': 'object',
+                'required': ['email', 'delivery_type', 'delivery_address', 'phone', 'products'],
                 'properties': {
                     'email': {
                         'type': 'string',
@@ -422,8 +422,8 @@ class CreatePayPalPaymentView(APIView):
                         'description': 'Promocode for a discount on the purchase'
                     },
                     'delivery_type': {
-                        'type': 'number',
-                        'description': 'Type of delivery, e.g., 1 - Delivery point, 2 - Courier',
+                        'type': 'integer',
+                        'description': 'Type of delivery: 1 - Pickup point, 2 - Courier',
                         'example': 1
                     },
                     'delivery_address': {
@@ -436,18 +436,20 @@ class CreatePayPalPaymentView(APIView):
                     },
                     'delivery_cost': {
                         'type': 'number',
-                        'description': 'Cost of delivery'
+                        'description': 'Cost of delivery',
+                        'default': 0.0
                     },
                     'courier_service_name': {
-                        'type': 'number',
-                        'description': 'ID of the courier service, e.g., 1 - PPL, 2 - GEIS, 3 - DPD',
+                        'type': 'integer',
+                        'description': 'ID of the courier service: 1 - PPL, 2 - GEIS, 3 - DPD',
                         'example': 1
                     },
                     'products': {
                         'type': 'array',
-                        'description': 'List of product variants to be purchased',
+                        'description': 'List of product variants to purchase',
                         'items': {
                             'type': 'object',
+                            'required': ['sku', 'quantity'],
                             'properties': {
                                 'sku': {
                                     'type': 'string',
@@ -488,7 +490,7 @@ class CreatePayPalPaymentView(APIView):
                 }
             ),
             404: OpenApiResponse(description='Product variant not found or Delivery type not found'),
-            400: OpenApiResponse(description='Invalid request data'),
+            500: OpenApiResponse(description='Error creating PayPal payment'),
         },
         tags=['PayPal']
     )
@@ -604,7 +606,7 @@ class CreatePayPalPaymentView(APIView):
             }
         }
 
-        response = requests.post(checkout_url, headers=headers, data=json.dumps(data))
+        response = requests.post(f'{PAYPAL_API_URL}/v2/checkout/orders', headers=headers, data=json.dumps(data))
 
         if response.status_code == 201:
             order_response = response.json()
@@ -612,18 +614,6 @@ class CreatePayPalPaymentView(APIView):
             return Response({'order_id': order_response['id'], 'approval_url': order_response['links'][1]['href']}, status=status.HTTP_200_OK)
         else:
             return Response(response.json(), status=response.status_code)
-
-    def get_paypal_access_token(self):
-        response = requests.post(
-            oauth2_url,
-            headers={
-                'Accept': 'application/json',
-            },
-            data={'grant_type': 'client_credentials'},
-            auth=(client_id, client_secret)
-        )
-        response_data = response.json()
-        return response_data['access_token']
 
 
 @extend_schema(
@@ -636,78 +626,44 @@ class CreatePayPalPaymentView(APIView):
                 'event_version': {'type': 'string', 'description': 'Event version'},
                 'create_time': {'type': 'string', 'description': 'Event creation time'},
                 'resource_type': {'type': 'string', 'description': 'Resource type'},
-                'resource_version': {'type': 'string', 'description': 'Resource version'},
-                'event_type': {'type': 'string', 'description': 'Event type'},
+                'event_type': {'type': 'string', 'description': 'Event type (e.g., CHECKOUT.ORDER.APPROVED)'},
                 'summary': {'type': 'string', 'description': 'Event summary'},
                 'resource': {
                     'type': 'object',
+                    'description': 'Resource data related to the event',
                     'properties': {
-                        'create_time': {'type': 'string', 'description': 'Resource creation time'},
+                        'id': {'type': 'string', 'description': 'Resource ID (order ID)'},
+                        'status': {'type': 'string', 'description': 'Order status'},
                         'purchase_units': {
                             'type': 'array',
+                            'description': 'List of purchase units',
                             'items': {
                                 'type': 'object',
                                 'properties': {
-                                    'reference_id': {'type': 'string', 'description': 'Reference ID'},
                                     'amount': {
                                         'type': 'object',
                                         'properties': {
                                             'currency_code': {'type': 'string', 'description': 'Currency code'},
-                                            'value': {'type': 'string', 'description': 'Amount value'},
-                                            'breakdown': {
-                                                'type': 'object',
-                                                'properties': {
-                                                    'item_total': {
-                                                        'type': 'object',
-                                                        'properties': {
-                                                            'currency_code': {'type': 'string', 'description': 'Currency code'},
-                                                            'value': {'type': 'string', 'description': 'Item total value'}
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                            'value': {'type': 'string', 'description': 'Order amount'}
                                         }
                                     },
-                                    'payee': {
-                                        'type': 'object',
-                                        'properties': {
-                                            'email_address': {'type': 'string', 'description': 'Payee email address'},
-                                            'merchant_id': {'type': 'string', 'description': 'Merchant ID'}
-                                        }
-                                    },
-                                    'description': {'type': 'string', 'description': 'Description data as JSON string'},
-                                    'custom_id': {'type': 'string', 'description': 'Custom data as JSON string'},
-                                    'invoice_id': {'type': 'string', 'description': 'Invoice data as JSON string'},
+                                    'custom_id': {'type': 'string', 'description': 'Custom data in JSON format'},
+                                    'invoice_id': {'type': 'string', 'description': 'Invoice data in JSON format'},
+                                    'description': {'type': 'string', 'description': 'Description in JSON format'},
                                     'items': {
                                         'type': 'array',
+                                        'description': 'List of items',
                                         'items': {
                                             'type': 'object',
                                             'properties': {
-                                                'name': {'type': 'string', 'description': 'Item name'},
+                                                'sku': {'type': 'string', 'description': 'Item SKU'},
+                                                'quantity': {'type': 'string', 'description': 'Quantity'},
                                                 'unit_amount': {
                                                     'type': 'object',
                                                     'properties': {
                                                         'currency_code': {'type': 'string', 'description': 'Currency code'},
-                                                        'value': {'type': 'string', 'description': 'Unit amount value'}
+                                                        'value': {'type': 'string', 'description': 'Unit price'}
                                                     }
-                                                },
-                                                'quantity': {'type': 'string', 'description': 'Item quantity'},
-                                                'sku': {'type': 'string', 'description': 'Item SKU'}
-                                            }
-                                        }
-                                    },
-                                    'shipping': {
-                                        'type': 'object',
-                                        'properties': {
-                                            'name': {'type': 'object', 'properties': {'full_name': {'type': 'string', 'description': 'Full name'}}},
-                                            'address': {
-                                                'type': 'object',
-                                                'properties': {
-                                                    'address_line_1': {'type': 'string', 'description': 'Address line 1'},
-                                                    'admin_area_2': {'type': 'string', 'description': 'Admin area 2'},
-                                                    'admin_area_1': {'type': 'string', 'description': 'Admin area 1'},
-                                                    'postal_code': {'type': 'string', 'description': 'Postal code'},
-                                                    'country_code': {'type': 'string', 'description': 'Country code'}
                                                 }
                                             }
                                         }
@@ -715,109 +671,62 @@ class CreatePayPalPaymentView(APIView):
                                 }
                             }
                         },
-                        'links': {
-                            'type': 'array',
-                            'items': {
-                                'type': 'object',
-                                'properties': {
-                                    'href': {'type': 'string', 'description': 'Link URL'},
-                                    'rel': {'type': 'string', 'description': 'Link relation'},
-                                    'method': {'type': 'string', 'description': 'HTTP method for the link'}
-                                }
-                            }
-                        },
-                        'id': {'type': 'string', 'description': 'Resource ID'},
-                        'payment_source': {
-                            'type': 'object',
-                            'properties': {
-                                'paypal': {
-                                    'type': 'object',
-                                    'properties': {
-                                        'email_address': {'type': 'string', 'description': 'Payer email address'},
-                                        'account_id': {'type': 'string', 'description': 'Payer account ID'},
-                                        'account_status': {'type': 'string', 'description': 'Payer account status'},
-                                        'name': {
-                                            'type': 'object',
-                                            'properties': {
-                                                'given_name': {'type': 'string', 'description': 'Payer given name'},
-                                                'surname': {'type': 'string', 'description': 'Payer surname'}
-                                            }
-                                        },
-                                        'address': {'type': 'object', 'properties': {'country_code': {'type': 'string', 'description': 'Country code'}}}
-                                    }
-                                }
-                            }
-                        },
-                        'intent': {'type': 'string', 'description': 'Payment intent'},
                         'payer': {
                             'type': 'object',
                             'properties': {
+                                'email_address': {'type': 'string', 'description': 'Payer email address'},
+                                'payer_id': {'type': 'string', 'description': 'Payer ID'},
                                 'name': {
                                     'type': 'object',
                                     'properties': {
-                                        'given_name': {'type': 'string', 'description': 'Payer given name'},
-                                        'surname': {'type': 'string', 'description': 'Payer surname'}
+                                        'given_name': {'type': 'string', 'description': 'First name'},
+                                        'surname': {'type': 'string', 'description': 'Last name'}
                                     }
-                                },
-                                'email_address': {'type': 'string', 'description': 'Payer email address'},
-                                'payer_id': {'type': 'string', 'description': 'Payer ID'},
-                                'address': {'type': 'object', 'properties': {'country_code': {'type': 'string', 'description': 'Country code'}}}
+                                }
                             }
-                        },
-                        'status': {'type': 'string', 'description': 'Order status'}
+                        }
                     }
                 }
             },
             'example': {
-                'id': 'WH-7U685702AP210252D-7TR69619RV252802B',
+                'id': 'WH-1234567890',
                 'event_version': '1.0',
                 'create_time': '2024-07-16T07:36:22.484Z',
                 'resource_type': 'checkout-order',
-                'resource_version': '2.0',
                 'event_type': 'CHECKOUT.ORDER.APPROVED',
                 'summary': 'An order has been approved by buyer',
                 'resource': {
-                    'create_time': '2024-07-16T07:35:57Z',
-                    'purchase_units': [{
-                        'reference_id': 'default',
-                        'amount': {'currency_code': 'EUR', 'value': '4300.99', 'breakdown': {'item_total': {'currency_code': 'EUR', 'value': '4300.99'}}},
-                        'payee': {'email_address': 'sb-qfikm31385026@business.example.com', 'merchant_id': 'LRJMHWR6YH3TC'},
-                        'description': '{"delivery_cost": "300.99", "courier_service_name": 1}',
-                        'custom_id': '{"user_id": 1, "email": "admin@admin.com", "promo_code": null, "phone": "+12345678901"}',
-                        'invoice_id': '{"delivery_type": 1, "delivery_address": "123 Main St, Springfield, USA"}',
-                        'items': [
-                            {'name': 'IPhone 14 Pro', 'unit_amount': {'currency_code': 'EUR', 'value': '1000.00'}, 'quantity': '3', 'sku': '1'},
-                            {'name': 'Galuxy 10', 'unit_amount': {'currency_code': 'EUR', 'value': '1000.00'}, 'quantity': '1', 'sku': '2'},
-                            {'name': 'Delivery Cost', 'unit_amount': {'currency_code': 'EUR', 'value': '300.99'}, 'quantity': '1'}
-                        ],
-                        'shipping': {
-                            'name': {'full_name': 'John Doe'},
-                            'address': {'address_line_1': '1 Main St', 'admin_area_2': 'San Jose', 'admin_area_1': 'CA', 'postal_code': '95131', 'country_code': 'US'}
+                    'id': 'ORDER-1234567890',
+                    'status': 'APPROVED',
+                    'purchase_units': [
+                        {
+                            'amount': {
+                                'currency_code': 'EUR',
+                                'value': '100.00'
+                            },
+                            'custom_id': '{"user_id": 1, "email": "user@example.com", "promo_code": null, "phone": "+1234567890"}',
+                            'invoice_id': '{"delivery_type": 1, "delivery_address": "123 Main St"}',
+                            'description': '{"delivery_cost": "10.00", "courier_service_name": 1}',
+                            'items': [
+                                {
+                                    'sku': '123456789',
+                                    'quantity': '2',
+                                    'unit_amount': {
+                                        'currency_code': 'EUR',
+                                        'value': '45.00'
+                                    }
+                                }
+                            ]
                         }
-                    }],
-                    'links': [
-                        {'href': 'https://api.sandbox.paypal.com/v2/checkout/orders/768804163A558803D', 'rel': 'self', 'method': 'GET'},
-                        {'href': 'https://api.sandbox.paypal.com/v2/checkout/orders/768804163A558803D', 'rel': 'update', 'method': 'PATCH'},
-                        {'href': 'https://api.sandbox.paypal.com/v2/checkout/orders/768804163A558803D/capture', 'rel': 'capture', 'method': 'POST'}
                     ],
-                    'id': '768804163A558803D',
-                    'payment_source': {
-                        'paypal': {
-                            'email_address': 'sb-43g1wc31380570@personal.example.com',
-                            'account_id': 'CRCQUC8R9UCDE',
-                            'account_status': 'VERIFIED',
-                            'name': {'given_name': 'John', 'surname': 'Doe'},
-                            'address': {'country_code': 'US'}
-                        }
-                    },
-                    'intent': 'CAPTURE',
                     'payer': {
-                        'name': {'given_name': 'John', 'surname': 'Doe'},
-                        'email_address': 'sb-43g1wc31380570@personal.example.com',
-                        'payer_id': 'CRCQUC8R9UCDE',
-                        'address': {'country_code': 'US'}
-                    },
-                    'status': 'APPROVED'
+                        'email_address': 'payer@example.com',
+                        'payer_id': 'PAYERID123',
+                        'name': {
+                            'given_name': 'John',
+                            'surname': 'Doe'
+                        }
+                    }
                 }
             }
         }
@@ -825,14 +734,14 @@ class CreatePayPalPaymentView(APIView):
     responses={
         200: OpenApiResponse(
             description='Order and Payment created successfully',
-            response={'type': 'object', 'properties': {'status': {'type': 'string'}}}
+            response={'type': 'object', 'properties': {'status': {'type': 'string', 'example': 'Order and Payment created successfully'}}}
         ),
         403: OpenApiResponse(description='Invalid webhook signature'),
-        500: OpenApiResponse(description='Error creating order and payment')
+        500: OpenApiResponse(description='Error creating order and payment'),
     },
     tags=['PayPal']
 )
-class PayPalWebhookView(APIView):
+class PayPalWebhookView(PayPalMixin, APIView):
     permission_classes = [AllowAny]
 
     def create_order_from_webhook(self, data):
@@ -858,33 +767,38 @@ class PayPalWebhookView(APIView):
         delivery_address = invoice_data.get('delivery_address')
         delivery_cost = Decimal(description_data.get('delivery_cost'))
         courier_service_name = description_data.get('courier_service_name')
-        logger.debug(f"User data: user_id={user_id}, email={email}, phone={phone}, delivery_cost={delivery_cost}, courier_service_name={courier_service_name}, delivery_address={delivery_address}, delivery_type={delivery_type}")
+        logger.debug(
+            f"User data: user_id={user_id}, email={email}, phone={phone}, delivery_cost={delivery_cost}, courier_service_name={courier_service_name}, delivery_address={delivery_address}, delivery_type={delivery_type}")
 
         products = purchase_unit.get('items', [])
         logger.debug(f"Products: {products}")
 
-        order_status = None
-
+        # Получение статуса заказа
         try:
             order_status = OrderStatus.objects.get(name="Pending")
         except OrderStatus.DoesNotExist:
             logger.error("Order status 'Pending' does not exist.")
+            order_status = None
 
+        # Получение пользователя
         try:
             user = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
             logger.error(f"User with id {user_id} does not exist.")
             return False
 
+        # Получение типа доставки
         if delivery_type:
             try:
                 delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
             except DeliveryType.DoesNotExist:
                 logger.error(f"DeliveryType with id {delivery_type} does not exist.")
+                delivery_type_obj = None
         else:
             delivery_type_obj = None
 
         try:
+            # Создание заказа
             order = Order.objects.create(
                 user=user,
                 customer_email=email,
@@ -899,46 +813,62 @@ class PayPalWebhookView(APIView):
             logger.debug(f"Order created: {order}")
 
             # Рассчитать стоимость доставки для каждого товара
-            total_product_cost = sum(Decimal(item['quantity']) * BaseProduct.objects.get(id=item['sku']).price for item in products if item.get('sku'))
+            total_product_cost = sum(
+                Decimal(item['quantity']) * ProductVariant.objects.get(sku=item['sku']).price
+                for item in products if item.get('sku')
+            )
             rounded_delivery_costs = []
             total_rounded_delivery_cost = Decimal('0.00')
 
             for item in products:
-                product_id = item.get('sku')
-                if not product_id:
+                product_sku = item.get('sku')
+                if not product_sku:
                     logger.debug(f"Ignoring item without SKU: {item}")
                     continue
                 quantity = Decimal(item['quantity'])
-                product = BaseProduct.objects.get(id=product_id)
+                product_variant = ProductVariant.objects.get(sku=product_sku)
 
-                product_total_cost = quantity * product.price
+                product_total_cost = quantity * product_variant.price
                 product_delivery_cost = round((product_total_cost / total_product_cost) * delivery_cost, 2)
-                rounded_delivery_costs.append((product, quantity, product_delivery_cost, product.price))
+                rounded_delivery_costs.append((product_variant, quantity, product_delivery_cost, product_variant.price))
                 total_rounded_delivery_cost += product_delivery_cost
 
+            # Корректировка общей стоимости доставки
             difference = delivery_cost - total_rounded_delivery_cost
             if rounded_delivery_costs:
-                last_product, last_quantity, last_cost, last_price = rounded_delivery_costs[-1]
-                rounded_delivery_costs[-1] = (last_product, last_quantity, last_cost + difference, last_price)
+                last_product_variant, last_quantity, last_cost, last_price = rounded_delivery_costs[-1]
+                rounded_delivery_costs[-1] = (last_product_variant, last_quantity, last_cost + difference, last_price)
 
-            for product, quantity, delivery_cost, product_price in rounded_delivery_costs:
+            # Создание записей OrderProduct
+            for product_variant, quantity, delivery_cost, product_price in rounded_delivery_costs:
                 OrderProduct.objects.create(
                     order=order,
-                    product=product,
+                    product=product_variant,
                     quantity=quantity,
                     delivery_cost=delivery_cost,
-                    supplier=product.supplier,
+                    supplier=product_variant.product.supplier,
                     product_price=product_price
                 )
-                logger.debug(f"OrderProduct created for product_id {product.id} with delivery cost {delivery_cost}")
+                logger.debug(
+                    f"OrderProduct created for product_variant_id {product_variant.id} with delivery cost {delivery_cost}")
 
             # Извлечение данных для платежа
             session_id = resource.get('id', 'unknown_session_id')
             payment_intent_id = resource.get('id', 'unknown_intent_id')
-            payment_method = f"{resource['payment_source']['paypal']['name']['given_name']} {resource['payment_source']['paypal']['name']['surname']}"
+            payment_source = resource.get('payment_source', {})
+            paypal_info = payment_source.get('paypal', {})
+            payer_name = paypal_info.get('name', {})
+            payment_method = f"{payer_name.get('given_name', '')} {payer_name.get('surname', '')}"
 
-            logger.debug(f"Payment data before creation: session_id={session_id}, payment_intent_id={payment_intent_id}, payment_method={payment_method}, amount_total={amount}, currency={currency}")
+            logger.debug(
+                f"Payment data before creation: session_id={session_id},"
+                f" payment_intent_id={payment_intent_id},"
+                f" payment_method={payment_method},"
+                f" amount_total={amount},"
+                f" currency={currency}"
+            )
 
+            # Создание платежа
             try:
                 Payment.objects.create(
                     order=order,
@@ -963,8 +893,10 @@ class PayPalWebhookView(APIView):
             logger.error(f"Error creating order: {str(e)}")
             return False
 
+    @csrf_exempt
     def post(self, request):
-        data = request.data
+        webhook_body = request.body.decode('utf-8')
+        data = json.loads(webhook_body)
         logger.debug(f"Received webhook data: {data}")
         event_type = data.get('event_type')
         accepted_webhooks = (
@@ -974,27 +906,20 @@ class PayPalWebhookView(APIView):
         logger.debug(f"Received event: {event_type}")
 
         if event_type in accepted_webhooks:
-            transmission_id = request.headers.get('paypal-transmission-id')
-            transmission_time = request.headers.get('paypal-transmission-time')
-            cert_url = request.headers.get('paypal-cert-url')
-            actual_signature = request.headers.get('paypal-transmission-sig')
+            is_verified = self.verify_webhook(request, webhook_body)
 
-            logger.debug(
-                f"Headers received: {transmission_id=}, {transmission_time=}, {cert_url=}, {actual_signature=}")
-
-            is_verified = True  # Здесь мы временно устанавливаем верификацию как успешную
-
-            if not is_verified:
-                logger.warning(f"Webhook verification failed for event: {event_type}")
+            if is_verified:
+                logger.info("Webhook verification successful.")
+                if event_type == 'CHECKOUT.ORDER.APPROVED':
+                    success = self.create_order_from_webhook(data)
+                    if success:
+                        return Response({'status': 'Order and Payment created successfully'}, status=200)
+                    else:
+                        logger.error(f"Error creating order and payment for event: {event_type}")
+                        return Response({'error': 'Error creating order and payment'}, status=500)
+            else:
+                logger.warning("Webhook verification failed.")
                 return Response({'error': 'Invalid webhook signature'}, status=403)
-
-            if event_type in ['CHECKOUT.ORDER.APPROVED']:
-                success = self.create_order_from_webhook(data)
-                if success:
-                    return Response({'status': 'Order and Payment created successfully'}, status=200)
-                else:
-                    logger.error(f"Error creating order and payment for event: {event_type}")
-                    return Response({'error': 'Error creating order and payment'}, status=500)
 
         logger.info(f"Unhandled event type: {event_type}")
         return Response({'status': 'event not handled'}, status=200)
