@@ -1,7 +1,11 @@
 from rest_framework import serializers
 from django.db.models import Max
 
-from product.models import BaseProductImage, BaseProduct
+from product.models import (
+    BaseProductImage,
+    BaseProduct,
+    ProductVariant
+)
 from .models import (
     Order,
     OrderProduct,
@@ -9,30 +13,31 @@ from .models import (
 )
 
 
-class BaseProductImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BaseProductImage
-        fields = ['image']
-
-
 class BaseProductSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseProduct
-        fields = ['image', 'name', 'product_description']
+        fields = ['id', 'image', 'name', 'product_description']
 
     def get_image(self, obj):
-        first_image = obj.image.first()
+        first_image = obj.images.first()
         return first_image.image.url if first_image else None
 
 
+class ProductVariantSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVariant
+        fields = ['id', 'sku', 'name', 'text', 'image', 'price']
+
+
 class OrderProductDetailSerializer(serializers.ModelSerializer):
-    product = BaseProductSerializer()
+    product_variant = ProductVariantSerializer(source='product')
+    product = BaseProductSerializer(source='product.product')
 
     class Meta:
         model = OrderProduct
-        fields = ['product', 'quantity', 'product_price']
+        fields = ['product_variant', 'product', 'quantity', 'product_price']
 
 
 class OrderStatusSerializer(serializers.ModelSerializer):
@@ -61,6 +66,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 class OrderListSerializer(serializers.ModelSerializer):
     received_date = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
+    order_status = serializers.CharField(source='order_status.name')
 
     class Meta:
         model = Order
@@ -71,20 +77,19 @@ class OrderListSerializer(serializers.ModelSerializer):
             'received_date',
             'images',
             'total_amount',
+            'order_status',
         ]
 
     def get_received_date(self, obj):
-        # Получение самой поздней даты получения из связанных OrderProduct
         order_products = OrderProduct.objects.filter(order=obj)
         latest_received_date = order_products.aggregate(latest_received=Max('received_at'))['latest_received']
         return latest_received_date
 
     def get_images(self, obj):
-        # Получение изображения первых трех товаров
         order_products = OrderProduct.objects.filter(order=obj)[:3]
         images = []
         for order_product in order_products:
-            base_product_images = order_product.product.image.all()[:1]  # Получаем одно изображение продукта
+            base_product_images = order_product.product.product.images.all()[:1]
             for image in base_product_images:
                 images.append(image.image.url)
         return images
