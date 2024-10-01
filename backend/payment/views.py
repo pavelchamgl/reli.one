@@ -68,7 +68,7 @@ class CreateStripePaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        description="Creates a Stripe checkout session for product payment",
+        description="Creates a Stripe payment session for product purchase",
         request={
             'application/json': {
                 'type': 'object',
@@ -141,33 +141,17 @@ class CreateStripePaymentView(APIView):
         },
         responses={
             200: OpenApiResponse(
-                description='URL of the created Stripe checkout session',
-                response={'type': 'object', 'properties': {'url': {'type': 'string'}}}
+                description='URL for the created Stripe payment session',
+                response={
+                    'type': 'object',
+                    'properties': {
+                        'url': {'type': 'string', 'description': 'URL to redirect the user to the Stripe payment session'}
+                    }
+                }
             ),
             404: OpenApiResponse(description='Product variant not found or Delivery type not found'),
             500: OpenApiResponse(description='Error creating Stripe payment session'),
         },
-        examples=[
-            OpenApiExample(
-                name="CourierServiceExamples",
-                value=[
-                    {"pk": 1, "name": "PPL"},
-                    {"pk": 2, "name": "GEIS"},
-                    {"pk": 3, "name": "DPD"}
-                ],
-                request_only=True,
-                response_only=False,
-            ),
-            OpenApiExample(
-                name="DeliveryTypeExamples",
-                value=[
-                    {"pk": 1, "name": "Pickup point"},
-                    {"pk": 2, "name": "Courier"}
-                ],
-                request_only=True,
-                response_only=False,
-            ),
-        ],
         tags=['Stripe']
     )
     def post(self, request, *args, **kwargs):
