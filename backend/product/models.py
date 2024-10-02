@@ -112,29 +112,34 @@ class ProductVariant(models.Model):
         return f"{self.product.name} - {self.name} price: {self.price}"
 
     def clean(self):
-        # Ensure only one of 'text' or 'image' is filled
+        # Убедитесь, что только одно из полей 'text' или 'image' заполнено
         if self.text and self.image:
-            raise ValidationError("Fields 'text' and 'image' cannot both be filled. Please fill only one of them.")
+            raise ValidationError("Поля 'text' и 'image' не могут быть заполнены одновременно. Пожалуйста, заполните только одно из них.")
         if not self.text and not self.image:
-            raise ValidationError("One of the fields 'text' or 'image' must be filled.")
+            raise ValidationError("Одно из полей 'text' или 'image' должно быть заполнено.")
 
-        # Ensure all variants of a product have the same 'name'
-        existing_variants = ProductVariant.objects.filter(product=self.product).exclude(pk=self.pk)
-        if existing_variants.exists():
-            first_variant = existing_variants.first()
-            if first_variant.name != self.name:
-                raise ValidationError("All variants of a product must have the same 'name' field.")
+        # Проверяем, есть ли 'product' и имеет ли он 'pk'
+        if self.product_id:
+            # Убедитесь, что все варианты продукта имеют одинаковое 'name'
+            existing_variants = ProductVariant.objects.filter(product=self.product).exclude(pk=self.pk)
+            if existing_variants.exists():
+                first_variant = existing_variants.first()
+                if first_variant.name != self.name:
+                    raise ValidationError("Все варианты продукта должны иметь одинаковое значение поля 'name'.")
 
-            # Prevent mixing variants with 'text' and 'image'
-            if (first_variant.text and self.image) or (first_variant.image and self.text):
-                raise ValidationError(
-                    "Cannot add a variant with 'text' if a variant with 'image' already exists, and vice versa."
-                )
+                # Предотвращаем смешивание вариантов с 'text' и 'image'
+                if (first_variant.text and self.image) or (first_variant.image and self.text):
+                    raise ValidationError(
+                        "Нельзя добавить вариант с 'text', если уже существует вариант с 'image', и наоборот."
+                    )
+        else:
+            # Пропускаем проверки, требующие сохранённого 'product'
+            pass
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # Validate before saving
         if not self.sku:
             self.sku = self.generate_unique_sku()
+        self.full_clean(exclude=['sku'])
         super().save(*args, **kwargs)
 
     def generate_unique_sku(self):
