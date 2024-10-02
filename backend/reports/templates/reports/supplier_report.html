@@ -40,13 +40,13 @@
                 </tr>
             </thead>
             <tbody>
-                {% for product in sold_products %}
+                {% for item in sold_products %}
                     <tr>
-                        <td>{{ product.product.product.name }}</td>
-                        <td>{{ product.product.quantity }}</td>
-                        <td>{{ product.product.product_price|floatformat:2 }}</td>
-                        <td>{{ product.sum|floatformat:2 }}</td>
-                        <td>{{ product.product.received_at|date:"d F Y г. H:i" }}</td>
+                        <td>{{ item.product.product.product.name }}</td>
+                        <td>{{ item.product.quantity }}</td>
+                        <td>{{ item.product.product_price|floatformat:2 }}</td>
+                        <td>{{ item.sum|floatformat:2 }}</td>
+                        <td>{{ item.product.received_at|date:"d F Y г. H:i" }}</td>
                     </tr>
                 {% endfor %}
             </tbody>

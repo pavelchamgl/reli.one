@@ -48,7 +48,7 @@ def generate_report(request):
         start_date = datetime.strptime(from_date, "%Y-%m-%d")
         end_date = datetime.strptime(to_date, "%Y-%m-%d")
 
-        # Фильтруем продукты по дате и статусу "Closed"
+        # Фильтруем продукты по дате и статусу "Received"
         order_products = OrderProduct.objects.filter(
             supplier_id=supplier_id,
             received=True,
@@ -66,17 +66,19 @@ def generate_report(request):
             order_date__date__range=[start_date, end_date]
         )
 
-        # Берем доставку из всех закрытых заказов
+        # Сумма всех доставок
         total_delivery = OrderProduct.objects.filter(
             order__in=closed_orders,
             supplier_id=supplier_id
-        ).aggregate(total=Sum('delivery_cost', output_field=DecimalField()))['total'] or Decimal('0.00')
+        ).aggregate(
+            total=Sum('delivery_cost', output_field=DecimalField())
+        )['total'] or Decimal('0.00')
 
         total_quantity = order_products.aggregate(total=Sum('quantity'))['total'] or 0
 
         total_profit = Decimal('0.00')
         for order_product in order_products:
-            root_category = order_product.product.category.get_root_category()
+            root_category = order_product.product.product.category.get_root_category()
             profit_percentage = get_profit_percentage(root_category.name, order_product.product_price)
             total_profit += order_product.quantity * order_product.product_price * profit_percentage
 
@@ -86,14 +88,11 @@ def generate_report(request):
         # Вычисляем сумму для каждого продукта
         sold_products_with_sum = [
             {
-                'product': product,
-                'sum': product.quantity * product.product_price
+                'product': order_product,
+                'sum': order_product.quantity * order_product.product_price
             }
-            for product in order_products
+            for order_product in order_products
         ]
-
-        # Вывод отладочной информации
-        print(f"Total sold: {total_sold}, Total delivery: {total_delivery}, Total profit: {total_profit}")
 
         context = {
             'subtitle': 'Отчет по поставщику',
