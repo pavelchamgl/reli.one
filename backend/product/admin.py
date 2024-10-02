@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.core.exceptions import ValidationError
+
 from .models import (
     BaseProduct,
     ParameterName,
@@ -48,6 +50,12 @@ class AdminBaseProduct(admin.ModelAdmin):
         }),
     )
     inlines = [BaseProductImageInline, ProductVariantInline, LicenseFileInline]
+
+    def save_formset(self, request, form, formset, change):
+        try:
+            super().save_formset(request, form, formset, change)
+        except ValidationError as e:
+            form.add_error(None, e)
 
 
 admin.site.register(BaseProduct, AdminBaseProduct)
