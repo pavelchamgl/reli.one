@@ -10,22 +10,22 @@ const SearchInp = () => {
 
   const navigate = useNavigate();
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    navigate(`/search?searchValue=${encodeURIComponent(searchValue)}`);
+  };
+
   return (
-    <div className={styles.wrap}>
+    <form onSubmit={handleSubmit} className={styles.wrap}>
       <input
         onChange={(e) => setSearchValue(e.target.value)}
         className={styles.inp}
         type="text"
       />
-      <button
-        onClick={() =>
-          navigate(`/search?searchValue=${encodeURIComponent(searchValue)}`)
-        }
-        className={styles.btn}
-      >
+      <button type="submit" className={styles.btn}>
         <img src={searchIcon} alt="" />
       </button>
-    </div>
+    </form>
   );
 };
 

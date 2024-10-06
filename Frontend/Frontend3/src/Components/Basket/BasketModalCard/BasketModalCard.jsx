@@ -16,10 +16,12 @@ import plusIcon from "../../../assets/Basket/plusIcon.svg";
 import minusIcon from "../../../assets/Basket/minusIcon.svg";
 
 import styles from "./BasketModalCard.module.scss";
+import { getProductById } from "../../../api/productsApi";
 
 const BasketModalCard = ({ data, handleClose, setMainCount }) => {
   const [count, setCount] = useState(null);
   const [like, setLike] = useState(data ? data.is_favorite : false);
+  const [sku, setSku] = useState(null);
 
   const dispatch = useDispatch();
   const basket = useSelector((state) => state.basket.basket);
@@ -38,26 +40,41 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
   };
 
   useEffect(() => {
+    getProductById(data.id).then((res) => {
+      const resData = res?.data;
+      let variant = resData.variants.find((item) => {
+        return Number(item.price) === Number(data.price);
+      });
+
+      if (variant) {
+        setSku(variant.sku);
+        dispatch(
+          addToBasket({
+            id: data.id,
+            product: { ...data },
+            count: count,
+            selected: false,
+            sku: variant.sku,
+          })
+        );
+        dispatch(plusCount({ id: data.id, count: count }));
+      } else {
+        console.error("Не найдено совпадений по цене");
+      }
+    });
+  }, [count, data]);
+
+  useEffect(() => {
     setMainCount(count);
+
     if (count === 0) {
       dispatch(deleteFromBasket({ id: data.id }));
       handleClose();
     }
-    if (count === 1) {
-      dispatch(
-        addToBasket({
-          id: data.id,
-          product: { ...data },
-          count: 1,
-          selected: false,
-        })
-      );
-      dispatch(plusCount({ id: data.id, count: count }));
-    }
     if (count > 1) {
       dispatch(plusCount({ id: data.id, count: count }));
     }
-  }, [count]);
+  }, [count, data]);
 
   useEffect(() => {
     setMainCount(count);

@@ -15,6 +15,9 @@ import ProdCharackButtons from "../ProdCharakButtons/ProdCharackButtons";
 
 const ProductNameRate = () => {
   const [inBasket, setInBasket] = useState(false);
+  const [price, setPrice] = useState("10");
+  const [endPrice, setEndPice] = useState("10");
+  const [sku, setSku] = useState(null);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -33,9 +36,10 @@ const ProductNameRate = () => {
     dispatch(
       addToBasket({
         id: product.id,
-        product: { ...product },
+        product: { ...product, price: endPrice },
         count: 1,
         selected: false,
+        sku: sku,
       })
     );
   };
@@ -48,6 +52,25 @@ const ProductNameRate = () => {
     }
   }, [id, basket]);
 
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      // Проверка, есть ли продукт с текущим id в корзине
+      const existingProduct = basket.find((item) => item.id === product.id);
+
+      if (!existingProduct) {
+        // Если продукта нет в корзине, установить значения первого варианта
+        const firstVariant = product.variants[0];
+        setPrice(firstVariant.price);
+        setEndPice(firstVariant.price);
+        setSku(firstVariant.sku);
+      } else {
+        // Если продукт уже в корзине, использовать данные из корзины
+        setEndPice(existingProduct.product.price);
+        setSku(existingProduct.sku);
+      }
+    }
+  }, [product, basket]);
+
   return (
     <div className={styles.main}>
       <div className={styles.ratingDiv}>
@@ -58,8 +81,13 @@ const ProductNameRate = () => {
         <p>{product?.name}</p>
         <span>{product?.category_name}</span>
       </div>
-      <p className={styles.price}>{product.price} €</p>
-      <ProdCharackButtons />
+      <p className={styles.price}>{price} €</p>
+      <ProdCharackButtons
+        setSku={setSku}
+        setPrice={setEndPice}
+        variants={product?.variants}
+        id={product?.id}
+      />
       <button className={styles.addBasketBtn} onClick={handleAddBasket}>
         {inBasket && <img src={addBasketCheckIcon} alt="" />}
         {t("add_basket")}

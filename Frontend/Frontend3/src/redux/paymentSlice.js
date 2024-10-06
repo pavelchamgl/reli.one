@@ -7,12 +7,11 @@ const delivery = JSON.parse(localStorage.getItem("delivery")) || []
 
 export const fetchCreateStripeSession = createAsyncThunk(
     "payment/fetchCreateStripeSession",
-    async (_, { rejectWithValue, getState }) => {
+    async (selectedProducts, { rejectWithValue, getState }) => {
         try {
             const state = getState().payment;
-            const { paymentInfo, selectedProducts } = state;
+            const { paymentInfo } = state;
 
-            console.log(paymentInfo, selectedProducts);
 
             const res = await createStripeSession({
                 email: paymentInfo.email,
@@ -22,7 +21,7 @@ export const fetchCreateStripeSession = createAsyncThunk(
                 delivery_cost: paymentInfo.price,
                 courier_service_name: paymentInfo.courier_id,
                 products: selectedProducts.map(item => ({
-                    product_id: item.product.id,
+                    sku: item.sku,
                     quantity: item.count
                 }))
             });
@@ -54,7 +53,7 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                 delivery_cost: paymentInfo.price,
                 courier_service_name: paymentInfo.courier_id,
                 products: selectedProducts.map(item => ({
-                    product_id: item.product.id,
+                    sku: item.sku,
                     quantity: item.count
                 }))
             });
@@ -89,14 +88,16 @@ const paymentSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(fetchCreateStripeSession.pending, (state) => {
-                state.status = 'loading';
+                state.loading = true;
+                state.error = null;
             })
             .addCase(fetchCreateStripeSession.fulfilled, (state) => {
-                state.status = 'succeeded';
+                state.loading = false;
+                state.error = null;
             })
             .addCase(fetchCreateStripeSession.rejected, (state, action) => {
-                state.status = 'failed';
-                state.err = action.payload;
+                state.loading = false;
+                state.error = "Error executing request";
             })
             .addCase(fetchCreatePayPalSession.pending, (state) => {
                 state.loading = true;

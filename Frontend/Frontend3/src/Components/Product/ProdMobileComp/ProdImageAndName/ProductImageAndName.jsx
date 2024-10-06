@@ -2,8 +2,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector, useDispatch } from "react-redux";
-import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.svg";
 
+import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.svg";
 import { toggleFavorite } from "../../../../api/favorite";
 import mobReturnIcon from "../../../../assets/mobileIcons/mobReturnIcon.svg";
 import likeIcon from "../../../../assets/Product/like.svg";
@@ -23,6 +23,10 @@ const ProductImageAndName = () => {
 
   const [like, setLike] = useState(product ? product.is_favorite : false);
 
+  const [price, setPrice] = useState("10");
+  const [endPrice, setEndPice] = useState("10");
+  const [sku, setSku] = useState(null);
+
   const basket = useSelector((state) => state.basket.basket);
 
   const navigate = useNavigate();
@@ -31,15 +35,19 @@ const ProductImageAndName = () => {
 
   const { t } = useTranslation();
 
+
   const dispatch = useDispatch();
+
+
 
   const handleAddBasket = () => {
     dispatch(
       addToBasket({
         id: product.id,
-        product: { ...product },
+        product: { ...product, price: endPrice },
         count: 1,
         selected: false,
+        sku: sku,
       })
     );
   };
@@ -51,6 +59,26 @@ const ProductImageAndName = () => {
       setInBasket(false);
     }
   }, [id, basket]);
+
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      // Проверка, есть ли продукт с текущим id в корзине
+      const existingProduct = basket.find((item) => item.id === product.id);
+
+      if (!existingProduct) {
+        // Если продукта нет в корзине, установить значения первого варианта
+        const firstVariant = product.variants[0];
+        setPrice(firstVariant.price);
+        setEndPice(firstVariant.price);
+        setSku(firstVariant.sku);
+      } else {
+        // Если продукт уже в корзине, использовать данные из корзины
+        // setPrice(existingProduct.product.price);
+        setEndPice(existingProduct.product.price);
+        setSku(existingProduct.sku);
+      }
+    }
+  }, [product, basket]);
 
   const handleLikeClick = async () => {
     const newLike = !like;
@@ -78,9 +106,14 @@ const ProductImageAndName = () => {
       <MobileProdSwiper />
       <div className={styles.descAndBtnWrap}>
         <p className={styles.title}>{product?.name}</p>
-        <ProdCharackButtons />
+        <ProdCharackButtons
+          setPrice={setEndPice}
+          setSku={setSku}
+          variants={product?.variants}
+          id={product?.id}
+        />
         <div className={styles.priceWrap}>
-          <p>{product?.price} €</p>
+          <p>{price} €</p>
           {/* <span>400.00 Kč</span> */}
         </div>
         <button className={styles.basketBtn} onClick={handleAddBasket}>

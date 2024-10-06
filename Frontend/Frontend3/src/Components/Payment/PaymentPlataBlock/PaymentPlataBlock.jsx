@@ -47,7 +47,7 @@ const PaymentPlataBlock = ({ setSection }) => {
 
   const handleSubmit = () => {
     if (plataType === "card") {
-      dispatch(fetchCreateStripeSession());
+      dispatch(fetchCreateStripeSession(selectedProducts));
     } else {
       dispatch(fetchCreatePayPalSession(selectedProducts));
     }

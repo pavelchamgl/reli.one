@@ -13,6 +13,7 @@ import FilterByPrice from "../ui/FilterByPrice/FilterByPrice";
 import MobFilter from "../Components/MobFilter/MobFilter";
 
 import styles from "../styles/SearchPage.module.scss";
+import NoContentText from "../ui/NoContentText/NoContentText";
 
 const SearchPage = () => {
   const [page, setPage] = useState(1);
@@ -96,9 +97,11 @@ const SearchPage = () => {
           />
         )}
         <div className={styles.productDiv}>
-          {products.map((item) => (
-            <ProductCard data={item} key={item.id} />
-          ))}
+          {products && products.length > 0 ? (
+            products.map((item) => <ProductCard data={item} key={item.id} />)
+          ) : (
+            <NoContentText />
+          )}
         </div>
         <div className={styles.paginateDiv}>
           <Pagination

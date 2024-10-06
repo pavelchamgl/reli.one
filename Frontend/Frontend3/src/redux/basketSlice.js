@@ -282,6 +282,45 @@ const basketSlice = createSlice({
                 totalCount: totalPrice
             };
         },
+        changeVariants: (state, action) => {
+            const { id, price, sku } = action.payload;
+
+            const basketProduct = state.basket.find((item) => item.id === id);
+
+            // Проверяем, найден ли продукт в корзине
+            if (!basketProduct) {
+                return state;
+            }
+
+            const newProduct = {
+                ...basketProduct,
+                product: { ...basketProduct.product, price },
+                sku
+            };
+
+            const newBasket = state.basket.map((item) =>
+                item.id === id ? newProduct : item
+            );
+
+            const newSelectedProduct = state.selectedProducts.map((item) =>
+                item.id === id ? newProduct : item
+            );
+
+            // Записываем в localStorage только если изменились данные
+            if (JSON.stringify(newBasket) !== localStorage.getItem("basket")) {
+                localStorage.setItem("basket", JSON.stringify(newBasket));
+            }
+            if (JSON.stringify(newSelectedProduct) !== localStorage.getItem("selectedProducts")) {
+                localStorage.setItem("selectedProducts", JSON.stringify(newSelectedProduct));
+            }
+
+            return {
+                ...state,
+                basket: newBasket,
+                selectedProducts: newSelectedProduct
+            };
+        }
+
     },
 
     extraReducers: builder => {
@@ -289,6 +328,6 @@ const basketSlice = createSlice({
     }
 });
 
-export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount, updateTotalPrice } = basketSlice.actions;
+export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount, updateTotalPrice, changeVariants } = basketSlice.actions;
 
 export const { reducer } = basketSlice;
