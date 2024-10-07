@@ -29,7 +29,7 @@ const PlataRadio = ({ setPlata }) => {
       >
         <div className={styles.selectBlock}>
           <FormControlLabel
-            disabled={true}
+            // disabled={true}
             value="card"
             control={<Radio color="success" />}
             label={t("debit_credit")}

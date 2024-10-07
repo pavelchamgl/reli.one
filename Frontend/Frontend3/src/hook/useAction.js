@@ -6,7 +6,7 @@ import { setAllCategories, fetchGetCategory, setCategory, setPodCategory } from 
 import { fetchGetProducts, fetchGetProductById, fetchSearchProducts, setOrdering, setMax, setMin, setCategoryForProduct, setProdPage, setSearchPage } from "../redux/productsSlice"
 import { fetchGetComments, fetchPostComment, setCommentPage } from "../redux/commentSlice"
 import { editValue, fetchCreateStripeSession, fetchCreatePayPalSession } from "../redux/paymentSlice"
-import { plusMinusDelivery, basketSelectedProductsPrice, plusCount, minusCount, minusCardCount, plusCardCount } from "../redux/basketSlice"
+import { plusMinusDelivery, basketSelectedProductsPrice, plusCount, minusCount, minusCardCount, plusCardCount, changeVariants } from "../redux/basketSlice"
 import { fetchFavoriteProducts, setOrderingFav, setPageFav } from "../redux/favoriteSlice"
 import { fetchGetOrders, fetchGetDetalOrders } from "../redux/ordersSlice"
 
@@ -40,8 +40,8 @@ const rootActions = {
     plusCount,
     minusCount,
     minusCardCount,
-    plusCardCount
-
+    plusCardCount,
+    changeVariants
 }
 
 
