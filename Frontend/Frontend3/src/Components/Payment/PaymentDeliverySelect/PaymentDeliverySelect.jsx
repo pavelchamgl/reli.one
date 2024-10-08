@@ -112,16 +112,20 @@ const PaymentDeliverySelect = () => {
           TK: "ppl",
           price: pplFuncResult?.price,
           type: 1,
+          courier_id:1
         },
         {
           TK: "dpd",
           price: dpdFuncResult,
           type: 1,
+          courier_id:3
+
         },
         {
           TK: "globallogistics",
           price: geisFuncResult,
           type: 1,
+          courier_id:2
         },
       ])
     );

@@ -12,7 +12,10 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
   const [hover, setHover] = useState(false);
   const [inpValue, setInpValue] = useState(value);
   const [price, setPrice] = useState(0);
+  const [type, setType] = useState(0);
+  const [curierId, setCurierId] = useState(0);
   const [error, setError] = useState(false);
+  const [priceError, setPriceError] = useState(false); // Новый стейт для проверки цены
 
   useEffect(() => {
     setInpValue(value);
@@ -25,8 +28,6 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
   const { editValue, plusMinusDelivery } = useActions();
 
   const handleClick = () => {
-    console.log(inpValue);
-
     if (desc === "email") {
       editValue({ email: inpValue });
     }
@@ -36,33 +37,38 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
     }
 
     if (desc === "TK") {
-      plusMinusDelivery({ type: "minus", price: paymentInfo.price });
-      editValue({ TK: inpValue, price: price });
-      plusMinusDelivery({ type: "plus", price: price });
-      // if (setSection) {
-      //   setSection(2);
-      // }
+      if (!priceError) {
+        plusMinusDelivery({ type: "minus", price: paymentInfo.price });
+        editValue({
+          TK: inpValue,
+          price: price,
+          type: type,
+          courier_id: curierId,
+        });
+        plusMinusDelivery({ type: "plus", price: price });
+      }
     }
   };
 
   useEffect(() => {
-    console.log(paymentInfo);
-    console.log(totalCount);
-  }, [totalCount, paymentInfo]);
-
-  useEffect(() => {
     if (desc === "TK" && delivery) {
-      let foundPrice = 0; // Начальное значение цены
+      let foundPrice = 0;
+      let curId = 0;
+      let deliveryType = 0;
 
       delivery.forEach((item) => {
         if (
           item?.TK.replace(/\s+/g, "") === inpValue.trim().replace(/\s+/g, "")
         ) {
-          foundPrice = item?.price; // Обновляем цену, если условие выполняется
+          foundPrice = item?.price;
+          curId = item?.courier_id;
+          deliveryType = item?.type;
         }
       });
 
-      setPrice(foundPrice); // Устанавливаем цену один раз после цикла
+      setPrice(foundPrice);
+      setCurierId(curId);
+      setType(deliveryType);
     }
   }, [inpValue, desc, delivery]);
 
@@ -77,9 +83,15 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
         normalizedValue === "globallogistics";
 
       setError(!isValid);
-      console.log("Error state:", !isValid);
+
+      // Проверяем, является ли цена числом
+      if (isValid && isNaN(price)) {
+        setPriceError(true); // Если цена не является числом
+      } else {
+        setPriceError(false); // Если всё нормально
+      }
     }
-  }, [inpValue]);
+  }, [inpValue, price]);
 
   return (
     <div className={styles.main}>
@@ -94,16 +106,24 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
           onMouseEnter={() => setHover(true)}
           onMouseLeave={() => setHover(false)}
           onClick={handleClick}
-          disabled={error}
+          disabled={error || priceError} // Дизейблим, если есть ошибка или цена невалидна
         >
           <span>{t("pay_change")}</span>
-          <img src={hover || error ? arrRightWhite : arrRight} alt="" />
+          <img
+            src={hover || error || priceError ? arrRightWhite : arrRight}
+            alt=""
+          />
         </button>
       </div>
       {error && (
         <p className={styles.errorText}>
           We do not have such a transport company. Available companies: DPD,
           PPL, Global logistics.
+        </p>
+      )}
+      {priceError && (
+        <p className={styles.errorText}>
+          Invalid price. Unable to change delivery method.
         </p>
       )}
     </div>
