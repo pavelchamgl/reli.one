@@ -19,7 +19,7 @@ export const fetchCreateStripeSession = createAsyncThunk(
                 delivery_address: `${paymentInfo.address}, ${paymentInfo.country}`,
                 phone: paymentInfo.phone,
                 delivery_cost: paymentInfo.price,
-                courier_service_name: paymentInfo.courier_id,
+                courier_service: paymentInfo.courier_id,
                 products: selectedProducts.map(item => ({
                     sku: item.sku,
                     quantity: item.count
@@ -51,7 +51,7 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                 delivery_address: `${paymentInfo.address}, ${paymentInfo.country}`,
                 phone: paymentInfo.phone,
                 delivery_cost: paymentInfo.price,
-                courier_service_name: paymentInfo.courier_id,
+                courier_service: paymentInfo.courier_id,
                 products: selectedProducts.map(item => ({
                     sku: item.sku,
                     quantity: item.count

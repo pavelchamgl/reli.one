@@ -2,11 +2,17 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import styles from "../styles/PaymentEnd.module.scss";
+import { useEffect } from "react";
 
 const PaymentEnd = () => {
   const navigate = useNavigate();
 
   const { t } = useTranslation();
+
+  useEffect(() => {
+    localStorage.removeItem("selectedProducts");
+    localStorage.removeItem("basket");
+  }, []);
 
   return (
     <div className={styles.main}>

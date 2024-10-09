@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getDetalOrders, getOrders } from "../api/orders";
+import { getDetalOrders, getOrders, getOrdersCurrent } from "../api/orders";
 
 
 export const fetchGetOrders = createAsyncThunk(
@@ -7,6 +7,19 @@ export const fetchGetOrders = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const res = await getOrders()
+            console.log(res);
+            return res.data
+        } catch (error) {
+            return rejectWithValue(error)
+        }
+    }
+)
+
+export const fetchGetOrdersCurrent = createAsyncThunk(
+    "orders/fetchGetOrdersCurrent",
+    async (_, { rejectWithValue }) => {
+        try {
+            const res = await getOrdersCurrent()
             console.log(res);
             return res.data
         } catch (error) {
@@ -48,6 +61,14 @@ const ordersSlice = createSlice({
         }), builder.addCase(fetchGetOrders.rejected, (state, action) => {
             state.status = "rejected"
         }),
+            builder.addCase(fetchGetOrdersCurrent.fulfilled, (state, action) => {
+                state.ordersStatus = "fulfilled"
+                state.orders = action.payload
+            }), builder.addCase(fetchGetOrdersCurrent.pending, (state, action) => {
+                state.orderStatus = "loading"
+            }), builder.addCase(fetchGetOrdersCurrent.rejected, (state, action) => {
+                state.status = "rejected"
+            }),
             builder.addCase(fetchGetDetalOrders.fulfilled, (state, action) => {
                 state.orderStatus = "fulfilled"
                 state.order = action.payload

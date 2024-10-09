@@ -1,4 +1,7 @@
 .main {
+  // margin: 40px 0 100px;
+}
+.mainWithOpen {
   margin: 40px 0 100px;
 }
 .prodNumber {
@@ -86,31 +89,91 @@
   }
 }
 
-.noContentWrap{
-    display: flex;
-    height: 500px;
-    flex-direction: column;
-    gap: 30px;
-    align-items: center;
-    text-align: center;
-    justify-content: center;
-    font-weight: 400;
-    font-size: clamp(14px, 2.5vw, 32px);
-    line-height: 61%;
-    color: #ced4d7;
-    p {
-      line-height: normal;
-    }
-    img {
-      @media (max-width: 768px) {
-        width: 46px;
-      }
-      @media (max-width: 425px) {
-        width: 36px;
-      }
+.noContentWrap {
+  display: flex;
+  height: 500px;
+  flex-direction: column;
+  gap: 30px;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 32px);
+  line-height: 61%;
+  color: #ced4d7;
+  p {
+    line-height: normal;
+  }
+  img {
+    @media (max-width: 768px) {
+      width: 46px;
     }
     @media (max-width: 425px) {
-      height: 400px;
+      width: 36px;
     }
-  
+  }
+  @media (max-width: 425px) {
+    height: 400px;
+  }
+}
+
+.prodNumber {
+  font-weight: 400;
+  font-size: clamp(12px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #888;
+  span {
+    font-weight: 500;
+    color: #000;
+  }
+}
+.main {
+  // margin: 40px 0 100px;
+  // @media (max-width: 400px) {
+  //   margin: 40px 0 50px;
+  // }
+}
+
+.buttonDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  button {
+    background-color: transparent;
+    margin-bottom: 15px;
+  }
+}
+
+.delivTimeText {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+  line-height: 123%;
+  color: #047857;
+}
+
+.timeTextWrap {
+  margin-top: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap-reverse;
+}
+
+.smallCardDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin: 40px 0 100px;
+  @media (max-width: 400px) {
+    margin: 40px 0 50px;
+  }
+}
+
+.loaderWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }

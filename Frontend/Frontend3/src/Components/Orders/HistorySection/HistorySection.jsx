@@ -42,7 +42,7 @@ const HistorySection = () => {
       );
     } else {
       return (
-        <div className={styles.main}>
+        <div className={styles.mainWithOpen}>
           <div>
             <div className={styles.buttonDiv}>
               <p className={styles.prodNumber}>

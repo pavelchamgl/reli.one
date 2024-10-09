@@ -8,7 +8,7 @@ import { fetchGetComments, fetchPostComment, setCommentPage } from "../redux/com
 import { editValue, fetchCreateStripeSession, fetchCreatePayPalSession } from "../redux/paymentSlice"
 import { plusMinusDelivery, basketSelectedProductsPrice, plusCount, minusCount, minusCardCount, plusCardCount, changeVariants } from "../redux/basketSlice"
 import { fetchFavoriteProducts, setOrderingFav, setPageFav } from "../redux/favoriteSlice"
-import { fetchGetOrders, fetchGetDetalOrders } from "../redux/ordersSlice"
+import { fetchGetOrders, fetchGetDetalOrders,fetchGetOrdersCurrent } from "../redux/ordersSlice"
 
 const rootActions = {
     fetchGetCategory,
@@ -41,7 +41,8 @@ const rootActions = {
     minusCount,
     minusCardCount,
     plusCardCount,
-    changeVariants
+    changeVariants,
+    fetchGetOrdersCurrent
 }
 
 

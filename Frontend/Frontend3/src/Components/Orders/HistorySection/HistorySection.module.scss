@@ -9,10 +9,10 @@
   }
 }
 .main {
+}
+
+.mainWithOpen {
   margin: 40px 0 100px;
-  @media (max-width: 400px) {
-    margin: 40px 0 50px;
-  }
 }
 
 .buttonDiv {
@@ -46,6 +46,10 @@
   align-items: center;
   gap: 15px;
   flex-wrap: wrap;
+  margin: 40px 0 100px;
+  @media (max-width: 400px) {
+    margin: 40px 0 50px;
+  }
 }
 
 .loaderWrap {
