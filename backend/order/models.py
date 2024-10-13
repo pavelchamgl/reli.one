@@ -27,8 +27,9 @@ class OrderStatus(models.Model):
     name = models.CharField(max_length=50)
 
     class Meta:
-        verbose_name = 'Ordered product'
-        verbose_name_plural = 'Ordered products'
+        verbose_name = 'Ordered status'
+
+        verbose_name_plural = 'Ordered statuses'
 
     def __str__(self):
         return self.name
