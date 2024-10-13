@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'cloudinary',
     'corsheaders',
+    'mptt',
 
     'accounts',
     'order',
