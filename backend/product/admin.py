@@ -1,3 +1,6 @@
+from django import forms
+from mptt.admin import MPTTModelAdmin
+from mptt.forms import TreeNodeChoiceField
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 
@@ -29,6 +32,14 @@ class BaseProductImageInline(admin.TabularInline):
     extra = 1
 
 
+class BaseProductAdminForm(forms.ModelForm):
+    category = TreeNodeChoiceField(queryset=Category.objects.all())
+
+    class Meta:
+        model = BaseProduct
+        fields = '__all__'
+
+
 class ProductVariantAdmin(admin.ModelAdmin):
     list_display = ('id', 'product', 'name', 'price')
     search_fields = ['product__name', 'name']
@@ -37,6 +48,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
 
 
 class AdminBaseProduct(admin.ModelAdmin):
+    form = BaseProductAdminForm
     list_display = ('id', 'name', 'product_description')
     list_filter = ['name', 'category', 'supplier']
     search_fields = ['name', 'product_description']
@@ -60,7 +72,7 @@ class AdminBaseProduct(admin.ModelAdmin):
 
 admin.site.register(BaseProduct, AdminBaseProduct)
 admin.site.register(ProductVariant, ProductVariantAdmin)
-admin.site.register(Category)
+admin.site.register(Category, MPTTModelAdmin)
 admin.site.register(BaseProductImage)
 admin.site.register(ParameterValue)
 admin.site.register(ParameterName)
