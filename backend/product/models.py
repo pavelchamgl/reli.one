@@ -4,6 +4,7 @@ from PIL import Image
 from decimal import Decimal
 from django.db import models
 from django.conf import settings
+from mptt.models import MPTTModel, TreeForeignKey
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
@@ -26,23 +27,22 @@ class ParameterValue(models.Model):
         return f"{self.value} {self.parameter.name}"
 
 
-class Category(models.Model):
+class Category(MPTTModel):
     name = models.CharField(max_length=100)
-    parent = models.ForeignKey('self', null=True, blank=True, related_name='children', on_delete=models.CASCADE)
+    parent = TreeForeignKey(
+        'self', null=True, blank=True, related_name='children', on_delete=models.CASCADE
+    )
     image = models.ImageField(upload_to='category_images/', null=True, blank=True)
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
 
     class Meta:
         verbose_name = 'Category'
         verbose_name_plural = 'Categories'
 
     def __str__(self):
-        return f"PK: {self.pk} - {self.name}"
-
-    def get_root_category(self):
-        category = self
-        while category.parent is not None:
-            category = category.parent
-        return category
+        return f"{self.name} (PK: {self.pk})"
 
 
 class BaseProduct(models.Model):
