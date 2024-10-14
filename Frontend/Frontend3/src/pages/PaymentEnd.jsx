@@ -9,9 +9,14 @@ const PaymentEnd = () => {
 
   const { t } = useTranslation();
 
+  const basket = JSON.parse(localStorage.getItem("basket")) || [];
+
   useEffect(() => {
+    let newBasket = basket.filter((item) => !item.selected);
+
     localStorage.removeItem("selectedProducts");
-    localStorage.removeItem("basket");
+
+    localStorage.setItem("basket", JSON.stringify(newBasket));
   }, []);
 
   return (

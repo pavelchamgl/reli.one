@@ -21,6 +21,7 @@ import styles from "./PaymentPlataBlock.module.scss";
 const PaymentPlataBlock = ({ setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const [plataType, setPlataType] = useState("card");
+  const [inputError, setInputError] = useState(false);
 
   const { t } = useTranslation();
 
@@ -33,6 +34,11 @@ const PaymentPlataBlock = ({ setSection }) => {
   const selectedProducts = useSelector(
     (state) => state.basket.selectedProducts
   );
+
+  useEffect(()=>{
+    console.log(inputError);
+    
+  },[inputError])
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -78,6 +84,7 @@ const PaymentPlataBlock = ({ setSection }) => {
           value={TK}
           title={t("way_transportation")}
           setSection={setSection}
+          setInputError={setInputError}
         />
       </div>
       <div className={styles.plataDiv}>
@@ -96,7 +103,7 @@ const PaymentPlataBlock = ({ setSection }) => {
           <img src={arrLeft} alt="" />
           <span>{t("back_to_delivery")}</span>
         </button>
-        <button onClick={handleSubmit}>
+        <button disabled={inputError} onClick={handleSubmit}>
           {loading ? <Spinner /> : <p>{t("pay_now")}</p>}
         </button>
       </div>

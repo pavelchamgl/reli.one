@@ -1,3 +1,5 @@
+import i18n from "../language/i18next.js";
+import { I18nextProvider } from "react-i18next";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
@@ -27,12 +29,11 @@ import MobProfileNavPage from "./pages/MobProfileNavPage.jsx";
 import MobCategoryPage from "./pages/MobCategoryPage.jsx";
 import OtpConfirmPage from "./pages/OtpConfirmPage.jsx";
 import CategoryPage from "./pages/CategoryPage.jsx";
-
-import i18n from "../language/i18next.js";
-import { I18nextProvider } from "react-i18next";
 import PassEmailConfirmPage from "./pages/PassEmailConfirmPage.jsx";
 import OtpPassConfirmPage from "./pages/OtpPassConf.jsx";
 import CreateNewPass from "./pages/CreateNewPass.jsx";
+import RegRulesPage from "./pages/RegRulesPage.jsx";
+
 
 const router = createBrowserRouter([
   {
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
       {
         path: "/search",
         element: <SearchPage />,
+      },
+      {
+        path: "/register_rules",
+        element: <RegRulesPage />,
       },
       {
         path: "/for_sell",

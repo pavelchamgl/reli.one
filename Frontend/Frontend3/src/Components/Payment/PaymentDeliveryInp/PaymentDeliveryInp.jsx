@@ -8,9 +8,15 @@ import arrRightWhite from "../../../assets/Payment/arrRightWhite.svg";
 
 import styles from "./PaymentDeliveryInp.module.scss";
 
-const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
+const PaymentDeliveryInp = ({
+  desc,
+  title,
+  value,
+  setSection = null,
+  setInputError,
+}) => {
   const [hover, setHover] = useState(false);
-  const [inpValue, setInpValue] = useState(value);
+  const [inpValue, setInpValue] = useState(value || ""); // Приводим value к строке
   const [price, setPrice] = useState(0);
   const [type, setType] = useState(0);
   const [curierId, setCurierId] = useState(0);
@@ -18,7 +24,7 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
   const [priceError, setPriceError] = useState(false); // Новый стейт для проверки цены
 
   useEffect(() => {
-    setInpValue(value);
+    setInpValue(value || ""); // Приводим value к строке
   }, [value]);
 
   const { paymentInfo, delivery } = useSelector((state) => state.payment);
@@ -58,7 +64,8 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
 
       delivery.forEach((item) => {
         if (
-          item?.TK.replace(/\s+/g, "") === inpValue.trim().replace(/\s+/g, "")
+          item?.TK.replace(/\s+/g, "") ===
+          (inpValue || "").trim().replace(/\s+/g, "") // Приводим inpValue к строке
         ) {
           foundPrice = item?.price;
           curId = item?.courier_id;
@@ -74,22 +81,27 @@ const PaymentDeliveryInp = ({ desc, title, value, setSection = null }) => {
 
   useEffect(() => {
     if (desc === "TK") {
-      const normalizedValue = inpValue.trim().toLowerCase().replace(/\s+/g, "");
-
+      const normalizedValue = (inpValue || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "");
+  
       const isValid =
         normalizedValue === "dpd" ||
         normalizedValue === "ppl" ||
         normalizedValue === "sclad" ||
         normalizedValue === "globallogistics";
-
+  
       setError(!isValid);
-
-      // Проверяем, является ли цена числом
+  
       if (isValid && isNaN(price)) {
-        setPriceError(true); // Если цена не является числом
+        setPriceError(true); // Если цена невалидна
       } else {
-        setPriceError(false); // Если всё нормально
+        setPriceError(false);
       }
+  
+      // Теперь вызов `setInputError` зависит от комбинации ошибок
+      setInputError(!isValid || priceError);
     }
   }, [inpValue, price]);
 

@@ -27,11 +27,13 @@ const BasketCardBlock = () => {
   const basket = useSelector((state) => state.basket.basket) || [];
   const basketSearch =
     useSelector((state) => state.basket.filteredBasket) || [];
+
+  const basketSelectedProducts =
+    useSelector((state) => state.basket.selectedProducts) || [];
+
   const dispatch = useDispatch();
 
-  const [selectAll, setSelectAll] = useState(
-    basket.every((item) => item.selected === true)
-  );
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     const storedBasketTotal = localStorage.getItem("basketTotal");
@@ -53,6 +55,10 @@ const BasketCardBlock = () => {
       dispatch(deselectAllProducts());
     }
   }, [selectAll, dispatch]);
+
+  useEffect(() => {
+    setSelectAll(basket.every((item) => item.selected === true));
+  }, [basket]);
 
   return (
     <div className={styles.main}>
