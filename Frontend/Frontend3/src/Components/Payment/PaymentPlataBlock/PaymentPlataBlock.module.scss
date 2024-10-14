@@ -104,10 +104,14 @@
     &:hover {
       background-color: #06664b;
     }
+    &:disabled{
+      background-color: #787778;
+    }
     @media (max-width: 426px) {
       width: 100%;
       margin-bottom: 22px;
     }
+    
   }
 }
 

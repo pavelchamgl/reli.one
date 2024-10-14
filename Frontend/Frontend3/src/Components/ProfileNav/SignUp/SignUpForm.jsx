@@ -15,6 +15,7 @@ const SignUpForm = () => {
   const [size, setSize] = useState("352px");
   const isMobile = useMediaQuery({ maxWidth: 400 });
   const [regErr, setRegErr] = useState("");
+  const [agreeRules, setAgreeRules] = useState(true);
 
   const navigate = useNavigate();
 
@@ -187,9 +188,14 @@ const SignUpForm = () => {
         />
         <p className={styles.errText}>{formik.errors.confirm_password}</p>
       </label>
-      <label className={styles.checkDiv}>
-        <CheckBox />
-        <p>{t("agree_rules")}</p>
+      <label
+        onClick={() => {
+          navigate("/register_rules");
+        }}
+        className={styles.checkDiv}
+      >
+        <CheckBox check={agreeRules} />
+        <p >{t("agree_rules")}</p>
       </label>
       <p className={styles.errText}>{regErr}</p>
       <button

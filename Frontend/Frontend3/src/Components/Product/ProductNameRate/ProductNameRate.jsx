@@ -45,7 +45,7 @@ const ProductNameRate = () => {
   };
 
   useEffect(() => {
-    if (basket.some((item) => item.id === Number(id))) {
+    if (basket.some((item) => item.sku === sku)) {
       setInBasket(true);
     } else {
       setInBasket(false);

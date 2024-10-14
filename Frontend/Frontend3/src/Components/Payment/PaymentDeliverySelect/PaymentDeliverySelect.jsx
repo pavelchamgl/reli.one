@@ -106,26 +106,25 @@ const PaymentDeliverySelect = () => {
         {
           TK: "sclad",
           price: 0,
-          type: 0,
+          type: 1,
         },
         {
           TK: "ppl",
           price: pplFuncResult?.price,
-          type: 1,
-          courier_id:1
+          type: 2,
+          courier_id: 1,
         },
         {
           TK: "dpd",
           price: dpdFuncResult,
-          type: 1,
-          courier_id:3
-
+          type: 2,
+          courier_id: 3,
         },
         {
           TK: "globallogistics",
           price: geisFuncResult,
-          type: 1,
-          courier_id:2
+          type: 2,
+          courier_id: 2,
         },
       ])
     );
@@ -136,7 +135,7 @@ const PaymentDeliverySelect = () => {
       setOpen((prevOpen) => !prevOpen);
     }
     if (selectedValue === "sclad") {
-      editValue({ TK: selectedValue, price: 0, type: 0 });
+      editValue({ TK: selectedValue, price: 0, type: 1 });
     } else {
       let courirer;
       if (selectedValue === "ppl") {
@@ -152,7 +151,7 @@ const PaymentDeliverySelect = () => {
       editValue({
         TK: selectedValue,
         price: price,
-        type: 1,
+        type: 2,
         courier_id: courirer,
       });
     }

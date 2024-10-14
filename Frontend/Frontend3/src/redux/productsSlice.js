@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { getProductById, getProducts } from "../api/productsApi"
 import axios from "axios";
 
+const token = JSON.parse(localStorage.getItem("token"));
+
 export const fetchGetProducts = createAsyncThunk(
     "products/fetchGetProducts",
     async (_, { rejectWithValue, getState }) => {
@@ -35,7 +37,19 @@ export const fetchSearchProducts = createAsyncThunk(
         try {
             const state = getState().products
             console.log(state);
-            const res = await axios.get(`https://reli.one/api/products/search/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.searchPage}&q=${text}&page_size=15`)
+            const res = await axios.get(`https://reli.one/api/products/search/`, {
+                params: {
+                    max_price: state.max,
+                    min_price: state.min,
+                    ordering: state.ordering,
+                    page: state.searchPage,
+                    q: text,
+                    page_size: 15
+                },
+                headers: {
+                    Authorization: token ? `Bearer ${token.access}` : ''
+                }
+            });
             console.log(res);
             return res.data
         } catch (error) {
