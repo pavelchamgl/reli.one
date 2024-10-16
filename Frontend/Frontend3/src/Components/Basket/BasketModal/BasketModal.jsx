@@ -27,7 +27,7 @@ const BasketModal = ({ open, handleClose, productData }) => {
   const handleNavigatePayment = () => {
     if (token) {
       dispatch(deselectAllProducts());
-      dispatch(selectProduct({ id: productData?.id, selected: true }));
+      dispatch(selectProduct({ sku: productData.sku, selected: true }));
       dispatch(updateTotalPrice());
       navigate("/payment");
     } else {

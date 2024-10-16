@@ -22,6 +22,7 @@ const BasketCard = ({ all, section, productData }) => {
   const [like, setLike] = useState(
     productData ? productData.is_favorite : false
   );
+  const [variants, setVariants] = useState({});
 
   const { product } = productData;
 
@@ -38,7 +39,7 @@ const BasketCard = ({ all, section, productData }) => {
   const handleMinus = () => {
     setCount((prev) => {
       const newCount = prev > 0 ? prev - 1 : 0;
-      minusCardCount({ id: product.id, count: newCount });
+      minusCardCount({ sku: productData.sku, count: newCount });
       return newCount;
     });
   };
@@ -46,7 +47,7 @@ const BasketCard = ({ all, section, productData }) => {
   const handlePlus = () => {
     setCount((prev) => {
       const newCount = prev + 1;
-      plusCardCount({ id: product.id, count: newCount });
+      plusCardCount({ sku: productData.sku, count: newCount });
       return newCount;
     });
   };
@@ -54,7 +55,9 @@ const BasketCard = ({ all, section, productData }) => {
   const handleCheckboxChange = (event) => {
     const newCheckboxValue = event.target.checked;
     setCheckboxValue(newCheckboxValue);
-    dispatch(selectProduct({ id: product.id, selected: newCheckboxValue }));
+    dispatch(
+      selectProduct({ sku: productData.sku, selected: newCheckboxValue })
+    );
   };
 
   useEffect(() => {
@@ -72,6 +75,15 @@ const BasketCard = ({ all, section, productData }) => {
     }
   };
 
+  useEffect(() => {
+    if (product?.variants) {
+      const ourVariant = product?.variants?.find(
+        (item) => item.sku === productData.sku
+      );
+      setVariants(ourVariant);
+    }
+  }, [product?.variants, productData.sku]);
+
   return (
     <div className={styles.main}>
       {section === "basket" && (
@@ -88,7 +100,12 @@ const BasketCard = ({ all, section, productData }) => {
         <>
           <img
             className={styles.img}
-            src={product?.image || product?.images?.[0]?.image_url}
+            // Если у варианта есть изображение, отображаем его
+            src={
+              variants.image
+                ? variants.image
+                : product?.image || product?.images?.[0]?.image_url
+            }
             alt=""
           />
           <div className={styles.adaptiveWrap}>
@@ -96,7 +113,11 @@ const BasketCard = ({ all, section, productData }) => {
               onClick={() => navigate(`/product/${product?.id}`)}
               className={styles.mobTextDiv}
             >
-              <p>{product?.name}</p>
+              <p>
+                {product?.name}
+                {/* Если изображения нет, добавляем текст варианта в скобках */}
+                {!variants.image && variants.text ? ` (${variants.text})` : ""}
+              </p>
             </div>
             <div className={styles.countDiv}>
               <button onClick={handleMinus}>
@@ -117,12 +138,19 @@ const BasketCard = ({ all, section, productData }) => {
           <div className={styles.imageTextWrap}>
             <img
               className={styles.img}
-              src={product?.image || product?.images?.[0]?.image_url}
+              // Если у варианта есть изображение, отображаем его
+              src={
+                variants.image
+                  ? variants.image
+                  : product?.image || product?.images?.[0]?.image_url
+              }
               alt=""
             />
             <div className={styles.textDiv}>
               <h3 onClick={() => navigate(`/product/${product?.id}`)}>
                 {product?.name}
+                {/* Если изображения нет, добавляем текст варианта в скобках */}
+                {!variants.image && variants.text ? ` (${variants.text})` : ""}
               </h3>
               <p>{product?.category?.name}</p>
             </div>
@@ -149,7 +177,9 @@ const BasketCard = ({ all, section, productData }) => {
         <button onClick={handleToggleLike}>
           <img src={like ? likeIconAcc : likeIcon} alt="" />
         </button>
-        <button onClick={() => dispatch(deleteFromBasket({ id: product.id }))}>
+        <button
+          onClick={() => dispatch(deleteFromBasket({ sku: productData.sku }))}
+        >
           <img src={deleteIcon} alt="" />
         </button>
       </div>

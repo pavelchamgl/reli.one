@@ -82,6 +82,7 @@ const SearchPage = () => {
                 filter={filter}
                 setMax={setMax}
                 setMin={setMin}
+                products={products}
               />
             </div>
           )}
@@ -94,6 +95,7 @@ const SearchPage = () => {
             filter={filter}
             setMax={setMax}
             setMin={setMin}
+            products={products}
           />
         )}
         <div className={styles.productDiv}>

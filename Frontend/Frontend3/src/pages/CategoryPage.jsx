@@ -77,6 +77,7 @@ const CategoryPage = () => {
             filter={filter}
             setMax={setMax}
             setMin={setMin}
+            products={products}
           />
         )}
         <div className={styles.filterDiv}>
@@ -91,6 +92,7 @@ const CategoryPage = () => {
                 filter={filter}
                 setMax={setMax}
                 setMin={setMin}
+                products={products}
               />
             </div>
           )}
