@@ -5,6 +5,8 @@ import arrBottom from "../../assets/Filter/arrBottom.svg";
 import { useTranslation } from "react-i18next";
 
 import "./FilterByPrice.scss";
+import { useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 
 const AirbnbSlider = styled(Slider)(({ theme }) => ({
   color: "#000000",
@@ -48,13 +50,13 @@ function AirbnbThumbComponent(props) {
   );
 }
 
-const FilterByPrice = ({ handleFilter, filter, setMax, setMin }) => {
-  const [value, setValue] = useState([0, 1000]);
+const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
+  const [value, setValue] = useState([0, 0]);
   const [open, setOpen] = useState(false);
   const modalRef = useRef(null);
 
   const { t } = useTranslation();
-
+  const { pathname } = useLocation();
 
   const handleSliderChange = (event, newValue) => {
     setValue(newValue);
@@ -95,6 +97,18 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [open]);
+
+  useEffect(() => {
+    let max = 0;
+    if (products && products.length > 0) {
+      products?.forEach((item) => {
+        if (Number(item?.price) > max) {
+          max = Number(item?.price);
+        }
+      });
+    }
+    setValue([0, max]);
+  }, [products]);
 
   return (
     <div ref={modalRef} className="price-filter_main">

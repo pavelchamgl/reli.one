@@ -50,7 +50,7 @@ const ProductNameRate = () => {
     } else {
       setInBasket(false);
     }
-  }, [id, basket]);
+  }, [id, basket, sku]);
 
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {

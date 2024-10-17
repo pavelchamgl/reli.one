@@ -54,11 +54,11 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
                       setSelected(item.sku);
                       setPrice(item.price);
                       setSku(item.sku);
-                      changeVariants({
-                        id: id,
-                        price: item.price,
-                        sku: item.sku,
-                      });
+                      // changeVariants({
+                      //   id: id,
+                      //   price: item.price,
+                      //   sku: item.sku,
+                      // });
                     }}
                     key={index}
                   >
@@ -90,11 +90,11 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
                       setSelected(item.sku);
                       setPrice(item.price);
                       setSku(item.sku);
-                      changeVariants({
-                        id: id,
-                        price: item.price,
-                        sku: item.sku,
-                      });
+                      // changeVariants({
+                      //   id: id,
+                      //   price: item.price,
+                      //   sku: item.sku,
+                      // });
                     }}
                     key={item?.id}
                   >

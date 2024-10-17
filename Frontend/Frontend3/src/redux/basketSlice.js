@@ -16,7 +16,7 @@ const basketSlice = createSlice({
     },
     reducers: {
         addToBasket: (state, action) => {
-            if (state.basket.every((item) => item.id !== action.payload.id)) {
+            if (state.basket.every((item) => item.sku !== action.payload.sku)) {
                 const newBasket = [...state.basket, action.payload];
                 localStorage.setItem("basket", JSON.stringify(newBasket));
                 return {
@@ -28,7 +28,7 @@ const basketSlice = createSlice({
         plusCount: (state, action) => {
             console.log("uihhubhb");
             const newArr = state.basket.map((item) => {
-                if (item.id === action.payload.id) {
+                if (item.sku === action.payload.sku) {
                     return {
                         ...item,
                         count: action.payload.count
@@ -43,8 +43,10 @@ const basketSlice = createSlice({
             };
         },
         plusCardCount: (state, action) => {
+            console.log(action);
+
             state.basket = state.basket.map((item) => {
-                if (item.id === action.payload.id) {
+                if (item.sku === action.payload.sku) {
                     item.count = action.payload.count;
                 }
                 return item;
@@ -68,7 +70,7 @@ const basketSlice = createSlice({
 
         minusCardCount: (state, action) => {
             state.basket = state.basket.map((item) => {
-                if (item.id === action.payload.id) {
+                if (item.sku === action.payload.sku) {
                     item.count = action.payload.count;
                 }
                 return item;
@@ -93,7 +95,7 @@ const basketSlice = createSlice({
         minusCount: (state, action) => {
             console.log(2);
             const newArr = state.basket.map((item) => {
-                if (item.id === action.payload.id) {
+                if (item.slu === action.payload.sku) {
                     return {
                         ...item,
                         count: action.payload.count
@@ -109,13 +111,13 @@ const basketSlice = createSlice({
         },
         deleteFromBasket: (state, action) => {
             console.log(3);
-            const itemToDelete = state.basket.find(item => item.id === action.payload.id);
+            const itemToDelete = state.basket.find(item => item.sku === action.payload.sku);
 
             if (itemToDelete && itemToDelete.selected) {
                 state.totalCount = Number(state.totalCount) - Number(itemToDelete.product.price) * Number(itemToDelete.count);
             }
 
-            state.basket = state.basket.filter(item => item.id !== action.payload.id);
+            state.basket = state.basket.filter(item => item.sku !== action.payload.sku);
             state.selectedProducts = state.basket.filter((item) => item.selected)
 
 
@@ -131,7 +133,7 @@ const basketSlice = createSlice({
                 const itemCount = parseInt(item.count) || 0;
                 const itemTotal = itemPrice * itemCount;
 
-                if (item.id === action.payload.id) {
+                if (item.sku === action.payload.sku) {
                     if (action.payload.selected) {
                         totalCount += itemTotal;
                     }

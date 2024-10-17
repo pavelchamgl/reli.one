@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { getProductById, getProducts } from "../api/productsApi"
 import axios from "axios";
+import mainInstance from "../api";
 
 const token = JSON.parse(localStorage.getItem("token"));
 
@@ -37,10 +38,10 @@ export const fetchSearchProducts = createAsyncThunk(
         try {
             const state = getState().products
             console.log(state);
-            const res = await axios.get(`https://reli.one/api/products/search/`, {
+            const res = await mainInstance.get(`https://reli.one/api/products/search/`, {
                 params: {
-                    max_price: state.max,
-                    min_price: state.min,
+                    max: state.max,
+                    min: state.min,
                     ordering: state.ordering,
                     page: state.searchPage,
                     q: text,
@@ -73,7 +74,7 @@ const productsSlice = createSlice({
         err: "",
         status: "",
         category: 2,
-        max: 1000,
+        max: 1000000,
         min: 0,
         ordering: "price",
         page: 1,

@@ -36,7 +36,7 @@ const MobPaymentBasket = () => {
           {selectedProducts &&
             selectedProducts.length > 0 &&
             selectedProducts.map((item) => (
-              <MobCardSecond product={item?.product} />
+              <MobCardSecond product={item?.product} sku={item?.sku} />
             ))}
           <BasketTotalBlock />
         </div>

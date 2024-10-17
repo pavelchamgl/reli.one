@@ -23,23 +23,23 @@ const FilterByPopularity = ({
 
   useEffect(() => {
     if (setOrdering) {
-      if (pathname === "/liked") {
-        if (filterValue === "rating") {
-          setOrderingState("popular");
-          setOrdering("popular");
-        }
-        if (filterValue === "price") {
-          setOrderingState("price_asc");
-          setOrdering("price_asc");
-        }
-        if (filterValue === "-price") {
-          setOrderingState("price_desc");
-          setOrdering("price_desc");
-        }
-      } else {
-        setOrderingState(filterValue);
-        setOrdering(filterValue);
+      // if (pathname === "/liked") {
+      if (filterValue === "rating") {
+        setOrderingState("popular");
+        setOrdering("popular");
       }
+      if (filterValue === "price") {
+        setOrderingState("price_asc");
+        setOrdering("price_asc");
+      }
+      if (filterValue === "-price") {
+        setOrderingState("price_desc");
+        setOrdering("price_desc");
+      }
+      // } else {
+      //   setOrderingState(filterValue);
+      //   setOrdering(filterValue);
+      // }
     }
   }, [filterValue]);
 

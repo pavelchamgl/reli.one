@@ -59,6 +59,7 @@ const MobFilter = ({
   filter,
   setMax,
   setMin,
+  products,
 }) => {
   const [priceOpen, setPriceOpen] = useState(false);
   const [populOpen, setPopulOpen] = useState(false);
@@ -99,25 +100,37 @@ const MobFilter = ({
 
   useEffect(() => {
     if (setOrdering) {
-      if (pathname === "/liked") {
-        if (selected === "rating") {
-          setOrderingState("popular");
-          setOrdering("popular");
-        }
-        if (selected === "price") {
-          setOrderingState("price_asc");
-          setOrdering("price_asc");
-        }
-        if (selected === "-price") {
-          setOrderingState("price_desc");
-          setOrdering("price_desc");
-        }
-      } else {
-        setOrderingState(selected);
-        setOrdering(selected);
+      // if (pathname === "/liked") {
+      if (selected === "rating") {
+        setOrderingState("popular");
+        setOrdering("popular");
       }
+      if (selected === "price") {
+        setOrderingState("price_asc");
+        setOrdering("price_asc");
+      }
+      if (selected === "-price") {
+        setOrderingState("price_desc");
+        setOrdering("price_desc");
+      }
+      // } else {
+      //   setOrderingState(selected);
+      //   setOrdering(selected);
+      // }
     }
   }, [selected]);
+
+  useEffect(() => {
+    let max = 0;
+    if (products && products.length > 0) {
+      products?.forEach((item) => {
+        if (Number(item?.price) > max) {
+          max = Number(item?.price);
+        }
+      });
+    }
+    setValue([0, max]);
+  }, [products]);
 
   return (
     <div>

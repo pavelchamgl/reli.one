@@ -35,7 +35,7 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
   };
 
   const handleDelete = () => {
-    dispatch(deleteFromBasket({ id: data.id }));
+    dispatch(deleteFromBasket({ sku: sku }));
     handleClose();
   };
 
@@ -57,7 +57,7 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
             sku: variant.sku,
           })
         );
-        dispatch(plusCount({ id: data.id, count: count }));
+        dispatch(plusCount({ sku: variant.sku, count: count }));
       } else {
         console.error("Не найдено совпадений по цене");
       }
@@ -68,11 +68,11 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
     setMainCount(count);
 
     if (count === 0) {
-      dispatch(deleteFromBasket({ id: data.id }));
+      dispatch(deleteFromBasket({ sku: sku }));
       handleClose();
     }
     if (count > 1) {
-      dispatch(plusCount({ id: data.id, count: count }));
+      dispatch(plusCount({ sku: sku, count: count }));
     }
   }, [count, data]);
 
