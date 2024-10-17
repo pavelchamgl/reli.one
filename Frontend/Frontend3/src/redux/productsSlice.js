@@ -74,7 +74,7 @@ const productsSlice = createSlice({
         err: "",
         status: "",
         category: 2,
-        max: 1000000,
+        max: 10000000,
         min: 0,
         ordering: "price",
         page: 1,
