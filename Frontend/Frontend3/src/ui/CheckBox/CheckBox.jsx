@@ -1,29 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import checkBoxAccImg from "../../assets/checkbox/checkboxAcc.svg";
 import styles from "./checkBox.module.scss";
 
-const CheckBox = ({ check }) => {
+const CheckBox = ({ check, onChange }) => {
   const [isChecked, setIsChecked] = useState(false);
-
-  const basketTotal = JSON.parse(localStorage.getItem("basketTotal"));
 
   useEffect(() => {
     setIsChecked(check);
   }, [check]);
 
-  // Функция для обработки изменения состояния чекбокса
+  // Обработчик изменения состояния чекбокса
   const handleCheckboxChange = (event) => {
     setIsChecked(event.target.checked);
+    onChange(event.target.checked); // Передаем новое состояние вверх
   };
 
   return (
     <label>
-      {/* Отображаем разные стили в зависимости от состояния isChecked */}
       <div className={isChecked ? styles.mainChecked : styles.main}>
         {isChecked && <img src={checkBoxAccImg} alt="Checked" />}
       </div>
-
-      {/* Передаем состояние isChecked и обработчик изменения */}
       <input
         className={styles.check}
         type="checkbox"

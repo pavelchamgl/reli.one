@@ -3,7 +3,7 @@ import { useMediaQuery } from "react-responsive";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import { register } from "../../../api/auth";
 import AuthInp from "../../../ui/AuthInp/AuthInp";
@@ -15,7 +15,7 @@ const SignUpForm = () => {
   const [size, setSize] = useState("352px");
   const isMobile = useMediaQuery({ maxWidth: 400 });
   const [regErr, setRegErr] = useState("");
-  const [agreeRules, setAgreeRules] = useState(true);
+  const [agreeRules, setAgreeRules] = useState(false);
 
   const navigate = useNavigate();
 
@@ -188,18 +188,16 @@ const SignUpForm = () => {
         />
         <p className={styles.errText}>{formik.errors.confirm_password}</p>
       </label>
-      <label
-        onClick={() => {
-          navigate("/register_rules");
-        }}
-        className={styles.checkDiv}
-      >
-        <CheckBox check={agreeRules} />
-        <p >{t("agree_rules")}</p>
+      <label className={styles.checkDiv}>
+        <CheckBox check={agreeRules} onChange={setAgreeRules} />
+        <p>
+          You agree to the
+          <Link to={"/register_rules"}>rules</Link>
+        </p>
       </label>
       <p className={styles.errText}>{regErr}</p>
       <button
-        disabled={!formik.isValid}
+        disabled={!formik.isValid || !agreeRules} // Логика: кнопка активна только если форма валидна и чекбокс выбран
         onClick={formik.handleSubmit}
         className={styles.subBtn}
       >

@@ -130,6 +130,18 @@
   outline: none;
   font-size: 14px;
 }
+/* Убираем стрелки в браузерах на основе WebKit (например, Chrome, Safari) */
+.price-input input[type="number"]::-webkit-outer-spin-button,
+.price-input input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Убираем стрелки в Firefox */
+.price-input input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 
 .price-separator {
   font-size: 24px;

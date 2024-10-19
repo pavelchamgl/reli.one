@@ -51,12 +51,11 @@ function AirbnbThumbComponent(props) {
 }
 
 const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
-  const [value, setValue] = useState([0, 0]);
+  const [value, setValue] = useState([0, 100000]);
   const [open, setOpen] = useState(false);
   const modalRef = useRef(null);
 
   const { t } = useTranslation();
-  const { pathname } = useLocation();
 
   const handleSliderChange = (event, newValue) => {
     setValue(newValue);
@@ -98,17 +97,23 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
     };
   }, [open]);
 
-  useEffect(() => {
-    let max = 0;
-    if (products && products.length > 0) {
-      products?.forEach((item) => {
-        if (Number(item?.price) > max) {
-          max = Number(item?.price);
-        }
-      });
+  const preventArrowKeys = (event) => {
+    if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+      event.preventDefault();
     }
-    setValue([0, max]);
-  }, [products]);
+  };
+
+  // useEffect(() => {
+  //   let max = 0;
+  //   if (products && products.length > 0) {
+  //     products?.forEach((item) => {
+  //       if (Number(item?.price) > max) {
+  //         max = Number(item?.price);
+  //       }
+  //     });
+  //   }
+  //   setValue([0, max]);
+  // }, [products]);
 
   return (
     <div ref={modalRef} className="price-filter_main">
@@ -124,7 +129,7 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
           value={value}
           onChange={handleSliderChange}
           min={0}
-          max={1000}
+          max={10000}
           step={10}
         />
         <div className="price-inputs">
@@ -137,6 +142,7 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
               step="0.01"
               value={value[0]}
               onChange={handleMinChange}
+              onKeyDown={preventArrowKeys}
             />
           </div>
           <div className="price-separator">-</div>
@@ -149,6 +155,7 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
               step="0.01"
               value={value[1]}
               onChange={handleMaxChange}
+              onKeyDown={preventArrowKeys}
             />
           </div>
         </div>
