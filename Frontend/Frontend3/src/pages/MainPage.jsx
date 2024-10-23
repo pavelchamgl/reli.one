@@ -20,22 +20,37 @@ const MainPage = () => {
   const { fetchGetCategory, fetchGetProducts } = useActions();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    console.log(allCategory);
-  }, [allCategory]);
+
+  const localEmail = localStorage.getItem("email");
 
   useEffect(() => {
-    const existingValue = localStorage.getItem("basket");
-    if (!existingValue) {
-      localStorage.setItem("basket", JSON.stringify([]));
-    } else {
-      localStorage.setItem("basket", existingValue);
+    const existingValue = localStorage.getItem("baskets");
+    const existingValueParse = existingValue ? JSON.parse(existingValue) : [];
+
+    if (localEmail) {
+      const userBasket = existingValueParse?.find(
+        (item) => {
+          console.log(item);
+          if (item.email === JSON.parse(localEmail)) {
+            console.log(true);
+            return item;
+          }
+        } 
+      );
+
+      if (userBasket) {
+        localStorage.setItem("basket", JSON.stringify(userBasket.basket));
+      } else {
+        localStorage.setItem("basket", JSON.stringify([]));
+      }
     }
-  }, []);
 
-  useEffect(() => {
-    console.log(productsData);
-  }, [productsData]);
+    if (!existingValue) {
+      localStorage.setItem("baskets", JSON.stringify([]));
+    }
+  }, [localEmail]);
+
+
 
   useEffect(() => {
     fetchGetCategory();

@@ -51,6 +51,7 @@ const LoginModal = ({ open, handleClose }) => {
         .then((res) => {
           console.log(res);
           localStorage.setItem("token", JSON.stringify(res.data));
+          localStorage.setItem("email", JSON.stringify(values.email));
           setRegErr("");
           handleClose();
           window.location.reload();

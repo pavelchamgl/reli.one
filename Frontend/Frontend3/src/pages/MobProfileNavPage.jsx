@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useActions } from "../hook/useAction";
 
 import { deleteAccount, logout } from "../api/auth";
 import packetIcon from "../assets/profileNav/packetIcon.svg";
@@ -18,6 +19,8 @@ const MobProfileNavPage = () => {
   const { t } = useTranslation();
 
   const navigate = useNavigate();
+
+  const { clearBasket } = useActions();
 
   const [userData, setUserData] = useState({
     firstName: "",
@@ -64,6 +67,9 @@ const MobProfileNavPage = () => {
       localStorage.removeItem("basket");
       localStorage.removeItem("selectedProducts");
       localStorage.removeItem("basketTotal");
+      localStorage.removeItem("email");
+      clearBasket();
+      navigate("/");
       window.location.reload();
     });
   };

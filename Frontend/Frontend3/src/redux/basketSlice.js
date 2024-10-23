@@ -5,6 +5,24 @@ const basketValue = JSON.parse(localStorage.getItem("basket")) || [];
 const basketTotalCount = JSON.parse(localStorage.getItem("basketTotal")) || 0;
 const basketSelectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
 
+const localEmail = localStorage.getItem("email")
+const baskets = JSON.parse(localStorage.getItem("baskets")) || []
+
+const filteredBaskets = baskets.filter((item) => item.email !== JSON.parse(localEmail))
+
+
+const editBaskets = (basket) => {
+    const newBaskets = [
+        ...filteredBaskets, {
+            email: JSON.parse(localEmail),
+            basket: basket
+        }
+    ]
+
+    localStorage.setItem("baskets", JSON.stringify(newBaskets))
+}
+
+
 const basketSlice = createSlice({
     name: "basket",
     initialState: {
@@ -19,6 +37,7 @@ const basketSlice = createSlice({
             if (state.basket.every((item) => item.sku !== action.payload.sku)) {
                 const newBasket = [...state.basket, action.payload];
                 localStorage.setItem("basket", JSON.stringify(newBasket));
+                editBaskets(newBasket)
                 return {
                     ...state,
                     basket: newBasket
@@ -37,6 +56,7 @@ const basketSlice = createSlice({
                 return item;
             });
             localStorage.setItem("basket", JSON.stringify(newArr));
+            editBaskets(newArr)
             return {
                 ...state,
                 basket: newArr
@@ -66,6 +86,7 @@ const basketSlice = createSlice({
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
             localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts));
+            editBaskets(state.basket)
         },
 
         minusCardCount: (state, action) => {
@@ -90,6 +111,8 @@ const basketSlice = createSlice({
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
             localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts));
+            editBaskets(state.basket)
+
         },
 
         minusCount: (state, action) => {
@@ -124,6 +147,8 @@ const basketSlice = createSlice({
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
+            editBaskets(state.basket)
+
         },
         selectProduct: (state, action) => {
             let totalCount = Number(state.totalCount);
@@ -155,6 +180,8 @@ const basketSlice = createSlice({
             localStorage.setItem("basket", JSON.stringify(selectedArr));
             localStorage.setItem("basketTotal", JSON.stringify(totalCount));
             localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
+            editBaskets(selectedArr)
+
 
             return {
                 ...state,
@@ -186,6 +213,8 @@ const basketSlice = createSlice({
             localStorage.setItem("basketTotal", JSON.stringify(totalCount));
             localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
 
+            editBaskets(selectedArr)
+
             return {
                 ...state,
                 basket: selectedArr,
@@ -205,6 +234,7 @@ const basketSlice = createSlice({
             localStorage.setItem("basket", JSON.stringify(selectedArr));
             localStorage.setItem("basketTotal", JSON.stringify(0));
             localStorage.setItem("selectedProducts", JSON.stringify([]));
+            editBaskets(selectedArr)
 
             return {
                 ...state,
@@ -311,6 +341,8 @@ const basketSlice = createSlice({
             // Записываем в localStorage только если изменились данные
             if (JSON.stringify(newBasket) !== localStorage.getItem("basket")) {
                 localStorage.setItem("basket", JSON.stringify(newBasket));
+                editBaskets(newBasket)
+
             }
             if (JSON.stringify(newSelectedProduct) !== localStorage.getItem("selectedProducts")) {
                 localStorage.setItem("selectedProducts", JSON.stringify(newSelectedProduct));
@@ -321,6 +353,27 @@ const basketSlice = createSlice({
                 basket: newBasket,
                 selectedProducts: newSelectedProduct
             };
+        },
+        clearBasket: (state, action) => {
+            localStorage.removeItem("basket")
+            return {
+                ...state, basket: []
+            }
+        },
+        updateBasket: (state, action) => {
+            return {
+                ...state,
+                basket: action.payload
+            }
+        },
+        paymentEndBasket: (state, action) => {
+            let newBasket = state.basket.filter((item) => !item.selected)
+            localStorage.setItem("basket", JSON.stringify(newBasket))
+            localStorage.removeItem("selectedProducts")
+            return {
+                ...state,
+                basket: newBasket
+            }
         }
 
     },
@@ -330,6 +383,6 @@ const basketSlice = createSlice({
     }
 });
 
-export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount, updateTotalPrice, changeVariants } = basketSlice.actions;
+export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount, updateTotalPrice, changeVariants, clearBasket, updateBasket, paymentEndBasket } = basketSlice.actions;
 
 export const { reducer } = basketSlice;
