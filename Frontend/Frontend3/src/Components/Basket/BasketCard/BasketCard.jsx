@@ -38,7 +38,7 @@ const BasketCard = ({ all, section, productData }) => {
 
   const handleMinus = () => {
     setCount((prev) => {
-      const newCount = prev > 0 ? prev - 1 : 0;
+      const newCount = prev > 1 ? prev - 1 : prev;
       minusCardCount({ sku: productData.sku, count: newCount });
       return newCount;
     });

@@ -12,6 +12,7 @@ import arrRight from "../../../assets/profileNav/arrRight.svg";
 import arrDown from "../../../assets/profileNav/arrDown.svg";
 
 import styles from "./ProfileNavDrawer.module.scss";
+import { useActions } from "../../../hook/useAction";
 
 const ProfileNavDrawer = ({ open, handleClose }) => {
   const [logOut, setLogout] = useState(false);
@@ -60,12 +61,16 @@ const ProfileNavDrawer = ({ open, handleClose }) => {
 
   const { t } = useTranslation();
 
+  const { clearBasket } = useActions();
+
   const handleLogout = () => {
     logout({ refresh_token: userData?.refresh }).then((res) => {
       localStorage.removeItem("token");
       localStorage.removeItem("basket");
       localStorage.removeItem("selectedProducts");
       localStorage.removeItem("basketTotal");
+      localStorage.removeItem("email");
+      clearBasket();
       window.location.reload();
     });
   };

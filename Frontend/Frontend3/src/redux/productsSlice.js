@@ -11,7 +11,7 @@ export const fetchGetProducts = createAsyncThunk(
         try {
             const state = getState().products
             console.log(state);
-            const res = await axios.get(`https://reli.one/api/products/categories/${state.category}/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=15`)
+            const res = await mainInstance.get(`https://reli.one/api/products/categories/${state.category}/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=15`)
             console.log(res);
             return res.data
         } catch (error) {

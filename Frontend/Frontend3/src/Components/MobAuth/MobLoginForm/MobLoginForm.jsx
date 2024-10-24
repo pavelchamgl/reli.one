@@ -17,7 +17,6 @@ const MobLoginForm = () => {
   const [type, setType] = useState("password");
   const [regErr, setRegErr] = useState("");
 
-
   const { t } = useTranslation();
 
   const validationLogin = yup.object().shape({
@@ -50,40 +49,41 @@ const MobLoginForm = () => {
     onSubmit: (values) => {
       console.log(values);
       login(values)
-      .then((res) => {
-        console.log(res);
-        localStorage.setItem("token", JSON.stringify(res.data));
-        setRegErr("");
-        navigate("/")
-      })
-      .catch((err) => {
-        console.log(err);
+        .then((res) => {
+          console.log(res);
+          localStorage.setItem("token", JSON.stringify(res.data));
+          localStorage.setItem("email", JSON.stringify(values.email));
+          setRegErr("");
+          navigate("/");
+        })
+        .catch((err) => {
+          console.log(err);
 
-        if (err.response) {
-          if (err.response.status === 500) {
-            setRegErr("Произошла ошибка на сервере. Попробуйте позже.");
-          } else if (err.response.status === 400) {
-            const errorData = err.response.data;
-            let errorMessage = "";
+          if (err.response) {
+            if (err.response.status === 500) {
+              setRegErr("Произошла ошибка на сервере. Попробуйте позже.");
+            } else if (err.response.status === 400) {
+              const errorData = err.response.data;
+              let errorMessage = "";
 
-            for (const key in errorData) {
-              if (errorData[key] && Array.isArray(errorData[key])) {
-                // Добавляем имя поля к сообщению об ошибке
-                errorMessage += `${key}: ${errorData[key].join(", ")} `;
+              for (const key in errorData) {
+                if (errorData[key] && Array.isArray(errorData[key])) {
+                  // Добавляем имя поля к сообщению об ошибке
+                  errorMessage += `${key}: ${errorData[key].join(", ")} `;
+                }
               }
-            }
 
-            setRegErr(errorMessage.trim() || "Неверный запрос.");
+              setRegErr(errorMessage.trim() || "Неверный запрос.");
+            } else {
+              setRegErr("Произошла неизвестная ошибка.");
+            }
           } else {
-            setRegErr("Произошла неизвестная ошибка.");
+            // Обработка случаев, когда нет ответа (например, сетевые ошибки)
+            setRegErr(
+              "Не удалось подключиться к серверу. Проверьте ваше интернет-соединение."
+            );
           }
-        } else {
-          // Обработка случаев, когда нет ответа (например, сетевые ошибки)
-          setRegErr(
-            "Не удалось подключиться к серверу. Проверьте ваше интернет-соединение."
-          );
-        }
-      });
+        });
     },
   });
 
@@ -146,7 +146,9 @@ const MobLoginForm = () => {
       </label>
       {regErr && <p className={styles.errText}>{regErr}</p>}
       <div className={styles.submitDiv}>
-        <button disabled={!formik.isValid} onClick={formik.handleSubmit}>{t("continue")}</button>
+        <button disabled={!formik.isValid} onClick={formik.handleSubmit}>
+          {t("continue")}
+        </button>
         <div>
           <span>{t("dont_have_acc")}</span>
           <button

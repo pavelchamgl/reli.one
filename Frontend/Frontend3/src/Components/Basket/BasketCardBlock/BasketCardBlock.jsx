@@ -6,6 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   selectAllProducts,
   deselectAllProducts,
+  updateBasket
 } from "../../../redux/basketSlice";
 
 import BreadCrumps from "../../../ui/BreadCrumps/BreadCrumps";
@@ -39,6 +40,7 @@ const BasketCardBlock = () => {
     const storedBasketTotal = localStorage.getItem("basketTotal");
     const storedSelectedProducts = localStorage.getItem("selectedProducts");
 
+    // Убедись, что данные из localStorage правильно сохраняются
     if (!storedBasketTotal) {
       localStorage.setItem("basketTotal", JSON.stringify(0));
     }
@@ -49,10 +51,21 @@ const BasketCardBlock = () => {
   }, []);
 
   useEffect(() => {
+    // Получаем корзину из localStorage
+    const localBasket = JSON.parse(localStorage.getItem("basket"));
+
+    // Если в Redux нет данных (basket пуст) и данные в localStorage существуют
+    if (basket.length === 0 && localBasket && localBasket.length > 0) {
+      // Проверяем, отличаются ли данные в localStorage и в Redux
+      if (JSON.stringify(basket) !== JSON.stringify(localBasket)) {
+        dispatch(updateBasket(localBasket)); // Обновляем Redux корзину данными из localStorage
+      }
+    }
+  }, [basket, dispatch]);
+
+  useEffect(() => {
     if (selectAll) {
       dispatch(selectAllProducts());
-    } else {
-      dispatch(deselectAllProducts());
     }
   }, [selectAll, dispatch]);
 
@@ -75,7 +88,15 @@ const BasketCardBlock = () => {
         </button>
       )}
       <div className={styles.checkBoxDiv}>
-        <div onClick={() => setSelectAll(!selectAll)}>
+        <div
+          onClick={() => {
+            if (selectAll) {
+              dispatch(deselectAllProducts());
+            } else {
+              setSelectAll(!selectAll);
+            }
+          }}
+        >
           <CheckBox check={selectAll} />
           <p>{t("select_all")}</p>
         </div>
@@ -111,3 +132,5 @@ const BasketCardBlock = () => {
 };
 
 export default BasketCardBlock;
+
+

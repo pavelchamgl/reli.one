@@ -27,11 +27,7 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
   const basket = useSelector((state) => state.basket.basket);
 
   const handleMinus = () => {
-    if (!count) {
-      setCount(count);
-    } else {
-      setCount((prev) => prev - 1);
-    }
+    setCount((prev) => (prev > 1 ? prev - 1 : prev));
   };
 
   const handleDelete = () => {

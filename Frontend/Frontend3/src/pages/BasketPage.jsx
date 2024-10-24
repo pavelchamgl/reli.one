@@ -1,9 +1,7 @@
 import { useMediaQuery } from "react-responsive";
 
-import Header from "../Components/Header/Header";
 import BasketCardBlock from "../Components/Basket/BasketCardBlock/BasketCardBlock";
 import BasketTotalBlock from "../Components/Basket/BasketTotalBlock/BasketTotalBlock";
-import Footer from "../Components/Footer/Footer";
 
 import styles from "../styles/BasketPage.module.scss";
 
