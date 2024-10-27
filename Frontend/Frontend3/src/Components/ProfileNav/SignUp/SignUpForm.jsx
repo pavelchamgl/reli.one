@@ -73,7 +73,9 @@ const SignUpForm = () => {
 
           if (err.response) {
             if (err.response.status === 500) {
-              setRegErr("Произошла ошибка на сервере. Попробуйте позже.");
+              setRegErr(
+                "An error occurred on the server. Please try again later."
+              );
             } else if (err.response.status === 400) {
               const errorData = err.response.data;
               let errorMessage = "";
@@ -85,19 +87,22 @@ const SignUpForm = () => {
                 }
               }
 
-              setRegErr(errorMessage.trim() || "Неверный запрос.");
+              setRegErr(
+                errorMessage.trim() ||
+                  "An account with these details has already been registered."
+              );
             } else {
-              setRegErr("Произошла неизвестная ошибка.");
+              setRegErr("An unknown error occurred.");
             }
           } else {
             // Обработка случаев, когда нет ответа (например, сетевые ошибки)
             setRegErr(
-              "Не удалось подключиться к серверу. Проверьте ваше интернет-соединение."
+              "Failed to connect to the server. Check your internet connection."
             );
           }
         });
     },
-  });
+  }); 
 
   useEffect(() => {
     if (isMobile) {

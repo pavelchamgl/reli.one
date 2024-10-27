@@ -22,6 +22,9 @@ const MobProfileNavPage = () => {
 
   const { clearBasket } = useActions();
 
+  const baskets = JSON.parse(localStorage.getItem("baskets")) || [];
+  const localEmail = localStorage.getItem("email");
+
   const [userData, setUserData] = useState({
     firstName: "",
     lastName: "",
@@ -80,6 +83,11 @@ const MobProfileNavPage = () => {
       localStorage.removeItem("basket");
       localStorage.removeItem("selectedProducts");
       localStorage.removeItem("basketTotal");
+      const newBaskets = baskets.filter(
+        (item) => item?.email !== JSON.parse(localEmail)
+      );
+      localStorage.setItem("baskets", JSON.stringify(newBaskets));
+      localStorage.removeItem("email");
       window.location.reload();
     });
   };

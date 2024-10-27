@@ -61,8 +61,10 @@ const LoginModal = ({ open, handleClose }) => {
 
           if (err.response) {
             if (err.response.status === 500) {
-              setRegErr("Произошла ошибка на сервере. Попробуйте позже.");
-            } else if (err.response.status === 400) {
+              setRegErr(
+                "An error occurred on the server. Please try again later."
+              );
+            } else if (err.response.status === 401) {
               const errorData = err.response.data;
               let errorMessage = "";
 
@@ -73,14 +75,17 @@ const LoginModal = ({ open, handleClose }) => {
                 }
               }
 
-              setRegErr(errorMessage.trim() || "Неверный запрос.");
+              setRegErr(
+                errorMessage.trim() ||
+                  "No active account found with the given credentials."
+              );
             } else {
-              setRegErr("Произошла неизвестная ошибка.");
+              setRegErr("An unknown error occurred.");
             }
           } else {
             // Обработка случаев, когда нет ответа (например, сетевые ошибки)
             setRegErr(
-              "Не удалось подключиться к серверу. Проверьте ваше интернет-соединение."
+              "Failed to connect to the server. Check your internet connection."
             );
           }
         });

@@ -27,7 +27,7 @@ const PaymentEnd = () => {
     }
 
     localStorage.removeItem("selectedProducts");
-
+    localStorage.removeItem("basketTotal")
     localStorage.setItem("basket", JSON.stringify(newBasket));
     localStorage.setItem(
       "baskets",

@@ -12,14 +12,16 @@ const filteredBaskets = baskets.filter((item) => item.email !== JSON.parse(local
 
 
 const editBaskets = (basket) => {
-    const newBaskets = [
-        ...filteredBaskets, {
-            email: JSON.parse(localEmail),
-            basket: basket
-        }
-    ]
+    if (localEmail) {
+        const newBaskets = [
+            ...filteredBaskets, {
+                email: JSON.parse(localEmail),
+                basket: basket
+            }
+        ]
 
-    localStorage.setItem("baskets", JSON.stringify(newBaskets))
+        localStorage.setItem("baskets", JSON.stringify(newBaskets))
+    }
 }
 
 
@@ -34,14 +36,17 @@ const basketSlice = createSlice({
     },
     reducers: {
         addToBasket: (state, action) => {
-            if (state.basket.every((item) => item.sku !== action.payload.sku)) {
-                const newBasket = [...state.basket, action.payload];
-                localStorage.setItem("basket", JSON.stringify(newBasket));
-                editBaskets(newBasket)
-                return {
-                    ...state,
-                    basket: newBasket
-                };
+            if (state.basket?.length < 55) {
+                if (state.basket.every((item) => item.sku !== action.payload.sku)) {
+                    const newBasket = [...state.basket, action.payload];
+                    localStorage.setItem("basket", JSON.stringify(newBasket));
+                    editBaskets(newBasket)
+                    return {
+                        ...state,
+                        basket: newBasket
+                    };
+                }
+
             }
         },
         plusCount: (state, action) => {

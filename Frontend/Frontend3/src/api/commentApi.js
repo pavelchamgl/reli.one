@@ -1,4 +1,4 @@
-import { postApi, getApi } from ".";
+import mainInstance, { postApi, getApi } from ".";
 
 
 export const getComments = async (id, page) => {
@@ -13,7 +13,7 @@ export const getComments = async (id, page) => {
 
 export const postComment = async (id, obj) => {
     try {
-        const res = await postApi(`/reviews/${id}/create/`, obj)
+        const res = await mainInstance.post(`/reviews/${id}/create/`, obj)
         return res
     } catch (error) {
         throw error

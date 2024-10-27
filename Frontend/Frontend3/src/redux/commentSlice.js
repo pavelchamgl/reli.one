@@ -21,12 +21,14 @@ export const fetchPostComment = createAsyncThunk(
     "comment/fetchPostComment",
     async (obj, { rejectWithValue, dispatch }) => {
         try {
-            const res = await postComment(obj)
-            console.log(res);
-            if (res.ok) {
-                dispatch(addComment(obj))
+            if (obj) {
+                const res = await postComment(obj?.id, obj?.obj)
+                console.log(res);
+                if (res.status === 201) {
+                    dispatch(addComment(obj))
+                }
+                return res
             }
-            return res
         } catch (error) {
             return rejectWithValue()
         }

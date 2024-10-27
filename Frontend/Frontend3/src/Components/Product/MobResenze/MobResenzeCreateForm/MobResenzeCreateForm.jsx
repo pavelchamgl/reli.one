@@ -42,7 +42,7 @@ const MobResenzeCreateForm = () => {
         rating: rateValue,
       };
 
-      fetchPostComment(id, obj);
+      fetchPostComment({ id: id, obj: obj });
     },
   });
 
