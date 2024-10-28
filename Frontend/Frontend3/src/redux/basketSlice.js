@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { ErrToast } from "../ui/Toastify";
 
 // Получаем значение корзины из localStorage и парсим его
 const basketValue = JSON.parse(localStorage.getItem("basket")) || [];
@@ -46,7 +47,8 @@ const basketSlice = createSlice({
                         basket: newBasket
                     };
                 }
-
+            } else {
+                ErrToast("There should be no more than 55 items in the basket")
             }
         },
         plusCount: (state, action) => {
