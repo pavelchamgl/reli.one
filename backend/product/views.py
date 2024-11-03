@@ -260,13 +260,91 @@ class SearchView(generics.ListAPIView):
 
 
 @extend_schema(
-    description=(
-        "Retrieve a list of products belonging to a specific category. "
-        "Supports pagination, sorting by rating (popularity) in descending order, and ascending/descending price. "
-        "Allows filtering by price range (minimum and maximum price) and rating. "
-        "Each product includes fields: id, name, product_description, parameters, image (URL of the first image), "
-        "price (minimum price from variants), rating, total_reviews, and is_favorite."
-    ),
+    description="""
+        Retrieve a list of products belonging to a specific category. Supports pagination, filtering by price range and rating, and sorting by rating or price.
+
+        **Note:** When sorting by fields that may contain `null` values (e.g., `rating`), such values will be placed at the end of the list.
+
+        **Example response:**
+
+        ```json
+        {
+            "count": 4,
+            "next": null,
+            "previous": null,
+            "results": [
+                {
+                    "id": 1,
+                    "name": "IPhone 14 Pro",
+                    "product_description": "Latest model of iPhone with advanced features.",
+                    "parameters": [
+                        {
+                            "parameter_name": "Weight",
+                            "value": "250g"
+                        },
+                        {
+                            "parameter_name": "Height",
+                            "value": "70mm"
+                        }
+                    ],
+                    "image": "http://localhost:8081/media/base_product_images/iphone14pro.jpg",
+                    "price": "1000.00",
+                    "rating": "4.8",
+                    "total_reviews": 120,
+                    "is_favorite": false
+                },
+                {
+                    "id": 2,
+                    "name": "Galaxy S21",
+                    "product_description": "Samsung's flagship smartphone with cutting-edge technology.",
+                    "parameters": [
+                        {
+                            "parameter_name": "Weight",
+                            "value": "220g"
+                        }
+                    ],
+                    "image": "http://localhost:8081/media/base_product_images/galaxys21.jpg",
+                    "price": "950.00",
+                    "rating": "4.5",
+                    "total_reviews": 98,
+                    "is_favorite": false
+                },
+                {
+                    "id": 3,
+                    "name": "IPhone 15 Pro MAX",
+                    "product_description": "Upcoming model with enhanced performance.",
+                    "parameters": [
+                        {
+                            "parameter_name": "Weight",
+                            "value": "270g"
+                        }
+                    ],
+                    "image": "http://localhost:8081/media/base_product_images/iphone15promax.jpg",
+                    "price": "1500.00",
+                    "rating": "0.0",
+                    "total_reviews": 0,
+                    "is_favorite": false
+                },
+                {
+                    "id": 4,
+                    "name": "Nokia 3310",
+                    "product_description": "Classic durable mobile phone.",
+                    "parameters": [
+                        {
+                            "parameter_name": "Weight",
+                            "value": "300g"
+                        }
+                    ],
+                    "image": "http://localhost:8081/media/base_product_images/nokia3310.jpg",
+                    "price": "50.00",
+                    "rating": "4.0",
+                    "total_reviews": 250,
+                    "is_favorite": false
+                }
+            ]
+        }
+        ```
+    """,
     parameters=[
         OpenApiParameter(
             name='category_id',
@@ -277,7 +355,11 @@ class SearchView(generics.ListAPIView):
         ),
         OpenApiParameter(
             name='ordering',
-            description='Sort products by price or rating. Use "-" prefix for descending order.',
+            description="""
+                Sort products by price or rating. Use "-" prefix for descending order.
+
+                **Note:** When sorting by fields that may contain `null` values (e.g., `rating`), such values will be placed at the end of the list.
+                """,
             required=False,
             type=str,
             enum=['price', '-price', 'rating', '-rating']
@@ -395,13 +477,10 @@ class SearchView(generics.ListAPIView):
 class CategoryBaseProductListView(generics.ListAPIView):
     serializer_class = BaseProductListSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filter_backends = [DjangoFilterBackend]
     filterset_class = BaseProductFilter
-    ordering_fields = {
-        'price': 'min_price',
-        'rating': 'rating',
-    }
-    ordering = ['-rating']
+
+    ALLOWED_ORDERING_FIELDS = ['min_price', 'rating']
 
     def get_queryset(self):
         category_id = self.kwargs.get('category_id')
@@ -419,9 +498,25 @@ class CategoryBaseProductListView(generics.ListAPIView):
             'variants',
             'parameters',
             'parameters__parameter',
-        )
+        ).distinct()
 
-        return queryset.distinct()
+        # Получаем параметр сортировки из запроса
+        ordering = self.request.query_params.get('ordering', '-rating')
+
+        # Проверяем, является ли поле сортировки допустимым
+        if ordering.lstrip('-') in self.ALLOWED_ORDERING_FIELDS:
+            # Определяем направление сортировки
+            if ordering.startswith('-'):
+                ordering_field = ordering[1:]
+                queryset = queryset.order_by(F(ordering_field).desc(nulls_last=True))
+            else:
+                ordering_field = ordering
+                queryset = queryset.order_by(F(ordering_field).asc(nulls_last=True))
+        else:
+            # Если поле недопустимо, используем сортировку по умолчанию
+            queryset = queryset.order_by(F('rating').desc(nulls_last=True))
+
+        return queryset
 
 
 @extend_schema(
