@@ -6,7 +6,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, Min
+from django.db.models import Q, Min, F
 
 from .pagination import StandardResultsSetPagination
 from .filters import BaseProductFilter
@@ -25,6 +25,8 @@ from .serializers import (
 @extend_schema(
     description="""
         Search for products and categories. Supports filtering by price range and sorting by rating or price.
+
+        **Note:** When sorting by fields that may contain `null` values (e.g., `rating`), such values will be placed at the end of the list.
 
         **Example response:**
 
@@ -105,7 +107,11 @@ from .serializers import (
         ),
         OpenApiParameter(
             name='ordering',
-            description='Sort products by price or rating. Use "-" prefix for descending order.',
+            description="""
+                Sort products by price or rating. Use "-" prefix for descending order.
+
+                **Note:** When sorting by fields that may contain `null` values (e.g., `rating`), such values will be placed at the end of the list.
+                """,
             required=False,
             type=str,
             enum=['price', '-price', 'rating', '-rating']
@@ -179,7 +185,7 @@ from .serializers import (
 class SearchView(generics.ListAPIView):
     serializer_class = BaseProductListSerializer
     pagination_class = StandardResultsSetPagination
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     search_fields = [
         'name',
         'product_description',
@@ -188,11 +194,8 @@ class SearchView(generics.ListAPIView):
         'category__name'
     ]
     filterset_class = BaseProductFilter
-    ordering_fields = {
-        'price': 'min_price',
-        'rating': 'rating',
-    }
-    ordering = ['-rating']
+
+    ALLOWED_ORDERING_FIELDS = ['min_price', 'rating']
 
     def get_queryset(self):
         query = self.request.query_params.get('q', '')
@@ -215,6 +218,23 @@ class SearchView(generics.ListAPIView):
             'parameters',
             'parameters__parameter',
         ).distinct()
+
+        # Получаем параметр сортировки из запроса
+        ordering = self.request.query_params.get('ordering', '-rating')
+
+        # Проверяем, является ли поле сортировки допустимым
+        if ordering.lstrip('-') in self.ALLOWED_ORDERING_FIELDS:
+            # Определяем направление сортировки
+            if ordering.startswith('-'):
+                ordering_field = ordering[1:]
+                products = products.order_by(F(ordering_field).desc(nulls_last=True))
+            else:
+                ordering_field = ordering
+                products = products.order_by(F(ordering_field).asc(nulls_last=True))
+        else:
+            # Если поле недопустимо, используем сортировку по умолчанию
+            products = products.order_by(F('rating').desc(nulls_last=True))
+
         return products
 
     def list(self, request, *args, **kwargs):
