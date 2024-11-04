@@ -54,7 +54,7 @@ class BaseProduct(models.Model):
     rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
-        # default=Decimal('1.0'),
+        default=Decimal('1.0'),
         validators=[MinValueValidator(Decimal('1.0')), MaxValueValidator(Decimal('5.0'))],
         blank=True,
         null=True,
