@@ -10,6 +10,7 @@ from .models import (
     Order,
     OrderProduct,
     OrderStatus,
+    DeliveryStatus,
 )
 
 
@@ -46,7 +47,14 @@ class OrderStatusSerializer(serializers.ModelSerializer):
         fields = ['name']
 
 
+class DeliveryStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeliveryStatus
+        fields = ['name']
+
+
 class OrderDetailSerializer(serializers.ModelSerializer):
+    delivery_status = DeliveryStatusSerializer(read_only=True)
     order_status = OrderStatusSerializer(read_only=True)
     order_products = OrderProductDetailSerializer(many=True, read_only=True)
 
@@ -56,6 +64,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'id',
             'order_number',
             'order_date',
+            'delivery_status',
             'order_status',
             'total_amount',
             'delivery_cost',
