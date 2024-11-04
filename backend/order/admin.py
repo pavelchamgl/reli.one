@@ -7,7 +7,7 @@ from .models import (
     OrderProduct,
     DeliveryType,
     OrderStatus,
-    SelfPickupStatus,
+    DeliveryStatus,
     CourierService
 )
 
@@ -47,8 +47,8 @@ class OrderProductInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'total_amount', 'order_date', 'delivery_type', 'order_status', 'self_pickup_status', 'refund_amount')
-    list_filter = ('delivery_type', 'order_status', 'self_pickup_status')
+    list_display = ('id', 'user', 'total_amount', 'order_date', 'delivery_type', 'order_status', 'delivery_status', 'refund_amount')
+    list_filter = ('delivery_type', 'order_status', 'delivery_status')
     search_fields = ('order_number', 'user__email')
     inlines = [OrderProductInline]
     ordering = ('-order_date',)
@@ -107,4 +107,4 @@ admin.site.register(OrderProduct, OrderProductAdmin)
 admin.site.register(DeliveryType)
 admin.site.register(CourierService)
 admin.site.register(OrderStatus)
-admin.site.register(SelfPickupStatus)
+admin.site.register(DeliveryStatus)
