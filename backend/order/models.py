@@ -36,12 +36,12 @@ class OrderStatus(models.Model):
 
 
 # Статус доставки самовывозом Assembling, On the Way, Sorting Center, Pickup Point (Enum)
-class SelfPickupStatus(models.Model):
+class DeliveryStatus(models.Model):
     name = models.CharField(max_length=50)
 
     class Meta:
-        verbose_name = 'Self pickup status'
-        verbose_name_plural = 'Self pickup status'
+        verbose_name = 'Delivery status'
+        verbose_name_plural = 'Delivery statuses'
 
     def __str__(self):
         return self.name
@@ -63,7 +63,7 @@ class Order(models.Model):
     promo_code = models.ForeignKey('promocode.PromoCode', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_type = models.ForeignKey('DeliveryType', on_delete=models.SET_NULL, null=True)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)
-    self_pickup_status = models.ForeignKey('SelfPickupStatus', on_delete=models.SET_NULL, null=True, blank=True)
+    delivery_status = models.ForeignKey('DeliveryStatus', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_address = models.CharField(max_length=255, null=True, blank=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
