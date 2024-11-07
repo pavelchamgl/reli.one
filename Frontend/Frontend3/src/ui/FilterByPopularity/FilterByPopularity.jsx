@@ -25,16 +25,16 @@ const FilterByPopularity = ({
     if (setOrdering) {
       // if (pathname === "/liked") {
       if (filterValue === "rating") {
-        setOrderingState("popular");
-        setOrdering("popular");
+        setOrderingState("rating");
+        setOrdering("rating");
       }
       if (filterValue === "price") {
-        setOrderingState("price_asc");
-        setOrdering("price_asc");
+        setOrderingState("price");
+        setOrdering("price");
       }
       if (filterValue === "-price") {
-        setOrderingState("price_desc");
-        setOrdering("price_desc");
+        setOrderingState("-price");
+        setOrdering("-price");
       }
       // } else {
       //   setOrderingState(filterValue);

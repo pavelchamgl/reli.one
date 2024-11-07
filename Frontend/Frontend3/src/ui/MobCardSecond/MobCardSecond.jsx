@@ -16,6 +16,8 @@ const MobCardSecond = ({ product, sku }) => {
     return null; // Возвращаем null, если продукт отсутствует
   }
 
+  console.log(sku);
+
   return (
     <div className={styles.main}>
       <div className={styles.descAndImageWrap}>
@@ -29,18 +31,16 @@ const MobCardSecond = ({ product, sku }) => {
           alt={product?.name || "Product image"}
         />
         <div className={styles.descDiv}>
-          <p>
-            {product?.name}
-            {!variant?.image && variant?.text ? ` (${variant.text})` : ""}
-          </p>
-          <span>{product?.category_name || "Unknown category"}</span>
+          <p>{product?.name}</p>
+          <span>
+            {!variant?.image && variant?.text
+              ? ` ${variant?.name}: ${variant?.text}`
+              : ""}
+          </span>
         </div>
       </div>
       <p className={styles.price}>
-        1 x{" "}
-        <strong>
-          {product?.price ? `${product.price} €` : "Price not available"}
-        </strong>
+        1 x<strong>{variant ? variant?.price : null}</strong>
       </p>
     </div>
   );

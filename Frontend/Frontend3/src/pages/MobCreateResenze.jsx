@@ -18,6 +18,8 @@ const MobCreateResenze = () => {
 
   const { id } = useParams();
 
+  const currentSku = JSON.parse(localStorage.getItem("currentSku")) || "";
+
   const { fetchGetProductById, fetchGetComments } = useActions();
 
   useEffect(() => {
@@ -34,7 +36,7 @@ const MobCreateResenze = () => {
           <img src={returnIcon} alt="" />
           <p>{t("write_review")}</p>
         </button>
-        {product && <MobCardSecond product={product} />}
+        {product && <MobCardSecond product={product} sku={currentSku} />}
         <MobResenzeCreateForm />
       </div>
     </Container>

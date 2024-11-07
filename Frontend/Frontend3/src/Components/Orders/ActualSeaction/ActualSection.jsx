@@ -17,6 +17,7 @@ import Loader from "../../../ui/Loader/Loader";
 const ActualSection = () => {
   const [small, setSmall] = useState(false);
   const [orderId, setOrderId] = useState(null);
+  const [orderIdStatus, setOrderIdStatus] = useState("");
 
   const { t } = useTranslation();
 
@@ -63,7 +64,7 @@ const ActualSection = () => {
                 {t("order_time")}: <span>{order?.order_date}</span>
               </p>
             </div>
-            <OrderSchedule />
+            <OrderSchedule status={order?.delivery_status?.name} />
             <OrdersListAndDesc />
           </div>
         );
@@ -81,10 +82,14 @@ const ActualSection = () => {
                 key={item.id} // Добавлен ключ для уникальности элемента
                 onClick={() => {
                   setOrderId(item.id);
+                  // setOrderIdStatus(item?.delivery_status?.name);
                 }}
                 className={styles.main}
               >
-                <HistorySmallCard item={item} setSmall={setSmall} />
+                <HistorySmallCard
+                  item={item}
+                  setSmall={setSmall}
+                />
               </div>
             ))
           ) : (

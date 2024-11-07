@@ -30,3 +30,16 @@
   align-items: flex-start;
   gap: 50px;
 }
+
+.varText {
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 130%;
+  color: #64748b;
+}
+
+.rateDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

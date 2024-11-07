@@ -1,10 +1,15 @@
+.wrap {
+  border-bottom: 1px solid #ced4d7;
+  border-top: 1px solid #ced4d7;
+  padding: 10px 0 20px 0;
+  margin-top: 15px;
+}
+
 .main {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 166px;
-  border-bottom: 1px solid #ced4d7;
-  border-top: 1px solid #ced4d7;
   position: relative;
   width: 100%;
 
@@ -158,4 +163,117 @@
   position: absolute;
   top: 8px;
   left: -18px;
+}
+
+.mainCharack {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.styleText {
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 140%;
+  color: #64748b;
+}
+
+.stylePackVTwoButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  transition: hover 1s ease;
+
+  @media (max-width: 470px) {
+    width: 100%;
+  }
+
+  & button {
+    width: 189px;
+    padding: 4.5px 12px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 26px;
+    background-color: transparent;
+    border: 2px solid #64748b;
+    & img {
+      width: 40px;
+      height: 41px;
+      object-fit: cover;
+    }
+    &:hover {
+      border: 2px solid #353f4d;
+    }
+
+    & p {
+      font-weight: 400;
+      font-size: clamp(14px, 2.5vw, 20px);
+      line-height: 105%;
+      letter-spacing: -0.02em;
+      color: #000;
+      cursor: pointer;
+    }
+
+    @media (max-width: 470px) {
+      width: 138px;
+      padding: 1px 12px;
+      gap: 21px;
+    }
+  }
+}
+
+.stylePackVThreeButtons {
+  display: flex;
+  flex-wrap: wrap;
+  transition: hover 1s ease;
+  gap: 7px;
+
+  @media (max-width: 470px) {
+    width: 100%;
+  }
+
+  & button {
+    width: 187px;
+    padding: 4.5px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background-color: transparent;
+    border: 2px solid #64748b;
+    & img {
+      width: 40px;
+      height: 41px;
+      object-fit: cover;
+    }
+    &:hover {
+      border: 2px solid #353f4d;
+    }
+
+    & p {
+      font-weight: 600;
+      font-size: clamp(14px, 2.5vw, 23px);
+      line-height: 105%;
+      letter-spacing: -0.02em;
+      color: #000;
+      cursor: pointer;
+    }
+
+    & span {
+      font-weight: 400;
+      font-size: clamp(14px, 2.5vw, 20px);
+      line-height: 105%;
+      letter-spacing: -0.02em;
+      color: #000;
+      cursor: pointer;
+    }
+
+    @media (max-width: 470px) {
+      width: 138px;
+      padding: 2px 12px;
+      gap: 10px;
+    }
+  }
 }

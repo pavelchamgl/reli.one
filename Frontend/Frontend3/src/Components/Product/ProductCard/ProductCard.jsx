@@ -11,7 +11,15 @@ import BasketModal from "../../Basket/BasketModal/BasketModal";
 
 import styles from "./ProductCard.module.scss";
 import { toggleFavorite } from "../../../api/favorite";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import MobVariantDrawer from "../MobVariantDrawer/MobVariantDrawer";
+import { getProductById } from "../../../api/productsApi";
+import {
+  addToBasket,
+  deleteFromBasket,
+  minusCardCount,
+  plusCardCount,
+} from "../../../redux/basketSlice";
 
 const ProductCard = ({ data = null }) => {
   const [value, setValue] = useState(data ? data.rating : 0);
@@ -19,17 +27,56 @@ const ProductCard = ({ data = null }) => {
   const [like, setLike] = useState(data ? data.is_favorite : false);
   const [modalOpen, setModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [mobVarOpen, setMobVarOpen] = useState(false);
+  const [countOpen, setCountOpen] = useState(false);
+  const [count, setCount] = useState(1);
+  const [variant, setVariant] = useState(null);
+  const [variants, setVariants] = useState(null);
+  const [allData, setAllData] = useState(null);
 
   const isPlanshet = useMediaQuery({ maxWidth: 600 });
+  const isMobile = useMediaQuery({ maxWidth: 426 });
+
+  // сделай как в дизайне
   const navigate = useNavigate();
   const { t } = useTranslation();
+
+  const dispatch = useDispatch();
   const { status, searchStatus } = useSelector((state) => state.products);
   const statusFav = useSelector((state) => state.favorites.status);
+  const basket = useSelector((state) => state.basket.basket);
 
   console.log(data);
 
   const handleBuy = () => {
-    setModalOpen(true);
+    if (isMobile) {
+      if (variants.length === 1) {
+        const firstVariant = variants[0] || {};
+
+        setVariant(firstVariant);
+
+        const basketItem = basket.find((item) => item.sku === firstVariant.sku);
+        const initialCount = basketItem ? basketItem.count + 1 : 1;
+
+        // Обновляем сразу count и countOpen
+        setCount(initialCount);
+        setCountOpen(true);
+
+        dispatch(
+          addToBasket({
+            id: allData.id,
+            product: { ...allData, price: firstVariant.price },
+            count: initialCount,
+            selected: false,
+            sku: firstVariant.sku || "",
+          })
+        );
+      } else {
+        setMobVarOpen(true);
+      }
+    } else {
+      setModalOpen(true);
+    }
   };
 
   useEffect(() => {
@@ -39,6 +86,13 @@ const ProductCard = ({ data = null }) => {
       setIsLoading(false);
     }
   }, [data]);
+
+  useEffect(() => {
+    if (!count) {
+      dispatch(deleteFromBasket({ sku: variant.sku }));
+      setCountOpen(false);
+    }
+  }, [count]);
 
   useEffect(() => {
     if (
@@ -53,6 +107,22 @@ const ProductCard = ({ data = null }) => {
     }
   }, [status, statusFav, searchStatus]);
 
+  const handlePlus = () => {
+    setCount((prev) => {
+      const newCount = prev + 1;
+      dispatch(plusCardCount({ sku: variant.sku, count: newCount }));
+      return newCount;
+    });
+  };
+
+  const handleMinus = () => {
+    setCount((prev) => {
+      const newCount = prev - 1;
+      dispatch(minusCardCount({ sku: variant.sku, count: newCount }));
+      return newCount;
+    });
+  };
+
   const handleToggleLike = async () => {
     const newLike = !like;
     setLike(newLike);
@@ -63,6 +133,20 @@ const ProductCard = ({ data = null }) => {
       setLike(!newLike); // Вернуть предыдущее состояние в случае ошибки
     }
   };
+
+  useEffect(() => {
+    if (data) {
+      getProductById(data.id)
+        .then((res) => {
+          const resData = res?.data;
+          if (resData?.variants) {
+            setVariants(resData.variants);
+            setAllData(resData);
+          }
+        })
+        .catch((err) => console.error("Ошибка загрузки продукта:", err));
+    }
+  }, [data]);
 
   if (isLoading) {
     return (
@@ -120,14 +204,28 @@ const ProductCard = ({ data = null }) => {
           />
           <p>{data.total_reviews}</p>
         </div>
-        <button onClick={handleBuy} className={styles.buyBtn}>
-          {t("buy")}
-        </button>
+        {countOpen ? (
+          <div className={styles.mobCountDiv}>
+            <button onClick={handleMinus}>-</button>
+            <p>{count}</p>
+            <button onClick={handlePlus}>+</button>
+          </div>
+        ) : (
+          <button onClick={handleBuy} className={styles.buyBtn}>
+            {t("buy")}
+          </button>
+        )}
       </div>
       <BasketModal
         productData={data}
         open={modalOpen}
         handleClose={() => setModalOpen(false)}
+      />
+      <MobVariantDrawer
+        open={mobVarOpen}
+        allData={allData}
+        variants={variants}
+        handleClose={() => setMobVarOpen(false)}
       />
     </div>
   );

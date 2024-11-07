@@ -48,13 +48,10 @@ const ActualOrdersCard = ({ item }) => {
           />
           <div className={styles.descDiv}>
             <Link className={styles.links} to={`/product/${item?.product?.id}`}>
-              <p className={styles.prodName}>
-                {item?.product?.name}
-                {text ? ` (${text})` : ""}
-              </p>
+              <p className={styles.prodName}>{item?.product?.name}</p>
             </Link>
             <p className={styles.prodDesc}>
-              {item?.product?.product_description?.slice(0, 25)}...
+              {item && text ? `${item?.product_variant?.name}: ${text}` : null}
             </p>
           </div>
         </div>

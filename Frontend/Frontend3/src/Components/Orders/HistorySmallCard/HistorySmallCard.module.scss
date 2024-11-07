@@ -1,9 +1,9 @@
 .main {
   width: 360px;
-  height: 267px;
+  height: auto;
   @media (max-width:450px) {
     width: 286px;
-    height: 220px;
+    height: auto;
   }
 }
 

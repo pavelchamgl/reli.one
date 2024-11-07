@@ -17,6 +17,8 @@ import styles from "../styles/MobProdResenzePage.module.scss";
 const MobProdResenzePage = () => {
   const [page, setPage] = useState(4);
 
+  const currentSku = JSON.parse(localStorage.getItem("currentSku")) || "";
+
   const navigate = useNavigate();
 
   const { t } = useTranslation();
@@ -50,7 +52,7 @@ const MobProdResenzePage = () => {
             <img src={returnIcon} alt="" />
             <p>{t("review")}</p>
           </button>
-          <MobCardSecond product={product} />
+          <MobCardSecond product={product} sku={currentSku} />
           <MobResenzeRate />
           <MobResenzeCommentWrap />
           <Pagination

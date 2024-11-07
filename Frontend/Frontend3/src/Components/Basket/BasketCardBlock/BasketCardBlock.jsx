@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   selectAllProducts,
   deselectAllProducts,
-  updateBasket
+  updateBasket,
 } from "../../../redux/basketSlice";
 
 import BreadCrumps from "../../../ui/BreadCrumps/BreadCrumps";
@@ -73,6 +73,12 @@ const BasketCardBlock = () => {
     setSelectAll(basket.every((item) => item.selected === true));
   }, [basket]);
 
+  useEffect(() => {
+    if (basket.length === 0) {
+      setSelectAll(false);
+    }
+  }, [basket]);
+
   return (
     <div className={styles.main}>
       {!isMobile && (
@@ -106,7 +112,7 @@ const BasketCardBlock = () => {
         {basketSearch.length > 0 ? (
           basketSearch.map((item) => (
             <BasketCard
-              key={item.id}
+              key={item.sku}
               productData={item}
               section={"basket"}
               all={selectAll}
@@ -115,7 +121,7 @@ const BasketCardBlock = () => {
         ) : basket.length > 0 ? (
           basket.map((item) => (
             <BasketCard
-              key={item.id}
+              key={item.sku }
               productData={item}
               section={"basket"}
               all={selectAll}
@@ -132,5 +138,3 @@ const BasketCardBlock = () => {
 };
 
 export default BasketCardBlock;
-
-

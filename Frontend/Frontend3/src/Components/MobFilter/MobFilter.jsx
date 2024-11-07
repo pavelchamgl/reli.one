@@ -102,16 +102,16 @@ const MobFilter = ({
     if (setOrdering) {
       // if (pathname === "/liked") {
       if (selected === "rating") {
-        setOrderingState("popular");
-        setOrdering("popular");
+        setOrderingState("rating");
+        setOrdering("rating");
       }
       if (selected === "price") {
-        setOrderingState("price_asc");
-        setOrdering("price_asc");
+        setOrderingState("price");
+        setOrdering("price");
       }
       if (selected === "-price") {
-        setOrderingState("price_desc");
-        setOrdering("price_desc");
+        setOrderingState("-price");
+        setOrdering("-price");
       }
       // } else {
       //   setOrderingState(selected);
@@ -162,7 +162,7 @@ const MobFilter = ({
             value={value}
             onChange={handleSliderChange}
             min={0}
-            max={1000}
+            max={10000}
             step={10}
           />
           <div className="price-inputs">

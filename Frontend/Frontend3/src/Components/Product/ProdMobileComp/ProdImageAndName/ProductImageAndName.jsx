@@ -35,10 +35,7 @@ const ProductImageAndName = () => {
 
   const { t } = useTranslation();
 
-
   const dispatch = useDispatch();
-
-
 
   const handleAddBasket = () => {
     dispatch(
@@ -90,6 +87,12 @@ const ProductImageAndName = () => {
       setLike(!newLike); // Вернуть предыдущее состояние в случае ошибки
     }
   };
+
+  useEffect(() => {
+    if (sku) {
+      localStorage.setItem("currentSku", JSON.stringify(sku));
+    }
+  }, [sku]);
 
   console.log(product);
 
