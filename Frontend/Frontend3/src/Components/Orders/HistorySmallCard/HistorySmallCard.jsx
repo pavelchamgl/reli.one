@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import {useNavigate} from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 
 import testImage from "../../../assets/Product/ProductTestImage.svg";
 
@@ -10,7 +10,7 @@ const HistorySmallCard = ({ item = null, setSmall }) => {
   console.log(item);
   const { t } = useTranslation();
   const [deliveredTime, setDeliveredTime] = useState("");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   function formatDate(date) {
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -60,7 +60,9 @@ const HistorySmallCard = ({ item = null, setSmall }) => {
           <p>{item?.total_amount} €</p>
         </div>
       </div>
-      <button onClick={()=>navigate(`/product/${item.id}`)} className={styles.commentBtn}>{t("write_review")}</button>
+      {/* <button onClick={() => navigate(link)} className={styles.commentBtn}>
+        {t("write_review")}
+      </button> */}
     </div>
   );
 };

@@ -52,18 +52,20 @@ const PinInpPassForm = () => {
 
         if (err.response) {
           if (err.response.status === 500) {
-            setRegErr("Произошла ошибка на сервере. Попробуйте позже.");
+            setRegErr(
+              "An error occurred on the server. Please try again later."
+            );
           } else if (err.response.status === 400) {
-            setRegErr("Неправильный OTP");
+            setRegErr("The specified OTP has expired or is invalid");
           } else if (err.response.status === 404) {
-            setRegErr("Такой пользователь не найден");
+            setRegErr("User with the specified email address not found");
           } else {
-            setRegErr("Произошла неизвестная ошибка.");
+            setRegErr("An unknown error occurred.");
           }
         } else {
           // Обработка случаев, когда нет ответа (например, сетевые ошибки)
           setRegErr(
-            "Не удалось подключиться к серверу. Проверьте ваше интернет-соединение."
+            "Failed to connect to the server. Check your internet connection."
           );
         }
       });

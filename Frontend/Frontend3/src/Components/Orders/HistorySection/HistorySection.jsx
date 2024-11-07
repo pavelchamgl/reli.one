@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { useActions } from "../../../hook/useAction";
+import { useNavigate } from "react-router-dom";
 
 import OrdersListAndDesc from "../OrdersListAndDesc/OrdersListAndDesc";
 import arrTop from "../../../assets/Order/arrTop.svg";
@@ -10,12 +11,17 @@ import HistorySmallCard from "../HistorySmallCard/HistorySmallCard";
 import styles from "./HistorySection.module.scss";
 import NoContentText from "../../../ui/NoContentText/NoContentText";
 import Loader from "../../../ui/Loader/Loader";
+import { useMediaQuery } from "react-responsive";
 
 const HistorySection = () => {
   const [small, setSmall] = useState(false);
   const [orderId, setOrderId] = useState(null);
 
+  const isMobile = useMediaQuery({ maxWidth: 426 });
+
   const { t } = useTranslation();
+
+  const navigate = useNavigate();
 
   const { fetchGetOrders, fetchGetDetalOrders } = useActions();
 
@@ -32,6 +38,8 @@ const HistorySection = () => {
       fetchGetDetalOrders(orderId);
     }
   }, [small, orderId, fetchGetDetalOrders]);
+
+  console.log(order);
 
   if (small) {
     if (orderStatus === "loading") {
@@ -59,6 +67,16 @@ const HistorySection = () => {
             </div>
           </div>
           <OrdersListAndDesc />
+          {/* {isMobile && (
+            <button
+              onClick={() =>
+                navigate(`/product/${order?.order_products[0]?.product?.id}`)
+              }
+              className={styles.commentBtn}
+            >
+              Write a review
+            </button>
+          )} */}
         </div>
       );
     }
@@ -77,7 +95,7 @@ const HistorySection = () => {
                 }}
                 className={styles.main}
               >
-                <HistorySmallCard item={item} setSmall={setSmall}/>
+                <HistorySmallCard item={item} setSmall={setSmall} />
               </div>
             ))
           ) : (

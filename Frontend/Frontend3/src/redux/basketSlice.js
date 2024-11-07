@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { ErrToast } from "../ui/Toastify";
 
 // Получаем значение корзины из localStorage и парсим его
 const basketValue = JSON.parse(localStorage.getItem("basket")) || [];
@@ -12,14 +13,16 @@ const filteredBaskets = baskets.filter((item) => item.email !== JSON.parse(local
 
 
 const editBaskets = (basket) => {
-    const newBaskets = [
-        ...filteredBaskets, {
-            email: JSON.parse(localEmail),
-            basket: basket
-        }
-    ]
+    if (localEmail) {
+        const newBaskets = [
+            ...filteredBaskets, {
+                email: JSON.parse(localEmail),
+                basket: basket
+            }
+        ]
 
-    localStorage.setItem("baskets", JSON.stringify(newBaskets))
+        localStorage.setItem("baskets", JSON.stringify(newBaskets))
+    }
 }
 
 
@@ -34,14 +37,18 @@ const basketSlice = createSlice({
     },
     reducers: {
         addToBasket: (state, action) => {
-            if (state.basket.every((item) => item.sku !== action.payload.sku)) {
-                const newBasket = [...state.basket, action.payload];
-                localStorage.setItem("basket", JSON.stringify(newBasket));
-                editBaskets(newBasket)
-                return {
-                    ...state,
-                    basket: newBasket
-                };
+            if (state.basket?.length < 55) {
+                if (state.basket.every((item) => item.sku !== action.payload.sku)) {
+                    const newBasket = [...state.basket, action.payload];
+                    localStorage.setItem("basket", JSON.stringify(newBasket));
+                    editBaskets(newBasket)
+                    return {
+                        ...state,
+                        basket: newBasket
+                    };
+                }
+            } else {
+                ErrToast("There should be no more than 55 items in the basket")
             }
         },
         plusCount: (state, action) => {
@@ -133,23 +140,48 @@ const basketSlice = createSlice({
             };
         },
         deleteFromBasket: (state, action) => {
-            console.log(3);
             const itemToDelete = state.basket.find(item => item.sku === action.payload.sku);
 
             if (itemToDelete && itemToDelete.selected) {
-                state.totalCount = Number(state.totalCount) - Number(itemToDelete.product.price) * Number(itemToDelete.count);
+                state.totalCount -= Number(itemToDelete.product.price) * Number(itemToDelete.count);
             }
 
+            // Фильтруем корзину и выбранные продукты
             state.basket = state.basket.filter(item => item.sku !== action.payload.sku);
-            state.selectedProducts = state.basket.filter((item) => item.selected)
-
+            state.selectedProducts = state.basket.filter((item) => item.selected);
 
             localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
             localStorage.setItem("basket", JSON.stringify(state.basket));
             localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
-            editBaskets(state.basket)
-
         },
+        // deleteFromBasket: (state, action) => {
+        //     const itemToDelete = state.basket.find(item => item.sku === action.payload.sku);
+
+        //     console.log(action.payload.sku);
+        //     console.log(itemToDelete);
+        //     console.log(itemToDelete.selected);
+
+
+
+        //     if (itemToDelete && itemToDelete.selected) {
+        //         state.totalCount = Number(state.totalCount) - Number(itemToDelete.product.price) * Number(itemToDelete.count);
+        //     }
+
+        //     const newBasket = state.basket.filter(item => item.sku !== action.payload.sku);
+        //     const newSelected = state.basket.filter((item) => item.selected)
+
+        //     localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
+        //     localStorage.setItem("basket", JSON.stringify(newBasket));
+        //     localStorage.setItem("selectedProducts", JSON.stringify(newSelected))
+
+        //     editBaskets(state.basket)
+        //     return {
+        //         ...state,
+        //         basket: newBasket,
+        //         selectedProducts: newSelected
+        //     }
+
+        // },
         selectProduct: (state, action) => {
             let totalCount = Number(state.totalCount);
 

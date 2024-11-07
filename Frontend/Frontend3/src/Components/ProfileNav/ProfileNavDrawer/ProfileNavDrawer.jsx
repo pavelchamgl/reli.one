@@ -63,6 +63,9 @@ const ProfileNavDrawer = ({ open, handleClose }) => {
 
   const { clearBasket } = useActions();
 
+  const baskets = JSON.parse(localStorage.getItem("baskets")) || [];
+  const localEmail = localStorage.getItem("email");
+
   const handleLogout = () => {
     logout({ refresh_token: userData?.refresh }).then((res) => {
       localStorage.removeItem("token");
@@ -78,10 +81,14 @@ const ProfileNavDrawer = ({ open, handleClose }) => {
   const handleDeleteAgree = () => {
     deleteAccount().then((res) => {
       localStorage.removeItem("token");
-      localStorage.removeItem("token");
       localStorage.removeItem("basket");
       localStorage.removeItem("selectedProducts");
       localStorage.removeItem("basketTotal");
+      const newBaskets = baskets.filter(
+        (item) => item?.email !== JSON.parse(localEmail)
+      );
+      localStorage.setItem("baskets", JSON.stringify(newBaskets));
+      localStorage.removeItem("email");
       window.location.reload();
     });
   };

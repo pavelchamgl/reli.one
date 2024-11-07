@@ -20,6 +20,8 @@ const MobResenzeCommentItem = ({ url, data }) => {
           <p>23. srpna 2023</p>
         </div>
         <p className={styles.name}>{data?.author}</p>
+        {/* variant */}
+        <p className={styles.varText}>var2:blublublu</p>
         <p className={styles.commentText}>{data?.content}</p>
         {url && (
           <div className={styles.commentImages}>

@@ -18,7 +18,6 @@ function App() {
       currentPath !== "/payment" &&
       currentPath !== "/mob_basket"
     ) {
-      console.log(basket);
       dispatch(deselectAllProducts());
     }
   }, [location]);

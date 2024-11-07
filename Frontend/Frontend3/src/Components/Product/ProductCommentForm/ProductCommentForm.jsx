@@ -43,7 +43,7 @@ const ProductCommentForm = ({ open, handleClose }) => {
         rating: rate,
       };
 
-      fetchPostComment(id, obj);
+      fetchPostComment({ id: id, obj: obj });
     },
   });
 

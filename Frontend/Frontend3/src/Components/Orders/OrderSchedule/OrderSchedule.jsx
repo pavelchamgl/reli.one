@@ -9,6 +9,8 @@ import IssueIcon from "../../../assets/Order/IssueIcon.svg";
 import styles from "./OrderSchedule.module.scss";
 
 const OrderSchedule = ({ status }) => {
+  console.log(status);
+
   const [percent, setPercent] = useState(0);
   const [style, setStyle] = useState({});
 
@@ -16,6 +18,11 @@ const OrderSchedule = ({ status }) => {
 
   useEffect(() => {
     if (percent === 0) {
+      setStyle({
+        background: "#c6c6c6",
+      });
+    }
+    if (percent === 10) {
       setStyle({
         background: "#c6c6c6",
       });
@@ -36,6 +43,23 @@ const OrderSchedule = ({ status }) => {
       });
     }
   }, [percent]);
+
+  useEffect(() => {
+    if (status) {
+      if (status === "Assembling") {
+        setPercent(10);
+      }
+      if (status === "On the Way") {
+        setPercent(25);
+      }
+      if (status === "Sorting Center") {
+        setPercent(50);
+      }
+      if (status === "Pickup Point") {
+        setPercent(75);
+      }
+    }
+  }, [status]);
 
   return (
     <div className={styles.main}>

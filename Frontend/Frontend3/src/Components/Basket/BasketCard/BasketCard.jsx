@@ -60,6 +60,12 @@ const BasketCard = ({ all, section, productData }) => {
     );
   };
 
+  const handleDelete = () => {
+    console.log(productData.sku);
+
+    dispatch(deleteFromBasket({ sku: productData.sku }));
+  };
+
   useEffect(() => {
     setCheckboxValue(productData.selected);
   }, [productData.selected]);
@@ -77,10 +83,14 @@ const BasketCard = ({ all, section, productData }) => {
 
   useEffect(() => {
     if (product?.variants) {
-      const ourVariant = product?.variants?.find(
+      const ourVariant = product.variants.find(
         (item) => item.sku === productData.sku
       );
-      setVariants(ourVariant);
+      if (ourVariant) {
+        setVariants(ourVariant);
+      } else {
+        console.error("Variant not found for sku:", productData.sku);
+      }
     }
   }, [product?.variants, productData.sku]);
 
@@ -116,7 +126,12 @@ const BasketCard = ({ all, section, productData }) => {
               <p>
                 {product?.name}
                 {/* Если изображения нет, добавляем текст варианта в скобках */}
-                {!variants.image && variants.text ? ` (${variants.text})` : ""}
+                {!variants.image && variants.text ? (
+                  <p className={styles.descText}>
+                    <span>{variants?.name + ":"}</span>
+                    {variants?.text}
+                  </p>
+                ) : null}
               </p>
             </div>
             <div className={styles.countDiv}>
@@ -129,7 +144,11 @@ const BasketCard = ({ all, section, productData }) => {
               </button>
             </div>
             <div className={styles.priceDiv}>
-              <p>{product ? Number(product.price) * count : 0} €</p>
+              <p>
+                {(Number(variants?.price) || Number(product?.price) || 0) *
+                  count}
+                €
+              </p>
             </div>
           </div>
         </>
@@ -150,24 +169,27 @@ const BasketCard = ({ all, section, productData }) => {
               <h3 onClick={() => navigate(`/product/${product?.id}`)}>
                 {product?.name}
                 {/* Если изображения нет, добавляем текст варианта в скобках */}
-                {!variants.image && variants.text ? ` (${variants.text})` : ""}
               </h3>
-              <p>{product?.category?.name}</p>
+              {!variants.image && variants.text ? (
+                <p className={styles.descText}>
+                  <span>{variants?.name + ":"}</span>
+                  {variants?.text}
+                </p>
+              ) : null}
             </div>
           </div>
 
           <div className={styles.countDiv}>
-            <button onClick={handleMinus}>
-              <img src={minusIcon} alt="" />
-            </button>
+            <button onClick={handleMinus}>-</button>
             <p>{count}</p>
-            <button onClick={handlePlus}>
-              <img src={plusIcon} alt="" />
-            </button>
+            <button onClick={handlePlus}>+</button>
           </div>
 
           <div className={styles.priceDiv}>
-            <p>{product ? Number(product.price) * count : 0} €</p>
+            <p>
+              {(Number(variants?.price) || Number(product?.price) || 0) * count}
+              €
+            </p>
             {/* <span>{product.price} Kč</span> */}
           </div>
         </>
@@ -177,9 +199,7 @@ const BasketCard = ({ all, section, productData }) => {
         <button onClick={handleToggleLike}>
           <img src={like ? likeIconAcc : likeIcon} alt="" />
         </button>
-        <button
-          onClick={() => dispatch(deleteFromBasket({ sku: productData.sku }))}
-        >
+        <button onClick={handleDelete}>
           <img src={deleteIcon} alt="" />
         </button>
       </div>

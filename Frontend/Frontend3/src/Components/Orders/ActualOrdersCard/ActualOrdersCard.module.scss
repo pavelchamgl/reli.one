@@ -1,13 +1,18 @@
 .img {
-  max-width: 120px;
-  max-height: 114px;
+  width: 120px;
+  height: 114px;
   min-width: 73px;
   min-height: 69px;
   object-fit: cover;
-  @media (max-width: 360px) {
+
+  @media (max-width: 500px) {
     width: 73px;
     height: 69px;
   }
+}
+
+.links {
+  text-decoration: none;
 }
 
 .prodName {
@@ -17,16 +22,16 @@
   color: #000;
 }
 .prodDesc {
-  font-weight: 300;
-  font-size: clamp(10px, 2.5vw, 13px);
-  line-height: 151%;
-  color: #000;
+  font-weight: 500;
+  font-size: clamp(11px, 2.5vw, 15px);
+  line-height: 131%;
+  color: #64748b;
 }
 .main {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-left: 10px;
+  // padding-left: 10px;
   border-bottom: 1px solid #ced4d7;
   @media (max-width: 360px) {
     padding: 0;
