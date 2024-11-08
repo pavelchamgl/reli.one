@@ -7,9 +7,7 @@ export const fetchGetComments = createAsyncThunk(
     async (id, { rejectWithValue, getState }) => {
         try {
             const state = getState().comment
-            console.log(state);
             const res = await getComments(id, state.page)
-            console.log(res);
             return res.data
         } catch (error) {
             return rejectWithValue(error)
@@ -23,7 +21,6 @@ export const fetchPostComment = createAsyncThunk(
         try {
             if (obj) {
                 const res = await postComment(obj?.id, obj?.obj)
-                console.log(res);
                 if (res.status === 201) {
                     dispatch(addComment(obj))
                 }

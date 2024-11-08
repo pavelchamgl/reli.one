@@ -224,7 +224,10 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
               </button>
             </div>
             <div className={styles.priceDiv}>
-              <p>{varPrice ? Number(varPrice) * (countsBySku[selected] || 1) : 0} €</p>
+              <p>
+                {varPrice ? Number(varPrice) * (countsBySku[selected] || 1) : 0}{" "}
+                €
+              </p>
             </div>
           </>
         )}
@@ -254,6 +257,7 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
                       onClick={() => {
                         setSelected(item.sku);
                       }}
+                      key={item.sku}
                     >
                       <img src={item?.image} alt="" />
                       <p>{item?.price}€</p>
@@ -274,6 +278,7 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
                       onClick={() => {
                         setSelected(item.sku);
                       }}
+                      key={item.sku}
                     >
                       <p>{item?.text}</p>
                       <span>{item?.price}€</span>

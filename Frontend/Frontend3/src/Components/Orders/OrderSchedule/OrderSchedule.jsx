@@ -9,7 +9,6 @@ import IssueIcon from "../../../assets/Order/IssueIcon.svg";
 import styles from "./OrderSchedule.module.scss";
 
 const OrderSchedule = ({ status = 0 }) => {
-  console.log(status);
 
   const [percent, setPercent] = useState(0);
   const [style, setStyle] = useState({});

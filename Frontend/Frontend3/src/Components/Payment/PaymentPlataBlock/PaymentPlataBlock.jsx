@@ -35,11 +35,6 @@ const PaymentPlataBlock = ({ setSection }) => {
     (state) => state.basket.selectedProducts
   );
 
-  useEffect(()=>{
-    console.log(inputError);
-    
-  },[inputError])
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -58,10 +53,6 @@ const PaymentPlataBlock = ({ setSection }) => {
       dispatch(fetchCreatePayPalSession(selectedProducts));
     }
   };
-
-  useEffect(() => {
-    console.log(plataType);
-  }, [plataType]);
 
   return (
     <div className={styles.main}>

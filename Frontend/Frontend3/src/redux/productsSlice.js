@@ -10,9 +10,7 @@ export const fetchGetProducts = createAsyncThunk(
     async (_, { rejectWithValue, getState }) => {
         try {
             const state = getState().products
-            console.log(state);
             const res = await mainInstance.get(`https://reli.one/api/products/categories/${state.category}/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=15`)
-            console.log(res);
             return res.data
         } catch (error) {
             return rejectWithValue()
@@ -37,7 +35,6 @@ export const fetchSearchProducts = createAsyncThunk(
     async (text, { rejectWithValue, getState }) => {
         try {
             const state = getState().products
-            console.log(state);
             const res = await mainInstance.get(`https://reli.one/api/products/search/`, {
                 params: {
                     max_price: state.max,
@@ -51,7 +48,6 @@ export const fetchSearchProducts = createAsyncThunk(
                     Authorization: token ? `Bearer ${token.access}` : ''
                 }
             });
-            console.log(res);
             return res.data
         } catch (error) {
             return rejectWithValue()
@@ -120,7 +116,6 @@ const productsSlice = createSlice({
     extraReducers: builder => {
         builder.addCase(fetchGetProducts.pending, pendingStatus),
             builder.addCase(fetchGetProducts.fulfilled, (state, action) => {
-                console.log(action.payload);
                 state.products = action.payload.results
                 state.status = "fulfilled",
                     state.count = action.payload.count

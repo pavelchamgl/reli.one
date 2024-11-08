@@ -35,7 +35,6 @@ const PinInpForm = () => {
   const registerLocal = JSON.parse(localStorage.getItem("register"));
 
   const handleSubmit = () => {
-    console.log(value);
     emailConfirm({
       email: email,
       otp: value,
@@ -45,11 +44,8 @@ const PinInpForm = () => {
         localStorage.removeItem("email");
         localStorage.setItem("is_registered", JSON.stringify(true));
         navigate("/");
-        console.log(res);
       })
       .catch((err) => {
-        console.log(err);
-
         if (err.response) {
           if (err.response.status === 500) {
             setRegErr(

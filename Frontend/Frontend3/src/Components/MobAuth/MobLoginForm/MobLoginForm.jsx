@@ -47,18 +47,14 @@ const MobLoginForm = () => {
     },
     validationSchema: validationLogin,
     onSubmit: (values) => {
-      console.log(values);
       login(values)
         .then((res) => {
-          console.log(res);
           localStorage.setItem("token", JSON.stringify(res.data));
           localStorage.setItem("email", JSON.stringify(values.email));
           setRegErr("");
           navigate("/");
         })
         .catch((err) => {
-          console.log(err);
-
           if (err.response) {
             if (err.response.status === 500) {
               setRegErr(

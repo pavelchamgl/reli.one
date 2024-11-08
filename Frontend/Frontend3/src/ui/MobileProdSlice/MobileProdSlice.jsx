@@ -46,8 +46,8 @@ const MobileProdSwiper = () => {
           },
         }}
       >
-        {images?.map((item) => (
-          <SwiperSlide className={styles["swiper-slide"]}>
+        {images?.map((item, index) => (
+          <SwiperSlide key={index} className={styles["swiper-slide"]}>
             <img src={item?.image_url} alt="" />
           </SwiperSlide>
         ))}

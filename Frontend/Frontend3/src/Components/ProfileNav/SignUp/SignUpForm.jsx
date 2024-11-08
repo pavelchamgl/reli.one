@@ -60,17 +60,13 @@ const SignUpForm = () => {
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
-      console.log(values);
       register(values)
         .then((res) => {
-          console.log(res);
           setRegErr("");
           localStorage.setItem("email", JSON.stringify(values.email));
           navigate("/otp_conf");
         })
         .catch((err) => {
-          console.log(err);
-
           if (err.response) {
             if (err.response.status === 500) {
               setRegErr(
@@ -102,7 +98,7 @@ const SignUpForm = () => {
           }
         });
     },
-  }); 
+  });
 
   useEffect(() => {
     if (isMobile) {

@@ -36,7 +36,6 @@ const PinInpPassForm = () => {
   const passwords = JSON.parse(localStorage.getItem("passwords"));
 
   const handleSubmit = () => {
-    console.log(value);
     emailPassConfirm({
       email: email.email,
       otp: value,
@@ -45,11 +44,8 @@ const PinInpPassForm = () => {
         setRegErr("");
         localStorage.setItem("otp", value);
         navigate("/create_new_pass");
-        console.log(res);
       })
       .catch((err) => {
-        console.log(err);
-
         if (err.response) {
           if (err.response.status === 500) {
             setRegErr(

@@ -7,7 +7,6 @@ export const fetchGetOrders = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const res = await getOrders()
-            console.log(res);
             return res.data
         } catch (error) {
             return rejectWithValue(error)
@@ -20,7 +19,6 @@ export const fetchGetOrdersCurrent = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const res = await getOrdersCurrent()
-            console.log(res);
             return res.data
         } catch (error) {
             return rejectWithValue(error)
@@ -33,7 +31,6 @@ export const fetchGetDetalOrders = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
             const res = await getDetalOrders(id)
-            console.log(res);
             return res.data
         } catch (error) {
             return rejectWithValue(error)

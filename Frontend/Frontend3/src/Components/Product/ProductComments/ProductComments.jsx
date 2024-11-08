@@ -22,7 +22,6 @@ const ProductComments = () => {
 
   const { setCommentPage } = useActions();
 
-  console.log(product);
 
   const handleChange = (event, value) => {
     setPage(value);

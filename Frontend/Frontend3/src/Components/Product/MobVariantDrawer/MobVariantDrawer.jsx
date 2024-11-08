@@ -28,7 +28,6 @@ const MobVariantDrawer = ({
 
     if (selected) {
       if (basketVariant) {
-        console.log(basketVariant.count);
         dispatch(
           plusCount({
             sku: variant.sku,
@@ -47,7 +46,6 @@ const MobVariantDrawer = ({
         );
       }
     }
-    
   }, [selected]);
 
   useEffect(() => {
@@ -93,7 +91,7 @@ const MobVariantDrawer = ({
                             // //   sku: item.sku,
                             // // });
                           }}
-                          // key={item?.id}
+                          key={item?.sku}
                         >
                           <img src={item?.image} alt="" />
                           <p>{item?.price}€</p>
@@ -116,6 +114,7 @@ const MobVariantDrawer = ({
                             // setPrice(item.price);
                             // setSku(item.sku);
                           }}
+                          key={item?.sku}
                         >
                           <p>{item?.text}</p>
                           <span>{item?.price}€</span>

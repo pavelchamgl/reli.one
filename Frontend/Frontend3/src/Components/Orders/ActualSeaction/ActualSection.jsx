@@ -31,7 +31,6 @@ const ActualSection = () => {
     (state) => state.orders
   );
 
-  console.log(order);
 
   useEffect(() => {
     if (small && orderId) {

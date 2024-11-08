@@ -11,7 +11,6 @@ const ProductImages = () => {
   const [src3, setSrc3] = useState("");
 
   useEffect(() => {
-    console.log(product);
     if (product?.images?.length > 0) {
       setImage(product?.images[0]?.image_url);
       setSrc1(product?.images[0]?.image_url);

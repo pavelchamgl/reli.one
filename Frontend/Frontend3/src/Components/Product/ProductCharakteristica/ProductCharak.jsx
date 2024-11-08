@@ -13,8 +13,6 @@ const ProductCharak = () => {
     (state) => state.products.product
   );
 
-  console.log(parameters);
-
   return (
     <div className={styles.main}>
       {isMobile && <p className={styles.mobTitle}>{t("characteristics")}</p>}
@@ -24,8 +22,8 @@ const ProductCharak = () => {
         <div className={styles.blackTitle}>{t("transfer_charac")}</div>
 
         <div className={styles.tableWrap}>
-          {parameters?.map((item) => (
-            <div className={styles.tableDiv}>
+          {parameters?.map((item, index) => (
+            <div key={index} className={styles.tableDiv}>
               <div>
                 <p>{item?.parameter_name}</p>
               </div>

@@ -27,7 +27,6 @@ export const fetchCreateStripeSession = createAsyncThunk(
             });
 
             if (res.status === 200) {
-                console.log(res);
                 window.location.href = res.data.url;
             }
         } catch (error) {
@@ -59,7 +58,6 @@ export const fetchCreatePayPalSession = createAsyncThunk(
             });
 
             if (res.status === 200) {
-                console.log(res);
                 window.location.href = res.data.approval_url;
             }
         } catch (error) {

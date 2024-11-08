@@ -35,16 +35,12 @@ const EmailConfForm = () => {
     },
     validationSchema: validationForgot,
     onSubmit: (values) => {
-      console.log(values);
       sendOtp(values)
         .then((res) => {
-          console.log(res);
           localStorage.setItem("email", JSON.stringify(values));
           navigate("/otp_conf");
         })
         .catch((err) => {
-          console.log(err);
-
           if (err.response) {
             if (err.response.status === 500) {
               setRegErr(

@@ -16,8 +16,6 @@ const MobCardSecond = ({ product, sku }) => {
     return null; // Возвращаем null, если продукт отсутствует
   }
 
-  console.log(sku);
-
   return (
     <div className={styles.main}>
       <div className={styles.descAndImageWrap}>

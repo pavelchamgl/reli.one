@@ -46,10 +46,8 @@ const LoginModal = ({ open, handleClose }) => {
     },
     validationSchema: validationLogin,
     onSubmit: (values) => {
-      console.log(values);
       login(values)
         .then((res) => {
-          console.log(res);
           localStorage.setItem("token", JSON.stringify(res.data));
           localStorage.setItem("email", JSON.stringify(values.email));
           setRegErr("");
@@ -57,8 +55,6 @@ const LoginModal = ({ open, handleClose }) => {
           window.location.reload();
         })
         .catch((err) => {
-          console.log(err);
-
           if (err.response) {
             if (err.response.status === 500) {
               setRegErr(

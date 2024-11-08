@@ -35,9 +35,6 @@ const ProductCommentForm = ({ open, handleClose }) => {
     },
     validationSchema: validateCommentForm,
     onSubmit: (values) => {
-      // console.log(images);
-      // console.log(values);
-
       let obj = {
         content: values.comment,
         rating: rate,
