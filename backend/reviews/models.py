@@ -20,3 +20,12 @@ class Review(models.Model):
 
     def __str__(self):
         return f"{self.author.email} {self.product_variant.name} {self.rating}"
+
+
+class ReviewMedia(models.Model):
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='media')
+    file = models.FileField(upload_to='review_media/')
+    media_type = models.CharField(max_length=10, choices=[('image', 'Image'), ('video', 'Video')])
+
+    def __str__(self):
+        return f"Media for review {self.review.id}"
