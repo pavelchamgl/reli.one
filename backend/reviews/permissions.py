@@ -1,15 +1,27 @@
 from rest_framework.permissions import BasePermission
 
 from order.models import OrderProduct
+from product.models import ProductVariant
 
 
 class CanCreateReview(BasePermission):
     def has_permission(self, request, view):
         user = request.user
-        product_id = view.kwargs.get('product_id')
+        sku = request.data.get('sku')
 
-        return OrderProduct.objects.filter(
+        if not sku:
+            return False
+
+        try:
+            product_variant = ProductVariant.objects.get(sku=sku)
+        except ProductVariant.DoesNotExist:
+            return False
+
+        # Проверяем, купил ли пользователь этот вариант продукта и имеет ли заказ статус 'Closed'
+        has_purchased = OrderProduct.objects.filter(
             order__user=user,
-            product_id=product_id,
-            received=True
+            product=product_variant,
+            order__order_status__name='Closed'
         ).exists()
+
+        return has_purchased

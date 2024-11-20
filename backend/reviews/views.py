@@ -8,7 +8,6 @@ from .models import Review
 from .pagination import ReviewResultsSetPagination
 from .permissions import CanCreateReview
 from .serializers import ReviewSerializer, ReviewCreateSerializer
-from product.models import BaseProduct
 
 
 @extend_schema(
@@ -42,31 +41,45 @@ class ProductReviewListAPIView(generics.ListAPIView):
 
 @extend_schema(
     description=(
-        "Create a review for a product. The rating must be between 1 and 5. "
-        "Only users who have purchased this product and received."
+        "Create a review for a product variant identified by SKU. The rating must be between 1 and 5. "
+        "Only users who have purchased this product variant in an order with status 'Closed' can create a review."
     ),
     request=inline_serializer(
         name='ReviewCreateExample',
         fields={
+            'sku': serializers.CharField(),
             'content': serializers.CharField(),
             'rating': serializers.IntegerField(min_value=1, max_value=5)
         }
     ),
     responses={
-        status.HTTP_201_CREATED: OpenApiResponse(description="Review created successfully."),
+        status.HTTP_201_CREATED: OpenApiResponse(
+            description="Review created successfully.",
+            response=inline_serializer(
+                name='SuccessResponse',
+                fields={'message': serializers.CharField()}
+            )
+        ),
         status.HTTP_400_BAD_REQUEST: OpenApiResponse(description="Invalid data."),
-        status.HTTP_404_NOT_FOUND: OpenApiResponse(description="Product not found."),
-        status.HTTP_403_FORBIDDEN: OpenApiResponse(description="Authentication credentials were not provided or are invalid."),
+        status.HTTP_403_FORBIDDEN: OpenApiResponse(description="Permission denied."),
     },
     examples=[
         OpenApiExample(
-            name="Example",
+            name="Example Request",
             value={
-                'content': 'string',
+                'sku': '123456789',
+                'content': 'Great product!',
                 'rating': 5,
             },
             request_only=True,
             response_only=False,
+        ),
+        OpenApiExample(
+            name="Example Response",
+            value={'message': 'Review created successfully.'},
+            request_only=False,
+            response_only=True,
+            status_codes=[201],
         ),
     ],
     tags=["Review"],
@@ -74,21 +87,10 @@ class ProductReviewListAPIView(generics.ListAPIView):
 class CreateReviewAPIView(APIView):
     permission_classes = [IsAuthenticated, CanCreateReview]
 
-    def post(self, request, product_id):
-        user = request.user
-
-        try:
-            product = BaseProduct.objects.get(id=product_id)
-        except BaseProduct.DoesNotExist:
-            return Response({'error': 'Product not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        data = request.data
-        data['author'] = user.id
-        data['product'] = product.id
-
-        serializer = ReviewCreateSerializer(data=data)
+    def post(self, request):
+        serializer = ReviewCreateSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            serializer.save(author=user, product=product)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer.save()
+            return Response({'message': 'Review created successfully.'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
