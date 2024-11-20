@@ -520,7 +520,12 @@ class CategoryBaseProductListView(generics.ListAPIView):
 
 
 @extend_schema(
-    description="Retrieve detailed information about a specific product by its ID. The response includes product details such as name, description, parameters, rating, total number of reviews, license file, images, variants with prices, and whether the product is in the user's favorites.",
+    description=(
+        "Retrieve detailed information about a specific product by its ID. "
+        "The response includes product details such as name, description, parameters, rating, total number of reviews, "
+        "license file, images, variants with prices, whether the product is in the user's favorites, "
+        "and a list of SKUs the authenticated user can review."
+    ),
     parameters=[
         OpenApiParameter(
             name='id',
@@ -574,7 +579,8 @@ class CategoryBaseProductListView(generics.ListAPIView):
                         "image": "http://localhost:8081/media/base_product_images/variant/image2.jpg",
                         "price": "109.99"
                     }
-                ]
+                ],
+                "can_review": ["123456789", "987654321"]
             },
             request_only=False,
             response_only=True,
@@ -587,6 +593,7 @@ class BaseProductDetailAPIView(generics.RetrieveAPIView):
         'parameters__parameter',
         'images',
         'variants',
+        'variants__variant_reviews',
     )
     serializer_class = BaseProductDetailSerializer
     lookup_field = 'id'

@@ -8,6 +8,7 @@ from .models import (
     ProductVariant,
 )
 from favorites.models import Favorite
+from order.models import OrderProduct
 
 
 class ParameterValueSerializer(serializers.ModelSerializer):
@@ -59,6 +60,9 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
     is_favorite = serializers.SerializerMethodField()
     category_name = serializers.CharField(source='category.name', read_only=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
+    can_review = serializers.SerializerMethodField(
+        help_text="List of SKU identifiers that the authenticated user can review."
+    )
 
     class Meta:
         model = BaseProduct
@@ -74,6 +78,7 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'images',
             'is_favorite',
             'variants',
+            'can_review',
         ]
 
     def get_license_file(self, obj):
@@ -89,6 +94,38 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             user = request.user
             return Favorite.objects.filter(user=user, product=obj).exists()
         return False
+
+    def get_can_review(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user = request.user
+
+            # Используем предварительно загруженные варианты продукта
+            variants = obj.variants.all()
+
+            # Получаем список SKU вариантов продукта
+            variant_skus = [variant.sku for variant in variants]
+
+            # Получаем SKU продуктов, которые пользователь купил
+            purchased_skus = set(
+                OrderProduct.objects.filter(
+                    order__user=user,
+                    product__sku__in=variant_skus
+                ).values_list('product__sku', flat=True)
+            )
+
+            # Получаем SKU продуктов, на которые пользователь уже оставил отзыв
+            reviewed_skus = set()
+            for variant in variants:
+                # Используем обновленный related_name 'variant_reviews'
+                if any(review.author_id == user.id for review in variant.variant_reviews.all()):
+                    reviewed_skus.add(variant.sku)
+
+            # Определяем SKU, на которые пользователь может оставить отзыв
+            can_review_skus = purchased_skus - reviewed_skus
+
+            return list(can_review_skus)
+        return []
 
 
 class BaseProductListSerializer(serializers.ModelSerializer):
