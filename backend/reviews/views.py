@@ -2,7 +2,6 @@ from rest_framework import generics, status, serializers
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, inline_serializer, OpenApiExample
 from rest_framework.response import Response
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Review
@@ -23,20 +22,22 @@ from product.models import BaseProduct
         ),
     ],
     responses={
-        status.HTTP_200_OK: OpenApiResponse(description="A list of reviews."),
+        status.HTTP_200_OK: OpenApiResponse(
+            response=ReviewSerializer(many=True),
+            description="A list of reviews."
+        ),
         status.HTTP_404_NOT_FOUND: OpenApiResponse(description="Product not found."),
     },
     tags=["Review"],
 )
 class ProductReviewListAPIView(generics.ListAPIView):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticated]
     pagination_class = ReviewResultsSetPagination
     pagination_class.page_size = 5
 
     def get_queryset(self):
         product_id = self.kwargs['product_id']
-        return Review.objects.filter(product_id=product_id).order_by('-date_created')
+        return Review.objects.filter(product_id=product_id).select_related('author', 'product_variant').order_by('-date_created')
 
 
 @extend_schema(

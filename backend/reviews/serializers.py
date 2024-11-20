@@ -6,10 +6,22 @@ from .models import Review
 class ReviewSerializer(serializers.ModelSerializer):
     author_first_name = serializers.CharField(source='author.first_name')
     author_last_name = serializers.CharField(source='author.last_name')
+    variant_name = serializers.CharField(source='product_variant.name')
+    variant_text = serializers.CharField(source='product_variant.text')
 
     class Meta:
         model = Review
-        fields = ['id', 'author_first_name', 'author_last_name', 'content', 'date_created', 'rating']
+        fields = [
+            'id',
+            'author_first_name',
+            'author_last_name',
+            'content',
+            'date_created',
+            'rating',
+            'variant_name',
+            'variant_text',
+        ]
+
 
 
 class ReviewCreateSerializer(serializers.ModelSerializer):
