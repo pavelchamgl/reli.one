@@ -1,6 +1,7 @@
 from rest_framework import generics, status, serializers
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, inline_serializer, OpenApiExample
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
@@ -42,14 +43,20 @@ class ProductReviewListAPIView(generics.ListAPIView):
 @extend_schema(
     description=(
         "Create a review for a product variant identified by SKU. The rating must be between 1 and 5. "
-        "Only users who have purchased this product variant in an order with status 'Closed' can create a review."
+        "Users can attach images or short videos to the review. Only users who have purchased this product "
+        "variant in an order with status 'Closed' can create a review."
     ),
     request=inline_serializer(
         name='ReviewCreateExample',
         fields={
             'sku': serializers.CharField(),
             'content': serializers.CharField(),
-            'rating': serializers.IntegerField(min_value=1, max_value=5)
+            'rating': serializers.IntegerField(min_value=1, max_value=5),
+            'media': serializers.ListField(
+                child=serializers.FileField(),
+                required=False,
+                help_text='List of image or video files.'
+            ),
         }
     ),
     responses={
@@ -70,6 +77,7 @@ class ProductReviewListAPIView(generics.ListAPIView):
                 'sku': '123456789',
                 'content': 'Great product!',
                 'rating': 5,
+                'media': ['image1.jpg', 'video1.mp4'],
             },
             request_only=True,
             response_only=False,
@@ -86,6 +94,7 @@ class ProductReviewListAPIView(generics.ListAPIView):
 )
 class CreateReviewAPIView(APIView):
     permission_classes = [IsAuthenticated, CanCreateReview]
+    parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
         serializer = ReviewCreateSerializer(data=request.data, context={'request': request})
