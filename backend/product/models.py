@@ -109,7 +109,7 @@ class ProductVariant(models.Model):
     )
 
     def __str__(self):
-        return f"{self.product.name} - {self.name} price: {self.price}"
+        return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"
 
     def clean(self):
         # Убедитесь, что только одно из полей 'text' или 'image' заполнено
