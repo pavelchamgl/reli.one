@@ -12,11 +12,11 @@ from .serializers import ReviewSerializer, ReviewCreateSerializer
 
 
 @extend_schema(
-    description="Retrieve a list of reviews for a given product by its ID. The reviews are sorted by date created in descending order.",
+    description="Retrieve a list of reviews for a given product by its ID, including reviews for all product variants. The reviews are sorted by date created in descending order.",
     parameters=[
         OpenApiParameter(
             name='product_id',
-            description='ID of the product to retrieve reviews for',
+            description='ID of the product to retrieve reviews for, including all its variants',
             required=True,
             type=int
         ),
@@ -24,7 +24,7 @@ from .serializers import ReviewSerializer, ReviewCreateSerializer
     responses={
         status.HTTP_200_OK: OpenApiResponse(
             response=ReviewSerializer(many=True),
-            description="A list of reviews."
+            description="A list of reviews for the product and all its variants."
         ),
         status.HTTP_404_NOT_FOUND: OpenApiResponse(description="Product not found."),
     },
@@ -37,7 +37,13 @@ class ProductReviewListAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         product_id = self.kwargs['product_id']
-        return Review.objects.filter(product_id=product_id).select_related('author', 'product_variant').order_by('-date_created')
+
+        # Получаем все отзывы для всех вариантов конкретного продукта
+        queryset = Review.objects.filter(
+            product_variant__product_id=product_id
+        ).select_related('author', 'product_variant').order_by('-date_created')
+
+        return queryset
 
 
 @extend_schema(
