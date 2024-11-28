@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Review
+from .models import Review, ReviewMedia
 
 admin.site.register(Review)
-# Register your models here.
+admin.site.register(ReviewMedia)
