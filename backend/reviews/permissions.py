@@ -8,9 +8,11 @@ class CanCreateReview(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         sku = request.data.get('sku')
-
+        
         if not sku:
             return False
+        else:
+            sku = sku.strip('"')
 
         try:
             product_variant = ProductVariant.objects.get(sku=sku)
