@@ -56,6 +56,8 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_media(self, value):
+        if not value:
+            return value
         for media_item in value:
             if media_item.content_type not in ['image/jpeg', 'image/png', 'video/mp4']:
                 raise serializers.ValidationError("Unsupported file type.")
@@ -65,24 +67,24 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         sku = data.get('sku')
+        if isinstance(sku, str):
+            sku = sku.strip('"')
         try:
             product_variant = ProductVariant.objects.get(sku=sku)
             data['product_variant'] = product_variant
-            data['product_id'] = product_variant.product
         except ProductVariant.DoesNotExist:
             raise serializers.ValidationError({'sku': 'Invalid SKU'})
         return data
 
     def create(self, validated_data):
         user = self.context['request'].user
+        variant = validated_data.pop('sku')
         media_data = validated_data.pop('media', [])
         product_variant = validated_data.pop('product_variant')
-        product_id = validated_data.pop('product_id')
 
         review = Review.objects.create(
             author=user,
             product_variant=product_variant,
-            product_id=product_id,
             **validated_data
         )
 
