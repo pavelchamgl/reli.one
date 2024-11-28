@@ -67,8 +67,8 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         sku = data.get('sku')
-        if isinstance(sku, str):
-            sku = sku.strip('"')
+        # Очищаем sku от ненужных символов
+        sku = sku.strip('"\n\r') if isinstance(sku, str) else sku
         try:
             product_variant = ProductVariant.objects.get(sku=sku)
             data['product_variant'] = product_variant
@@ -78,7 +78,7 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        variant = validated_data.pop('sku')
+        sku = validated_data.pop('sku')
         media_data = validated_data.pop('media', [])
         product_variant = validated_data.pop('product_variant')
 
@@ -88,12 +88,14 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
             **validated_data
         )
 
-        for media_item in media_data:
-            media_type = 'video' if 'video' in media_item.content_type else 'image'
-            ReviewMedia.objects.create(
+        review_media = [
+            ReviewMedia(
                 review=review,
                 file=media_item,
-                media_type=media_type
+                media_type='video' if 'video' in media_item.content_type else 'image'
             )
+            for media_item in media_data
+        ]
+        ReviewMedia.objects.bulk_create(review_media)
 
         return review
