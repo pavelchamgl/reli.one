@@ -1,14 +1,12 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-from product.models import BaseProduct
 from product.models import ProductVariant
 from accounts.models import CustomUser
 
 
 class Review(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    product_id = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='baseproduct_reviews')
     product_variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE, related_name='variant_reviews')
     content = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True)
