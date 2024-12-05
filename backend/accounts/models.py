@@ -1,13 +1,15 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.db import models, transaction
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, Group
 from phonenumber_field.modelfields import PhoneNumberField
 
-from .managers import BaseUserManagerWithRole, CustomerManager, SellerManager
-
-
-class UserRole(models.TextChoices):
-    CUSTOMER = 'Customer', 'Customer'
-    SELLER = 'Seller', 'Seller'
+from .choices import UserRole
+from .managers import (
+    BaseUserManagerWithRole,
+    CustomerManager,
+    SellerManager,
+    ManagerManager,
+    AdminManager
+)
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -26,6 +28,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
 
     objects = BaseUserManagerWithRole()
+    admins = AdminManager()
+    managers = ManagerManager()
     customers = CustomerManager()
     sellers = SellerManager()
 
@@ -37,10 +41,35 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = 'Users'
 
     def __str__(self):
-        return f"ID: {self.pk}. E-mail: {self.email}"
+        return f"ID: {self.pk}. E-mail: {self.email}. Role: {self.role}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Обновляем группы пользователя на основе его роли
+        if self.role:
+            try:
+                group, created = Group.objects.get_or_create(name=self.role)
+            except Group.DoesNotExist:
+                raise ValueError(f"Group '{self.role}' does not exist.")
+
+            # Получаем все группы, связанные с ролями
+            role_groups = Group.objects.filter(name__in=UserRole.values)
+
+            with transaction.atomic():
+                # Удаляем пользователя из всех групп, связанных с ролями
+                self.groups.remove(*role_groups)
+                # Добавляем пользователя в новую группу
+                self.groups.add(group)
 
     def has_role(self, role_name):
         return self.role == role_name
+
+    def is_admin(self):
+        return self.has_role(UserRole.ADMIN)
+
+    def is_manager(self):
+        return self.has_role(UserRole.MANAGER)
 
     def is_customer(self):
         return self.has_role(UserRole.CUSTOMER)
