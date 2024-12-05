@@ -4,6 +4,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.hashers import make_password
 
+from .choices import UserRole
 from .models import CustomUser
 
 
@@ -45,12 +46,9 @@ class UserRegistrationSerializer(PasswordValidateMixin, serializers.ModelSeriali
         fields = ['first_name', 'last_name', 'email', 'password', 'confirm_password']
 
     def create(self, validated_data):
-        role_name = self.context.get('role_name')
-        manager = self.context.get('manager')
+        role_name = self.context.get('role_name', UserRole.CUSTOMER)
         validated_data.pop('confirm_password')
-        user = manager.create_user(**validated_data)
-        user.role = role_name
-        user.save()
+        user = CustomUser.objects.create_user(role=role_name, **validated_data)
         return user
 
 
@@ -91,6 +89,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data.update({'first_name': self.user.first_name})
         data.update({'last_name': self.user.last_name})
         return data
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        # Добавление роли пользователя в payload токена
+        token['role'] = user.role
+        return token
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
