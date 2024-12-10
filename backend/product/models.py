@@ -9,7 +9,13 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 
-from supplier.models import Supplier
+from sellers.models import SellerProfile
+
+
+class ProductStatus(models.TextChoices):
+    PENDING = 'pending', 'Pending'
+    APPROVED = 'approved', 'Approved'
+    REJECTED = 'rejected', 'Rejected'
 
 
 class ParameterName(models.Model):
@@ -50,7 +56,11 @@ class BaseProduct(models.Model):
     product_description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    supplier = models.ForeignKey(
+        SellerProfile,
+        on_delete=models.CASCADE,
+        related_name='products'
+    )
     rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
@@ -60,6 +70,21 @@ class BaseProduct(models.Model):
         null=True,
     )
     total_reviews = models.IntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=ProductStatus.choices,
+        default=ProductStatus.PENDING
+    )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_products',
+        limit_choices_to={'role__in': ['Manager', 'Admin']}
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    rejected_reason = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
