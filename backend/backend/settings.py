@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'news',
     'vacancies',
     'favorites',
+    'sellers',
     'supplier',
     'reports',
 ]
