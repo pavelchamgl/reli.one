@@ -1,0 +1,26 @@
+.main {
+  display: flex;
+  border-bottom: 1px solid #d3d4d5;
+  gap: 50px;
+  margin-top: 34px;
+}
+
+@mixin tabs {
+  font-weight: 500;
+  font-size: 26px;
+  line-height: 81%;
+  letter-spacing: -0.01em;
+  text-align: center;
+  color: #000;
+  padding-bottom: 12px;
+  background-color: transparent;
+}
+
+.tabBtn {
+  @include tabs;
+}
+
+.tabBtnAcc {
+  @include tabs;
+  border-bottom: 2px solid #f5b80b;
+}

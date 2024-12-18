@@ -1,0 +1,68 @@
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  width: 669px;
+  height: 302px;
+  z-index: 1000;
+}
+
+.modal::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.content {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 72px;
+
+  h3 {
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 97%;
+    color: #333;
+  }
+}
+
+.btnsDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 426px;
+
+  & button {
+    background: #d55b5b;
+    padding: 7px 24px 7px 24px;
+    width: 188px;
+    height: 35px;
+    font-weight: 500;
+    font-size: 18px;
+    text-transform: capitalize;
+    text-align: center;
+    color: #fff;
+  }
+
+  & button:nth-child(2) {
+    background: #3f7f6d;
+  }
+}
+
+.closeBtn {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background-color: transparent;
+
+  & img {
+    width: 20px;
+  }
+}

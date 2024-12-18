@@ -34,6 +34,12 @@ import OtpPassConfirmPage from "./pages/OtpPassConf.jsx";
 import CreateNewPass from "./pages/CreateNewPass.jsx";
 import RegRulesPage from "./pages/RegRulesPage.jsx";
 
+import SellerGoodPage from "./pages/SellerGoodPage.jsx";
+import SellerGoodsList from "./pages/SellerGoodsList.jsx";
+import SellerHomePage from "./pages/SellerHomePage.jsx";
+import SellerOrdersPage from "./pages/SellerOrdersPage.jsx";
+import SellerCreatePage from "./pages/SellerCreatePage.jsx";
+import SellerPreviewPage from "./pages/SellerPreviewPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -94,6 +100,30 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: <HomePage />,
+  },
+  {
+    path: "/seller-goods-choice",
+    element: <SellerGoodPage />,
+  },
+  {
+    path: "/seller-goods-list",
+    element: <SellerGoodsList />,
+  },
+  {
+    path: "/seller-home",
+    element: <SellerHomePage />,
+  },
+  {
+    path: "/seller-orders",
+    element: <SellerOrdersPage />,
+  },
+  {
+    path: "/seller-create",
+    element: <SellerCreatePage />,
+  },
+  {
+    path: "/seller-preview",
+    element: <SellerPreviewPage />,
   },
 ]);
 

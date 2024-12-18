@@ -18,24 +18,44 @@
 }
 
 .commentText {
-  width: 184px;
   font-weight: 500;
   font-size: 13px;
   line-height: 180%;
   color: #000;
   margin-top: 10px;
+  word-wrap: break-word;
 }
 
-.commentImages {
+.imageDiv {
   display: flex;
-  gap: 14px;
-  margin-top: 10px;
+  gap: 20px; /* Отступы между картинками */
+  width: 100%;
+  overflow-x: auto; /* Включаем горизонтальный скрол */
+  overflow-y: hidden; /* Убираем вертикальный скрол */
+  white-space: nowrap; /* Запрещаем перенос содержимого */
+  -ms-overflow-style: auto; /* Для IE и Edge */
+  scrollbar-width: thin; /* Для Firefox - делаем скрол тонким */
+  scrollbar-color: gray transparent;
   img {
     border-radius: 2px;
     width: 66px;
     height: 72px;
     object-fit: cover;
+    margin-bottom: 10px;
   }
+}
+.imageDiv::-webkit-scrollbar {
+  height: 2px; /* Высота горизонтального скролла */
+  background-color: transparent; /* Цвет фона скроллбара */
+}
+
+.imageDiv::-webkit-scrollbar-thumb {
+  background-color: gray; /* Цвет полосы прокрутки */
+  border-radius: 5px; /* Закругленные края полосы прокрутки */
+}
+
+.imageDiv::-webkit-scrollbar-button {
+  display: none; /* Убираем боковые кнопки */
 }
 
 .main {
@@ -44,9 +64,16 @@
 }
 
 .varText {
-  font-family: var(--font-family);
   font-weight: 500;
   font-size: 11px;
   line-height: 178%;
   color: #64748b;
+}
+
+.video {
+  border-radius: 2px;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  margin-bottom: 10px;
 }

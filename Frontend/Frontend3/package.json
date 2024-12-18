@@ -10,9 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
-    "@mui/material": "^5.15.15",
+    "@emotion/react": "^11.13.5",
+    "@emotion/styled": "^11.13.5",
+    "@mui/material": "^5.16.7",
     "@reduxjs/toolkit": "^2.2.5",
     "axios": "^1.7.2",
     "formik": "^2.4.6",
@@ -27,7 +27,8 @@
     "react-responsive": "^10.0.0",
     "react-router-dom": "^6.23.0",
     "react-toastify": "^10.0.5",
-    "swiper": "^11.1.1",
+    "recharts": "^2.13.3",
+    "swiper": "^11.1.15",
     "yup": "^1.4.0"
   },
   "devDependencies": {

@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Breadcrumbs, Link, Typography } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Breadcrumbs, Link, Typography } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 
-const CustomBreadcrumbs = () => {
+const CustomBreadcrumbs = ({ product }) => {
+
+  console.log(product);
+  
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -17,17 +20,26 @@ const CustomBreadcrumbs = () => {
     let updatedPathnames = JSON.parse(localStorage.getItem("paths")) || [];
 
     if (pathname === "/") {
-      // Если находимся на главной странице, сбрасываем пути
+      // Если на главной странице, сбрасываем пути
       updatedPathnames = [];
-    } else if (!updatedPathnames.includes(pathname)) {
-      // Добавляем новый путь, если его еще нет в массиве
-      updatedPathnames.push(pathname);
+    } else if (!updatedPathnames.some((item) => item.path === pathname)) {
+      if (product) {
+        // Добавляем продукт в путь
+        updatedPathnames.push({
+          name: product, // Название продукта
+          path: pathname, // Текущий путь
+        });
+      } else {
+        updatedPathnames.push({
+          name: pathname.split("/").filter(Boolean).pop(), // Последний сегмент пути
+          path: pathname,
+        });
+      }
     }
 
-    // Сохраняем обновленный массив в localStorage
     localStorage.setItem("paths", JSON.stringify(updatedPathnames));
     setPathnames(updatedPathnames);
-  }, [pathname]);
+  }, [pathname, product]);
 
   const handleBreadcrumbClick = (event, to) => {
     event.preventDefault();
@@ -46,17 +58,17 @@ const CustomBreadcrumbs = () => {
       {pathnames.map((value, index) => {
         const isLast = index === pathnames.length - 1;
         return isLast ? (
-          <Typography color="textPrimary" key={value}>
-            {value.split('/').filter(Boolean).pop()}
+          <Typography color="textPrimary" key={value.path}>
+            {value.name}
           </Typography>
         ) : (
           <Link
             color="inherit"
-            href={value}
-            onClick={(event) => handleBreadcrumbClick(event, value)}
-            key={value}
+            href={value.path}
+            onClick={(event) => handleBreadcrumbClick(event, value.path)}
+            key={value.path}
           >
-            {value.split('/').filter(Boolean).pop()}
+            {value.name}
           </Link>
         );
       })}

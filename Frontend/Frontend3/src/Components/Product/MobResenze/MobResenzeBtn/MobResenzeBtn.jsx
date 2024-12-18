@@ -3,12 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import styles from "./MobResenzeBtn.module.scss";
+import { useSelector } from "react-redux";
 
 const MobResenzeBtn = () => {
   const [showButton, setShowButton] = useState(false);
   const [lastScrollTop, setLastScrollTop] = useState(0);
 
   const navigate = useNavigate();
+
+  const { product } = useSelector((state) => state.products);
 
   const { t } = useTranslation();
 
@@ -43,7 +46,11 @@ const MobResenzeBtn = () => {
     <>
       {showButton && (
         <div className={styles.navMain}>
-          <button onClick={() => navigate(`/mob_resenze_create/${id}`)}>
+          <button
+            disabled={product?.can_review?.length === 0}
+            className={styles.mobCreateResenzeBtn}
+            onClick={() => navigate(`/mob_resenze_create/${id}`)}
+          >
             {t("write_review")}
           </button>
         </div>
