@@ -27,7 +27,6 @@ const PaymentDeliveryBlock = ({ setSection }) => {
 
   const { email, address } = paymentInfo || {};
 
-  console.log(paymentInfo);
 
   const { plusMinusDelivery, basketSelectedProductsPrice } = useActions();
 

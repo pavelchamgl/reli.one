@@ -1,0 +1,36 @@
+$colorYell: #f7cd56;
+
+.main {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 1;
+  flex-grow: 1;
+  min-width: 595px; // Установите минимальную ширину
+}
+
+.form {
+  max-width: 595px;
+  width: 100%; // Занимает всё доступное пространство
+  display: flex;
+  align-items: center;
+  & input {
+    width: 100%;
+    height: 38px;
+    border: 2px solid $colorYell;
+    background-color: transparent;
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 105%;
+    padding-left: 10px;
+    outline: none;
+  }
+  & button {
+    width: 66px;
+    background-color: $colorYell;
+    height: 38px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}

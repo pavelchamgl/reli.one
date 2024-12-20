@@ -21,7 +21,3 @@ export default configureStore({
 
 // email - dastanalmazbekuulu9@gmail.com
 // password - dastan555666$
-
-// python3 manage.py createsuperuser - создание админки
-
-// docker-compose up -d

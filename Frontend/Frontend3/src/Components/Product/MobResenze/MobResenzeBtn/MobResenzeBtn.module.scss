@@ -11,18 +11,31 @@
   justify-content: center;
   align-items: center;
   border-top: 1px solid rgba(175, 175, 175, 0.34);
+}
 
-  button {
-    width: 100%;
-    height: 30px;
-    background-color: black;
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 214%;
-    letter-spacing: -0.02em;
-    text-align: center;
-    color: #fff;
-  }
+.mobCreateResenzeBtn {
+  width: 100%;
+  height: 30px;
+  background-color: black;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 214%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #fff;
+}
+
+.mobCreateResenzeBtn:disabled {
+  width: 100%;
+  height: 30px;
+  border: 1px solid black;
+  background-color: transparent;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 214%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #000;
 }
 
 //   .navItem {

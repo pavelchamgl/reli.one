@@ -1,4 +1,8 @@
 import mainInstance, { postApi, getApi } from ".";
+import { formDataInstance } from ".";
+import axios from "axios";
+
+
 
 
 export const getComments = async (id, page) => {
@@ -10,12 +14,31 @@ export const getComments = async (id, page) => {
     }
 }
 
+const tokenLocal = localStorage.getItem("token")
+const tokenReal = JSON.parse(tokenLocal)
+const token = tokenReal?.access || '';
 
-export const postComment = async (id, obj) => {
+
+
+
+export const postComment = async (formData) => {
+    const token = JSON.parse(localStorage.getItem("token"))?.access;
+
     try {
-        const res = await mainInstance.post(`/reviews/${id}/create/`, obj)
-        return res
+        const res = await axios.post(
+            "https://reli.one/api/reviews/create/",
+            formData,
+            {
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Токен для авторизации
+                },
+            }
+        );
+
+        return res;
     } catch (error) {
-        throw error
+        console.error("Error in postComment:", error);
+        throw error;
     }
-}
+};
+

@@ -29,7 +29,6 @@ const LikedPage = () => {
   }, []);
 
   useEffect(() => {
-    console.log(orderingState);
     fetchFavoriteProducts();
   }, [orderingState, page]);
 

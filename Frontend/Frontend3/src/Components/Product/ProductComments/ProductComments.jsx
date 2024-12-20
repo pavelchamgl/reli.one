@@ -22,8 +22,6 @@ const ProductComments = () => {
 
   const { setCommentPage } = useActions();
 
-  console.log(product);
-
   const handleChange = (event, value) => {
     setPage(value);
     setCommentPage(value);
@@ -46,6 +44,7 @@ const ProductComments = () => {
       <button
         onClick={() => setOpenForm(!openForm)}
         className={styles.writeBtn}
+        disabled={product?.can_review?.length === 0}
       >
         {t("write_review")}
       </button>

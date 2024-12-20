@@ -55,31 +55,44 @@
       height: 72px;
     }
   }
-  div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+}
+
+.imageListWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 94px;
+  height: 94px;
+  border: 2px solid #717171;
+  font-weight: 200;
+  font-size: 48px;
+  line-height: 62%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #717171;
+  position: relative;
+  & div {
+    cursor: pointer;
+    position: absolute;
+    background-color: rgba(155, 157, 159, 0.444);
     width: 94px;
     height: 94px;
-    border: 2px solid #717171;
-    font-weight: 200;
-    font-size: 48px;
-    line-height: 62%;
-    letter-spacing: -0.02em;
-    text-align: center;
-    color: #717171;
     @media (max-width: 426px) {
       width: 66px;
       height: 72px;
     }
-    & img {
-      width: 94px;
-      height: 94px;
-      object-fit: cover;
-      @media (max-width: 426px) {
-        width: 66px;
-        height: 72px;
-      }
+  }
+  @media (max-width: 426px) {
+    width: 66px;
+    height: 72px;
+  }
+  & img {
+    width: 91px;
+    height: 91px;
+    object-fit: cover;
+    @media (max-width: 426px) {
+      width: 64px;
+      height: 70px;
     }
   }
 }
@@ -100,4 +113,42 @@
 
 .imageDiv::-webkit-scrollbar-track {
   background-color: transparent; /* Цвет трека (фон полосы прокрутки) */
+}
+
+.imageListWrap {
+  position: relative;
+
+  &:hover .deleteButton {
+    display: block;
+  }
+}
+
+.deleteButton {
+  display: none;
+  position: relative;
+
+  z-index: 10;
+  pointer-events: auto; // Включаем взаимодействие
+
+
+  button {
+    position: absolute;
+    border: none;
+    cursor: pointer;
+    background-color: transparent;
+    top: 12px;
+    right: 14px;
+
+    & img {
+      width: 12px;
+      height: 12px;
+    }
+  }
+}
+
+.mediaPreview {
+  width: 91px;
+  height: 91px;
+  object-fit: cover;
+  border-radius: 2px;
 }

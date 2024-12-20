@@ -1,110 +1,107 @@
 .main {
-    position: relative;
-    z-index: 1201;
-    background-color: #FFFFFF;
+  position: relative;
+  z-index: 1201;
+  background-color: #ffffff;
 }
 
 .headerTop {
-    background-color: #EEEEEE;
-    padding: 5px 19px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
+  background-color: #eeeeee;
+  padding: 5px 19px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 10px;
 }
 
 .headerTopWrap {
-    display: flex;
-    gap: 16px;
+  display: flex;
+  gap: 16px;
 
-    a {
-        text-decoration: none;
-        color: black;
-    }
+  a {
+    text-decoration: none;
+    color: black;
+  }
 }
 
-
 .headerBottomWrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
 }
 
 .headerBottomLinkWrap {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 350px;
-    gap: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 350px;
+  gap: 60px;
 }
 
 .headerBottomLink {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    align-items: center;
-    font-size: 14px;
-    text-wrap: nowrap;
-    background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  font-size: 14px;
+  text-wrap: nowrap;
+  background-color: transparent;
 
-    & p {
-        cursor: pointer !important;
-    }
-
+  & p {
+    cursor: pointer !important;
+  }
 }
 
 .headerBottomLink:disabled {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    align-items: center;
-    font-size: 14px;
-    background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+  font-size: 14px;
+  background-color: transparent;
 }
 
 .headerLogo {
-    display: flex;
-    gap: 36px;
-    align-items: center;
+  display: flex;
+  gap: 36px;
+  align-items: center;
 
-    & img {
-        cursor: pointer;
-    }
+  & img {
+    cursor: pointer;
+  }
 }
 
 .headerMobile {
-    padding: 10px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    /* position: relative;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  /* position: relative;
     z-index: 1201;
     background-color: #FFFFFF;
     top:0px ; */
 }
 
 .headerMobTop {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .logo {
-    max-width: 100px;
+  max-width: 100px;
 }
 
 @media only screen and (max-width: 1300px) {
-
-    /* Стили для экранов шириной 600px и меньше */
-    .headerBottomLinkWrap {
-        gap: 40px;
-    }
+  /* Стили для экранов шириной 600px и меньше */
+  .headerBottomLinkWrap {
+    gap: 40px;
+  }
 }
 
 @media only screen and (max-width: 1150px) {
-
-    /* Стили для экранов шириной 600px и меньше */
-    .headerBottomLinkWrap {
-        gap: 20px;
-    }
+  /* Стили для экранов шириной 600px и меньше */
+  .headerBottomLinkWrap {
+    gap: 20px;
+  }
 }

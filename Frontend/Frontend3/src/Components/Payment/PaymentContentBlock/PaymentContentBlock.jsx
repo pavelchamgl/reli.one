@@ -50,7 +50,6 @@ const PaymentContentBlock = ({ setSection }) => {
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
-      console.log(values);
       editValue(values);
       if (!paymentInfo) {
         localStorage.setItem("payment", JSON.stringify(values));

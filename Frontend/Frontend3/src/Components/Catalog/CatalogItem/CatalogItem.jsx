@@ -16,7 +16,6 @@ const CatalogItem = ({
 }) => {
   const isMobile = useMediaQuery({ maxWidth: 500 });
   const navigate = useNavigate();
-  console.log(data);
 
   const { setCategory } = useActions();
 

@@ -27,13 +27,13 @@
   box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
   background: #fdfdfd;
   width: 145px;
-  height: 96px;
   transform: scale(1);
   transition: 0.3s ease;
   padding: 13px 11px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 5px;
 }
 
 .selectDivHid {
@@ -43,7 +43,6 @@
   box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
   background: #fdfdfd;
   width: 145px;
-  height: 96px;
   transform: scale(0);
   transition: 0.5s ease;
 }

@@ -7,9 +7,7 @@ export const fetchGetComments = createAsyncThunk(
     async (id, { rejectWithValue, getState }) => {
         try {
             const state = getState().comment
-            console.log(state);
             const res = await getComments(id, state.page)
-            console.log(res);
             return res.data
         } catch (error) {
             return rejectWithValue(error)
@@ -19,21 +17,31 @@ export const fetchGetComments = createAsyncThunk(
 
 export const fetchPostComment = createAsyncThunk(
     "comment/fetchPostComment",
-    async (obj, { rejectWithValue, dispatch }) => {
+    async (formData, { rejectWithValue, dispatch }) => {
         try {
-            if (obj) {
-                const res = await postComment(obj?.id, obj?.obj)
-                console.log(res);
-                if (res.status === 201) {
-                    dispatch(addComment(obj))
-                }
-                return res
+            const res = await postComment(formData); // Передаём formData напрямую
+            console.log(res);
+
+            if (res.status === 201) {
+                // dispatch(addComment(res.data)); // Добавляем новый комментарий
+                window.location.reload()
             }
+            return res.data; // Возвращаем данные ответа
         } catch (error) {
-            return rejectWithValue()
+            console.log(error);
+            if (error && error?.response) {
+                if (error?.response?.status === 400) {
+                    if (Object.keys(error?.response?.data).includes("rating")) {
+                        console.log(5);
+                        return rejectWithValue(error.response?.data?.rating[0] || error.message);
+                    }
+                }
+            }
+            return rejectWithValue(error.response?.data || error.message);
         }
     }
-)
+);
+
 
 
 const commentSlice = createSlice({
@@ -73,6 +81,10 @@ const commentSlice = createSlice({
                 state.status = "rejected"
                 state.err = action.payload
             })
+        builder.addCase(fetchPostComment.rejected, (state, action) => {
+            state.status = "rejected"
+            state.err = action.payload
+        })
     }
 })
 

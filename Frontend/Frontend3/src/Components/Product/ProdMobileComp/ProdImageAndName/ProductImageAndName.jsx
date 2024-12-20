@@ -94,8 +94,6 @@ const ProductImageAndName = () => {
     }
   }, [sku]);
 
-  console.log(product);
-
   return (
     <div className={styles.main}>
       <div className={styles.buttonWrap}>

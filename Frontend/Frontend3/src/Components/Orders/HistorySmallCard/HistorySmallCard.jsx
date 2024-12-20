@@ -7,7 +7,6 @@ import styles from "./HistorySmallCard.module.scss";
 import { useEffect, useState } from "react";
 
 const HistorySmallCard = ({ item = null, setSmall }) => {
-  console.log(item);
   const { t } = useTranslation();
   const [deliveredTime, setDeliveredTime] = useState("");
   const navigate = useNavigate();
@@ -53,7 +52,7 @@ const HistorySmallCard = ({ item = null, setSmall }) => {
         <div className={styles.imageDiv}>
           {item?.images &&
             item?.images > 0 &&
-            item.images.map((image) => <img src={image} alt="" />)}
+            item.images.map((image) => <img key={image} src={image} alt="" />)}
         </div>
         <div className={styles.totalDiv}>
           <p>{t("total")}</p>

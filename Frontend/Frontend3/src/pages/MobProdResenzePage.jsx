@@ -42,8 +42,6 @@ const MobProdResenzePage = () => {
     // Здесь вы можете выполнить дополнительные действия при смене страницы
   };
 
-  console.log(product);
-
   return (
     <>
       <Container>

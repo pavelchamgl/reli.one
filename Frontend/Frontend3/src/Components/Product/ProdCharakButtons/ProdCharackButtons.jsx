@@ -29,8 +29,6 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
   useEffect(() => {
     const selectedProduct = basket.find((item) => item.id === id);
 
-    console.log(selectedProduct);
-
     if (selectedProduct) {
       setSelected(selectedProduct.sku);
     }
@@ -60,7 +58,7 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
                       //   sku: item.sku,
                       // });
                     }}
-                    key={index}
+                    key={item?.sku}
                   >
                     <p>{item.text}</p>
                     <span>{item.price}€</span>
@@ -96,7 +94,7 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
                       //   sku: item.sku,
                       // });
                     }}
-                    key={item?.id}
+                    key={item?.sku}
                   >
                     <img src={item?.image} alt="" />
                     <p>{item?.price}€</p>

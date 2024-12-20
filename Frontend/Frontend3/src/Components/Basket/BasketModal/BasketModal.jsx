@@ -20,7 +20,6 @@ const BasketModal = ({ open, handleClose, productData }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { t } = useTranslation();
-  console.log(productData);
 
   const token = localStorage.getItem("token");
 

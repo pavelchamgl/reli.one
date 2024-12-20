@@ -7,7 +7,6 @@ export const fetchFavoriteProducts = createAsyncThunk(
         try {
             const state = getState().favorites;
             const res = await getFavoriteProducts(state.page, state.ordering);
-            console.log(res);
             return res.data;
         } catch (error) {
             return rejectWithValue(error.response ? error.response.data : error.message);

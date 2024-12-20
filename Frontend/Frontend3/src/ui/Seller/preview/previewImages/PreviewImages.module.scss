@@ -1,0 +1,55 @@
+.main {
+  display: flex;
+  height: 500px;
+  width: 754px;
+  gap: 30px;
+  @media (max-width: 950px) {
+    width: 554px;
+    height: 300px;
+  }
+  @media (max-width: 600px) {
+    width: 454px;
+    height: 200px;
+    gap: 20px;
+  }
+}
+
+.mainImage {
+  width: 581px;
+  height: 499px;
+  object-fit: cover;
+  @media (max-width: 950px) {
+    width: 381px;
+    height: 299px;
+  }
+  @media (max-width: 600px) {
+    width: 281px;
+    height: 199px;
+  }
+}
+
+.smallImage {
+  background-color: transparent;
+  img {
+    width: 156px;
+    height: 158px;
+    object-fit: cover;
+    @media (max-width: 950px) {
+      width: 96px;
+      height: 98px;
+    }
+    @media (max-width: 950px) {
+      width: 76px;
+      height: 78px;
+    }
+  }
+}
+
+.smallImageDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  @media (max-width: 600px) {
+    gap: 10px;
+  }
+}

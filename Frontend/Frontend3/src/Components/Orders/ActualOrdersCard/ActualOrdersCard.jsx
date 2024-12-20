@@ -5,7 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 import styles from "./ActualOrdersCard.module.scss";
 
 const ActualOrdersCard = ({ item }) => {
-  console.log(item);
 
   const [image, setImage] = useState(null);
   const [text, setText] = useState("");

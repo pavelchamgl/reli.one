@@ -54,6 +54,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
               if (item?.children) {
                 return (
                   <CatalogItem
+                    key={item.id}
                     catalogCategory={catalogCategory}
                     setCatalogCategory={setCatalogCategory}
                     data={item}
@@ -63,6 +64,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
               } else {
                 return (
                   <button
+                    key={item.id}
                     className={styles.catalogItemBtn}
                     onClick={() => handleCategoryClick(item?.name, item?.id)}
                   >
