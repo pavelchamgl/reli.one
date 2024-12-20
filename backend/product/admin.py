@@ -50,11 +50,11 @@ class ProductVariantAdmin(admin.ModelAdmin):
 class AdminBaseProduct(admin.ModelAdmin):
     form = BaseProductAdminForm
     list_display = ('id', 'name', 'product_description')
-    list_filter = ['name', 'category', 'supplier']
+    list_filter = ['name', 'category', 'seller']
     search_fields = ['name', 'product_description']
     fieldsets = (
         (None, {
-            'fields': ('name', 'product_description', 'category', 'supplier', 'parameters')
+            'fields': ('name', 'product_description', 'category', 'seller', 'parameters')
         }),
         ('More information', {
             'fields': ('rating', 'total_reviews'),
