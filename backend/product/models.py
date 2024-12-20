@@ -56,7 +56,7 @@ class BaseProduct(models.Model):
     product_description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
-    supplier = models.ForeignKey(
+    seller = models.ForeignKey(
         SellerProfile,
         on_delete=models.CASCADE,
         related_name='products'
