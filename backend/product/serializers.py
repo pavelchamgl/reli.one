@@ -1,13 +1,16 @@
 from rest_framework import serializers
+from django.template.defaultfilters import filesizeformat
 
 from .models import (
     BaseProductImage,
     BaseProduct,
+    ParameterName,
     ParameterValue,
     Category,
     ProductVariant,
 )
 from favorites.models import Favorite
+from sellers.models import SellerProfile
 from order.models import OrderProduct
 
 
@@ -190,3 +193,103 @@ class CategorySerializer(serializers.ModelSerializer):
         if obj.image and request:
             return request.build_absolute_uri(obj.image.url)
         return None
+
+
+class ProductVariantCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductVariant
+        fields = ['name', 'text', 'image', 'price']
+
+    def validate(self, attrs):
+        text = attrs.get('text')
+        image = attrs.get('image')
+        if text and image:
+            raise serializers.ValidationError("Only one of 'text' or 'image' can be filled.")
+        if not text and not image:
+            raise serializers.ValidationError("At least one of 'text' or 'image' must be provided.")
+        return attrs
+
+
+class ParameterDataSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    value = serializers.CharField()
+
+
+class BaseProductCreateSerializer(serializers.ModelSerializer):
+    variants = ProductVariantCreateSerializer(many=True, write_only=True, required=False)
+    parameters = ParameterDataSerializer(many=True, write_only=True, required=False)
+
+    class Meta:
+        model = BaseProduct
+        fields = [
+            'name',
+            'product_description',
+            'category',
+            'parameters',
+            'variants'
+        ]
+
+    def create(self, validated_data):
+        request = self.context.get('request')
+        user = request.user
+
+        try:
+            seller_profile = user.seller_profile
+        except SellerProfile.DoesNotExist:
+            raise serializers.ValidationError("Current user does not have a seller profile.")
+
+        variants_data = validated_data.pop('variants', [])
+        parameters_data = validated_data.pop('parameters', [])
+
+        # Create product
+        product = BaseProduct.objects.create(
+            seller=seller_profile,
+            **validated_data
+        )
+
+        # Processing parameters
+        parameter_values = []
+        for param in parameters_data:
+            param_name_str = param['name']
+            param_value_str = param['value']
+            parameter_name, created = ParameterName.objects.get_or_create(name=param_name_str)
+            parameter_value = ParameterValue.objects.create(parameter=parameter_name, value=param_value_str)
+            parameter_values.append(parameter_value)
+
+        if parameter_values:
+            product.parameters.set(parameter_values)
+
+        # Create variants
+        for variant_data in variants_data:
+            ProductVariant.objects.create(product=product, **variant_data)
+
+        return product
+
+
+class ProductMediaUploadSerializer(serializers.Serializer):
+    files = serializers.ListField(
+        child=serializers.FileField(),
+        write_only=True,
+        required=True,
+        help_text="List of image files for the product"
+    )
+
+    def validate_files(self, value):
+        max_size = 10 * 1024 * 1024  # 10 MB
+        allowed_image_types = ['image/png', 'image/jpeg', 'image/jpg']
+
+        for file in value:
+            # Size check
+            if file.size > max_size:
+                raise serializers.ValidationError(
+                    f"Maximum allowable file size: {filesizeformat(max_size)}."
+                )
+
+            # Checking file type
+            content_type = file.content_type.lower()
+            if content_type not in allowed_image_types:
+                raise serializers.ValidationError(
+                    f"Allowed formats: PNG, JPEG, JPG."
+                )
+
+        return value
