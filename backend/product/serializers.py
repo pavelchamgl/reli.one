@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from .models import (
+    ProductParameter,
     BaseProductImage,
     BaseProduct,
     ParameterValue,
@@ -11,12 +12,11 @@ from favorites.models import Favorite
 from order.models import OrderProduct
 
 
-class ParameterValueSerializer(serializers.ModelSerializer):
-    parameter_name = serializers.CharField(source='parameter.name')
-
+class ProductParameterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ParameterValue
-        fields = ['parameter_name', 'value']
+        model = ProductParameter
+        fields = ['id', 'name', 'value']
+        read_only_fields = ['id']
 
 
 class BaseProductImageSerializer(serializers.ModelSerializer):
@@ -54,7 +54,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 
 class BaseProductDetailSerializer(serializers.ModelSerializer):
-    parameters = ParameterValueSerializer(many=True)
+    product_parameters = ProductParameterSerializer(many=True, read_only=True)
     license_file = serializers.SerializerMethodField()
     images = BaseProductImageSerializer(many=True, read_only=True)
     is_favorite = serializers.SerializerMethodField()
@@ -71,7 +71,7 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'category_name',
-            'parameters',
+            'product_parameters',
             'rating',
             'total_reviews',
             'license_file',
@@ -129,7 +129,7 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
 
 
 class BaseProductListSerializer(serializers.ModelSerializer):
-    parameters = ParameterValueSerializer(many=True)
+    product_parameters = ProductParameterSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     price = serializers.DecimalField(source='min_price', max_digits=10, decimal_places=2, read_only=True)
@@ -140,7 +140,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'product_description',
-            'parameters',
+            'product_parameters',
             'image',
             'price',
             'rating',
