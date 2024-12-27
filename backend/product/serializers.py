@@ -4,7 +4,6 @@ from .models import (
     ProductParameter,
     BaseProductImage,
     BaseProduct,
-    ParameterValue,
     Category,
     ProductVariant,
 )
