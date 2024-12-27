@@ -1,13 +1,12 @@
 from django import forms
-from mptt.admin import MPTTModelAdmin
-from mptt.forms import TreeNodeChoiceField
 from django.contrib import admin
 from django.core.exceptions import ValidationError
+from mptt.admin import MPTTModelAdmin
+from mptt.forms import TreeNodeChoiceField
 
 from .models import (
     BaseProduct,
-    ParameterName,
-    ParameterValue,
+    ProductParameter,
     BaseProductImage,
     Category,
     LicenseFile,
@@ -32,6 +31,12 @@ class BaseProductImageInline(admin.TabularInline):
     extra = 1
 
 
+class ProductParameterInline(admin.TabularInline):
+    model = ProductParameter
+    extra = 1
+    fields = ('name', 'value')
+
+
 class BaseProductAdminForm(forms.ModelForm):
     category = TreeNodeChoiceField(queryset=Category.objects.all())
 
@@ -40,6 +45,7 @@ class BaseProductAdminForm(forms.ModelForm):
         fields = '__all__'
 
 
+@admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
     list_display = ('id', 'product', 'name', 'price')
     search_fields = ['product__name', 'name']
@@ -47,21 +53,29 @@ class ProductVariantAdmin(admin.ModelAdmin):
     autocomplete_fields = ['product']
 
 
+@admin.register(BaseProduct)
 class AdminBaseProduct(admin.ModelAdmin):
     form = BaseProductAdminForm
     list_display = ('id', 'name', 'product_description')
     list_filter = ['name', 'category', 'seller']
     search_fields = ['name', 'product_description']
+
     fieldsets = (
         (None, {
-            'fields': ('name', 'product_description', 'category', 'seller', 'parameters')
+            'fields': ('name', 'product_description', 'category', 'seller')
         }),
         ('More information', {
             'fields': ('rating', 'total_reviews'),
             'classes': ('collapse',),
         }),
     )
-    inlines = [BaseProductImageInline, ProductVariantInline, LicenseFileInline]
+
+    inlines = [
+        BaseProductImageInline,
+        ProductParameterInline,
+        ProductVariantInline,
+        LicenseFileInline
+    ]
 
     def save_formset(self, request, form, formset, change):
         try:
@@ -70,9 +84,17 @@ class AdminBaseProduct(admin.ModelAdmin):
             form.add_error(None, e)
 
 
-admin.site.register(BaseProduct, AdminBaseProduct)
-admin.site.register(ProductVariant, ProductVariantAdmin)
-admin.site.register(Category, MPTTModelAdmin)
-admin.site.register(BaseProductImage)
-admin.site.register(ParameterValue)
-admin.site.register(ParameterName)
+@admin.register(Category)
+class CategoryAdmin(MPTTModelAdmin):
+    pass
+
+
+@admin.register(BaseProductImage)
+class BaseProductImageAdmin(admin.ModelAdmin):
+    pass
+
+
+@admin.register(ProductParameter)
+class ProductParameterAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product', 'name', 'value')
+    search_fields = ['product__name', 'name', 'value']
