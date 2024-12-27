@@ -18,21 +18,6 @@ class ProductStatus(models.TextChoices):
     REJECTED = 'rejected', 'Rejected'
 
 
-class ParameterName(models.Model):
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.name}"
-
-
-class ParameterValue(models.Model):
-    parameter = models.ForeignKey(ParameterName, on_delete=models.CASCADE)
-    value = models.TextField()
-
-    def __str__(self):
-        return f"{self.value} {self.parameter.name}"
-
-
 class Category(MPTTModel):
     name = models.CharField(max_length=100)
     parent = TreeForeignKey(
@@ -55,7 +40,6 @@ class BaseProduct(models.Model):
     name = models.CharField(max_length=100)
     product_description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
     seller = models.ForeignKey(
         SellerProfile,
         on_delete=models.CASCADE,
@@ -106,6 +90,19 @@ def validate_file_size(value):
         raise ValidationError(
             f'File size exceeds the maximum allowable file size: {filesizeformat(settings.MAX_UPLOAD_SIZE)}.'
         )
+
+
+class ProductParameter(models.Model):
+    product = models.ForeignKey(
+        BaseProduct,
+        on_delete=models.CASCADE,
+        related_name='product_parameters'
+    )
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+
+    def __str__(self):
+        return f"{self.name}: {self.value}"
 
 
 class BaseProductImage(models.Model):
