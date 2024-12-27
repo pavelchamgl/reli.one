@@ -4,7 +4,6 @@ from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Min, F
 
@@ -13,66 +12,13 @@ from .filters import BaseProductFilter
 from .models import (
     BaseProduct,
     Category,
-    BaseProductImage,
 )
 from .serializers import (
     BaseProductListSerializer,
     BaseProductDetailSerializer,
     CategorySerializer,
     CategorySearchViewSerializer,
-    BaseProductCreateSerializer,
-    ProductMediaUploadSerializer,
 )
-from accounts.choices import UserRole
-
-
-class CreateProductAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        serializer = BaseProductCreateSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            product = serializer.save()
-            return Response({'id': product.id, 'name': product.name}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class AddProductImagesAPIView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, product_id, *args, **kwargs):
-        try:
-            product = BaseProduct.objects.get(pk=product_id)
-        except BaseProduct.DoesNotExist:
-            return Response({"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        # Getting seller profile
-        seller_profile = product.seller
-        current_user = request.user
-
-        # Check permissions:
-        # 1. Если пользователь - это продавец, владеющий продуктом
-        if seller_profile.user == current_user:
-            # Продавец может добавлять изображения
-            pass
-        else:
-            # 2. Если пользователь - менеджер, связанный с этим продавцом
-            # Проверим, есть ли в его менеджерах текущий пользователь
-            if current_user.role == UserRole.MANAGER and current_user in seller_profile.managers.all():
-                # Менеджер уполномочен добавлять изображения
-                pass
-            else:
-                # Ни продавец, ни связанный менеджер
-                return Response(
-                    {"error": "You are not authorized to add images to this product."}, status=status.HTTP_403_FORBIDDEN)
-
-        serializer = ProductMediaUploadSerializer(data=request.data)
-        if serializer.is_valid():
-            images = serializer.validated_data['files']
-            for img in images:
-                BaseProductImage.objects.create(product=product, image=img)
-            return Response({"message": "Images uploaded successfully."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
