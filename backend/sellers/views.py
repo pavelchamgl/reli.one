@@ -23,32 +23,32 @@ from .serializers import (
 
 @extend_schema_view(
     list=extend_schema(
-        tags=["Seller"],
+        tags=["Seller Product"],
         description="Retrieve a list of products belonging to the authenticated seller.",
         responses={status.HTTP_200_OK: ProductListSerializer(many=True)},
     ),
     retrieve=extend_schema(
-        tags=["Seller"],
+        tags=["Seller Product"],
         description="Retrieve detail of a single product belonging to the seller.",
         responses={status.HTTP_200_OK: ProductDetailSerializer},
     ),
     create=extend_schema(
-        tags=["Seller"],
+        tags=["Seller Product"],
         description="Create a new product. Only available for the seller role.",
         responses={status.HTTP_201_CREATED: ProductDetailSerializer},
     ),
     update=extend_schema(
-        tags=["Seller"],
+        tags=["Seller Product"],
         description="Fully update (PUT) a product belonging to the seller.",
         responses={status.HTTP_200_OK: ProductDetailSerializer},
     ),
     partial_update=extend_schema(
-        tags=["Seller"],
+        tags=["Seller Product"],
         description="Partially update (PATCH) a product belonging to the seller.",
         responses={status.HTTP_200_OK: ProductDetailSerializer},
     ),
     destroy=extend_schema(
-        tags=["Seller"],
+        tags=["Seller Product"],
         description="Delete a product belonging to the seller.",
         responses={status.HTTP_204_NO_CONTENT: OpenApiResponse(description="Successfully deleted.")},
     )
