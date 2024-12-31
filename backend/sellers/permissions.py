@@ -1,27 +1,33 @@
 from rest_framework.permissions import BasePermission
 
-from product.models import BaseProduct
+from product.models import (
+    BaseProduct,
+    ProductParameter
+)
 
 
 class IsSellerOwner(BasePermission):
     """
-    Разрешает доступ только пользователю, который является
-    'seller_profile.user' для данного продукта.
+    Разрешает доступ только продавцу, который владеет ресурсом
+    (BaseProduct или ProductParameter).
     """
 
     def has_permission(self, request, view):
-        # Для object-level проверки обычно возвращают True или проверяют is_authenticated
-        return request.user.is_authenticated
+        # Разрешаем только аутентифицированным (и, возможно, проверяем is_seller())
+        return request.user.is_authenticated and request.user.is_seller()
 
     def has_object_permission(self, request, view, obj):
-        """
-        obj - это экземпляр BaseProduct, когда мы делаем retrieve, update, destroy.
-        """
         if not request.user.is_authenticated:
             return False
 
-        if not isinstance(obj, BaseProduct):
-            return False
+        # Если объект - это продукт
+        if isinstance(obj, BaseProduct):
+            return obj.seller.user == request.user
 
-        # Проверяем, совпадает ли user из seller_profile c request.user
-        return obj.seller.user == request.user
+        # Если объект - это параметр продукта
+        if isinstance(obj, ProductParameter):
+            # Проверяем владельца через product
+            return obj.product.seller.user == request.user
+
+        # Если объект другого типа - отказываем
+        return False
