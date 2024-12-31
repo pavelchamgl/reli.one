@@ -4,8 +4,15 @@ from product.models import (
     BaseProduct,
     BaseProductImage,
     ProductVariant,
-    ParameterValue
+    ProductParameter,
 )
+
+
+class ProductParameterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductParameter
+        fields = ['id', 'name', 'value']
+        read_only_fields = ['id']
 
 
 class ProductListSerializer(serializers.ModelSerializer):
@@ -31,14 +38,6 @@ class ProductListSerializer(serializers.ModelSerializer):
         if first_image and first_image.image:
             return request.build_absolute_uri(first_image.image.url)
         return None
-
-
-class ParameterValueSerializer(serializers.ModelSerializer):
-    parameter_name = serializers.CharField(source='parameter.name')
-
-    class Meta:
-        model = ParameterValue
-        fields = ['parameter_name', 'value']
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -76,7 +75,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 
 class ProductDetailSerializer(serializers.ModelSerializer):
-    parameters = ParameterValueSerializer(many=True)
+    product_parameters = ProductParameterSerializer(many=True, read_only=True)
     license_file = serializers.SerializerMethodField()
     images = ProductImageSerializer(many=True, read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
@@ -89,7 +88,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'category_name',
-            'parameters',
+            'product_parameters',
             'rating',
             'license_file',
             'images',
