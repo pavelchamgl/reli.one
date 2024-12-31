@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import (
@@ -7,14 +9,15 @@ from drf_spectacular.utils import (
 )
 from rest_framework import status
 
-from product.models import BaseProduct
+from product.models import BaseProduct, ProductParameter
 from .models import SellerProfile
 from .permissions import IsSellerOwner
 from .serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
     ProductUpdateSerializer,
-    ProductCreateSerializer
+    ProductCreateSerializer,
+    ProductParameterSerializer,
 )
 
 
@@ -96,3 +99,94 @@ class BaseProductViewSet(ModelViewSet):
             raise PermissionDenied("No seller profile found for this user.")
 
         serializer.save(seller=seller_profile)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Seller Product Parameters"],
+        description="List all parameters for a given product."
+    ),
+    create=extend_schema(
+        tags=["Seller Product Parameters"],
+        description="Create a parameter for a given product."
+    ),
+    retrieve=extend_schema(
+        tags=["Seller Product Parameters"],
+        description="Retrieve detail of one parameter."
+    ),
+    update=extend_schema(
+        tags=["Seller Product Parameters"],
+        description="Fully update a parameter (PUT)."
+    ),
+    partial_update=extend_schema(
+        tags=["Seller Product Parameters"],
+        description="Partially update a parameter (PATCH)."
+    ),
+    destroy=extend_schema(
+        tags=["Seller Product Parameters"],
+        description="Delete a parameter."
+    )
+)
+class ProductParameterViewSet(ModelViewSet):
+    """
+    A ViewSet for performing CRUD operations on ProductParameter objects
+    that belong to a specific product. Uses nested URLs of the form:
+    /products/{product_id}/parameters/{param_id}/
+    """
+    serializer_class = ProductParameterSerializer
+    permission_classes = [IsAuthenticated, IsSellerOwner]
+
+    def get_queryset(self):
+        """
+        Returns a queryset of ProductParameter objects related to
+        the specific product identified by 'product_pk' in the nested URL.
+
+        1. Retrieve the 'product_id' from self.kwargs.
+        2. Fetch the BaseProduct using 'get_object_or_404'.
+        3. Verify that the current user is the product owner;
+           if not, raise PermissionDenied.
+        4. Filter and return ProductParameter objects for that product.
+        """
+        product_id = self.kwargs.get('product_pk')  # Nested router lookup field
+        product = get_object_or_404(BaseProduct, pk=product_id)
+
+        # Verify ownership: the seller of the product should be the current user
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        return ProductParameter.objects.filter(product=product)
+
+    def get_object(self):
+        """
+        Overrides the default method to retrieve a single ProductParameter object.
+
+        1. Use 'get_queryset()' to ensure only parameters from the current product
+           are considered.
+        2. Extract the parameter's primary key ('pk') from self.kwargs.
+        3. Use 'get_object_or_404()' to fetch the parameter within the filtered queryset.
+        4. Call 'check_object_permissions' with the parameter to enforce object-level
+           permission checks via 'IsSellerOwner'.
+        5. Return the retrieved parameter object.
+        """
+        queryset = self.get_queryset()
+        param_id = self.kwargs['pk']
+        param = get_object_or_404(queryset, pk=param_id)
+        self.check_object_permissions(self.request, param)
+        return param
+
+    def perform_create(self, serializer):
+        """
+        Custom creation logic for a ProductParameter object.
+
+        1. Retrieve the product_id ('product_pk') from self.kwargs.
+        2. Fetch the BaseProduct. If not found, raise an error.
+        3. Verify that the product owner matches the current user.
+        4. Assign 'product=product' to the serializer before saving
+           to link the new parameter to the correct product.
+        """
+        product_id = self.kwargs.get('product_pk')
+        product = get_object_or_404(BaseProduct, pk=product_id)
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        serializer.save(product=product)
