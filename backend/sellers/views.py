@@ -9,7 +9,6 @@ from drf_spectacular.utils import (
 )
 from rest_framework import status
 
-from product.models import BaseProduct, ProductParameter
 from .models import SellerProfile
 from .permissions import IsSellerOwner
 from .serializers import (
@@ -18,8 +17,13 @@ from .serializers import (
     ProductUpdateSerializer,
     ProductCreateSerializer,
     ProductParameterSerializer,
+    BaseProductImageSerializer,
 )
-
+from product.models import (
+    BaseProduct,
+    ProductParameter,
+    BaseProductImage,
+)
 
 @extend_schema_view(
     list=extend_schema(
@@ -183,6 +187,100 @@ class ProductParameterViewSet(ModelViewSet):
         3. Verify that the product owner matches the current user.
         4. Assign 'product=product' to the serializer before saving
            to link the new parameter to the correct product.
+        """
+        product_id = self.kwargs.get('product_pk')
+        product = get_object_or_404(BaseProduct, pk=product_id)
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        serializer.save(product=product)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Seller Product Images"],
+        description="List all images for a given product."
+    ),
+    create=extend_schema(
+        tags=["Seller Product Images"],
+        description="Upload a new image for a given product."
+    ),
+    retrieve=extend_schema(
+        tags=["Seller Product Images"],
+        description="Retrieve detail of a single product image."
+    ),
+    update=extend_schema(
+        tags=["Seller Product Images"],
+        description="Fully update (PUT) a product image."
+    ),
+    partial_update=extend_schema(
+        tags=["Seller Product Images"],
+        description="Partially update (PATCH) a product image."
+    ),
+    destroy=extend_schema(
+        tags=["Seller Product Images"],
+        description="Delete a product image."
+    )
+)
+class BaseProductImageViewSet(ModelViewSet):
+    """
+    ViewSet for performing CRUD operations on BaseProductImage objects
+    belonging to a specific product, using nested URLs:
+    /products/{product_id}/images/{image_id}/
+    """
+    serializer_class = BaseProductImageSerializer
+    permission_classes = [IsAuthenticated, IsSellerOwner]
+
+    def get_queryset(self):
+        """
+        Returns a list of images associated with the product identified by 'product_pk'
+        from the nested router. It also verifies that the current user is indeed the
+        owner of that product.
+
+        Steps:
+          1. Extract 'product_id' from self.kwargs['product_pk'].
+          2. Retrieve the BaseProduct using get_object_or_404.
+          3. Check if the product's seller.user is the current request.user.
+             If not, raise PermissionDenied.
+          4. Return BaseProductImage objects filtered by the retrieved product.
+        """
+        product_id = self.kwargs.get('product_pk')
+        product = get_object_or_404(BaseProduct, pk=product_id)
+
+        # Verify product ownership
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        return BaseProductImage.objects.filter(product=product)
+
+    def get_object(self):
+        """
+        Retrieves a single BaseProductImage object, ensuring it belongs to
+        the product specified by 'product_pk', and that the user is the owner.
+
+        Steps:
+          1. Use get_queryset() to limit results to the current product's images.
+          2. Extract 'image_id' from self.kwargs['pk'].
+          3. Fetch the image within that filtered queryset (or 404).
+          4. Call self.check_object_permissions(...) to trigger IsSellerOwner checks.
+          5. Return the retrieved image object if all checks pass.
+        """
+        queryset = self.get_queryset()
+        image_id = self.kwargs['pk']
+        image_obj = get_object_or_404(queryset, pk=image_id)
+        self.check_object_permissions(self.request, image_obj)
+        return image_obj
+
+    def perform_create(self, serializer):
+        """
+        When creating a new image, link it to the specified product from the nested URL.
+
+        Steps:
+          1. Get 'product_id' from self.kwargs['product_pk'].
+          2. Retrieve the BaseProduct. Raise 404 if it doesn't exist.
+          3. Confirm the product's seller.user matches request.user; otherwise, raise PermissionDenied.
+          4. Save the serializer with product=product, thereby associating the new image
+             with that particular BaseProduct.
         """
         product_id = self.kwargs.get('product_pk')
         product = get_object_or_404(BaseProduct, pk=product_id)

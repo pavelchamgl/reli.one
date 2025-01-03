@@ -121,3 +121,18 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'product_description',
             'category',
         ]
+
+
+class BaseProductImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BaseProductImage
+        fields = ['id', 'image', 'image_url']
+        read_only_fields = ['id']
+
+    def get_image_url(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            return request.build_absolute_uri(obj.image.url)
+        return None
