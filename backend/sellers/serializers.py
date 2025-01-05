@@ -5,6 +5,7 @@ from product.models import (
     BaseProductImage,
     ProductVariant,
     ProductParameter,
+    LicenseFile,
 )
 
 
@@ -135,4 +136,19 @@ class BaseProductImageSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if obj.image:
             return request.build_absolute_uri(obj.image.url)
+        return None
+
+
+class LicenseFileSerializer(serializers.ModelSerializer):
+    file_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LicenseFile
+        fields = ['id', 'name', 'file', 'file_url']
+        read_only_fields = ['id']
+
+    def get_file_url(self, obj):
+        request = self.context.get('request')
+        if obj.file:
+            return request.build_absolute_uri(obj.file.url)
         return None

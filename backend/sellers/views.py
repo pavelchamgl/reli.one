@@ -19,12 +19,14 @@ from .serializers import (
     ProductParameterSerializer,
     BaseProductImageSerializer,
     ProductVariantSerializer,
+    LicenseFileSerializer,
 )
 from product.models import (
     BaseProduct,
     ProductParameter,
     BaseProductImage,
     ProductVariant,
+    LicenseFile,
 )
 
 @extend_schema_view(
@@ -359,5 +361,105 @@ class ProductVariantViewSet(ModelViewSet):
         product = get_object_or_404(BaseProduct, pk=product_id)
         if product.seller.user != self.request.user:
             raise PermissionDenied("You do not own this product.")
+
+        serializer.save(product=product)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Seller Product License"],
+        description="List the license file(s) for a product. In a OneToOne setup, typically returns 0 or 1 file."
+    ),
+    create=extend_schema(
+        tags=["Seller Product License"],
+        description="Upload (create) a license file for a product, if none exists."
+    ),
+    retrieve=extend_schema(
+        tags=["Seller Product License"],
+        description="Retrieve details of a single license file."
+    ),
+    update=extend_schema(
+        tags=["Seller Product License"],
+        description="Fully update (PUT) a license file."
+    ),
+    partial_update=extend_schema(
+        tags=["Seller Product License"],
+        description="Partially update (PATCH) a license file."
+    ),
+    destroy=extend_schema(
+        tags=["Seller Product License"],
+        description="Delete a license file."
+    )
+)
+class LicenseFileViewSet(ModelViewSet):
+    """
+    ViewSet for CRUD operations on LicenseFile objects in a OneToOne relationship
+    with BaseProduct, using nested URLs of the form:
+    /products/{product_id}/license/{pk}/
+
+    - Typically returns 0 or 1 file for 'list()'.
+    - For 'create()', we ensure a second LicenseFile is not created if one already exists.
+    """
+    serializer_class = LicenseFileSerializer
+    permission_classes = [IsAuthenticated, IsSellerOwner]
+
+    def get_queryset(self):
+        """
+        Returns the LicenseFile(s) (usually 0 or 1) associated with the given product.
+        Also verifies that the current user owns the product.
+
+        Steps:
+          1. Extract 'product_id' from self.kwargs['product_pk'].
+          2. Retrieve the BaseProduct using get_object_or_404.
+          3. Check if product.seller.user == request.user; if not, raise PermissionDenied.
+          4. Filter and return LicenseFile objects for that product.
+        """
+        product_id = self.kwargs.get('product_pk')
+        product = get_object_or_404(BaseProduct, pk=product_id)
+
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        return LicenseFile.objects.filter(product=product)
+
+    def get_object(self):
+        """
+        Retrieves a single LicenseFile from the queryset determined by get_queryset().
+        Ensures it belongs to the same product and user is the owner.
+
+        Steps:
+          1. Call get_queryset() to narrow down LicenseFile objects for the current product.
+          2. Extract 'license_id' from self.kwargs['pk'].
+          3. Use get_object_or_404(queryset, pk=license_id) to fetch the LicenseFile.
+          4. Call self.check_object_permissions(...) to trigger the IsSellerOwner check.
+          5. Return the LicenseFile object.
+        """
+        queryset = self.get_queryset()
+        license_id = self.kwargs['pk']
+        license_obj = get_object_or_404(queryset, pk=license_id)
+        self.check_object_permissions(self.request, license_obj)
+        return license_obj
+
+    def perform_create(self, serializer):
+        """
+        Assigns the new LicenseFile to the product specified by 'product_pk' in the nested URL.
+        Prevents creation of a second LicenseFile under a OneToOne assumption.
+
+        Steps:
+          1. Extract 'product_id' from self.kwargs['product_pk'].
+          2. Retrieve the BaseProduct with get_object_or_404.
+          3. Verify product.seller.user == request.user; if not, raise PermissionDenied.
+          4. Check if a LicenseFile already exists for this product; if yes, raise PermissionDenied.
+          5. Save the serializer with product=product, establishing the OneToOne link.
+        """
+        product_id = self.kwargs.get('product_pk')
+        product = get_object_or_404(BaseProduct, pk=product_id)
+
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        existing_license = LicenseFile.objects.filter(product=product).first()
+        if existing_license:
+            raise PermissionDenied("A license file already exists for this product.")
 
         serializer.save(product=product)
