@@ -5,6 +5,7 @@ from .views import (
     BaseProductViewSet,
     ProductParameterViewSet,
     BaseProductImageViewSet,
+    ProductVariantViewSet,
 )
 
 router = routers.SimpleRouter()
@@ -21,6 +22,12 @@ products_router.register(
     r'images',
     BaseProductImageViewSet,
     basename='product-images'
+)
+
+products_router.register(
+    r'variants',
+    ProductVariantViewSet,
+    basename='product-variants'
 )
 
 urlpatterns = [

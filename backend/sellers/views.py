@@ -18,11 +18,13 @@ from .serializers import (
     ProductCreateSerializer,
     ProductParameterSerializer,
     BaseProductImageSerializer,
+    ProductVariantSerializer,
 )
 from product.models import (
     BaseProduct,
     ProductParameter,
     BaseProductImage,
+    ProductVariant,
 )
 
 @extend_schema_view(
@@ -281,6 +283,77 @@ class BaseProductImageViewSet(ModelViewSet):
           3. Confirm the product's seller.user matches request.user; otherwise, raise PermissionDenied.
           4. Save the serializer with product=product, thereby associating the new image
              with that particular BaseProduct.
+        """
+        product_id = self.kwargs.get('product_pk')
+        product = get_object_or_404(BaseProduct, pk=product_id)
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        serializer.save(product=product)
+
+
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Seller Product Variants"],
+        description="List all variants for a given product."
+    ),
+    create=extend_schema(
+        tags=["Seller Product Variants"],
+        description="Create a new variant for a given product."
+    ),
+    retrieve=extend_schema(
+        tags=["Seller Product Variants"],
+        description="Retrieve detail of a single product variant."
+    ),
+    update=extend_schema(
+        tags=["Seller Product Variants"],
+        description="Fully update (PUT) a product variant."
+    ),
+    partial_update=extend_schema(
+        tags=["Seller Product Variants"],
+        description="Partially update (PATCH) a product variant."
+    ),
+    destroy=extend_schema(
+        tags=["Seller Product Variants"],
+        description="Delete a product variant."
+    )
+)
+class ProductVariantViewSet(ModelViewSet):
+    """
+    ViewSet for performing CRUD operations on ProductVariant objects
+    belonging to a specific product, using nested URLs:
+    /products/{product_id}/variants/{variant_id}/
+    """
+    serializer_class = ProductVariantSerializer
+    permission_classes = [IsAuthenticated, IsSellerOwner]
+
+    def get_queryset(self):
+        """
+        Retrieves a list of variants associated with the product identified by 'product_pk'
+        from the nested router. Also checks that the current user is the owner of that product.
+        """
+        product_id = self.kwargs.get('product_pk')
+        product = get_object_or_404(BaseProduct, pk=product_id)
+
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        return ProductVariant.objects.filter(product=product)
+
+    def get_object(self):
+        """
+        Retrieves a single ProductVariant within the filtered queryset,
+        ensuring it belongs to the current product and user is the owner.
+        """
+        queryset = self.get_queryset()
+        variant_id = self.kwargs['pk']
+        variant_obj = get_object_or_404(queryset, pk=variant_id)
+        self.check_object_permissions(self.request, variant_obj)
+        return variant_obj
+
+    def perform_create(self, serializer):
+        """
+        When creating a new variant, link it to the product from the nested URL.
         """
         product_id = self.kwargs.get('product_pk')
         product = get_object_or_404(BaseProduct, pk=product_id)
