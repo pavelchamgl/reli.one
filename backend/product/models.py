@@ -5,7 +5,7 @@ from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 
@@ -44,6 +44,24 @@ class BaseProduct(models.Model):
         SellerProfile,
         on_delete=models.CASCADE,
         related_name='products'
+    )
+    barcode = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="A standardized barcode (e.g., EAN or UPC) if the product has one."
+    )
+    article = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="Article code displayed to customers (must be exactly 10 digits).",
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$',
+                message='Article must be exactly 10 digits.'
+            )
+        ]
     )
     rating = models.DecimalField(
         max_digits=2,
@@ -174,7 +192,7 @@ class ProductVariant(models.Model):
 class LicenseFile(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     file = models.FileField(upload_to='license_files/', validators=[validate_file_extension, validate_file_size])
-    product = models.OneToOneField('BaseProduct', on_delete=models.CASCADE, related_name='license_files')
+    product = models.OneToOneField('BaseProduct', on_delete=models.CASCADE, related_name='license_file')
 
     def __str__(self):
         return f"License file id:{self.pk} - name:{self.name}"
