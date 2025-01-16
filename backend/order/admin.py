@@ -15,8 +15,8 @@ from .models import (
 class OrderProductInline(admin.TabularInline):
     model = OrderProduct
     extra = 0
-    fields = ('product_variant_display', 'quantity', 'product_price', 'delivery_cost', 'received', 'received_at', 'supplier')
-    readonly_fields = ('product_variant_display', 'quantity', 'product_price', 'delivery_cost', 'supplier', 'received_at')
+    fields = ('product_variant_display', 'quantity', 'product_price', 'delivery_cost', 'received', 'received_at', 'seller_profile')
+    readonly_fields = ('product_variant_display', 'quantity', 'product_price', 'delivery_cost', 'seller_profile', 'received_at')
     can_delete = False
 
     def product_variant_display(self, obj):
@@ -93,8 +93,8 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 class OrderProductAdmin(admin.ModelAdmin):
-    list_display = ('order', 'product_variant_display', 'quantity', 'product_price', 'delivery_cost', 'received', 'received_at', 'supplier')
-    list_filter = ('received', 'supplier')
+    list_display = ('order', 'product_variant_display', 'quantity', 'product_price', 'delivery_cost', 'received', 'received_at', 'seller_profile')
+    list_filter = ('received', 'seller_profile')
     search_fields = ('order__order_number', 'product__sku', 'product__name')
 
     def product_variant_display(self, obj):
