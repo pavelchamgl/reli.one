@@ -5,7 +5,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
-from supplier.models import Supplier
+from sellers.models import SellerProfile
 from product.models import ProductVariant
 
 
@@ -95,7 +95,7 @@ class OrderProduct(models.Model):
     quantity = models.PositiveIntegerField()
     received = models.BooleanField(default=False)
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    seller_profile = models.ForeignKey(SellerProfile, on_delete=models.CASCADE)
     product_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     received_at = models.DateTimeField(null=True, blank=True)
 

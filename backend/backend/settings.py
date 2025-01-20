@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'news',
     'vacancies',
     'favorites',
+    'sellers',
     'supplier',
     'reports',
 ]
@@ -261,6 +262,14 @@ LOGGING = {
             'maxBytes': 2.5 * 1024 * 1024,
             'backupCount': 5,
         },
+        'otp_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'otp.log'),
+            'formatter': 'verbose',
+            'maxBytes': 2.5 * 1024 * 1024,  # 2.5 MB
+            'backupCount': 5,
+        },
     },
     'loggers': {
         'django': {
@@ -275,6 +284,11 @@ LOGGING = {
         },
         'payment': {
             'handlers': ['payment_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'otp': {
+            'handlers': ['otp_file'],
             'level': 'DEBUG',
             'propagate': False,
         },

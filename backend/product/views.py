@@ -3,7 +3,6 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from rest_framework.filters import SearchFilter
-from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Min, F
@@ -12,7 +11,7 @@ from .pagination import StandardResultsSetPagination
 from .filters import BaseProductFilter
 from .models import (
     BaseProduct,
-    Category
+    Category,
 )
 from .serializers import (
     BaseProductListSerializer,
@@ -41,9 +40,10 @@ from .serializers import (
                         "id": 1,
                         "name": "IPhone 14 Pro",
                         "product_description": "Latest model of iPhone with advanced features.",
-                        "parameters": [
+                        "product_parameters": [
                             {
-                                "parameter_name": "Weight",
+                                "id": 10,
+                                "name": "Weight",
                                 "value": "250g"
                             }
                         ],
@@ -57,9 +57,10 @@ from .serializers import (
                         "id": 2,
                         "name": "Galaxy S21",
                         "product_description": "Samsung's flagship smartphone with cutting-edge technology.",
-                        "parameters": [
+                        "product_parameters": [
                             {
-                                "parameter_name": "Weight",
+                                "id": 11,
+                                "name": "Weight",
                                 "value": "220g"
                             }
                         ],
@@ -133,9 +134,10 @@ from .serializers import (
                                     "id": 1,
                                     "name": "IPhone 14 Pro",
                                     "product_description": "Latest model of iPhone with advanced features.",
-                                    "parameters": [
+                                    "product_parameters": [
                                         {
-                                            "parameter_name": "Weight",
+                                            "id": 10,
+                                            "name": "Weight",
                                             "value": "250g"
                                         }
                                     ],
@@ -149,9 +151,10 @@ from .serializers import (
                                     "id": 2,
                                     "name": "Galaxy S21",
                                     "product_description": "Samsung's flagship smartphone with cutting-edge technology.",
-                                    "parameters": [
+                                    "product_parameters": [
                                         {
-                                            "parameter_name": "Weight",
+                                            "id": 11,
+                                            "name": "Weight",
                                             "value": "220g"
                                         }
                                     ],
@@ -189,8 +192,8 @@ class SearchView(generics.ListAPIView):
     search_fields = [
         'name',
         'product_description',
-        'parameters__parameter__name',
-        'parameters__value',
+        'product_parameters__name',
+        'product_parameters__value',
         'category__name'
     ]
     filterset_class = BaseProductFilter
@@ -205,8 +208,8 @@ class SearchView(generics.ListAPIView):
         products = BaseProduct.objects.filter(
             Q(name__icontains=query) |
             Q(product_description__icontains=query) |
-            Q(parameters__parameter__name__icontains=query) |
-            Q(parameters__value__icontains=query) |
+            Q(product_parameters__name__icontains=query) |
+            Q(product_parameters__value__icontains=query) |
             Q(category__name__icontains=query)
         ).annotate(
             min_price=Min('variants__price')
@@ -215,8 +218,7 @@ class SearchView(generics.ListAPIView):
         ).prefetch_related(
             'images',
             'variants',
-            'parameters',
-            'parameters__parameter',
+            'product_parameters',
         ).distinct()
 
         # Получаем параметр сортировки из запроса
@@ -496,8 +498,7 @@ class CategoryBaseProductListView(generics.ListAPIView):
         ).prefetch_related(
             'images',
             'variants',
-            'parameters',
-            'parameters__parameter',
+            'product_parameters',
         ).distinct()
 
         # Получаем параметр сортировки из запроса
@@ -522,7 +523,7 @@ class CategoryBaseProductListView(generics.ListAPIView):
 @extend_schema(
     description=(
         "Retrieve detailed information about a specific product by its ID. "
-        "The response includes product details such as name, description, parameters, rating, total number of reviews, "
+        "The response includes product details such as name, description, **product_parameters**, rating, total number of reviews, "
         "license file, images, variants with prices, whether the product is in the user's favorites, "
         "and a list of SKUs the authenticated user can review."
     ),
@@ -549,9 +550,9 @@ class CategoryBaseProductListView(generics.ListAPIView):
                 "id": 1,
                 "name": "Sample Product",
                 "product_description": "This is a sample product description.",
-                "parameters": [
-                    {"parameter_name": "Power", "value": "120W"},
-                    {"parameter_name": "Length", "value": "1m"}
+                "product_parameters": [
+                    {"id": 10, "name": "Power", "value": "120W"},
+                    {"id": 11, "name": "Length", "value": "1m"}
                 ],
                 "rating": "4.4",
                 "total_reviews": 10,
@@ -589,12 +590,11 @@ class CategoryBaseProductListView(generics.ListAPIView):
 )
 class BaseProductDetailAPIView(generics.RetrieveAPIView):
     queryset = BaseProduct.objects.select_related('category', 'license_files').prefetch_related(
-        'parameters',
-        'parameters__parameter',
+        'product_parameters',
         'images',
         'variants',
         'variants__variant_reviews',
-    )
+    ).distinct()
     serializer_class = BaseProductDetailSerializer
     lookup_field = 'id'
 
