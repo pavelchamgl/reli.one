@@ -8,14 +8,13 @@ import styles from "../styles/SellerHomePage.module.scss";
 
 const SellerHomePage = () => {
   return (
-    <SellerPageContainer>
-      <SellerHeader /> 
-      <SellerTitle title={"Sales"}/>
+    <>
+      <SellerTitle title={"Sales"} />
       <div className={styles.grapheAndStaticsWrap}>
         <SellerHomeGraphe />
         <SellerStatistics />
       </div>
-    </SellerPageContainer>
+    </>
   );
 };
 

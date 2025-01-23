@@ -12,7 +12,7 @@ const SellerPreviewDesktop = () => {
   const [section, setSection] = useState("Charakteristika");
 
   return (
-    <div style={{ margin: "27px 100px 0" }}>
+    <div style={{ margin: "27px 0 0" }}>
       <div className={styles.main}>
         <div className={styles.imageRateDiv}>
           <PreviewImage />

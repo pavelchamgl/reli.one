@@ -67,7 +67,7 @@ const Footer = () => {
         </div>
         <div className="flex flex-col items-center justify-end gap-5">
           <img src={ReliLogo} className="w-[200px] mb-3" alt="" />
-          <p className="text-xs">(c) Copyright 2023 Reli group</p>
+          <p className="text-xs">(c) Copyright 2025 Reli group</p>
         </div>
         <div className="hidden flex-col justify-between xl:flex">
           <p className="text-2xl text-[#FFCC00]">Reli Group, s.r.o</p>

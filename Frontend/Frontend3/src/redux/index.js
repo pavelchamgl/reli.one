@@ -6,6 +6,7 @@ import { reducer as commentReducer } from "./commentSlice"
 import { reducer as paymentReducer } from "./paymentSlice"
 import { reducer as favoriteReducer } from "./favoriteSlice"
 import { reducer as ordersReducer } from "./ordersSlice"
+import { reducer as createGoodsReducer } from "./createGoodsSlice"
 
 export default configureStore({
     reducer: {
@@ -15,7 +16,8 @@ export default configureStore({
         comment: commentReducer,
         payment: paymentReducer,
         favorites: favoriteReducer,
-        orders: ordersReducer
+        orders: ordersReducer,
+        create: createGoodsReducer
     }
 })
 

@@ -1,0 +1,29 @@
+.main {
+  width: clamp(139px, 2.5vw, 200px);
+  display: flex;
+  flex-direction: column;
+
+  & input {
+    background: #fafafa;
+    border: 1px solid #ced4d7;
+    width: 100%;
+    height: clamp(36px, 2.5vw, 45px);
+    font-weight: 400;
+    font-size: clamp(14px, 2.5vw, 18px);
+    color: #7d7d7d;
+    padding-left: 10px;
+    outline-color: #cbcdce;
+  }
+}
+
+.addPhotoDiv {
+}
+
+.addPhotoBtn {
+  background: #64748b;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #fff;
+  width: 100%;
+  height: clamp(26px, 2.5vw, 34px);
+}

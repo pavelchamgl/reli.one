@@ -1,0 +1,16 @@
+.chartContainer {
+  width: clamp(482px, 50vw, 937px); /* График будет адаптивным */
+  height: clamp(267px, 50vh, 482px);
+  display: flex;
+
+  @media (max-width: 1000px) {
+    width: 100%;
+  }
+
+
+  @media (max-width: 427px) {
+    overflow-x: auto; /* Горизонтальный скролл для всех экранов */
+    width: 600px; /* Контейнер растягивается на всю ширину */
+    margin-bottom: 70px;
+  }
+}

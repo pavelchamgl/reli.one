@@ -18,6 +18,12 @@
 .imageDiv {
   width: 228px;
   height: 236px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  & img {
+    object-fit: cover;
+  }
 }
 
 .priceDiv {
@@ -27,14 +33,14 @@
   margin-bottom: 13px;
   & span {
     font-weight: 600;
-    font-size: 12px;
+    font-size: clamp(8px, 2.5vw, 12px);
     line-height: 163%;
     color: #64748b;
     text-decoration: line-through;
   }
   & p {
     font-weight: 600;
-    font-size: 20px;
+    font-size: clamp(10px, 2.5vw, 20px);
     line-height: 98%;
     color: #000;
   }
@@ -42,10 +48,10 @@
 
 .name {
   font-weight: 500;
-  font-size: 14px;
+  font-size: clamp(10px, 2.5vw, 14px);
   line-height: 140%;
   color: #000;
-  margin-bottom: 10px;
+  margin-bottom: clamp(7px, 2.5vw, 10px);
 }
 
 .rateDiv {
@@ -56,7 +62,7 @@
 
 .rateText {
   font-weight: 500;
-  font-size: 18px;
+  font-size: clamp(11px, 2.5vw, 18px);
   line-height: 133%;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -65,7 +71,7 @@
 
 .orderCountText {
   font-weight: 500;
-  font-size: 16px;
+  font-size: clamp(10px, 2.5vw, 16px);
   line-height: 131%;
   letter-spacing: -0.02em;
   color: #64748b;
@@ -80,6 +86,9 @@
     background: #3f7f6d;
     border-radius: 2px;
     padding: 5px 29px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 91px;
     height: 31px;
     font-weight: 600;
@@ -90,5 +99,158 @@
   }
   & button:nth-child(2) {
     background: #d55b5b;
+  }
+}
+
+.mainSceleton {
+  width: 230px;
+  // height: 380px;
+  background: #aaa0a0;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  transition: 0.5s ease;
+  position: relative;
+}
+.skeleton {
+  width: 230px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: column;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  .skeletonImage {
+    width: 90%;
+    height: 157px;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    margin-bottom: 10px;
+  }
+
+  .skeletonDetails {
+    flex: 1;
+    margin-left: 10px;
+
+    .skeletonName {
+      width: 100%;
+      height: 20px;
+      background-color: #f0f0f0;
+      margin-bottom: 10px;
+    }
+
+    .skeletonPrice {
+      width: 60%;
+      height: 16px;
+      background-color: #f0f0f0;
+    }
+
+    .skeletonRate {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+
+      .skeletonRating {
+        width: 80px;
+        height: 16px;
+        background-color: #f0f0f0;
+        margin-right: 10px;
+      }
+
+      .skeletonCount {
+        width: 40px;
+        height: 16px;
+        background-color: #f0f0f0;
+      }
+    }
+
+    .skeletonButton {
+      width: 80px;
+      height: 30px;
+      background-color: #f0f0f0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .main {
+    width: 132px;
+    height: 257px;
+    padding: 0 4px 8px;
+  }
+  .skeleton {
+    width: 132px;
+    .skeletonDetails {
+      width: 90%;
+      flex: 1;
+
+      .skeletonName {
+        width: 90%;
+        height: 20px;
+        background-color: #f0f0f0;
+        margin-bottom: 10px;
+      }
+      .skeletonButton {
+        width: 80px;
+        height: 20px;
+        margin-top: 10px;
+      }
+    }
+    .skeletonImage {
+      height: 122px;
+    }
+  }
+  .imageDiv {
+    width: 124px;
+    height: 122px;
+    & img {
+      width: 124px;
+      height: 122px;
+      object-fit: cover;
+    }
+  }
+  .priceDiv {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    margin-bottom: 7px;
+  }
+  .orderCountText {
+    font-weight: 500;
+    font-size: clamp(10px, 2.5vw, 16px);
+    line-height: 131%;
+    letter-spacing: -0.02em;
+    color: #64748b;
+    margin-top: 6px;
+  }
+
+  .btnsDiv {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    & button {
+      background: #3f7f6d;
+      border-radius: 2px;
+      padding: 5px 29px;
+      width: 59px;
+      height: 18px;
+      font-weight: 600;
+      font-size: clamp(11px, 2.5vw, 18px);
+      line-height: 117%;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    & button:nth-child(2) {
+      background: #d55b5b;
+    }
   }
 }

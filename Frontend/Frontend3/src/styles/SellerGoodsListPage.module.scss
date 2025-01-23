@@ -1,8 +1,8 @@
 .listWrap {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 25px;
-  margin-top: 50px;
+  margin-top: clamp(18px, 2.5vw, 50px);
 }

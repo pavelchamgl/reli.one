@@ -14,22 +14,23 @@
   border-radius: 2px;
 }
 
-.smallMaskWrap {
+.mask {
+  width: 140px;
+  height: 140px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
+  border: 1px solid #b1bed1;
+  border-radius: 2px;
 
-  & div {
-    width: 94px;
-    height: 94px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid #b1bed1;
-    border-radius: 2px;
+  & img {
+    width: 18px;
+    height: 18px;
+  }
 
+  @media (max-width: 426px) {
+    width: 86px;
+    height: 86px;
     & img {
       width: 18px;
       height: 18px;
@@ -37,9 +38,17 @@
   }
 }
 
+.smallMaskWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
 .title {
   font-weight: 400;
-  font-size: 30px;
+  font-size: clamp(20px, 2.5vw, 30px);
   line-height: 70%;
   letter-spacing: -0.01em;
   color: #000;
@@ -55,23 +64,24 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 17px;
+  margin-bottom: clamp(6px, 2.5vw, 17px);
   & p {
     font-weight: 400;
-    font-size: 18px;
+    font-size: clamp(12px, 2.5vw, 18px);
     line-height: 112%;
     letter-spacing: -0.02em;
     color: #64748b;
   }
+
   & span {
     display: flex;
     justify-content: center;
     align-items: center;
     background: #3f7f6d;
-    width: 214px;
-    height: 34px;
+    width: clamp(124px, 2.5vw, 214px);
+    height: clamp(25px, 2.5vw, 34px);
     font-weight: 400;
-    font-size: 18px;
+    font-size: clamp(14px, 2.5vw, 18px);
     line-height: 167%;
     letter-spacing: -0.02em;
     text-align: center;
@@ -112,8 +122,8 @@
   opacity: 0; /* По умолчанию элемент невидим */
   visibility: hidden;
   position: absolute;
-  top: 15px; /* Центрируем кнопку по вертикали */
-  right: 15px; /* Центрируем кнопку по горизонтали */
+  top: clamp(7px, 2.5vw, 15px); /* Центрируем кнопку по вертикали */
+  right: clamp(7px, 2.5vw, 15px); /* Центрируем кнопку по горизонтали */
   background-color: transparent;
   z-index: 10;
   cursor: pointer;
@@ -126,9 +136,9 @@
 }
 
 .mediaPreview {
-  width: 141px;
-  height: 141px;
-  object-fit: cover;
+  width: 100%; /* Автоматическое растягивание под слайд */
+  height: 100%;
+  object-fit: cover; /* Обеспечивает правильное масштабирование */
   border-radius: 2px;
 }
 
@@ -137,6 +147,13 @@
 
   .swiper {
     width: 100%;
+    @media (max-width: 426px) {
+      padding-bottom: 10px;
+      padding-top: 10px;
+      height: 96px;
+      overflow-x: scroll; /* Включаем вертикальный скрол */
+      scroll-behavior: smooth; /* Плавный скрол */
+    }
   }
 
   .swiperSlide {
@@ -146,6 +163,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
+
+    & img {
+      object-fit: cover;
+      border-radius: 2px;
+
+      @media (max-width: 426px) {
+        width: 84px;
+        height: 84px;
+      }
+    }
   }
 
   .swiperButtonPrev,
@@ -165,6 +192,10 @@
 
     &:hover {
       background: #ddd;
+    }
+
+    @media (max-width: 426px) {
+      display: none;
     }
   }
 
