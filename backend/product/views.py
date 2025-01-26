@@ -5,7 +5,7 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParamet
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, Min, F
+from django.db.models import Q, Min, F, Sum
 
 from .pagination import StandardResultsSetPagination
 from .filters import BaseProductFilter
@@ -51,7 +51,8 @@ from .serializers import (
                         "price": "1000.00",
                         "rating": "4.8",
                         "total_reviews": 120,
-                        "is_favorite": false
+                        "is_favorite": false,
+                        "ordered_count": 153521
                     },
                     {
                         "id": 2,
@@ -68,7 +69,8 @@ from .serializers import (
                         "price": "950.00",
                         "rating": "4.5",
                         "total_reviews": 98,
-                        "is_favorite": true
+                        "is_favorite": true,
+                        "ordered_count": 1
                     }
                 ],
                 "categories": [
@@ -145,7 +147,8 @@ from .serializers import (
                                     "price": "1000.00",
                                     "rating": "4.8",
                                     "total_reviews": 120,
-                                    "is_favorite": False
+                                    "is_favorite": False,
+                                    "ordered_count": 1535
                                 },
                                 {
                                     "id": 2,
@@ -162,7 +165,8 @@ from .serializers import (
                                     "price": "950.00",
                                     "rating": "4.5",
                                     "total_reviews": 98,
-                                    "is_favorite": True
+                                    "is_favorite": True,
+                                    "ordered_count": 1
                                 }
                             ],
                             "categories": [
@@ -212,7 +216,8 @@ class SearchView(generics.ListAPIView):
             Q(product_parameters__value__icontains=query) |
             Q(category__name__icontains=query)
         ).annotate(
-            min_price=Min('variants__price')
+            min_price=Min('variants__price'),
+            rdered_quantity=Sum('variants__orderproduct__quantity')
         ).filter(
             min_price__isnull=False
         ).prefetch_related(
@@ -293,7 +298,8 @@ class SearchView(generics.ListAPIView):
                     "price": "1000.00",
                     "rating": "4.8",
                     "total_reviews": 120,
-                    "is_favorite": false
+                    "is_favorite": false,
+                    "ordered_count": 153521
                 },
                 {
                     "id": 2,
@@ -309,7 +315,8 @@ class SearchView(generics.ListAPIView):
                     "price": "950.00",
                     "rating": "4.5",
                     "total_reviews": 98,
-                    "is_favorite": false
+                    "is_favorite": false,
+                    "ordered_count": 1535
                 },
                 {
                     "id": 3,
@@ -325,7 +332,8 @@ class SearchView(generics.ListAPIView):
                     "price": "1500.00",
                     "rating": "0.0",
                     "total_reviews": 0,
-                    "is_favorite": false
+                    "is_favorite": false,
+                    "ordered_count": 153
                 },
                 {
                     "id": 4,
@@ -341,7 +349,8 @@ class SearchView(generics.ListAPIView):
                     "price": "50.00",
                     "rating": "4.0",
                     "total_reviews": 250,
-                    "is_favorite": false
+                    "is_favorite": false,
+                    "ordered_count": 1
                 }
             ]
         }
@@ -419,7 +428,8 @@ class SearchView(generics.ListAPIView):
                         "price": "1000.00",
                         "rating": "4.8",
                         "total_reviews": 120,
-                        "is_favorite": False
+                        "is_favorite": False,
+                        "ordered_count": 153521
                     },
                     {
                         "id": 2,
@@ -435,7 +445,8 @@ class SearchView(generics.ListAPIView):
                         "price": "950.00",
                         "rating": "4.5",
                         "total_reviews": 98,
-                        "is_favorite": False
+                        "is_favorite": False,
+                        "ordered_count": 15
                     },
                     {
                         "id": 3,
@@ -451,7 +462,8 @@ class SearchView(generics.ListAPIView):
                         "price": "1500.00",
                         "rating": "0.0",
                         "total_reviews": 0,
-                        "is_favorite": False
+                        "is_favorite": False,
+                        "ordered_count": 1535
                     },
                     {
                         "id": 4,
@@ -467,7 +479,8 @@ class SearchView(generics.ListAPIView):
                         "price": "50.00",
                         "rating": "4.0",
                         "total_reviews": 250,
-                        "is_favorite": False
+                        "is_favorite": False,
+                        "ordered_count": 1
                     }
                 ]
             },
@@ -492,7 +505,8 @@ class CategoryBaseProductListView(generics.ListAPIView):
             return BaseProduct.objects.none()
 
         queryset = BaseProduct.objects.filter(category=category).annotate(
-            min_price=Min('variants__price')
+            min_price=Min('variants__price'),
+            ordered_quantity=Sum('variants__orderproduct__quantity')
         ).filter(
             min_price__isnull=False
         ).prefetch_related(
