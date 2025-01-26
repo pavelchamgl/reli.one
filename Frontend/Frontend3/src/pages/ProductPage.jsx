@@ -20,6 +20,7 @@ import styles from "../styles/ProductPage.module.scss";
 
 const ProductPage = () => {
   const [section, setSection] = useState("Charakteristika");
+  const [productBread, setProdBread] = useState("");
 
   const isMobile = useMediaQuery({ maxWidth: 470 });
 
@@ -32,6 +33,9 @@ const ProductPage = () => {
     fetchGetComments(id);
   }, [id]);
 
+  useEffect(() => {
+    setProdBread(product?.name);
+  }, [id]);
 
   const { product, status } = useSelector((state) => state.products);
 
@@ -46,7 +50,7 @@ const ProductPage = () => {
             </div>
           ) : (
             <>
-              <CustomBreadcrumbs />
+              <CustomBreadcrumbs product={productBread} />
               <div className={styles.imageRateDiv}>
                 <ProductImages />
                 <ProductNameRate />

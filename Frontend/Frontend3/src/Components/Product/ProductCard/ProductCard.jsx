@@ -46,8 +46,6 @@ const ProductCard = ({ data = null }) => {
   const statusFav = useSelector((state) => state.favorites.status);
   const basket = useSelector((state) => state.basket.basket);
 
-  console.log(data);
-
   const handleBuy = () => {
     if (isMobile) {
       if (variants.length === 1) {
@@ -100,7 +98,6 @@ const ProductCard = ({ data = null }) => {
       status === "loading" ||
       statusFav === "loading"
     ) {
-      console.log("Loading...");
       setIsLoading(true);
     } else {
       setIsLoading(false);

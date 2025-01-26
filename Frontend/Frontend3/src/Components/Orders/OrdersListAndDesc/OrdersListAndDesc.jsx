@@ -10,7 +10,6 @@ const OrdersListAndDesc = () => {
 
   const { order } = useSelector((state) => state.orders);
 
-  console.log(order);
 
   return (
     <div>

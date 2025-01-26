@@ -36,10 +36,10 @@ const FilterByPopularity = ({
         setOrderingState("-price");
         setOrdering("-price");
       }
-      // } else {
-      //   setOrderingState(filterValue);
-      //   setOrdering(filterValue);
-      // }
+      if (filterValue === "order") {
+        setOrderingState("order");
+        setOrdering("order");
+      }
     }
   }, [filterValue]);
 
@@ -95,6 +95,18 @@ const FilterByPopularity = ({
           />
           <p>{t("price_descending")}</p>
         </button>
+        {pathname === "/seller-goods-list" && (
+          <button
+            onClick={() => setFilterValue("order")}
+            className={styles.radioInpBtn}
+          >
+            <img
+              src={filterValue === "order" ? checkedRadio : notCheckedRadio}
+              alt=""
+            />
+            <p>Order quantity</p>
+          </button>
+        )}
       </div>
     </div>
   );

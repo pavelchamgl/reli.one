@@ -20,7 +20,6 @@ const MainPage = () => {
   const { fetchGetCategory, fetchGetProducts } = useActions();
   const { t } = useTranslation();
 
-
   const localEmail = localStorage.getItem("email");
 
   useEffect(() => {
@@ -28,15 +27,11 @@ const MainPage = () => {
     const existingValueParse = existingValue ? JSON.parse(existingValue) : [];
 
     if (localEmail) {
-      const userBasket = existingValueParse?.find(
-        (item) => {
-          console.log(item);
-          if (item.email === JSON.parse(localEmail)) {
-            console.log(true);
-            return item;
-          }
-        } 
-      );
+      const userBasket = existingValueParse?.find((item) => {
+        if (item.email === JSON.parse(localEmail)) {
+          return item;
+        }
+      });
 
       if (userBasket) {
         localStorage.setItem("basket", JSON.stringify(userBasket.basket));
@@ -49,8 +44,6 @@ const MainPage = () => {
       localStorage.setItem("baskets", JSON.stringify([]));
     }
   }, [localEmail]);
-
-
 
   useEffect(() => {
     fetchGetCategory();
@@ -66,7 +59,8 @@ const MainPage = () => {
         <div className={styles.categoryCardWrap}>
           {allCategory.length > 0 ? (
             allCategory
-              ?.slice(0, 18)?.reverse()
+              ?.slice(0, 18)
+              ?.reverse()
               .map((item) => <CategoryCard key={item.id} item={item} />)
           ) : (
             <NoContentText />

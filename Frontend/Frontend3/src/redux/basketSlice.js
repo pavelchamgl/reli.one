@@ -52,7 +52,6 @@ const basketSlice = createSlice({
             }
         },
         plusCount: (state, action) => {
-            console.log("uihhubhb");
             const newArr = state.basket.map((item) => {
                 if (item.sku === action.payload.sku) {
                     return {
@@ -70,7 +69,6 @@ const basketSlice = createSlice({
             };
         },
         plusCardCount: (state, action) => {
-            console.log(action);
 
             state.basket = state.basket.map((item) => {
                 if (item.sku === action.payload.sku) {
@@ -123,7 +121,6 @@ const basketSlice = createSlice({
         },
 
         minusCount: (state, action) => {
-            console.log(2);
             const newArr = state.basket.map((item) => {
                 if (item.slu === action.payload.sku) {
                     return {
@@ -223,7 +220,6 @@ const basketSlice = createSlice({
             };
         },
         selectAllProducts: (state) => {
-            console.log(5);
             let totalCount = 0;
 
             const selectedArr = state.basket.map((item) => {
@@ -255,7 +251,6 @@ const basketSlice = createSlice({
             };
         },
         deselectAllProducts: (state) => {
-            console.log(6);
             const selectedArr = state.basket.map((item) => {
                 return {
                     ...item,
@@ -276,7 +271,6 @@ const basketSlice = createSlice({
             };
         },
         searchProducts: (state, action) => {
-            console.log(7);
             const searchTerm = action.payload.text.toLowerCase();
 
             // Если поисковый запрос пустой, возвращаем оригинальную корзину
@@ -304,9 +298,6 @@ const basketSlice = createSlice({
 
             if (action.payload.type === "plus") {
                 newTotal = state.totalCount + action.payload.price
-                console.log(state.totalCount);
-                console.log(action.payload.price);
-                console.log(newTotal);
             } else {
                 newTotal = state.totalCount - action.payload.price
             }

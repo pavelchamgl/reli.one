@@ -26,8 +26,6 @@ const BasketCard = ({ all, section, productData }) => {
 
   const { product } = productData;
 
-  console.log(product);
-
   const navigate = useNavigate();
 
   const { plusCardCount, minusCardCount } = useActions();
@@ -61,8 +59,6 @@ const BasketCard = ({ all, section, productData }) => {
   };
 
   const handleDelete = () => {
-    console.log(productData.sku);
-
     dispatch(deleteFromBasket({ sku: productData.sku }));
   };
 

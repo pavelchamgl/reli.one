@@ -1,0 +1,32 @@
+.loginItem {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  font-size: 14px;
+  text-wrap: nowrap;
+  background-color: transparent;
+  text-decoration: none;
+
+  & img {
+    height: 20px;
+  }
+
+  & p {
+    cursor: pointer !important;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 131%;
+    letter-spacing: -0.02em;
+    color: #000;
+  }
+}
+
+.sellerHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.main {
+  padding-top: 17px;
+}

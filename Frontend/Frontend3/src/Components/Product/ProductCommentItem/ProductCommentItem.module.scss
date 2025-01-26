@@ -1,8 +1,16 @@
-.boldText {
+.nameText {
   font-weight: 500;
   font-size: 18px;
   line-height: 130%;
   color: #000;
+}
+
+.contentText {
+  font-weight: 500;
+  font-size: clamp(13px, 2.5vw, 18px);
+  line-height: 130%;
+  color: #000;
+  word-wrap: break-word; /* Перенос слов на следующую строку */
 }
 
 .lightText {
@@ -16,12 +24,19 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  img {
-    margin-top: 15px;
-    border-radius: 2px;
-    width: 231px;
-    height: 230px;
-    object-fit: cover;
+  max-width: 70vw; /* Установите подходящую ширину */
+
+  @media (max-width: 1370px) {
+    max-width: 60vw; /* Установите подходящую ширину */
+  }
+  @media (max-width: 1030px) {
+    max-width: 50vw; /* Установите подходящую ширину */
+  }
+  @media (max-width: 821px) {
+    max-width: 40vw; /* Установите подходящую ширину */
+  }
+  @media (max-width: 530px) {
+    max-width: 30vw; /* Установите подходящую ширину */
   }
 }
 
@@ -29,6 +44,9 @@
   display: flex;
   align-items: flex-start;
   gap: 50px;
+  @media (max-width: 530px) {
+    gap: 25px;
+  }
 }
 
 .varText {
@@ -42,4 +60,46 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.imageDiv {
+  display: flex;
+  gap: 20px; /* Отступы между картинками */
+  width: 100%;
+  overflow-x: auto; /* Включаем горизонтальный скрол */
+  overflow-y: hidden; /* Убираем вертикальный скрол */
+  white-space: nowrap; /* Запрещаем перенос содержимого */
+  -ms-overflow-style: auto; /* Для IE и Edge */
+  scrollbar-width: thin; /* Для Firefox - делаем скрол тонким */
+  scrollbar-color: gray transparent;
+  & img {
+    flex-shrink: 0; /* Запрещаем картинкам сжиматься */
+    border-radius: 2px;
+    width: 231px;
+    height: 230px;
+    object-fit: cover; /* Сохраняем пропорции и центрируем */
+    margin-bottom: 10px;
+  }
+}
+.imageDiv::-webkit-scrollbar {
+  height: 2px; /* Высота горизонтального скролла */
+  background-color: transparent; /* Цвет фона скроллбара */
+}
+
+.imageDiv::-webkit-scrollbar-thumb {
+  background-color: gray; /* Цвет полосы прокрутки */
+  border-radius: 5px; /* Закругленные края полосы прокрутки */
+}
+
+.imageDiv::-webkit-scrollbar-button {
+  display: none; /* Убираем боковые кнопки */
+}
+
+.video {
+  flex-shrink: 0; /* Запрещаем картинкам сжиматься */
+  border-radius: 2px;
+  width: 231px;
+  height: 230px;
+  object-fit: cover; /* Сохраняем пропорции и центрируем */
+  margin-bottom: 10px;
 }

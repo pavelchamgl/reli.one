@@ -1,10 +1,46 @@
-.btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 200px;
-  height: 48px;
-  background-color: rgb(15, 155, 32);
-  color: white;
-  z-index: 10;
+.chartContainer {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.chartRow {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.chartLabel {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  & p {
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 87%;
+    letter-spacing: -0.01em;
+    text-align: center;
+    color: #000;
+  }
+}
+
+.chartBarWrapper {
+  display: flex;
+  align-items: center;
+}
+
+.chartBar {
+  height: 20px;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+  & div {
+    border-radius: 2px;
+  }
+}
+
+.chartValue {
+  font-size: 14px;
+  margin-left: 10px;
 }

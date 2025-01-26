@@ -8,8 +8,7 @@ import IssueIcon from "../../../assets/Order/IssueIcon.svg";
 
 import styles from "./OrderSchedule.module.scss";
 
-const OrderSchedule = ({ status }) => {
-  console.log(status);
+const OrderSchedule = ({ status = 0 }) => {
 
   const [percent, setPercent] = useState(0);
   const [style, setStyle] = useState({});
@@ -27,17 +26,12 @@ const OrderSchedule = ({ status }) => {
         background: "#c6c6c6",
       });
     }
-    if (percent === 25) {
-      setStyle({
-        background: "linear-gradient(to right, #3f7f6d 33%, #c6c6c6 33%)",
-      });
-    }
     if (percent === 50) {
       setStyle({
-        background: "linear-gradient(to right, #3f7f6d 66%, #c6c6c6 33%)",
+        background: "linear-gradient(to right, #3f7f6d 50%, #c6c6c6 33%)",
       });
     }
-    if (percent === 75) {
+    if (percent === 100) {
       setStyle({
         background: "linear-gradient(to right, #3f7f6d 99%, #c6c6c6 33%)",
       });
@@ -46,17 +40,14 @@ const OrderSchedule = ({ status }) => {
 
   useEffect(() => {
     if (status) {
-      if (status === "Assembling") {
+      if (status === "Being processed") {
         setPercent(10);
       }
-      if (status === "On the Way") {
-        setPercent(25);
-      }
-      if (status === "Sorting Center") {
+      if (status === "On the way") {
         setPercent(50);
       }
-      if (status === "Pickup Point") {
-        setPercent(75);
+      if (status === "Ready for dispatch/pickup") {
+        setPercent(100);
       }
     }
   }, [status]);
@@ -74,7 +65,7 @@ const OrderSchedule = ({ status }) => {
               <img src={CollectingIcon} alt="" />
             </div>
             <p style={{ color: percent === 0 ? "#c6c6c6" : "#3f7f6d" }}>
-              {t("compilation")}
+              Being processed
             </p>
           </div>
 
@@ -87,11 +78,11 @@ const OrderSchedule = ({ status }) => {
             </div>
 
             <p style={{ color: percent >= 25 ? "#3f7f6d" : "#c6c6c6" }}>
-              {t("towards")}
+              On the way
             </p>
           </div>
 
-          <div className={styles.imageDivWrap}>
+          {/* <div className={styles.imageDivWrap}>
             <div
               style={{ background: percent >= 50 ? "#3f7f6d" : "#c6c6c6" }}
               className={styles.imageDiv}
@@ -101,7 +92,8 @@ const OrderSchedule = ({ status }) => {
             <p style={{ color: percent >= 50 ? "#3f7f6d" : "#c6c6c6" }}>
               {t("in_sorting_center")}
             </p>
-          </div>
+          </div> */}
+          {/* sorting center */}
 
           <div className={styles.imageDivWrap}>
             <div
@@ -111,7 +103,7 @@ const OrderSchedule = ({ status }) => {
               <img src={IssueIcon} alt="" />
             </div>
             <p style={{ color: percent >= 75 ? "#3f7f6d" : "#c6c6c6" }}>
-              {t("at_the_point")}
+              Ready for dispatch / pickup
             </p>
           </div>
         </div>

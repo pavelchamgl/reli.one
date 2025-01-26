@@ -60,7 +60,6 @@ const PaymentDeliverySelect = () => {
 
       // Преобразовать общее значение из граммов в килограммы
       const totalWeightInKg = totalWeightInGrams / 1000;
-      console.log(totalWeightInKg);
 
       setWeight(totalWeightInKg);
 
@@ -97,9 +96,9 @@ const PaymentDeliverySelect = () => {
     setDpdResult(dpdFuncResult);
     setGeisResult(geisFuncResult);
     setPplResult(pplFuncResult);
-    console.log(pplFuncResult);
-    console.log(geisFuncResult);
-    console.log(dpdFuncResult);
+    // console.log(pplFuncResult);
+    // console.log(geisFuncResult);
+    // console.log(dpdFuncResult);
     localStorage.setItem(
       "delivery",
       JSON.stringify([

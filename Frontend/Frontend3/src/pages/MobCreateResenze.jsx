@@ -37,7 +37,7 @@ const MobCreateResenze = () => {
           <p>{t("write_review")}</p>
         </button>
         {product && <MobCardSecond product={product} sku={currentSku} />}
-        <MobResenzeCreateForm />
+        <MobResenzeCreateForm variants={product?.variants} />
       </div>
     </Container>
   );

@@ -61,14 +61,11 @@ const CreateNewPassForm = () => {
         ...values,
       })
         .then((res) => {
-          console.log(res);
           localStorage.removeItem("email");
           localStorage.removeItem("otp");
           navigate("/");
         })
         .catch((err) => {
-          console.log(err);
-
           if (err.response) {
             if (err.response.status === 500) {
               setRegErr(

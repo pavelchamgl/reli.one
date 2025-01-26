@@ -7,9 +7,7 @@ import Menu_PC from './menu/Menu_PC';
 import Portal_menu from './Portal_menu';
 import Menu_links from './menu/Menu_links';
 
-const click_button = () => {
-  console.log('click');
-};
+
 
 const Header = () => {
   const [openMenu, setOpenMenu] = useState(false);

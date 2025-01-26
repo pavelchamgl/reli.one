@@ -30,8 +30,6 @@ const ProductNameRate = () => {
 
   const basket = useSelector((state) => state.basket.basket);
 
-  console.log(product);
-
   const handleAddBasket = () => {
     dispatch(
       addToBasket({

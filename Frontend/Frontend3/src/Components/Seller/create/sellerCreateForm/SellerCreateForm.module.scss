@@ -1,0 +1,32 @@
+.priceDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 50px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.footerBtnWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  & button {
+    font-weight: 400;
+    font-size: 20px;
+    line-height: 150%;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: #fff;
+    background: #64748b;
+    width: 210px;
+    height: 39px;
+  }
+  & button:nth-child(2) {
+    background: #047857;
+  }
+}

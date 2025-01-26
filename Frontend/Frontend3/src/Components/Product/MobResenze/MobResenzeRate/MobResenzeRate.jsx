@@ -6,8 +6,6 @@ import styles from "./MobResenzeRate.module.scss";
 const MobResenzeRate = () => {
   const product = useSelector((state) => state.products.product);
 
-  console.log(product);
-
   return (
     <div className={styles.main}>
       <div className={styles.rateWrap}>
