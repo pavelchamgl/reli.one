@@ -7,6 +7,7 @@ from .views import (
     BaseProductImageViewSet,
     ProductVariantViewSet,
     LicenseFileViewSet,
+    SellerProductListView,
 )
 
 router = routers.SimpleRouter()
@@ -40,4 +41,5 @@ products_router.register(
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(products_router.urls)),
+    path('my-products/', SellerProductListView.as_view(), name='seller-product-list'),
 ]
