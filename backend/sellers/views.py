@@ -1,13 +1,18 @@
+from rest_framework import status
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.generics import ListAPIView
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
-    OpenApiResponse
+    OpenApiResponse,
+    OpenApiParameter,
 )
-from rest_framework import status
+from django.db.models import Min, Sum
 
 from .models import SellerProfile
 from .permissions import IsSellerOwner
@@ -28,6 +33,10 @@ from product.models import (
     ProductVariant,
     LicenseFile,
 )
+from product.filters import BaseProductFilter
+from product.pagination import StandardResultsSetPagination
+from product.serializers import BaseProductListSerializer
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -463,3 +472,117 @@ class LicenseFileViewSet(ModelViewSet):
             raise PermissionDenied("A license file already exists for this product.")
 
         serializer.save(product=product)
+
+
+STATUS_MAP = {
+    'active': 'approved',
+    'on_moderation': 'pending',
+    'not_moderated': 'rejected',
+}
+
+
+@extend_schema(
+    description="""
+        Retrieve a list of products for the authenticated seller.
+        Supports search, filtering (price, rating, status), and sorting.
+        Status param:
+          - active → status='approved'
+          - on_moderation → status='pending'
+          - not_moderated → status='rejected'
+    """,
+    parameters=[
+        OpenApiParameter(
+            name='search',
+            description='Search query for name, description, or parameters',
+            required=False,
+            type=str
+        ),
+        OpenApiParameter(
+            name='status',
+            description="""
+                Filter products by human-readable status:
+                  - active → DB status='approved'
+                  - on_moderation → DB status='pending'
+                  - not_moderated → DB status='rejected'
+            """,
+            required=False,
+            type=str,
+            enum=['active','on_moderation','not_moderated']
+        ),
+        OpenApiParameter(
+            name='min_price',
+            description='Minimum price to filter products',
+            required=False,
+            type=float
+        ),
+        OpenApiParameter(
+            name='max_price',
+            description='Maximum price to filter products',
+            required=False,
+            type=float
+        ),
+        OpenApiParameter(
+            name='rating',
+            description='Minimum rating to filter products',
+            required=False,
+            type=float
+        ),
+        OpenApiParameter(
+            name='ordering',
+            description="""
+                Fields to sort by. Use "-" prefix for descending.
+                Possible: min_price, -min_price, rating, -rating, ordered_quantity, -ordered_quantity
+            """,
+            required=False,
+            type=str
+        ),
+    ],
+    responses={
+        200: OpenApiResponse(
+            response=BaseProductListSerializer(many=True),
+            description="A paginated list of seller products."
+        )
+    },
+    tags=["Seller Products"]
+)
+class SellerProductListView(ListAPIView):
+    """
+    A ListAPIView for products belonging to the authenticated seller,
+    with support for search, filter, and ordering.
+    """
+    serializer_class = BaseProductListSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [
+        DjangoFilterBackend,
+        SearchFilter,
+        OrderingFilter
+    ]
+    filterset_class = BaseProductFilter
+    search_fields = [
+        'name',
+        'product_description',
+        'product_parameters__name',
+        'product_parameters__value'
+    ]
+    ordering_fields = ['min_price', 'rating', 'ordered_quantity']
+
+    def get_queryset(self):
+        user = self.request.user
+        seller_profile = getattr(user, 'seller_profile', None)
+        if not seller_profile:
+            return BaseProduct.objects.none()
+
+        qs = BaseProduct.objects.filter(seller=seller_profile)
+
+        status_param = self.request.query_params.get('status')
+        if status_param in STATUS_MAP:
+            db_status = STATUS_MAP[status_param]
+            qs = qs.filter(status=db_status)
+
+        qs = qs.annotate(
+            min_price=Min('variants__price'),
+            ordered_quantity=Sum('variants__orderproduct__quantity')
+        ).filter(min_price__isnull=False).distinct()
+
+        return qs
