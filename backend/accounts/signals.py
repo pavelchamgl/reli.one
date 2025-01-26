@@ -27,10 +27,10 @@ def send_email_confirmation_otp(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CustomUser)
 def create_seller_profile(sender, instance, created, **kwargs):
     """
-    Создание профиля продавца при регистрации пользователя с ролью 'seller'.
+    Создаёт SellerProfile если пользователь (новый или обновлённый) имеет роль SELLER
+    и профиль ещё не существует.
     """
-    if created and instance.role == UserRole.SELLER:
-        # Проверяем, если профиль продавца ещё не существует
+    if instance.role == UserRole.SELLER:
         if not SellerProfile.objects.filter(user=instance).exists():
             SellerProfile.objects.create(user=instance)
             logger.info(f"Seller profile created for user {instance.email}")
