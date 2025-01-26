@@ -132,6 +132,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     price = serializers.DecimalField(source='min_price', max_digits=10, decimal_places=2, read_only=True)
+    ordered_count = serializers.IntegerField(source='ordered_quantity', read_only=True)
 
     class Meta:
         model = BaseProduct
@@ -145,6 +146,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'rating',
             'total_reviews',
             'is_favorite',
+            'ordered_count',
         ]
 
     def get_price(self, obj):
