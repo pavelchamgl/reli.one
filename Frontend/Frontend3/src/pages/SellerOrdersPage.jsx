@@ -10,14 +10,13 @@ import styles from "../styles/SellerOrderPage.module.scss"
 const SellerOrdersPage = () => {
   return (
     <div className={styles.main}>
-      <SellerPageContainer>
-        <SellerHeader />
         <OrdersContainer>
           <SellerTitle title={"Orders"} />
-          <OrdersStatics />
+          <OrdersStatics text={"Vendor warehouse"} />
+          <OrdersGraphe />
+          <OrdersStatics style={{ marginTop: "25px" }} text={"Reli warehouse"} />
           <OrdersGraphe />
         </OrdersContainer>
-      </SellerPageContainer>
     </div>
   );
 };

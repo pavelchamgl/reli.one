@@ -9,6 +9,7 @@ import { editValue, fetchCreateStripeSession, fetchCreatePayPalSession } from ".
 import { plusMinusDelivery, basketSelectedProductsPrice, plusCount, minusCount, minusCardCount, plusCardCount, changeVariants, paymentEndBasket, clearBasket } from "../redux/basketSlice"
 import { fetchFavoriteProducts, setOrderingFav, setPageFav } from "../redux/favoriteSlice"
 import { fetchGetOrders, fetchGetDetalOrders, fetchGetOrdersCurrent } from "../redux/ordersSlice"
+import { fetchCategories, setCategoriesStage, setChildCategories, setChildCategoryName, setClearAll } from "../redux/createGoodsSlice"
 
 const rootActions = {
     fetchGetCategory,
@@ -44,7 +45,13 @@ const rootActions = {
     changeVariants,
     fetchGetOrdersCurrent,
     paymentEndBasket,
-    clearBasket
+    clearBasket,
+    // seller
+    fetchCategories,
+    setChildCategories,
+    setChildCategoryName,
+    setCategoriesStage,
+    setClearAll
 }
 
 

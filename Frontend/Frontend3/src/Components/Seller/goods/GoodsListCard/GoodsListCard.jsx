@@ -9,6 +9,25 @@ import GoodsDeleteModal from "../../../../ui/Seller/Goods/GoodsDeleteModal/Goods
 const GoodsListCard = () => {
   const [open, setOpen] = useState(false);
 
+  const isLoading = false
+
+  if (isLoading) {
+    return (
+      <div className={styles.skeleton}>
+        <div className={styles.skeletonImage}></div>
+        <div className={styles.skeletonDetails}>
+          <div className={styles.skeletonName}></div>
+          <div className={styles.skeletonPrice}></div>
+          <div className={styles.skeletonRate}>
+            <div className={styles.skeletonRating}></div>
+            <div className={styles.skeletonCount}></div>
+          </div>
+          <button className={styles.skeletonButton}></button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className={styles.main}>

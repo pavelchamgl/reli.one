@@ -3,7 +3,6 @@ import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
 import styles from "./CreateCharacInp.module.scss";
 
 const CreateCharacInp = () => {
-  const [headerText, setHeaderText] = useState("");
   const [characteristic, setCharacteristic] = useState([
     {
       id: 1,
@@ -54,15 +53,8 @@ const CreateCharacInp = () => {
     <div className={styles.main}>
       <div className={styles.titleDiv}>
         <p>Characteristics</p>
-        <button onClick={handleAdd}>+ Add text</button>
+        <button onClick={handleAdd}>+ Add an item</button>
       </div>
-      <input
-        className={styles.headerInp}
-        value={headerText}
-        onChange={(e) => setHeaderText(e.target.value)}
-        type="text"
-        placeholder="Header"
-      />
       {characteristic.map((item) => (
         <div className={styles.characWrap} key={item.id}>
           <input

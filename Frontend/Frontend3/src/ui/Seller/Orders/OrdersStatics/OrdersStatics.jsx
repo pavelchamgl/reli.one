@@ -1,6 +1,6 @@
 import styles from "./OrdersStatics.module.scss";
 
-const OrdersStatics = () => {
+const OrdersStatics = ({ text, style }) => {
   const orderStaticsText = [
     {
       text: "Awaiting assembly",
@@ -17,13 +17,16 @@ const OrdersStatics = () => {
   ];
 
   return (
-    <div className={styles.main}>
-      {orderStaticsText.map((item) => (
-        <div className={styles.orderStatic}>
-          <p>{item.text}</p>
-          <p>{item.count}</p>
-        </div>
-      ))}
+    <div style={{...style}}>
+      <h3 className={styles.title}>{text}</h3>
+      <div className={styles.main}>
+        {orderStaticsText.map((item) => (
+          <div className={styles.orderStatic}>
+            <p>{item.text}</p>
+            <p>{item.count}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

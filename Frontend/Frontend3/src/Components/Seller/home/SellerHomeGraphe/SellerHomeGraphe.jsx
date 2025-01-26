@@ -1,4 +1,3 @@
-import React from "react";
 import {
   BarChart,
   Bar,
@@ -8,6 +7,9 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+
+import styles from "./SellerHomeGraphe.module.scss"
+import { useMediaQuery } from "react-responsive";
 
 // Пример данных
 const data = [
@@ -76,29 +78,33 @@ const CustomXAxisTick = ({ x, y, payload }) => {
 };
 
 const SellerHomeGraphe = () => {
+
+  const isMobile = useMediaQuery({ maxWidth: 427 })
+
   return (
-    <ResponsiveContainer width={800} height={434}>
-      <BarChart
-        data={data}
-        margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
-        barCategoryGap="10%" /* Уменьшите этот параметр */
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          dataKey={(entry) => `${entry.date} ${entry.day}`} // Соединяем дату и день
-          tick={<CustomXAxisTick />}
-          tickMargin={15} // Расстояние между осью и текстом
-          interval="preserveStartEnd"
-        />
-        <YAxis
-          tickFormatter={(value) => `${value} pcs`}
-          tick={{ fontSize: 12 }}
-        />
-        <Tooltip content={<CustomTooltip />} />
-        <Bar dataKey="orders" fill="#64748B" name="Orders" barSize={10} />
-        <Bar dataKey="delivered" fill="#97E3D5" name="Delivered" barSize={10} />
-      </BarChart>
-    </ResponsiveContainer>
+    <div className={styles.chartContainer} >
+      <ResponsiveContainer width={isMobile ? 600 : 837} height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+          barCategoryGap="10%"
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis
+            dataKey={(entry) => `${entry.date} ${entry.day}`}
+            tick={<CustomXAxisTick />}
+            tickMargin={15}
+            interval="preserveStartEnd"
+          />
+          <YAxis tickFormatter={(value) => `${value} pcs`} tick={{ fontSize: 12 }} />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey="orders" fill="#64748B" name="Orders" barSize={10} />
+          <Bar dataKey="delivered" fill="#97E3D5" name="Delivered" barSize={10} />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+
+
   );
 };
 

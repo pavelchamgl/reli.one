@@ -12,10 +12,7 @@ const SellerPreviewPage = () => {
 
   return (
     <div style={{ paddingBottom: "100px" }}>
-      <SellerPageContainer>
-        <SellerHeader />
-        <h3 className={styles.title}>Creation of goods</h3>
-      </SellerPageContainer>
+      <h3 className={styles.title}>Creation of goods</h3>
       {isMobile ? <SellerPreviewMobile /> : <SellerPreviewDesktop />}
     </div>
   );

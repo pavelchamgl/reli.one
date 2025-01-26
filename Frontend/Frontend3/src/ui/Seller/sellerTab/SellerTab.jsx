@@ -10,30 +10,30 @@ const SellerTab = () => {
     <div className={styles.main}>
       <button
         className={
-          pathname === "/seller-home" ? styles.tabBtnAcc : styles.tabBtn
+          pathname === "/seller/seller-home" ? styles.tabBtnAcc : styles.tabBtn
         }
-        onClick={() => navigate("/seller-home")}
+        onClick={() => navigate("/seller/seller-home")}
       >
         Home
       </button>
       <button
         className={
-          pathname === "/seller-goods-choice" ||
-          pathname === "/seller-goods-list" ||
-          pathname === "/seller-preview" ||
-          pathname === "/seller-create"
+          pathname === "/seller/goods-choice" ||
+          pathname === "/seller/goods-list" ||
+          pathname === "/seller/seller-preview" ||
+          pathname === "/seller/seller-create"
             ? styles.tabBtnAcc
             : styles.tabBtn
         }
-        onClick={() => navigate("/seller-goods-choice")}
+        onClick={() => navigate("/seller/goods-choice")}
       >
         Goods
       </button>
       <button
         className={
-          pathname === "/seller-orders" ? styles.tabBtnAcc : styles.tabBtn
+          pathname === "/seller/seller-orders" ? styles.tabBtnAcc : styles.tabBtn
         }
-        onClick={() => navigate("/seller-orders")}
+        onClick={() => navigate("/seller/seller-orders")}
       >
         Orders
       </button>

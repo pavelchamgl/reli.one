@@ -1,6 +1,7 @@
 .grapheAndStaticsWrap {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 40px;
+  align-items: flex-end;
+  flex-wrap: wrap-reverse;
+  gap: clamp(24px, 2.5vw, 40px);
 }

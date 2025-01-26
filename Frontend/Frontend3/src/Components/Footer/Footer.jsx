@@ -43,7 +43,7 @@ const Footer = () => {
           </p>
         </div>
 
-        <p className={cls.mobBottomDesc}>(c) Copyright 2024 Reli Group</p>
+        <p className={cls.mobBottomDesc}>(c) Copyright 2025 Reli Group</p>
       </div>
     );
   } else {
@@ -87,7 +87,7 @@ const Footer = () => {
             </p>
           </div>
         </div>
-        <p className={cls.bottomDesc}>(c) Copyright 2024 Reli Group</p>
+        <p className={cls.bottomDesc}>(c) Copyright 2025 Reli Group</p>
         <LoginModal open={open} handleClose={() => setOpen(false)} />
       </div>
     );
