@@ -1,7 +1,9 @@
 from rest_framework import status
 from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
@@ -10,11 +12,12 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
     OpenApiResponse,
-    OpenApiParameter,
+    OpenApiParameter, OpenApiExample,
 )
 from django.db.models import Min, Sum
 
 from .models import SellerProfile
+from .services import get_seller_sales_statistics
 from .permissions import IsSellerOwner
 from .serializers import (
     ProductListSerializer,
@@ -586,3 +589,73 @@ class SellerProductListView(ListAPIView):
         ).filter(min_price__isnull=False).distinct()
 
         return qs
+
+
+@extend_schema(
+    description="""
+        Returns aggregated sales statistics (ordered vs delivered) 
+        for the authenticated seller over the last N days (default=15).
+    """,
+    parameters=[
+        OpenApiParameter(
+            name='days',
+            description='Number of days to look back (default=15)',
+            required=False,
+            type=int
+        )
+    ],
+    responses={
+        200: OpenApiResponse(
+            description="Sales statistics including daily data and totals.",
+            examples=[
+                OpenApiExample(
+                    name="SalesStatisticsExample",
+                    value={
+                        "chartData": [
+                            {
+                                "date": "2024-11-24",
+                                "ordered_amount": "120.00",
+                                "ordered_count": 12,
+                                "delivered_amount": "40.00",
+                                "delivered_count": 4
+                            },
+                            {
+                                "date": "2024-11-25",
+                                "ordered_amount": "200.00",
+                                "ordered_count": 18,
+                                "delivered_amount": "150.00",
+                                "delivered_count": 12
+                            }
+                        ],
+                        "ordered_period": {
+                            "amount": "320.00",
+                            "count": 30
+                        },
+                        "delivered_period": {
+                            "amount": "190.00",
+                            "count": 16
+                        },
+                        "today": "2024-12-08"
+                    }
+                )
+            ]
+        )
+    },
+    tags=["Seller Statistics"]
+)
+class SellerSalesStatisticsView(APIView):
+    """
+    Returns the sales statistics (ordered vs delivered) for the authenticated seller,
+    grouping by day. By default for the last 15 days, but `days` can be passed in query.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        seller_profile = getattr(user, 'seller_profile', None)
+        if not seller_profile:
+            return Response({"error": "No seller profile found."}, status=400)
+
+        days = int(request.query_params.get('days', 15))
+        stats = get_seller_sales_statistics(seller_profile, days=days)
+        return Response(stats, status=200)

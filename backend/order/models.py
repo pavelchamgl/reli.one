@@ -69,6 +69,7 @@ class Order(models.Model):
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     courier_service = models.ForeignKey(CourierService, on_delete=models.SET_NULL, null=True, blank=True)
+    delivery_date = models.DateField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Order'
