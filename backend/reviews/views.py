@@ -13,14 +13,6 @@ from .serializers import ReviewSerializer, ReviewCreateSerializer
 
 @extend_schema(
     description="Retrieve a list of reviews for a given product by its ID, including reviews for all product variants. The reviews are sorted by date created in descending order.",
-    parameters=[
-        OpenApiParameter(
-            name='product_id',
-            description='ID of the product to retrieve reviews for, including all its variants',
-            required=True,
-            type=int
-        ),
-    ],
     responses={
         status.HTTP_200_OK: OpenApiResponse(
             response=ReviewSerializer(many=True),

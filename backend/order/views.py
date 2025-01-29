@@ -60,9 +60,6 @@ class OrderListView(generics.ListAPIView):
         "and a list of products in the order with detailed information about each product, including variant details, "
         "base product details, quantity, and product price."
     ),
-    parameters=[
-        OpenApiParameter(name='pk', description='Primary key of the order', required=True, type=int)
-    ],
     responses={
         200: OpenApiResponse(
             response=OrderDetailSerializer,

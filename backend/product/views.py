@@ -541,14 +541,6 @@ class CategoryBaseProductListView(generics.ListAPIView):
         "license file, images, variants with prices, whether the product is in the user's favorites, "
         "and a list of SKUs the authenticated user can review."
     ),
-    parameters=[
-        OpenApiParameter(
-            name='id',
-            description='ID of the product to retrieve',
-            required=True,
-            type=int
-        ),
-    ],
     responses={
         200: OpenApiResponse(
             response=BaseProductDetailSerializer,
