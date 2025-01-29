@@ -108,6 +108,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseProduct
         fields = [
+            'id',
             'name',
             'product_description',
             'category',
