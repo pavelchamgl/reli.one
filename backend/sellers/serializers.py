@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_extra_fields.fields import Base64ImageField
 
 from product.models import (
     BaseProduct,
@@ -56,6 +57,8 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(required=False, allow_null=True)
+
     class Meta:
         model = ProductVariant
         fields = [
