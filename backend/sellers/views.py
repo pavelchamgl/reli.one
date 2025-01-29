@@ -6,6 +6,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
@@ -161,16 +162,15 @@ class ProductParameterViewSet(ModelViewSet):
         Returns a queryset of ProductParameter objects related to
         the specific product identified by 'product_pk' in the nested URL.
 
-        1. Retrieve the 'product_id' from self.kwargs.
+        1. Retrieve 'product_pk' from self.kwargs.
         2. Fetch the BaseProduct using 'get_object_or_404'.
         3. Verify that the current user is the product owner;
            if not, raise PermissionDenied.
         4. Filter and return ProductParameter objects for that product.
         """
-        product_id = self.kwargs.get('product_pk')  # Nested router lookup field
+        product_id = self.kwargs.get('product_pk')
         product = get_object_or_404(BaseProduct, pk=product_id)
 
-        # Verify ownership: the seller of the product should be the current user
         if product.seller.user != self.request.user:
             raise PermissionDenied("You do not own this product.")
 
@@ -178,14 +178,12 @@ class ProductParameterViewSet(ModelViewSet):
 
     def get_object(self):
         """
-        Overrides the default method to retrieve a single ProductParameter object.
+        Retrieves a single ProductParameter object.
 
-        1. Use 'get_queryset()' to ensure only parameters from the current product
-           are considered.
-        2. Extract the parameter's primary key ('pk') from self.kwargs.
+        1. Use 'get_queryset()' to ensure only parameters for the current product.
+        2. Extract 'pk' from self.kwargs.
         3. Use 'get_object_or_404()' to fetch the parameter within the filtered queryset.
-        4. Call 'check_object_permissions' with the parameter to enforce object-level
-           permission checks via 'IsSellerOwner'.
+        4. Check object-level permission via 'check_object_permissions'.
         5. Return the retrieved parameter object.
         """
         queryset = self.get_queryset()
@@ -196,13 +194,10 @@ class ProductParameterViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         """
-        Custom creation logic for a ProductParameter object.
-
-        1. Retrieve the product_id ('product_pk') from self.kwargs.
-        2. Fetch the BaseProduct. If not found, raise an error.
-        3. Verify that the product owner matches the current user.
-        4. Assign 'product=product' to the serializer before saving
-           to link the new parameter to the correct product.
+        Custom creation logic for a single ProductParameter object.
+        1. Retrieve 'product_pk' from self.kwargs.
+        2. Check that the user owns the product.
+        3. Assign 'product=product' before saving to link the new parameter.
         """
         product_id = self.kwargs.get('product_pk')
         product = get_object_or_404(BaseProduct, pk=product_id)
@@ -210,6 +205,52 @@ class ProductParameterViewSet(ModelViewSet):
             raise PermissionDenied("You do not own this product.")
 
         serializer.save(product=product)
+
+    @extend_schema(
+        operation_id="product_parameter_bulk_create",
+        description=(
+            "Bulk create (mass create) parameters for a specific product.\n\n"
+            "**Request Body**: an **array** of JSON objects, each with `name` and `value`.\n\n"
+            "Example:\n```\n[\n  {\"name\": \"Param1\", \"value\": \"Value1\"},\n  {\"name\": \"Param2\", \"value\": \"Value2\"}\n]\n```"
+        ),
+        request=ProductParameterSerializer(many=True),
+        responses={201: ProductParameterSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                name="Bulk create parameters example",
+                description="Example of sending multiple parameters in a single request.",
+                value=[
+                    {"name": "Color", "value": "Red"},
+                    {"name": "Weight", "value": "0.5kg"}
+                ],
+            ),
+        ],
+        tags=["Seller Product Parameters"]
+    )
+    @action(methods=['post'], detail=False)
+
+    def bulk_create(self, request, product_pk=None):
+        """
+        Bulk create (mass create) parameters for a specific product.
+        Endpoint: POST /products/{product_pk}/parameters/bulk_create/
+        Body: an array of JSON objects, each with 'name' and 'value'.
+        """
+        product = get_object_or_404(BaseProduct, pk=product_pk)
+        if product.seller.user != request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        # Prepare objects for bulk_create
+        objs_to_create = []
+        for valid_data in serializer.validated_data:
+            objs_to_create.append(ProductParameter(product=product, **valid_data))
+
+        created_objs = ProductParameter.objects.bulk_create(objs_to_create)
+
+        output_data = self.get_serializer(created_objs, many=True).data
+        return Response(output_data, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(
