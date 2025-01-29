@@ -417,6 +417,83 @@ class ProductVariantViewSet(ModelViewSet):
 
         serializer.save(product=product)
 
+    @extend_schema(
+        tags=["Seller Product Variants"],
+        operation_id="product_variant_bulk_create",
+        description=(
+                "Bulk create (mass create) ProductVariants for a given product, "
+                "including Base64-encoded images. Endpoint:\n\n"
+                "**Request body**: an array of objects with `name`, `text`, `price`, "
+                "and optional base64-encoded `image`. Example:\n\n"
+                "```\n[\n"
+                "  {\n"
+                "    \"name\": \"Variant\",\n"
+                "    \"text\": \"Text 1\",\n"
+                "    \"price\": \"99.99\",\n"
+                "    \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...\"\n"
+                "  },\n"
+                "  {\n"
+                "    \"name\": \"Variant\",\n"
+                "    \"text\": \"Text 2\",\n"
+                "    \"price\": \"129.99\",\n"
+                "    \"image\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4...\"\n"
+                "  }\n"
+                "]\n```"
+        ),
+        request=ProductVariantSerializer(many=True),
+        responses={201: ProductVariantSerializer(many=True)},
+        examples=[
+            OpenApiExample(
+                name="Bulk create variants with base64 images",
+                description="Example of sending multiple variants (with base64 images) in a single request.",
+                value=[
+                    {
+                        "name": "Variant",
+                        "text": "Text 1",
+                        "price": "99.99",
+                        "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4..."
+                    },
+                    {
+                        "name": "Variant",
+                        "text": "Text 2",
+                        "price": "129.99",
+                        "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4"
+                    }
+                ]
+            ),
+        ]
+    )
+    @action(methods=['post'], detail=False)
+    def bulk_create(self, request, product_pk=None):
+        """
+        Bulk create (mass create) product variants for a specific product,
+        generating unique SKUs manually to avoid duplicate key errors.
+        """
+        product = get_object_or_404(BaseProduct, pk=product_pk)
+        if product.seller.user != request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        variants_to_create = []
+        for valid_data in serializer.validated_data:
+            # Создаём объект "вручную"
+            variant = ProductVariant(product=product, **valid_data)
+            # Генерируем SKU вручную (т.к. save() не будет вызвано при bulk_create)
+            variant.sku = variant.generate_unique_sku()
+
+            # Вызываем clean() вручную, если нужна валидация text/image/названия
+            # Исключаем 'sku', так как мы уже сами его задали
+            variant.full_clean(exclude=['sku'])
+
+            variants_to_create.append(variant)
+
+        created_variants = ProductVariant.objects.bulk_create(variants_to_create)
+
+        output_data = self.get_serializer(created_variants, many=True).data
+        return Response(output_data, status=status.HTTP_201_CREATED)
+
 
 @extend_schema_view(
     list=extend_schema(
