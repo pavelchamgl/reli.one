@@ -192,7 +192,7 @@ class ProductVariant(models.Model):
 class LicenseFile(models.Model):
     name = models.CharField(max_length=100, blank=True, null=True)
     file = models.FileField(upload_to='license_files/', validators=[validate_file_extension, validate_file_size])
-    product = models.OneToOneField('BaseProduct', on_delete=models.CASCADE, related_name='license_file')
+    product = models.OneToOneField('BaseProduct', on_delete=models.CASCADE, related_name='license_files')
 
     def __str__(self):
         return f"License file id:{self.pk} - name:{self.name}"
