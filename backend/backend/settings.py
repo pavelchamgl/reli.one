@@ -65,18 +65,20 @@ INSTALLED_APPS = [
     'mptt',
 
     'accounts',
-    'order',
-    'product',
-    'reviews',
-    'promocode',
-    'payment',
+    'analytics',
     'contactform',
-    'news',
-    'vacancies',
     'favorites',
+    'news',
+    'order',
+    'payment',
+    'product',
+    'promocode',
+    'reports',
+    'reviews',
     'sellers',
     'supplier',
-    'reports',
+    'vacancies',
+    'warehouses',
 ]
 PAYPAL_RECEIVER_EMAIL = 'novapiple228@gmail.com'
 
@@ -267,7 +269,15 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(BASE_DIR, 'logs', 'otp.log'),
             'formatter': 'verbose',
-            'maxBytes': 2.5 * 1024 * 1024,  # 2.5 MB
+            'maxBytes': 2.5 * 1024 * 1024,
+            'backupCount': 5,
+        },
+        'warehouse_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'warehouse.log'),
+            'formatter': 'verbose',
+            'maxBytes': 2.5 * 1024 * 1024,
             'backupCount': 5,
         },
     },
@@ -289,6 +299,11 @@ LOGGING = {
         },
         'otp': {
             'handlers': ['otp_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'warehouse': {
+            'handlers': ['warehouse_file'],
             'level': 'DEBUG',
             'propagate': False,
         },
