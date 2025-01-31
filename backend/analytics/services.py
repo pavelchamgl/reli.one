@@ -1,4 +1,4 @@
-from django.db.models import Sum, F
+from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
 
@@ -20,11 +20,15 @@ def get_warehouse_orders_stats(warehouse, days=15):
     deliverable_qty = qs.filter(status=ProductStatus.DELIVERABLE).aggregate(Sum('quantity'))['quantity__sum'] or 0
     delivered_qty = qs.filter(status=ProductStatus.DELIVERED).aggregate(Sum('quantity'))['quantity__sum'] or 0
     canceled_qty = qs.filter(status=ProductStatus.CANCELED).aggregate(Sum('quantity'))['quantity__sum'] or 0
+    controversial_qty = qs.filter(status=ProductStatus.CONTROVERSIAL).aggregate(Sum('quantity'))['quantity__sum'] or 0
 
     awaiting_assembly_and_shipment_qty = awaiting_assembly_qty + awaiting_shipment_qty
-    total_qty = awaiting_assembly_and_shipment_qty + deliverable_qty + delivered_qty + canceled_qty
+    total_qty = awaiting_assembly_and_shipment_qty + deliverable_qty + delivered_qty + canceled_qty + controversial_qty
 
     return {
+        "awaiting_assembly": awaiting_assembly_qty,
+        "awaiting_shipment": awaiting_shipment_qty,
+        "controversial": controversial_qty,
         "awaiting_assembly_and_shipment": awaiting_assembly_and_shipment_qty,
         "deliverable": deliverable_qty,
         "delivered": delivered_qty,
