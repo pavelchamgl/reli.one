@@ -44,7 +44,7 @@ class WarehouseOrdersStatsView(APIView):
                             "type": "object",
                             "properties": {
                                 "awaiting_assembly": {"type": "integer", "example": 5},
-                                "shipment": {"type": "integer", "example": 5},
+                                "awaiting_shipment": {"type": "integer", "example": 5},
                                 "deliverable": {"type": "integer", "example": 8},
                                 "delivered": {"type": "integer", "example": 15},
                                 "canceled": {"type": "integer", "example": 2},
@@ -56,7 +56,7 @@ class WarehouseOrdersStatsView(APIView):
                             "type": "object",
                             "properties": {
                                 "awaiting_assembly": {"type": "integer", "example": 3},
-                                "shipment": {"type": "integer", "example": 2},
+                                "awaiting_shipment": {"type": "integer", "example": 2},
                                 "deliverable": {"type": "integer", "example": 6},
                                 "delivered": {"type": "integer", "example": 12},
                                 "canceled": {"type": "integer", "example": 1},
@@ -72,7 +72,7 @@ class WarehouseOrdersStatsView(APIView):
                         value={
                             "vendor_warehouse": {
                                 "awaiting_assembly": 5,
-                                "shipment": 5,
+                                "awaiting_shipment": 5,
                                 "deliverable": 8,
                                 "delivered": 15,
                                 "canceled": 2,
@@ -81,7 +81,7 @@ class WarehouseOrdersStatsView(APIView):
                             },
                             "reli_warehouse": {
                                 "awaiting_assembly": 3,
-                                "shipment": 2,
+                                "awaiting_shipment": 2,
                                 "deliverable": 6,
                                 "delivered": 12,
                                 "canceled": 1,
