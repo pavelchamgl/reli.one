@@ -45,23 +45,25 @@ class WarehouseOrdersStatsView(APIView):
                             "properties": {
                                 "awaiting_assembly": {"type": "integer", "example": 5},
                                 "awaiting_shipment": {"type": "integer", "example": 5},
+                                "controversial": {"type": "integer", "example": 1},
+                                "awaiting_assembly_and_shipment": {"type": "integer", "example": 10},
                                 "deliverable": {"type": "integer", "example": 8},
                                 "delivered": {"type": "integer", "example": 15},
                                 "canceled": {"type": "integer", "example": 2},
-                                "controversial": {"type": "integer", "example": 1},
-                                "all": {"type": "integer", "example": 30}
+                                "all": {"type": "integer", "example": 36}
                             }
                         },
                         "reli_warehouse": {
                             "type": "object",
                             "properties": {
-                                "awaiting_assembly": {"type": "integer", "example": 3},
-                                "awaiting_shipment": {"type": "integer", "example": 2},
-                                "deliverable": {"type": "integer", "example": 6},
-                                "delivered": {"type": "integer", "example": 12},
-                                "canceled": {"type": "integer", "example": 1},
-                                "controversial": {"type": "integer", "example": 2},
-                                "all": {"type": "integer", "example": 22}
+                                "awaiting_assembly": {"type": "integer", "example": 5},
+                                "awaiting_shipment": {"type": "integer", "example": 5},
+                                "controversial": {"type": "integer", "example": 1},
+                                "awaiting_assembly_and_shipment": {"type": "integer", "example": 10},
+                                "deliverable": {"type": "integer", "example": 8},
+                                "delivered": {"type": "integer", "example": 15},
+                                "canceled": {"type": "integer", "example": 2},
+                                "all": {"type": "integer", "example": 36}
                             }
                         }
                     }
@@ -73,20 +75,22 @@ class WarehouseOrdersStatsView(APIView):
                             "vendor_warehouse": {
                                 "awaiting_assembly": 5,
                                 "awaiting_shipment": 5,
+                                "controversial": 1,
+                                "awaiting_assembly_and_shipment": 10,
                                 "deliverable": 8,
                                 "delivered": 15,
                                 "canceled": 2,
-                                "controversial": 1,
-                                "all": 30
+                                "all": 36
                             },
                             "reli_warehouse": {
                                 "awaiting_assembly": 3,
                                 "awaiting_shipment": 2,
+                                "controversial": 2,
+                                "awaiting_assembly_and_shipment": 5,
                                 "deliverable": 6,
                                 "delivered": 12,
                                 "canceled": 1,
-                                "controversial": 2,
-                                "all": 22
+                                "all": 26
                             }
                         },
                         description="Example of statistics grouped by Vendor and Reli warehouses.",
