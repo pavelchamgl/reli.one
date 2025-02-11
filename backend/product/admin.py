@@ -56,16 +56,16 @@ class ProductVariantAdmin(admin.ModelAdmin):
 @admin.register(BaseProduct)
 class AdminBaseProduct(admin.ModelAdmin):
     form = BaseProductAdminForm
-    list_display = ('id', 'name', 'product_description')
-    list_filter = ['name', 'category', 'seller']
-    search_fields = ['name', 'product_description']
+    list_display = ('id', 'name', 'article', 'status', 'product_description', 'category', 'seller')
+    list_filter = ['status', 'category', 'seller']
+    search_fields = ['name', 'product_description', 'article']
 
     fieldsets = (
         (None, {
-            'fields': ('name', 'product_description', 'category', 'seller')
+            'fields': ('name', 'product_description', 'category', 'seller', 'status', 'article')
         }),
         ('More information', {
-            'fields': ('rating', 'total_reviews'),
+            'fields': ('rating', 'total_reviews', 'approved_by', 'approved_at', 'rejected_reason'),
             'classes': ('collapse',),
         }),
     )
