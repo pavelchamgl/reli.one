@@ -6,10 +6,12 @@ import testImg from "../../../../assets/Product/ProductTestImage.svg";
 import styles from "./GoodsListCard.module.scss";
 import GoodsDeleteModal from "../../../../ui/Seller/Goods/GoodsDeleteModal/GoodsDeleteModal";
 
-const GoodsListCard = () => {
+const GoodsListCard = ({ item, isLoading }) => {
   const [open, setOpen] = useState(false);
 
-  const isLoading = false
+  console.log(item);
+
+
 
   if (isLoading) {
     return (
@@ -32,18 +34,18 @@ const GoodsListCard = () => {
     <>
       <div className={styles.main}>
         <div className={styles.imageDiv}>
-          <img src={testImg} alt="" />
+          <img src={item?.image} alt="" />
         </div>
         <div className={styles.priceDiv}>
-          <p>150€</p>
-          <span>120€</span>
+          {item ? <p>{`${item?.price}€`}</p> : <></>}
+          {/* <span>120€</span> */}
         </div>
-        <p className={styles.name}>Robot Vysavač Dyson LXS10 White</p>
+        <p className={styles.name}>{item?.name}</p>
         <div className={styles.rateDiv}>
-          <Rating name="read-only" size="small" value={5} readOnly />
-          <span className={styles.rateText}>5</span>
+          <Rating name="read-only" size="small" value={item ? item?.rating : 0} readOnly />
+          <span className={styles.rateText}>{item ? item?.rating : 0}</span>
         </div>
-        <p className={styles.orderCountText}>Ordered: 153521</p>
+        <p className={styles.orderCountText}>Ordered: {item && item?.ordered_count ? item?.ordered_count : 0}</p>
         <div className={styles.btnsDiv}>
           <button>Edit</button>
           <button onClick={() => setOpen(!open)}>Del</button>

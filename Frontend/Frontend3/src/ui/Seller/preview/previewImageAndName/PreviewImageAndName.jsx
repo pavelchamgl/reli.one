@@ -1,59 +1,38 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import mobReturnIcon from "../../../../assets/mobileIcons/mobReturnIcon.svg";
 import likeIcon from "../../../../assets/Product/like.svg";
 import likeAccIcon from "../../../../assets/Product/likeAcc.svg";
 import prodDelivery from "../../../../assets/Product/productDeliveryCar.svg";
 import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.svg";
+import MobileProdSwiper from "../../../MobileProdSlice/MobileProdSlice";
+import PreviewCharack from "../previewCharack/PreviewCharack";
 
 import styles from "./PreviewImageAndName.module.scss";
-import MobileProdSwiper from "../../../MobileProdSlice/MobileProdSlice";
 
-const PreviewImageAndName = () => {
+const PreviewImageAndName = ({ product }) => {
   const [like, setLike] = useState(false);
 
   const { t } = useTranslation();
 
-  const product = {
-    rating: 5,
-    total_reviews: 21,
-    name: "Iphone",
-    category_name: "Smartphone",
-    price: 500,
-  };
-
-  const images = [
-    {
-      image_url: "",
-    },
-    {
-      image_url: "",
-    },
-    {
-      image_url: "",
-    },
-  ];
+  const navigate = useNavigate()
 
   return (
     <div className={styles.main}>
       <div className={styles.buttonWrap}>
-        <button>
+        <button onClick={() => navigate(-1)}>
           <img src={mobReturnIcon} alt="" />
         </button>
         <button onClick={() => setLike(!like)}>
           <img src={like ? likeAccIcon : likeIcon} alt="" />
         </button>
       </div>
-      <MobileProdSwiper imageProps={images} />
+      <MobileProdSwiper imageProps={product?.images} />
       <div className={styles.descAndBtnWrap}>
         <p className={styles.title}>{product?.name}</p>
-        {/* <ProdCharackButtons
-          setPrice={setEndPice}
-          setSku={setSku}
-          variants={product?.variants}
-          id={product?.id}
-        /> */}
+        <PreviewCharack variants={product?.variantsMain} />
         <div className={styles.priceWrap}>
           <p>{product?.price} €</p>
           {/* <span>400.00 Kč</span> */}

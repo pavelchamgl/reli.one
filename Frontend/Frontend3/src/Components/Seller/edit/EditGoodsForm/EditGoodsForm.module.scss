@@ -1,0 +1,57 @@
+.priceDiv {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 50px;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 850px;
+  @media (max-width: 1050px) {
+    width: 100%;
+  }
+}
+
+.footerBtnWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 40px;
+  & button {
+    font-weight: 400;
+    font-size: clamp(14px, 2.5vw, 20px);
+    line-height: 150%;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: #fff;
+    background: #64748b;
+    width: clamp(115px, 2.5vw, 210px);
+    height: clamp(30px, 2.5vw, 39px);
+  }
+  & button:nth-child(2) {
+    background: #047857;
+  }
+}
+
+.wightTitle {
+  font-weight: 400;
+  font-size: clamp(20px, 2.5vw, 30px);
+  color: #000;
+  margin-top: clamp(20px, 2.5vw, 45px);
+  margin-bottom: clamp(10px, 2.5vw, 15px);
+  position: relative;
+  width: max-content;
+  padding-right: 10px;
+}
+
+.wightTitle::after {
+  content: "*";
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+}

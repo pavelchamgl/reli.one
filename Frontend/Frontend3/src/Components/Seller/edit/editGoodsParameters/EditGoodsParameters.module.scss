@@ -1,0 +1,56 @@
+.main {
+    & input {
+      border: 1px solid #ced4d7;
+      width: 100%;
+      height: clamp(36px, 2.5vw, 46px);
+      font-weight: 400;
+      font-size: clamp(13px, 2.5vw, 16px);
+      line-height: 131%;
+      letter-spacing: -0.02em;
+      padding-left: 10px;
+      outline-color: #b0b1b1;
+    }
+  }
+  
+  .titleDiv {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  
+    & p {
+      font-weight: 400;
+      font-size: clamp(16px, 2.5vw, 18px);
+      line-height: 112%;
+      letter-spacing: -0.02em;
+      text-align: center;
+      color: #000;
+    }
+  
+    & button {
+      background: #3f7f6d;
+      width: clamp(132px, 2.5vw, 214px);
+      height: clamp(24px, 2.5vw, 33px);
+      font-weight: 400;
+      font-size: clamp(14px, 2.5vw, 18px);
+      line-height: 167%;
+      letter-spacing: -0.02em;
+      text-align: center;
+      color: #fff;
+    }
+  }
+  
+  .characWrap {
+    display: flex;
+    & button {
+      padding-left: clamp(11px, 2.5vw, 14px);
+      padding-right: clamp(11px, 2.5vw, 14px);
+      background-color: transparent;
+      border: 1px solid #ced4d7;
+      border-left: 0;
+    }
+  
+    & input:nth-child(even) {
+      border-right: 0;
+    }
+  }
+  

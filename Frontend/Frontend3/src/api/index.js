@@ -1,7 +1,7 @@
 import axios from "axios"
 import { ErrToast } from "../ui/Toastify";
 
-const BaseURL = "" || "https://reli.one/api"
+export const BaseURL = "" || "https://reli.one/api"
 
 
 // Создание axios экземпляра

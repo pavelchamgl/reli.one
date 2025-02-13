@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useMediaQuery } from "react-responsive"
+import { useSelector } from "react-redux";
 
 // Импорты стилей Swiper
 import "swiper/css";
@@ -8,6 +9,7 @@ import "swiper/css/navigation";
 
 // Импорт модулей Swiper
 import { Navigation } from "swiper/modules";
+import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
 
 import createMaskImg from "../../../../assets/Seller/create/maskImg.svg";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
@@ -18,31 +20,44 @@ import styles from "./SellerCreateImages.module.scss";
 
 
 const SellerCreateImage = () => {
-  const [imageUrls, setImageUrls] = useState([]);
-  const [files, setFiles] = useState([]);
 
+  const { images, filesMain } = useSelector(state => state.create_prev)
+
+  const [imageUrls, setImageUrls] = useState(images ? images : []);
+  const [files, setFiles] = useState(images ? images : []);
 
   const isMobile = useMediaQuery({ maxWidth: 427 })
+
+  const { setImages, setFilesMain, deleteImage } = useActionCreatePrev()
 
   const arr = 6
 
   const handleChangeFile = (e) => {
     const newFiles = Array.from(e.target.files);
     const updateFiles = [...files, ...newFiles];
-    setFiles(updateFiles);
+    // setFilesMain(updateFiles);
 
-    newFiles.forEach((file) => {
-      const url = URL.createObjectURL(file);
-      setImageUrls((prevUrls) => [...prevUrls, url]);
+    setImageUrls((prevUrls) => {
+      const newUrls = [
+        ...prevUrls,
+        ...newFiles.map((file) => ({ image_url: URL.createObjectURL(file) })),
+      ];
+      setImages(newUrls); // Здесь уже новое состояние
+      return newUrls;
     });
   };
+
 
   const handleDelete = (index) => {
     const updatedFiles = files.filter((_, i) => i !== index);
     const updatedUrls = imageUrls.filter((_, i) => i !== index);
-    setFiles(updatedFiles);
-    setImageUrls(updatedUrls);
+    setFilesMain(updatedFiles);
+    deleteImage({ index: index })
   };
+
+  useEffect(() => {
+    console.log(images)
+  }, [images])
 
   return (
     <div>
@@ -54,7 +69,7 @@ const SellerCreateImage = () => {
           <input
             onChange={handleChangeFile}
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
           />
         </label>
@@ -74,7 +89,7 @@ const SellerCreateImage = () => {
             className={styles.swiper}
             direction="horizontal"
           >
-            {imageUrls.length === 0 ? (
+            {images.length === 0 ? (
               <div className={styles.smallMaskWrap}>
                 {Array.from({ length: arr }, (_, index) => (
                   <SwiperSlide key={index} className={styles.swiperSlide}>
@@ -87,7 +102,7 @@ const SellerCreateImage = () => {
                 ))}
               </div>
             ) : (
-              imageUrls.map((url, index) => (
+              images && images.length > 0 && images?.map((url, index) => (
                 <SwiperSlide key={index} className={styles.swiperSlide}>
                   <div
                     className={styles.imageWrapper}
@@ -122,7 +137,7 @@ const SellerCreateImage = () => {
                     </div>
                     <img
                       className={styles.mediaPreview}
-                      src={url}
+                      src={url?.image_url}
                       alt={`Preview ${index}`}
                     />
                   </div>
