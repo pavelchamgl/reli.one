@@ -27,6 +27,7 @@ from .serializers import (
     ProductCreateSerializer,
     ProductParameterSerializer,
     BaseProductImageSerializer,
+    BulkBaseProductImageSerializer,
     ProductVariantSerializer,
     LicenseFileSerializer,
 )
@@ -345,6 +346,72 @@ class BaseProductImageViewSet(ModelViewSet):
             raise PermissionDenied("You do not own this product.")
 
         serializer.save(product=product)
+
+    @extend_schema(
+        tags=["Seller Product Images"],
+        operation_id="bulk_upload_product_images",
+        description=(
+            "Bulk upload multiple base64-encoded images for a product.\n\n"
+            "**Example request**:\n```\n"
+            "{\n"
+            "  \"images\": [\n"
+            "    { \"image\": \"data:image/png;base64,iVBORw0KG...\" },\n"
+            "    { \"image\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgAB...\" }\n"
+            "  ]\n"
+            "}\n"
+            "```"
+        ),
+        request=BulkBaseProductImageSerializer,
+        responses={
+            201: OpenApiResponse(
+                description="Images uploaded successfully.",
+                response={
+                    "type": "object",
+                    "properties": {
+                        "message": {
+                            "type": "string",
+                            "example": "Images uploaded successfully."
+                        }
+                    }
+                },
+                examples=[
+                    OpenApiExample(
+                        name="Bulk Upload Example",
+                        value={"message": "Images uploaded successfully."},
+                        response_only=True
+                    )
+                ]
+            )
+        }
+    )
+    @action(methods=['post'], detail=False)
+    def bulk_upload(self, request, product_pk=None):
+        """
+        Bulk upload multiple base64-encoded images for a given product.
+        Example request body:
+        {
+          "images": [
+            { "image": "data:image/png;base64,iVBORw0KG..." },
+            { "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgAB..." }
+          ]
+        }
+        """
+        product = get_object_or_404(BaseProduct, pk=product_pk)
+        if product.seller.user != request.user:
+            raise PermissionDenied("You do not own this product.")
+
+        serializer = BulkBaseProductImageSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        images_data = serializer.validated_data["images"]
+
+        created_images = [
+            BaseProductImage(product=product, **img_data) for img_data in images_data
+        ]
+
+        BaseProductImage.objects.bulk_create(created_images)
+
+        return Response({"message": "Images uploaded successfully."}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema_view(

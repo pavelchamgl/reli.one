@@ -130,12 +130,12 @@ class BaseProductImage(models.Model):
     def __str__(self):
         return str(self.image)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        image = Image.open(self.image.path)
-        target_size = (1263, 1209)
-        resized_image = image.resize(target_size)
-        resized_image.save(self.image.path, quality=95, optimize=True)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     image = Image.open(self.image.path)
+    #     target_size = (1263, 1209)
+    #     resized_image = image.resize(target_size)
+    #     resized_image.save(self.image.path, quality=95, optimize=True)
 
 
 class ProductVariant(models.Model):

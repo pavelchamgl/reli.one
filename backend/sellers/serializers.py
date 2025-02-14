@@ -42,18 +42,24 @@ class ProductListSerializer(serializers.ModelSerializer):
         return None
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
+class BaseProductImageSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(required=True)
     image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseProductImage
-        fields = ['image_url']
+        fields = ['id', 'image', 'image_url']
+        read_only_fields = ['id']
 
     def get_image_url(self, obj):
         request = self.context.get('request')
         if obj.image:
             return request.build_absolute_uri(obj.image.url)
         return None
+
+
+class BulkBaseProductImageSerializer(serializers.Serializer):
+    images = BaseProductImageSerializer(many=True)
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -81,7 +87,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 class ProductDetailSerializer(serializers.ModelSerializer):
     product_parameters = ProductParameterSerializer(many=True, read_only=True)
     license_file = serializers.SerializerMethodField()
-    images = ProductImageSerializer(many=True, read_only=True)
+    images = BaseProductImageSerializer(many=True, read_only=True)
     category_name = serializers.CharField(source='category.name', read_only=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
 
@@ -127,21 +133,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'product_description',
             'category',
         ]
-
-
-class BaseProductImageSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = BaseProductImage
-        fields = ['id', 'image', 'image_url']
-        read_only_fields = ['id']
-
-    def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image:
-            return request.build_absolute_uri(obj.image.url)
-        return None
 
 
 class LicenseFileSerializer(serializers.ModelSerializer):
