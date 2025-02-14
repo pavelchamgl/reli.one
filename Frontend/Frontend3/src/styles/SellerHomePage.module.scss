@@ -5,3 +5,16 @@
   flex-wrap: wrap-reverse;
   gap: clamp(24px, 2.5vw, 40px);
 }
+
+.mainLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.errorText {
+  font-weight: 300;
+  font-size: clamp(20px, 2.5vw, 40px);
+  color: #656565;
+}

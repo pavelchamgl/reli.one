@@ -7,7 +7,7 @@ import arrDown from "../../../../../assets/Seller/create/arrDown.svg";
 import styles from "./CreateCategoryMain.module.scss";
 import CreateCategoryParent from "../createCategoryParent/CreateCategoryParent";
 
-const CreateCategoryMain = () => {
+const CreateCategoryMain = ({ category_name = null }) => {
     const [selectText, setSelectText] = useState("Select a category");
     const [stage, setStage] = useState(1);
     const [open, setOpen] = useState(false);
@@ -41,6 +41,12 @@ const CreateCategoryMain = () => {
             setStage(1)
         }
     }, [open]);
+
+    useEffect(() => {
+        if (category_name) {
+            setSelectText(category_name)
+        }
+    }, [category_name])
 
     return (
         <div>

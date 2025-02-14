@@ -41,6 +41,8 @@ import SellerOrdersPage from "./pages/SellerOrdersPage.jsx";
 import SellerCreatePage from "./pages/SellerCreatePage.jsx";
 import SellerPreviewPage from "./pages/SellerPreviewPage.jsx";
 import SellerPage from "./pages/SellerPage.jsx";
+import EditGoodsPage from "./pages/EditGoodsPage.jsx";
+import SellerEditPreview from "./pages/SellerEditPreview.jsx";
 
 const router = createBrowserRouter([
   {
@@ -130,6 +132,14 @@ const router = createBrowserRouter([
         path: "seller-preview",
         element: <SellerPreviewPage />,
       },
+      {
+        path: "seller-edit/:id",
+        element: <EditGoodsPage />
+      },
+      {
+        path: "edit-preview/:id",
+        element: <SellerEditPreview />
+      }
     ],
   },
 

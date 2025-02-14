@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
 import styles from "./CreateCharacInp.module.scss";
+import { useSelector } from "react-redux";
 
-const CreateCharacInp = () => {
-  const [characteristic, setCharacteristic] = useState([
-    {
-      id: 1,
-      name: "",
-      value: "",
-    },
-  ]);
+const CreateCharacInp = ({ setParameters }) => {
+  const { product_parameters } = useSelector(state => state.create_prev)
+  const [characteristic, setCharacteristic] = useState(product_parameters ? product_parameters : "");
 
   useEffect(() => {
-    console.log(characteristic);
+    setParameters(characteristic)
   }, [characteristic]);
 
   const handleChange = (e, id, type) => {
@@ -30,14 +26,11 @@ const CreateCharacInp = () => {
   };
 
   const handleAdd = () => {
-    const lastId =
-      characteristic.length > 0
-        ? characteristic[characteristic.length - 1].id
-        : 0;
+
     setCharacteristic([
       ...characteristic,
       {
-        id: lastId + 1,
+        id: new Date(),
         name: "",
         value: "",
       },
@@ -55,29 +48,36 @@ const CreateCharacInp = () => {
         <p>Characteristics</p>
         <button onClick={handleAdd}>+ Add an item</button>
       </div>
-      {characteristic.map((item) => (
-        <div className={styles.characWrap} key={item.id}>
-          <input
-            onChange={(e) => {
-              handleChange(e, item.id, "name");
-            }}
-            type="text"
-            value={item.name}
-            placeholder="Column 1"
-          />
-          <input
-            onChange={(e) => {
-              handleChange(e, item.id, "value");
-            }}
-            type="text"
-            value={item.value}
-            placeholder="Column 2"
-          />
-          <button onClick={() => handleDelete(item.id)}>
-            <img src={deleteIcon} alt="Delete characteristic" />
-          </button>
-        </div>
-      ))}
+      {characteristic.length > 0 && characteristic?.map((item) => {
+        if (item?.name === "length" || item?.name === "width" || item?.name === "height" || item?.name === "weight") {
+          return <></>
+        } else {
+          return (
+            <div className={styles.characWrap} key={item.id}>
+              <input
+                onChange={(e) => {
+                  handleChange(e, item.id, "name");
+                }}
+                type="text"
+                value={item.name}
+                placeholder="Column 1"
+              />
+              <input
+                onChange={(e) => {
+                  handleChange(e, item.id, "value");
+                }}
+                type="text"
+                value={item.value}
+                placeholder="Column 2"
+              />
+              <button onClick={() => handleDelete(item.id)}>
+                <img src={deleteIcon} alt="Delete characteristic" />
+              </button>
+            </div>
+          )
+        }
+      }
+      )}
     </div>
   );
 };

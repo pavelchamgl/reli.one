@@ -30,7 +30,7 @@ export function ppl(volume = 'm', weight = 15, isHand = true, region = 'cz') {
         }
     }
 
-    return { price, days };
+    return  price;
 }
 
 

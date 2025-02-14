@@ -49,41 +49,51 @@ const PaymentDeliverySelect = () => {
   const calculateWeight = useCallback(() => {
     if (selectedProducts.length > 0) {
       const totalWeightInGrams = selectedProducts.reduce((acc, item) => {
+        console.log(item);
+
         // Найти параметр weight среди параметров продукта
-        const weightParam = item?.product?.parameters?.find(
-          (param) => param.parameter_name === "weight"
+        const weightParam = item?.product?.product_parameters?.find?.(
+          (param) => param.name === "weight"
         );
         // Если параметр weight найден, добавить его значение к аккумулятору
-        const weight = weightParam ? Number(weightParam.value) : 0;
+        const weight = weightParam ? parseFloat(weightParam.value) || 0 : 0;
         return acc + weight;
       }, 0);
 
       // Преобразовать общее значение из граммов в килограммы
       const totalWeightInKg = totalWeightInGrams / 1000;
-
       setWeight(totalWeightInKg);
 
-      selectedProducts.forEach((product) => {
-        const heightParam = product.product.parameters.find(
-          (param) => param.parameter_name === "height"
+      // Собираем размеры всех товаров
+      const boxSizes = selectedProducts.map((product) => {
+        const heightParam = product?.product?.product_parameters?.find?.(
+          (param) => param.name === "height"
         );
-        const widthParam = product.product.parameters.find(
-          (param) => param.parameter_name === "width"
+        const widthParam = product?.product?.product_parameters?.find?.(
+          (param) => param.name === "width"
         );
-        const lengthParam = product.product.parameters.find(
-          (param) => param.parameter_name === "length"
+        const lengthParam = product?.product?.product_parameters?.find?.(
+          (param) => param.name === "length"
         );
 
-        const height = heightParam ? Number(heightParam.value) : 0;
-        const width = widthParam ? Number(widthParam.value) : 0;
-        const length = lengthParam ? Number(lengthParam.value) : 0;
+        const height = heightParam ? parseFloat(heightParam.value) || 0 : 0;
+        const width = widthParam ? parseFloat(widthParam.value) || 0 : 0;
+        const length = lengthParam ? parseFloat(lengthParam.value) || 0 : 0;
 
-        // Теперь вы можете использовать height, width и length
-        const boxSize = calculateBoxSize(height, width, length);
-        setBoxSize(boxSize);
+        return calculateBoxSize(height, width, length);
       });
+
+      setBoxSize(boxSizes);
     }
   }, [selectedProducts]);
+
+  useEffect(() => {
+    console.log(boxSize);
+    console.log(weight);
+
+
+  }, [boxSize, weight])
+
 
   useEffect(() => {
     calculateWeight();
@@ -96,9 +106,9 @@ const PaymentDeliverySelect = () => {
     setDpdResult(dpdFuncResult);
     setGeisResult(geisFuncResult);
     setPplResult(pplFuncResult);
-    // console.log(pplFuncResult);
-    // console.log(geisFuncResult);
-    // console.log(dpdFuncResult);
+    console.log(pplFuncResult);
+    console.log(geisFuncResult);
+    console.log(dpdFuncResult);
     localStorage.setItem(
       "delivery",
       JSON.stringify([

@@ -3,8 +3,7 @@ import testImg from "../../../../assets/Product/ProductTestImage.svg";
 
 import styles from "./GoodsCardModer.module.scss"
 
-const GoodsCardModer = () => {
-    const isLoading = false
+const GoodsCardModer = ({ item, isLoading }) => {
 
     if (isLoading) {
         return (
@@ -27,13 +26,13 @@ const GoodsCardModer = () => {
         <>
             <div className={styles.main}>
                 <div className={styles.imageDiv}>
-                    <img src={testImg} alt="" />
+                    <img src={item?.image} alt="" />
                 </div>
                 <div className={styles.priceDiv}>
-                    <p>150€</p>
-                    <span>120€</span>
+                    {item ? <p>{`${item?.price}€`}</p> : <></>}
+                    {/* <span>120€</span> */}
                 </div>
-                <p className={styles.name}>Robot Vysavač Dyson LXS10 White</p>
+                <p className={styles.name}>{item?.name}</p>
                 <p className={styles.moderDescText}>Approximate moderation time: 24 hours</p>
                 <button className={styles.previewBtn}>Preview</button>
             </div>

@@ -14,17 +14,17 @@ const Kontakt = () => {
         <div className="xl:flex">
           <div className="mb-6 flex flex-1 flex-col gap-10">
             <div className="flex">
-              <div className=" max-h-[300px] flex-1 overflow-hidden">
-                <img src={oschepkova} className=" object-cover" alt="" />
+              <div className=" h-[261px] flex-1 overflow-hidden bg-[#F5F5F5] rounded-2xl">
+                {/* <img src={oschepkova} className="w-[240px] object-cover" alt="" /> */}
               </div>
-              <div className="flex flex-1 flex-col justify-between rounded-r-2xl bg-[#F5F5F5] py-16">
+              {/* <div className="flex flex-1 flex-col justify-between rounded-r-2xl bg-[#F5F5F5] py-16">
                 <p className="text-center font-bold xl:text-[26px]">
                   Ing. Daria Oshchepkova
                 </p>
                 <p className="text-center text-[12px] font-medium">
                   Generální manažerka
                 </p>
-              </div>
+              </div> */}
             </div>
             <div className="hidden h-5 rounded-full bg-[#FFCC00] xl:block"></div>
             <div>
@@ -48,7 +48,7 @@ const Kontakt = () => {
                 <img src={email_icon} alt="" />
               </div>
               <p className="text-xl font-bold xl:text-3xl">Email</p>
-              <p className="xl:text-xl">oshchepkova.reli@gmail.com</p>
+              <p className="xl:text-xl">info.reli.one@gmail.com</p>
             </div>
             <div className="hidden h-5 rounded-full bg-[#FFCC00] xl:block"></div>
             <div className="flex items-end rounded-2xl bg-[#F5F5F5] p-2 px-5 xl:p-5">

@@ -12,24 +12,24 @@ import styles from "./SellerHomeGraphe.module.scss"
 import { useMediaQuery } from "react-responsive";
 
 // Пример данных
-const data = [
-  { date: "17.11", day: "MU", orders: 3, delivered: 5 },
-  { date: "18.11", day: "Tue", orders: 12, delivered: 7 },
-  { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
-  { date: "20.11", day: "Thu", orders: 8, delivered: 10 },
-  { date: "21.11", day: "Fri", orders: 5, delivered: 9 },
-  { date: "22.11", day: "Sat", orders: 12, delivered: 6 },
-  { date: "23.11", day: "Sun", orders: 7, delivered: 4 },
-  { date: "17.11", day: "MU", orders: 3, delivered: 5 },
-  { date: "18.11", day: "Tue", orders: 12, delivered: 7 },
-  { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
-  { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
-  { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
-  { date: "17.11", day: "MU", orders: 3, delivered: 5 },
-  { date: "18.11", day: "Tue", orders: 12, delivered: 7 },
-  { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
-  { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
-];
+// const data = [
+//   { date: "17.11", day: "MU", orders: 3, delivered: 5 },
+//   { date: "18.11", day: "Tue", orders: 12, delivered: 7 },
+//   { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
+//   { date: "20.11", day: "Thu", orders: 8, delivered: 10 },
+//   { date: "21.11", day: "Fri", orders: 5, delivered: 9 },
+//   { date: "22.11", day: "Sat", orders: 12, delivered: 6 },
+//   { date: "23.11", day: "Sun", orders: 7, delivered: 4 },
+//   { date: "17.11", day: "MU", orders: 3, delivered: 5 },
+//   { date: "18.11", day: "Tue", orders: 12, delivered: 7 },
+//   { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
+//   { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
+//   { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
+//   { date: "17.11", day: "MU", orders: 3, delivered: 5 },
+//   { date: "18.11", day: "Tue", orders: 12, delivered: 7 },
+//   { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
+//   { date: "19.11", day: "Wed", orders: 6, delivered: 8 },
+// ];
 
 // Кастомный Tooltip
 const CustomTooltip = ({ active, payload, label }) => {
@@ -77,17 +77,57 @@ const CustomXAxisTick = ({ x, y, payload }) => {
   );
 };
 
-const SellerHomeGraphe = () => {
+const SellerHomeGraphe = ({ data, tabMain, setGrapheData }) => {
+  const isMobile = useMediaQuery({ maxWidth: 427 });
 
-  const isMobile = useMediaQuery({ maxWidth: 427 })
+  const daysMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const transformedData = data?.map(item => {
+    const dateObj = new Date(item.date);
+    return {
+      date: dateObj.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" }).replace("/", "."),
+      day: daysMap[dateObj.getDay()],
+      orders: tabMain === "curr" ? Number(item.ordered_amount) : item.ordered_count,
+      delivered: tabMain === "curr" ? Number(item.delivered_amount) : item.delivered_count,
+      ordered_amount: Number(item.ordered_amount) || 0,
+      ordered_count: item.ordered_count || 0,
+      delivered_amount: Number(item.delivered_amount) || 0,
+      delivered_count: item.delivered_count || 0,
+      today:item.date
+    };
+  });
+
+  console.log(data);
+  
+
+  // Функция для обработки клика
+  const handleBarClick = (_, data) => {
+    if (!data) return;
+
+    const selectedData = {
+      day: data.day,
+      today: data.today,
+      ordered_period: {
+        amount: data.ordered_amount.toString(), // Преобразуем в строку
+        count: data.ordered_count,
+      },
+      delivered_period: {
+        amount: data.delivered_amount.toString(), // Преобразуем в строку
+        count: data.delivered_count,
+      },
+    };
+
+    setGrapheData(selectedData);
+  };
 
   return (
-    <div className={styles.chartContainer} >
+    <div className={styles.chartContainer}>
       <ResponsiveContainer width={isMobile ? 600 : 837} height="100%">
         <BarChart
-          data={data}
+          data={transformedData}
           margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
           barCategoryGap="10%"
+          onClick={(e) => e.activePayload && handleBarClick(e.activePayload[0], e.activePayload[0]?.payload)}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -96,16 +136,15 @@ const SellerHomeGraphe = () => {
             tickMargin={15}
             interval="preserveStartEnd"
           />
-          <YAxis tickFormatter={(value) => `${value} pcs`} tick={{ fontSize: 12 }} />
+          <YAxis tickFormatter={(value) => (tabMain === "curr" ? `€ ${value}` : `${value} pcs`)} tick={{ fontSize: 12 }} />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="orders" fill="#64748B" name="Orders" barSize={10} />
           <Bar dataKey="delivered" fill="#97E3D5" name="Delivered" barSize={10} />
         </BarChart>
       </ResponsiveContainer>
     </div>
-
-
   );
 };
+
 
 export default SellerHomeGraphe;

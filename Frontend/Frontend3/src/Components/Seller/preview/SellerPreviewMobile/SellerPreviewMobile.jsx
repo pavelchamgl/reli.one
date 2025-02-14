@@ -5,14 +5,14 @@ import SellerPageContainer from "../../../../ui/Seller/SellerPageContainer/Selle
 
 import styles from "./SellerPreviewMobile.module.scss";
 
-const SellerPreviewMobile = () => {
+const SellerPreviewMobile = ({product}) => {
   return (
     <SellerPageContainer>
       <div className={styles.main}>
-        <PreviewImageAndName />
+        <PreviewImageAndName product={product} />
         <PreviewMobileSwitch />
       </div>
-      <PreviewCharacteristics />
+      <PreviewCharacteristics product={product} />
     </SellerPageContainer>
   );
 };

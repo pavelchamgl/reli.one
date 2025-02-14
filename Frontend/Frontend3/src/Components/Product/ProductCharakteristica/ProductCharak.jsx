@@ -9,7 +9,7 @@ const ProductCharak = () => {
 
   const { t } = useTranslation();
 
-  const { parameters, product_description } = useSelector(
+  const { product_parameters, product_description } = useSelector(
     (state) => state.products.product
   );
 
@@ -22,10 +22,10 @@ const ProductCharak = () => {
         <div className={styles.blackTitle}>{t("transfer_charac")}</div>
 
         <div className={styles.tableWrap}>
-          {parameters?.map((item, index) => (
+          {product_parameters?.map((item, index) => (
             <div key={index} className={styles.tableDiv}>
               <div>
-                <p>{item?.parameter_name}</p>
+                <p>{item?.name}</p>
               </div>
               <div>
                 <p>{item?.value}</p>

@@ -8,8 +8,10 @@ const CategoryBtn = ({ item, stage, setStage }) => {
     const { setChildCategories, setChildCategoryName, setCategoriesStage } = useActions();
     const { categoriesStatus, childCategoryName } = useSelector((state) => state.create);
 
+
     const handleClick = () => {
         setCategoriesStage({ stage, category: item });
+        setCategoriesStage({ stage, category: item })
 
         if (item.children) {
             setChildCategories(item.children);

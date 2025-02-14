@@ -5,17 +5,11 @@ import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.sv
 
 import styles from "./PreviewProductNameRate.module.scss";
 import { Rating } from "@mui/material";
+import PreviewCharack from "../previewCharack/PreviewCharack";
 
-const PreviewProductNameRate = () => {
+const PreviewProductNameRate = ({ product }) => {
   const { t } = useTranslation();
 
-  const product = {
-    rating: 5,
-    total_reviews: 21,
-    name: "Iphone",
-    category_name: "Smartphone",
-    price: 500,
-  };
 
   return (
     <div className={styles.main}>
@@ -28,12 +22,7 @@ const PreviewProductNameRate = () => {
         <span>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{product?.price} €</p>
-      {/* <ProdCharackButtons
-        setSku={setSku}
-        setPrice={setEndPice}
-        variants={product?.variants}
-        id={product?.id}
-      /> */}
+      <PreviewCharack variants={product?.variantsServ} />
       <button className={styles.addBasketBtn}>
         <img src={addBasketCheckIcon} alt="" />
         {t("add_basket")}

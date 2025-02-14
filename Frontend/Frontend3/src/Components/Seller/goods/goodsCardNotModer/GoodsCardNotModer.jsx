@@ -2,8 +2,7 @@ import testImg from "../../../../assets/Product/ProductTestImage.svg";
 
 import styles from "./GoodsCardNotModer.module.scss"
 
-const GoodsCardNotModer = () => {
-    const isLoading = false
+const GoodsCardNotModer = ({ item, isLoading }) => {
 
     if (isLoading) {
         return (
@@ -26,13 +25,12 @@ const GoodsCardNotModer = () => {
         <>
             <div className={styles.main}>
                 <div className={styles.imageDiv}>
-                    <img src={testImg} alt="" />
+                    <img src={item?.image} alt="" />
                 </div>
                 <div className={styles.priceDiv}>
-                    <p>150€</p>
-                    <span>120€</span>
+                    {item ? <p>{`${item?.price}€`}</p> : <></>}
                 </div>
-                <p className={styles.name}>Robot Vysavač Dyson LXS10 White</p>
+                <p className={styles.name}>{item?.name}</p>
                 <p className={styles.moderDescText}>Cause: prohibited goods</p>
             </div>
         </>

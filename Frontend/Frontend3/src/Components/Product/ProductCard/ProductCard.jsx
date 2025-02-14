@@ -188,7 +188,8 @@ const ProductCard = ({ data = null }) => {
           className={styles.prodName}
           onClick={() => navigate(`/product/${data.id}`)}
         >
-          {data.name}
+          {data?.name ? `${data.name.slice(0, 23)}${data.name.length > 23 ? "..." : ""}` : ""}
+
         </p>
         <div className={styles.rateDiv}>
           <Rating
