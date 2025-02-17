@@ -10,21 +10,17 @@ export const postSellerProduct = async (obj) => {
     }
 }
 
-export const postSellerImages = async (id, files) => {
+export const postSellerImages = async (id, images) => {
     try {
-        const formData = new FormData();
-
-        Array.from(files).forEach((file) => {
-            formData.append("image", file); // Если сервер ждет массив, можно `image[]`
-        });
-
-        const res = await mainInstance.post(
-            `/sellers/products/${id}/images/`,
-            formData,
-            {
-                headers: { "Content-Type": "multipart/form-data" } // Переопределяем заголовок
+        const newImages = images.map((item) => {
+            return {
+                image: item?.base64
             }
-        );
+        })
+
+        const res = await mainInstance.post(`sellers/products/${id}/images/bulk_upload/`, {
+            images: newImages
+        })
 
         console.log(res);
         return res;

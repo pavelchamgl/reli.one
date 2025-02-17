@@ -80,12 +80,12 @@ export const fetchDeleteVariant = createAsyncThunk(
 const editGoodsSlice = createSlice({
     name: "editGoodsSeller",
     initialState: {
+        id: null,
         product: null,
         parameters: null,
         images: null,
         variantsName: "",
         variantsServ: null,
-
         name: "",
         rating: "1.0",
         total_reviews: 0,
@@ -203,37 +203,41 @@ const editGoodsSlice = createSlice({
     extraReducers: build => {
         build.addCase(fetchSellerProductById.fulfilled, (state, action) => {
             console.log(action.payload);
+            if (state.id !== action.payload?.id) {
+                state.id = action.payload?.id
 
-            state.name = action.payload?.name
-            state.product_description = action.payload?.product_description
+                state.name = action.payload?.name
+                state.product_description = action.payload?.product_description
 
-            state.product = action.payload,
+                state.product = action.payload,
 
-                state.parameters = action.payload?.product_parameters
-                    ?.filter(item =>
-                        item.name !== "length" &&
-                        item.name !== "weight" &&
-                        item.name !== "width" &&
-                        item.name !== "height"
-                    )
-                    .map(item => ({
+                    state.parameters = action.payload?.product_parameters
+                        ?.filter(item =>
+                            item.name !== "length" &&
+                            item.name !== "weight" &&
+                            item.name !== "width" &&
+                            item.name !== "height"
+                        )
+                        .map(item => ({
+                            ...item,
+                            status: "server"
+                        }));
+
+                state.length = action.payload?.product_parameters?.find((item) => item.name === "length")?.value
+                state.weight = action.payload?.product_parameters?.find((item) => item.name === "weight")?.value
+                state.width = action.payload?.product_parameters?.find((item) => item.name === "width")?.value
+                state.height = action.payload?.product_parameters?.find((item) => item.name === "height")?.value
+
+                state.variantsName = action.payload?.variants ? action.payload.variants[0]?.name : null;
+                state.price = action.payload?.variants ? action.payload.variants[0]?.price : null;
+                state.variantsServ = action.payload?.variants?.map((item) => {
+                    return {
                         ...item,
                         status: "server"
-                    }));
+                    }
+                })
 
-            state.length = action.payload?.product_parameters?.find((item) => item.name === "length")?.value
-            state.weight = action.payload?.product_parameters?.find((item) => item.name === "weight")?.value
-            state.width = action.payload?.product_parameters?.find((item) => item.name === "width")?.value
-            state.height = action.payload?.product_parameters?.find((item) => item.name === "height")?.value
-
-            state.variantsName = action.payload?.variants ? action.payload.variants[0]?.name : null;
-            state.price = action.payload?.variants ? action.payload.variants[0]?.price : null;
-            state.variantsServ = action.payload?.variants?.map((item) => {
-                return {
-                    ...item,
-                    status: "server"
-                }
-            })
+            }
 
         })
     }

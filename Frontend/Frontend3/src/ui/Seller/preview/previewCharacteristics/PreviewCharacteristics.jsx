@@ -1,15 +1,41 @@
 import { useMediaQuery } from "react-responsive";
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 
 import styles from "./PreviewCharacteristics.module.scss";
 
 const PreviewCharacteristics = ({ product }) => {
   const isMobile = useMediaQuery({ maxWidth: 400 });
+  const [parameters, setParameters] = useState([])
+  const [length, setLength] = useState("")
+  const [width, setWidth] = useState("")
+  const [height, setHeight] = useState("")
+  const [weight, setWeight] = useState("")
+
 
   const { t } = useTranslation();
 
+  const { pathname } = useLocation()
 
-  const parameters = product?.parameters
+  useEffect(() => {
+    if (pathname.includes("edit")) {
+      setParameters(product?.parameters)
+      setLength(product?.length)
+      setWidth(product?.width)
+      setHeight(product?.height)
+      setWeight(product?.weight)
+    } else {
+      setParameters(product?.product_parameters)
+      setLength(product?.lengthMain)
+      setHeight(product?.heightMain)
+      setWeight(product?.weightMain)
+      setWidth(product?.widthMain)
+    }
+
+  }, [pathname])
+
+
 
   return (
     <div className={styles.main}>
@@ -32,46 +58,46 @@ const PreviewCharacteristics = ({ product }) => {
             </div>
           ))}
           {
-            product && product.length &&
+            product && length &&
             <div className={styles.tableDiv}>
               <div>
                 <p>length</p>
               </div>
               <div>
-                <p>{product.length} mm</p>
+                <p>{length} mm</p>
               </div>
             </div>
           }
           {
-            product && product.width &&
+            product && width &&
             <div className={styles.tableDiv}>
               <div>
                 <p>width</p>
               </div>
               <div>
-                <p>{product.width} mm</p>
+                <p>{width} mm</p>
               </div>
             </div>
           }
           {
-            product && product.height &&
+            product && height &&
             <div className={styles.tableDiv}>
               <div>
                 <p>height</p>
               </div>
               <div>
-                <p>{product.height} mm</p>
+                <p>{height} mm</p>
               </div>
             </div>
           }
           {
-            product && product.weight &&
+            product && weight &&
             <div className={styles.tableDiv}>
               <div>
                 <p>weight</p>
               </div>
               <div>
-                <p>{product.weight} gr</p>
+                <p>{weight} gr</p>
               </div>
             </div>
           }

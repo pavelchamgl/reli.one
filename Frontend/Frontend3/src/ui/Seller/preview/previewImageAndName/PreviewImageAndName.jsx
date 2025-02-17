@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import mobReturnIcon from "../../../../assets/mobileIcons/mobReturnIcon.svg";
 import likeIcon from "../../../../assets/Product/like.svg";
@@ -17,6 +17,19 @@ const PreviewImageAndName = ({ product }) => {
 
   const { t } = useTranslation();
 
+  const [variant, setVariant] = useState([])
+
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    if (pathname.includes("edit")) {
+      setVariant(product?.variantsServ)
+    } else {
+      setVariant(product?.variantsMain)
+    }
+
+  }, [pathname])
+
   const navigate = useNavigate()
 
   return (
@@ -32,7 +45,7 @@ const PreviewImageAndName = ({ product }) => {
       <MobileProdSwiper imageProps={product?.images} />
       <div className={styles.descAndBtnWrap}>
         <p className={styles.title}>{product?.name}</p>
-        <PreviewCharack variants={product?.variantsMain} />
+        <PreviewCharack variants={variant} />
         <div className={styles.priceWrap}>
           <p>{product?.price} €</p>
           {/* <span>400.00 Kč</span> */}

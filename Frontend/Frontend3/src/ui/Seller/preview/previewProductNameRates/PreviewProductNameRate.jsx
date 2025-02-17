@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 
 import ProductDeliveryCar from "../../../../assets/Product/productDeliveryCar.svg";
 import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.svg";
@@ -6,9 +7,23 @@ import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.sv
 import styles from "./PreviewProductNameRate.module.scss";
 import { Rating } from "@mui/material";
 import PreviewCharack from "../previewCharack/PreviewCharack";
+import { useEffect, useState } from "react";
 
 const PreviewProductNameRate = ({ product }) => {
   const { t } = useTranslation();
+  const [variant, setVariant] = useState([])
+
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    if (pathname.includes("edit")) {
+      setVariant(product?.variantsServ)
+    } else {
+      setVariant(product?.variantsMain)
+    }
+
+  }, [pathname])
+
 
 
   return (
@@ -22,7 +37,7 @@ const PreviewProductNameRate = ({ product }) => {
         <span>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{product?.price} €</p>
-      <PreviewCharack variants={product?.variantsServ} />
+      <PreviewCharack variants={variant} />
       <button className={styles.addBasketBtn}>
         <img src={addBasketCheckIcon} alt="" />
         {t("add_basket")}
