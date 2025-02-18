@@ -1,7 +1,7 @@
 .titleDiv {
   padding: 45px 95px;
   border-bottom: 2px solid #d3d4d5;
-  @media (max-width: 425px) {
+  @media (max-width: 426px) {
     padding: 22px 17px;
   }
 }
@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 25px;
+  gap: clamp(10px, 2.5vw, 25px);
   flex-wrap: wrap;
 }
 
