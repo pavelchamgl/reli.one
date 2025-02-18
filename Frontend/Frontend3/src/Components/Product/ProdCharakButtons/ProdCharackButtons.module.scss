@@ -134,6 +134,7 @@
         line-height: 117%;
         letter-spacing: -0.02em;
         color: #000;
+        font-family: var(--ft);
       }
     }
     @media (max-width: 470px) {
@@ -183,6 +184,7 @@
       letter-spacing: -0.02em;
       color: #000;
       cursor: pointer;
+      font-family: var(--ft);
     }
 
     @media (max-width: 470px) {
@@ -238,6 +240,7 @@
       letter-spacing: -0.02em;
       color: #000;
       cursor: pointer;
+      font-family: var(--ft);
     }
 
     @media (max-width: 470px) {
@@ -247,5 +250,3 @@
     }
   }
 }
-
-

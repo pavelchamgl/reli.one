@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
-import { postSellerParameters, postSellerProduct, postSellerVariants } from "../api/seller/sellerProduct"
+import { postSellerImages, postSellerParameters, postSellerProduct, postSellerVariants } from "../api/seller/sellerProduct"
 
 
 export const fetchCreateProduct = createAsyncThunk(
@@ -8,7 +8,7 @@ export const fetchCreateProduct = createAsyncThunk(
         const state = getState().create_prev; // Достаем `createProdPrev`
 
 
-        console.log(state);
+        const { lengthMain, weightMain, widthMain, heightMain } = state
 
 
         try {
@@ -23,11 +23,30 @@ export const fetchCreateProduct = createAsyncThunk(
 
             // Параллельно отправляем параметры и варианты
             await Promise.all([
-                postSellerParameters(productId, state.product_parameters),
+                postSellerParameters(productId, [
+                    ...state.product_parameters,
+                    {
+                        name: "length",
+                        value: lengthMain
+                    },
+                    {
+                        name: "width",
+                        value: widthMain
+                    },
+                    {
+                        name: "height",
+                        value: heightMain
+                    },
+                    {
+                        name: "weight",
+                        value: weightMain
+                    }
+                ]),
                 postSellerVariants(productId, {
                     variants: state.variantsMain,
                     name: state.variantsName
-                })
+                }),
+                postSellerImages(productId, state.images)
             ]);
 
             return res.data; // Обязательно возвращаем данные

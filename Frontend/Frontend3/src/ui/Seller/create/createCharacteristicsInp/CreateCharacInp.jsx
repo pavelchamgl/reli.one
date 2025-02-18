@@ -5,7 +5,13 @@ import { useSelector } from "react-redux";
 
 const CreateCharacInp = ({ setParameters }) => {
   const { product_parameters } = useSelector(state => state.create_prev)
-  const [characteristic, setCharacteristic] = useState(product_parameters ? product_parameters : "");
+  const [characteristic, setCharacteristic] = useState(product_parameters ? product_parameters :
+    [{
+      id: new Date(),
+      name: "",
+      value: "",
+    }],
+  );
 
   useEffect(() => {
     setParameters(characteristic)

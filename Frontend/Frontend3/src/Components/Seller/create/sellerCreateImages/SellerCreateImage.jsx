@@ -31,21 +31,38 @@ const SellerCreateImage = () => {
   const { setImages, setFilesMain, deleteImage } = useActionCreatePrev()
 
   const arr = 6
-
+  
   const handleChangeFile = (e) => {
     const newFiles = Array.from(e.target.files);
     const updateFiles = [...files, ...newFiles];
     // setFilesMain(updateFiles);
 
-    setImageUrls((prevUrls) => {
-      const newUrls = [
-        ...prevUrls,
-        ...newFiles.map((file) => ({ image_url: URL.createObjectURL(file) })),
-      ];
-      setImages(newUrls); // Здесь уже новое состояние
-      return newUrls;
+    const readFilesAsBase64 = (files) => {
+      return Promise.all(
+        files.map((file) => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file); // Читаем файл как Base64
+            reader.onload = () => {
+              resolve({
+                image_url: URL.createObjectURL(file),
+                base64: reader.result,
+              });
+            };
+          });
+        })
+      );
+    };
+
+    readFilesAsBase64(newFiles).then((base64Images) => {
+      setImageUrls((prevUrls) => {
+        const newUrls = [...prevUrls, ...base64Images];
+        setImages(newUrls); // Здесь уже новое состояние с base64
+        return newUrls;
+      });
     });
   };
+
 
 
   const handleDelete = (index) => {
@@ -56,8 +73,8 @@ const SellerCreateImage = () => {
   };
 
   useEffect(() => {
-    console.log(images)
-  }, [images])
+    console.log(imageUrls)
+  }, [imageUrls])
 
   return (
     <div>

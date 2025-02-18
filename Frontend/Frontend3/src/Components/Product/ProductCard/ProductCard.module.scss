@@ -30,7 +30,7 @@
 
 .image {
   width: 100%;
-  height: 257px;
+  height: 241px;
   object-fit: cover;
   cursor: pointer;
 }
@@ -51,21 +51,22 @@
 }
 
 .price {
+  font-family: var(--ft);
   font-weight: 600;
-  font-size: clamp(10px, 2.5vw, 20px);
+  font-size: clamp(12px, 2.5vw, 20px);
   color: #000;
 }
 
 .priceSale {
-  font-weight: 600;
+  font-weight: 500;
   font-size: clamp(8px, 2.5vw, 12px);
   text-decoration: line-through;
   color: #64748b;
 }
 
 .prodName {
-  font-weight: 500;
-  font-size: clamp(10px, 2.5vw, 14px);
+  font-weight: 600;
+  font-size: clamp(12px, 2.5vw, 16px);
   line-height: 140%;
   color: #000;
   cursor: pointer;
@@ -90,7 +91,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0 16px 9px 16px;
+  padding: 10px 16px 9px 16px;
 }
 
 .buyBtn {
@@ -280,7 +281,229 @@
     right: 10px;
   }
   .prodName {
-    font-size: clamp(10px, 1.5vw, 14px);
+    font-size: clamp(12px, 1.5vw, 16px);
+  }
+}
+@media only screen and (max-width: 430px) {
+  .main {
+    width: 152px;
+    height: 240px;
+    margin-bottom: 15px;
+  }
+  .skeleton {
+    width: 132px;
+    .skeletonDetails {
+      width: 90%;
+      flex: 1;
+
+      .skeletonName {
+        width: 90%;
+        height: 20px;
+        background-color: #f0f0f0;
+        margin-bottom: 10px;
+      }
+      .skeletonButton {
+        width: 80px;
+        height: 20px;
+        margin-top: 10px;
+      }
+    }
+    .skeletonImage {
+      height: 122px;
+    }
+  }
+  .image {
+    height: 152px;
+  }
+  .likeBtn {
+    img {
+      width: 15px;
+      height: 13px;
+    }
+  }
+  .rateDiv {
+    gap: 3px;
+    p {
+      font-weight: 500;
+      font-size: 11px;
+      line-height: 133%;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+  }
+  .descWrap {
+    gap: 7px;
+    padding: 8px 4px;
+  }
+  .buyBtn {
+    border-radius: 2px;
+    width: 67px;
+    height: 18px;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 91%;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-top: 0;
+  }
+  .priceDiv {
+    height: auto;
+  }
+  .likeBtn {
+    top: 10px;
+    right: 10px;
+  }
+  .prodName {
+    font-size: clamp(12px, 1.5vw, 16px);
+  }
+}
+@media only screen and (max-width: 376px) {
+  .main {
+    width: 162px;
+    height: 250px;
+    margin-bottom: 10px;
+  }
+  .skeleton {
+    width: 132px;
+    .skeletonDetails {
+      width: 90%;
+      flex: 1;
+
+      .skeletonName {
+        width: 90%;
+        height: 20px;
+        background-color: #f0f0f0;
+        margin-bottom: 10px;
+      }
+      .skeletonButton {
+        width: 80px;
+        height: 20px;
+        margin-top: 10px;
+      }
+    }
+    .skeletonImage {
+      height: 122px;
+    }
+  }
+  .image {
+    height: 152px;
+  }
+  .likeBtn {
+    img {
+      width: 15px;
+      height: 13px;
+    }
+  }
+  .rateDiv {
+    gap: 3px;
+    p {
+      font-weight: 500;
+      font-size: 11px;
+      line-height: 133%;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+  }
+  .descWrap {
+    gap: 7px;
+    padding: 8px 4px;
+  }
+  .buyBtn {
+    border-radius: 2px;
+    width: 67px;
+    height: 18px;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 91%;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-top: 0;
+  }
+  .priceDiv {
+    height: auto;
+  }
+  .likeBtn {
+    top: 10px;
+    right: 10px;
+  }
+  .prodName {
+    font-size: clamp(12px, 1.5vw, 16px);
+  }
+}
+@media only screen and (max-width: 325px) {
+  .main {
+    width: 135px;
+    height: 240px;
+    margin-bottom: 5px;
+  }
+  .skeleton {
+    width: 132px;
+    .skeletonDetails {
+      width: 90%;
+      flex: 1;
+
+      .skeletonName {
+        width: 90%;
+        height: 20px;
+        background-color: #f0f0f0;
+        margin-bottom: 10px;
+      }
+      .skeletonButton {
+        width: 80px;
+        height: 20px;
+        margin-top: 10px;
+      }
+    }
+    .skeletonImage {
+      height: 122px;
+    }
+  }
+  .image {
+    height: 152px;
+  }
+  .likeBtn {
+    img {
+      width: 15px;
+      height: 13px;
+    }
+  }
+  .rateDiv {
+    gap: 3px;
+    p {
+      font-weight: 500;
+      font-size: 11px;
+      line-height: 133%;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #64748b;
+    }
+  }
+  .descWrap {
+    gap: 7px;
+    padding: 8px 4px;
+  }
+  .buyBtn {
+    border-radius: 2px;
+    width: 67px;
+    height: 18px;
+    font-weight: 600;
+    font-size: 11px;
+    line-height: 91%;
+    letter-spacing: -0.03em;
+    color: #fff;
+    margin-top: 0;
+  }
+  .priceDiv {
+    height: auto;
+  }
+  .likeBtn {
+    top: 10px;
+    right: 10px;
+  }
+  .prodName {
+    font-size: clamp(12px, 1.5vw, 16px);
   }
 }
 

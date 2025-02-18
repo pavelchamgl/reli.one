@@ -1,5 +1,3 @@
-import SellerPageContainer from "../ui/Seller/SellerPageContainer/SellerPageContainer";
-import SellerHeader from "../Components/Seller/sellerHeader/SellerHeader";
 import SellerCreateForm from "../Components/Seller/create/sellerCreateForm/SellerCreateForm";
 
 import styles from "../styles/SellerCreatePage.module.scss";
