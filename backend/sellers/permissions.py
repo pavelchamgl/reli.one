@@ -3,7 +3,8 @@ from rest_framework.permissions import BasePermission
 from product.models import (
     BaseProduct,
     ProductParameter,
-    ProductVariant
+    ProductVariant,
+    BaseProductImage,
 )
 
 
@@ -31,6 +32,10 @@ class IsSellerOwner(BasePermission):
 
         # Если объект - это вариант продукта
         if isinstance(obj, ProductVariant):
+            return obj.product.seller.user == request.user
+
+        # Если объект - это изображение продукта
+        if isinstance(obj, BaseProductImage):
             return obj.product.seller.user == request.user
 
         # Если объект другого типа - запрещаем
