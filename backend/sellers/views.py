@@ -569,7 +569,7 @@ class ProductVariantViewSet(ModelViewSet):
     ),
     create=extend_schema(
         tags=["Seller Product License"],
-        description="Upload (create) a license file for a product, if none exists."
+        description="Upload (create) a license file in base64 for a product, if none exists.",
     ),
     retrieve=extend_schema(
         tags=["Seller Product License"],
