@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from drf_extra_fields.fields import Base64ImageField
+from drf_extra_fields.fields import Base64ImageField, Base64FileField
 
 from product.models import (
     BaseProduct,
@@ -136,6 +136,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
 
 class LicenseFileSerializer(serializers.ModelSerializer):
+    file = Base64FileField(required=True)
     file_url = serializers.SerializerMethodField()
 
     class Meta:
