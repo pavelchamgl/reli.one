@@ -1,6 +1,9 @@
 import re
+import logging
 from drf_extra_fields.fields import Base64FileField
 from rest_framework.serializers import ValidationError
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_MIME_TYPES = {
     'application/pdf': 'pdf',
@@ -17,6 +20,8 @@ class CustomBase64FileField(Base64FileField):
         """
         Извлекаем MIME-тип из data-URL и проверяем на разрешённые.
         """
+        logger.debug("DEBUG filename = %r", filename)
+
         match = re.match(r'^data:(?P<mime>.*?);base64,', filename)
         if not match:
             raise ValidationError("Missing or invalid data URI scheme.")
