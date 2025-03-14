@@ -136,17 +136,24 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         ]
 
 
-class LicenseFileSerializer(serializers.ModelSerializer):
-    file = CustomBase64FileField(required=True)
+class LicenseFileReadSerializer(serializers.ModelSerializer):
     file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = LicenseFile
-        fields = ['id', 'name', 'file', 'file_url']
-        read_only_fields = ['id']
+        fields = ['id', 'name', 'file_url']
 
     def get_file_url(self, obj):
         request = self.context.get('request')
-        if obj.file:
+        if obj.file and request is not None:
             return request.build_absolute_uri(obj.file.url)
         return None
+
+
+class LicenseFileWriteSerializer(serializers.ModelSerializer):
+    file = CustomBase64FileField(required=True)
+
+    class Meta:
+        model = LicenseFile
+        fields = ['id', 'name', 'file']
+        read_only_fields = ['id']
