@@ -307,5 +307,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'sellers': {
+            'handlers': ['debug_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }
