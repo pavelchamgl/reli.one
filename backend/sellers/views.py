@@ -29,7 +29,8 @@ from .serializers import (
     BaseProductImageSerializer,
     BulkBaseProductImageSerializer,
     ProductVariantSerializer,
-    LicenseFileSerializer,
+    LicenseFileReadSerializer,
+    LicenseFileWriteSerializer,
 )
 from product.models import (
     BaseProduct,
@@ -593,12 +594,14 @@ class LicenseFileViewSet(ModelViewSet):
     ViewSet for CRUD operations on LicenseFile objects in a OneToOne relationship
     with BaseProduct, using nested URLs of the form:
     /products/{product_id}/license/{pk}/
-
-    - Typically returns 0 or 1 file for 'list()'.
-    - For 'create()', we ensure a second LicenseFile is not created if one already exists.
     """
-    serializer_class = LicenseFileSerializer
+
     permission_classes = [IsAuthenticated, IsSellerOwner]
+
+    def get_serializer_class(self):
+        if self.action in ("create", "update", "partial_update"):
+            return LicenseFileWriteSerializer
+        return LicenseFileReadSerializer
 
     def get_queryset(self):
         """
