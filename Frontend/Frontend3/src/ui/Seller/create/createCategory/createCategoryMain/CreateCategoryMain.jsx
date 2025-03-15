@@ -7,13 +7,15 @@ import arrDown from "../../../../../assets/Seller/create/arrDown.svg";
 import styles from "./CreateCategoryMain.module.scss";
 import CreateCategoryParent from "../createCategoryParent/CreateCategoryParent";
 
-const CreateCategoryMain = ({ category_name = null }) => {
+const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
     const [selectText, setSelectText] = useState("Select a category");
     const [stage, setStage] = useState(1);
     const [open, setOpen] = useState(false);
+    const [isTouched, setIsTouched] = useState(false)
 
     const { fetchCategories, setClearAll } = useActions();
     const { categories, categoriesStage } = useSelector((state) => state.create);
+    const { category } = useSelector((state) => state.create_prev);
 
     // Ref для обёртки select
     const selectRef = useRef(null);
@@ -48,13 +50,22 @@ const CreateCategoryMain = ({ category_name = null }) => {
         }
     }, [category_name])
 
+    useEffect(() => {
+        if (category) {
+            setErr(false)
+        }
+    }, [category])
+
     return (
         <div>
             <h3 className={styles.mainTitle}>Goods Information</h3>
             <p className={styles.selectTitle}>Category and type</p>
 
-            <div ref={selectRef}>
-                <button onClick={() => setOpen(!open)} className={styles.select}>
+            <div className={err ? styles.errWrap : ""} ref={selectRef}>
+                <button onClick={() => {
+                    setOpen(!open)
+                    setIsTouched(true)
+                }} className={styles.select}>
                     {categoriesStage && categoriesStage.length > 0 ? (
                         <p>
                             {categoriesStage.map((item, index) => {
@@ -99,6 +110,7 @@ const CreateCategoryMain = ({ category_name = null }) => {
                     </div>
                 )}
             </div>
+            {err ? <p className={styles.errText}>Category is required</p> : ""}
         </div>
     );
 };

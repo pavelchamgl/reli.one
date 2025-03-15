@@ -34,6 +34,9 @@
   & button:nth-child(2) {
     background: #047857;
   }
+  & button:disabled {
+    background-color: #81868b;
+  }
 }
 
 .wightTitle {

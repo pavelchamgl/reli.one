@@ -76,3 +76,14 @@
     width: auto;
   }
 }
+
+.errWrap {
+  border: 1px solid #dc2626;
+}
+
+.errText {
+  font-weight: 300;
+  font-size: 14px;
+  color: #dc2626;
+  margin-top: 4px;
+}

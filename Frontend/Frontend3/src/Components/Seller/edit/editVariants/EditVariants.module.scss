@@ -3,6 +3,12 @@
   display: flex;
   flex-direction: column;
 }
+.mainErr {
+  width: clamp(139px, 2.5vw, 200px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dc2626;
+}
 
 .nameInp {
   background: #fafafa;
@@ -23,9 +29,31 @@
 .nameInp:focus {
   background: #f0f0f0;
 }
+.nameInp:disabled {
+  background-color: #7d7d7d76;
+}
 
 .addPhotoDiv {
   background: #64748b;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  & p {
+    margin: 6px 0;
+  }
+
+  & input {
+    display: none;
+  }
+}
+
+.addPhotoDivDis {
+  background: #7d7d7d76;
   font-weight: 400;
   font-size: clamp(14px, 2.5vw, 18px);
   color: #fff;

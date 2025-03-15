@@ -10,8 +10,10 @@ export const fetchGetGoodsList = createAsyncThunk(
             const res = await mainInstance.get(
                 `/sellers/my-products/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=${state.page_size}&search=${state.searchQuery}&status=${state.productStatus}`
             );
+            console.log(res.data);
 
             return res.data; // Возвращаем данные при успешном запросе
+            
         } catch (error) {
             if (!error.response) {
                 // Ошибки сети или отсутствие ответа от сервера

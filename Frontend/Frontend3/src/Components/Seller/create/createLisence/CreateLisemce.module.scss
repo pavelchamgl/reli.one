@@ -1,0 +1,251 @@
+.maskMain {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.bigMask {
+  flex-shrink: 0;
+  width: 198px;
+  height: 198px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #b1bed1;
+  border-radius: 2px;
+}
+
+.mask {
+  width: 140px;
+  height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #b1bed1;
+  border-radius: 2px;
+
+  & img {
+    width: clamp(16px, 2.5vw, 26px);
+    height: clamp(21px, 2.5vw, 33px);
+    object-fit: contain;
+  }
+
+  @media (max-width: 426px) {
+    width: 86px;
+    height: 55px;
+    & img {
+      width: clamp(16px, 2.5vw, 26px);
+      height: clamp(21px, 2.5vw, 33px);
+      object-fit: contain;
+    }
+  }
+}
+
+.maskErr {
+  width: 140px;
+  height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #dc2626;
+  border-radius: 2px;
+
+  & img {
+    width: 26px;
+    height: 33px;
+  }
+
+  @media (max-width: 426px) {
+    width: 86px;
+    height: 86px;
+    & img {
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.smallMaskWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.title {
+  font-weight: 400;
+  font-size: clamp(16px, 2.5vw, 30px);
+  line-height: 70%;
+  letter-spacing: -0.01em;
+  color: #000;
+  margin-top: clamp(20px, 2.5vw, 40px);
+}
+
+.btnRatioWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: clamp(6px, 2.5vw, 17px);
+  & p {
+    font-weight: 400;
+    font-size: clamp(12px, 2.5vw, 18px);
+    line-height: 112%;
+    letter-spacing: -0.02em;
+    color: #64748b;
+  }
+
+  & span {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #3f7f6d;
+    width: clamp(124px, 2.5vw, 214px);
+    height: clamp(25px, 2.5vw, 34px);
+    font-weight: 400;
+    font-size: clamp(14px, 2.5vw, 18px);
+    line-height: 167%;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+  }
+  & input {
+    display: none;
+  }
+}
+
+.btnRatioWrap:has(input[disabled]) {
+  & span {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #9fa5a3;
+    width: clamp(124px, 2.5vw, 214px);
+    height: clamp(25px, 2.5vw, 34px);
+    font-weight: 400;
+    font-size: clamp(14px, 2.5vw, 18px);
+    line-height: 167%;
+    letter-spacing: -0.02em;
+    text-align: center;
+    color: #fff;
+    cursor: pointer;
+  }
+}
+
+.imageWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #b1bed1;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.deleteWrap {
+  position: absolute; /* Обеспечим правильное расположение */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(113, 113, 113, 0.522); /* Немного прозрачного фона */
+  visibility: hidden; /* Элемент скрыт по умолчанию */
+  transition: visibility 0s, opacity 0.3s ease-in-out; /* Плавный переход */
+}
+
+.imageWrapper:hover .deleteWrap {
+  visibility: visible; /* Показываем на hover */
+  opacity: 1; /* Делаем видимым */
+}
+
+.deleteButton {
+  opacity: 0; /* По умолчанию элемент невидим */
+  visibility: hidden;
+  position: absolute;
+  top: clamp(7px, 2.5vw, 15px); /* Центрируем кнопку по вертикали */
+  right: clamp(7px, 2.5vw, 15px); /* Центрируем кнопку по горизонтали */
+  background-color: transparent;
+  z-index: 10;
+  cursor: pointer;
+  transition: opacity 0.3s ease; /* Анимация появления кнопки */
+}
+
+.imageWrapper:hover .deleteButton {
+  opacity: 1; /* Появляется при наведении */
+  visibility: visible;
+}
+
+.mediaPreview {
+  width: 100%; /* Автоматическое растягивание под слайд */
+  height: 100%;
+  object-fit: cover; /* Обеспечивает правильное масштабирование */
+  border-radius: 2px;
+}
+
+.sliderContainer {
+  position: relative;
+
+  .swiper {
+    width: 100%;
+    @media (max-width: 426px) {
+      padding-bottom: 10px;
+      padding-top: 10px;
+      height: 96px;
+      overflow-x: scroll; /* Включаем вертикальный скрол */
+      scroll-behavior: smooth; /* Плавный скрол */
+    }
+  }
+
+  .swiperSlide {
+    width: auto;
+    max-width: none;
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .swiperLisencePrev,
+  .swiperLisenceNext {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+
+    &:hover {
+      background: #ddd;
+    }
+
+    @media (max-width: 426px) {
+      display: none;
+    }
+  }
+
+  .swiperLisencePrev {
+    left: -50px;
+  }
+
+  .swiperLisenceNext {
+    right: -50px;
+  }
+}
+
+.errText {
+  font-weight: 300;
+  font-size: 14px;
+  color: #dc2626;
+  margin-top: 4px;
+}
+
+.fileName {
+  font-size: clamp(10px, 2.5vw, 16px);
+  text-align: center;
+  color: #64748b;
+}

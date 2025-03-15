@@ -22,7 +22,10 @@ const CatalogCardSimple = ({ item, handleClose }) => {
       className={styles.card}
       style={{ backgroundImage: `url(${item?.image_url})` }}
     >
-      <p>{item?.name}</p>
+      <p>
+        {item?.name}
+
+      </p>
     </div>
   );
 };

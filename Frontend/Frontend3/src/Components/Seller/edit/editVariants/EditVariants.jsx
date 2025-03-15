@@ -5,10 +5,20 @@ import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
 
 import styles from "./EditVariants.module.scss"
 
-const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant }) => {
+const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, setErr, type, setType }) => {
     const [newVariant, setNewVariant] = useState(variant)
     const [file, setFile] = useState(null)
     const [url, setUrl] = useState(variant ? variant.image : null)
+
+    useEffect(() => {
+        if (variant?.text) {
+            setType("text")
+        } else if (variant?.image) {
+            setType("image")
+        } else {
+            setType(null)
+        }
+    }, [variant])
 
     // useEffect(() => {
     //     setNewVariant(variant) // Обновляем локальный стейт, если изменились пропсы
@@ -28,6 +38,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant }) => {
 
 
     const handleChangeFile = (e) => {
+        setErr(false)
         const newFile = e.target.files[0]; // Получаем только один файл
         if (!newFile) return;
 
@@ -62,19 +73,27 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant }) => {
 
 
     return (
-        <div className={styles.main}>
+        <div className={err ? styles.mainErr : styles.main}>
             <input
                 className={styles.nameInp}
                 type="text"
-                value={newVariant.text}
-                onChange={(e) => setNewVariant({ ...newVariant, text: e.target.value })}
+                value={newVariant.text || ""}
+                onChange={(e) => {
+                    setNewVariant({ ...newVariant, text: e.target.value }
+                    )
+                    setErr(false)
+                }}
                 placeholder="Name color"
+                disabled={type === "image"}
             />
             <div className={styles.priceDiv}>
                 <input
                     type="text"
-                    value={newVariant.price}
-                    onChange={(e) => setNewVariant({ ...newVariant, price: e.target.value })}
+                    value={newVariant.price || ""}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, price: e.target.value })
+                        setErr(false)
+                    }}
                     placeholder="Price"
                 />
                 <button onClick={() => handleDeleteVariant(variant.id, variant)}>
@@ -91,9 +110,9 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant }) => {
                             </button>
                         </div>
                     ) :
-                    <label className={styles.addPhotoDiv} onClick={handleLabelClick}>
+                    <label className={type === "text" ? styles.addPhotoDivDis : styles.addPhotoDiv} onClick={handleLabelClick}>
                         <p>+ Add photo</p>
-                        <input onChange={handleChangeFile} type="file" accept="image/*,video/*" />
+                        <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept="image/*,video/*" />
                     </label>
             }
         </div>

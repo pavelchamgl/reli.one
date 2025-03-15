@@ -1,21 +1,43 @@
 .main {
-  cursor: pointer;
-  border-radius: 10px;
-  width: 222px;
+  max-width: 252px;
+  min-width: 91px;
   height: 220px;
-  text-align: center;
-  padding: 18px 5px 0;
-  font-weight: 600;
-  font-size: clamp(12px, 2.5vw, 24px);
-  line-height: 87%;
-  letter-spacing: -0.01em;
-  color: #000;
   background-color: #f0f0f0;
-  background-size: contain;
-  background-position: 0 0px;
+  border-radius: 10px;
+  padding: 18px 30px 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background-size: 161px 161px;
+  background-position: center calc(100% - 10px);
   background-repeat: no-repeat;
   & p {
     cursor: pointer !important;
+    width: 100%;
+    font-weight: 600;
+    font-size: clamp(12px, 2.5vw, 24px);
+    text-align: center;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Обрезка до 2 строк */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: calc(1.2em * 2); /* Ограничиваем высоту под 2 строки */
+    line-height: 1.2em;
+  }
+  @media (max-width: 700px) {
+    height: 182px;
+
+  }
+
+
+
+  @media (max-width: 510px) {
+    height: 102px;
+    padding: 5px 18px 0px;
+    background-position: center calc(100% - 0px);
+    background-size: 90px 90px;
   }
 }
 
@@ -38,14 +60,6 @@
 }
 
 @media only screen and (max-width: 600px) {
-  .main {
-    width: 172px;
-    height: 170px;
-    background-position: bottom;
-    background-repeat: no-repeat;
-    background-position: 0 0px;
-
-  }
   .sceleton {
     width: 172px;
     height: 170px;
@@ -53,13 +67,6 @@
 }
 
 @media only screen and (max-width: 450px) {
-  .main {
-    width: 91px;
-    height: 102px;
-    background-position: bottom;
-    background-repeat: no-repeat;
-    background-position: 0 10px;
-  }
   .sceleton {
     width: 91px;
     height: 102px;

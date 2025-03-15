@@ -6,7 +6,7 @@ import {
   ppl as pplPrice,
   geis,
   dpd as dpdPrice,
-  calculateBoxSize,
+  calculateBoxTest,
 } from "../../../code/deliveryCode.js";
 import { useSelector } from "react-redux";
 import {
@@ -48,7 +48,7 @@ const PaymentDeliverySelect = () => {
 
   const calculateWeight = useCallback(() => {
     if (selectedProducts.length > 0) {
-      const totalWeightInGrams = selectedProducts.reduce((acc, item) => {
+      const totalWeight = selectedProducts.reduce((acc, item) => {
         console.log(item);
 
         // Найти параметр weight среди параметров продукта
@@ -61,11 +61,15 @@ const PaymentDeliverySelect = () => {
       }, 0);
 
       // Преобразовать общее значение из граммов в килограммы
-      const totalWeightInKg = totalWeightInGrams / 1000;
-      setWeight(totalWeightInKg);
+
+      setWeight(totalWeight);
 
       // Собираем размеры всех товаров
       const boxSizes = selectedProducts.map((product) => {
+
+        console.log(product);
+
+
         const heightParam = product?.product?.product_parameters?.find?.(
           (param) => param.name === "height"
         );
@@ -80,10 +84,14 @@ const PaymentDeliverySelect = () => {
         const width = widthParam ? parseFloat(widthParam.value) || 0 : 0;
         const length = lengthParam ? parseFloat(lengthParam.value) || 0 : 0;
 
-        return calculateBoxSize(height, width, length);
+        return { height: height, width: width, length: length }
       });
 
-      setBoxSize(boxSizes);
+      
+
+      const resBoxSizeT = calculateBoxTest(boxSizes)
+
+      setBoxSize(resBoxSizeT);
     }
   }, [selectedProducts]);
 
@@ -100,9 +108,17 @@ const PaymentDeliverySelect = () => {
   }, [calculateWeight]);
 
   useEffect(() => {
-    const pplFuncResult = pplPrice(boxSize, weight);
-    const geisFuncResult = geis(weight);
-    const dpdFuncResult = dpdPrice(weight);
+
+    const weightKg = weight / 1000
+
+    console.log(weight);
+    console.log(weightKg);
+
+
+
+    const pplFuncResult = pplPrice(boxSize[0], weightKg);
+    const geisFuncResult = geis(weightKg);
+    const dpdFuncResult = dpdPrice(weightKg);
     setDpdResult(dpdFuncResult);
     setGeisResult(geisFuncResult);
     setPplResult(pplFuncResult);

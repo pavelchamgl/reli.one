@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import styles from "./ProductImages.module.scss";
+import ProdImageModal from "../ProdImageModal/ProdImageModal";
 
 const ProductImages = () => {
   const product = useSelector((state) => state.products.product);
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   const [image, setImage] = useState("");
 
   const [src1, setSrc1] = useState("");
@@ -26,7 +30,7 @@ const ProductImages = () => {
   return (
     <div className={styles.main}>
       {image && (
-        <img className={styles.mainImage} src={image} alt="Main product" />
+        <img onClick={() => setIsModalOpen(true)} className={styles.mainImage} src={image} alt="Main product" />
       )}
       <div className={styles.smallImageDiv}>
         {src1 && (
@@ -45,6 +49,8 @@ const ProductImages = () => {
           </button>
         )}
       </div>
+
+      <ProdImageModal open={isModalOpen} handleClose={() => setIsModalOpen(false)} imageUrl={product?.images} />
     </div>
   );
 };

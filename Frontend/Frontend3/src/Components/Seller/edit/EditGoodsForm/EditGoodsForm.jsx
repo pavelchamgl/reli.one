@@ -12,15 +12,24 @@ import SellerEditImages from "../sellerEditImage/SellerEditImages";
 import styles from "./EditGoodsForm.module.scss"
 import EditVariants from "../editVariants/EditVariants";
 import EditMainVariants from "../EditMainVariants/EditMainVariants";
+import { validateGoods } from "../../../../code/validation/validationGoods";
+import { ErrToast } from "../../../../ui/Toastify";
+import EditLicense from "../EditLicense/EditLicense";
 
 const EditGoodsForm = () => {
     const navigate = useNavigate();
     const { id } = useParams()
 
+    const [imageErr, setImageErr] = useState(false)
+    const [categoryErr, setCategoryErr] = useState(false)
+    const [parametersErr, setParametersErr] = useState(false)
+    const [varNameErr, setVarNameErr] = useState(false)
+    const [varErr, setVarErr] = useState(false)
+    const [type, setType] = useState(null)
 
     const { fetchSellerProductById, setParameter, setCategory } = useActionSellerEdit()
 
-    const { product, parameters, name, product_description, length, width, height, weight } = useSelector(state => state.edit_goods)
+    const { product, parameters, name, product_description, length, width, height, weight, category, images, variantsName, variantsServ, category_name, status, err } = useSelector(state => state.edit_goods)
 
     const { categoriesStage } = useSelector(state => state.create)
 
@@ -33,21 +42,65 @@ const EditGoodsForm = () => {
             height: "",
             weight: ""
         },
+        validationSchema: validateGoods,
         onSubmit: (values) => {
 
+            navigate(`/seller/edit-preview/${id}`)
 
         },
     });
-
-
 
     useEffect(() => {
         fetchSellerProductById(id)
     }, [id])
 
+    const handlePreviewClick = () => {
+        const isImagesValid = images.length > 0;
+        const isCategoryValid = Boolean(category) || Boolean(category_name);
+        const isParametersValid =
+            parameters?.length > 0 &&
+            parameters.every(
+                (item) => item.name?.trim() && item.value?.trim()
+            );
+        const isVarNameErrValid = variantsName.length > 0
+        let isVariantValid;
+
+        if (type === "text") {
+            isVariantValid =
+                variantsServ?.length > 0 &&
+                variantsServ.every(
+                    (item) =>
+                        item.price?.trim() &&
+                        !isNaN(Number(item.price)) &&
+                        item.text?.trim()
+                );
+        } else {
+            isVariantValid =
+                variantsServ?.length > 0 &&
+                variantsServ.every(
+                    (item) =>
+                        item.price?.trim() &&
+                        !isNaN(Number(item.price)) &&
+                        item.image?.trim()
+                );
+        }
 
 
-    console.log(product);
+
+        setCategoryErr(!isCategoryValid);
+        setImageErr(!isImagesValid);
+        setParametersErr(!isParametersValid)
+        setVarNameErr(!isVarNameErrValid)
+        setVarErr(!isVariantValid)
+
+        if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid) {
+            formik.handleSubmit();
+        }
+    };
+
+
+
+
 
     useEffect(() => {
         if (product) {
@@ -65,9 +118,11 @@ const EditGoodsForm = () => {
         }
     }, [product]);
 
+
     useEffect(() => {
         setCategory(categoriesStage[categoriesStage?.length - 1])
     }, [categoriesStage])
+
 
 
 
@@ -76,11 +131,13 @@ const EditGoodsForm = () => {
             <CreateFormInp text={"Goods name"} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "name", value: e.target.value })
-            }} titleSize={"big"} required={true} />
+            }} titleSize={"big"} required={true} error={formik.errors.name} />
 
-            <SellerEditImages />
+            <SellerEditImages err={imageErr} setErr={setImageErr} />
 
-            <CreateCategoryMain category_name={product?.category_name} />
+            <EditLicense />
+
+            <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} category_name={product?.category_name} />
 
             <CreateFormInp
                 name="product_description"
@@ -94,9 +151,10 @@ const EditGoodsForm = () => {
                 titleSize={"small"}
                 required={true}
                 textarea={true}
+                error={formik.errors.product_description}
             />
 
-            <EditGoodsParameters parameters={parameters} />
+            <EditGoodsParameters parameters={parameters} err={parametersErr} setErr={setParametersErr} />
 
 
             <CreateFormInp text={"Barcode"} titleSize={"small"} />
@@ -107,26 +165,30 @@ const EditGoodsForm = () => {
             <CreateFormInp name={"length"} value={formik.values.length} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "length", value: e.target.value })
-            }} text={"Package length, mm"} titleSize={"small"} />
+            }} text={"Package length, mm"} titleSize={"small"} error={formik.errors.length} />
             <CreateFormInp name={"width"} value={formik.values.width} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "width", value: e.target.value })
-            }} text={"Package width, mm"} titleSize={"small"} />
+            }} text={"Package width, mm"} titleSize={"small"} error={formik.errors.width} />
             <CreateFormInp name={"height"} value={formik.values.height} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "height", value: e.target.value })
-            }} text={"Package height, mm"} titleSize={"small"} />
+            }} text={"Package height, mm"} titleSize={"small"} error={formik.errors.height} />
             <CreateFormInp name={"weight"} value={formik.values.weight} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "weight", value: e.target.value })
-            }} text={"Weight with package, g"} titleSize={"small"} />
+            }} text={"Weight with package, g"} titleSize={"small"} error={formik.errors.weight} />
 
-            <EditMainVariants />
+            <EditMainVariants type={type} setType={setType} err={varErr} setErr={setVarErr} errName={varNameErr} setErrName={setVarNameErr} />
 
 
             <div className={styles.footerBtnWrap}>
                 <button onClick={() => navigate(-1)}>Cancel</button>
-                <button onClick={() => navigate(`/seller/edit-preview/${id}`)}>Preview</button>
+                <button
+                    disabled={!formik.isValid}
+                    onClick={() => {
+                        handlePreviewClick()
+                    }}>Preview</button>
             </div>
         </div>
     )

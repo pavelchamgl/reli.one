@@ -19,7 +19,8 @@ import deleteCommentImage from "../../../../assets/Product/deleteCommentImage.sv
 import styles from "./SellerCreateImages.module.scss";
 
 
-const SellerCreateImage = () => {
+const SellerCreateImage = ({ err, setErr }) => {
+
 
   const { images, filesMain } = useSelector(state => state.create_prev)
 
@@ -31,8 +32,9 @@ const SellerCreateImage = () => {
   const { setImages, setFilesMain, deleteImage } = useActionCreatePrev()
 
   const arr = 6
-  
+
   const handleChangeFile = (e) => {
+
     const newFiles = Array.from(e.target.files);
     const updateFiles = [...files, ...newFiles];
     // setFilesMain(updateFiles);
@@ -69,12 +71,16 @@ const SellerCreateImage = () => {
     const updatedFiles = files.filter((_, i) => i !== index);
     const updatedUrls = imageUrls.filter((_, i) => i !== index);
     setFilesMain(updatedFiles);
+    setImageUrls(updatedUrls)
     deleteImage({ index: index })
   };
 
   useEffect(() => {
-    console.log(imageUrls)
-  }, [imageUrls])
+    if (images.length > 0) {
+      setErr(false)
+    }
+  }, [images])
+
 
   return (
     <div>
@@ -111,7 +117,7 @@ const SellerCreateImage = () => {
                 {Array.from({ length: arr }, (_, index) => (
                   <SwiperSlide key={index} className={styles.swiperSlide}>
 
-                    <div className={styles.mask}>
+                    <div className={err ? styles.maskErr : styles.mask}>
                       <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="mask" />
                     </div>
 
@@ -170,6 +176,7 @@ const SellerCreateImage = () => {
           </button>
         </>
       </div>
+      {err ? <p className={styles.errText}>Image is required</p> : <></>}
 
       {/* Кнопки навигации */}
     </div>

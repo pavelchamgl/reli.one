@@ -123,37 +123,33 @@ const SellerGoodsList = () => {
           </div>
         ) : (
           <div className={styles.listWrap}>
-            {goodsStatus === "active" &&
-              products?.length > 0 ?
+            {goodsStatus === "active" && products?.length > 0 ? (
               products.map((item, index) => (
                 <GoodsListCard key={index} isLoading={isLoading} item={item} />
-              )) :
+              ))
+            ) : goodsStatus === "active" ? (
               <NoContentText />
-            }
-
-            {goodsStatus === "moder" &&
-              products?.length > 0 ?
+            ) : goodsStatus === "moder" && products?.length > 0 ? (
               products.map((item, index) => (
                 <GoodsCardModer key={index} isLoading={isLoading} item={item} />
-              )) :
+              ))
+            ) : goodsStatus === "moder" ? (
               <NoContentText />
-            }
-
-            {goodsStatus === "notModer" ?
-              products?.length > 0 &&
+            ) : goodsStatus === "notModer" && products?.length > 0 ? (
               products.map((item, index) => (
                 <GoodsCardNotModer key={index} isLoading={isLoading} item={item} />
-              )) :
+              ))
+            ) : goodsStatus === "notModer" ? (
               <NoContentText />
-
-            }
+            ) : null}
           </div>
         )
       }
 
 
 
-      {status !== "pending" || !count &&
+
+      {status !== "pending" && count > 0 && (
         <div className={styles.paginateDiv}>
           <Pagination
             shape="rounded"
@@ -162,7 +158,7 @@ const SellerGoodsList = () => {
             onChange={handleChange}
           />
         </div>
-      }
+      )}
     </div>
   );
 };

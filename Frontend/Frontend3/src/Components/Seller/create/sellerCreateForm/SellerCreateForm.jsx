@@ -11,6 +11,7 @@ import CreateCharacInp from "../../../../ui/Seller/create/createCharacteristicsI
 import SellerCreateImage from "../sellerCreateImages/SellerCreateImage";
 import SellerCreateVariants from "../sellerCreateVariants/SellerCreateVariants";
 import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain";
+import CreateLisence from "../createLisence/CreateLisence"
 
 import styles from "./SellerCreateForm.module.scss";
 
@@ -21,6 +22,13 @@ const
     const [files, setFiles] = useState([])
     const [parameters, setParameters] = useState([])
     const [variants, setVariants] = useState([])
+    const [imageErr, setImageErr] = useState(false)
+    const [categoryErr, setCategoryErr] = useState(false)
+    const [parametersErr, setParametersErr] = useState(false)
+    const [varNameErr, setVarNameErr] = useState(false)
+    const [varErr, setVarErr] = useState(false)
+    const [type, setType] = useState(null)
+
 
     const { name, lengthMain, product_description, widthMain, heightMain, weightMain, category, variantsName, variantsMain, images, product_parameters } = useSelector(state => state.create_prev)
 
@@ -53,11 +61,6 @@ const
     // ? preview
 
     useEffect(() => {
-      console.log(category);
-
-    }, [category])
-
-    useEffect(() => {
       setCategory(categoriesStage[categoriesStage?.length - 1])
     }, [categoriesStage])
 
@@ -67,6 +70,51 @@ const
 
     }, [parameters]);
 
+    const handlePreviewClick = () => {
+      const isImagesValid = images.length > 0;
+      const isCategoryValid = Boolean(category);
+      const isParametersValid =
+        product_parameters?.length > 0 &&
+        product_parameters.every(
+          (item) => item.name?.trim() && item.value?.trim()
+        );
+      const isVarNameErrValid = variantsName.length > 0
+      let isVariantValid;
+
+      if (type === "text") {
+        isVariantValid =
+          variantsMain?.length > 0 &&
+          variantsMain.every(
+            (item) =>
+              item.price?.trim() &&
+              !isNaN(Number(item.price)) &&
+              item.text?.trim()
+          );
+      } else {
+        isVariantValid =
+          variantsMain?.length > 0 &&
+          variantsMain.every(
+            (item) =>
+              item.price?.trim() &&
+              !isNaN(Number(item.price)) &&
+              item.image?.trim()
+          );
+      }
+
+
+
+      setCategoryErr(!isCategoryValid);
+      setImageErr(!isImagesValid);
+      setParametersErr(!isParametersValid)
+      setVarNameErr(!isVarNameErrValid)
+      setVarErr(!isVariantValid)
+
+      if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid) {
+        formik.handleSubmit();
+      }
+    };
+
+
 
 
 
@@ -75,10 +123,12 @@ const
         <CreateFormInp text={"Goods name"} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
           setName({ name: e.target.value })
           formik.handleChange(e)
-        }} titleSize={"big"} required={true} />
+        }} titleSize={"big"} required={true} error={formik.errors.name} />
 
-        <SellerCreateImage setFilesMain={setFiles} />
-        <CreateCategoryMain />
+        <SellerCreateImage setErr={setImageErr} err={imageErr} setFilesMain={setFiles} />
+        <CreateLisence />
+
+        <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} />
 
         <CreateFormInp
           name="product_description"
@@ -92,9 +142,10 @@ const
           titleSize={"small"}
           required={true}
           textarea={true}
+          error={formik.errors.product_description}
         />
 
-        <CreateCharacInp setParameters={setParameters} />
+        <CreateCharacInp err={parametersErr} setErr={setParametersErr} setParameters={setParameters} />
 
         <CreateFormInp text={"Barcode"} titleSize={"small"} />
         <CreateFormInp text={"Item"} titleSize={"small"} required={true} />
@@ -117,29 +168,29 @@ const
         <CreateFormInp name={"length"} value={formik.values.length} {...formik} handleChange={(e) => {
           formik.handleChange(e)
           setLength({ length: e.target.value })
-        }} text={"Package length, mm"} titleSize={"small"} />
+        }} text={"Package length, mm"} titleSize={"small"} error={formik.errors.length} />
         <CreateFormInp name={"width"} value={formik.values.width} {...formik} handleChange={(e) => {
           formik.handleChange(e)
           setWidth({ width: e.target.value })
-        }} text={"Package width, mm"} titleSize={"small"} />
+        }} text={"Package width, mm"} titleSize={"small"} error={formik.errors.width} />
         <CreateFormInp name={"height"} value={formik.values.height} {...formik} handleChange={(e) => {
           formik.handleChange(e)
           setHeigth({ height: e.target.value })
-        }} text={"Package height, mm"} titleSize={"small"} />
+        }} text={"Package height, mm"} titleSize={"small"} error={formik.errors.height} />
         <CreateFormInp name={"weight"} value={formik.values.weight} {...formik} handleChange={(e) => {
           formik.handleChange(e)
           setWeight({ weight: e.target.value })
-        }} text={"Weight with package, g"} titleSize={"small"} />
+        }} text={"Weight with package, g"} titleSize={"small"} error={formik.errors.weight} />
 
 
-        <SellerCreateVariants setMainVariants={setVariants} />
+        <SellerCreateVariants err={varErr} setErr={setVarErr} type={type} setType={setType} errName={varNameErr} setErrName={setVarNameErr} setMainVariants={setVariants} />
 
         <div className={styles.footerBtnWrap}>
-          <button>Cancel</button>
+          <button onClick={() => navigate(-1)}>Cancel</button>
 
           <button
-            disabled={!formik.isValid || !category || !variantsName?.trim() || variantsMain.length === 0 || images?.length === 0 || parameters?.length === 0}
-            onClick={() => { formik.handleSubmit() }}>Preview</button>
+            disabled={!formik.isValid || !variantsName?.trim() || variantsMain.length === 0}
+            onClick={handlePreviewClick}>Preview</button>
         </div >
       </div >
     );
