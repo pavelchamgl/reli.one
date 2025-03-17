@@ -1,3 +1,4 @@
+import io
 import uuid
 
 from PIL import Image
@@ -8,6 +9,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
+from django.core.files.base import ContentFile
 
 from sellers.models import SellerProfile
 
@@ -129,6 +131,28 @@ class BaseProductImage(models.Model):
 
     def __str__(self):
         return str(self.image)
+
+    def save(self, *args, **kwargs):
+        self.image = self.process_image(self.image)
+        super().save(*args, **kwargs)
+
+    def process_image(self, image_file):
+        img = Image.open(image_file)
+        img = self.resize_and_pad(img)
+        img_io = io.BytesIO()
+        img.save(img_io, format="WebP", quality=80)
+        return ContentFile(img_io.getvalue(), name=image_file.name.split('.')[0] + ".webp")
+
+    def resize_and_pad(self, img, size=1000):
+        """Приводим изображение к 1:1 с отступами"""
+        old_size = img.size
+        ratio = float(size) / max(old_size)
+        new_size = tuple([int(x * ratio) for x in old_size])
+        img = img.resize(new_size, Image.LANCZOS)
+
+        new_img = Image.new("RGB", (size, size), (255, 255, 255))  # Белый фон
+        new_img.paste(img, ((size - new_size[0]) // 2, (size - new_size[1]) // 2))
+        return new_img
 
     # def save(self, *args, **kwargs):
     #     super().save(*args, **kwargs)
