@@ -140,7 +140,7 @@ class BaseProductImage(models.Model):
         img = Image.open(image_file)
         img = self.resize_and_pad(img)
         img_io = io.BytesIO()
-        img.save(img_io, format="WebP", quality=80)
+        img.save(img_io, format="WebP", quality=95)
         return ContentFile(img_io.getvalue(), name=image_file.name.split('.')[0] + ".webp")
 
     def resize_and_pad(self, img, size=1000):
