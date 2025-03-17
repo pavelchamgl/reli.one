@@ -5,6 +5,7 @@ from product.models import (
     ProductParameter,
     ProductVariant,
     BaseProductImage,
+    LicenseFile,
 )
 
 
@@ -36,6 +37,10 @@ class IsSellerOwner(BasePermission):
 
         # Если объект - это изображение продукта
         if isinstance(obj, BaseProductImage):
+            return obj.product.seller.user == request.user
+
+        # Если объект - это лицензия продукта
+        if isinstance(obj, LicenseFile):
             return obj.product.seller.user == request.user
 
         # Если объект другого типа - запрещаем
