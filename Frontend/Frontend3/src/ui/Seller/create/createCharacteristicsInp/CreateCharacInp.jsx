@@ -3,7 +3,7 @@ import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
 import styles from "./CreateCharacInp.module.scss";
 import { useSelector } from "react-redux";
 
-const CreateCharacInp = ({ setParameters }) => {
+const CreateCharacInp = ({ setParameters, err, setErr }) => {
   const { product_parameters } = useSelector(state => state.create_prev)
   const [characteristic, setCharacteristic] = useState(product_parameters ? product_parameters :
     [{
@@ -59,7 +59,7 @@ const CreateCharacInp = ({ setParameters }) => {
           return <></>
         } else {
           return (
-            <div className={styles.characWrap} key={item.id}>
+            <div className={err ? styles.characWrapErr : styles.characWrap} key={item.id}>
               <input
                 onChange={(e) => {
                   handleChange(e, item.id, "name");
@@ -84,6 +84,7 @@ const CreateCharacInp = ({ setParameters }) => {
         }
       }
       )}
+      {err ? <p className={styles.errText}>All parameters are required to be filled in.</p> : ""}
     </div>
   );
 };

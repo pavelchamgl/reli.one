@@ -1,7 +1,11 @@
 .main {
+  grid-column: 1 / -1; /* Растягивание на всю ширину */
+  text-align: center;
+  
+
   display: flex;
   height: 500px;
-  width: 100vw;
+  width: 100%;
   flex-direction: column;
   gap: 30px;
   align-items: center;

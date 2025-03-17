@@ -1,13 +1,17 @@
 import { Rating } from "@mui/material";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import testImg from "../../../../assets/Product/ProductTestImage.svg";
-
-import styles from "./GoodsListCard.module.scss";
 import GoodsDeleteModal from "../../../../ui/Seller/Goods/GoodsDeleteModal/GoodsDeleteModal";
 
+import styles from "./GoodsListCard.module.scss";
+
 const GoodsListCard = ({ item, isLoading }) => {
+  const navigate = useNavigate()
+
   const [open, setOpen] = useState(false);
+
 
   console.log(item);
 
@@ -47,7 +51,7 @@ const GoodsListCard = ({ item, isLoading }) => {
         </div>
         <p className={styles.orderCountText}>Ordered: {item && item?.ordered_count ? item?.ordered_count : 0}</p>
         <div className={styles.btnsDiv}>
-          <button>Edit</button>
+          <button onClick={()=> navigate(`/seller/seller-edit/${item?.id}`)}>Edit</button>
           <button onClick={() => setOpen(!open)}>Del</button>
         </div>
       </div>

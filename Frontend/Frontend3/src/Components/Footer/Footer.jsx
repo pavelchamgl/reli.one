@@ -4,12 +4,30 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import logo from "../../assets/Footer/logo.svg";
-
-import cls from "./Footer.module.css";
+import instaIcon from "../../assets/Footer/insta.svg";
+import faceIcon from "../../assets/Footer/facebook.svg";
 import LoginModal from "../LoginModal/LoginModal";
 
+import cls from "./Footer.module.scss";
+
+
+const MessengerBtns = () => {
+  return (
+    <div className={cls.messBtns}>
+      <a target="_blank" href="https://www.instagram.com/reli_just_one?igsh=MXU5b3RjcjhraXR0cQ%3D%3D&utm_source=qr">
+        <img src={instaIcon} alt="" />
+        <p>instagram</p>
+      </a>
+      <a target="_blank" href="https://www.facebook.com/share/1H2tBL8yDB/?mibextid=wwXIfr">
+        <img src={faceIcon} alt="" />
+        <p>facebook</p>
+      </a>
+    </div>
+  )
+}
+
 const Footer = () => {
-  const isMobile = useMediaQuery({ maxWidth: 400 });
+  const isMobile = useMediaQuery({ maxWidth: 426 });
   const [open, setOpen] = useState(false);
 
   const { t } = useTranslation();
@@ -42,8 +60,10 @@ const Footer = () => {
             {t("address")}: {t("reli_address")}
           </p>
         </div>
-
-        <p className={cls.mobBottomDesc}>(c) Copyright 2025 Reli Group</p>
+        <div className={cls.mobBottomWrap}>
+          <MessengerBtns />
+          <p className={cls.mobBottomDesc}>(c) Copyright 2025 Reli Group</p>
+        </div>
       </div>
     );
   } else {
@@ -87,7 +107,10 @@ const Footer = () => {
             </p>
           </div>
         </div>
-        <p className={cls.bottomDesc}>(c) Copyright 2025 Reli Group</p>
+        <div className={cls.bottomElem}>
+          <MessengerBtns />
+          <p className={cls.bottomDesc}>(c) Copyright 2025 Reli Group</p>
+        </div>
         <LoginModal open={open} handleClose={() => setOpen(false)} />
       </div>
     );

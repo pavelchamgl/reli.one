@@ -22,11 +22,14 @@ const CreateFormInp = ({
         : styles.titleSmall;
 
   return (
-    <label style={style} className={styles.label}>
+    <label style={style} className={error ? styles.labelErr : styles.label}>
       <p className={titleClass}>{text}</p>
       {textarea
         ? <textarea name={name} value={value} onChange={handleChange} onBlur={handleBlur} />
-        : <input name={name} value={value} onBlur={handleBlur} onChange={handleChange} type="text" />}
+        :
+        <input name={name} value={value} onBlur={handleBlur} onChange={handleChange} type="text" />
+      }
+      {error ? <p className={styles.errText}>{error}</p> : <></>}
     </label>
   );
 };

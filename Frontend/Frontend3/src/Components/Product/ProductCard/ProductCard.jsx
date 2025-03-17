@@ -145,6 +145,18 @@ const ProductCard = ({ data = null }) => {
     }
   }, [data]);
 
+  const [formattedText, setFormattedText] = useState(data?.name || "");
+
+  useEffect(() => {
+    if (!data?.name) return;
+
+    const replacedText = data?.name?.split(/(\d+)/).map((part, index) =>
+      /\d+/.test(part) ? <span key={index}>{part}</span> : part
+    );
+
+    setFormattedText(replacedText);
+  }, [data.name]);
+
   if (isLoading) {
     return (
       <div className={styles.skeleton}>
@@ -188,8 +200,7 @@ const ProductCard = ({ data = null }) => {
           className={styles.prodName}
           onClick={() => navigate(`/product/${data.id}`)}
         >
-          {data?.name ? `${data.name.slice(0, 19)}${data.name.length > 19 ? "..." : ""}` : ""}
-
+          {formattedText}
         </p>
         <div className={styles.rateDiv}>
           <Rating

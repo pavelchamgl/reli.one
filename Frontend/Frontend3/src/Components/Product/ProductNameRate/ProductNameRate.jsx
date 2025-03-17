@@ -50,6 +50,18 @@ const ProductNameRate = () => {
     }
   }, [id, basket, sku]);
 
+  const [formattedText, setFormattedText] = useState(product?.name || "");
+
+  useEffect(() => {
+    if (!product || !product.name) return;
+
+    const replacedText = product.name.split(/(\d+)/).map((part, index) =>
+      /\d+/.test(part) ? <span key={index} >{part}</span> : part
+    );
+
+    setFormattedText(replacedText);
+  }, [product?.name]);
+
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
       // Проверка, есть ли продукт с текущим id в корзине
@@ -76,8 +88,8 @@ const ProductNameRate = () => {
         <p>{product.total_reviews}</p>
       </div>
       <div className={styles.nameCategoryDiv}>
-        <p>{product?.name}</p>
-        <span>{product?.category_name}</span>
+        <p className={styles.name}>{formattedText}</p>
+        <span className={styles.categoryName}>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{price} €</p>
       <ProdCharackButtons

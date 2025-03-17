@@ -2,7 +2,7 @@ import { bindActionCreators } from "@reduxjs/toolkit"
 import { useDispatch } from "react-redux"
 import { useMemo } from "react"
 
-import { fetchSellerProductById, deleteParameter, fetchDeleteParameters, setNewParameters, fetchGetImages, deleteImage, fetchDeleteImage, setParameter, setCategory, setNewVariants, fetchDeleteVariant, deleteVariant } from "../redux/editGoodsSlice"
+import { fetchSellerProductById, deleteParameter, fetchDeleteParameters, setNewParameters, fetchGetImages, deleteImage, fetchDeleteImage, setParameter, setCategory, setNewVariants, fetchDeleteVariant, deleteVariant, setImages, fetchEditProduct } from "../redux/editGoodsSlice"
 
 const rootActions = {
     fetchSellerProductById,
@@ -16,7 +16,9 @@ const rootActions = {
     setCategory,
     setNewVariants,
     fetchDeleteVariant,
-    deleteVariant
+    deleteVariant,
+    setImages,
+    fetchEditProduct
 }
 
 

@@ -34,6 +34,12 @@
     color: #000;
     cursor: pointer !important;
 
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Обрезка до 2 строк */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
     @media (max-width: 830px) {
       font-size: 18px;
     }

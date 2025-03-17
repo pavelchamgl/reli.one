@@ -29,7 +29,6 @@
   align-items: center;
   gap: clamp(14px, 2.5vw, 20px);
   margin-top: clamp(15px, 2.5vw, 25px);
-  margin-bottom: clamp(15px, 2.5vw, 20px);
   & input {
     width: 100%;
     border: 1px solid #ced4d7;
@@ -52,8 +51,16 @@
 }
 
 .variantsWrap {
+  margin-top: clamp(15px, 2.5vw, 20px);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: clamp(14px, 2.5vw, 16px);
+}
+
+.errText {
+  font-weight: 300;
+  font-size: 14px;
+  color: #dc2626;
+  margin-top: 4px;
 }

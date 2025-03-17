@@ -4,6 +4,15 @@
   flex-direction: column;
 }
 
+.mainErr {
+  width: clamp(139px, 2.5vw, 200px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dc2626;
+}
+
+
+
 .nameInp {
   background: #fafafa;
   border: 1px solid #ced4d7;
@@ -15,6 +24,9 @@
   padding-left: 10px;
   outline-color: #cbcdce;
   transition: 0.5s ease;
+}
+.nameInp:disabled {
+  background-color: #7d7d7d76;
 }
 
 .nameInp:hover {
@@ -43,6 +55,24 @@
   }
 }
 
+.addPhotoDivDis {
+  background: #7d7d7d76;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  & p {
+    margin: 6px 0;
+  }
+
+  & input {
+    display: none;
+  }
+}
 .variantImageWrap {
   position: relative;
   width: 139px;

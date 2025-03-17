@@ -6,7 +6,7 @@ import SellerCreateVariant from "../sellerCreateVariant/SellerCreateVariant"
 import styles from "./SellerCreateVariants.module.scss"
 import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev"
 
-const SellerCreateVariants = ({ setMainVariants }) => {
+const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, errName, setErrName }) => {
     const { variantsName, variantsMain } = useSelector(state => state.create_prev)
     const [name, setName] = useState("")
     const [variants, setVariants] = useState(variantsMain ? variantsMain : [
@@ -79,17 +79,25 @@ const SellerCreateVariants = ({ setMainVariants }) => {
             </p>
 
             <div className={styles.addStyleWrap}>
-                <input value={name} onChange={(e) => {
+                <input style={{ border: errName ? "1px solid #dc2626" : " 1px solid #ced4d7" }} value={name} onChange={(e) => {
                     setVariantsName({ name: e.target.value })
                     setName(e.target.value)
+                    if (e.target.value.length > 0) {
+                        setErrName(false)
+                    }
                 }} type="text" placeholder="Color, size, style" />
                 <button onClick={handleAddVariant}>+ Add style</button>
             </div>
+            {errName ? <p className={styles.errText}>Variant name is required</p> : <></>}
 
             <div className={styles.variantsWrap}>
                 {variants.length > 0 &&
                     variants.map((item) => (
                         <SellerCreateVariant
+                            err={err}
+                            setErr={setErr}
+                            type={type}
+                            setType={setType}
                             key={item.id}
                             handleDeleteVariant={handleDeleteVariant}
                             variant={item}
@@ -97,6 +105,7 @@ const SellerCreateVariants = ({ setMainVariants }) => {
                         />
                     ))}
             </div>
+            {err ? <p className={styles.errText}>Data error: The price must be a number. Each variant must include either text or an image.</p> : <></>}
         </div>
     )
 

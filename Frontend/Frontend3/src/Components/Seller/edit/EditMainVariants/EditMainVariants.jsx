@@ -8,7 +8,7 @@ import EditVariants from "../editVariants/EditVariants"
 
 import styles from "./EditMainVariants.module.scss"
 
-const EditMainVariants = ({ setMainVariants, setVariantName }) => {
+const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err, setErr, errName, setErrName }) => {
 
     const { id } = useParams()
 
@@ -62,7 +62,7 @@ const EditMainVariants = ({ setMainVariants, setVariantName }) => {
         setVariants((prev) => [
             ...prev,
             {
-                id: prev.length ? prev[prev.length - 1].id + 1 : 1,
+                id:  Date.now(),
                 text: "",
                 price: "",
                 image: null,
@@ -82,8 +82,8 @@ const EditMainVariants = ({ setMainVariants, setVariantName }) => {
             deleteVariant(varId)
         } else {
             fetchDeleteVariant({
-                prodId:id,
-                varId:varId
+                prodId: id,
+                varId: varId
             })
         }
     }
@@ -96,14 +96,25 @@ const EditMainVariants = ({ setMainVariants, setVariantName }) => {
             </p>
 
             <div className={styles.addStyleWrap}>
-                <input value={variantsName} onChange={(e) => setParameter({ name: "varName", value: e.target.value })} type="text" placeholder="Color, size, style" />
+                <input style={{ border: errName ? "1px solid #dc2626" : " 1px solid #ced4d7" }} value={variantsName} onChange={(e) => {
+                    setParameter({ name: "varName", value: e.target.value })
+                    if (e.target.value.length > 0) {
+                        setErrName(false)
+                    }
+                }} type="text" placeholder="Color, size, style" />
                 <button onClick={handleAddVariant}>+ Add style</button>
             </div>
+            {errName ? <p className={styles.errText}>Variant name is required</p> : <></>}
+
 
             <div className={styles.variantsWrap}>
                 {variants.length > 0 &&
                     variants.map((item) => (
                         <EditVariants
+                            type={type}
+                            setType={setType}
+                            err={err}
+                            setErr={setErr}
                             key={item.id}
                             handleDeleteVariant={handleDeleteVariant}
                             variant={item}
@@ -111,6 +122,7 @@ const EditMainVariants = ({ setMainVariants, setVariantName }) => {
                         />
                     ))}
             </div>
+            {err ? <p className={styles.errText}>Data error: The price must be a number. Each variant must include either text or an image.</p> : <></>}
         </div>
     )
 }

@@ -20,47 +20,44 @@ import deleteCommentImage from "../../../../assets/Product/deleteCommentImage.sv
 import styles from "./SellerEditImages.module.scss";
 
 
-const SellerEditImages = ({ }) => {
+const SellerEditImages = ({ err, setErr }) => {
     const [imageUrls, setImageUrls] = useState([]);
     const [files, setFiles] = useState([]);
 
     const { id } = useParams()
     const isMobile = useMediaQuery({ maxWidth: 427 })
 
-    const { fetchGetImages, deleteImage, fetchDeleteImage } = useActionSellerEdit()
+    const { fetchGetImages, deleteImage, fetchDeleteImage, setImages } = useActionSellerEdit()
 
     const { images } = useSelector(state => state.edit_goods)
 
     const arr = 6
 
+    // useEffect(() => {
+    //     // setFilesMain(files)
+
+    //     let imagesArr = [];
+
+    //     if (imageUrls?.length > 0) {
+
+    //         imagesArr = imageUrls.map((item) => {
+    //             return {
+    //                 image_url: item
+    //             }
+    //         })
+    //     }
+    // }, [imageUrls, files])
+
+    // useEffect(() => {
+    //     fetchGetImages(id)
+    // }, [id])
+
+
     useEffect(() => {
-        // setFilesMain(files)
-
-        let imagesArr = [];
-
-        if (imageUrls?.length > 0) {
-
-            imagesArr = imageUrls.map((item) => {
-                return {
-                    image_url: item
-                }
-            })
+        if (images?.length > 0) {
+            setErr(false)
         }
-    }, [imageUrls, files])
-
-    useEffect(() => {
-        fetchGetImages(id)
-    }, [id])
-
-    useEffect(() => {
-        setImageUrls(images)
-        console.log(images);
-
     }, [images])
-
-    useEffect(() => {
-        console.log(imageUrls);
-    }, [imageUrls])
 
     const handleChangeFile = (e) => {
         const newFiles = Array.from(e.target.files);
@@ -68,27 +65,42 @@ const SellerEditImages = ({ }) => {
         setFiles(updateFiles);
 
         newFiles.forEach((file) => {
-            const url = URL.createObjectURL(file);
-            setImageUrls((prevUrls) => [
-                ...prevUrls,
-                { id: Date.now(), image: url, image_url: url, status: "local" }
-            ]);
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onload = () => {
+                const base64 = reader.result;
+                setImages([
+                    {
+                        id: Date.now(),
+                        image: base64,
+                        image_url: base64,
+                        status: "local"
+                    }
+                ])
+            };
+
+            reader.onerror = (error) => {
+                console.error("Ошибка при чтении файла:", error);
+            };
         });
     };
 
-    const handleDelete = (url, index) => {
-        if (url?.status === "server") {
+
+    const handleDelete = (url) => {
+        console.log(url);
+        if (url?.status === "local") {
+            deleteImage({ id: url.id })
+        } else {
             fetchDeleteImage({
                 prodId: id,
                 imageId: url.id
             })
-        } else { 
-            deleteImage(url.id)
         }
-        const updatedFiles = files.filter((_, i) => i !== index);
-        const updatedUrls = imageUrls.filter((_, i) => i !== index);
-        setFiles(updatedFiles);
-        setImageUrls(updatedUrls);
+        // const updatedFiles = files.filter((_, i) => i !== index);
+        // const updatedUrls = imageUrls.filter((_, i) => i !== index);
+        // setFiles(updatedFiles);
+        // setImageUrls(updatedUrls);
     };
 
     return (
@@ -121,12 +133,12 @@ const SellerEditImages = ({ }) => {
                         className={styles.swiper}
                         direction="horizontal"
                     >
-                        {imageUrls?.length === 0 || !imageUrls ? (
+                        {images?.length === 0 || !images ? (
                             <div className={styles.smallMaskWrap}>
                                 {Array.from({ length: arr }, (_, index) => (
                                     <SwiperSlide key={index} className={styles.swiperSlide}>
 
-                                        <div className={styles.mask}>
+                                        <div className={err ? styles.maskErr : styles.maskk}>
                                             <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="mask" />
                                         </div>
 
@@ -134,7 +146,7 @@ const SellerEditImages = ({ }) => {
                                 ))}
                             </div>
                         ) : (
-                            imageUrls?.map((url, index) => (
+                            images?.map((url, index) => (
                                 <SwiperSlide key={index} className={styles.swiperSlide}>
                                     <div
                                         className={styles.imageWrapper}
@@ -148,7 +160,7 @@ const SellerEditImages = ({ }) => {
                                         <div className={styles.deleteWrap}>
                                             <button
                                                 className={styles.deleteButton}
-                                                onClick={() => handleDelete(url, index)}
+                                                onClick={() => handleDelete(url)}
                                             >
                                                 <svg
                                                     width="14"
@@ -185,6 +197,8 @@ const SellerEditImages = ({ }) => {
                     </button>
                 </>
             </div>
+            {err ? <p className={styles.errText}>Image is required</p> : <></>}
+
 
             {/* Кнопки навигации */}
         </div>

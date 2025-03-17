@@ -6,7 +6,7 @@ import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
 
 import styles from "./EditGoodsParameters.module.scss"
 
-const EditGoodsParameters = ({ parameters }) => {
+const EditGoodsParameters = ({ parameters, err, setErr }) => {
     const { id } = useParams()
 
     const [characteristic, setCharacteristic] = useState([
@@ -21,10 +21,10 @@ const EditGoodsParameters = ({ parameters }) => {
 
     useEffect(() => {
         setCharacteristic(parameters)
-
     }, [parameters]);
 
     const handleChange = (e, id, type) => {
+        setErr(false)
         const [ourObj] = characteristic.filter((item) => item.id === id);
         const otherObj = characteristic.filter((item) => item.id !== id);
 
@@ -43,15 +43,12 @@ const EditGoodsParameters = ({ parameters }) => {
     };
 
     const handleAdd = () => {
-        const lastId =
-            characteristic.length > 0
-                ? characteristic[characteristic.length - 1].id
-                : 0;
+        setErr(false)
 
         const addArr = [
             ...characteristic,
             {
-                id: lastId + 1,
+                id: Date.now(),
                 name: "",
                 value: "",
                 status: "local"
@@ -63,9 +60,10 @@ const EditGoodsParameters = ({ parameters }) => {
     };
 
     const handleDelete = (item) => {
+        setErr(false)
 
         console.log(item.id);
-        
+
         if (item?.status === "server") {
             fetchDeleteParameters({
                 id: id,
@@ -84,7 +82,7 @@ const EditGoodsParameters = ({ parameters }) => {
                 <button onClick={handleAdd}>+ Add an item</button>
             </div>
             {characteristic?.map((item) => (
-                <div className={styles.characWrap} key={item.id}>
+                <div className={err ? styles.characWrapErr : styles.characWrap} key={item.id}>
                     <input
                         onChange={(e) => {
                             handleChange(e, item.id, "name");
@@ -106,6 +104,7 @@ const EditGoodsParameters = ({ parameters }) => {
                     </button>
                 </div>
             ))}
+            {err ? <p className={styles.errText}>All parameters are required to be filled in.</p> : ""}
         </div>
     );
 }

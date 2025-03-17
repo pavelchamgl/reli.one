@@ -5,7 +5,7 @@ import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
 
 import styles from "./SellerCreateVariant.module.scss"
 
-const SellerCreateVariant = ({ variant, handleEditVariant, handleDeleteVariant }) => {
+const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDeleteVariant, type, setType }) => {
     const [newVariant, setNewVariant] = useState(variant)
     const [file, setFile] = useState(null)
     const [url, setUrl] = useState(null)
@@ -24,6 +24,8 @@ const SellerCreateVariant = ({ variant, handleEditVariant, handleDeleteVariant }
 
 
     const handleChangeFile = (e) => {
+        setType("image")
+        setErr(false)
         const newFile = e.target.files[0]; // Получаем только один файл
         if (!newFile) return;
 
@@ -58,20 +60,30 @@ const SellerCreateVariant = ({ variant, handleEditVariant, handleDeleteVariant }
 
 
     return (
-        <div className={styles.main}>
+        <div className={err ? styles.mainErr : styles.main}>
             <input
                 className={styles.nameInp}
                 type="text"
                 value={newVariant.text}
-                onChange={(e) => setNewVariant({ ...newVariant, text: e.target.value })}
+                onChange={(e) => {
+                    setNewVariant({ ...newVariant, text: e.target.value }
+                    )
+                    setType("text")
+                    setErr(false)
+                }}
                 placeholder="Name color"
+                disabled={type === "image"}
             />
             <div className={styles.priceDiv}>
                 <input
                     type="text"
                     value={newVariant.price}
-                    onChange={(e) => setNewVariant({ ...newVariant, price: e.target.value })}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, price: e.target.value })
+                        setErr(false)
+                    }}
                     placeholder="Price"
+                    required
                 />
                 <button onClick={() => handleDeleteVariant(variant.id)}>
                     <img src={deleteIcon} alt="" />
@@ -87,9 +99,9 @@ const SellerCreateVariant = ({ variant, handleEditVariant, handleDeleteVariant }
                             </button>
                         </div>
                     ) :
-                    <label className={styles.addPhotoDiv} onClick={handleLabelClick}>
+                    <label className={type === "text" ? styles.addPhotoDivDis : styles.addPhotoDiv} onClick={handleLabelClick}>
                         <p>+ Add photo</p>
-                        <input onChange={handleChangeFile} type="file" accept="image/*,video/*" />
+                        <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept="image/*,video/*" />
                     </label>
             }
         </div>
