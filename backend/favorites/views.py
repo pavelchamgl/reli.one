@@ -101,8 +101,7 @@ class FavoriteProductListAPIView(ListAPIView):
         ).prefetch_related(
             'images',
             'variants',
-            'parameters',
-            'parameters__parameter',
+            'product_parameters',
         ).distinct()
 
         if sort_by == 'popular':

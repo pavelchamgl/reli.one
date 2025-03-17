@@ -1,21 +1,21 @@
 from rest_framework import serializers
 
 from .models import (
+    ProductParameter,
     BaseProductImage,
     BaseProduct,
-    ParameterValue,
     Category,
     ProductVariant,
 )
 from favorites.models import Favorite
+from order.models import OrderProduct
 
 
-class ParameterValueSerializer(serializers.ModelSerializer):
-    parameter_name = serializers.CharField(source='parameter.name')
-
+class ProductParameterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ParameterValue
-        fields = ['parameter_name', 'value']
+        model = ProductParameter
+        fields = ['id', 'name', 'value']
+        read_only_fields = ['id']
 
 
 class BaseProductImageSerializer(serializers.ModelSerializer):
@@ -53,12 +53,15 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 
 class BaseProductDetailSerializer(serializers.ModelSerializer):
-    parameters = ParameterValueSerializer(many=True)
+    product_parameters = ProductParameterSerializer(many=True, read_only=True)
     license_file = serializers.SerializerMethodField()
     images = BaseProductImageSerializer(many=True, read_only=True)
     is_favorite = serializers.SerializerMethodField()
     category_name = serializers.CharField(source='category.name', read_only=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
+    can_review = serializers.SerializerMethodField(
+        help_text="List of SKU identifiers that the authenticated user can review."
+    )
 
     class Meta:
         model = BaseProduct
@@ -67,13 +70,14 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'category_name',
-            'parameters',
+            'product_parameters',
             'rating',
             'total_reviews',
             'license_file',
             'images',
             'is_favorite',
             'variants',
+            'can_review',
         ]
 
     def get_license_file(self, obj):
@@ -90,12 +94,45 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             return Favorite.objects.filter(user=user, product=obj).exists()
         return False
 
+    def get_can_review(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user = request.user
+
+            # Используем предварительно загруженные варианты продукта
+            variants = obj.variants.all()
+
+            # Получаем список SKU вариантов продукта
+            variant_skus = [variant.sku for variant in variants]
+
+            # Получаем SKU продуктов, которые пользователь купил
+            purchased_skus = set(
+                OrderProduct.objects.filter(
+                    order__user=user,
+                    product__sku__in=variant_skus
+                ).values_list('product__sku', flat=True)
+            )
+
+            # Получаем SKU продуктов, на которые пользователь уже оставил отзыв
+            reviewed_skus = set()
+            for variant in variants:
+                # Используем обновленный related_name 'variant_reviews'
+                if any(review.author_id == user.id for review in variant.variant_reviews.all()):
+                    reviewed_skus.add(variant.sku)
+
+            # Определяем SKU, на которые пользователь может оставить отзыв
+            can_review_skus = purchased_skus - reviewed_skus
+
+            return list(can_review_skus)
+        return []
+
 
 class BaseProductListSerializer(serializers.ModelSerializer):
-    parameters = ParameterValueSerializer(many=True)
+    product_parameters = ProductParameterSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     price = serializers.DecimalField(source='min_price', max_digits=10, decimal_places=2, read_only=True)
+    ordered_count = serializers.IntegerField(source='ordered_quantity', read_only=True)
 
     class Meta:
         model = BaseProduct
@@ -103,12 +140,13 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'product_description',
-            'parameters',
+            'product_parameters',
             'image',
             'price',
             'rating',
             'total_reviews',
             'is_favorite',
+            'ordered_count',
         ]
 
     def get_price(self, obj):

@@ -5,26 +5,17 @@ from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
 
-from supplier.models import Supplier
+from sellers.models import SellerProfile
 
 
-class ParameterName(models.Model):
-    name = models.CharField(max_length=100)
-
-    def __str__(self):
-        return f"{self.name}"
-
-
-class ParameterValue(models.Model):
-    parameter = models.ForeignKey(ParameterName, on_delete=models.CASCADE)
-    value = models.TextField()
-
-    def __str__(self):
-        return f"{self.value} {self.parameter.name}"
+class ProductStatus(models.TextChoices):
+    PENDING = 'pending', 'Pending'
+    APPROVED = 'approved', 'Approved'
+    REJECTED = 'rejected', 'Rejected'
 
 
 class Category(MPTTModel):
@@ -49,17 +40,53 @@ class BaseProduct(models.Model):
     name = models.CharField(max_length=100)
     product_description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    parameters = models.ManyToManyField(ParameterValue, related_name='base_products')
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
+    seller = models.ForeignKey(
+        SellerProfile,
+        on_delete=models.CASCADE,
+        related_name='products'
+    )
+    barcode = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True,
+        help_text="A standardized barcode (e.g., EAN or UPC) if the product has one."
+    )
+    article = models.CharField(
+        max_length=10,
+        blank=True,
+        null=True,
+        help_text="Article code displayed to customers (must be exactly 10 digits).",
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$',
+                message='Article must be exactly 10 digits.'
+            )
+        ]
+    )
     rating = models.DecimalField(
         max_digits=2,
         decimal_places=1,
-        # default=Decimal('1.0'),
-        validators=[MinValueValidator(Decimal('1.0')), MaxValueValidator(Decimal('5.0'))],
+        default=Decimal('0.0'),
+        validators=[MinValueValidator(Decimal('0.0')), MaxValueValidator(Decimal('5.0'))],
         blank=True,
         null=True,
     )
     total_reviews = models.IntegerField(default=0)
+    status = models.CharField(
+        max_length=20,
+        choices=ProductStatus.choices,
+        default=ProductStatus.PENDING
+    )
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='approved_products',
+        limit_choices_to={'role__in': ['Manager', 'Admin']}
+    )
+    approved_at = models.DateTimeField(null=True, blank=True)
+    rejected_reason = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -83,6 +110,19 @@ def validate_file_size(value):
         )
 
 
+class ProductParameter(models.Model):
+    product = models.ForeignKey(
+        BaseProduct,
+        on_delete=models.CASCADE,
+        related_name='product_parameters'
+    )
+    name = models.CharField(max_length=100)
+    value = models.TextField()
+
+    def __str__(self):
+        return f"{self.name}: {self.value}"
+
+
 class BaseProductImage(models.Model):
     product = models.ForeignKey(BaseProduct, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='base_product_images/')
@@ -90,12 +130,12 @@ class BaseProductImage(models.Model):
     def __str__(self):
         return str(self.image)
 
-    def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)
-        image = Image.open(self.image.path)
-        target_size = (1263, 1209)
-        resized_image = image.resize(target_size)
-        resized_image.save(self.image.path, quality=95, optimize=True)
+    # def save(self, *args, **kwargs):
+    #     super().save(*args, **kwargs)
+    #     image = Image.open(self.image.path)
+    #     target_size = (1263, 1209)
+    #     resized_image = image.resize(target_size)
+    #     resized_image.save(self.image.path, quality=95, optimize=True)
 
 
 class ProductVariant(models.Model):
@@ -109,7 +149,7 @@ class ProductVariant(models.Model):
     )
 
     def __str__(self):
-        return f"{self.product.name} - {self.name} price: {self.price}"
+        return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"
 
     def clean(self):
         # Убедитесь, что только одно из полей 'text' или 'image' заполнено

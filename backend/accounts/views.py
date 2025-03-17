@@ -7,8 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .choices import UserRole
 from .utils import create_and_send_otp
-from .models import UserRole, CustomUser, OTP
+from .models import CustomUser, OTP
 from .serializers import (
     UserRegistrationSerializer,
     EmailSerializer,
@@ -20,8 +21,7 @@ from .serializers import (
 
 
 class UserRegistrationView(APIView):
-    role_name = None
-    manager = None
+    role_name = UserRole.CUSTOMER
 
     @extend_schema(
         description="Register a new user.",
@@ -67,16 +67,26 @@ class UserRegistrationView(APIView):
         tags=["Accounts"]
     )
     def post(self, request, *args, **kwargs):
-        serializer = UserRegistrationSerializer(data=request.data, context={'role_name': self.role_name, 'manager': self.manager})
+        serializer = UserRegistrationSerializer(
+            data=request.data,
+            context={'role_name': self.role_name}
+        )
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            user = serializer.save()
+            # Возможно, нужно вернуть данные пользователя без пароля
+            response_data = {
+                'id': user.id,
+                'email': user.email,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'role': user.role,
+            }
+            return Response(response_data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerRegistrationView(UserRegistrationView):
     role_name = UserRole.CUSTOMER
-    manager = CustomUser.customers
 
     @extend_schema(
         description="Register a new customer.",
@@ -133,7 +143,6 @@ class CustomerRegistrationView(UserRegistrationView):
 
 class SellerRegistrationView(UserRegistrationView):
     role_name = UserRole.SELLER
-    manager = CustomUser.sellers
 
     @extend_schema(
         description="Register a new seller.",

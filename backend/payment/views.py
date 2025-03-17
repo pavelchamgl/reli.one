@@ -422,7 +422,7 @@ class StripeWebhookHandler(APIView):
                         product=product_variant,
                         quantity=quantity,
                         delivery_cost=delivery_cost_item,
-                        supplier=product_variant.product.supplier,
+                        seller_profile=product_variant.product.seller,
                         product_price=product_price
                     )
                     logger.debug(
@@ -907,7 +907,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
                     product=product_variant,
                     quantity=quantity,
                     delivery_cost=delivery_cost,
-                    supplier=product_variant.product.supplier,
+                    seller_profile=product_variant.product.seller,
                     product_price=product_price
                 )
                 logger.debug(

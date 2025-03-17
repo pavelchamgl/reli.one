@@ -5,8 +5,9 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
-from supplier.models import Supplier
+from sellers.models import SellerProfile
 from product.models import ProductVariant
+from warehouses.models import Warehouse
 
 
 # Функция для генерации уникального номера заказа в формате ддммггччммсс + первые шесть символов из UUID
@@ -36,12 +37,12 @@ class OrderStatus(models.Model):
 
 
 # Статус доставки самовывозом Assembling, On the Way, Sorting Center, Pickup Point (Enum)
-class SelfPickupStatus(models.Model):
+class DeliveryStatus(models.Model):
     name = models.CharField(max_length=50)
 
     class Meta:
-        verbose_name = 'Self pickup status'
-        verbose_name_plural = 'Self pickup status'
+        verbose_name = 'Delivery status'
+        verbose_name_plural = 'Delivery statuses'
 
     def __str__(self):
         return self.name
@@ -63,12 +64,13 @@ class Order(models.Model):
     promo_code = models.ForeignKey('promocode.PromoCode', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_type = models.ForeignKey('DeliveryType', on_delete=models.SET_NULL, null=True)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)
-    self_pickup_status = models.ForeignKey('SelfPickupStatus', on_delete=models.SET_NULL, null=True, blank=True)
+    delivery_status = models.ForeignKey('DeliveryStatus', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_address = models.CharField(max_length=255, null=True, blank=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     courier_service = models.ForeignKey(CourierService, on_delete=models.SET_NULL, null=True, blank=True)
+    delivery_date = models.DateField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Order'
@@ -89,14 +91,37 @@ class Order(models.Model):
         return refund_amount
 
 
+class ProductStatus(models.TextChoices):
+    AWAITING_ASSEMBLY = 'awaiting_assembly', 'Awaiting assembly'
+    AWAITING_SHIPMENT = 'awaiting_shipment', 'Awaiting shipment'
+    DELIVERABLE = 'deliverable', 'Deliverable'
+    DELIVERED = 'delivered', 'Delivered'
+    CANCELED = 'canceled', 'Canceled'
+    CONTROVERSIAL = 'controversial', 'Controversial'
+
+
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, related_name='order_products', on_delete=models.CASCADE)
     product = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
+    status = models.CharField(
+        max_length=30,
+        choices=ProductStatus.choices,
+        default=ProductStatus.AWAITING_ASSEMBLY
+    )
     received = models.BooleanField(default=False)
-    delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
-    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE)
-    product_price = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
+    delivery_cost = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
+    seller_profile = models.ForeignKey(SellerProfile, on_delete=models.CASCADE)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, null=True, blank=True)
+    product_price = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[MinValueValidator(Decimal('0.00'))]
+    )
     received_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
