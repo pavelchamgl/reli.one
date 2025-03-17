@@ -1,5 +1,7 @@
+import uuid
+import magic
 from rest_framework import serializers
-from drf_extra_fields.fields import Base64ImageField, Base64FileField
+from drf_extra_fields.fields import Base64ImageField
 
 from .fields import CustomBase64FileField
 from product.models import (
@@ -155,5 +157,23 @@ class LicenseFileWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = LicenseFile
-        fields = ['id', 'name', 'file']
-        read_only_fields = ['id']
+        fields = ["id", "name", "file"]
+        read_only_fields = ["id"]
+
+    def validate_file(self, file_obj):
+        chunk = file_obj.read(2048)
+        file_obj.seek(0)
+        real_mime = magic.from_buffer(chunk, mime=True)
+
+        allowed_mimes = {
+            "application/pdf": "pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+        }
+        if real_mime not in allowed_mimes:
+            raise serializers.ValidationError("Требуется PDF или DOCX.")
+
+        extension = allowed_mimes[real_mime]
+        unique_basename = str(uuid.uuid4())
+        file_obj.name = f"{unique_basename}.{extension}"
+
+        return file_obj

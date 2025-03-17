@@ -1,34 +1,24 @@
 import re
-import logging
-from drf_extra_fields.fields import Base64FileField
-from rest_framework.serializers import ValidationError
-
-logger = logging.getLogger(__name__)
-
-ALLOWED_MIME_TYPES = {
-    'application/pdf': 'pdf',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
-}
+import base64
+from rest_framework import serializers
+from django.core.files.base import ContentFile
 
 
-class CustomBase64FileField(Base64FileField):
+class CustomBase64FileField(serializers.FileField):
     """
-    Класс, наследующий Base64FileField, но реализующий метод get_file_extension.
+    Принимает строку data:...;base64,... и декодирует в ContentFile.
+    Не делает проверку MIME — просто декодирование.
     """
-
-    def get_file_extension(self, filename, decoded_file):
-        """
-        Извлекаем MIME-тип из data-URL и проверяем на разрешённые.
-        """
-        logger.debug("DEBUG filename = %r", filename)
-
-        match = re.match(r'^data:(?P<mime>.*?);base64,', filename)
+    def to_internal_value(self, data):
+        pattern = re.compile(r'^data:(?P<mime>[^;]+);base64,(?P<base64data>.+)$')
+        match = pattern.match(data)
         if not match:
-            raise ValidationError("Missing or invalid data URI scheme.")
+            raise serializers.ValidationError("Not a valid data URI scheme.")
 
-        mime_type = match.group('mime').lower()
+        b64data = match.group('base64data')
+        try:
+            decoded_file = base64.b64decode(b64data)
+        except Exception as e:
+            raise serializers.ValidationError(f"Base64 decode error: {str(e)}")
 
-        if mime_type not in ALLOWED_MIME_TYPES:
-            raise ValidationError(f"Unsupported file type: '{mime_type}'")
-
-        return ALLOWED_MIME_TYPES[mime_type]
+        return ContentFile(decoded_file)

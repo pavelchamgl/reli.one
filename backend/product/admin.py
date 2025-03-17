@@ -98,3 +98,6 @@ class BaseProductImageAdmin(admin.ModelAdmin):
 class ProductParameterAdmin(admin.ModelAdmin):
     list_display = ('id', 'product', 'name', 'value')
     search_fields = ['product__name', 'name', 'value']
+
+
+admin.site.register(LicenseFile)
