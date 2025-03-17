@@ -1,0 +1,31 @@
+.messBtns {
+    margin-top: clamp(10px, 2.5vw, 20px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: clamp(10px, 2.5vw, 20px);
+    gap: clamp(10px, 2.5vw, 20px);
+}
+
+.messBtns a {
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(5px, 2.5vw, 12px);
+    cursor: pointer;
+    text-decoration: none;
+
+
+}
+
+.messBtns a img {
+    height: clamp(14px, 2.5vw, 25px);
+}
+
+.messBtns a p {
+    font-weight: 500;
+    font-size: clamp(12px, 2.5vw, 20px);
+    color: #b5b5b5;
+    cursor: pointer;
+}
