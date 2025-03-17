@@ -1,5 +1,11 @@
 .btnWrap {
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 30px;
   padding-top: 73px;
+
+  @media (max-width: 500px) {
+    padding-top: 15px;
+  }
 }

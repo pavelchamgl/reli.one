@@ -19,11 +19,14 @@
 }
 
 .categoryCardWrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px; /* Расстояние между карточками на десктопе */
+
+  @media (max-width: 870px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px; /* Уменьшение расстояния на мобильных устройствах */
+  }
 }
 
 .productCardWrapMain {
@@ -34,11 +37,20 @@
 }
 
 .productCardWrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 26px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  justify-content: center;
+  max-width: 100%;
+
+  @media (max-width: 769px) {
+    grid-template-columns: repeat(3, minmax(132px, 1fr));
+  }
+
+  @media (max-width: 500px) {
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 20px;
+  }
 }
 
 @media only screen and (max-width: 1350px) {

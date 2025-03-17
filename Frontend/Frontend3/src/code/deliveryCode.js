@@ -2,6 +2,9 @@ export function ppl(volume = 'm', weight = 15, isHand = true, region = 'cz') {
     // Проверка на null, undefined и 0
     weight = (weight == null || weight === 0) ? 15 : weight;
 
+    console.log(volume, weight, isHand, region);
+
+
     if (weight > 31.5) {
         return 'PPL не доставляет посылки больше 31.5кг';
     }
@@ -30,7 +33,7 @@ export function ppl(volume = 'm', weight = 15, isHand = true, region = 'cz') {
         }
     }
 
-    return { price, days };
+    return price;
 }
 
 
@@ -69,7 +72,7 @@ export const dpd = (weight = 15) => {
     // Проверка на null, undefined и 0
     weight = (weight == null || weight === 0) ? 15 : weight;
 
-    const roundedWeight = Math.round(weight);
+    const roundedWeight = Math.ceil(weight);
 
     if (roundedWeight > 30) {
         return "DPD не доставляет посылки больше 30кг";
@@ -83,16 +86,47 @@ export const dpd = (weight = 15) => {
     }
 }
 
-export const calculateBoxSize = (height = 30, width = 30, length = 30) => {
-    // Проверка на null, undefined и 0
-    height = (height == null || height === 0) ? 30 : height;
-    width = (width == null || width === 0) ? 30 : width;
-    length = (length == null || length === 0) ? 30 : length;
+// export const calculateBoxSize = (height = 300, width = 300, length = 300) => {
+//     // Проверка на null, undefined и 0
+//     height = (height == null || height === 0) ? 300 : height;
+//     width = (width == null || width === 0) ? 300 : width;
+//     length = (length == null || length === 0) ? 300 : length;
+
+//     const sizes = {
+//         S: { height: 300, width: 300, length: 300 },
+//         M: { height: 400, width: 600, length: 300 },
+//         L: { height: 500, width: 1000, length: 500 }
+//     };
+
+//     if (height <= sizes.S.height && width <= sizes.S.width && length <= sizes.S.length) {
+//         return 's';
+//     } else if (height <= sizes.M.height && width <= sizes.M.width && length <= sizes.M.length) {
+//         return 'm';
+//     } else if (height <= sizes.L.height && width <= sizes.L.width && length <= sizes.L.length) {
+//         return 'l';
+//     } else {
+//         return 'Коробка превышает максимальные размеры L';
+//     }
+// }
+
+
+export const calculateBoxTest = (prodSizes = []) => {
+
+    let height = 0
+    let width = 0
+    let length = 0
+
+    prodSizes && prodSizes.length > 0 && prodSizes?.forEach((item) => {
+        height += item?.height
+        width += item?.width
+        length += item?.length
+    })
+
 
     const sizes = {
-        S: { height: 30, width: 30, length: 30 },
-        M: { height: 40, width: 60, length: 30 },
-        L: { height: 50, width: 100, length: 50 }
+        S: { height: 300, width: 300, length: 300 },
+        M: { height: 400, width: 600, length: 300 },
+        L: { height: 500, width: 1000, length: 500 }
     };
 
     if (height <= sizes.S.height && width <= sizes.S.width && length <= sizes.S.length) {

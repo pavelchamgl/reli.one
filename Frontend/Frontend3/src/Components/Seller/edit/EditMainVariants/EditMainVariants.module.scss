@@ -1,0 +1,66 @@
+.wightTitle {
+  font-weight: 400;
+  font-size: clamp(20px, 2.5vw, 30px);
+  color: #000;
+  margin-top: clamp(20px, 2.5vw, 45px);
+  margin-bottom: clamp(10px, 2.5vw, 15px);
+  position: relative;
+  width: max-content;
+  padding-right: 10px;
+}
+
+.wightTitle::after {
+  content: "*";
+  display: block;
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: red;
+}
+
+.descText {
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #64748b;
+}
+
+.addStyleWrap {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2.5vw, 20px);
+  margin-top: clamp(15px, 2.5vw, 25px);
+  & input {
+    width: 100%;
+    border: 1px solid #ced4d7;
+    height: clamp(36px, 2.5vw, 46px);
+    background: #fafafa;
+    padding-left: 11px;
+    font-weight: 400;
+    font-size: clamp(14px, 2.5vw, 16px);
+    color: #7d7d7d;
+    outline-color: #cbcdce;
+  }
+  & button {
+    background: #3f7f6d;
+    width: clamp(115px, 2.5vw, 214px);
+    height: clamp(25px, 2.5vw, 33px);
+    font-weight: 400;
+    font-size: clamp(12px, 2.5vw, 18px);
+    color: #fff;
+  }
+}
+
+.variantsWrap {
+  margin-top: clamp(15px, 2.5vw, 20px);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(14px, 2.5vw, 16px);
+}
+
+.errText {
+  font-weight: 300;
+  font-size: 14px;
+  color: #dc2626;
+  margin-top: 4px;
+}

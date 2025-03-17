@@ -8,18 +8,18 @@ import PreviewProductNameRate from "../../../../ui/Seller/preview/previewProduct
 import styles from "./SellerPreviewDesktop.module.scss";
 import PreviewCharacteristics from "../../../../ui/Seller/preview/previewCharacteristics/PreviewCharacteristics";
 
-const SellerPreviewDesktop = () => {
+const SellerPreviewDesktop = ({ product }) => {
   const [section, setSection] = useState("Charakteristika");
 
   return (
-    <div style={{ margin: "27px 100px 0" }}>
+    <div style={{ margin: "27px 0 0" }}>
       <div className={styles.main}>
         <div className={styles.imageRateDiv}>
-          <PreviewImage />
-          <PreviewProductNameRate />
+          <PreviewImage product={product} />
+          <PreviewProductNameRate product={product} />
         </div>
         <ProductTab setTab={setSection} />
-        <PreviewCharacteristics />
+        <PreviewCharacteristics product={product} />
       </div>
     </div>
   );

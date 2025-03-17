@@ -1,0 +1,153 @@
+.main {
+  background-color: #F8FDFF;
+  padding: 0 166px;
+  margin-bottom: 60px;
+}
+
+.stick {
+  border-radius: 20px;
+  box-shadow: 0 0 100px 0 rgba(82, 81, 79, 0.07);
+  background: #fc0;
+}
+
+.emailSection {
+  border-radius: 20px;
+  width: 442px;
+  height: 288px;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
+}
+
+.bigImg {
+  width: 442px;
+  height: 288px;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.firstWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.secWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+}
+
+.yellowCircle {
+  box-shadow: 0 0 100px 0 rgba(82, 81, 79, 0.07);
+  background: #fc0;
+  border-radius: 100px;
+  width: 85px;
+  height: 84px;
+}
+
+.middleSticks {
+  box-shadow: 0 0 100px 0 rgba(82, 81, 79, 0.07);
+  background: #fc0;
+  border-radius: 100px;
+  width: 455px;
+  height: 18px;
+}
+
+
+
+
+/* w-[442px] mt-4 flex items-center bg-[#F5F5F5] rounded-2xl p-2 px-5 */
+
+.phoneBlock {
+  width: 442px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  background-color: #F5F5F5;
+  border-radius: 20px;
+  padding: 8px 20px;
+}
+
+/* w-[442px] h-[139px] flex items-end bg-[#F5F5F5] rounded-2xl p-2 px-5 xl: p-5 */
+.adressBlock {
+  width: 442px;
+  height: 139px;
+  display: flex;
+  align-items: center;
+  background: #F5F5F5;
+  border-radius: 20px;
+  padding: 8px 20px;
+
+}
+
+.thirdWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 40px;
+  flex-wrap: wrap;
+}
+
+.adressImgText {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2.5vw, 40px);
+}
+
+.phoneWrap {}
+
+@media (max-width:1455px) {
+  .middleSticks {
+    width: 400px;
+  }
+}
+
+@media (max-width:1280px) {
+  .middleSticks {
+    display: none;
+  }
+
+  .stick {
+    display: none;
+  }
+
+  .secWrap {
+    display: none;
+  }
+
+  .bigImg {
+    width: 100%;
+  }
+
+  .emailSection {
+    width: 100%;
+    margin-top: 38px;
+  }
+
+  .phoneWrap {
+    width: 100%;
+  }
+
+  .phoneBlock {
+    width: 100%;
+  }
+
+  .adressBlock {
+    width: 100%;
+    margin-top: 34px;
+  }
+
+}
+
+@media (max-width:769px) {
+  .main {
+    padding: 0 25px;
+
+  }
+}

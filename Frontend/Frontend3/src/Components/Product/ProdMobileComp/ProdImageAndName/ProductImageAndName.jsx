@@ -94,6 +94,18 @@ const ProductImageAndName = () => {
     }
   }, [sku]);
 
+  const [formattedText, setFormattedText] = useState(product?.name || "");
+
+  useEffect(() => {
+    if (!product || !product.name) return;
+
+    const replacedText = product.name.split(/(\d+)/).map((part, index) =>
+      /\d+/.test(part) ? <span key={index} >{part}</span> : part
+    );
+
+    setFormattedText(replacedText);
+  }, [product?.name]);
+
   return (
     <div className={styles.main}>
       <div className={styles.buttonWrap}>
@@ -106,7 +118,7 @@ const ProductImageAndName = () => {
       </div>
       <MobileProdSwiper />
       <div className={styles.descAndBtnWrap}>
-        <p className={styles.title}>{product?.name}</p>
+        <p className={styles.title}>{formattedText}</p>
         <ProdCharackButtons
           setPrice={setEndPice}
           setSku={setSku}

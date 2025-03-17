@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { useMediaQuery } from "react-responsive"
+import { useSelector } from "react-redux";
 
 // Импорты стилей Swiper
 import "swiper/css";
@@ -7,6 +9,7 @@ import "swiper/css/navigation";
 
 // Импорт модулей Swiper
 import { Navigation } from "swiper/modules";
+import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
 
 import createMaskImg from "../../../../assets/Seller/create/maskImg.svg";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
@@ -15,48 +18,69 @@ import deleteCommentImage from "../../../../assets/Product/deleteCommentImage.sv
 
 import styles from "./SellerCreateImages.module.scss";
 
-const SellerCreateImageMask = () => {
-  const arr = [
-    1, 2, 3, 4, 5, 2, 3, 4, 5, 6, 7, 8, 0, 4, 5, 6, 7, 8, 89, 4, 54, 4,
-  ];
 
-  return (
-    <div className={styles.maskMain}>
-      <div className={styles.bigMask}>
-        <img src={createMaskImg} alt="mask" />
-      </div>
-      <div className={styles.smallMaskWrap}>
-        {arr.map((item, index) => (
-          <div key={index}>
-            <img src={createMaskImg} alt="mask" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
+const SellerCreateImage = ({ err, setErr }) => {
 
-const SellerCreateImage = () => {
-  const [imageUrls, setImageUrls] = useState([]);
-  const [files, setFiles] = useState([]);
+
+  const { images, filesMain } = useSelector(state => state.create_prev)
+
+  const [imageUrls, setImageUrls] = useState(images ? images : []);
+  const [files, setFiles] = useState(images ? images : []);
+
+  const isMobile = useMediaQuery({ maxWidth: 427 })
+
+  const { setImages, setFilesMain, deleteImage } = useActionCreatePrev()
+
+  const arr = 6
 
   const handleChangeFile = (e) => {
+
     const newFiles = Array.from(e.target.files);
     const updateFiles = [...files, ...newFiles];
-    setFiles(updateFiles);
+    // setFilesMain(updateFiles);
 
-    newFiles.forEach((file) => {
-      const url = URL.createObjectURL(file);
-      setImageUrls((prevUrls) => [...prevUrls, url]);
+    const readFilesAsBase64 = (files) => {
+      return Promise.all(
+        files.map((file) => {
+          return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file); // Читаем файл как Base64
+            reader.onload = () => {
+              resolve({
+                image_url: URL.createObjectURL(file),
+                base64: reader.result,
+              });
+            };
+          });
+        })
+      );
+    };
+
+    readFilesAsBase64(newFiles).then((base64Images) => {
+      setImageUrls((prevUrls) => {
+        const newUrls = [...prevUrls, ...base64Images];
+        setImages(newUrls); // Здесь уже новое состояние с base64
+        return newUrls;
+      });
     });
   };
+
+
 
   const handleDelete = (index) => {
     const updatedFiles = files.filter((_, i) => i !== index);
     const updatedUrls = imageUrls.filter((_, i) => i !== index);
-    setFiles(updatedFiles);
-    setImageUrls(updatedUrls);
+    setFilesMain(updatedFiles);
+    setImageUrls(updatedUrls)
+    deleteImage({ index: index })
   };
+
+  useEffect(() => {
+    if (images.length > 0) {
+      setErr(false)
+    }
+  }, [images])
+
 
   return (
     <div>
@@ -68,27 +92,40 @@ const SellerCreateImage = () => {
           <input
             onChange={handleChangeFile}
             type="file"
-            accept="image/*"
+            accept="image/*,video/*"
             multiple
           />
         </label>
       </div>
-      {imageUrls.length === 0 ? (
-        <SellerCreateImageMask />
-      ) : (
-        <div className={styles.sliderContainer}>
-          <>
-            <Swiper
-              modules={[Navigation]}
-              navigation={{
+      <div className={styles.sliderContainer}>
+        <>
+          <Swiper
+            modules={isMobile ? [] : [Navigation]} // Условно подключаем Navigation
+            navigation={
+              !isMobile && {
                 nextEl: `.${styles.swiperButtonNext}`,
                 prevEl: `.${styles.swiperButtonPrev}`,
-              }}
-              spaceBetween={20} // Расстояние между слайдами
-              slidesPerView="auto" // Количество слайдов
-              className={styles.swiper}
-            >
-              {imageUrls.map((url, index) => (
+              }
+            }
+            spaceBetween={20} // Расстояние между слайдами
+            slidesPerView="auto" // Количество слайдов
+            className={styles.swiper}
+            direction="horizontal"
+          >
+            {images.length === 0 ? (
+              <div className={styles.smallMaskWrap}>
+                {Array.from({ length: arr }, (_, index) => (
+                  <SwiperSlide key={index} className={styles.swiperSlide}>
+
+                    <div className={err ? styles.maskErr : styles.mask}>
+                      <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="mask" />
+                    </div>
+
+                  </SwiperSlide>
+                ))}
+              </div>
+            ) : (
+              images && images.length > 0 && images?.map((url, index) => (
                 <SwiperSlide key={index} className={styles.swiperSlide}>
                   <div
                     className={styles.imageWrapper}
@@ -114,31 +151,33 @@ const SellerCreateImage = () => {
                           <path
                             d="M13 13L7.00002 7.00002M7.00002 7.00002L1 1M7.00002 7.00002L13 1M7.00002 7.00002L1 13"
                             stroke="#D55B5B"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           />
                         </svg>
                       </button>
                     </div>
                     <img
-                      src={url}
-                      alt={`Preview ${index}`}
                       className={styles.mediaPreview}
+                      src={url?.image_url}
+                      alt={`Preview ${index}`}
                     />
                   </div>
                 </SwiperSlide>
-              ))}
-            </Swiper>
-            <button className={styles.swiperButtonPrev}>
-              <img src={arrLeft} alt="" />
-            </button>
-            <button className={styles.swiperButtonNext}>
-              <img src={arrRight} alt="" />
-            </button>
-          </>
-        </div>
-      )}
+              ))
+            )}
+          </Swiper>
+          <button className={styles.swiperButtonPrev}>
+            <img src={arrLeft} alt="" />
+          </button>
+          <button className={styles.swiperButtonNext}>
+            <img src={arrRight} alt="" />
+          </button>
+        </>
+      </div>
+      {err ? <p className={styles.errText}>Image is required</p> : <></>}
+
       {/* Кнопки навигации */}
     </div>
   );

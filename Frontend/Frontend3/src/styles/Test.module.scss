@@ -1,46 +1,149 @@
-.chartContainer {
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  font-family: Arial, sans-serif;
+.cardWrap {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  justify-content: center;
+  max-width: 100%;
+  padding: 0 100px;
+
+  @media (max-width: 769px) {
+    
+    padding: 0 50px;
+  }
+
+  @media (max-width: 500px) {
+    padding: 0 10px;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    padding: 0 10px;
+    gap: 20px;
+  }
 }
 
-.chartRow {
+.card {
+  width: 100%;
+  max-width: 231px;
+  height: auto;
+  border: 1px solid black;
+  padding: 8px;
+  background: #f0f0f0;
+  border: 1px solid rgba(128, 128, 128, 0.555);
+  padding-bottom: 10px;
+
+  & img {
+    width: 100%;
+    height: 215px;
+    object-fit: cover;
+  }
+
+  @media (max-width: 500px) {
+    & img {
+      height: 142px;
+    }
+  }
+}
+
+.rateDiv {
+  display: flex;
+  gap: 5px;
+}
+
+.price {
+  font-family: var(--ft);
+  font-weight: 600;
+  font-size: clamp(10px, 2.5vw, 20px);
+}
+
+.name {
+  font-family: var(--ft);
+  font-weight: 500;
+  font-size: clamp(10px, 2.5vw, 14px);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 4.5em; /* Высота = 3 строки (зависит от шрифта) */
+  line-height: 1.5em; /* Регулируем высоту строки */
+}
+
+.btn {
+  background: #047857;
+  border-radius: 2px;
+  width: min(112px, 25vw);
+  height: min(31px, 5vw);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-weight: 600;
+  font-size: clamp(11px, 2.5vw, 18px);
+  color: #fff;
+}
+
+.descWrap {
   display: flex;
   flex-direction: column;
-  margin-bottom: 15px;
+  gap: clamp(7px, 2.5vw, 10px);
+
+  @media (max-width: 500px) {
+    gap: 7px;
+  }
 }
 
-.chartLabel {
-  margin-bottom: 20px;
+// ! category
+
+.categoryCard {
+  max-width: 252px;
+  min-width: 91px;
+  height: 220px;
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  padding: 18px 30px 5px;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  background-size: 161px 161px;
+  background-position: center calc(100% - 10px);
+  background-repeat: no-repeat;
+
   & p {
-    font-weight: 400;
-    font-size: 24px;
-    line-height: 87%;
-    letter-spacing: -0.01em;
+    width: 100%;
+    font-weight: 600;
+    font-size: clamp(12px, 2.5vw, 24px);
     text-align: center;
-    color: #000;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Обрезка до 2 строк */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: calc(1.2em * 2); /* Ограничиваем высоту под 2 строки */
+    line-height: 1.2em;
+  }
+
+  @media (max-width: 510px) {
+    height: 102px;
+    padding: 5px 18px 0px;
+    
+
+    background-size: 90px 90px;
   }
 }
 
-.chartBarWrapper {
-  display: flex;
-  align-items: center;
-}
+.categoryWrap {
+  margin: 50px 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px; /* Расстояние между карточками на десктопе */
 
-.chartBar {
-  height: 20px;
-  border-radius: 2px;
-  transition: width 0.3s ease;
-  & div {
-    border-radius: 2px;
+  @media (max-width: 768px) {
+    gap: 10px; /* Уменьшение расстояния на мобильных устройствах */
   }
-}
 
-.chartValue {
-  font-size: 14px;
-  margin-left: 10px;
+  @media (max-width: 510px) {
+    grid-template-columns: repeat(
+      3,
+      1fr
+    ); /* 2 карточки в ряд на очень маленьких экранах */
+  }
 }

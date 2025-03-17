@@ -1,10 +1,19 @@
 .modelText {
   font-weight: 500;
   font-size: clamp(14px, 2.5vw, 24px);
-  line-height: 100%;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  line-height: 130%;
   color: #000;
+  width: 100vw;
+  width: 100%;
+  white-space: pre-wrap; /* Обеспечивает перенос строк */
+  word-wrap: break-word;
+
+
+  & span{
+    font-family: var(--ft);
+  }
+
+
 }
 
 .blackTitle {
@@ -25,6 +34,8 @@
   }
 }
 
+
+
 .tableDiv {
   display: flex;
   width: 450px;
@@ -39,6 +50,10 @@
   @media (max-width: 500px) {
     width: 286px;
   }
+}
+
+.valueText {
+  font-family: var(--ft);
 }
 
 .tableWrap {

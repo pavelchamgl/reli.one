@@ -8,7 +8,7 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 2px;
   width: 669px;
-  height: 302px;
+  height: clamp(215px, 2.5vw, 302px);
   z-index: 1000;
 }
 
@@ -23,13 +23,16 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 72px;
+  gap: clamp(34px, 2.5vw, 72px);
 
   h3 {
     font-weight: 500;
-    font-size: 24px;
+    font-size: clamp(20px, 2.5vw, 24px);
     line-height: 97%;
     color: #333;
+  }
+  @media (max-width: 600px) {
+    padding: 0 23px;
   }
 }
 
@@ -40,12 +43,15 @@
   width: 426px;
 
   & button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
     background: #d55b5b;
     padding: 7px 24px 7px 24px;
-    width: 188px;
-    height: 35px;
+    width: clamp(104px, 2.5vw, 188px);
+    height: clamp(25px, 2.5vw, 35px);
     font-weight: 500;
-    font-size: 18px;
+    font-size: clamp(12px, 2.5vw, 18px);
     text-transform: capitalize;
     text-align: center;
     color: #fff;
@@ -54,12 +60,16 @@
   & button:nth-child(2) {
     background: #3f7f6d;
   }
+
+  @media (max-width: 600px) {
+    width: 100%;
+  }
 }
 
 .closeBtn {
   position: absolute;
-  top: 30px;
-  right: 30px;
+  top: clamp(17px, 2.5vw, 30px);
+  right: clamp(17px, 2.5vw, 30px);
   background-color: transparent;
 
   & img {

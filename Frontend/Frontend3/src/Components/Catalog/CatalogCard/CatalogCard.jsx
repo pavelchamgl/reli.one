@@ -17,7 +17,9 @@ const CatalogCard = ({ item }) => {
     >
       <div className={styles.titleDiv}>
         <img src={arrRight} alt="" />
-        <p>{item?.name}</p>
+        <p>
+          {item?.name}
+          </p>
         <img className={styles.arrRight} src={arrRight} alt="" />
       </div>
     </div>

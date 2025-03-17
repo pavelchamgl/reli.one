@@ -1,21 +1,30 @@
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 
 import ProductDeliveryCar from "../../../../assets/Product/productDeliveryCar.svg";
 import addBasketCheckIcon from "../../../../assets/Product/addBasketCheckIcon.svg";
 
 import styles from "./PreviewProductNameRate.module.scss";
 import { Rating } from "@mui/material";
+import PreviewCharack from "../previewCharack/PreviewCharack";
+import { useEffect, useState } from "react";
 
-const PreviewProductNameRate = () => {
+const PreviewProductNameRate = ({ product }) => {
   const { t } = useTranslation();
+  const [variant, setVariant] = useState([])
 
-  const product = {
-    rating: 5,
-    total_reviews: 21,
-    name: "Iphone",
-    category_name: "Smartphone",
-    price: 500,
-  };
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    if (pathname.includes("edit")) {
+      setVariant(product?.variantsServ)
+    } else {
+      setVariant(product?.variantsMain)
+    }
+
+  }, [pathname])
+
+
 
   return (
     <div className={styles.main}>
@@ -28,12 +37,7 @@ const PreviewProductNameRate = () => {
         <span>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{product?.price} €</p>
-      {/* <ProdCharackButtons
-        setSku={setSku}
-        setPrice={setEndPice}
-        variants={product?.variants}
-        id={product?.id}
-      /> */}
+      <PreviewCharack variants={variant} />
       <button className={styles.addBasketBtn}>
         <img src={addBasketCheckIcon} alt="" />
         {t("add_basket")}

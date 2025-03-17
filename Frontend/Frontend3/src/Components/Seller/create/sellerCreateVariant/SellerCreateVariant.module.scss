@@ -1,0 +1,145 @@
+.main {
+  width: clamp(139px, 2.5vw, 200px);
+  display: flex;
+  flex-direction: column;
+}
+
+.mainErr {
+  width: clamp(139px, 2.5vw, 200px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #dc2626;
+}
+
+
+
+.nameInp {
+  background: #fafafa;
+  border: 1px solid #ced4d7;
+  width: 100%;
+  height: clamp(36px, 2.5vw, 45px);
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #7d7d7d;
+  padding-left: 10px;
+  outline-color: #cbcdce;
+  transition: 0.5s ease;
+}
+.nameInp:disabled {
+  background-color: #7d7d7d76;
+}
+
+.nameInp:hover {
+  background: #f0f0f0;
+}
+.nameInp:focus {
+  background: #f0f0f0;
+}
+
+.addPhotoDiv {
+  background: #64748b;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  & p {
+    margin: 6px 0;
+  }
+
+  & input {
+    display: none;
+  }
+}
+
+.addPhotoDivDis {
+  background: #7d7d7d76;
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+
+  & p {
+    margin: 6px 0;
+  }
+
+  & input {
+    display: none;
+  }
+}
+.variantImageWrap {
+  position: relative;
+  width: 139px;
+  height: 88px;
+
+  & img {
+    width: 139px;
+    height: 88px;
+    object-fit: cover;
+    border: 1px solid #ced4d7;
+  }
+
+  & button {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    background-color: transparent;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+
+    & img {
+      border: none;
+      width: 15px;
+      height: 15px;
+    }
+  }
+
+  &:hover {
+    & button {
+      opacity: 1; // Убираем кнопку при наведении на родительский элемент
+    }
+  }
+}
+
+.priceDiv {
+  display: flex;
+  border: 1px solid #ced4d7;
+  background: #fafafa;
+
+  & button {
+    padding-left: clamp(5px, 2.5vw, 9px);
+    padding-right: clamp(5px, 2.5vw, 9px);
+    background: transparent;
+    opacity: 0;
+    transition: 0.5s ease;
+  }
+
+  & input {
+    background-color: transparent;
+    width: 100%;
+    height: clamp(36px, 2.5vw, 45px);
+    font-weight: 400;
+    font-size: clamp(14px, 2.5vw, 18px);
+    color: #7d7d7d;
+    padding-left: 10px;
+    outline: none;
+    border: none;
+  }
+}
+
+.priceDiv:hover {
+  background: #f0f0f0;
+  & button {
+    opacity: 1;
+  }
+}
+
+.priceDiv:focus-within {
+  background: #f0f0f0;
+}

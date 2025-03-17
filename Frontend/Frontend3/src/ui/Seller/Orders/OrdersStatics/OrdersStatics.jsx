@@ -1,29 +1,32 @@
 import styles from "./OrdersStatics.module.scss";
 
-const OrdersStatics = () => {
+const OrdersStatics = ({ text, style, data }) => {
   const orderStaticsText = [
     {
       text: "Awaiting assembly",
-      count: 0,
+      count: data?.awaiting_assembly ?? 0,
     },
     {
       text: "Awaiting shipment",
-      count: 0,
+      count: data?.awaiting_shipment ?? 0,
     },
     {
       text: "Controversial",
-      count: 0,
+      count: data?.controversial ?? 0,
     },
   ];
 
   return (
-    <div className={styles.main}>
-      {orderStaticsText.map((item) => (
-        <div className={styles.orderStatic}>
-          <p>{item.text}</p>
-          <p>{item.count}</p>
-        </div>
-      ))}
+    <div style={{ ...style }}>
+      <h3 className={styles.title}>{text}</h3>
+      <div className={styles.main}>
+        {orderStaticsText.map((item) => (
+          <div className={styles.orderStatic}>
+            <p>{item.text}</p>
+            <p>{item.count}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

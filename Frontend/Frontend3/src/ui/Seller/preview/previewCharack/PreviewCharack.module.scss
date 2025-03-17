@@ -1,0 +1,249 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.styleText {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 18px);
+  line-height: 117%;
+  letter-spacing: -0.02em;
+  color: black;
+  margin-bottom: 15px;
+
+  & span {
+    color: #64748b;
+  }
+}
+
+.buttonsDiv {
+  width: 390px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  transition: hover 1s ease;
+
+  @media (max-width: 470px) {
+    width: 100%;
+  }
+
+  & button {
+    background-color: transparent;
+    border: 2px solid #64748b;
+
+    width: 63px;
+    height: 63px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    & img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+    }
+
+    &:hover {
+      border: 2px solid #353f4d;
+    }
+
+    @media (max-width: 470px) {
+      width: 53px;
+      height: 53px;
+      & img {
+        width: 50px;
+        height: 50px;
+      }
+    }
+  }
+}
+
+.sizeButtonsDiv {
+  width: 390px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  transition: hover 1s ease;
+
+  @media (max-width: 470px) {
+    width: 100%;
+  }
+
+  & button {
+    background-color: transparent;
+    border: 2px solid #64748b;
+    padding: 9px 31px;
+    font-weight: 500;
+    font-size: clamp(14px, 0.5vw, 18px);
+    line-height: 117%;
+    letter-spacing: -0.02em;
+    color: #000;
+    &:hover {
+      border: 2px solid #353f4d;
+    }
+
+    @media (max-width: 470px) {
+      padding: 2px 25px;
+    }
+  }
+}
+
+.stylePackVOneButtons {
+  width: 390px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  transition: hover 1s ease;
+
+  @media (max-width: 470px) {
+    width: 100%;
+  }
+
+  & button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    background-color: transparent;
+    border: 2px solid #64748b;
+    padding: 0 16px 0 12px;
+    & img {
+      width: 60px;
+      height: 61px;
+      object-fit: cover;
+    }
+    &:hover {
+      border: 2px solid #353f4d;
+    }
+    & div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: start;
+      & p {
+        font-weight: 400;
+        font-size: clamp(12px, 2.5vw, 14px);
+        line-height: 150%;
+        letter-spacing: -0.02em;
+        color: #000;
+        cursor: pointer;
+      }
+      & p:first-child {
+        font-weight: 400;
+        font-size: clamp(12px, 2.5vw, 18px);
+        line-height: 117%;
+        letter-spacing: -0.02em;
+        color: #000;
+      }
+    }
+    @media (max-width: 470px) {
+      padding: 0 10px 0 5px;
+
+      & img {
+        width: 40px;
+        height: 40px;
+      }
+    }
+  }
+}
+
+.stylePackVTwoButtons {
+  width: 390px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  transition: hover 1s ease;
+
+  @media (max-width: 470px) {
+    width: 100%;
+  }
+
+  & button {
+    width: 189px;
+    padding: 4.5px 12px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 26px;
+    background-color: transparent;
+    border: 2px solid #64748b;
+    & img {
+      width: 40px;
+      height: 41px;
+      object-fit: cover;
+    }
+    &:hover {
+      border: 2px solid #353f4d;
+    }
+
+    & p {
+      font-weight: 400;
+      font-size: clamp(14px, 2.5vw, 20px);
+      line-height: 105%;
+      letter-spacing: -0.02em;
+      color: #000;
+      cursor: pointer;
+    }
+
+    @media (max-width: 470px) {
+      width: 138px;
+      padding: 1px 12px;
+      gap: 21px;
+    }
+  }
+}
+
+.stylePackVThreeButtons {
+  width: 390px;
+  display: flex;
+  flex-wrap: wrap;
+  transition: hover 1s ease;
+  gap: 7px;
+
+  @media (max-width: 470px) {
+    width: 100%;
+  }
+
+  & button {
+    width: 187px;
+    padding: 4.5px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background-color: transparent;
+    border: 2px solid #64748b;
+    & img {
+      width: 40px;
+      height: 41px;
+      object-fit: cover;
+    }
+    &:hover {
+      border: 2px solid #353f4d;
+    }
+
+    & p {
+      font-weight: 600;
+      font-size: clamp(14px, 2.5vw, 23px);
+      line-height: 105%;
+      letter-spacing: -0.02em;
+      color: #000;
+      cursor: pointer;
+    }
+
+    & span {
+      font-weight: 400;
+      font-size: clamp(14px, 2.5vw, 20px);
+      line-height: 105%;
+      letter-spacing: -0.02em;
+      color: #000;
+      cursor: pointer;
+    }
+
+    @media (max-width: 470px) {
+      width: 138px;
+      padding: 2px 12px;
+      gap: 10px;
+    }
+  }
+}

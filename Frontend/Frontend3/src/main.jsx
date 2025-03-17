@@ -40,6 +40,9 @@ import SellerHomePage from "./pages/SellerHomePage.jsx";
 import SellerOrdersPage from "./pages/SellerOrdersPage.jsx";
 import SellerCreatePage from "./pages/SellerCreatePage.jsx";
 import SellerPreviewPage from "./pages/SellerPreviewPage.jsx";
+import SellerPage from "./pages/SellerPage.jsx";
+import EditGoodsPage from "./pages/EditGoodsPage.jsx";
+import SellerEditPreview from "./pages/SellerEditPreview.jsx";
 
 const router = createBrowserRouter([
   {
@@ -102,29 +105,48 @@ const router = createBrowserRouter([
     element: <HomePage />,
   },
   {
-    path: "/seller-goods-choice",
-    element: <SellerGoodPage />,
+    path: "/seller",
+    element: <SellerPage />,
+    children: [
+      {
+        path: "goods-choice", // Уберите начальный слэш
+        element: <SellerGoodPage />,
+      },
+      {
+        path: "goods-list",
+        element: <SellerGoodsList />,
+      },
+      {
+        path: "seller-home",
+        element: <SellerHomePage />,
+      },
+      {
+        path: "seller-orders",
+        element: <SellerOrdersPage />,
+      },
+      {
+        path: "seller-create",
+        element: <SellerCreatePage />,
+      },
+      {
+        path: "seller-preview",
+        element: <SellerPreviewPage />,
+      },
+      {
+        path: "seller-edit/:id",
+        element: <EditGoodsPage />
+      },
+      {
+        path: "edit-preview/:id",
+        element: <SellerEditPreview />
+      }
+    ],
   },
-  {
-    path: "/seller-goods-list",
-    element: <SellerGoodsList />,
-  },
-  {
-    path: "/seller-home",
-    element: <SellerHomePage />,
-  },
-  {
-    path: "/seller-orders",
-    element: <SellerOrdersPage />,
-  },
-  {
-    path: "/seller-create",
-    element: <SellerCreatePage />,
-  },
-  {
-    path: "/seller-preview",
-    element: <SellerPreviewPage />,
-  },
+
+
+
+
+
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(

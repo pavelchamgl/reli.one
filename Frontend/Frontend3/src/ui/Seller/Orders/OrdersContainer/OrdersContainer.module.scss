@@ -1,3 +1,11 @@
 .main {
   padding: 0 75px;
+
+  @media (max-width: 700px) {
+    padding: 0 50px;
+  }
+
+  @media (max-width: 500px) {
+    padding: 0 0px;
+  }
 }

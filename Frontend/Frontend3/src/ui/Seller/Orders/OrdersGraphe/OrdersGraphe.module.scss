@@ -11,22 +11,18 @@
 }
 
 .chartLabel {
-  margin-top: 30px;
-  margin-bottom: 20px;
+  margin-top: clamp(6px, 2.5vw, 20px);
+  margin-bottom: clamp(6px, 2.5vw, 20px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   & p {
     font-weight: 400;
-    font-size: 24px;
+    font-size: clamp(14px, 2.5vw, 24px);
     line-height: 87%;
     letter-spacing: -0.01em;
-    text-align: center;
-    color: #000;
   }
 }
-
-
 
 .chartBarWrapper {
   display: flex;
@@ -49,9 +45,10 @@
 
 .dateText {
   font-weight: 400;
-  font-size: 32px;
+  font-size: clamp(16px, 2.5vw, 32px);
   line-height: 66%;
   letter-spacing: -0.01em;
   color: #000;
-  margin: 94px 0 63px;
+  margin-top: clamp(30px, 2.5vw, 60px);
+  margin-bottom: clamp(14px, 2.5vw, 40px);
 }

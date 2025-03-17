@@ -6,8 +6,8 @@ import { Rating } from "@mui/material";
 const PreviewMobileSwitch = () => {
   const { t } = useTranslation();
 
-  const total_reviews = 21;
-  const rating = 5;
+  const total_reviews = 0;
+  const rating = 0;
 
   return (
     <div className={styles.wrap}>

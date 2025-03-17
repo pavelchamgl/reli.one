@@ -1,0 +1,25 @@
+.categoryBtn {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 44px;
+  width: 100%;
+  padding: 11px 0 12px 26px;
+  padding-left: clamp(11px, 2.5vw, 26px);
+  background-color: transparent;
+  & img {
+    width: 20px;
+    height: 20px;
+  }
+  & p {
+    font-weight: 500;
+    font-size: clamp(15px, 2.5vw, 18px);
+  }
+}
+
+.categoryBtn:hover {
+  background: #f0f0f0;
+}
+.categoryBtn:active {
+  background: #f0f0f0;
+}

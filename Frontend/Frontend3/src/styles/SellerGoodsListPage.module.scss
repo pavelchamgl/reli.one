@@ -1,8 +1,32 @@
 .listWrap {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: 25px;
-  margin-top: 50px;
+  margin-top: clamp(18px, 2.5vw, 50px);
+}
+
+.paginateDiv {
+  margin-top: 35px;
+}
+
+.spinnerDiv {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.errorDiv {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  & p {
+    font-weight: 300;
+    font-size: clamp(20px, 2.5vw, 40px);
+    color: #656565;
+  }
 }

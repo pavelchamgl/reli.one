@@ -67,12 +67,12 @@ const Footer = () => {
         </div>
         <div className="flex flex-col items-center justify-end gap-5">
           <img src={ReliLogo} className="w-[200px] mb-3" alt="" />
-          <p className="text-xs">(c) Copyright 2023 Reli group</p>
+          <p className="text-xs">(c) Copyright 2025 Reli group</p>
         </div>
         <div className="hidden flex-col justify-between xl:flex">
           <p className="text-2xl text-[#FFCC00]">Reli Group, s.r.o</p>
           <p>Number: +420 797 837 856</p>
-          <p>Email: oshchepkova.reli@gmail.com</p>
+          <p>Email: info.reli.one@gmail.com</p>
           <p>
             Adress: Na Lysinách 551/34,
             <br /> Praha 4 - Hodkovičky, PSČ 147 00
