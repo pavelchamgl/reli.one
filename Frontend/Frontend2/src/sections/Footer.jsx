@@ -2,6 +2,7 @@ import React from 'react';
 import SoloPharma_footer_logo from '../assets/SoloPharma-footer-logo.png';
 import ReliLogo from '../assets/Main logo white.svg'
 import { Link } from 'react-scroll';
+import MessBtns from '../components/messengBtns/MessBtns';
 
 const Footer = () => {
   return (
@@ -67,6 +68,7 @@ const Footer = () => {
         </div>
         <div className="flex flex-col items-center justify-end gap-5">
           <img src={ReliLogo} className="w-[200px] mb-3" alt="" />
+          <MessBtns />
           <p className="text-xs">(c) Copyright 2025 Reli group</p>
         </div>
         <div className="hidden flex-col justify-between xl:flex">
