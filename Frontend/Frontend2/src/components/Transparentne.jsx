@@ -1,7 +1,11 @@
 import React from 'react';
 import cube from '../assets/6.png';
+import { useTranslation } from 'react-i18next';
 
 const Transparentne = () => {
+
+  const { t } = useTranslation()
+
   return (
     <div className="flex rounded-2xl bg-white pr-4 pt-4">
       <img
@@ -11,11 +15,10 @@ const Transparentne = () => {
       />
       <div className="flex flex-col justify-center">
         <p className="font-bold leading-[125%] xl:text-2xl">
-          Vše transparentně
+          {t("everything")}
         </p>
         <p className="mt-5 text-[9px] font-semibold leading-[160%] xl:text-sm">
-          Politika transparentnosti. Naše podmínky partnerství, včetně struktur
-          poplatků a provizí, jsou jednoduché a spravedlivé
+          {t("everythingText")}
         </p>
       </div>
     </div>

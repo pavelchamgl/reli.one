@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Slider from 'react-slick';
 import NewsCard from '../components/NewsCard';
 import OpennedNewsCard from '../components/OpennedNewsCard';
+import { useTranslation } from 'react-i18next';
 
 const News = () => {
   const [data, setData] = useState([]);
@@ -40,6 +41,10 @@ const News = () => {
       },
     ],
   };
+
+
+  const { t } = useTranslation()
+
   return (
     <div className="bg-[#FFFDF7]">
       <div
@@ -52,7 +57,7 @@ const News = () => {
             toggleOpen={setOpeninCard}
           />
         )}
-        <p className="text-2xl font-bold xl:text-6xl">Aktuality</p>
+        <p className="text-2xl font-bold xl:text-6xl">{t("news")}</p>
         <Slider {...settings} className="mt-7 xl:mt-16">
           {data.map((item) => (
             <NewsCard

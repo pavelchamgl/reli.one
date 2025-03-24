@@ -30,13 +30,20 @@ const SellerEditPreview = () => {
 
     //   }
 
-    const handleEdit = () => {
-        fetchEditProduct(id)
-        // if (product?.status === "fulfilled") {
-        //     navigate("/seller/goods-list")
-        //     window.location.reload()
-        // }
-    }
+    const handleEdit = async () => {
+        try {
+            await fetchEditProduct(id); // Дождемся завершения редактирования
+
+            // Проверяем статус после завершения запроса
+            if (product?.status === "fulfilled") {
+                navigate("/seller/goods-list");
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error("Ошибка при редактировании продукта:", error);
+        }
+    };
+
 
 
 

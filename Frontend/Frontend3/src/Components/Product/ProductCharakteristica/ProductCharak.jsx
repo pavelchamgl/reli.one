@@ -26,6 +26,13 @@ const ProductCharak = () => {
     setFormattedText(replacedText);
   }, [product_description]);
 
+  const unitMap = {
+    length: "mm",
+    width: "mm",
+    height: "mm",
+    weight: "g",
+  };
+
   return (
     <div className={styles.main}>
       {isMobile && <p className={styles.mobTitle}>{t("characteristics")}</p>}
@@ -41,7 +48,9 @@ const ProductCharak = () => {
                 <p>{item?.name}</p>
               </div>
               <div>
-                <p className={styles.valueText}>{item?.value}</p>
+                <p className={styles.valueText}>
+                  {item?.name && unitMap[item.name] ? `${item.value} ${unitMap[item.name]}` : item?.value}
+                </p>
               </div>
             </div>
           ))}

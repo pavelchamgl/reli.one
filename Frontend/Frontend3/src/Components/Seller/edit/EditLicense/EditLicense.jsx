@@ -16,14 +16,30 @@ import arrRight from "../../../../assets/Seller/create/arrRight.svg";
 import deleteCommentImage from "../../../../assets/Product/deleteCommentImage.svg";
 
 import styles from "./EditLicense.module.scss"
+import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
+import { useParams } from "react-router-dom";
 
 const EditLicense = () => {
     const [imageUrls, setImageUrls] = useState([]);
     const [files, setFiles] = useState([]);
+    const [isDisabled, setIsDisabled] = useState(false)
 
     const isMobile = useMediaQuery({ maxWidth: 427 })
 
+    const { license_file } = useSelector(state => state.edit_goods)
 
+    const { deleteLicense, setLicense, fetchDeleteLicense } = useActionSellerEdit()
+
+    const { id } = useParams()
+
+
+    useEffect(() => {
+        if (!!license_file) {
+            setIsDisabled(true)
+        } else {
+            setIsDisabled(false)
+        }
+    }, [license_file])
 
 
     const arr = 6
@@ -44,7 +60,8 @@ const EditLicense = () => {
                             resolve({
                                 id: Date.now(),
                                 base64: reader.result, // Кодировка Base64
-                                name: file.name
+                                name: file.name,
+                                status: "local"
                             });
                         };
 
@@ -59,20 +76,25 @@ const EditLicense = () => {
         readFilesAsBase64(newFiles)
             .then((base64Images) => {
                 console.log(base64Images);
+                setLicense(base64Images[0])
 
-                setImageUrls((prevUrls) => {
-                    return [...prevUrls, ...base64Images]
-                })
+
             })
             .catch((error) => {
                 console.error("Ошибка при кодировании файлов:", error);
             });
     };
 
-    const handleDelete = (index) => {
-        const updatedFiles = files.filter((_, i) => i !== index);
-        const updatedUrls = imageUrls.filter((_, i) => i !== index);
-        setImageUrls(updatedUrls)
+    const handleDelete = (item) => {
+        if (item?.status === "server") {
+            fetchDeleteLicense({
+                prodId: id,
+                licId: item.id
+            })
+            deleteLicense()
+        } else {
+            deleteLicense()
+        }
     };
 
 
@@ -81,13 +103,14 @@ const EditLicense = () => {
             <h3 className={styles.title}>License/Certificate</h3>
             <div className={styles.btnRatioWrap}>
                 <p>Formats: docx, pdf</p>
-                <label className={styles.addPhotos}>
-                    <span>+ Add files</span>
+                <label className={isDisabled ? styles.addPhotosDisabled : styles.addPhotos}>
+                    <span >+ Add files</span>
                     <input
                         onChange={handleChangeFile}
                         type="file"
                         accept=".pdf,.doc,.docx"
                         multiple
+                        disabled={isDisabled}
                     />
                 </label>
             </div>
@@ -106,7 +129,7 @@ const EditLicense = () => {
                         className={styles.swiper}
                         direction="horizontal"
                     >
-                        {imageUrls.length === 0 ? (
+                        {!license_file ? (
                             <div className={styles.smallMaskWrap}>
                                 {Array.from({ length: arr }, (_, index) => (
                                     <SwiperSlide key={index} className={styles.swiperSlide}>
@@ -120,7 +143,7 @@ const EditLicense = () => {
                                 ))}
                             </div>
                         ) : (
-                            imageUrls && imageUrls.length > 0 && imageUrls?.map((url, index) => (
+                            license_file && [license_file]?.map((url, index) => (
                                 <SwiperSlide key={index} className={styles.swiperSlide}>
                                     <div>
                                         <div
@@ -135,7 +158,7 @@ const EditLicense = () => {
                                             <div className={styles.deleteWrap}>
                                                 <button
                                                     className={styles.deleteButton}
-                                                    onClick={() => handleDelete(url?.id)}
+                                                    onClick={() => handleDelete(url)}
                                                 >
                                                     <svg
                                                         width="14"

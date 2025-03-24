@@ -3,8 +3,12 @@ import SoloPharma_footer_logo from '../assets/SoloPharma-footer-logo.png';
 import ReliLogo from '../assets/Main logo white.svg'
 import { Link } from 'react-scroll';
 import MessBtns from '../components/messengBtns/MessBtns';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+
+  const { t } = useTranslation()
+
   return (
     <div className="bg-[#333333]">
       <div className="py-10 text-white xl:mx-auto xl:flex xl:max-w-[1439px] xl:justify-between xl:px-32 xl:pt-10">
@@ -17,7 +21,7 @@ const Footer = () => {
               spy={true}
               smooth={true}
               duration={500}>
-              Domů
+              {t("home")}
             </Link>
           </p>
           <p className="cursor-pointer">
@@ -28,7 +32,7 @@ const Footer = () => {
               spy={true}
               smooth={true}
               duration={500}>
-              Proč zrovna my?
+              {t("choose")}
             </Link>
           </p>
           <p className="cursor-pointer">
@@ -40,7 +44,7 @@ const Footer = () => {
               spy={true}
               smooth={true}
               duration={500}>
-              Volná pracovní místa
+              {t("jobsOpen")}
             </Link>
           </p>
           <p className="cursor-pointer">
@@ -51,7 +55,7 @@ const Footer = () => {
               spy={true}
               smooth={true}
               duration={500}>
-              Aktuality
+              {t("news")}
             </Link>
           </p>
           <p className="cursor-pointer">
@@ -62,7 +66,7 @@ const Footer = () => {
               spy={true}
               smooth={true}
               duration={500}>
-              Kontakt
+              {t("contact")}
             </Link>
           </p>
         </div>

@@ -1,7 +1,11 @@
 import React from 'react';
 import techny_segment from '../assets/1.png';
+import { useTranslation } from 'react-i18next';
 
 const Hodne_Zakazniku = () => {
+
+  const { t } = useTranslation()
+
   return (
     <div className="flex flex-col items-center rounded-2xl bg-white p-4 xl:max-w-[360px]">
       <div>
@@ -13,12 +17,10 @@ const Hodne_Zakazniku = () => {
       </div>
       <div className="xl:px-8">
         <p className="text-center text-xl font-bold xl:text-2xl">
-          Hodně zákazníků
+          {t("largeBase")}
         </p>
         <p className="mb-7 mt-5 text-center text-xs font-semibold xl:text-base">
-          Umístěním svých produktů na náš marketplace získáte přístup k širokému
-          a rozmanitému publiku potenciálních zákazníků, zvýšíte viditelnost své
-          značky a prodejní potenciál
+          {t("largeBaseText")}
         </p>
       </div>
     </div>

@@ -42,3 +42,4 @@ export const patchSellerImages = async (id, images) => {
         return { error: "An error occurred while uploading images." }; // Ошибка на английском
     }
 };
+

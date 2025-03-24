@@ -10,7 +10,7 @@ const PaymentEnd = () => {
 
   const { t } = useTranslation();
 
-  const { paymentEndBasket } = useActions();
+  const { paymentEndBasket, clearBasket } = useActions();
 
   const basket = JSON.parse(localStorage.getItem("basket")) || [];
   const baskets = JSON.parse(localStorage.getItem("baskets")) || [];
@@ -40,6 +40,7 @@ const PaymentEnd = () => {
       ])
     );
     paymentEndBasket();
+    clearBasket()
   }, []);
 
   return (

@@ -1,7 +1,11 @@
 import React from 'react';
 import project_management from '../assets/5.png';
+import { useTranslation } from 'react-i18next';
 
 const Vstupte_do_nas = () => {
+
+  const { t } = useTranslation()
+
   return (
     <div className="flex rounded-2xl bg-white pr-4 pt-4">
       <img
@@ -11,11 +15,10 @@ const Vstupte_do_nas = () => {
       />
       <div className="flex flex-col justify-center">
         <p className="font-bold leading-[125%] xl:text-2xl">
-          Vstupte do naší komunity
+          {t("join")}
         </p>
         <p className="mt-5 text-[9px] font-semibold leading-[160%] xl:text-sm">
-          Staňte se součástí naší prosperující komunity výrobců a nakupujících.
-          Spolupracujte, inovujte a uspěte společně
+          {t("joinText")}
         </p>
       </div>
     </div>

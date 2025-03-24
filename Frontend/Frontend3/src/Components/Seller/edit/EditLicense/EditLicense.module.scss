@@ -94,24 +94,42 @@
     color: #64748b;
   }
 
-  & span {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #3f7f6d;
-    width: clamp(124px, 2.5vw, 214px);
-    height: clamp(25px, 2.5vw, 34px);
-    font-weight: 400;
-    font-size: clamp(14px, 2.5vw, 18px);
-    line-height: 167%;
-    letter-spacing: -0.02em;
-    text-align: center;
-    color: #fff;
-    cursor: pointer;
-  }
   & input {
     display: none;
   }
+}
+
+.addPhotos {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #3f7f6d;
+  width: clamp(124px, 2.5vw, 214px);
+  height: clamp(25px, 2.5vw, 34px);
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  line-height: 167%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
+  
+}
+
+.addPhotosDisabled{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #888888;
+  width: clamp(124px, 2.5vw, 214px);
+  height: clamp(25px, 2.5vw, 34px);
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  line-height: 167%;
+  letter-spacing: -0.02em;
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
 }
 
 .imageWrapper {

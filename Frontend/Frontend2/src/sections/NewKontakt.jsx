@@ -4,6 +4,7 @@ import phoneIcon from '../assets/phone_icon.png';
 import addressIcon from '../assets/adress_icon.png';
 
 import styles from "../css/Kontakt.module.css"
+import { useTranslation } from 'react-i18next';
 
 const YellowStick = ({ height = "", width = "" }) => {
     return (
@@ -12,9 +13,12 @@ const YellowStick = ({ height = "", width = "" }) => {
 }
 
 const NewKontakt = () => {
+
+    const { t } = useTranslation()
+
     return (
         <div className={styles.main}>
-      <p className="py-12 text-5xl font-bold">Kontakt</p>
+            <p className="py-12 text-5xl font-bold">{t("contact")}</p>
 
 
             <div>

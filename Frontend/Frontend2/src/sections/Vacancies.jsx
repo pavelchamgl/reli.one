@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import VacanciesCard from '../components/VacanciesCard';
+import { useTranslation } from 'react-i18next';
 const Vacancies = () => {
   const [data, setData] = useState([]);
   useEffect(() => {
@@ -10,11 +11,15 @@ const Vacancies = () => {
     };
     fetchData();
   }, []);
+
+
+  const { t } = useTranslation()
+
   return (
     <div
       className="px-7 py-10 xl:mx-auto xl:max-w-[1439px] xl:px-32 xl:py-12"
       id="Vacancies">
-      <p className=" text-2xl font-bold xl:text-5xl">Volná pracovní místa</p>
+      <p className=" text-2xl font-bold xl:text-5xl">{t("jobsOpen")}</p>
       <div className="mt-7 grid grid-cols-1 gap-5 xl:mt-12 xl:grid-cols-2 xl:gap-10">
         {data.map((item) => (
           <VacanciesCard

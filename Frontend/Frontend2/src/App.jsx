@@ -7,16 +7,18 @@ import 'slick-carousel/slick/slick-theme.css';
 import Footer from './sections/Footer';
 import Vacancies from './sections/Vacancies';
 import NewKontakt from './sections/NewKontakt';
+import ChangeLang from './components/changeLang/ChangeLang';
 
 const App = () => {
   return (
-    <div className="font-Inter">
+    <div className="font-Inter relative">
       <Domu />
       <Proc_Zrovna_Me />
       <Vacancies />
       <News />
-      <NewKontakt/>
+      <NewKontakt />
       <Footer />
+      <ChangeLang />
     </div>
   );
 };
