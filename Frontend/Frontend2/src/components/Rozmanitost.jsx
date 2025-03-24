@@ -1,7 +1,11 @@
 import React from 'react';
 import lang_learning from '../assets/4.png';
+import { useTranslation } from 'react-i18next';
 
 const Rozmanitost = () => {
+
+  const { t } = useTranslation()
+
   return (
     <div className="flex rounded-2xl bg-white py-3 pr-4">
       <div>
@@ -13,11 +17,10 @@ const Rozmanitost = () => {
       </div>
       <div className="flex flex-col justify-center">
         <p className="font-bold leading-[125%] xl:text-2xl">
-          Rozmanitost a interakce
+          {t("diversity")}
         </p>
         <p className="mt-5 text-[9px] font-semibold leading-[160%] xl:text-sm">
-          Naše platforma podporuje rozmanitost. Ukažte své jedinečné produkty a
-          spojte se se zákazníky, které vaše nabídka zajímá
+          {t("diversityText")}
         </p>
       </div>
     </div>

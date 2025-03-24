@@ -186,7 +186,7 @@ const ProductCard = ({ data = null }) => {
         </button>
       )}
       <img
-        onClick={() => navigate(`/product/${data.id}`)}
+        onClick={() => navigate(`/product/${data?.id}?name=${encodeURIComponent(data?.name || '')}`)}
         className={styles.image}
         src={data.image}
         alt="Product"
@@ -198,7 +198,7 @@ const ProductCard = ({ data = null }) => {
         </div>
         <p
           className={styles.prodName}
-          onClick={() => navigate(`/product/${data.id}`)}
+          onClick={() => navigate(`/product/${data?.id}?name=${encodeURIComponent(data?.name || '')}`)}
         >
           {formattedText}
         </p>

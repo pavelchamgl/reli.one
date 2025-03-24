@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getSellerProductById, patchProduct, patchSellerImages } from "../api/seller/editProduct";
 import mainInstance from "../api";
-import { postSellerImages, postSellerParameters, postSellerVariants } from "../api/seller/sellerProduct";
+import { postSellerImages, postSellerLisence, postSellerParameters, postSellerVariants } from "../api/seller/sellerProduct";
 import { ErrToast } from "../ui/Toastify";
 
 // Получить продукт по ID
@@ -75,6 +75,18 @@ export const fetchDeleteVariant = createAsyncThunk(
     }
 );
 
+export const fetchDeleteLicense = createAsyncThunk(
+    "editGoodsSeller/fetchDeleteLicense",
+    async (obj) => {
+        try {
+            await mainInstance.delete(`sellers/products/${obj?.prodId}/license/${obj?.licId}/`);
+            dispatch(deleteLicense());
+        } catch (error) {
+            return rejectWithValue(error?.response?.data || "An error occurred while deleting license.");
+        }
+    }
+)
+
 // Редактирование продукта
 export const fetchEditProduct = createAsyncThunk(
     "editGoodsSeller/fetchEditProduct",
@@ -82,7 +94,7 @@ export const fetchEditProduct = createAsyncThunk(
         try {
             const state = getState().edit_goods;
             const {
-                name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ
+                name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file
             } = state;
 
             // Фильтруем локальные и серверные данные
@@ -127,7 +139,12 @@ export const fetchEditProduct = createAsyncThunk(
                     category: categoryId
                 })
             ];
-
+            
+            if (license_file && license_file?.status === "local") {
+                requests.push(
+                    postSellerLisence(id, license_file)
+                )
+            }
             if (newImages.length > 0) requests.push(patchSellerImages(id, newImages));
             if (newParameters.length > 0) requests.push(postSellerParameters(id, newParameters));
             if (updateParameterRequests.length > 0) requests.push(...updateParameterRequests);
@@ -273,6 +290,18 @@ const editGoodsSlice = createSlice({
                 ...state,
                 variantsServ: action.payload
             }
+        },
+        setLicense: (state, action) => {
+            return {
+                ...state,
+                license_file: action.payload
+            }
+        },
+        deleteLicense: (state, action) => {
+            return {
+                ...state,
+                license_file: null
+            }
         }
 
 
@@ -324,6 +353,13 @@ const editGoodsSlice = createSlice({
                     }
                 })
 
+                if (action.payload?.license_file) {
+                    state.license_file = {
+                        ...action.payload?.license_file,
+                        status: "server"
+                    }
+                }
+
             }
 
         })
@@ -367,11 +403,11 @@ const editGoodsSlice = createSlice({
         build.addCase(fetchEditProduct.rejected, (state, action) => {
             state.status = "rejected";
             state.err = action.payload;
-            ErrToast( "An error occurred while editing the product."); // Ошибка
+            ErrToast("An error occurred while editing the product."); // Ошибка
         });
     }
 })
 
 
-export const { deleteParameter, setNewParameters, setImages, deleteImage, setParameter, setCategory, setNewVariants, deleteVariant } = editGoodsSlice.actions
+export const { deleteParameter, setNewParameters, setImages, deleteImage, setParameter, setCategory, setNewVariants, deleteVariant, setLicense, deleteLicense, } = editGoodsSlice.actions
 export const { reducer } = editGoodsSlice

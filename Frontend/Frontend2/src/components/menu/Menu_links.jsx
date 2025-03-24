@@ -1,7 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-scroll';
 
 const Menu_links = ({ stateFunc }) => {
+
+  const { t } = useTranslation()
+
   return (
     <div className="mt-12 flex flex-col gap-7 pl-6 pr-16 text-xl text-white">
       <div className="border-b-2 border-[#666666]">
@@ -14,7 +18,7 @@ const Menu_links = ({ stateFunc }) => {
             spy={true}
             smooth={true}
             duration={500}>
-            Domů
+            {t("home")}
           </Link>
         </button>
       </div>
@@ -28,7 +32,7 @@ const Menu_links = ({ stateFunc }) => {
             spy={true}
             smooth={true}
             duration={500}>
-            Proč zrovna my?
+            {t("choose")}
           </Link>
         </button>
       </div>
@@ -42,7 +46,7 @@ const Menu_links = ({ stateFunc }) => {
             spy={true}
             smooth={true}
             duration={500}>
-            Volná pracovní místa
+            {t("jobsOpen")}
           </Link>
         </button>
       </div>
@@ -56,7 +60,7 @@ const Menu_links = ({ stateFunc }) => {
             spy={true}
             smooth={true}
             duration={500}>
-            Aktuality
+            {t("news")}
           </Link>
         </button>
       </div>
@@ -70,7 +74,7 @@ const Menu_links = ({ stateFunc }) => {
             spy={true}
             smooth={true}
             duration={500}>
-            Kontakt
+            {t("contact")}
           </Link>
         </button>
       </div>

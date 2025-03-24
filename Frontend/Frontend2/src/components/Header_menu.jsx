@@ -7,6 +7,9 @@ import Menu_PC from './menu/Menu_PC';
 import Portal_menu from './Portal_menu';
 import Menu_links from './menu/Menu_links';
 
+import { useTranslation } from "react-i18next";
+import ChangeLang from './changeLang/ChangeLang';
+
 
 
 const Header = () => {
@@ -17,6 +20,10 @@ const Header = () => {
   const changeState = () => {
     setOpenMenu(!openMenu);
   };
+
+  const { t, i18n } = useTranslation();
+
+
   return (
     <>
       {openMenu && (
@@ -32,6 +39,13 @@ const Header = () => {
         </Portal_menu>
       )}
       <div className="flex items-center justify-between pt-3 lg:justify-normal">
+
+        <div className="lg:hidden">
+          <button onClick={() => setOpenMenu(!openMenu)}>
+            <Menu_button />
+          </button>
+        </div>
+
         <div className="lg:mr-20 xl:mr-32">
           <img
             src={Reli_Logo}
@@ -40,11 +54,9 @@ const Header = () => {
           />
           <img src={Reli_Logo} className="hidden lg:block" alt="" />
         </div>
-        <div className="lg:hidden">
-          <button onClick={() => setOpenMenu(!openMenu)}>
-            <Menu_button />
-          </button>
-        </div>
+        
+        <p className='lg:hidden'></p>
+
         <div className="hidden lg:block">
           <Menu_PC />
         </div>

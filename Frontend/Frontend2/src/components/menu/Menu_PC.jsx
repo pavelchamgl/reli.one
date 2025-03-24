@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-scroll';
+import { t } from "i18next"
 
 const Menu_PC = () => {
   return (
-    <ul className="flex flex-wrap gap-16 font-medium">
+    <ul className="flex flex-wrap gap-12 font-medium">
       <li className="cursor-pointer rounded-full px-4 transition duration-300 ease-in-out hover:bg-[#333333] hover:text-white">
         <Link
           activeClass="active"
@@ -12,7 +13,7 @@ const Menu_PC = () => {
           spy={true}
           smooth={true}
           duration={500}>
-          Domů
+          {t("home")}
         </Link>
       </li>
       <li className="cursor-pointer rounded-full px-4 transition duration-300 ease-in-out hover:bg-[#333333] hover:text-white">
@@ -23,7 +24,7 @@ const Menu_PC = () => {
           spy={true}
           smooth={true}
           duration={500}>
-          Proč zrovna my?
+          {t("choose")}
         </Link>
       </li>
       <li className="cursor-pointer rounded-full px-4 transition duration-300 ease-in-out hover:bg-[#333333] hover:text-white">
@@ -34,7 +35,7 @@ const Menu_PC = () => {
           spy={true}
           smooth={true}
           duration={500}>
-          Volná pracovní místa
+          {t("jobsOpen")}
         </Link>
       </li>
       <li className="cursor-pointer rounded-full px-4 transition duration-300 ease-in-out hover:bg-[#333333] hover:text-white">
@@ -45,7 +46,7 @@ const Menu_PC = () => {
           spy={true}
           smooth={true}
           duration={500}>
-          Aktuality
+          {t("news")}
         </Link>
       </li>
       <li className="cursor-pointer rounded-full px-4 transition duration-300 ease-in-out hover:bg-[#333333] hover:text-white">
@@ -56,7 +57,7 @@ const Menu_PC = () => {
           spy={true}
           smooth={true}
           duration={500}>
-          Kontakt
+          {t("contact")}
         </Link>
       </li>
     </ul>
