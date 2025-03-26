@@ -1,19 +1,25 @@
 .cardItem {
-    border-radius: 10px;
-    width: 91px;
-    height: 102px;
-    padding-top: 10px;
+  border-radius: 10px;
+  width: 91px;
+  height: 102px;
+  padding-top: 10px;
+  text-align: center;
+  background-size: 78px 78px;
+
+  background-position: center calc(100% - 10px);
+  background-repeat: no-repeat;
+  background-color: #f0f0f0;
+  p {
+    font-weight: 600;
+    font-size: 12px;
     text-align: center;
-    background-size: contain;
-    background-position: 0 5px;
-    background-repeat: no-repeat;
-    background-color: #f0f0f0;
-    p {
-      font-weight: 600;
-      font-size: 12px;
-      line-height: 100%;
-      letter-spacing: -0.03em;
-      text-align: center;
-      color: #000;
-    }
+    color: #000;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Обрезка до 2 строк */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: calc(1.2em * 2); /* Ограничиваем высоту под 2 строки */
+    line-height: 1.2em;
   }
+}

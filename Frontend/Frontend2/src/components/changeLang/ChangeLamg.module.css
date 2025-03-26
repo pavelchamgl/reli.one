@@ -1,6 +1,7 @@
 /* flex items-center gap-1 absolute top-4 right-10 lg:right-0  */
 .langBtn {
     display: flex;
+    gap: 5px;
     align-items: center;
     position: absolute;
     top: 16px;

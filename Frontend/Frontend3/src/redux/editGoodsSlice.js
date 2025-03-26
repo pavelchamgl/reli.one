@@ -107,10 +107,10 @@ export const fetchEditProduct = createAsyncThunk(
             // Формируем запросы на обновление параметров и вариантов
             const updateParameterRequests = [
                 ...serverParameters,
-                { id: lengthId, name: "length", value: length },
-                { id: weightId, name: "weight", value: weight },
-                { id: widthId, name: "width", value: width },
-                { id: heightId, name: "height", value: height },
+                { id: lengthId, name: "Length", value: length },
+                { id: weightId, name: "Weight", value: weight },
+                { id: widthId, name: "Width", value: width },
+                { id: heightId, name: "Height", value: height },
             ]
                 .filter(param => param.id && param.value !== undefined)
                 .map((param) =>
@@ -324,25 +324,25 @@ const editGoodsSlice = createSlice({
 
                 state.parameters = action.payload?.product_parameters
                     ?.filter(item =>
-                        item.name !== "length" &&
-                        item.name !== "weight" &&
-                        item.name !== "width" &&
-                        item.name !== "height"
+                        item.name !== "Length" &&
+                        item.name !== "Weight" &&
+                        item.name !== "Width" &&
+                        item.name !== "Height"
                     )
                     .map(item => ({
                         ...item,
                         status: "server"
                     }));
 
-                state.length = action.payload?.product_parameters?.find((item) => item.name === "length")?.value
-                state.weight = action.payload?.product_parameters?.find((item) => item.name === "weight")?.value
-                state.width = action.payload?.product_parameters?.find((item) => item.name === "width")?.value
-                state.height = action.payload?.product_parameters?.find((item) => item.name === "height")?.value
+                state.length = action.payload?.product_parameters?.find((item) => item.name === "Length")?.value
+                state.weight = action.payload?.product_parameters?.find((item) => item.name === "Weight")?.value
+                state.width = action.payload?.product_parameters?.find((item) => item.name === "Width")?.value
+                state.height = action.payload?.product_parameters?.find((item) => item.name === "Height")?.value
 
-                state.lengthId = action.payload?.product_parameters?.find((item) => item.name === "length")?.id
-                state.weightId = action.payload?.product_parameters?.find((item) => item.name === "weight")?.id
-                state.widthId = action.payload?.product_parameters?.find((item) => item.name === "width")?.id
-                state.heightId = action.payload?.product_parameters?.find((item) => item.name === "height")?.id
+                state.lengthId = action.payload?.product_parameters?.find((item) => item.name === "Length")?.id
+                state.weightId = action.payload?.product_parameters?.find((item) => item.name === "Weight")?.id
+                state.widthId = action.payload?.product_parameters?.find((item) => item.name === "Width")?.id
+                state.heightId = action.payload?.product_parameters?.find((item) => item.name === "Height")?.id
 
                 state.variantsName = action.payload?.variants ? action.payload.variants[0]?.name : null;
                 state.price = action.payload?.variants ? action.payload.variants[0]?.price : null;

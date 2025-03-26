@@ -11,7 +11,7 @@ export const toggleFavorite = async (id) => {
 
 export const getFavoriteProducts = async (page, sort) => {
     try {
-        const res = await mainInstance.get(`https://reli.one/api/favorites/products/?page=${page}&sort_by=${sort}&page_size=15`)
+        const res = await mainInstance.get(`https://reli.one/api/favorites/products/?page=${page}&sort_by=${sort}&page_size=35`)
         return res
     } catch (error) {
         throw error

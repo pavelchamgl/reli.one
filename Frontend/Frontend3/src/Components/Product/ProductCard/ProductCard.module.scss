@@ -30,12 +30,9 @@
 
 .image {
   width: 100%;
-  height: 215px;
   object-fit: cover;
   cursor: pointer;
-  @media (max-width: 500px) {
-    height: 142px;
-  }
+  aspect-ratio: 1/1;
 }
 
 .likeBtn {

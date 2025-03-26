@@ -79,7 +79,7 @@ const LikedPage = () => {
         <div className={styles.paginateDiv}>
           <Pagination
             shape="rounded"
-            count={Math.ceil(count / 15)} // Использование Math.ceil для округления вверх
+            count={Math.ceil(count / 35)} // Использование Math.ceil для округления вверх
             page={page}
             onChange={handleChange}
           />
