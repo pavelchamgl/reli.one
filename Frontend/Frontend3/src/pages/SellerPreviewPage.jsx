@@ -28,10 +28,10 @@ const SellerPreviewPage = () => {
   }
 
   useEffect(() => {
-    // if (product?.status === "fulfilled") {
-    //   navigate("/seller/goods-list");
-    //   window.location.reload();
-    // }
+    if (product?.status === "fulfilled") {
+      navigate("/seller/goods-list");
+      window.location.reload();
+    }
     console.log(product.status);
     
   }, [product?.status]);

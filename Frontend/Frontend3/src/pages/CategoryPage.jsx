@@ -47,6 +47,7 @@ const CategoryPage = () => {
   useEffect(() => {
     if (categoryId !== null) {
       setCategoryForProduct(categoryId);
+      setProdPage(1)
       fetchGetProducts();
     }
   }, [categoryId, categoryValue, orderingState, filter, page]);
@@ -56,6 +57,7 @@ const CategoryPage = () => {
   useEffect(() => {
     setProductsData(products);
   }, [products]);
+
 
   const handleChange = (event, value) => {
     setPage(value);
@@ -109,7 +111,7 @@ const CategoryPage = () => {
         <div className={styles.paginationDiv}>
           <Pagination
             shape="rounded"
-            count={Math.ceil(count / 15)} // Использование Math.ceil для округления вверх
+            count={Math.ceil(count / 35)} // Использование Math.ceil для округления вверх
             page={page}
             onChange={handleChange}
           />

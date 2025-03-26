@@ -61,7 +61,7 @@ const PreviewCharacteristics = ({ product }) => {
             product && length &&
             <div className={styles.tableDiv}>
               <div>
-                <p>length</p>
+                <p>Length</p>
               </div>
               <div>
                 <p>{length} mm</p>
@@ -72,7 +72,7 @@ const PreviewCharacteristics = ({ product }) => {
             product && width &&
             <div className={styles.tableDiv}>
               <div>
-                <p>width</p>
+                <p>Width</p>
               </div>
               <div>
                 <p>{width} mm</p>
@@ -83,7 +83,7 @@ const PreviewCharacteristics = ({ product }) => {
             product && height &&
             <div className={styles.tableDiv}>
               <div>
-                <p>height</p>
+                <p>Height</p>
               </div>
               <div>
                 <p>{height} mm</p>
@@ -94,7 +94,7 @@ const PreviewCharacteristics = ({ product }) => {
             product && weight &&
             <div className={styles.tableDiv}>
               <div>
-                <p>weight</p>
+                <p>Weight</p>
               </div>
               <div>
                 <p>{weight} gr</p>

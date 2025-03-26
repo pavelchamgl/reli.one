@@ -31,6 +31,10 @@ const ProductCharak = () => {
     width: "mm",
     height: "mm",
     weight: "g",
+    Length: "mm",
+    Width: "mm",
+    Height: "mm",
+    Weight: "g"
   };
 
   return (

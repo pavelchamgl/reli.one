@@ -31,10 +31,10 @@ export const fetchCreateProduct = createAsyncThunk(
             const results = await Promise.allSettled([
                 postSellerParameters(productId, [
                     ...(state.product_parameters || []),
-                    { name: "length", value: lengthMain ?? "" },
-                    { name: "width", value: widthMain ?? "" },
-                    { name: "height", value: heightMain ?? "" },
-                    { name: "weight", value: weightMain ?? "" },
+                    { name: "Length", value: lengthMain ?? "" },
+                    { name: "Width", value: widthMain ?? "" },
+                    { name: "Height", value: heightMain ?? "" },
+                    { name: "Weight", value: weightMain ?? "" },
                 ]),
                 postSellerVariants(productId, {
                     variants: state.variantsMain || [],
