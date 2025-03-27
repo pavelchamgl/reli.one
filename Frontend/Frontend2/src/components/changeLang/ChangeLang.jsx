@@ -18,7 +18,7 @@ const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
             <button onClick={() => handleChangeLang('en')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
                 <div className="flex items-center gap-2">
                     <img className="w-5" src={enIcon} alt="English" />
-                    <span>{lang === "en" ? "English" : "Angličtina"}</span>
+                    <span>English</span>
                 </div>
                 {
                     lang === "en" && <img src={checkMark} alt="" />
@@ -27,7 +27,7 @@ const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
             <button onClick={() => handleChangeLang('cs')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
                 <div className='flex items-center gap-2'>
                     <img className="w-5" src={csIcon} alt="Czech" />
-                    <span>{lang === "cs" ? "Česky" : "Czech"}</span>
+                    <span>Czech</span>
                 </div>
                 {
                     lang === "cs" && <img src={checkMark} alt="" />
@@ -78,7 +78,7 @@ const ChangeLang = () => {
         <>
             <button onClick={() => setOpen(!open)} className={styles.langBtn}>
                 <img className="w-5" src={lang === "en" ? enIcon : csIcon} alt="" />
-                <p className="font-medium text-xl">{lang === "en" ? "En" : "CZ"}</p>
+                <p className="font-medium text-xl">{lang === "en" ? "En" : "Cz"}</p>
             </button >
             {open &&
                 width > 426 ?

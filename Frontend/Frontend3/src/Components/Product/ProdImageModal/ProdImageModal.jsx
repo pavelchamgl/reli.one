@@ -77,3 +77,4 @@ const ProdImageModal = ({ open, handleClose, imageUrl }) => {
 }
 
 export default ProdImageModal
+

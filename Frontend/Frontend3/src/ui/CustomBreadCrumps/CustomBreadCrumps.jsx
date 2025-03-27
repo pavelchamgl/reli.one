@@ -1,50 +1,53 @@
 import React, { useEffect, useState } from "react";
 import { Breadcrumbs, Link, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-const CustomBreadcrumbs = ({ product }) => {
-
-  console.log(product);
-  
+const CustomBreadcrumbs = () => {
   const location = useLocation();
   const navigate = useNavigate();
-
   const pathname = location.pathname;
+  const { product } = useSelector((state) => state.products);
+  
+  const [pathnames, setPathnames] = useState([]);
 
-  const [pathnames, setPathnames] = useState(() => {
-    const savedPaths = JSON.parse(localStorage.getItem("paths"));
-    return savedPaths ? savedPaths : [];
-  });
+  // При монтировании загружаем пути из localStorage
+  useEffect(() => {
+    const savedPaths = JSON.parse(localStorage.getItem("paths")) || [];
+    setPathnames(savedPaths);
+  }, []);
 
   useEffect(() => {
-    let updatedPathnames = JSON.parse(localStorage.getItem("paths")) || [];
+    setPathnames((prevPathnames) => {
+      let updatedPathnames = [...prevPathnames];
 
-    if (pathname === "/") {
-      // Если на главной странице, сбрасываем пути
-      updatedPathnames = [];
-    } else if (!updatedPathnames.some((item) => item.path === pathname)) {
-      if (product) {
-        // Добавляем продукт в путь
-        updatedPathnames.push({
-          name: product, // Название продукта
-          path: pathname, // Текущий путь
-        });
+      if (pathname === "/") {
+        updatedPathnames = [];
       } else {
-        updatedPathnames.push({
-          name: pathname.split("/").filter(Boolean).pop(), // Последний сегмент пути
-          path: pathname,
-        });
-      }
-    }
+        let lastSegment = pathname.split("/").filter(Boolean).pop();
 
-    localStorage.setItem("paths", JSON.stringify(updatedPathnames));
-    setPathnames(updatedPathnames);
+        if (!isNaN(lastSegment) && product) {
+          lastSegment = product.name;
+        }
+
+        const exists = updatedPathnames.some((item) => item.path === pathname);
+        if (!exists) {
+          updatedPathnames.push({ name: lastSegment, path: pathname });
+        }
+      }
+
+      localStorage.setItem("paths", JSON.stringify(updatedPathnames));
+      return updatedPathnames;
+    });
   }, [pathname, product]);
 
   const handleBreadcrumbClick = (event, to) => {
     event.preventDefault();
     navigate(to);
   };
+
+  const truncateText = (text, maxLength) =>
+    text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
 
   return (
     <Breadcrumbs aria-label="breadcrumb">
@@ -59,7 +62,7 @@ const CustomBreadcrumbs = ({ product }) => {
         const isLast = index === pathnames.length - 1;
         return isLast ? (
           <Typography color="textPrimary" key={value.path}>
-            {value.name}
+            {truncateText(value.name || "", 10)}
           </Typography>
         ) : (
           <Link
@@ -68,7 +71,7 @@ const CustomBreadcrumbs = ({ product }) => {
             onClick={(event) => handleBreadcrumbClick(event, value.path)}
             key={value.path}
           >
-            {value.name}
+            {truncateText(value.name || "", 20)}
           </Link>
         );
       })}

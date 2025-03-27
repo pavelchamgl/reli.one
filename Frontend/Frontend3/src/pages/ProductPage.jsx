@@ -20,24 +20,22 @@ import styles from "../styles/ProductPage.module.scss";
 
 const ProductPage = () => {
   const [section, setSection] = useState("Charakteristika");
-  const [productBread, setProdBread] = useState("");
 
   const isMobile = useMediaQuery({ maxWidth: 470 });
+
 
   const { id } = useParams();
 
   const { fetchGetProductById, fetchGetComments } = useActions();
+  const { product, status } = useSelector((state) => state.products);
 
   useEffect(() => {
     fetchGetProductById(id);
     fetchGetComments(id);
   }, [id]);
 
-  useEffect(() => {
-    setProdBread(product?.name);
-  }, [id]);
 
-  const { product, status } = useSelector((state) => state.products);
+
 
   if (status !== "loading") {
     return (
@@ -50,7 +48,7 @@ const ProductPage = () => {
             </div>
           ) : (
             <>
-              <CustomBreadcrumbs product={productBread} />
+              <CustomBreadcrumbs />
               <div className={styles.imageRateDiv}>
                 <ProductImages />
                 <ProductNameRate />
