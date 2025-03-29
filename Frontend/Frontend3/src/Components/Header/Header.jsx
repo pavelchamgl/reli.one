@@ -52,13 +52,13 @@ const Header = () => {
   };
 
   const handleBasketClick = () => {
-    if (token) {
+    // if (token) {
       navigate("/basket");
       setBasketAuth(false);
-    } else {
-      setBasketAuth(true);
-      AuthNeed(t("toast.auth_required"));
-    }
+    // } else {
+    //   setBasketAuth(true);
+    //   AuthNeed(t("toast.auth_required"));
+    // }
   };
 
   if (isMobile) {
@@ -122,7 +122,7 @@ const Header = () => {
       </div>
       <ProfileNavDrawer open={navOpen} handleClose={() => setNavOpen(false)} />
       <CatalogDrawer />
-      <LoginModal open={open} handleClose={() => setOpen(false)} />
+      <LoginModal text={"Login"} open={open} handleClose={() => setOpen(false)} />
     </div>
   );
 };

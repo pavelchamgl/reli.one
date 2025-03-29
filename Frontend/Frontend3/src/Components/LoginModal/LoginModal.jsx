@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Dialog } from "@mui/material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -12,8 +12,9 @@ import CheckBox from "../../ui/CheckBox/CheckBox";
 import BasketModal from "../Basket/BasketModal/BasketModal";
 
 import styles from "./LoginModal.module.scss";
+import { useMediaQuery } from "react-responsive";
 
-const LoginModal = ({ open, handleClose }) => {
+const LoginModal = ({ open, handleClose, text, basket = false }) => {
   const [regErr, setRegErr] = useState("");
 
   const { t } = useTranslation();
@@ -39,6 +40,9 @@ const LoginModal = ({ open, handleClose }) => {
       .required(t(`validation.password.required`)),
   });
 
+  const basketLocal = JSON.parse(localStorage.getItem("basket")) || []
+  const basketsLocal = JSON.parse(localStorage.getItem("baskets")) || []
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -50,6 +54,34 @@ const LoginModal = ({ open, handleClose }) => {
         .then((res) => {
           localStorage.setItem("token", JSON.stringify(res.data));
           localStorage.setItem("email", JSON.stringify(values.email));
+          if (basket) {
+            if (basketsLocal.some((item) => item?.email === values.email)) {
+              const emailBasket = basketsLocal.find(item => item?.email === values.email)
+              const filteredBaskets = basketsLocal.filter(item => item?.email !== values.email)
+              const filteredBasket = (emailBasket?.basket || []).filter(
+                (item) => !basketLocal.some(basketItem => basketItem?.sku === item?.sku)
+              );
+              const basketUnselected = filteredBasket?.map((item) => {
+                return {
+                  ...item,
+                  selected: false
+                }
+              })
+              localStorage.setItem("baskets", JSON.stringify([
+                ...filteredBaskets, {
+                  email: values.email,
+                  basket: [...basketUnselected, ...basketLocal]
+                }
+              ]))
+              localStorage.setItem("basket", JSON.stringify([...basketUnselected, ...basketLocal]))
+            } else {
+              const allBaskets = [...basketsLocal, {
+                email: values.email,
+                basket: basketLocal
+              }]
+              localStorage.setItem("baskets", JSON.stringify(allBaskets))
+            }
+          }
           setRegErr("");
           handleClose();
           window.location.reload();
@@ -73,7 +105,7 @@ const LoginModal = ({ open, handleClose }) => {
 
               setRegErr(
                 errorMessage.trim() ||
-                  "No active account found with the given credentials."
+                "No active account found with the given credentials."
               );
             } else {
               setRegErr("An unknown error occurred.");
@@ -98,7 +130,7 @@ const LoginModal = ({ open, handleClose }) => {
       >
         <div className={styles.modal}>
           <div className={styles.modalTitleDiv}>
-            <p>{t("login")}</p>
+            <p>{text}</p>
             <button onClick={handleClose}>
               <img src={loginModalXIcon} alt="" />
             </button>
