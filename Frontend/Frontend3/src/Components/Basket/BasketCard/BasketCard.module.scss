@@ -28,7 +28,7 @@
 }
 
 .img {
-  width: 120px !important;
+  width: 120px;
   height: 114px;
   object-fit: cover;
   @media (max-width: 426px) {
@@ -73,6 +73,13 @@
     font-size: clamp(14px, 2.5vw, 16px);
     line-height: 123%;
     color: #000;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 4.5em; /* Высота = 3 строки (зависит от шрифта) */
+    line-height: 1.5em; /* Регулируем высоту строки */
   }
 }
 
@@ -88,11 +95,21 @@
 }
 
 .mobTextDiv {
+  @media (max-width: 331px) {
+    width: 140px;
+  }
   p {
     font-weight: 500;
     font-size: 12px;
     line-height: 150%;
     color: #000;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 4.5em; /* Высота = 3 строки (зависит от шрифта) */
+    line-height: 1.5em; /* Регулируем высоту строки */
   }
 }
 

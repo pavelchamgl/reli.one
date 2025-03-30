@@ -40,6 +40,11 @@ const MobLoginForm = () => {
       .required(t(`validation.password.required`)),
   });
 
+  const basketLocal = JSON.parse(localStorage.getItem("basket")) || []
+  const basketsLocal = JSON.parse(localStorage.getItem("baskets")) || []
+  const token = JSON.parse(localStorage.getItem("token")) || null
+
+
   const formik = useFormik({
     initialValues: {
       email: "",
@@ -51,8 +56,40 @@ const MobLoginForm = () => {
         .then((res) => {
           localStorage.setItem("token", JSON.stringify(res.data));
           localStorage.setItem("email", JSON.stringify(values.email));
-          setRegErr("");
-          navigate("/");
+
+          if (!token && basketLocal?.length > 0) {
+            if (basketsLocal.some((item) => item?.email === values.email)) {
+              const emailBasket = basketsLocal.find(item => item?.email === values.email)
+              const filteredBaskets = basketsLocal.filter(item => item?.email !== values.email)
+              const filteredBasket = (emailBasket?.basket || []).filter(
+                (item) => !basketLocal.some(basketItem => basketItem?.sku === item?.sku)
+              );
+              const basketUnselected = filteredBasket?.map((item) => {
+                return {
+                  ...item,
+                  selected: false
+                }
+              })
+              localStorage.setItem("baskets", JSON.stringify([
+                ...filteredBaskets, {
+                  email: values.email,
+                  basket: [...basketUnselected, ...basketLocal]
+                }
+              ]))
+              localStorage.setItem("basket", JSON.stringify([...basketUnselected, ...basketLocal]))
+            } else {
+              const allBaskets = [...basketsLocal, {
+                email: values.email,
+                basket: basketLocal
+              }]
+              localStorage.setItem("baskets", JSON.stringify(allBaskets))
+            }
+            window.location.reload()
+          }
+          else {
+            setRegErr("");
+            navigate("/");
+          }
         })
         .catch((err) => {
           if (err.response) {
@@ -73,7 +110,7 @@ const MobLoginForm = () => {
 
               setRegErr(
                 errorMessage.trim() ||
-                  "No active account found with the given credentials."
+                "No active account found with the given credentials."
               );
             } else {
               setRegErr("An unknown error occurred.");

@@ -17,11 +17,14 @@ import PlataRadio from "../PlataRadio/PlataRadio";
 import arrLeft from "../../../assets/Payment/arrLeft.svg";
 
 import styles from "./PaymentPlataBlock.module.scss";
+import LoginModal from "../../LoginModal/LoginModal";
 
 const PaymentPlataBlock = ({ setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const [plataType, setPlataType] = useState("card");
   const [inputError, setInputError] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false)
+  const [authEnd, setAuthEnd] = useState(false)
 
   const { t } = useTranslation();
 
@@ -35,6 +38,8 @@ const PaymentPlataBlock = ({ setSection }) => {
     (state) => state.basket.selectedProducts
   );
 
+  const token = localStorage.getItem("token")
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -47,10 +52,18 @@ const PaymentPlataBlock = ({ setSection }) => {
   };
 
   const handleSubmit = () => {
-    if (plataType === "card") {
-      dispatch(fetchCreateStripeSession(selectedProducts));
+    if (!token) {
+      if (isMobile) {
+        navigate("/mob_login")
+      } else {
+        setModalOpen(true)
+      }
     } else {
-      dispatch(fetchCreatePayPalSession(selectedProducts));
+      if (plataType === "card") {
+        dispatch(fetchCreateStripeSession(selectedProducts));
+      } else {
+        dispatch(fetchCreatePayPalSession(selectedProducts));
+      }
     }
   };
 
@@ -98,6 +111,7 @@ const PaymentPlataBlock = ({ setSection }) => {
           {loading ? <Spinner /> : <p>{t("pay_now")}</p>}
         </button>
       </div>
+      <LoginModal  basket={true} text={"Please log in/register to continue"} open={modalOpen} handleClose={() => setModalOpen(false)} />
     </div>
   );
 };

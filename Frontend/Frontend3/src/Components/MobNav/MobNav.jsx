@@ -65,11 +65,11 @@ const MobNav = () => {
   };
   const handleBasketClick = () => {
     setOpen(false);
-    if (token) {
+    // if (token) {
       navigate("/mob_basket");
-    } else {
-      AuthNeed(t("toast.auth_required"));
-    }
+    // } else {
+    //   AuthNeed(t("toast.auth_required"));
+    // }
   };
 
   return (
