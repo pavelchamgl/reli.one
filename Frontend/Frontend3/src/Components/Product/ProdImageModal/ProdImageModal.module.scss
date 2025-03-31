@@ -26,7 +26,7 @@
   display: flex;
   gap: clamp(25px, 5vw, 68px);
 
-  @media (max-width: 930px) {
+  @media (max-width: 700px) {
     padding-top: 50px;
     flex-direction: column-reverse;
     align-items: center;
@@ -56,7 +56,7 @@
     transform: rotate(180deg);
   }
 
-  @media (max-width: 930px) {
+  @media (max-width: 700px) {
     & button {
       display: none;
     }
@@ -69,10 +69,10 @@
   aspect-ratio: 1/1;
   object-fit: cover;
   // *mob
-  @media (max-width: 1130px) {
+  @media (max-width: 900px) {
     height: calc(100vh - 200px);
   }
-  @media (max-width: 930px) {
+  @media (max-width: 700px) {
     width: calc(100vw - 500px);
     height: auto;
   }
@@ -87,7 +87,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-width: 168px;
   height: min(100vh - 60px);
   overflow-y: auto;
   overflow-x: hidden;
@@ -110,13 +109,13 @@
 
   & img {
     width: clamp(60px, 10vw, 158px);
-    aspect-ratio: 1/1;
+    height: clamp(60px, 10vw, 158px);
     margin-right: 5px;
     object-fit: cover;
     flex-shrink: 0; /* Предотвращает сжатие */
   }
 
-  @media (max-width: 930px) {
+  @media (max-width: 700px) {
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
