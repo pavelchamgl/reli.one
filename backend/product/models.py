@@ -144,7 +144,16 @@ class BaseProductImage(models.Model):
         return ContentFile(img_io.getvalue(), name=image_file.name.split('.')[0] + ".webp")
 
     def resize_and_pad(self, img, size=1000):
-        """Приводим изображение к 1:1 с отступами"""
+        """Приводим изображение к 1:1 с белым фоном, включая PNG с прозрачностью"""
+        # Преобразуем изображение в RGBA, если у него есть альфа-канал
+        if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+            img = img.convert("RGBA")
+            background = Image.new("RGBA", img.size, (255, 255, 255, 255))
+            img = Image.alpha_composite(background, img)
+            img = img.convert("RGB")  # после наложения переводим в RGB
+        else:
+            img = img.convert("RGB")
+
         old_size = img.size
         ratio = float(size) / max(old_size)
         new_size = tuple([int(x * ratio) for x in old_size])
