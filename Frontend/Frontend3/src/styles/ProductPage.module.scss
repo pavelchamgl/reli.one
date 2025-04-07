@@ -2,10 +2,10 @@
 
 .imageRateDiv {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
   // flex-wrap: wrap;
-  gap: 40px;
+  gap: clamp(40px, 20vw, 60px);
   @media (max-width:1050px) {
     flex-wrap: wrap;
   }

@@ -163,9 +163,16 @@
   text-transform: lowercase;
   text-align: center;
   color: #fafafa;
+  transition: 0.5s ease;
+
 }
 .continueBtn:disabled {
   background: #b0b2b1;
+
+}
+
+.continueBtn:hover{
+  background-color: #06664B;
 
 }
 

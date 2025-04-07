@@ -85,7 +85,7 @@ const router = createBrowserRouter([
       { path: "/mob_profile_nav", element: <MobProfileNavPage /> },
       { path: "/mob_basket", element: <BasketPage /> },
       { path: "/mob_category", element: <MobCategoryPage /> },
-      { path: "/product_category", element: <CategoryPage /> },
+      { path: "/product_category/:id", element: <CategoryPage /> },
     ],
   },
   {

@@ -68,6 +68,8 @@
   text-align: center;
   color: #fff;
   position: relative;
+  transition: 0.5s ease;
+
   & img {
     position: absolute;
     left: 80px;
@@ -78,7 +80,8 @@
   }
 }
 .basketBtn:hover {
-  background-color: #356658;
+  background-color: #06664B;
+
 }
 
 .deliveryBtn {

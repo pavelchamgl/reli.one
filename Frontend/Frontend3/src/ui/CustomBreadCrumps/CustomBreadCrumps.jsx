@@ -8,8 +8,11 @@ const CustomBreadcrumbs = () => {
   const navigate = useNavigate();
   const pathname = location.pathname;
   const { product } = useSelector((state) => state.products);
-  
+
   const [pathnames, setPathnames] = useState([]);
+
+  const searchParams = new URLSearchParams(location.search);
+  const searchText = searchParams.get("categoryValue");
 
   // При монтировании загружаем пути из localStorage
   useEffect(() => {
@@ -25,14 +28,22 @@ const CustomBreadcrumbs = () => {
         updatedPathnames = [];
       } else {
         let lastSegment = pathname.split("/").filter(Boolean).pop();
+        let isCategory = false
+        let categoryName = ""
 
-        if (!isNaN(lastSegment) && product) {
-          lastSegment = product.name;
+        if (!isNaN(lastSegment)) {
+          if (!searchText) {
+            lastSegment = product.name;
+          } else {
+            lastSegment = searchText,
+              isCategory = true
+            categoryName = searchText
+          }
         }
 
         const exists = updatedPathnames.some((item) => item.path === pathname);
         if (!exists) {
-          updatedPathnames.push({ name: lastSegment, path: pathname });
+          updatedPathnames.push({ name: lastSegment, path: pathname, category: isCategory, categoryName: categoryName });
         }
       }
 
@@ -41,9 +52,9 @@ const CustomBreadcrumbs = () => {
     });
   }, [pathname, product]);
 
-  const handleBreadcrumbClick = (event, to) => {
+  const handleBreadcrumbClick = (event, to, category, name) => {
     event.preventDefault();
-    navigate(to);
+    navigate(category ? `${to}?categoryValue=${encodeURIComponent(name)}` : to);
   };
 
   const truncateText = (text, maxLength) =>
@@ -68,7 +79,7 @@ const CustomBreadcrumbs = () => {
           <Link
             color="inherit"
             href={value.path}
-            onClick={(event) => handleBreadcrumbClick(event, value.path)}
+            onClick={(event) => handleBreadcrumbClick(event, value.path, value?.category, value?.categoryName)}
             key={value.path}
           >
             {truncateText(value.name || "", 20)}

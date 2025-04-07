@@ -45,8 +45,8 @@
   font-size: clamp(12px, 2.5vw, 24px);
   line-height: 140%;
   color: #000;
-  //   color: #3f7f6d;
   text-decoration: none;
+  transition: 0.5s ease;
 }
 
 .container {
@@ -79,7 +79,7 @@
 
 .listDiv {
   font-weight: 500;
-  font-size: clamp(12px, 2.5vw, 24px) ;
+  font-size: clamp(12px, 2.5vw, 24px);
   line-height: 140%;
   color: #000;
   padding-left: 20px;

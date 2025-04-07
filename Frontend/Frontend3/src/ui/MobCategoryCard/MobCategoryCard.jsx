@@ -9,10 +9,10 @@ const MobCategoryCard = ({ item }) => {
 
   const handleCategoryClick = () => {
     navigate(
-      `/product_category?categoryValue=${encodeURIComponent(
+      `/product_category/${item?.id}?categoryValue=${encodeURIComponent(
         item?.name
       )}&categoryID=${item?.id}`
-    );
+    )
   };
   return (
     <div
