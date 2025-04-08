@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 
 import Container from "../ui/Container/Container";
 import ProductCard from "../Components/Product/ProductCard/ProductCard";
@@ -13,6 +13,7 @@ import MobFilter from "../Components/MobFilter/MobFilter";
 import styles from "../styles/CategoryPage.module.scss";
 import { useActions } from "../hook/useAction";
 import { Pagination } from "@mui/material";
+import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
 
 const CategoryPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -22,6 +23,8 @@ const CategoryPage = () => {
   const [orderingState, setOrderingState] = useState("rating");
   const [filter, setFilter] = useState(false);
   const [page, setPage] = useState(1);
+
+  const { id } = useParams()
 
   const {
     fetchGetProducts,
@@ -43,6 +46,15 @@ const CategoryPage = () => {
       setCategoryValue(searchText);
     }
   }, [search]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(search);
+    const searchText = searchParams.get("categoryValue");
+    if (searchText) {
+      setCategoryValue(searchText);
+    }
+    setCategoryId(id)
+  }, [id])
 
   useEffect(() => {
     if (categoryId !== null) {
@@ -98,6 +110,9 @@ const CategoryPage = () => {
               />
             </div>
           )}
+        </div>
+        <div className={styles.breadHide}>
+          <CustomBreadcrumbs />
         </div>
         <div className={styles.likedProdWrap}>
           {productsData && productsData.length > 0 ? (

@@ -77,7 +77,8 @@ const productsSlice = createSlice({
         searchPage: 1,
         searchResult: {},
         searchStatus: null,
-        count: null
+        count: null,
+        categoryName: null
     },
     reducers: {
         setOrdering: (state, action) => {
@@ -110,13 +111,11 @@ const productsSlice = createSlice({
                 ...state, searchPage: action.payload
             }
         }
-
-
     },
     extraReducers: builder => {
         builder.addCase(fetchGetProducts.pending, pendingStatus),
             builder.addCase(fetchGetProducts.fulfilled, (state, action) => {
-                state.products = action.payload.results
+                state.products = action.payload.results                
                 state.status = "fulfilled",
                     state.count = action.payload.count
             }),

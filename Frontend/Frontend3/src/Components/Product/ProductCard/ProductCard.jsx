@@ -162,12 +162,8 @@ const ProductCard = ({ data = null }) => {
       <div className={styles.skeleton}>
         <div className={styles.skeletonImage}></div>
         <div className={styles.skeletonDetails}>
-          <div className={styles.skeletonName}></div>
           <div className={styles.skeletonPrice}></div>
-          <div className={styles.skeletonRate}>
-            <div className={styles.skeletonRating}></div>
-            <div className={styles.skeletonCount}></div>
-          </div>
+          <div className={styles.skeletonName}></div>
           <button className={styles.skeletonButton}></button>
         </div>
       </div>

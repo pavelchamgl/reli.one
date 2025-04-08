@@ -37,10 +37,10 @@ const CatalogDrawer = ({ open, handleClose }) => {
 
   const handleCategoryClick = (name, id) => {
     navigate(
-      `/product_category?categoryValue=${encodeURIComponent(
+      `/product_category/${id}?categoryValue=${encodeURIComponent(
         name
       )}&categoryID=${id}`
-    );
+    )
     handleClose();
   };
 

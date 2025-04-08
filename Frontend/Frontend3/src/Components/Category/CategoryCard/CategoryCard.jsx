@@ -18,7 +18,8 @@ const CategoryCard = ({ item }) => {
   if (isLoading) {
     return (
       <div className={styles.sceleton}>
-        <div></div>
+        <div className={styles.skeletonText}></div>
+        <div className={styles.skeletonImage}></div>
       </div>
     );
   }
@@ -28,7 +29,7 @@ const CategoryCard = ({ item }) => {
       <div
         onClick={() =>
           navigate(
-            `/product_category?categoryValue=${encodeURIComponent(
+            `/product_category/${item?.id}?categoryValue=${encodeURIComponent(
               item?.name
             )}&categoryID=${item?.id}`
           )

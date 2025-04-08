@@ -9,10 +9,10 @@ const CatalogCardSimple = ({ item, handleClose }) => {
 
   const handleCategoryClick = () => {
     navigate(
-      `/product_category?categoryValue=${encodeURIComponent(
+      `/product_category/${item?.id}?categoryValue=${encodeURIComponent(
         item?.name
       )}&categoryID=${item?.id}`
-    );
+    )
     handleClose();
   };
 

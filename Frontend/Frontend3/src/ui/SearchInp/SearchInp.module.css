@@ -24,29 +24,35 @@
     justify-content: center;
     align-items: center;
     background-color: #F7CD56;
+    transition: 0.5s ease;
 }
 
+.btn:hover {
+    background-color: #ECC351;
+}
 
 @media only screen and (max-width: 1350px) {
+
     /* Стили для экранов шириной 600px и меньше */
-    .inp{
-    width: 400px;
+    .inp {
+        width: 400px;
 
     }
-  }
+}
 
-  @media only screen and (max-width: 1150px) {
+@media only screen and (max-width: 1150px) {
+
     /* Стили для экранов шириной 600px и меньше */
-    .inp{
-    width: 250px;
+    .inp {
+        width: 250px;
 
     }
-  }
+}
 
-  @media only screen and (max-width: 950px) {
+@media only screen and (max-width: 950px) {
 
     /* Стили для экранов шириной 600px и меньше */
-    .inp{
+    .inp {
         width: 100%;
     }
 }

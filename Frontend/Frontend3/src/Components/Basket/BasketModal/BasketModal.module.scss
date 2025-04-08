@@ -52,6 +52,8 @@
     text-transform: lowercase;
     text-align: center;
     color: #fff;
+    transition: 0.5s ease;
+
     &:disabled {
       background-color: #b0b2b1;
     }
@@ -68,6 +70,10 @@
     text-align: center;
     color: #3f7f6d;
     text-decoration: none;
+  }
+  button:nth-child(1):hover{
+    background-color: #06664B;
+
   }
 }
 

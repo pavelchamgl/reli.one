@@ -7,8 +7,14 @@
     gap: 23px;
     background-color: #F7CD56;
     font-size: 18px;
+    transition: 0.5s ease;
 
     & p {
         cursor: pointer !important;
     }
+
+}
+
+.wrap:hover {
+        background-color: #ECC351;
 }

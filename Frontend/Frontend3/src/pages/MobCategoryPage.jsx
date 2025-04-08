@@ -22,10 +22,10 @@ const MobCategoryPage = () => {
 
   const handleCategoryClick = (name, id) => {
     navigate(
-      `/product_category?categoryValue=${encodeURIComponent(
+      `/product_category/${id}?categoryValue=${encodeURIComponent(
         name
       )}&categoryID=${id}`
-    );
+    )
   };
 
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -81,9 +81,8 @@ const MobCategoryPage = () => {
         <p>{category?.name}</p>
       </button>
       <div
-        className={`${styles.cardItemWrap} ${
-          isCardBtnRendered ? styles.cardItemWrap2 : ""
-        }`}
+        className={`${styles.cardItemWrap} ${isCardBtnRendered ? styles.cardItemWrap2 : ""
+          }`}
       >
         {renderMobCategoryCard()}
       </div>

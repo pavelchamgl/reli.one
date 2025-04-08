@@ -16,7 +16,7 @@ import ProdCharackButtons from "../ProdCharakButtons/ProdCharackButtons";
 const ProductNameRate = () => {
   const [inBasket, setInBasket] = useState(false);
   const [price, setPrice] = useState("10");
-  const [endPrice, setEndPice] = useState("10");
+  const [endPrice, setEndPice] = useState(null);
   const [sku, setSku] = useState(null);
 
   const navigate = useNavigate();
@@ -91,7 +91,7 @@ const ProductNameRate = () => {
         <p className={styles.name}>{formattedText}</p>
         <span className={styles.categoryName}>{product?.category_name}</span>
       </div>
-      <p className={styles.price}>{price} €</p>
+      <p className={styles.price}>{endPrice ? endPrice : price} €</p>
       <ProdCharackButtons
         setSku={setSku}
         setPrice={setEndPice}
