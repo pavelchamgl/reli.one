@@ -70,6 +70,8 @@ const router = createBrowserRouter([
       { path: "/my_orders", element: <MyOrdersPage /> },
       { path: "/product/:id", element: <ProductPage /> },
       { path: "/payment_end", element: <PaymentEnd /> },
+
+
       { path: "/change_pass", element: <ChangePassPage /> },
       { path: "/sign_up", element: <SignUpPage /> },
       { path: "/email_conf", element: <EmailConfirmPage /> },
@@ -77,14 +79,15 @@ const router = createBrowserRouter([
       { path: "/otp_pass_conf", element: <OtpPassConfirmPage /> },
       { path: "/otp_conf", element: <OtpConfirmPage /> },
       { path: "/create_new_pass", element: <CreateNewPass /> },
-      { path: "/test", element: <Test /> },
+
+      { path: "/mob_login", element: <MobLoginPage /> },
+      { path: "/mob_basket", element: <BasketPage /> },
+      { path: "/mob_category", element: <MobCategoryPage /> },
+
 
       { path: "/mob_resenze/:id", element: <MobProdResenzePage /> },
       { path: "/mob_resenze_create/:id", element: <MobCreateResenze /> },
-      { path: "/mob_login", element: <MobLoginPage /> },
       { path: "/mob_profile_nav", element: <MobProfileNavPage /> },
-      { path: "/mob_basket", element: <BasketPage /> },
-      { path: "/mob_category", element: <MobCategoryPage /> },
       { path: "/product_category/:id", element: <CategoryPage /> },
     ],
   },
