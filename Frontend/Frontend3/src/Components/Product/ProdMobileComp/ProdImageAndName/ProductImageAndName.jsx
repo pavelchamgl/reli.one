@@ -126,7 +126,7 @@ const ProductImageAndName = () => {
           id={product?.id}
         />
         <div className={styles.priceWrap}>
-          <p>{price} €</p>
+          <p>{endPrice ? endPrice : price} €</p>
           {/* <span>400.00 Kč</span> */}
         </div>
         <button className={styles.basketBtn} onClick={handleAddBasket}>
