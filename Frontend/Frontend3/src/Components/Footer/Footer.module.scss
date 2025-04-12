@@ -146,13 +146,11 @@
 
 .mobLinkMain {
   text-align: center;
-
-  & div {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 22px;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 10px;
+ 
 }
 
 .mobLogo {
@@ -166,7 +164,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  margin-bottom: 91px;
+  margin-bottom: 28px;
 
   & p {
     text-align: left;

@@ -53,7 +53,7 @@ const PaymentDeliverySelect = () => {
 
         // Найти параметр weight среди параметров продукта
         const weightParam = item?.product?.product_parameters?.find?.(
-          (param) => param.name === "weight"
+          (param) => param.name === "Weight"
         );
         // Если параметр weight найден, добавить его значение к аккумулятору
         const weight = weightParam ? parseFloat(weightParam.value) || 0 : 0;
@@ -71,13 +71,13 @@ const PaymentDeliverySelect = () => {
 
 
         const heightParam = product?.product?.product_parameters?.find?.(
-          (param) => param.name === "height"
+          (param) => param.name === "Height"
         );
         const widthParam = product?.product?.product_parameters?.find?.(
-          (param) => param.name === "width"
+          (param) => param.name === "Width"
         );
         const lengthParam = product?.product?.product_parameters?.find?.(
-          (param) => param.name === "length"
+          (param) => param.name === "Length"
         );
 
         const height = heightParam ? parseFloat(heightParam.value) || 0 : 0;

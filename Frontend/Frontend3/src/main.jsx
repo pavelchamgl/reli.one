@@ -82,7 +82,7 @@ const router = createBrowserRouter([
 
       { path: "/mob_login", element: <MobLoginPage /> },
       { path: "/mob_basket", element: <BasketPage /> },
-      { path: "/mob_category", element: <MobCategoryPage /> },
+      { path: "/mob_category/:id", element: <MobCategoryPage /> },
 
 
       { path: "/mob_resenze/:id", element: <MobProdResenzePage /> },

@@ -34,6 +34,7 @@ const MobVariantDrawer = ({
             count: Number(basketVariant.count) + 1,
           })
         );
+        handleClose()
       } else {
         dispatch(
           addToBasket({
@@ -44,6 +45,7 @@ const MobVariantDrawer = ({
             sku: selected,
           })
         );
+        handleClose()
       }
     }
   }, [selected]);
@@ -76,27 +78,27 @@ const MobVariantDrawer = ({
                 <div className={styles.stylePackVTwoButtons}>
                   {variants && variants.length > 0
                     ? variants.map((item) => (
-                        <button
-                          style={{
-                            borderColor:
-                              selected === item.sku ? "black" : "#64748b",
-                          }}
-                          onClick={() => {
-                            setSelected(item.sku);
-                            // setPrice(item.price);
-                            // setSku(item.sku);
-                            // // changeVariants({
-                            // //   id: id,
-                            // //   price: item.price,
-                            // //   sku: item.sku,
-                            // // });
-                          }}
-                          key={item?.sku}
-                        >
-                          <img src={item?.image} alt="" />
-                          <p>{item?.price}€</p>
-                        </button>
-                      ))
+                      <button
+                        style={{
+                          borderColor:
+                            selected === item.sku ? "black" : "#64748b",
+                        }}
+                        onClick={() => {
+                          setSelected(item.sku);
+                          // setPrice(item.price);
+                          // setSku(item.sku);
+                          // // changeVariants({
+                          // //   id: id,
+                          // //   price: item.price,
+                          // //   sku: item.sku,
+                          // // });
+                        }}
+                        key={item?.sku}
+                      >
+                        <img src={item?.image} alt="" />
+                        <p>{item?.price}€</p>
+                      </button>
+                    ))
                     : null}
                 </div>
               )}
@@ -104,22 +106,22 @@ const MobVariantDrawer = ({
                 <div className={styles.stylePackVThreeButtons}>
                   {variants && variants.length > 0
                     ? variants.map((item) => (
-                        <button
-                          style={{
-                            borderColor:
-                              selected === item.sku ? "black" : "#64748b",
-                          }}
-                          onClick={() => {
-                            setSelected(item.sku);
-                            // setPrice(item.price);
-                            // setSku(item.sku);
-                          }}
-                          key={item?.sku}
-                        >
-                          <p>{item?.text}</p>
-                          <span>{item?.price}€</span>
-                        </button>
-                      ))
+                      <button
+                        style={{
+                          borderColor:
+                            selected === item.sku ? "black" : "#64748b",
+                        }}
+                        onClick={() => {
+                          setSelected(item.sku);
+                          // setPrice(item.price);
+                          // setSku(item.sku);
+                        }}
+                        key={item?.sku}
+                      >
+                        <p>{item?.text}</p>
+                        <span>{item?.price}€</span>
+                      </button>
+                    ))
                     : null}
                 </div>
               )}

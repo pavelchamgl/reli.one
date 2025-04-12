@@ -17,6 +17,9 @@ const MobPaymentBasket = () => {
   );
 
 
+  console.log(selectedProducts);
+
+
   return (
     <div>
       <button
@@ -35,7 +38,7 @@ const MobPaymentBasket = () => {
           {selectedProducts &&
             selectedProducts.length > 0 &&
             selectedProducts.map((item) => (
-              <MobCardSecond key={item.sku} product={item?.product} sku={item?.sku} />
+              <MobCardSecond key={item.sku} product={item?.product} count={item?.count} sku={item?.sku} />
             ))}
           <BasketTotalBlock />
         </div>
