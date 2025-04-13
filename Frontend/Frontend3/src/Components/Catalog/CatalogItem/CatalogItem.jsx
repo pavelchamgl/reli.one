@@ -19,9 +19,12 @@ const CatalogItem = ({
 
   const { setCategory } = useActions();
 
+  console.log(data);
+
+
   const handleClick = () => {
     if (isMobile) {
-      navigate("/mob_category");
+      navigate(`/mob_category/${data?.id}`);
       setCatalogCategory(data.name);
       setCategory(data);
       handleClose();

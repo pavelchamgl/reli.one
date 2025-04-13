@@ -39,7 +39,9 @@ export function ppl(volume = 'm', weight = 15, isHand = true, region = 'cz') {
 
 export function geis(weight = 75) {
     // Проверка на null, undefined и 0
-    weight = (weight == null || weight === 0) ? 75 : weight;
+    console.log(weight);
+    
+    weight = (weight == null || weight === 0) ? 50 : weight;
 
     let price = 0;
     const days = 1;

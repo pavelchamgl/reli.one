@@ -27,11 +27,9 @@ const MainPage = () => {
     const existingValueParse = existingValue ? JSON.parse(existingValue) : [];
 
     if (localEmail) {
-      const userBasket = existingValueParse?.find((item) => {
-        if (item.email === JSON.parse(localEmail)) {
-          return item;
-        }
-      });
+      const userBasket = existingValueParse.find(
+        (item) => item.email === localEmail
+      );
 
       if (userBasket) {
         localStorage.setItem("basket", JSON.stringify(userBasket.basket));
@@ -44,6 +42,7 @@ const MainPage = () => {
       localStorage.setItem("baskets", JSON.stringify([]));
     }
   }, [localEmail]);
+
 
   useEffect(() => {
     fetchGetCategory();

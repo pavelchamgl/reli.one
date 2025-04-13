@@ -6,10 +6,11 @@ const basketValue = JSON.parse(localStorage.getItem("basket")) || [];
 const basketTotalCount = JSON.parse(localStorage.getItem("basketTotal")) || 0;
 const basketSelectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
 
-const localEmail = localStorage.getItem("email")
-const baskets = JSON.parse(localStorage.getItem("baskets")) || []
+const localEmail = localStorage.getItem("email");
+const baskets = JSON.parse(localStorage.getItem("baskets")) || [];
 
-const filteredBaskets = baskets.filter((item) => item.email !== JSON.parse(localEmail))
+const filteredBaskets = baskets.filter((item) => item.email !== localEmail);
+
 
 
 const editBaskets = (basket) => {

@@ -132,6 +132,12 @@ const MobFilter = ({
     setValue([0, max]);
   }, [products]);
 
+  useEffect(() => {
+    setValue([0, 1.35]);
+    setMin(0)
+    setMax(100000)
+  }, [pathname])
+
   return (
     <div>
       <div className={styles.btnDiv}>

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import returnIcon from "../assets/mobileIcons/returnCategoryIcon.svg";
 import Container from "../ui/Container/Container";
@@ -9,6 +9,7 @@ import MobCategoryCard from "../ui/MobCategoryCard/MobCategoryCard";
 import styles from "../styles/MobCategoryPage.module.scss";
 import MobCategoryCardBtn from "../ui/MobCategoryCardBtn/MobCategoryCardBtn";
 import CatalogDrawer from "../Components/Catalog/CatalogDrawer/CatalogDrawer";
+import { fetchGetCategory } from "../redux/categorySlice";
 
 const MobCategoryPage = () => {
   const navigate = useNavigate();

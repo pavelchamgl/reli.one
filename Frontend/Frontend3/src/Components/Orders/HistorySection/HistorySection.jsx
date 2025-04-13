@@ -39,6 +39,9 @@ const HistorySection = () => {
     }
   }, [small, orderId, fetchGetDetalOrders]);
 
+  console.log(orders);
+  
+
 
   if (small) {
     if (orderStatus === "loading") {

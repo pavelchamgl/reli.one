@@ -39,15 +39,20 @@ const Footer = () => {
   if (isMobile) {
     return (
       <div className={cls.mobileMain}>
+        <MessengerBtns />
         <div className={cls.mobLinkMain}>
-          <div>
-            <Link to={"/for_sell"} className={cls.mobileLink} href="#">
-              {t("for_seller")}
-            </Link>
-            <Link to={"/for_buy"} className={cls.mobileLink} href="#">
-              {t("for_buyers")}
-            </Link>
-          </div>
+          <Link className={cls.mobileLink} to={"/mob_login"}>
+            Log in
+          </Link>
+          <Link className={cls.mobileLink} to={"/my_orders"}>
+            Orders
+          </Link>
+          <Link to={"/for_sell"} className={cls.mobileLink} href="#">
+            {t("for_seller")}
+          </Link>
+          <Link to={"/for_buy"} className={cls.mobileLink} href="#">
+            {t("for_buyers")}
+          </Link>
           <a className={cls.mobileLink} href="https://info.reli.one">
             {t("about_company")}
           </a>
@@ -61,7 +66,6 @@ const Footer = () => {
           </p>
         </div>
         <div className={cls.mobBottomWrap}>
-          <MessengerBtns />
           <p className={cls.mobBottomDesc}>(c) Copyright 2025 Reli Group</p>
         </div>
       </div>

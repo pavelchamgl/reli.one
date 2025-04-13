@@ -32,6 +32,9 @@ const ActualSection = () => {
   );
 
 
+  console.log(orders);
+  
+
   useEffect(() => {
     if (small && orderId) {
       fetchGetDetalOrders(orderId);

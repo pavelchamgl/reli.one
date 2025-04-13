@@ -2,8 +2,11 @@ import { useEffect, useState } from "react";
 import cardImage from "../../assets/Product/ProductTestImage.svg";
 import styles from "./MobCardSecond.module.scss";
 
-const MobCardSecond = ({ product, sku }) => {
+const MobCardSecond = ({ product, sku, count }) => {
   const [variant, setVariant] = useState(null);
+
+  console.log(count);
+  
 
   useEffect(() => {
     if (product?.variants) {
@@ -38,7 +41,7 @@ const MobCardSecond = ({ product, sku }) => {
         </div>
       </div>
       <p className={styles.price}>
-        1 x<strong>{variant ? variant?.price : null}</strong>
+        {count} x<strong>{variant ? variant?.price : null}</strong>
       </p>
     </div>
   );

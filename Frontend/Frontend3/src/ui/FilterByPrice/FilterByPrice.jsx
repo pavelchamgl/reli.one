@@ -55,6 +55,8 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
   const [open, setOpen] = useState(false);
   const modalRef = useRef(null);
 
+  const { pathname } = useLocation()
+
   const { t } = useTranslation();
 
   const handleSliderChange = (event, newValue) => {
@@ -102,6 +104,12 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
       event.preventDefault();
     }
   };
+
+  useEffect(() => {
+    setValue([0, 100000])
+    setMin(0)
+    setMax(100000)
+  }, [pathname])
 
   // useEffect(() => {
   //   let max = 0;
