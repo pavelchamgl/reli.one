@@ -25,8 +25,6 @@ services:
     volumes:
       - static_volume:/data/www/static
       - /home/reli/reli.one/backend/media:/data/www/media
-      - /home/reli/reli.one/ssl-verification:/data/www/.well-known/pki-validation
-
 
   backend:
     container_name: backend
