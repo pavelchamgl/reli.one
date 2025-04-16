@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -181,13 +182,23 @@ USE_TZ = True
 STATIC_URL = '/reli.one/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-EMAIL_FROM = 'novapiple228@gmail.com'
-EMAIL_BCC = 'novapiple228@gmail.com'
+PROJECT_MANAGERS_EMAILS_RAW = os.getenv("PROJECT_MANAGERS_EMAILS", "[]")
+try:
+    PROJECT_MANAGERS_EMAILS = json.loads(PROJECT_MANAGERS_EMAILS_RAW)
+except json.JSONDecodeError:
+    PROJECT_MANAGERS_EMAILS = []
+
+DEFAULT_FROM_EMAIL = 'no-reply@example.com'
 
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
 EMAIL_HOST = os.getenv("EMAIL_HOST")
 EMAIL_PORT = os.getenv("EMAIL_PORT")
-EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+# EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+def str_to_bool(value):
+    return value.lower() in ('true', '1', 'yes')
+
+EMAIL_USE_TLS = str_to_bool(os.getenv('EMAIL_USE_TLS', 'False'))
+EMAIL_USE_SSL = str_to_bool(os.getenv('EMAIL_USE_SSL', 'False'))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 EMAIL_USE_SSL = False
