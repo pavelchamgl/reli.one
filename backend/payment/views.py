@@ -16,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment
 from .mixins import PayPalMixin
+from .services import send_order_emails_safely
 from accounts.models import CustomUser
 from product.models import BaseProduct, ProductVariant
 from promocode.models import PromoCode
@@ -828,14 +829,14 @@ class PayPalWebhookView(PayPalMixin, APIView):
         try:
             order_status = OrderStatus.objects.get(name="Pending")
         except OrderStatus.DoesNotExist:
-            logger.error("Order status 'Pending' does not exist.")
+            logger.error("Order status 'Pending' does not exist.", exc_info=True)
             order_status = None
 
         # Получение пользователя
         try:
             user = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
-            logger.error(f"User with id {user_id} does not exist.")
+            logger.error(f"User with id {user_id} does not exist.", exc_info=True)
             return False
 
         # Получение типа доставки
@@ -843,7 +844,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
             try:
                 delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
             except DeliveryType.DoesNotExist:
-                logger.error(f"DeliveryType with id {delivery_type} does not exist.")
+                logger.error(f"DeliveryType with id {delivery_type} does not exist.", exc_info=True)
                 delivery_type_obj = None
         else:
             delivery_type_obj = None
@@ -853,7 +854,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
             try:
                 courier_service_obj = CourierService.objects.get(id=courier_service_id)
             except CourierService.DoesNotExist:
-                logger.error(f"CourierService with id {courier_service_id} does not exist.")
+                logger.error(f"CourierService with id {courier_service_id} does not exist.", exc_info=True)
                 courier_service_obj = None
         else:
             courier_service_obj = None
@@ -944,14 +945,14 @@ class PayPalWebhookView(PayPalMixin, APIView):
                 )
                 logger.debug(f"Payment created for order {order.id}")
             except Exception as e:
-                logger.error(f"Error creating payment: {str(e)}")
+                logger.error(f"Error creating payment: {str(e)}", exc_info=True)
                 return False
 
             logger.info(f"Order {order.id} and Payment created successfully from webhook")
-            return True
+            return order
 
         except Exception as e:
-            logger.error(f"Error creating order: {str(e)}")
+            logger.error(f"Error creating order: {str(e)}", exc_info=True)
             return False
 
     @csrf_exempt
@@ -972,11 +973,12 @@ class PayPalWebhookView(PayPalMixin, APIView):
             if is_verified:
                 logger.info("Webhook verification successful.")
                 if event_type == 'CHECKOUT.ORDER.APPROVED':
-                    success = self.create_order_from_webhook(data)
-                    if success:
+                    order = self.create_order_from_webhook(data)
+                    if order is not None:
+                        send_order_emails_safely(order)
                         return Response({'status': 'Order and Payment created successfully'}, status=200)
                     else:
-                        logger.error(f"Error creating order and payment for event: {event_type}")
+                        logger.error(f"Error creating order and payment for event: {event_type}", exc_info=True)
                         return Response({'error': 'Error creating order and payment'}, status=500)
             else:
                 logger.warning("Webhook verification failed.")

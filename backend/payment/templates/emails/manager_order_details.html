@@ -1,0 +1,80 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Новый заказ №{{ order.order_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            padding: 20px;
+        }
+        h2 {
+            color: #444;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Новый заказ №{{ order.order_number }}</h2>
+
+    <p><strong>Клиент:</strong> {{ order.user.email }}</p>
+    <p><strong>Телефон:</strong> {{ order.phone_number }}</p>
+    <p><strong>Адрес доставки:</strong> {{ order.delivery_address }}</p>
+    <p><strong>Тип доставки:</strong> {{ order.delivery_type.name }}</p>
+    <p><strong>Служба доставки:</strong> {{ order.courier_service.name }}</p>
+    <p><strong>Дата заказа:</strong> {{ order.order_date }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Название товара</th>
+                <th>Вариант</th>
+                <th>SKU</th>
+                <th>Цена за ед.</th>
+                <th>Количество</th>
+                <th>Стоимость доставки</th>
+                <th>Продавец</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for op in order_products %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ op.product.product.name }}</td>
+                    <td>{{ op.product.text|default:"-" }}</td>
+                    <td>{{ op.product.sku }}</td>
+                    <td>{{ op.product_price|floatformat:2 }} €</td>
+                    <td>{{ op.quantity }}</td>
+                    <td>{{ op.delivery_cost|floatformat:2 }} €</td>
+                    <td>{{ op.seller_profile.user.email }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p class="footer">
+        <strong>Итоговая сумма:</strong> {{ order.total_amount|floatformat:2 }} €<br>
+        <strong>Стоимость доставки:</strong> {{ order.delivery_cost|floatformat:2 }} €
+    </p>
+</body>
+</html>

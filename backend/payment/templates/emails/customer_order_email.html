@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Подтверждение заказа №{{ order.order_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            padding: 30px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 700px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #e0e0e0;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        .summary {
+            margin-top: 20px;
+        }
+        .summary p {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Спасибо за ваш заказ №{{ order.order_number }}!</h2>
+        <p>Детали вашего заказа:</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Название продукта</th>
+                    <th>Вариант</th>
+                    <th>Цена за единицу</th>
+                    <th>Количество</th>
+                    <th>Стоимость доставки</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for op in order_products %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ op.product.product.name }}</td>
+                    <td>{{ op.product.name }}{% if op.product.text %}: {{ op.product.text }}{% endif %}</td>
+                    <td>{{ op.product_price }} EUR</td>
+                    <td>{{ op.quantity }}</td>
+                    <td>{{ op.delivery_cost }} EUR</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="summary">
+            <p><strong>Стоимость доставки:</strong> {{ order.delivery_cost }} EUR</p>
+            <p><strong>Общая сумма заказа:</strong> {{ order.total_amount }} EUR</p>
+            <p><strong>Email:</strong> {{ order.customer_email }}</p>
+            <p><strong>Телефон:</strong> {{ order.phone_number }}</p>
+            <p><strong>Адрес доставки:</strong> {{ order.delivery_address }}</p>
+            {% if order.courier_service %}
+                <p><strong>Курьерская служба:</strong> {{ order.courier_service.name }}</p>
+            {% endif %}
+            {% if order.delivery_type %}
+                <p><strong>Тип доставки:</strong> {{ order.delivery_type.name }}</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
