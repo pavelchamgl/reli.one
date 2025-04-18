@@ -180,6 +180,22 @@ class ProductVariant(models.Model):
     price = models.DecimalField(
         max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))]
     )
+    weight_grams = models.PositiveIntegerField(
+        default=0,
+        help_text="Вес товара в граммах"
+    )
+    width_mm = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Ширина упаковки в миллиметрах"
+    )
+    height_mm = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Высота упаковки в миллиметрах"
+    )
+    length_mm = models.PositiveIntegerField(
+        null=True, blank=True,
+        help_text="Длина упаковки в миллиметрах"
+    )
 
     def __str__(self):
         return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"

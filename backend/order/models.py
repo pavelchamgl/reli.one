@@ -65,12 +65,13 @@ class Order(models.Model):
     delivery_type = models.ForeignKey('DeliveryType', on_delete=models.SET_NULL, null=True)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_status = models.ForeignKey('DeliveryStatus', on_delete=models.SET_NULL, null=True, blank=True)
-    delivery_address = models.CharField(max_length=255, null=True, blank=True)
+    delivery_address = models.ForeignKey('delivery.DeliveryAddress', on_delete=models.SET_NULL, null=True, blank=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     courier_service = models.ForeignKey(CourierService, on_delete=models.SET_NULL, null=True, blank=True)
     delivery_date = models.DateField(null=True, blank=True)
+    pickup_point_id = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Order'
