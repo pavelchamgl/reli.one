@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import logo from "../../assets/Footer/logo.svg";
 import instaIcon from "../../assets/Footer/insta.svg";
 import faceIcon from "../../assets/Footer/facebook.svg";
+import telegaIcon from "../../assets/Footer/tel.svg"
 import LoginModal from "../LoginModal/LoginModal";
 
 import cls from "./Footer.module.scss";
@@ -21,6 +22,10 @@ const MessengerBtns = () => {
       <a target="_blank" href="https://www.facebook.com/share/1H2tBL8yDB/?mibextid=wwXIfr">
         <img src={faceIcon} alt="" />
         <p>facebook</p>
+      </a>
+      <a target="_blank" href="https://t.me/reli_marketplace">
+        <img src={telegaIcon} alt="" />
+        <p>telegram</p>
       </a>
     </div>
   )

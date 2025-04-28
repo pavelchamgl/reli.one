@@ -8,12 +8,9 @@
   white-space: pre-wrap; /* Обеспечивает перенос строк */
   word-wrap: break-word;
 
-
-  & span{
+  & span {
     font-family: var(--ft);
   }
-
-
 }
 
 .blackTitle {
@@ -33,8 +30,6 @@
     background-color: #bdbfc4;
   }
 }
-
-
 
 .tableDiv {
   display: flex;
@@ -84,4 +79,14 @@
   font-size: 16px;
   line-height: 114%;
   color: #000;
+}
+
+.licenseText {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 18px);
+
+  & a{
+    text-decoration: underline;
+    color: #000;
+  }
 }
