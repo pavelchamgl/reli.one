@@ -23,7 +23,7 @@ const MessengerBtns = () => {
         <img src={faceIcon} alt="" />
         <p>facebook</p>
       </a>
-      <a target="_blank" href="#">
+      <a target="_blank" href="https://t.me/reli_marketplace">
         <img src={telegaIcon} alt="" />
         <p>telegram</p>
       </a>
