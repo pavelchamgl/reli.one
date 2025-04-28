@@ -94,7 +94,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 class OrderProductAdmin(admin.ModelAdmin):
     list_display = ('order', 'product_variant_display', 'quantity', 'product_price', 'delivery_cost', 'received', 'received_at', 'seller_profile')
-    list_filter = ('received', 'seller_profile')
+    list_filter = ('status', 'received', 'seller_profile')
     search_fields = ('order__order_number', 'product__sku', 'product__name')
 
     def product_variant_display(self, obj):

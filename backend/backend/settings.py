@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'accounts',
     'analytics',
     'contactform',
+    "delivery",
     'favorites',
     'news',
     'order',
@@ -129,6 +130,13 @@ DATABASES = {
         'PORT': os.getenv("DB_PORT")
     }
 }
+
+if not DATABASES['default'].get('NAME'):
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -237,6 +245,12 @@ STRIPE_API_SECRET_KEY = os.getenv("STRIPE_API_SECRET_KEY")
 STRIPE_WEBHOOK_ENDPOINT_SECRET = os.getenv("STRIPE_WEBHOOK_ENDPOINT_SECRET")
 
 
+PACKETA_API_KEY = os.getenv("PACKETA_API_KEY")
+PACKETA_API_PASSWORD = os.getenv("PACKETA_API_PASSWORD")
+PACKETA_API_LOCALE = os.getenv("PACKETA_API_LOCALE", "en_GB")
+PACKETA_INVOICE_LOCALE = os.getenv("PACKETA_INVOICE_LOCALE", "cs_CZ")
+
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -300,6 +314,11 @@ LOGGING = {
         },
         'accounts': {
             'handlers': ['debug_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'delivery': {
+            'handlers': ['debug_file', 'error_file'],
             'level': 'DEBUG',
             'propagate': False,
         },

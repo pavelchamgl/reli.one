@@ -1,0 +1,63 @@
+from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
+from django.utils.html import format_html
+
+from order.models import Order, OrderProduct
+from sellers.models import SellerProfile
+from warehouses.models import Warehouse
+
+
+class CourierService(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=50, unique=True)
+    active = models.BooleanField(default=True)
+
+
+class DeliveryParcel(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    service = models.ForeignKey(CourierService, on_delete=models.PROTECT)
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    label_url = models.URLField(blank=True, null=True)
+    weight_grams = models.PositiveIntegerField()
+    status = models.CharField(max_length=50, default="created")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def label_link(self):
+        if self.label_url:
+            return format_html('<a href="{}" target="_blank">Скачать PDF</a>', self.label_url)
+        return "Нет"
+    label_link.short_description = "Этикетка"
+
+
+class DeliveryParcelItem(models.Model):
+    parcel = models.ForeignKey(DeliveryParcel, on_delete=models.CASCADE, related_name='items')
+    order_product = models.ForeignKey(OrderProduct, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.order_product} x {self.quantity}"
+
+
+class DeliveryAddress(models.Model):
+    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=255)
+    phone = PhoneNumberField()
+    email = models.EmailField()
+    street = models.CharField(max_length=255)
+    city = models.CharField(max_length=100)
+    zip_code = models.CharField(max_length=20)
+    country = models.CharField(max_length=100)
+    is_default = models.BooleanField(default=False)
+
+
+class ShippingRate(models.Model):
+    CHANNELS = [('PUDO', 'Pick-up point'), ('HD', 'Home Delivery')]
+    CATEGORIES = [('standard', 'Standard'), ('oversized', 'Oversized')]
+
+    country = models.CharField(max_length=2)
+    channel = models.CharField(max_length=4, choices=CHANNELS)
+    category = models.CharField(max_length=9, choices=CATEGORIES)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    cod_fee = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    estimate = models.CharField(max_length=50, blank=True)

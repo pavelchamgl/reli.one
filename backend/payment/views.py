@@ -21,6 +21,7 @@ from .services import send_order_emails_safely
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
 from product.models import BaseProduct, ProductVariant
+from delivery.models import DeliveryParcel
 from promocode.models import PromoCode
 from order.models import (
     CourierService,
@@ -28,7 +29,10 @@ from order.models import (
     DeliveryType,
     OrderProduct,
     OrderStatus,
+    ProductStatus,
 )
+from delivery.utils_async import async_generate_parcels
+from delivery.services.packeta import PacketaService
 
 logging.basicConfig(level=logging.INFO)
 
@@ -516,9 +520,26 @@ class StripeWebhookHandler(APIView):
                 )
                 logger.debug(f"Payment created for order {order.id}")
 
+                if courier_service_obj and courier_service_obj.name.lower() == "packeta":
+                    try:
+                        service = PacketaService()
+                        result = service.create_packet(order=order)
+                        packet_id = result.get('packetId')
+
+                        DeliveryParcel.objects.create(
+                            order=order,
+                            courier='Packeta',
+                            external_id=packet_id
+                        )
+                        logger.info(f"Packeta shipment created with ID {packet_id}")
+                    except Exception as e:
+                        logger.error(f"Error creating Packeta shipment: {e}", exc_info=True)
+
                 # send_order_emails_safely(order)
+                async_generate_parcels(order.id)
 
                 logger.info(f"Order {order.id} and Payment created successfully from Stripe webhook")
+
                 return Response(status=200)
 
             except Exception as e:
@@ -907,6 +928,12 @@ class PayPalWebhookView(PayPalMixin, APIView):
             )
             logger.debug(f"Created OrderProduct for {variant.sku} (qty={quantity}, delivery_cost={delivery_part})")
 
+        processing = OrderStatus.objects.get(name="Processing")
+        order.order_status = processing
+        order.save(update_fields=["order_status"])
+
+        order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
+
         # Платеж
         session_id = resource.get("id")
         payment_intent_id = resource.get("id")
@@ -925,7 +952,23 @@ class PayPalWebhookView(PayPalMixin, APIView):
         )
         logger.debug(f"Payment recorded for order {order.id}")
 
+        if courier_service_obj and courier_service_obj.name.lower() == "packeta":
+            try:
+                service = PacketaService()
+                result = service.create_packet(order=order)
+                packet_id = result.get('packetId')
+
+                DeliveryParcel.objects.create(
+                    order=order,
+                    courier='Packeta',
+                    external_id=packet_id
+                )
+                logger.info(f"Packeta shipment created with ID {packet_id}")
+            except Exception as e:
+                logger.error(f"Error creating Packeta shipment: {e}", exc_info=True)
+
         logger.info(f"Order {order.id} and Payment created successfully from Paypal webhook")
+
         return order
 
     @csrf_exempt
@@ -952,6 +995,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
             order = self.create_order_from_webhook(data)
             if order:
                 # send_order_emails_safely(order)
+                async_generate_parcels(order.id)
                 return Response({"status": "Order and Payment created successfully"}, status=200)
             else:
                 logger.error("Order creation failed after successful webhook verification")
