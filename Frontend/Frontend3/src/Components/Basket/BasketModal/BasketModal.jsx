@@ -14,8 +14,11 @@ import BasketModalCard from "../BasketModalCard/BasketModalCard";
 import styles from "./BasketModal.module.scss";
 import { useState } from "react";
 
-const BasketModal = ({ open, handleClose, productData }) => {
+const BasketModal = ({ open, handleClose, productData}) => {
   const [count, setCount] = useState(0);
+
+  console.log(productData);
+
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
