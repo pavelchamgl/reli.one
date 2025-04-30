@@ -51,13 +51,22 @@ const ProductPage = () => {
               <CustomBreadcrumbs />
               <div className={styles.imageRateDiv}>
                 <ProductImages />
-                <ProductNameRate />
+                <div className={styles.detalPageWrap}>
+                  <ProductNameRate />
+                  <ProductTab setTab={setSection} />
+                  {
+                    section === "Charakteristika" ?
+                      <ProductCharak /> :
+                      <ProductComments />
+                  }
+                </div>
               </div>
-              <ProductTab setTab={setSection} />
             </>
           )}
-          {section === "Charakteristika" && <ProductCharak />}
-          {section === "Recenze" && <ProductComments />}
+          <>
+            {isMobile && section === "Charakteristika" && <ProductCharak />}
+            {isMobile && section === "Recenze" && <ProductComments />}
+          </>
         </div>
       </Container>
     );
