@@ -1,12 +1,11 @@
-
-
 .imageRateDiv {
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-around;
   align-items: flex-start;
+  position: relative;
   // flex-wrap: wrap;
   gap: clamp(40px, 20vw, 60px);
-  @media (max-width:1050px) {
+  @media (max-width: 1050px) {
     flex-wrap: wrap;
   }
 }
@@ -25,4 +24,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.detalPageWrap {
+  width: 400px;
 }
