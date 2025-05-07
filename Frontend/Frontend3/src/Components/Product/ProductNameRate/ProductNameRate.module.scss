@@ -26,13 +26,13 @@
 }
 
 .categoryName {
-    font-family: var(--font-family);
-    font-weight: 500;
-    font-size: 16px;
-    line-height: 150%;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #64748b;
+  font-family: var(--font-family);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 150%;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .name {
@@ -76,7 +76,7 @@
   }
 }
 
-.addBasketBtn:hover{
+.addBasketBtn:hover {
   background-color: #333;
 }
 
@@ -95,4 +95,11 @@
   background-color: transparent;
   width: 390px;
   height: 36px;
+}
+
+.ndcPrice {
+  font-weight: 500;
+  font-size: 18px;
+  color: #64748b;
+  font-family: var(--ft);
 }

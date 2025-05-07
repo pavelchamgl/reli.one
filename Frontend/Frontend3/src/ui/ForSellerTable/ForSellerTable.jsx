@@ -9,10 +9,26 @@ const ForSellerTable = () => {
     <div>
       <div className={styles.tableItem}>
         <div>
+          <p>Alcohol</p>
+        </div>
+        <div>
+          <p>10%</p>
+        </div>
+      </div>
+      <div className={styles.tableItem}>
+        <div>
           <p>{t("table_gadgets")}</p>
         </div>
         <div>
           <p>8%</p>
+        </div>
+      </div>
+      <div className={styles.tableItem}>
+        <div>
+          <p>Art and handmade</p>
+        </div>
+        <div>
+          <p>20%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -53,6 +69,14 @@ const ForSellerTable = () => {
         </div>
         <div>
           <p>8%</p>
+        </div>
+      </div>
+      <div className={styles.tableItem}>
+        <div>
+          <p>Equipment</p>
+        </div>
+        <div>
+          <p>5.5%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
