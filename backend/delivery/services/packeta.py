@@ -1,74 +1,169 @@
+import logging
 import requests
+
 from base64 import b64decode
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 import xml.etree.ElementTree as ET
+
+from .base import DeliveryService
+from delivery.services.local_rates import calculate_shipping_options
+from delivery.services.shipping_split import split_items_into_parcels
+
+logger = logging.getLogger(__name__)
 
 
 class PacketaService:
     API_URL = "https://www.zasilkovna.cz/api/rest"
+    # Валюты для HD по странам
+    COUNTRY_CURRENCY = {
+        "CZ": "CZK",
+        "SK": "EUR",
+        "HU": "HUF",
+        "RO": "RON",
+    }
+
+    # статический маппинг для HD-отправлений
+    HOME_DELIVERY_ADDRESS_IDS = {
+        "CZ": 106,
+        "SK": 131,
+        "HU": 4159,
+        "RO": 4161,
+    }
 
     def __init__(self):
         self.api_password = settings.PACKETA_API_PASSWORD
+        self.eshop_code = "Reli"
         self.locale = settings.PACKETA_API_LOCALE
         self.invoice_locale = settings.PACKETA_INVOICE_LOCALE
 
-    def _send_xml(self, method: str, attributes: dict) -> ET.Element:
-        envelope = ET.Element(method)
-        ET.SubElement(envelope, "apiPassword").text = self.api_password
+    def _send_xml(self, method: str, attrs: dict) -> ET.Element:
+        """
+        Общий XML-запрос к Packeta API.
+        """
+        logger.debug("PacketaService._send_xml %s %r", method, attrs)
+        root = ET.Element(method)
+        ET.SubElement(root, "apiPassword").text = self.api_password
+        pa = ET.SubElement(root, "packetAttributes")
+        for k, v in attrs.items():
+            ET.SubElement(pa, k).text = str(v)
 
-        packet_attrs = ET.SubElement(envelope, "packetAttributes")
-        for key, value in attributes.items():
-            el = ET.SubElement(packet_attrs, key)
-            el.text = str(value)
-
-        body = ET.tostring(envelope, encoding="utf-8", method="xml")
-
-        response = requests.post(self.API_URL, data=body, headers={"Content-Type": "application/xml"})
-        response.raise_for_status()
-
-        tree = ET.fromstring(response.content)
-        status = tree.find("status").text
-        if status != "ok":
-            raise Exception(f"Packeta API error: {ET.tostring(tree)}")
-
+        payload = ET.tostring(root, encoding="utf-8")
+        resp = requests.post(self.API_URL, data=payload,
+                             headers={"Content-Type": "application/xml"}, timeout=10)
+        resp.raise_for_status()
+        tree = ET.fromstring(resp.content)
+        if tree.findtext("status", "").lower() != "ok":
+            dump = ET.tostring(tree, encoding="utf-8").decode()
+            logger.error("Packeta API error:\n%s", dump)
+            raise RuntimeError(f"Packeta API error:\n{dump}")
         return tree
 
-    def create_packet(self, order, address_id: int, weight: int, currency: str = "EUR") -> str:
-        user = order.user
+    def create_home_delivery_shipment(
+        self,
+        *,
+        order_number: str,
+        first_name: str,
+        surname: str,
+        phone: str,
+        email: str,
+        street: str,
+        city: str,
+        zip_code: str,
+        country: str,
+        weight_grams: int,
+        value_amount: Decimal,
+        cod_amount: Decimal,
+        currency: str,
+    ) -> str:
+        """
+        Создаёт HD-отправление и возвращает packetId.
+        """
+        # Формируем килограммы с двумя десятичными
+        weight_kg = (Decimal(weight_grams) / Decimal(1000)).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
-        attributes = {
-            "number": str(order.order_number),
-            "name": user.first_name,
-            "surname": user.last_name,
-            "email": user.email,
-            "phone": str(user.phone_number),
-            "addressId": str(order.pickup_point_id),
-            "addressId": str(address_id),
-            "cod": "0",
-            "value": str(Decimal(order.total_amount)),
-            "currency": currency,
-            "weight": str(int(weight / 1000)),  # kg
-            "eshop": "MyEshop",
-            "locale": self.locale,
+        try:
+            address_id = self.HOME_DELIVERY_ADDRESS_IDS[country]
+        except KeyError:
+            raise ValueError(f"Не задан addressId для страны {country}")
+
+        attrs = {
+            "number":        order_number,
+            "eshop":         self.eshop_code,
+            "locale":        self.locale,
             "invoiceLocale": self.invoice_locale,
+            "name":          first_name,
+            "surname":       surname,
+            "phone":         phone,
+            "email":         email,
+            "addressId":     address_id,
+            "street":        street,
+            "city":          city,
+            "zip":           zip_code,
+            "country":       country,
+            "weight":        f"{weight_kg:.2f}",
+            "value":         f"{value_amount:.2f}",
+            "cod":           f"{cod_amount:.2f}",
+            "currency":      currency,
         }
+        tree = self._send_xml("createPacket", attrs)
+        return tree.findtext("result/id")
 
-        tree = self._send_xml("createPacket", attributes)
-        return tree.find("result").text  # packetId
+    def create_pickup_point_shipment(
+        self,
+        *,
+        order_number: str,
+        first_name: str,
+        surname: str,
+        phone: str,
+        email: str,
+        pickup_point_id: int,
+        weight_grams: int,
+        value_amount: Decimal,
+        cod_amount: Decimal,
+        currency: str,
+    ) -> str:
+        """
+        Создаёт PUDO-отправление по ID пункта и возвращает packetId.
+        """
+        weight_kg = (Decimal(weight_grams) / Decimal(1000)).quantize(Decimal("0.01"), ROUND_HALF_UP)
+        attrs = {
+            "number":        order_number,
+            "eshop":         self.eshop_code,
+            "locale":        self.locale,
+            "invoiceLocale": self.invoice_locale,
+            "name":          first_name,
+            "surname":       surname,
+            "phone":         phone,
+            "email":         email,
+            "addressId":     pickup_point_id,
+            "weight":        f"{weight_kg:.2f}",
+            "value":         f"{value_amount:.2f}",
+            "cod":           f"{cod_amount:.2f}",
+            "currency":      currency,
+        }
+        tree = self._send_xml("createPacket", attrs)
+        return tree.findtext("result/id")
 
-    def get_label_pdf(self, packet_id: str, format: str = "A6 on A6") -> bytes:
+    def get_label_pdf(self, packet_id: str, fmt: str = "A6 on A6") -> bytes:
+        """
+        Возвращает PDF-строку с этикеткой для заданного packetId.
+        """
+        logger.debug("PacketaService.get_label_pdf packet_id=%s format=%s", packet_id, fmt)
         root = ET.Element("packetLabelPdf")
         ET.SubElement(root, "apiPassword").text = self.api_password
         ET.SubElement(root, "packetId").text = packet_id
-        ET.SubElement(root, "format").text = format
+        ET.SubElement(root, "format").text = fmt
         ET.SubElement(root, "offset").text = "0"
 
-        body = ET.tostring(root, encoding="utf-8", method="xml")
-
-        response = requests.post(self.API_URL, data=body, headers={"Content-Type": "application/xml"})
-        response.raise_for_status()
-
-        tree = ET.fromstring(response.content)
-        result = tree.find("result").text
-        return b64decode(result)
+        resp = requests.post(
+            self.API_URL,
+            data=ET.tostring(root, encoding="utf-8"),
+            headers={"Content-Type": "application/xml"},
+            timeout=10
+        )
+        resp.raise_for_status()
+        tree = ET.fromstring(resp.content)
+        pdf_bytes = b64decode(tree.find("result").text)
+        logger.info("Packeta label PDF fetched for packet_id=%s (%d bytes)", packet_id, len(pdf_bytes))
+        return pdf_bytes

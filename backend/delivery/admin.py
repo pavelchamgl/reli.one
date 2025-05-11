@@ -4,15 +4,8 @@ from django.contrib import admin
 from django.shortcuts import get_object_or_404
 from django.utils.html import format_html
 
-from .models import DeliveryParcel, CourierService, DeliveryAddress, ShippingRate
+from .models import DeliveryParcel, DeliveryAddress, ShippingRate, DeliveryParcelItem
 from .services.packeta import PacketaService
-
-
-@admin.register(CourierService)
-class CourierServiceAdmin(admin.ModelAdmin):
-    list_display = ("name", "code", "active")
-    list_filter = ("active",)
-    search_fields = ("name", "code")
 
 
 @admin.register(DeliveryParcel)
@@ -58,4 +51,5 @@ class DeliveryParcelAdmin(admin.ModelAdmin):
 
 
 admin.site.register(DeliveryAddress)
+admin.site.register(DeliveryParcelItem)
 admin.site.register(ShippingRate)

@@ -49,10 +49,32 @@ class DeliveryStatus(models.Model):
 
 
 class CourierService(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+    """
+    Курьерская служба: используется и для выбора при оформлении заказа,
+    и для интеграции в delivery-логике.
+    """
+    name = models.CharField(
+        max_length=100,
+        help_text="Читабельное имя службы (например, Packeta, Zásilkovna)"
+    )
+    code = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Уникальный код службы (например, packeta, zasilkovna)"
+    )
+    active = models.BooleanField(
+        default=True,
+        help_text="Включена ли служба для выбора в интерфейсах"
+    )
+
+    class Meta:
+        verbose_name = "Courier Service"
+        verbose_name_plural = "Courier Services"
+        ordering = ("name",)
 
     def __str__(self):
-        return self.name
+        return f"{self.pk} {self.name}"
 
 
 class Order(models.Model):

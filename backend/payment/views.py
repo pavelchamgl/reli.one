@@ -3,8 +3,11 @@ import uuid
 import stripe
 import logging
 import requests
+import pycountry
 
 from decimal import Decimal, ROUND_HALF_UP
+
+from django.utils.decorators import method_decorator
 from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
@@ -31,8 +34,12 @@ from order.models import (
     OrderStatus,
     ProductStatus,
 )
+from warehouses.models import Warehouse, WarehouseItem
 from delivery.utils_async import async_generate_parcels
 from delivery.services.packeta import PacketaService
+from delivery.services.shipping_split import split_items_into_parcels
+from delivery.services.local_rates import calculate_shipping_options
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -46,6 +53,12 @@ stripe.api_key = settings.STRIPE_API_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_ENDPOINT_SECRET
 
 logger = logging.getLogger(__name__)
+
+
+CHANNEL_MAP = {
+    2: "HD",    # Home Delivery
+    1: "PUDO",  # Pick-up point
+}
 
 
 def increment_promo_usage(promo_code):
@@ -494,7 +507,7 @@ class StripeWebhookHandler(APIView):
 
                 # Создание записей OrderProduct
                 for product_variant, quantity, delivery_cost_item, product_price in rounded_delivery_costs:
-                    OrderProduct.objects.create(
+                    OrderProduct.objects.create (
                         order=order,
                         product=product_variant,
                         quantity=quantity,
@@ -505,6 +518,12 @@ class StripeWebhookHandler(APIView):
                     logger.debug(
                         f"OrderProduct created for product_variant_id {product_variant.id} with delivery cost {delivery_cost_item}"
                     )
+
+                processing = OrderStatus.objects.get(name="Processing")
+                order.order_status = processing
+                order.save(update_fields=["order_status"])
+
+                order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
 
                 # Создание платежа
                 Payment.objects.create(
@@ -551,253 +570,224 @@ class StripeWebhookHandler(APIView):
 
 
 class CreatePayPalPaymentView(PayPalMixin, APIView):
+    """
+    Создает PayPal платеж с учётом группировки по продавцам и расчёта доставки.
+    """
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        description="Creates a PayPal payment for product purchase",
+        description="Создаёт заказ PayPal с учётом стоимости доставки по продавцу",
         request={
             'application/json': {
                 'type': 'object',
-                'required': ['email', 'delivery_type', 'delivery_address', 'phone', 'products'],
+                'required': ['email', 'delivery_type', 'delivery_street', 'delivery_city', 'delivery_zip', 'delivery_country', 'phone', 'products'],
                 'properties': {
-                    'email': {
-                        'type': 'string',
-                        'description': 'Email of the user making the purchase'
-                    },
-                    'promocode': {
-                        'type': 'string',
-                        'description': 'Promocode for a discount on the purchase'
-                    },
-                    'delivery_type': {
-                        'type': 'integer',
-                        'description': 'Type of delivery: 1 - Pickup point, 2 - Courier',
-                        'example': 1
-                    },
-                    'delivery_street': {
-                        'type': 'string',
-                        'description': 'Street and house number'
-                    },
-                    'delivery_city': {
-                        'type': 'string',
-                        'description': 'City'
-                    },
-                    'delivery_zip': {
-                        'type': 'string',
-                        'description': 'ZIP or postal code'
-                    },
-                    'delivery_country': {
-                        'type': 'string',
-                        'description': 'Country'
-                    },
-                    'phone': {
-                        'type': 'string',
-                        'description': 'Contact phone number'
-                    },
-                    'delivery_cost': {
-                        'type': 'number',
-                        'description': 'Cost of delivery',
-                        'default': 0.0
-                    },
-                    'courier_service': {
-                        'type': 'integer',
-                        'description': 'ID of the courier service: 1 - PPL, 2 - GEIS, 3 - DPD',
-                        'example': 1
-                    },
-                    "pickup_point_id": {
-                        "type": "integer",
-                        "description": "ID of the pickup point if delivery_type is 1 (Pickup)"
-                    },
+                    'email': {'type': 'string'},
+                    'first_name': {'type': 'string'},
+                    'last_name': {'type': 'string'},
+                    'phone': {'type': 'string'},
+                    'delivery_type': {'type': 'integer'},
+                    'delivery_street': {'type': 'string'},
+                    'delivery_city': {'type': 'string'},
+                    'delivery_zip': {'type': 'string'},
+                    'delivery_country': {'type': 'string'},
+                    'pickup_point_id': {'type': 'integer'},
                     'products': {
                         'type': 'array',
-                        'description': 'List of product variants to purchase',
-                        'items': {
-                            'type': 'object',
-                            'required': ['sku', 'quantity'],
-                            'properties': {
-                                'sku': {
-                                    'type': 'string',
-                                    'description': 'SKU of the product variant'
-                                },
-                                'quantity': {
-                                    'type': 'integer',
-                                    'description': 'Quantity of the product'
-                                }
-                            }
-                        }
-                    }
-                },
-                'example': {
-                    'email': 'user@example.com',
-                    'promocode': 'SUMMER2024',
-                    'delivery_type': 1,
-                    'delivery_address': '123 Main St, City, Country',
-                    'phone': '+1234567890',
-                    'delivery_cost': 10.50,
-                    'courier_service': 1,
-                    'products': [
-                        {'sku': '123456789', 'quantity': 2},
-                        {'sku': '987654321', 'quantity': 1}
-                    ]
+                        'items': {'type': 'object', 'properties': {'sku': {'type': 'string'}, 'quantity': {'type': 'integer'}}}
+                    },
                 }
             }
         },
-        responses={
-            200: OpenApiResponse(
-                description='Order ID and approval URL for the created PayPal payment',
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'order_id': {'type': 'string', 'description': 'ID of the created PayPal order'},
-                        'approval_url': {'type': 'string', 'description': 'URL to approve the PayPal payment'}
-                    }
-                }
-            ),
-            404: OpenApiResponse(description='Product variant not found or Delivery type not found'),
-            500: OpenApiResponse(description='Error creating PayPal payment'),
-        },
+        responses={200: OpenApiResponse(description='order_id и approval_url')},
         tags=['PayPal']
     )
     def post(self, request):
-        user_id = request.user.id
-        email = request.data.get("email")
-        promocode = request.data.get("promocode")
-        delivery_type = request.data.get("delivery_type")
-        delivery_street = request.data.get("delivery_street")
-        delivery_city = request.data.get("delivery_city")
-        delivery_zip = request.data.get("delivery_zip")
-        delivery_country = request.data.get("delivery_country")
-        phone = request.data.get("phone")
-        delivery_cost = Decimal(request.data.get("delivery_cost", 0))
-        courier_service = request.data.get("courier_service")
-        pickup_point_id = request.data.get("pickup_point_id")
-        products = request.data.get("products")
+        user = request.user
+        data = request.data
 
-        logger.debug(f"Delivery cost: {delivery_cost}")
+        # --- 1. Клиентские данные ---
+        email = data['email']
+        phone = data['phone']
+        first_name = data.get('first_name', '')
+        last_name = data.get('last_name', '')
 
-        line_items = []
-        total_price = Decimal(0)
+        # --- 2. Данные доставки ---
+        delivery_type = data['delivery_type']
+        courier_service = data.get("courier_service")
+        street = data['delivery_street']
+        city = data['delivery_city']
+        zip_code = data['delivery_zip']
+        country_input = data['delivery_country']
+        pickup_point_id = data.get('pickup_point_id')
 
-        if delivery_type == 1 and not pickup_point_id:
-            return Response(
-                {"error": "pickup_point_id is required for delivery_type = 1 (Pickup Point)"},
-                status=status.HTTP_400_BAD_REQUEST
+        # Переводим country_input в ISO2
+        country_obj = (
+            pycountry.countries.get(alpha_2=country_input) or
+            pycountry.countries.get(alpha_3=country_input) or
+            pycountry.countries.get(name=country_input)
+        )
+        country_code = country_obj.alpha_2 if country_obj else country_input[:2].upper()
+
+        # --- 3. Сырой список товаров и группировка по seller_id ---
+        raw_items = data['products']
+        groups = {}
+        for entry in raw_items:
+            sku = entry['sku']
+            qty = int(entry['quantity'])
+            variant = ProductVariant.objects.get(sku=sku)
+            seller_id = variant.product.seller.id
+
+            groups.setdefault(seller_id, []).append({
+                'sku': sku,
+                'quantity': qty,
+                'unit_price': f"{Decimal(variant.price).quantize(Decimal('0.01'), ROUND_HALF_UP):.2f}",
+                'weight_grams': variant.weight_grams * qty,
+                'dimensions': {
+                    'length_mm': variant.length_mm or 0,
+                    'width_mm':  variant.width_mm  or 0,
+                    'height_mm': variant.height_mm or 0,
+                }
+            })
+
+        # --- 4. Расчёт стоимости доставки по группам ---
+        channel = CHANNEL_MAP[delivery_type]
+        total_delivery = Decimal('0.00')
+        for seller_id, items in groups.items():
+            # для split_items_into_parcels нужен list of dicts {sku, quantity}
+            split_input = [{'sku': it['sku'], 'quantity': it['quantity']} for it in items]
+
+            parcels = split_items_into_parcels(
+                country=country_code,
+                items=split_input,
+                cod=False,
+                currency='EUR'
             )
 
-        for item in products:
-            sku = item['sku']
-            quantity = item['quantity']
-            try:
-                product_variant = ProductVariant.objects.get(sku=sku)
-            except ProductVariant.DoesNotExist:
-                logger.error(f"Product variant with SKU {sku} does not exist.")
-                return Response({"error": f"Product variant with SKU {sku} not found"}, status=status.HTTP_404_NOT_FOUND)
+            for parcel in parcels:
+                options = calculate_shipping_options(
+                    country=country_code,
+                    items=parcel,
+                    cod=False,
+                    currency='EUR'
+                )
+                # берём минимальную цену
+                opt = next(o for o in options if o['channel'] == channel)
+                total_delivery += Decimal(opt['priceWithVat'])
 
-            price = Decimal(product_variant.price)
-            currency = 'EUR'
+        total_delivery = total_delivery.quantize(Decimal('0.01'), ROUND_HALF_UP)
 
-            if promocode:
-                promo_code = PromoCode.objects.filter(code=promocode).first()
-                if promo_code and promo_code.is_valid():
-                    price -= (price * Decimal(promo_code.discount_percentage) / Decimal(100))
+        # --- 5. Формирование line_items для PayPal ---
+        line_items = []
+        item_total = Decimal('0.00')
 
-            line_items.append({
-                "sku": product_variant.sku,
-                "name": f"{product_variant.product.name} - {product_variant.name}",
-                "quantity": str(quantity),
-                "unit_amount": {
-                    "currency_code": currency,
-                    "value": f"{price:.2f}",
-                }
-            })
-            total_price += price * quantity
+        for items in groups.values():
+            for it in items:
+                qty = it['quantity']
+                unit_price = Decimal(it['unit_price'])
+                item_total += unit_price * qty
+                line_items.append({
+                    'name':     it['sku'],
+                    'sku':      it['sku'],
+                    'unit_amount': {
+                        'currency_code': 'EUR',
+                        'value':         f"{unit_price:.2f}"
+                    },
+                    'quantity': str(qty),
+                })
 
-        if delivery_cost > 0:
-            line_items.append({
-                "name": 'Delivery Cost',
-                "quantity": "1",
-                "unit_amount": {
-                    "currency_code": "EUR",
-                    "value": f"{delivery_cost:.2f}",
-                }
-            })
-            total_price += delivery_cost
+        # --- 6. Итоги сумм ---
+        gross_total = (item_total + total_delivery).quantize(Decimal('0.01'), ROUND_HALF_UP)
 
-        # Храним метаданные через session_key
+        # --- 7. Сохранение метаданных ---
         session_key = str(uuid.uuid4())
-
         PayPalMetadata.objects.create(
             session_key=session_key,
             custom_data={
-                "user_id": user_id,
-                "email": email,
-                "promo_code": promocode,
-                "phone": phone,
+                'email': email,
+                'phone': phone,
+                'user_id': user.id,
+                'first_name': first_name,
+                'last_name': last_name,
             },
             invoice_data={
-                "delivery_type": delivery_type,
-                "delivery_address": {
-                    "street": delivery_street,
-                    "city": delivery_city,
-                    "zip": delivery_zip,
-                    "country": delivery_country,
+                'delivery_type': delivery_type,
+                'delivery_address': {
+                    'street':  street,
+                    'city':    city,
+                    'zip':     zip_code,
+                    'country': country_code,
                 },
-                "pickup_point_id": pickup_point_id,
+                'pickup_point_id': pickup_point_id,
             },
             description_data={
-                "delivery_cost": f"{delivery_cost:.2f}",
+                'delivery_cost': f"{total_delivery:.2f}",
                 "courier_service": courier_service,
             },
-            products=products,
+            products=[{**it, 'seller_id': sid} for sid, group in groups.items() for it in group]
         )
 
-        # формируем тело запроса
-        data = {
-            "intent": "CAPTURE",
-            "purchase_units": [
-                {
-                    "amount": {
-                        "currency_code": "EUR",
-                        "value": f"{total_price:.2f}",
-                        "breakdown": {
-                            "item_total": {
-                                "currency_code": "EUR",
-                                "value": f"{total_price:.2f}",
-                            }
-                        }
+        # --- 8. Подготовка тела запроса к PayPal ---
+        purchase_unit = {
+            'amount': {
+                'currency_code': 'EUR',
+                'value': f"{gross_total:.2f}",
+                'breakdown': {
+                    'item_total': {
+                        'currency_code': 'EUR',
+                        'value': f"{item_total:.2f}"
                     },
-                    "description": session_key,
-                    "custom_id": session_key,
-                    "invoice_id": session_key,
-                    "items": line_items,
+                    'shipping': {
+                        'currency_code': 'EUR',
+                        'value': f"{total_delivery:.2f}"
+                    }
                 }
-            ],
-            "application_context": {
-                "return_url": settings.REDIRECT_DOMAIN + 'payment_end/',
-                "cancel_url": settings.REDIRECT_DOMAIN + 'basket/',
+            },
+            'custom_id':  session_key,
+            'invoice_id': session_key,
+            'description': session_key,
+            'items': line_items,
+        }
+
+        body = {
+            'intent':            'CAPTURE',
+            'purchase_units':   [purchase_unit],
+            'application_context': {
+                'return_url': settings.REDIRECT_DOMAIN + 'payment_end/',
+                'cancel_url': settings.REDIRECT_DOMAIN + 'basket/',
             }
         }
 
+        # --- 9. Request к PayPal REST API ---
         access_token = self.get_paypal_access_token()
         headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
+            'Content-Type': 'application/json',
+            'Authorization': f"Bearer {access_token}"
         }
+        resp = requests.post(
+            f"{settings.PAYPAL_API_URL}/v2/checkout/orders",
+            headers=headers,
+            data=json.dumps(body)
+        )
 
-        response = requests.post(f'{PAYPAL_API_URL}/v2/checkout/orders', headers=headers, data=json.dumps(data))
+        if resp.status_code == 201:
+            result = resp.json()
+            return Response({
+                'order_id': result['id'],
+                'approval_url': next(link['href'] for link in result['links'] if link['rel'] == 'approve')
+            }, status=200)
 
-        if response.status_code == 201:
-            order_response = response.json()
-            logger.debug(f"Order_id': {order_response['id']}, approval_url: {order_response['links'][1]['href']}")
-            return Response({'order_id': order_response['id'], 'approval_url': order_response['links'][1]['href']}, status=status.HTTP_200_OK)
-        else:
-            return Response(response.json(), status=response.status_code)
+        # если что-то пошло не так — возвращаем ошибку от PayPal
+        return Response(resp.json(), status=resp.status_code)
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 @extend_schema(
     description="Handles PayPal webhook events to create orders and payments in the system",
     responses={
         200: OpenApiResponse(description='Order and Payment created successfully'),
         403: OpenApiResponse(description='Invalid webhook signature'),
+        400: OpenApiResponse(description='Invalid payload'),
         500: OpenApiResponse(description='Error creating order and payment'),
     },
     tags=["PayPal"]
@@ -807,200 +797,145 @@ class PayPalWebhookView(PayPalMixin, APIView):
 
     def create_order_from_webhook(self, data):
         resource = data.get("resource", {})
-        logger.debug(f"Received resource: {resource}")
+        pu = resource.get("purchase_units", [{}])[0]
 
-        purchase_unit = resource.get("purchase_units", [{}])[0]
-        amount = Decimal(purchase_unit.get("amount", {}).get("value", "0.00"))
-        currency = purchase_unit.get("amount", {}).get("currency_code", "EUR")
+        # 1) Сумма и валюта
+        amount = (
+            Decimal(pu["amount"]["value"])
+            .quantize(Decimal("0.01"), ROUND_HALF_UP)
+        )
+        currency = pu["amount"]["currency_code"]
 
-        # Декодирование переданных данных
-        session_key = purchase_unit.get("custom_id")
+        # 2) session_key из custom_id
+        session_key = pu.get("custom_id")
         if not session_key:
-            logger.error("Missing session_key in custom_id")
-            return False
+            logger.error("Missing custom_id in webhook payload")
+            return None
 
+        # 3) Загрузка метаданных
         try:
-            metadata = PayPalMetadata.objects.get(session_key=session_key)
+            meta = PayPalMetadata.objects.get(session_key=session_key)
         except PayPalMetadata.DoesNotExist:
-            logger.error(f"No metadata found for session_key: {session_key}")
-            return False
+            logger.error(f"PayPalMetadata not found for {session_key}")
+            return None
 
-        custom_data = metadata.custom_data or {}
-        invoice_data = metadata.invoice_data or {}
-        description_data = metadata.description_data or {}
-        products = metadata.products or []
-
-        logger.debug(f"Parsed custom_data: {custom_data}")
-        logger.debug(f"Parsed invoice_data: {invoice_data}")
-        logger.debug(f"Parsed description_data: {description_data}")
-
-        user_id = custom_data.get("user_id")
-        email = custom_data.get("email")
-        phone = custom_data.get("phone")
-        delivery_type = invoice_data.get("delivery_type")
-        pickup_point_id = invoice_data.get("pickup_point_id")
-        delivery_cost = Decimal(description_data.get("delivery_cost", "0.00"))
-        courier_service_id = description_data.get("courier_service")
-
+        # 4) Пользователь
+        user_id = meta.custom_data.get("user_id")
         try:
             user = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
-            logger.error(f"User with id {user_id} not found")
-            return False
+            logger.error(f"CustomUser not found: {user_id}")
+            return None
 
-        # Сохраняем адрес доставки только для курьерской доставки
-        delivery_address_obj = None
-        if delivery_type == 2:
-            delivery_address_raw = invoice_data.get("delivery_address", {})
-            delivery_address_obj = DeliveryAddress.objects.create(
-                user=user,
-                full_name=f"{user.first_name} {user.last_name}",
-                phone=phone,
-                email=email,
-                street=delivery_address_raw.get("street", ""),
-                city=delivery_address_raw.get("city", ""),
-                zip_code=delivery_address_raw.get("zip", ""),
-                country=delivery_address_raw.get("country", "")
-            )
-            logger.debug(f"Created DeliveryAddress {delivery_address_obj}")
+        # 5) Данные доставки
+        dt = DeliveryType.objects.filter(
+            id=meta.invoice_data.get("delivery_type")
+        ).first()
+        cs = CourierService.objects.filter(
+            id=meta.description_data.get("courier_service")
+        ).first()
 
-        # Получение связанных объектов
-        delivery_type_obj = DeliveryType.objects.filter(id=delivery_type).first()
-        courier_service_obj = CourierService.objects.filter(id=courier_service_id).first()
-        order_status = OrderStatus.objects.filter(name="Pending").first()
+        inv = meta.invoice_data.get("delivery_address", {})
+        delivery_address = DeliveryAddress.objects.create(
+            user=user,
+            full_name=f"{user.first_name} {user.last_name}",
+            phone=meta.custom_data.get("phone"),
+            email=meta.custom_data.get("email"),
+            street=inv.get("street", ""),
+            city=inv.get("city", ""),
+            zip_code=inv.get("zip", ""),
+            country=inv.get("country", ""),
+        )
 
-        # Создание заказа
+        # 6) Создаём Order
+        pending = OrderStatus.objects.get(name="Pending")
         order = Order.objects.create(
             user=user,
-            customer_email=email,
-            delivery_type=delivery_type_obj,
-            delivery_address=delivery_address_obj,
-            pickup_point_id=pickup_point_id,
-            delivery_cost=delivery_cost,
-            courier_service=courier_service_obj,
-            phone_number=phone,
+            customer_email=meta.custom_data.get("email"),
+            delivery_type=dt,
+            delivery_address=delivery_address,
+            pickup_point_id=meta.invoice_data.get("pickup_point_id"),
+            delivery_cost=Decimal(meta.description_data.get("delivery_cost", "0.00")),
+            courier_service=cs,
+            phone_number=meta.custom_data.get("phone"),
             total_amount=amount,
-            order_status=order_status,
+            order_status=pending,
         )
-        logger.debug(f"Order created: {order}")
 
-        # Распределение доставки и создание OrderProduct
-        total_product_cost = Decimal("0.00")
-        product_items = []
-
-        for item in products:
+        # 7) Создаём OrderProduct с выбором склада
+        for item in meta.products or []:
             sku = item.get("sku")
-            quantity = Decimal(item.get("quantity", "1"))
-
+            qty = int(item.get("quantity", 0))
             try:
                 variant = ProductVariant.objects.get(sku=sku)
             except ProductVariant.DoesNotExist:
-                logger.error(f"ProductVariant with SKU '{sku}' not found. Skipping item.")
+                logger.error(f"Variant not found: {sku}")
                 continue
-            price = variant.price
 
-            subtotal = quantity * price
-            product_items.append((variant, quantity, subtotal, price))
-            total_product_cost += subtotal
-
-        delivery_allocations = []
-        allocated = Decimal("0.00")
-
-        for i, (variant, quantity, subtotal, price) in enumerate(product_items):
-            if total_product_cost > 0:
-                share = subtotal / total_product_cost
-                delivery_part = (share * delivery_cost).quantize(Decimal("0.01"))
+            # 7.1) Выбираем склад с достаточным остатком
+            wh_item = WarehouseItem.objects.filter(
+                product_variant=variant,
+                quantity_in_stock__gte=qty
+            ).first()
+            if wh_item:
+                warehouse = wh_item.warehouse
             else:
-                delivery_part = Decimal("0.00")
-            if i == len(product_items) - 1:
-                delivery_part += delivery_cost - allocated
-            allocated += delivery_part
-            delivery_allocations.append((variant, quantity, delivery_part, price))
+                # fallback — первый склад в системе
+                warehouse = Warehouse.objects.first()
 
-        for variant, quantity, delivery_part, price in delivery_allocations:
+            # 7.2) Создаём позицию заказа
             OrderProduct.objects.create(
                 order=order,
                 product=variant,
-                quantity=quantity,
-                delivery_cost=delivery_part,
+                quantity=qty,
+                delivery_cost=Decimal("0.00"),  # или ваша логика распределения
                 seller_profile=variant.product.seller,
-                product_price=price,
+                product_price=variant.price,
+                warehouse=warehouse,
+                status=ProductStatus.AWAITING_SHIPMENT,
             )
-            logger.debug(f"Created OrderProduct for {variant.sku} (qty={quantity}, delivery_cost={delivery_part})")
 
-        processing = OrderStatus.objects.get(name="Processing")
-        order.order_status = processing
+        # 8) Обновляем статус заказа на Processing
+        proc = OrderStatus.objects.get(name="Processing")
+        order.order_status = proc
         order.save(update_fields=["order_status"])
-
         order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
 
-        # Платеж
-        session_id = resource.get("id")
-        payment_intent_id = resource.get("id")
-        payment_method = f"{resource.get('payer', {}).get('name', {}).get('given_name', '')} {resource.get('payer', {}).get('name', {}).get('surname', '')}"
-
+        # 9) Регистрируем платёж
         Payment.objects.create(
             order=order,
-            payment_system='paypal',
-            session_id=session_id,
+            payment_system="paypal",
+            session_id=resource.get("id"),
             customer_id=user.id,
-            payment_intent_id=payment_intent_id,
-            payment_method=payment_method,
+            payment_intent_id=resource.get("id"),
+            payment_method="paypal",
             amount_total=amount,
             currency=currency,
-            customer_email=email,
+            customer_email=meta.custom_data.get("email"),
         )
-        logger.debug(f"Payment recorded for order {order.id}")
-
-        if courier_service_obj and courier_service_obj.name.lower() == "packeta":
-            try:
-                service = PacketaService()
-                result = service.create_packet(order=order)
-                packet_id = result.get('packetId')
-
-                DeliveryParcel.objects.create(
-                    order=order,
-                    courier='Packeta',
-                    external_id=packet_id
-                )
-                logger.info(f"Packeta shipment created with ID {packet_id}")
-            except Exception as e:
-                logger.error(f"Error creating Packeta shipment: {e}", exc_info=True)
-
-        logger.info(f"Order {order.id} and Payment created successfully from Paypal webhook")
 
         return order
 
     @csrf_exempt
     def post(self, request):
-        webhook_body = request.body.decode("utf-8")
-        logger.debug(f"Webhook body received: {webhook_body}")
-
+        body = request.body.decode("utf-8")
         try:
-            data = json.loads(webhook_body)
+            data = json.loads(body)
         except json.JSONDecodeError:
-            logger.error("Invalid JSON received in PayPal webhook")
             return Response({"error": "Invalid JSON"}, status=400)
 
-        try:
-            if data.get("event_type") != "CHECKOUT.ORDER.APPROVED":
-                logger.info(f"Ignored webhook event: {data.get('event_type')}")
-                return Response({"status": "ignored"}, status=200)
+        # игнорируем другие события
+        if data.get("event_type") != "CHECKOUT.ORDER.APPROVED":
+            return Response({"status": "ignored"}, status=200)
 
-            if not self.verify_webhook(request, webhook_body):
-                logger.warning("Webhook signature verification failed")
-                return Response({"error": "Invalid webhook signature"}, status=403)
+        if not self.verify_webhook(request, body):
+            return Response({"error": "Invalid webhook signature"}, status=403)
 
-            logger.info("Webhook verified successfully")
-            order = self.create_order_from_webhook(data)
-            if order:
-                # send_order_emails_safely(order)
-                async_generate_parcels(order.id)
-                return Response({"status": "Order and Payment created successfully"}, status=200)
-            else:
-                logger.error("Order creation failed after successful webhook verification")
-                return Response({"error": "Error creating order"}, status=500)
+        order = self.create_order_from_webhook(data)
+        if not order:
+            return Response({"error": "Order creation failed"}, status=500)
 
-        except Exception as e:
-            logger.exception("Unexpected error while processing PayPal webhook")
-            return Response({"error": "Internal server error"}, status=500)
+        # если нужно, запускаем асинхронную логику
+        async_generate_parcels(order.id)
+
+        return Response({"status": "Order and Payment created successfully"}, status=200)

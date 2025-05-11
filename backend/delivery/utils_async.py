@@ -1,22 +1,23 @@
+import logging
+
 from threading import Thread
 from django.db import transaction
+
+from order.models import Order
+from delivery.utils import generate_parcels_for_order
+
+logger = logging.getLogger(__name__)
 
 
 def async_generate_parcels(order_id):
     """
-    Запускает generate_parcels_for_order(order) в фоновом потоке
-    после успешного коммита транзакции.
+    Запускает generate_parcels_for_order в фоновом потоке
+    после коммита текущей транзакции.
     """
-    from order.models import Order
-    from delivery.utils import generate_parcels_for_order
-
     def _target():
         try:
-            order = Order.objects.get(pk=order_id)
-            generate_parcels_for_order(order)
+            generate_parcels_for_order(order_id)
         except Exception:
-            # здесь можно логировать ошибку
-            pass
+            logger.exception("Error in background parcel generation")
 
-    # запустим _target() после коммита текущей транзакции
     transaction.on_commit(lambda: Thread(target=_target, daemon=True).start())

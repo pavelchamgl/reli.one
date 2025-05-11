@@ -17,8 +17,8 @@ class WarehouseAdmin(admin.ModelAdmin):
     """
     Админка для управления складами.
     """
-    list_display = ('name', 'location')
-    search_fields = ('name', 'location')
+    list_display = ('name','pickup_by_courier')
+    list_filter  = ('pickup_by_courier',)
     inlines = [WarehouseItemInline]
 
 
@@ -27,6 +27,6 @@ class WarehouseItemAdmin(admin.ModelAdmin):
     """
     Админка для управления остатками товаров на складах.
     """
-    list_display = ('warehouse', 'product_variant', 'quantity_in_stock')
+    list_display = ('warehouse','product_variant','quantity_in_stock')
     list_filter = ('warehouse',)
-    search_fields = ('product_variant__name', 'warehouse__name')
+    search_fields = ('product_variant__sku',)

@@ -2,15 +2,9 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.html import format_html
 
-from order.models import Order, OrderProduct
+from order.models import Order, OrderProduct, CourierService
 from sellers.models import SellerProfile
 from warehouses.models import Warehouse
-
-
-class CourierService(models.Model):
-    name = models.CharField(max_length=100)
-    code = models.CharField(max_length=50, unique=True)
-    active = models.BooleanField(default=True)
 
 
 class DeliveryParcel(models.Model):
@@ -20,8 +14,19 @@ class DeliveryParcel(models.Model):
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
     label_url = models.URLField(blank=True, null=True)
     weight_grams = models.PositiveIntegerField()
+    parcel_index = models.PositiveIntegerField(
+        default=0,
+        help_text="Порядковый номер посылки в рамках заказа",
+    )
+    shipping_price = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        help_text="Стоимость доставки для этой посылки",
+    )
     status = models.CharField(max_length=50, default="created")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Parcel #{self.pk} for Order {self.order.order_number}"
 
     def label_link(self):
         if self.label_url:
@@ -36,7 +41,7 @@ class DeliveryParcelItem(models.Model):
     quantity = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"{self.order_product} x {self.quantity}"
+        return f"{self.quantity}×{self.order_product.product.sku} in parcel {self.parcel_id}"
 
 
 class DeliveryAddress(models.Model):

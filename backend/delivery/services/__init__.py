@@ -1,10 +1,12 @@
-from .packeta      import PacketaService
-from .zasilkovna   import ZasilkovnaService
+from .packeta import PacketaService
+from .zasilkovna import ZasilkovnaService
+
 
 SERVICE_MAP = {
     "PACKETA":    PacketaService,
     "ZASILKOVNA": ZasilkovnaService,
 }
+
 
 def get_service(code):
     try:
