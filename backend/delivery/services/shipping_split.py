@@ -49,19 +49,20 @@ def split_items_into_parcels(country, items, cod, currency):
 
 def combine_parcel_options(per_parcel_opts):
     """
-    Как у вас было: складываем цены и объединяем estimate.
+    Суммирует цены, объединяет estimate и возвращает также общее количество посылок.
     """
     agg = {}
     for opts in per_parcel_opts:
         for opt in opts:
             ch = opt["channel"]
             entry = agg.setdefault(ch, {
+                "courier": opt.get("courier", "Zásilkovna"),
                 "service": opt["service"],
                 "channel": ch,
                 "price": Decimal("0"),
                 "priceWithVat": Decimal("0"),
-                "currency":  opt["currency"],
-                "estimates":  set(),
+                "currency": opt["currency"],
+                "estimates": set(),
             })
             entry["price"] += Decimal(str(opt["price"]))
             entry["priceWithVat"] += Decimal(str(opt["priceWithVat"]))
@@ -71,6 +72,7 @@ def combine_parcel_options(per_parcel_opts):
     result = []
     for ch, data in agg.items():
         result.append({
+            "courier": data["courier"],
             "service": data["service"],
             "channel": ch,
             "price": float(data["price"].quantize(Decimal("0.01"))),
@@ -78,7 +80,11 @@ def combine_parcel_options(per_parcel_opts):
             "currency": data["currency"],
             "estimate": ", ".join(sorted(data["estimates"])),
         })
-    return result
+
+    return {
+        "total_parcels": len(per_parcel_opts),
+        "options": result
+    }
 
 
 def calculate_order_shipping(country, items, cod, currency):

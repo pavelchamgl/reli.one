@@ -2,22 +2,21 @@ import logging
 
 from threading import Thread
 from django.db import transaction
-
-from order.models import Order
-from delivery.utils import generate_parcels_for_order
+from .utils import generate_parcels_for_order, fetch_and_store_labels_for_order
 
 logger = logging.getLogger(__name__)
 
 
-def async_generate_parcels(order_id):
+
+def async_generate_parcels_and_fetch_labels(order_id: int):
     """
-    Запускает generate_parcels_for_order в фоновом потоке
-    после коммита текущей транзакции.
+    Asynchronously generates parcels and stores their labels after transaction commit.
     """
     def _target():
         try:
             generate_parcels_for_order(order_id)
+            fetch_and_store_labels_for_order(order_id)
         except Exception:
-            logger.exception("Error in background parcel generation")
+            logger.exception("Error in background parcel generation or label fetching")
 
     transaction.on_commit(lambda: Thread(target=_target, daemon=True).start())

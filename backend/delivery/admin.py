@@ -13,6 +13,12 @@ class DeliveryParcelAdmin(admin.ModelAdmin):
     list_display = ("order", "warehouse", "service", "tracking_number", "status", "created_at", 'label_link',)
     readonly_fields = ("tracking_number", 'label_link', "created_at", "download_label_button")
 
+    def label_link(self, obj):
+        if obj.label_file:
+            return format_html('<a href="{}" target="_blank">Скачать PDF</a>', obj.label_file.url)
+        return "Нет"
+    label_link.short_description = "Этикетка"
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [

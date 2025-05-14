@@ -1,31 +1,29 @@
 import uuid
 import logging
 import requests
+
 from decimal import Decimal
-from rest_framework import status, serializers
+from rest_framework import status
 from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiResponse, extend_schema, OpenApiExample
 
 from .serializers import (
     DeliveryEstimateSerializer,
     CreateShipmentSerializer,
-    ShippingOptionsSerializer
+    SellerShippingRequestSerializer,
+    ShippingOptionsResponseSerializer,
+    PacketaCalculateSerializer,
 )
 from .models import DeliveryParcel, CourierService
-from .serializers import PacketaCalculateSerializer
 from .services.packeta import PacketaService
-from .services.shipping_split import calculate_order_shipping
+from .services.local_rates import calculate_shipping_options
+from .services.shipping_split import split_items_into_parcels, calculate_order_shipping
 from order.models import Order
 from warehouses.models import Warehouse
 
 import xml.etree.ElementTree as ET
-from zeep import Client
-from zeep.transports import Transport
-from zeep.exceptions import Fault
-
 
 logger = logging.getLogger(__name__)
 
@@ -288,134 +286,91 @@ class PacketaValidateView(APIView):
         return Response({"success": True}, status=status.HTTP_200_OK)
 
 
-class ShippingOptionSerializer(serializers.Serializer):
-    service = serializers.CharField(help_text="Service type: Pick-up point or Home Delivery")
-    channel = serializers.ChoiceField(
-        choices=[("PUDO", "Pick-up point"), ("HD", "Home Delivery")],
-        help_text="Delivery channel"
-    )
-    price = serializers.FloatField(help_text="Cost without VAT")
-    priceWithVat = serializers.FloatField(help_text="Cost including VAT")
-    currency = serializers.CharField(help_text="Currency code")
-    estimate = serializers.CharField(help_text="Delivery estimate, e.g. '1–2 days'", allow_blank=True)
-
-
-class ShippingOptionsResponseSerializer(serializers.Serializer):
-    options = ShippingOptionSerializer(many=True, help_text="Available shipping options")
-
-
 @extend_schema(
-    summary="Calculate shipping options",
+    summary="Calculate Zásilkovna shipping options for a seller and destination",
     description=(
-        "Takes destination country, COD amount, currency, and line items, "
-        "and returns two options: Pick-up point (PUDO) and Home Delivery (HD)."
+        "Calculates and returns available shipping options (Pick-up point - PUDO and Home Delivery - HD) "
+        "for the specified seller and destination country.\n\n"
+        "**Note:** This endpoint exclusively supports shipping calculations for the Zásilkovna courier service. "
+        "Prices are returned in EUR, including both base price and price with VAT.\n\n"
+        "**Features:**\n"
+        "- Automatically splits items into multiple parcels if package limits are exceeded.\n"
+        "- Returns total parcel count and aggregated shipping prices (with and without VAT).\n"
+        "- Aggregated prices are **summed across all parcels for each delivery channel (PUDO, HD)**.\n"
+        "- Provides combined delivery estimates for all parcels.\n\n"
+        "Courier Service: **Zásilkovna only**  \n"
+        "Pricing Currency: **EUR**  \n"
+        "Validation: **Ensures SKUs belong to the specified seller.**"
     ),
-    request=ShippingOptionsSerializer,
+    request=SellerShippingRequestSerializer,
     responses={
         200: OpenApiResponse(
             response=ShippingOptionsResponseSerializer,
-            description="Success: shipping options calculated"
+            description="Shipping options calculated successfully for Zásilkovna courier service"
         ),
-        400: OpenApiResponse(description="Invalid input or package too large/heavy"),
-        500: OpenApiResponse(description="Internal error or missing rate configuration"),
+        400: OpenApiResponse(description="Validation error or invalid input"),
+        500: OpenApiResponse(description="Internal server error during shipping calculation"),
     },
-    examples=[
-        OpenApiExample(
-            "Sample Request",
-            request_only=True,
-            value={
-                "destination_country": "CZ",
-                "cod": "150.00",
-                "currency": "CZK",
-                "items": [
-                    {"sku": "ABC123", "quantity": 2},
-                    {"sku": "XYZ789", "quantity": 1}
-                ]
-            },
-        ),
-        OpenApiExample(
-            "Sample Response",
-            response_only=True,
-            value={
-                "options": [
-                    {
-                        "service": "Pick-up point",
-                        "channel": "PUDO",
-                        "price": 144.00,
-                        "priceWithVat": 174.24,
-                        "currency": "CZK",
-                        "estimate": "1–2 days"
-                    },
-                    {
-                        "service": "Home Delivery",
-                        "channel": "HD",
-                        "price": 219.00,
-                        "priceWithVat": 264.99,
-                        "currency": "CZK",
-                        "estimate": "2–3 days"
-                    }
-                ]
-            },
-        ),
-    ],
-    tags=['Delivery Сalculation']
+    tags=['Zásilkovna Delivery', 'Delivery Calculation']
 )
-class ShippingOptionsView(APIView):
+class SellerShippingOptionsView(APIView):
     """
-    POST /api/shipping-options/
-    Expects JSON with:
-      - destination_country
-      - cod
-      - currency
-      - items: [{ 'sku': str, 'quantity': int }, …]
-    Returns two shipping options (PUDO and Home Delivery) with calculated prices.
+    POST /api/shipping-options/seller/
+    Accepts seller_id, destination country, and a list of items with SKU and quantity.
+    Returns available shipping options (PUDO and HD) for each calculated parcel with prices in EUR, including VAT.
     """
 
     def post(self, request):
-        # 1) Validate input
-        serializer = ShippingOptionsSerializer(data=request.data)
+        # Step 1: Validate incoming request
+        serializer = SellerShippingRequestSerializer(data=request.data)
         if not serializer.is_valid():
-            logger.debug("ShippingOptions validation errors: %r", serializer.errors)
+            logger.warning("Validation failed: %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
+        seller_id = data['seller_id']
+        destination_country = data['destination_country']
+        items = data['items']
 
-        # 2) Try calculation
+        logger.info("Starting shipping calculation for seller_id=%s, destination_country=%s", seller_id, destination_country)
+
         try:
-            options = calculate_order_shipping(
+            # Step 2: Split items into parcels
+            parcels = split_items_into_parcels(
+                country=destination_country,
+                items=items,
+                cod=Decimal("0.00"),
+                currency='EUR'
+            )
+
+            all_options = []
+
+            # Step 3: Calculate shipping options for each parcel
+            for idx, parcel in enumerate(parcels, start=1):
+                logger.info("Calculating shipping for parcel #%s with %s items", idx, len(parcel))
+                options = calculate_shipping_options(
+                    country=destination_country,
+                    items=parcel,
+                    cod=Decimal("0.00"),
+                    currency='EUR'
+                )
+                all_options.append({
+                    "parcel_number": idx,
+                    "items": parcel,
+                    "options": options
+                })
+
+            # Step 4: Return calculated shipping options
+            logger.info("Shipping options successfully calculated for seller_id=%s", seller_id)
+            result = calculate_order_shipping(
                 country=data['destination_country'],
                 items=data['items'],
-                cod=data['cod'],
-                currency=data['currency'],
-            )
-        except ValueError as e:
-            msg = str(e)
-            # 2.1) Exceeded dimensions or weight → 400
-            if "exceeds allowed dimensions or weight" in msg:
-                return Response(
-                    {"error": "Package exceeds allowed dimensions or weight"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            # 2.2) Missing rate configuration → 500
-            if msg.startswith("No rate for"):
-                logger.error("Shipping rate not configured: %s", msg)
-                return Response(
-                    {"error": "Shipping rate not configured for this seller/country/channel"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-            # 2.3) Other bad input (e.g. supplier or SKU not found) → 400
-            logger.error("Data error during shipping calculation: %s", msg)
-            return Response(
-                {"error": "Invalid input data for shipping calculation"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        except Exception:
-            # 2.4) Unexpected internal error → 500
-            logger.exception("Unexpected error while calculating shipping options")
-            return Response(
-                {"error": "Internal server error during shipping calculation"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                cod=Decimal("0.00"),
+                currency='EUR'
             )
 
-        # 3) Successful response
-        return Response({"options": options}, status=status.HTTP_200_OK)
+            return Response(result, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.exception("Shipping calculation failed for seller_id=%s, country=%s", seller_id, destination_country)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -80,9 +80,17 @@ class CourierService(models.Model):
 class Order(models.Model):
     order_number = models.CharField(max_length=50, unique=True, default=generate_order_number)
     user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
     customer_email = models.EmailField()
     order_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
+    group_subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Итоговая сумма группы: товары + доставка."
+    )
     promo_code = models.ForeignKey('promocode.PromoCode', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_type = models.ForeignKey('DeliveryType', on_delete=models.SET_NULL, null=True)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)

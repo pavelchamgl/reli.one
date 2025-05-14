@@ -47,11 +47,15 @@ class OrderProductInline(admin.TabularInline):
 
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'total_amount', 'order_date', 'delivery_type', 'order_status', 'delivery_status', 'refund_amount')
+    list_display = (
+        'id', 'user', 'total_amount', 'group_subtotal',
+        'order_date', 'delivery_type', 'order_status', 'delivery_status', 'refund_amount'
+    )
     list_filter = ('delivery_type', 'order_status', 'delivery_status')
     search_fields = ('order_number', 'user__email')
     inlines = [OrderProductInline]
     ordering = ('-order_date',)
+    readonly_fields = ('group_subtotal',)
 
     actions = ['recalculate_refund_amount', 'change_to_courier', 'change_to_self_pickup', 'cancel_orders']
 

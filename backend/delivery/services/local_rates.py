@@ -4,6 +4,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from product.models import ProductVariant
 from delivery.models import ShippingRate
+from delivery.services.currency_converter import convert_czk_to_eur
 
 # Коэффициент для перевода объёма в кг (см³ → кг)
 VOLUME_FACTOR = getattr(settings, "SHIPMENT_VOLUME_FACTOR", 5000)
@@ -93,11 +94,17 @@ def calculate_shipping_options(country, items, cod, currency):
 
     # 7) Достаём тарифы из базы и считаем итоговые цены
     def get_rate(channel):
+        normalized_country = country.upper()  # ✅ Приводим к верхнему регистру
         try:
-            rate = ShippingRate.objects.get(country=country, channel=channel, category=category)
+            rate = ShippingRate.objects.get(
+                country=normalized_country,
+                channel=channel,
+                category=category,
+                courier_service__name__iexact="Zásilkovna"  # Ограничение только на Zásilkovna
+            )
         except ObjectDoesNotExist:
-            raise ValueError(f"No rate for {channel}, {country}, {category}")
-        base    = rate.price
+            raise ValueError(f"No rate for {channel}, {normalized_country}, {category} for Zásilkovna")
+        base = rate.price
         cod_fee = rate.cod_fee if cod > 0 else Decimal("0")
         return rate, base, cod_fee, base + cod_fee
 
@@ -109,14 +116,24 @@ def calculate_shipping_options(country, items, cod, currency):
         ("PUDO", base_pudo, fee_pudo, total_pudo, pudo_rate),
         ("HD",   base_hd,   fee_hd,   total_hd,   hd_rate),
     ]:
-        price_with_vat = (total * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
+        # Итоговая цена без НДС в CZK
+        base_total_czk = total
+
+        # Итоговая цена с НДС в CZK
+        price_with_vat_czk = (base_total_czk * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
+
+        # Переводим обе цены в EUR
+        base_total_eur = convert_czk_to_eur(base_total_czk)
+        price_with_vat_eur = convert_czk_to_eur(price_with_vat_czk)
+
         options.append({
-            "service":      "Pick-up point" if channel == "PUDO" else "Home Delivery",
-            "channel":      channel,
-            "price":        float(total),
-            "priceWithVat": float(price_with_vat),
-            "currency":     currency,
-            "estimate":     rate_obj.estimate or ""
+            "courier": rate_obj.courier_service.name,
+            "service": "Pick-up point" if channel == "PUDO" else "Home Delivery",
+            "channel": channel,
+            "price": float(base_total_eur),
+            "priceWithVat": float(price_with_vat_eur),
+            "currency": "EUR",
+            "estimate": rate_obj.estimate or ""
         })
 
     return options

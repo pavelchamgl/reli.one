@@ -28,7 +28,6 @@ class PayPalMetadata(models.Model):
     custom_data = models.JSONField()
     invoice_data = models.JSONField()
     description_data = models.JSONField()
-    products = models.JSONField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

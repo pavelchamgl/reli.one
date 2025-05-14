@@ -98,3 +98,66 @@ class PayPalMixin:
         else:
             logger.warning(f"Webhook verification failed: {verification_status}")
             return False
+
+    def create_paypal_order(self, line_items, total_price, session_key):
+        """
+        Creates a PayPal order and returns the approval_url and order_id.
+        """
+        access_token = self.get_paypal_access_token()
+        if not access_token:
+            raise RuntimeError("Failed to obtain PayPal access token.")
+
+        purchase_units = [{
+            "reference_id": session_key,
+            "amount": {
+                "currency_code": "EUR",
+                "value": f"{total_price:.2f}",
+                "breakdown": {
+                    "item_total": {
+                        "currency_code": "EUR",
+                        "value": f"{total_price:.2f}"
+                    }
+                }
+            },
+            "items": line_items
+        }]
+
+        payload = {
+            "intent": "CAPTURE",
+            "purchase_units": purchase_units,
+            "application_context": {
+                "brand_name": "Reli",
+                "landing_page": "BILLING",
+                "user_action": "PAY_NOW",
+                "return_url": settings.REDIRECT_DOMAIN + 'payment_end/',
+                "cancel_url": settings.REDIRECT_DOMAIN + 'basket/',
+            }
+        }
+
+        try:
+            response = requests.post(
+                f"{PAYPAL_API_URL}/v2/checkout/orders",
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": f"Bearer {access_token}",
+                },
+                json=payload,
+                timeout=10
+            )
+            response.raise_for_status()
+        except RequestException as e:
+            logger.error(f"Error creating PayPal order: {e}")
+            raise RuntimeError("Failed to create PayPal order")
+
+        response_data = response.json()
+        order_id = response_data.get("id")
+        approval_url = next(
+            (link["href"] for link in response_data.get("links", []) if link["rel"] == "approve"),
+            None
+        )
+
+        if not approval_url or not order_id:
+            logger.error(f"Unexpected PayPal response: {response_data}")
+            raise RuntimeError("Failed to retrieve approval URL or order ID")
+
+        return approval_url, order_id

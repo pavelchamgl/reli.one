@@ -4,12 +4,12 @@ from .views import (
     EstimateDeliveryView,
     CreateShipmentView,
     PacketaCalculateView,
-    ShippingOptionsView
+    SellerShippingOptionsView
 )
 
 urlpatterns = [
-    path("estimate/", EstimateDeliveryView.as_view(), name="delivery-estimate"),
-    path("create-shipment/", CreateShipmentView.as_view(), name="create-shipment"),
-    path('packeta/calculate-delivery/', PacketaCalculateView.as_view(), name='packeta-calculate'),
-    path("shipping-options/", ShippingOptionsView.as_view(), name="shipping-options"),
+    # path("estimate/", EstimateDeliveryView.as_view(), name="delivery-estimate"),
+    # path("create-shipment/", CreateShipmentView.as_view(), name="create-shipment"),
+    # path('packeta/calculate-delivery/', PacketaCalculateView.as_view(), name='packeta-calculate'),
+    path('seller-shipping-options/', SellerShippingOptionsView.as_view(), name='seller-shipping-options'),
 ]

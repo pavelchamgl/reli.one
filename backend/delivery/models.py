@@ -12,7 +12,7 @@ class DeliveryParcel(models.Model):
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     service = models.ForeignKey(CourierService, on_delete=models.PROTECT)
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
-    label_url = models.URLField(blank=True, null=True)
+    label_file = models.FileField(upload_to='packeta_labels/', null=True, blank=True)
     weight_grams = models.PositiveIntegerField()
     parcel_index = models.PositiveIntegerField(
         default=0,
@@ -60,6 +60,12 @@ class ShippingRate(models.Model):
     CHANNELS = [('PUDO', 'Pick-up point'), ('HD', 'Home Delivery')]
     CATEGORIES = [('standard', 'Standard'), ('oversized', 'Oversized')]
 
+    courier_service = models.ForeignKey(
+        CourierService,
+        on_delete=models.CASCADE,
+        related_name='shipping_rates',
+        help_text="Courier service this rate belongs to"
+    )
     country = models.CharField(max_length=2)
     channel = models.CharField(max_length=4, choices=CHANNELS)
     category = models.CharField(max_length=9, choices=CATEGORIES)
