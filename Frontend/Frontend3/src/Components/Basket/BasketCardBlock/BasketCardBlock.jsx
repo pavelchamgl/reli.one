@@ -79,6 +79,14 @@ const BasketCardBlock = () => {
     }
   }, [basket]);
 
+  const handleChange = () => {
+    if (selectAll) {
+      dispatch(deselectAllProducts());
+    } else {
+      setSelectAll(true);
+    }
+  };
+
   return (
     <div className={styles.main}>
       {!isMobile && (
@@ -94,7 +102,7 @@ const BasketCardBlock = () => {
         </button>
       )}
       <div className={styles.checkBoxDiv}>
-        <div
+        {/* <label
           onClick={() => {
             if (selectAll) {
               dispatch(deselectAllProducts());
@@ -105,7 +113,17 @@ const BasketCardBlock = () => {
         >
           <CheckBox check={selectAll} />
           <p>{t("select_all")}</p>
-        </div>
+        </label> */}
+        <label className={styles.selectLabel}>
+          <input
+            className={styles.selectInp}
+            type="checkbox"
+            checked={selectAll}
+            onChange={handleChange}
+          />
+          <span></span>
+          <p>Select all</p>
+        </label>
         <span>{`${basket?.length} ${t("count")}`}</span>
       </div>
       <div>
@@ -121,7 +139,7 @@ const BasketCardBlock = () => {
         ) : basket.length > 0 ? (
           basket.map((item) => (
             <BasketCard
-              key={item.sku }
+              key={item.sku}
               productData={item}
               section={"basket"}
               all={selectAll}
