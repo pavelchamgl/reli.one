@@ -80,8 +80,7 @@
   }
 }
 .basketBtn:hover {
-  background-color: #06664B;
-
+  background-color: #06664b;
 }
 
 .deliveryBtn {
@@ -101,5 +100,18 @@
   height: 36px;
   img {
     width: 23px;
+  }
+}
+
+.ndcPrice {
+  font-weight: 500;
+  font-size: 18px;
+  color: #64748b;
+
+  & span {
+    font-weight: 500;
+    font-size: 18px;
+    color: #64748b;
+    font-family: var(--ft);
   }
 }
