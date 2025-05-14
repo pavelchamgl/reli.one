@@ -101,5 +101,11 @@
   font-weight: 500;
   font-size: 18px;
   color: #64748b;
-  font-family: var(--ft);
+
+  & span {
+    font-weight: 500;
+    font-size: 18px;
+    color: #64748b;
+    font-family: var(--ft);
+  }
 }

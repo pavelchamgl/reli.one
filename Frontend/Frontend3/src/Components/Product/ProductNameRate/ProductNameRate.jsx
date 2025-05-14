@@ -108,7 +108,7 @@ const ProductNameRate = () => {
         <span className={styles.categoryName}>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{endPrice ? endPrice : price} €</p>
-      <p className={styles.ndcPrice}>Without DPH $32.71</p>
+      <p className={styles.ndcPrice}>Without DPH <span>$32.71</span></p>
       <ProdCharackButtons
         setSku={setSku}
         setPrice={setEndPice}
@@ -125,7 +125,7 @@ const ProductNameRate = () => {
       </button>
       <BasketModal handleClose={() => setOpenModal(false)} open={openModal} productData={{
         ...product,
-        price:endPrice
+        price: endPrice
       }} />
     </div>
   );
