@@ -68,6 +68,10 @@
   font-size: clamp(12px, 2.5vw, 24px);
   line-height: 140%;
   color: #000;
+
+  & span {
+    font-weight: 700;
+  }
 }
 
 .textDescLight {
@@ -102,4 +106,30 @@
 .emailText {
   padding-left: 5px;
   color: #047857;
+  text-decoration: none;
+}
+
+.newTextWrap {
+  font-weight: 500;
+  font-size: clamp(12px, 2.5vw, 24px);
+  margin: 20px 0;
+
+  & h4 {
+    margin-bottom: 10px;
+    font-size: clamp(12px, 2.5vw, 24px);
+  }
+}
+
+.newList {
+  margin: 15px 0 15px 35px;
+  & li {
+    font-weight: 500;
+    font-size: clamp(12px, 2.5vw, 24px);
+    line-height: 140%;
+    color: #000;
+
+    & span {
+      font-weight: 700;
+    }
+  }
 }

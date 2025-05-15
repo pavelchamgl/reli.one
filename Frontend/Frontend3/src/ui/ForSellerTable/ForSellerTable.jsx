@@ -89,6 +89,14 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
+          <p>Food and drinks</p>
+        </div>
+        <div>
+          <p>6%</p>
+        </div>
+      </div>
+      <div className={styles.tableItem}>
+        <div>
           <p>{t("table_furniture")}</p>
         </div>
         <div>
