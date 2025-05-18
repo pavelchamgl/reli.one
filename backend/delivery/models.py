@@ -3,7 +3,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 from django.utils.html import format_html
 
 from order.models import Order, OrderProduct, CourierService
-from sellers.models import SellerProfile
 from warehouses.models import Warehouse
 
 

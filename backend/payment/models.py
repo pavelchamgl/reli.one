@@ -39,7 +39,6 @@ class StripeMetadata(models.Model):
     custom_data = models.JSONField(null=True, blank=True)
     invoice_data = models.JSONField(null=True, blank=True)
     description_data = models.JSONField(null=True, blank=True)
-    products = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

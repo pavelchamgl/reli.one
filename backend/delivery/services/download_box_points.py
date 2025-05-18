@@ -1,5 +1,6 @@
-import requests
 import json
+import requests
+
 
 def download_pickup_points(url, output_file):
     response = requests.get(url)
@@ -13,6 +14,7 @@ def download_pickup_points(url, output_file):
             json.dump(data, f, ensure_ascii=False, indent=4)
     else:
         print(f"❌ Failed to fetch data. Status code: {response.status_code}")
+
 
 if __name__ == "__main__":
     url = "https://pickup-point.api.packeta.com/v5/fb2fbc354bafb66a/box/json?lang=en"

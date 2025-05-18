@@ -1,10 +1,8 @@
 from .packeta import PacketaService
-from .zasilkovna import ZasilkovnaService
 
 
 SERVICE_MAP = {
     "PACKETA":    PacketaService,
-    "ZASILKOVNA": ZasilkovnaService,
 }
 
 

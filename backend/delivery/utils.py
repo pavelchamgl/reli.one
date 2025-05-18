@@ -1,10 +1,12 @@
 import logging
+
 from decimal import Decimal
+from collections import defaultdict
 from django.db import transaction
 from django.core.files.base import ContentFile
 
 from order.models import Order
-from warehouses.models import Warehouse
+from warehouses.models import Warehouse, WarehouseItem
 from delivery.models import DeliveryParcel, DeliveryParcelItem, CourierService
 from delivery.services.packeta import PacketaService
 from delivery.services.local_rates import calculate_shipping_options
@@ -15,89 +17,82 @@ logger = logging.getLogger(__name__)
 
 
 def generate_parcels_for_order(order_id: int):
-    """
-    1) Сплитим order.order_products на блоки,
-    2) считаем стоимость и создаём в Packeta,
-    3) сохраняем DeliveryParcel + DeliveryParcelItem — с заполненными warehouse, service и tracking_number.
-    """
     logger.info("Start generate_parcels_for_order(%s)", order_id)
     svc = PacketaService()
     order = Order.objects.select_related(
         "delivery_type", "delivery_address", "user", "courier_service"
     ).prefetch_related("order_products__product").get(pk=order_id)
 
-    # 1) Составляем «сырые» строки для сплита
+    # Готовим список товаров для сплита
     raw = [
         {"sku": op.product.sku, "quantity": op.quantity}
         for op in order.order_products.filter(status="awaiting_shipment")
     ]
 
-    # 2) Определяем страну для сплита
-    if order.delivery_address:
+    # Определяем страну
+    if order.delivery_address and order.delivery_address.country:
         country_code = order.delivery_address.country
     elif order.pickup_point_id:
         country_code = resolve_country_from_local_pickup_point(order.pickup_point_id)
     else:
-        country_code = "cz"
+        logger.error(f"Cannot determine country for order {order_id}")
+        raise RuntimeError(f"Cannot determine country for order {order_id}")
 
-    parcels = split_items_into_parcels(
-        country=country_code,
-        items=raw,
-        cod=False,
-        currency="EUR",
-    )
+    # Определяем валюту по стране
+    currency = svc.COUNTRY_CURRENCY.get(country_code, "CZK")
+
+    # Сплитим на посылки
+    parcels = split_items_into_parcels(country=country_code, items=raw, cod=False, currency="EUR")
     logger.debug("Order %s → %d parcels", order_id, len(parcels))
 
-    # 3) Выбираем origin warehouse
-    try:
-        wh = Warehouse.objects.get(pickup_by_courier=False)
-    except Warehouse.DoesNotExist:
-        wh = Warehouse.objects.first()
+    # Определяем склад
+    wh = Warehouse.objects.filter(pickup_by_courier=False).first() or Warehouse.objects.first()
     if not wh:
         logger.error(f"No warehouse found for order {order_id}")
         raise RuntimeError(f"No warehouse available for order {order_id}")
 
+    # Индексация order_products по SKU для оптимизации доступа
+    order_products_by_sku = {op.product.sku: op for op in order.order_products.all()}
+
     created = []
     with transaction.atomic():
         for idx, block in enumerate(parcels, start=1):
-            # расчёт общего веса в граммах
+            block_summary = ", ".join(f"{unit['sku']} x{unit['quantity']}" for unit in block)
+            logger.info("Order %s, parcel #%d contents: %s", order_id, idx, block_summary)
+            # Общий вес посылки
             wt = sum(
-                op.product.weight_grams * unit["quantity"]
+                order_products_by_sku[unit["sku"]].product.weight_grams * unit["quantity"]
                 for unit in block
-                for op in order.order_products.filter(product__sku=unit["sku"])
+                if unit["sku"] in order_products_by_sku
             )
+            logger.info("Order %s, parcel #%d weight: %s grams", order_id, idx, wt)
 
-            # 4) Запрашиваем все варианты доставки
-            opts = calculate_shipping_options(
-                country_code,
-                block,
-                cod=False,
-                currency="EUR"
-            )
+            # Получаем варианты доставки
+            opts = calculate_shipping_options(country=country_code, items=block, cod=False, currency="EUR")
             logger.debug("Order %s, parcel #%d raw shipping options: %s", order_id, idx, opts)
 
-            # 5) Определяем канал по типу доставки
+            # Определяем канал доставки
             is_hd = order.delivery_type.name.lower() == "home delivery"
             channel = "HD" if is_hd else "PUDO"
 
-            # 6) Фильтруем по каналу
+            # Фильтруем варианты по каналу
             channel_opts = [o for o in opts if o.get("channel") == channel]
-            logger.debug("Order %s, parcel #%d channel '%s' options: %s", order_id, idx, channel, channel_opts)
-
             if not channel_opts:
-                logger.error("No %s options for order %s, parcel #%d — opts was %s", channel, order_id, idx, opts)
+                logger.error("No %s options for order %s, parcel #%d", channel, order_id, idx)
                 raise RuntimeError(f"No shipping options for channel {channel} on order {order_id}, parcel {idx}")
 
-            # 7) Берём первый вариант
+            # Выбираем первую найденную опцию
             chosen = channel_opts[0]
             price_with_vat = Decimal(chosen["priceWithVat"]).quantize(Decimal("0.01"))
-            logger.debug("Order %s, parcel #%d selected option: %s", order_id, idx, chosen)
+            logger.info(
+                "Order %s, parcel #%d chosen shipping option: %s, price with VAT: %s EUR",
+                order_id, idx, chosen["service"], price_with_vat
+            )
 
-            # 8) Определяем валюту на основе страны
-            currency_country = order.delivery_address.country if order.delivery_address else country_code
-            currency = svc.COUNTRY_CURRENCY.get(currency_country, "CZK")
+            # Фиксированная страховка 1 EUR
+            value_amount = Decimal("1.00")
 
-            # 9) Создаём отправление в Packeta
+            # Создание отправления
             if is_hd:
                 packet_id = svc.create_home_delivery_shipment(
                     order_number=order.order_number,
@@ -110,7 +105,7 @@ def generate_parcels_for_order(order_id: int):
                     zip_code=order.delivery_address.zip_code,
                     country=country_code,
                     weight_grams=wt,
-                    value_amount=order.total_amount,
+                    value_amount=value_amount,
                     cod_amount=Decimal("0.00"),
                     currency=currency,
                 )
@@ -123,16 +118,12 @@ def generate_parcels_for_order(order_id: int):
                     email=order.customer_email,
                     pickup_point_id=order.pickup_point_id,
                     weight_grams=wt,
-                    value_amount=order.total_amount,
+                    value_amount=value_amount,
                     cod_amount=Decimal("0.00"),
                     currency=currency,
                 )
 
-            # 10) Сохраняем DeliveryParcel
-            if not order.courier_service:
-                logger.error(f"No courier service defined for order {order.id}")
-                raise RuntimeError(f"No courier service defined for order {order.id}")
-
+            # Сохраняем DeliveryParcel
             dp = DeliveryParcel.objects.create(
                 order=order,
                 warehouse=wh,
@@ -143,13 +134,20 @@ def generate_parcels_for_order(order_id: int):
                 shipping_price=price_with_vat,
             )
 
-            # 11) Создаём позиции в посылке
+            # Группируем по SKU для одной записи на каждую позицию
+            grouped_block = defaultdict(int)
             for unit in block:
-                op = order.order_products.get(product__sku=unit["sku"])
+                grouped_block[unit["sku"]] += unit["quantity"]
+
+            for sku, total_quantity in grouped_block.items():
+                op = order_products_by_sku.get(sku)
+                if not op:
+                    logger.error(f"Product with SKU {sku} not found in order {order_id}, skipping.")
+                    continue
                 DeliveryParcelItem.objects.create(
                     parcel=dp,
                     order_product=op,
-                    quantity=unit["quantity"],
+                    quantity=total_quantity,
                 )
 
             logger.info("Created parcel #%d for order %s: packet_id=%s, price=%s", idx, order_id, packet_id, price_with_vat)
@@ -160,9 +158,6 @@ def generate_parcels_for_order(order_id: int):
 
 
 def fetch_and_store_labels_for_order(order_id: int):
-    """
-    Fetches labels for all parcels of the given order and stores them in label_file field.
-    """
     svc = PacketaService()
     parcels = DeliveryParcel.objects.filter(order_id=order_id)
     saved_count = 0

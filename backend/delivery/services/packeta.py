@@ -6,10 +6,6 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 import xml.etree.ElementTree as ET
 
-from .base import DeliveryService
-from delivery.services.local_rates import calculate_shipping_options
-from delivery.services.shipping_split import split_items_into_parcels
-
 logger = logging.getLogger(__name__)
 
 

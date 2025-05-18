@@ -1,48 +1,77 @@
+import logging
+
 from decimal import Decimal
 
 from .local_rates import calculate_shipping_options
+from product.models import ProductVariant
+
+logger = logging.getLogger(__name__)
+
+MAX_WEIGHT_KG = Decimal("15.00")
+MAX_SIDE_CM = Decimal("120.00")
+MAX_SUM_SIDES_CM = Decimal("150.00")
+
+
+def get_variant_map(skus):
+    variants = ProductVariant.objects.filter(sku__in=skus)
+    return {v.sku: v for v in variants}
+
+
+def get_item_dimensions_and_weight(variant):
+    length_cm = Decimal(variant.length_mm or 0) / Decimal("10")
+    width_cm = Decimal(variant.width_mm or 0) / Decimal("10")
+    height_cm = Decimal(variant.height_mm or 0) / Decimal("10")
+    weight_kg = Decimal(variant.weight_grams or 0) / Decimal("1000")
+    return length_cm, width_cm, height_cm, weight_kg
+
+
+def check_limits(dimensions, weight):
+    length_cm, width_cm, height_cm = dimensions
+    sum_sides = length_cm + width_cm + height_cm
+    max_side = max(length_cm, width_cm, height_cm)
+    return weight <= MAX_WEIGHT_KG and max_side <= MAX_SIDE_CM and sum_sides <= MAX_SUM_SIDES_CM
 
 
 def split_items_into_parcels(country, items, cod, currency):
-    """
-    Жадно набираем посылки, но каждый раз проверяем:
-    'влезут ли все текущие товары + ещё один в calculate_shipping_options?'
-    Если нет — стартуем новую посылку.
-    """
-    # развернём по единицам
+    skus = [it["sku"] for it in items]
+    variant_map = get_variant_map(skus)
+
     unit_items = []
     for it in items:
-        for _ in range(it["quantity"]):
-            unit_items.append({"sku": it["sku"], "quantity": 1})
+        unit_items.extend([{"sku": it["sku"], "quantity": 1}] * it["quantity"])
 
     parcels = []
-    current = []
+    current_parcel = []
+    current_weight = Decimal("0")
+    current_dimensions = [Decimal("0"), Decimal("0"), Decimal("0")]
 
     for unit in unit_items:
-        if not current:
-            # первая единица всегда идёт в новую посылку
-            current = [unit]
+        variant = variant_map[unit["sku"]]
+        length, width, height, weight = get_item_dimensions_and_weight(variant)
+
+        new_weight = current_weight + weight
+        new_dimensions = [
+            max(current_dimensions[0], length),
+            max(current_dimensions[1], width),
+            current_dimensions[2] + height  # Stacking by height
+        ]
+
+        if not check_limits(new_dimensions, new_weight):
+            if not current_parcel:
+                parcels.append([unit])
+            else:
+                parcels.append(current_parcel)
+                current_parcel = [unit]
+                current_weight = weight
+                current_dimensions = [length, width, height]
             continue
 
-        # проверяем, влезет ли этот блок в одну посылку
-        try:
-            calculate_shipping_options(country, current + [unit], cod, currency)
-        except ValueError as e:
-            if "exceeds allowed dimensions or weight" in str(e):
-                # заканчиваем старую посылку
-                parcels.append(current)
-                # и начинаем новую с этого юнита
-                current = [unit]
-            else:
-                # какой-то другой ValueError (например, SKU не найден) пробрасываем дальше
-                raise
-        else:
-            # всё влезло — аккумулируем этот юнит
-            current.append(unit)
+        current_parcel.append(unit)
+        current_weight = new_weight
+        current_dimensions = new_dimensions
 
-    # не забываем последнюю
-    if current:
-        parcels.append(current)
+    if current_parcel:
+        parcels.append(current_parcel)
 
     return parcels
 
@@ -92,8 +121,10 @@ def calculate_order_shipping(country, items, cod, currency):
     Теперь сплитим по весу+габаритам и считаем опции для каждой «маленькой» посылки.
     """
     parcels = split_items_into_parcels(country, items, cod, currency)
-    per_parcel = [
-        calculate_shipping_options(country, parcel, cod, currency)
-        for parcel in parcels
-    ]
-    return combine_parcel_options(per_parcel)
+    per_parcel_opts = []
+
+    for parcel in parcels:
+        parcel_opts = calculate_shipping_options(country, parcel, cod, currency)
+        per_parcel_opts.append(parcel_opts)
+
+    return combine_parcel_options(per_parcel_opts)

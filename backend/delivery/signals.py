@@ -4,8 +4,8 @@ from django.dispatch import receiver
 from django.db.models.signals import post_save
 
 from .models import DeliveryParcel, CourierService
-from order.models import Order, OrderProduct
 from .services.packeta import PacketaService
+from order.models import Order, OrderProduct
 
 
 @receiver(post_save, sender=Order)

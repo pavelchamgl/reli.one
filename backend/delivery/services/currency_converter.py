@@ -1,5 +1,6 @@
-from decimal import Decimal, ROUND_HALF_UP
 import logging
+
+from decimal import Decimal, ROUND_HALF_UP
 from django.core.cache import cache
 from .cnb_service import get_czk_to_eur_rate
 
@@ -25,5 +26,6 @@ def get_czk_to_eur_rate_cached():
 
 def convert_czk_to_eur(amount_czk: Decimal) -> Decimal:
     rate = get_czk_to_eur_rate_cached()
+    logger.info(f"Used CZK to EUR rate in Stripe session: {rate}")
     amount_eur = amount_czk / rate
     return amount_eur.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
