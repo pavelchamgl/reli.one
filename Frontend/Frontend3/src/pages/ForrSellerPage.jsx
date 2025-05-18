@@ -179,7 +179,7 @@ const ForrSellerPage = () => {
           <div id="category" className={styles.paragDiv}>
             <h4 className={styles.textTitle} style={{
               textDecoration: "underline"
-            }}>{t("cost_by_category")}:</h4>
+            }}>{t("cost_by_category")}</h4>
             <ForSellerTable />
           </div>
 
@@ -188,7 +188,7 @@ const ForrSellerPage = () => {
               textDecoration: "underline"
             }}>{t("start_selling_title")}</h4>
             <p className={styles.textDesc} style={{ marginBottom: "10px" }}>
-              {t("start_selling_desc")}:
+              {t("start_selling_desc")}
             </p>
 
             <div className={styles.newTextWrap}>
