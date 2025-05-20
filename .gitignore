@@ -12,7 +12,7 @@ Frontend/dist
 */__pycache__
 */migrations
 */migrations/__pycache__
-
+*.DS_Store
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

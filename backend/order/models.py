@@ -49,28 +49,59 @@ class DeliveryStatus(models.Model):
 
 
 class CourierService(models.Model):
-    name = models.CharField(max_length=50, unique=True)
+    """
+    Курьерская служба: используется и для выбора при оформлении заказа,
+    и для интеграции в delivery-логике.
+    """
+    name = models.CharField(
+        max_length=100,
+        help_text="Читабельное имя службы (например, Packeta, Zásilkovna)"
+    )
+    code = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Уникальный код службы (например, packeta, zasilkovna)"
+    )
+    active = models.BooleanField(
+        default=True,
+        help_text="Включена ли служба для выбора в интерфейсах"
+    )
+
+    class Meta:
+        verbose_name = "Courier Service"
+        verbose_name_plural = "Courier Services"
+        ordering = ("name",)
 
     def __str__(self):
-        return self.name
+        return f"{self.pk} {self.name}"
 
 
 class Order(models.Model):
     order_number = models.CharField(max_length=50, unique=True, default=generate_order_number)
     user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
     customer_email = models.EmailField()
     order_date = models.DateTimeField(auto_now_add=True)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.00'))])
+    group_subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        help_text="Итоговая сумма группы: товары + доставка."
+    )
     promo_code = models.ForeignKey('promocode.PromoCode', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_type = models.ForeignKey('DeliveryType', on_delete=models.SET_NULL, null=True)
     order_status = models.ForeignKey('OrderStatus', on_delete=models.SET_NULL, null=True, blank=True)
     delivery_status = models.ForeignKey('DeliveryStatus', on_delete=models.SET_NULL, null=True, blank=True)
-    delivery_address = models.CharField(max_length=255, null=True, blank=True)
+    delivery_address = models.ForeignKey('delivery.DeliveryAddress', on_delete=models.SET_NULL, null=True, blank=True)
     phone_number = PhoneNumberField(blank=True, null=True)
     delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     courier_service = models.ForeignKey(CourierService, on_delete=models.SET_NULL, null=True, blank=True)
     delivery_date = models.DateField(null=True, blank=True)
+    pickup_point_id = models.PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         verbose_name = 'Order'

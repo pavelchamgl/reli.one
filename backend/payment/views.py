@@ -1,23 +1,26 @@
 import json
+import uuid
 import stripe
 import logging
-import requests
 
 from decimal import Decimal, ROUND_HALF_UP
+
+from django.utils.decorators import method_decorator
 from rest_framework import status
 from django.conf import settings
 from django.utils import timezone
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema,  OpenApiResponse, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Payment
+from .models import Payment, PayPalMetadata, StripeMetadata
 from .mixins import PayPalMixin
 from .services import send_order_emails_safely
 from accounts.models import CustomUser
+from delivery.models import DeliveryAddress
 from product.models import BaseProduct, ProductVariant
 from promocode.models import PromoCode
 from order.models import (
@@ -26,7 +29,16 @@ from order.models import (
     DeliveryType,
     OrderProduct,
     OrderStatus,
+    ProductStatus,
 )
+from warehouses.models import Warehouse, WarehouseItem
+from delivery.helpers import resolve_country_code_from_group
+from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
+from delivery.validators.zip_validator import ZipCodeValidator
+from delivery.validators.validators import validate_phone_matches_country
+from delivery.utils_async import async_generate_parcels_and_fetch_labels
+from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,6 +51,11 @@ PAYPAL_API_URL = settings.PAYPAL_API_URL
 stripe.api_key = settings.STRIPE_API_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_ENDPOINT_SECRET
 
+# карта delivery_type -> carrier channel для options
+CHANNEL_MAP = {
+    1: 'PUDO',       # пункт выдачи
+    2: 'HD',         # доставка на дом
+}
 logger = logging.getLogger(__name__)
 
 
@@ -65,924 +82,737 @@ def apply_promo_code(promo_code, basket_items):
         raise ValidationError("Invalid promo code.")
 
 
+def get_warehouse_for_sku(sku):
+    wh_item = WarehouseItem.objects.filter(product_variant__sku=sku, quantity_in_stock__gt=0).first()
+    return wh_item.warehouse if wh_item else None
+
+
+def validate_group_country(group, idx):
+    delivery_type = group.get("delivery_type")
+    if delivery_type == 2:
+        delivery_address = group.get("delivery_address", {})
+        country_code = delivery_address.get("country")
+        if not country_code:
+            return Response({"error": f"Group {idx}: Missing country in delivery_address."}, status=status.HTTP_400_BAD_REQUEST)
+        return country_code
+    elif delivery_type == 1:
+        pickup_point_id = group.get("pickup_point_id")
+        if not pickup_point_id:
+            return Response({"error": f"Group {idx}: Missing pickup_point_id for PUDO delivery."}, status=status.HTTP_400_BAD_REQUEST)
+        country_code = resolve_country_from_local_pickup_point(pickup_point_id)
+        if not country_code:
+            return Response({"error": f"Group {idx}: Cannot resolve country for pickup_point_id {pickup_point_id}."}, status=status.HTTP_400_BAD_REQUEST)
+        return country_code
+    else:
+        return Response({"error": f"Group {idx}: Unknown delivery_type {delivery_type}."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PaymentSessionValidator:
+    @staticmethod
+    def validate_groups(groups):
+        for idx, group in enumerate(groups, start=1):
+            result = validate_group_country(group, idx)
+            if isinstance(result, Response):
+                return result
+        return None
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+@extend_schema(
+    summary="Create Stripe Payment Session with Delivery and Seller-Based Grouping",
+    description=(
+        "Creates a Stripe Checkout Session by validating provided customer and product data.\n\n"
+        "The request must include customer contact details and a list of product groups grouped by seller.\n\n"
+        "**Business Logic:**\n"
+        "- Validates product ownership by the specified seller.\n"
+        "- Calculates delivery costs per group based on the provided delivery type and address.\n"
+        "- Calculates total product and delivery costs.\n"
+        "- Saves complete session metadata, including customer data, product groups, and calculated costs.\n"
+        "- Returns the Stripe Checkout URL, session ID, and internal session key.\n\n"
+        "**Webhook Handling:**\n"
+        "The session key is used to restore all saved metadata when Stripe webhook confirms payment.\n\n"
+        "**Expected Fields:**\n"
+        "- email, first_name, last_name, phone, groups with product SKUs, seller IDs, delivery types, and delivery addresses or pickup points.\n\n"
+        "**Response:**\n"
+        "- checkout_url: URL to redirect the customer to Stripe Checkout\n"
+        "- session_id: Stripe session identifier\n"
+        "- session_key: Internal session key for order processing"
+    ),
+    responses={200: OpenApiResponse(description="Stripe session created successfully")},
+    tags=["Stripe"]
+)
 class CreateStripePaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(
-        description="Creates a Stripe payment session for product purchase",
-        request={
-            'application/json': {
-                'type': 'object',
-                'required': ['email', 'delivery_type', 'delivery_address', 'phone', 'products'],
-                'properties': {
-                    'email': {
-                        'type': 'string',
-                        'description': 'Email of the user making the purchase'
-                    },
-                    'promocode': {
-                        'type': 'string',
-                        'description': 'Promocode for a discount on the purchase'
-                    },
-                    'delivery_type': {
-                        'type': 'integer',
-                        'description': 'Type of delivery: 1 - Pickup point, 2 - Courier',
-                        'example': 1
-                    },
-                    'delivery_address': {
-                        'type': 'string',
-                        'description': 'Delivery address'
-                    },
-                    'phone': {
-                        'type': 'string',
-                        'description': 'Contact phone number'
-                    },
-                    'delivery_cost': {
-                        'type': 'number',
-                        'description': 'Cost of delivery',
-                        'default': 0.0
-                    },
-                    'courier_service': {
-                        'type': 'integer',
-                        'description': 'ID of the courier service: 1 - PPL, 2 - GEIS, 3 - DPD',
-                        'example': 1
-                    },
-                    'products': {
-                        'type': 'array',
-                        'description': 'List of product variants to purchase',
-                        'items': {
-                            'type': 'object',
-                            'required': ['sku', 'quantity'],
-                            'properties': {
-                                'sku': {
-                                    'type': 'string',
-                                    'description': 'SKU of the product variant'
-                                },
-                                'quantity': {
-                                    'type': 'integer',
-                                    'description': 'Quantity of the product'
-                                }
-                            }
-                        }
-                    }
-                },
-                'example': {
-                    'email': 'user@example.com',
-                    'promocode': 'SUMMER2024',
-                    'delivery_type': 1,
-                    'delivery_address': '123 Main St, City, Country',
-                    'phone': '+1234567890',
-                    'delivery_cost': 10.50,
-                    'courier_service': 1,
-                    'products': [
-                        {'sku': '123456789', 'quantity': 2},
-                        {'sku': '987654321', 'quantity': 1}
-                    ]
-                }
-            }
-        },
-        responses={
-            200: OpenApiResponse(
-                description='URL for the created Stripe payment session',
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'url': {'type': 'string', 'description': 'URL to redirect the user to the Stripe payment session'}
-                    }
-                }
-            ),
-            404: OpenApiResponse(description='Product variant not found or Delivery type not found'),
-            500: OpenApiResponse(description='Error creating Stripe payment session'),
-        },
-        tags=['Stripe']
-    )
-    def post(self, request, *args, **kwargs):
-        user_id = request.user.id
-        email = request.data.get("email")
-        promocode = request.data.get("promocode")
-        delivery_type = request.data.get("delivery_type")
-        delivery_address = request.data.get("delivery_address")
-        phone = request.data.get("phone")
-        delivery_cost = request.data.get("delivery_cost", 0)
-        courier_service = request.data.get("courier_service")
-        products = request.data.get("products")
+    def post(self, request):
+        user = request.user
+        data = request.data
 
-        try:
-            delivery_cost = Decimal(delivery_cost)
-        except (ValueError, TypeError):
-            delivery_cost = Decimal('0.00')
+        logger.info("Stripe session creation request received", extra={"data": data})
 
-        logger.debug(f"Delivery cost: {delivery_cost}")
+        required_fields = ['email', 'first_name', 'last_name', 'phone', 'groups']
+        for field in required_fields:
+            if field not in data:
+                return Response({"error": f"Missing required field: {field}"}, status=400)
+
+        email = data['email']
+        first_name = data['first_name']
+        last_name = data['last_name']
+        phone = data['phone']
+        groups = data['groups']
+
+        validation_response = PaymentSessionValidator.validate_groups(groups)
+        if validation_response:
+            return validation_response
+
+        logger.info(f"Validated {len(groups)} groups for user {user.id}. Starting calculation.")
+
+        all_skus = {product['sku'] for group in groups for product in group['products']}
+        variants_qs = ProductVariant.objects.filter(sku__in=all_skus).select_related('product__seller')
+        variant_map = {v.sku: v for v in variants_qs}
 
         line_items = []
-        total_price = Decimal(0)
+        total_delivery = Decimal('0.00')
 
-        for item in products:
-            sku = item['sku']
-            quantity = item['quantity']
+        for idx, group in enumerate(groups, start=1):
+            delivery_type = group['delivery_type']
+            products = group['products']
+            seller_id = group['seller_id']
 
-            try:
-                product_variant = ProductVariant.objects.get(sku=sku)
-            except ProductVariant.DoesNotExist:
-                logger.error(f"Product variant with SKU {sku} does not exist.")
-                return Response({"error": f"Product variant with SKU {sku} not found"}, status=status.HTTP_404_NOT_FOUND)
+            for product in products:
+                sku = product['sku']
+                variant = variant_map.get(sku)
+                if not variant:
+                    return Response({"error": f"Group {idx}: ProductVariant not found: {sku}"}, status=400)
+                if variant.product.seller.id != seller_id:
+                    return Response({
+                        "error": f"Group {idx}: Product {sku} does not belong to seller {seller_id}."
+                    }, status=400)
 
-            price = Decimal(product_variant.price)
-            currency = 'EUR'
+            country_code = resolve_country_code_from_group(group, idx, logger=logger)
+            if not country_code:
+                return Response({"error": f"Group {idx}: Invalid delivery address or pickup point."}, status=400)
 
-            if promocode:
-                promo_code = PromoCode.objects.filter(code=promocode).first()
-                if promo_code and promo_code.is_valid():
-                    price = price - (price * Decimal(promo_code.discount_percentage) / Decimal('100.00'))
+            if delivery_type == 2:
+                delivery_address = group.get("delivery_address", {})
+                zip_code = delivery_address.get("zip")
+                if not zip_code:
+                    return Response({"error": f"Group {idx}: ZIP code is missing."}, status=400)
+                if not ZipCodeValidator.validate_zip_exists(zip_code, country_code):
+                    return Response({"error": f"Group {idx}: ZIP code '{zip_code}' is invalid for country {country_code}."}, status=400)
+                phone_error = validate_phone_matches_country(phone, country_code)
+                if phone_error:
+                    return Response({"error": f"Group {idx}: {phone_error}"}, status=400)
 
+            shipping_result = calculate_order_shipping(
+                country=country_code,
+                items=[{"sku": p['sku'], "quantity": p['quantity']} for p in products],
+                cod=Decimal("0.00"),
+                currency='EUR'
+            )
+            logger.info(f"Shipping result for group {idx}: {shipping_result}")
+
+            channel = {1: "PUDO", 2: "HD"}.get(delivery_type)
+            selected_option = next((opt for opt in shipping_result["options"] if opt["channel"] == channel), None)
+
+            if not selected_option:
+                return Response({"error": f"Group {idx}: No valid delivery option found for channel {channel}."}, status=400)
+
+            num_parcels = shipping_result.get("total_parcels", 1)
+            delivery_cost = Decimal(str(selected_option["priceWithVat"])).quantize(Decimal("0.01"))
+            total_delivery += delivery_cost
+            group["calculated_delivery_cost"] = str(delivery_cost)
+            group["calculated_total_parcels"] = num_parcels
+
+            group_total = Decimal('0.00')
+            for product in products:
+                variant = variant_map[product['sku']]
+                unit_price = Decimal(variant.price).quantize(Decimal("0.01"))
+                quantity = int(product['quantity'])
+                group_total += unit_price * quantity
+
+                line_items.append({
+                    'price_data': {
+                        'currency': 'eur',
+                        'product_data': {'name': product['sku']},
+                        'unit_amount': int(unit_price * 100),
+                    },
+                    'quantity': quantity,
+                })
+
+            group_total += delivery_cost
+            group["calculated_group_total"] = str(group_total.quantize(Decimal("0.01")))
+
+        if total_delivery > 0:
             line_items.append({
                 'price_data': {
-                    'currency': currency,
-                    'unit_amount': int(price * 100),  # Stripe ожидает целое число в центах
-                    'product_data': {
-                        'name': f"{product_variant.product.name} - {product_variant.name}",
-                    }
-                },
-                'quantity': quantity,
-            })
-            total_price += price * quantity
-
-            logger.debug(f"Added product SKU {sku} with quantity {quantity} to line items.")
-
-        if delivery_cost > 0:
-            line_items.append({
-                'price_data': {
-                    'currency': 'EUR',
-                    'unit_amount': int(delivery_cost * 100),
-                    'product_data': {
-                        'name': 'Delivery Cost',
-                    }
+                    'currency': 'eur',
+                    'product_data': {'name': f'Delivery ({total_delivery} EUR)'},
+                    'unit_amount': int(total_delivery * 100),
                 },
                 'quantity': 1,
             })
-            total_price += delivery_cost
 
-        logger.debug(f"Total price including delivery cost: {total_price}")
+        gross_total = sum(Decimal(g["calculated_group_total"]) for g in groups).quantize(Decimal("0.01"))
+        logger.info(f"Gross total for all groups: {gross_total} EUR (including total delivery: {total_delivery} EUR)")
 
-        # Проверка наличия типа доставки
-        if delivery_type:
-            try:
-                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
-            except DeliveryType.DoesNotExist:
-                logger.error(f"DeliveryType with id {delivery_type} does not exist.")
-                return Response({"error": "Delivery type not found"}, status=status.HTTP_404_NOT_FOUND)
+        session_key = str(uuid.uuid4())
+        StripeMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                'user_id': str(user.id),
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name,
+                'phone': phone,
+            },
+            invoice_data={'groups': groups},
+            description_data={
+                'gross_total': str(gross_total),
+                'delivery_total': str(total_delivery)
+            },
+        )
 
-        # Подготовка данных для метаданных сессии
-        custom_data = {
-            "user_id": user_id,
-            'email': email,
-            'promo_code': promocode,
-            "phone": phone,
-        }
-
-        invoice_data = {
-            "delivery_type": delivery_type,
-            "delivery_address": delivery_address,
-        }
-
-        description_data = {
-            "delivery_cost": f"{delivery_cost:.2f}",
-            "courier_service": courier_service,
-        }
-
-        # Объединение всех данных в метаданные сессии
-        metadata = {
-            'custom_data': json.dumps(custom_data),
-            'invoice_data': json.dumps(invoice_data),
-            'description_data': json.dumps(description_data),
-            'products': json.dumps(products),
-        }
+        logger.info(f"Stripe metadata saved with session_key: {session_key}")
 
         try:
-            session = stripe.checkout.Session.create(
+            checkout_session = stripe.checkout.Session.create(
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
                 success_url=settings.REDIRECT_DOMAIN + 'payment_end/',
                 cancel_url=settings.REDIRECT_DOMAIN + 'basket/',
-                metadata=metadata,
+                metadata={'session_key': session_key}
             )
-            logger.debug(f"Stripe checkout session created: {session.id}")
-            return Response({'url': session.url}, status=status.HTTP_200_OK)
+
+            logger.info(
+                f"Stripe Checkout session created: {checkout_session.id} for user {user.id}, session_key: {session_key}"
+            )
+
+            return Response({
+                "checkout_url": checkout_session.url,
+                "session_id": checkout_session.id,
+                "session_key": session_key
+            }, status=200)
+
         except Exception as e:
-            logger.error(f"Error creating Stripe checkout session: {str(e)}")
-            return Response({'error': 'Error creating Stripe payment session'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception("Stripe session creation failed")
+            return Response({"error": str(e)}, status=500)
 
 
-class StripeWebhookHandler(APIView):
+class StripeWebhookView(APIView):
     permission_classes = [AllowAny]
 
     @csrf_exempt
     @extend_schema(
-        description="Handles Stripe webhook for completed payments",
-        request=None,
+        summary="Handle Stripe Webhook for Completed Payment",
+        description=(
+                "Processes the Stripe webhook event 'checkout.session.completed'.\n\n"
+                "The handler retrieves the session key from the webhook metadata, restores the saved session metadata, "
+                "and creates one or more orders based on the original checkout data.\n\n"
+                "**Business Logic:**\n"
+                "- Verifies the Stripe webhook signature.\n"
+                "- Restores saved metadata (customer data, product groups, delivery information).\n"
+                "- Creates one or more orders grouped by seller.\n"
+                "- Creates associated order items, delivery addresses, and payments.\n"
+                "- Generates shipping labels asynchronously if applicable.\n\n"
+                "**Expected Stripe Event:**\n"
+                "- checkout.session.completed\n\n"
+                "**Responses:**\n"
+                "- 200: Orders and payments created successfully.\n"
+                "- 400: Invalid payload, signature verification failure, or missing session metadata.\n"
+                "- 500: Error during order processing."
+        ),
         responses={
-            200: OpenApiResponse(description='Webhook received and processed successfully'),
-            400: OpenApiResponse(description='Invalid payload or signature verification failed'),
-            500: OpenApiResponse(description='Error processing order'),
+            200: OpenApiResponse(description="Orders and payments created successfully"),
+            400: OpenApiResponse(description="Invalid payload or missing session metadata"),
+            500: OpenApiResponse(description="Order creation failed"),
         },
         tags=['Stripe']
     )
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         payload = request.body.decode('utf-8')
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE', '')
-        logger.debug(f"Payload: {payload}")
-        logger.debug(f"Signature Header: {sig_header}")
 
         try:
-            event = stripe.Webhook.construct_event(
-                payload, sig_header, endpoint_secret
-            )
-        except ValueError as e:
-            logger.error(f"Invalid payload: {e}")
-            return Response(status=400)
-        except stripe.error.SignatureVerificationError as e:
-            logger.error(f"Signature verification failed: {e}")
+            event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
+        except (ValueError, stripe.error.SignatureVerificationError) as e:
+            logger.error(f"Stripe webhook verification failed: {e}")
             return Response(status=400)
 
-        if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
-            logger.debug(f"Session data: {session}")
-
-            # Извлечение метаданных из сессии
-            custom_data = json.loads(session['metadata'].get('custom_data', '{}'))
-            invoice_data = json.loads(session['metadata'].get('invoice_data', '{}'))
-            description_data = json.loads(session['metadata'].get('description_data', '{}'))
-            products = json.loads(session['metadata'].get('products', '[]'))
-
-            logger.debug(f"Custom data: {custom_data}")
-            logger.debug(f"Invoice data: {invoice_data}")
-            logger.debug(f"Description data: {description_data}")
-            logger.debug(f"Products: {products}")
-
-            user_id = custom_data.get('user_id')
-            customer_email = custom_data.get('email')
-            promocode = custom_data.get('promo_code')
-            phone = custom_data.get('phone')
-
-            delivery_type_id = invoice_data.get('delivery_type')
-            delivery_address = invoice_data.get('delivery_address')
-
-            delivery_cost = Decimal(description_data.get('delivery_cost', '0.00')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            courier_service_id = description_data.get('courier_service')
-
-            total_amount = Decimal(session['amount_total']) / Decimal(100)
-            total_amount = total_amount.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-            currency = session['currency'].upper()
-            customer_id = session.get('customer')
-            payment_intent_id = session.get('payment_intent')
-            payment_method_types = session.get('payment_method_types', [])
-
-            try:
-                user = CustomUser.objects.get(id=user_id)
-            except CustomUser.DoesNotExist:
-                logger.error(f"User with id {user_id} does not exist.")
-                return False
-
-            if delivery_type_id:
-                try:
-                    delivery_type = DeliveryType.objects.get(id=delivery_type_id)
-                except DeliveryType.DoesNotExist:
-                    logger.error(f"DeliveryType with id {delivery_type} does not exist.")
-                    delivery_type = None
-            else:
-                delivery_type = None
-
-            try:
-                order_status = OrderStatus.objects.get(name="Pending")
-            except OrderStatus.DoesNotExist:
-                logger.error("Order status 'Pending' does not exist.")
-                order_status = None
-
-            if courier_service_id:
-                try:
-                    courier_service_obj = CourierService.objects.get(id=courier_service_id)
-                except CourierService.DoesNotExist:
-                    logger.error(f"CourierService with id {courier_service_id} does not exist.")
-                    courier_service_obj = None
-            else:
-                courier_service_obj = None
-
-            try:
-                # Создание заказа
-                order = Order.objects.create(
-                    user=user,
-                    customer_email=customer_email,
-                    delivery_type=delivery_type,
-                    delivery_address=delivery_address,
-                    delivery_cost=delivery_cost,
-                    order_status=order_status,
-                    phone_number=phone,
-                    total_amount=total_amount,
-                    courier_service=courier_service_obj,
-                )
-                logger.debug(f"Order created: {order}")
-
-                # Рассчитать стоимость доставки для каждого товара
-                total_product_cost = Decimal('0.00')
-                product_costs = []
-                for item in products:
-                    product_sku = item.get('sku')
-                    if not product_sku:
-                        logger.debug(f"Ignoring item without SKU: {item}")
-                        continue
-                    quantity = Decimal(item['quantity'])
-                    product_variant = ProductVariant.objects.get(sku=product_sku)
-                    product_price = product_variant.price.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                    product_total_cost = (quantity * product_price).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                    total_product_cost += product_total_cost
-                    product_costs.append((product_variant, quantity, product_total_cost, product_price))
-
-                rounded_delivery_costs = []
-                total_rounded_delivery_cost = Decimal('0.00')
-
-                for product_variant, quantity, product_total_cost, product_price in product_costs:
-                    if total_product_cost > Decimal('0.00'):
-                        ratio = (product_total_cost / total_product_cost).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP)
-                        product_delivery_cost = (ratio * delivery_cost).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                    else:
-                        product_delivery_cost = Decimal('0.00')
-                    rounded_delivery_costs.append((product_variant, quantity, product_delivery_cost, product_price))
-                    total_rounded_delivery_cost += product_delivery_cost
-
-                # Корректировка общей стоимости доставки
-                difference = delivery_cost - total_rounded_delivery_cost
-                if rounded_delivery_costs:
-                    last_product_variant, last_quantity, last_cost, last_price = rounded_delivery_costs[-1]
-                    last_cost_adjusted = (last_cost + difference).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-                    rounded_delivery_costs[-1] = (last_product_variant, last_quantity, last_cost_adjusted, last_price)
-
-                # Создание записей OrderProduct
-                for product_variant, quantity, delivery_cost_item, product_price in rounded_delivery_costs:
-                    OrderProduct.objects.create(
-                        order=order,
-                        product=product_variant,
-                        quantity=quantity,
-                        delivery_cost=delivery_cost_item,
-                        seller_profile=product_variant.product.seller,
-                        product_price=product_price
-                    )
-                    logger.debug(
-                        f"OrderProduct created for product_variant_id {product_variant.id} with delivery cost {delivery_cost_item}"
-                    )
-
-                # Создание платежа
-                Payment.objects.create(
-                    order=order,
-                    payment_system='stripe',
-                    session_id=session['id'],
-                    customer_id=customer_id,
-                    payment_intent_id=payment_intent_id,
-                    payment_method=payment_method_types[0] if payment_method_types else 'unknown',
-                    amount_total=total_amount,
-                    currency=currency,
-                    customer_email=customer_email,
-                )
-                logger.debug(f"Payment created for order {order.id}")
-
-                logger.info(f"Order {order.id} and Payment created successfully from Stripe webhook")
-                return Response(status=200)
-
-            except Exception as e:
-                logger.error(f"Error processing order: {e}")
-                return Response({"error": "Error processing order"}, status=500)
-        else:
-            logger.warning(f"Unhandled event type {event['type']}")
+        if event['type'] != 'checkout.session.completed':
+            logger.info(f"Unhandled Stripe event: {event['type']}")
             return Response(status=200)
 
+        session = event['data']['object']
+        session_key = session.get('metadata', {}).get('session_key')
 
+        if not session_key:
+            logger.error("Missing session_key in Stripe webhook metadata.")
+            return Response({"error": "Missing session_key"}, status=400)
+
+        try:
+            meta = StripeMetadata.objects.get(session_key=session_key)
+        except StripeMetadata.DoesNotExist:
+            logger.error(f"No StripeMetadata found for session_key: {session_key}")
+            return Response({"error": "Session metadata not found"}, status=400)
+
+        user_id = meta.custom_data.get("user_id")
+        try:
+            user = CustomUser.objects.get(id=user_id)
+        except CustomUser.DoesNotExist:
+            logger.error(f"CustomUser not found: {user_id}")
+            return Response({"error": "User not found"}, status=400)
+
+        groups = meta.invoice_data.get("groups", [])
+        if not groups:
+            logger.error("No groups found in StripeMetadata")
+            return Response({"error": "No groups found in metadata"}, status=400)
+
+        orders_created = []
+        for idx, group in enumerate(groups, start=1):
+            logger.info(f"Processing group #{idx}")
+
+            delivery_type_id = group.get("delivery_type")
+            courier_service_id = group.get("courier_service")
+            pickup_point_id = group.get("pickup_point_id")
+            products = group.get("products", [])
+            delivery_cost = Decimal(group.get("calculated_delivery_cost", "0.00"))
+            group_total = Decimal(group.get("calculated_group_total", "0.00"))
+
+            dt = DeliveryType.objects.filter(id=delivery_type_id).first()
+            if not dt:
+                logger.error(f"Group {idx}: DeliveryType with id {delivery_type_id} not found.")
+                continue
+
+            cs = CourierService.objects.filter(id=courier_service_id).first()
+            delivery_address = None
+            if delivery_type_id == 2:
+                address_data = group.get("delivery_address", {})
+                delivery_address = DeliveryAddress.objects.create(
+                    user=user,
+                    full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}",
+                    phone=meta.custom_data.get("phone"),
+                    email=meta.custom_data.get("email"),
+                    street=address_data.get("street", ""),
+                    city=address_data.get("city", ""),
+                    zip_code=address_data.get("zip", ""),
+                    country=address_data.get("country", ""),
+                )
+
+            pending_status = OrderStatus.objects.get(name="Pending")
+            amount = Decimal(session['amount_total']) / Decimal(100)
+            currency = session['currency'].upper()
+
+            order = Order.objects.create(
+                user=user,
+                first_name=meta.custom_data.get("first_name", ""),
+                last_name=meta.custom_data.get("last_name", ""),
+                customer_email=meta.custom_data.get("email"),
+                delivery_type=dt,
+                delivery_address=delivery_address,
+                pickup_point_id=pickup_point_id,
+                delivery_cost=delivery_cost,
+                courier_service=cs,
+                phone_number=meta.custom_data.get("phone"),
+                total_amount=amount,
+                group_subtotal=group_total,
+                order_status=pending_status,
+            )
+
+            for product in products:
+                sku = product.get("sku")
+                qty = int(product.get("quantity", 0))
+                try:
+                    variant = ProductVariant.objects.get(sku=sku)
+                except ProductVariant.DoesNotExist:
+                    logger.error(f"Group {idx}: ProductVariant not found: {sku}")
+                    continue
+
+                wh_item = WarehouseItem.objects.filter(product_variant=variant, quantity_in_stock__gte=qty).first()
+                warehouse = wh_item.warehouse if wh_item else Warehouse.objects.first()
+
+                OrderProduct.objects.create(
+                    order=order,
+                    product=variant,
+                    quantity=qty,
+                    delivery_cost=Decimal("0.00"),
+                    seller_profile=variant.product.seller,
+                    product_price=variant.price,
+                    warehouse=warehouse,
+                    status=ProductStatus.AWAITING_SHIPMENT,
+                )
+
+            processing_status = OrderStatus.objects.get(name="Processing")
+            order.order_status = processing_status
+            order.save(update_fields=["order_status"])
+            order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
+
+            Payment.objects.create(
+                order=order,
+                payment_system="stripe",
+                session_id=session['id'],
+                customer_id=session.get('customer'),
+                payment_intent_id=session.get('payment_intent'),
+                payment_method="stripe",
+                amount_total=amount,
+                currency=currency,
+                customer_email=meta.custom_data.get("email"),
+            )
+
+            async_generate_parcels_and_fetch_labels(order.id)
+            logger.info(f"Group {idx}: Order {order.id} created successfully with {len(products)} products.")
+            orders_created.append(order)
+
+        if not orders_created:
+            return Response({"error": "Order creation failed"}, status=500)
+
+        return Response({"status": f"{len(orders_created)} order(s) created successfully"}, status=200)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+@extend_schema(
+    summary="Create PayPal Payment Session with Delivery and Seller-Based Grouping",
+    description=(
+        "Creates a PayPal payment session by validating provided customer and product data.\n\n"
+        "The request must include customer contact details and a list of product groups grouped by seller.\n\n"
+        "**Business Logic:**\n"
+        "- Validates product ownership by the specified seller.\n"
+        "- Calculates delivery costs per group based on the provided delivery type and address.\n"
+        "- Calculates total product and delivery costs.\n"
+        "- Saves complete session metadata, including customer data, product groups, and calculated costs.\n"
+        "- Returns the payment session details including redirect URL and internal session key.\n\n"
+        "**Webhook Handling:**\n"
+        "The session key is used to restore all saved metadata when the payment system confirms payment.\n\n"
+        "**Expected Fields:**\n"
+        "- email, first_name, last_name, phone, groups with product SKUs, seller IDs, delivery types, and delivery addresses or pickup points.\n\n"
+        "**Response:**\n"
+        "- approval_url (PayPal: `approval_url`)\n"
+        "- order_id"
+        "- session_key: Internal session key for order processing"
+    ),
+    responses={200: OpenApiResponse(description="PayPal session created successfully")},
+    tags=["PayPal"]
+)
 class CreatePayPalPaymentView(PayPalMixin, APIView):
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(
-        description="Creates a PayPal payment for product purchase",
-        request={
-            'application/json': {
-                'type': 'object',
-                'required': ['email', 'delivery_type', 'delivery_address', 'phone', 'products'],
-                'properties': {
-                    'email': {
-                        'type': 'string',
-                        'description': 'Email of the user making the purchase'
-                    },
-                    'promocode': {
-                        'type': 'string',
-                        'description': 'Promocode for a discount on the purchase'
-                    },
-                    'delivery_type': {
-                        'type': 'integer',
-                        'description': 'Type of delivery: 1 - Pickup point, 2 - Courier',
-                        'example': 1
-                    },
-                    'delivery_address': {
-                        'type': 'string',
-                        'description': 'Delivery address'
-                    },
-                    'phone': {
-                        'type': 'string',
-                        'description': 'Contact phone number'
-                    },
-                    'delivery_cost': {
-                        'type': 'number',
-                        'description': 'Cost of delivery',
-                        'default': 0.0
-                    },
-                    'courier_service': {
-                        'type': 'integer',
-                        'description': 'ID of the courier service: 1 - PPL, 2 - GEIS, 3 - DPD',
-                        'example': 1
-                    },
-                    'products': {
-                        'type': 'array',
-                        'description': 'List of product variants to purchase',
-                        'items': {
-                            'type': 'object',
-                            'required': ['sku', 'quantity'],
-                            'properties': {
-                                'sku': {
-                                    'type': 'string',
-                                    'description': 'SKU of the product variant'
-                                },
-                                'quantity': {
-                                    'type': 'integer',
-                                    'description': 'Quantity of the product'
-                                }
-                            }
-                        }
-                    }
-                },
-                'example': {
-                    'email': 'user@example.com',
-                    'promocode': 'SUMMER2024',
-                    'delivery_type': 1,
-                    'delivery_address': '123 Main St, City, Country',
-                    'phone': '+1234567890',
-                    'delivery_cost': 10.50,
-                    'courier_service': 1,
-                    'products': [
-                        {'sku': '123456789', 'quantity': 2},
-                        {'sku': '987654321', 'quantity': 1}
-                    ]
-                }
-            }
-        },
-        responses={
-            200: OpenApiResponse(
-                description='Order ID and approval URL for the created PayPal payment',
-                response={
-                    'type': 'object',
-                    'properties': {
-                        'order_id': {'type': 'string', 'description': 'ID of the created PayPal order'},
-                        'approval_url': {'type': 'string', 'description': 'URL to approve the PayPal payment'}
-                    }
-                }
-            ),
-            404: OpenApiResponse(description='Product variant not found or Delivery type not found'),
-            500: OpenApiResponse(description='Error creating PayPal payment'),
-        },
-        tags=['PayPal']
-    )
     def post(self, request):
-        user_id = request.user.id
-        email = request.data.get("email")
-        promocode = request.data.get("promocode")
-        delivery_type = request.data.get("delivery_type")
-        delivery_address = request.data.get("delivery_address")
-        phone = request.data.get("phone")
-        delivery_cost = Decimal(request.data.get("delivery_cost", 0))
-        courier_service = request.data.get("courier_service")
-        products = request.data.get("products")
+        user = request.user
+        data = request.data
 
-        logger.debug(f"Delivery cost: {delivery_cost}")
+        logger.info("PayPal session creation request received", extra={"data": data})
 
+        required_fields = ['email', 'first_name', 'last_name', 'phone', 'groups']
+        for field in required_fields:
+            if field not in data:
+                return Response({"error": f"Missing required field: {field}"}, status=400)
+
+        email = data['email']
+        first_name = data['first_name']
+        last_name = data['last_name']
+        phone = data['phone']
+        groups = data['groups']
+
+        validation_response = PaymentSessionValidator.validate_groups(groups)
+        if validation_response:
+            return validation_response
+
+        all_skus = {product['sku'] for group in groups for product in group['products']}
+        variants_qs = ProductVariant.objects.filter(sku__in=all_skus).select_related('product__seller')
+        variant_map = {v.sku: v for v in variants_qs}
+
+        total_delivery = Decimal('0.00')
         line_items = []
-        total_price = Decimal(0)
 
-        for item in products:
-            sku = item['sku']
-            quantity = item['quantity']
+        for idx, group in enumerate(groups, start=1):
+            delivery_type = group['delivery_type']
+            products = group['products']
+            seller_id = group['seller_id']
 
-            try:
-                product_variant = ProductVariant.objects.get(sku=sku)
-            except ProductVariant.DoesNotExist:
-                logger.error(f"Product variant with SKU {sku} does not exist.")
-                return Response({"error": f"Product variant with SKU {sku} not found"}, status=status.HTTP_404_NOT_FOUND)
+            for product in products:
+                sku = product['sku']
+                variant = variant_map.get(sku)
+                if not variant:
+                    return Response({"error": f"Group {idx}: ProductVariant not found: {sku}"}, status=400)
+                if variant.product.seller.id != seller_id:
+                    return Response({
+                        "error": f"Group {idx}: Product {sku} does not belong to seller {seller_id}."
+                    }, status=400)
 
-            price = Decimal(product_variant.price)
-            currency = 'EUR'
+            country_code = resolve_country_code_from_group(group, idx, logger=logger)
+            if not country_code:
+                return Response({"error": f"Group {idx}: Invalid delivery address or pickup point."}, status=400)
 
-            if promocode:
-                promo_code = PromoCode.objects.filter(code=promocode).first()
-                if promo_code and promo_code.is_valid():
-                    price = price - (price * Decimal(promo_code.discount_percentage) / Decimal(100))
+            # HD-specific validation
+            if delivery_type == 2:
+                delivery_address = group.get("delivery_address", {})
+                zip_code = delivery_address.get("zip")
+                if not zip_code:
+                    return Response({"error": f"Group {idx}: ZIP code is missing."}, status=400)
+                if not ZipCodeValidator.validate_zip_exists(zip_code, country_code):
+                    return Response({"error": f"Group {idx}: ZIP code '{zip_code}' is invalid for country {country_code}."}, status=400)
+                phone_error = validate_phone_matches_country(phone, country_code)
+                if phone_error:
+                    return Response({"error": f"Group {idx}: {phone_error}"}, status=400)
 
+            shipping_result = calculate_order_shipping(
+                country=country_code,
+                items=[{"sku": p["sku"], "quantity": p["quantity"]} for p in products],
+                cod=Decimal("0.00"),
+                currency="EUR"
+            )
+            logger.info(f"Shipping result for group {idx}: {shipping_result}")
+
+            channel = {1: "PUDO", 2: "HD"}.get(delivery_type)
+            selected_option = next((opt for opt in shipping_result["options"] if opt["channel"] == channel), None)
+
+            if not selected_option:
+                return Response({"error": f"Group {idx}: No valid delivery option found for channel {channel}."}, status=400)
+
+            num_parcels = shipping_result.get("total_parcels", 1)
+            delivery_cost = Decimal(str(selected_option["priceWithVat"])).quantize(Decimal("0.01"))
+            total_delivery += delivery_cost
+            group["calculated_delivery_cost"] = str(delivery_cost)
+            group["calculated_total_parcels"] = num_parcels
+
+            group_total = Decimal("0.00")
+            for product in products:
+                variant = variant_map[product['sku']]
+                unit_price = Decimal(variant.price).quantize(Decimal("0.01"))
+                quantity = int(product['quantity'])
+                group_total += unit_price * quantity
+
+                line_items.append({
+                    'name': product['sku'],
+                    'sku': product['sku'],
+                    'unit_amount': {'currency_code': 'EUR', 'value': f"{unit_price:.2f}"},
+                    'quantity': str(quantity),
+                })
+
+            group_total += delivery_cost
+            group["calculated_group_total"] = str(group_total.quantize(Decimal("0.01")))
+
+        total_item_price = sum(Decimal(item['unit_amount']['value']) * int(item['quantity']) for item in line_items)
+        gross_total = (total_item_price + total_delivery).quantize(Decimal("0.01"))
+
+        if total_delivery > 0:
             line_items.append({
-                "sku": product_variant.sku,
-                "name": f"{product_variant.product.name} - {product_variant.name}",
-                "quantity": str(quantity),
-                "unit_amount": {
-                    "currency_code": currency,
-                    "value": f"{price:.2f}",
-                }
+                'name': 'Delivery',
+                'sku': 'delivery',
+                'unit_amount': {'currency_code': 'EUR', 'value': f"{total_delivery:.2f}"},
+                'quantity': '1',
             })
-            total_price += price * quantity
 
-        if delivery_cost > 0:
-            line_items.append({
-                "name": 'Delivery Cost',
-                "quantity": "1",
-                "unit_amount": {
-                    "currency_code": "EUR",
-                    "value": f"{delivery_cost:.2f}",
-                }
-            })
-            total_price += delivery_cost
-
-        custom_data = {
-            "user_id": user_id,
-            'email': email,
-            'promo_code': promocode,
-            "phone": phone,
-        }
-
-        if delivery_type:
-            try:
-                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
-            except DeliveryType.DoesNotExist:
-                logger.error(f"DeliveryType with id {delivery_type} does not exist.")
-                return Response({"error": "Delivery type not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        invoice_data = {
-            "delivery_type": delivery_type,
-            "delivery_address": delivery_address,
-        }
-
-        description_data = {
-            "delivery_cost": f"{delivery_cost:.2f}",
-            "courier_service": courier_service,
-        }
-
-        access_token = self.get_paypal_access_token()
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {access_token}",
-        }
-
-        data = {
-            "intent": "CAPTURE",
-            "purchase_units": [
-                {
-                    "amount": {
-                        "currency_code": "EUR",
-                        "value": f"{total_price:.2f}",
-                        "breakdown": {
-                            "item_total": {
-                                "currency_code": "EUR",
-                                "value": f"{total_price:.2f}",
-                            }
-                        }
-                    },
-                    "description": json.dumps(description_data),
-                    "items": line_items,
-                    "custom_id": json.dumps(custom_data),
-                    "invoice_id": json.dumps(invoice_data),
-                }
-            ],
-            "application_context": {
-                "return_url": settings.REDIRECT_DOMAIN + 'payment_end/',
-                "cancel_url": settings.REDIRECT_DOMAIN + 'basket/',
-            }
-        }
-
-        response = requests.post(f'{PAYPAL_API_URL}/v2/checkout/orders', headers=headers, data=json.dumps(data))
-
-        if response.status_code == 201:
-            order_response = response.json()
-            logger.debug(f"Order_id': {order_response['id']}, approval_url: {order_response['links'][1]['href']}")
-            return Response({'order_id': order_response['id'], 'approval_url': order_response['links'][1]['href']}, status=status.HTTP_200_OK)
-        else:
-            return Response(response.json(), status=response.status_code)
-
-
-@extend_schema(
-    description="Handles PayPal webhook events to create orders and payments in the system",
-    request={
-        'application/json': {
-            'type': 'object',
-            'properties': {
-                'id': {'type': 'string', 'description': 'Event ID'},
-                'event_version': {'type': 'string', 'description': 'Event version'},
-                'create_time': {'type': 'string', 'description': 'Event creation time'},
-                'resource_type': {'type': 'string', 'description': 'Resource type'},
-                'event_type': {'type': 'string', 'description': 'Event type (e.g., CHECKOUT.ORDER.APPROVED)'},
-                'summary': {'type': 'string', 'description': 'Event summary'},
-                'resource': {
-                    'type': 'object',
-                    'description': 'Resource data related to the event',
-                    'properties': {
-                        'id': {'type': 'string', 'description': 'Resource ID (order ID)'},
-                        'status': {'type': 'string', 'description': 'Order status'},
-                        'purchase_units': {
-                            'type': 'array',
-                            'description': 'List of purchase units',
-                            'items': {
-                                'type': 'object',
-                                'properties': {
-                                    'amount': {
-                                        'type': 'object',
-                                        'properties': {
-                                            'currency_code': {'type': 'string', 'description': 'Currency code'},
-                                            'value': {'type': 'string', 'description': 'Order amount'}
-                                        }
-                                    },
-                                    'custom_id': {'type': 'string', 'description': 'Custom data in JSON format'},
-                                    'invoice_id': {'type': 'string', 'description': 'Invoice data in JSON format'},
-                                    'description': {'type': 'string', 'description': 'Description in JSON format'},
-                                    'items': {
-                                        'type': 'array',
-                                        'description': 'List of items',
-                                        'items': {
-                                            'type': 'object',
-                                            'properties': {
-                                                'sku': {'type': 'string', 'description': 'Item SKU'},
-                                                'quantity': {'type': 'string', 'description': 'Quantity'},
-                                                'unit_amount': {
-                                                    'type': 'object',
-                                                    'properties': {
-                                                        'currency_code': {'type': 'string', 'description': 'Currency code'},
-                                                        'value': {'type': 'string', 'description': 'Unit price'}
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        },
-                        'payer': {
-                            'type': 'object',
-                            'properties': {
-                                'email_address': {'type': 'string', 'description': 'Payer email address'},
-                                'payer_id': {'type': 'string', 'description': 'Payer ID'},
-                                'name': {
-                                    'type': 'object',
-                                    'properties': {
-                                        'given_name': {'type': 'string', 'description': 'First name'},
-                                        'surname': {'type': 'string', 'description': 'Last name'}
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        session_key = str(uuid.uuid4())
+        PayPalMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                'user_id': str(user.id),
+                'email': email,
+                'first_name': first_name,
+                'last_name': last_name,
+                'phone': phone,
             },
-            'example': {
-                'id': 'WH-1234567890',
-                'event_version': '1.0',
-                'create_time': '2024-07-16T07:36:22.484Z',
-                'resource_type': 'checkout-order',
-                'event_type': 'CHECKOUT.ORDER.APPROVED',
-                'summary': 'An order has been approved by buyer',
-                'resource': {
-                    'id': 'ORDER-1234567890',
-                    'status': 'APPROVED',
-                    'purchase_units': [
-                        {
-                            'amount': {
-                                'currency_code': 'EUR',
-                                'value': '100.00'
-                            },
-                            'custom_id': '{"user_id": 1, "email": "user@example.com", "promo_code": null, "phone": "+1234567890"}',
-                            'invoice_id': '{"delivery_type": 1, "delivery_address": "123 Main St"}',
-                            'description': '{"delivery_cost": "10.00", "courier_service": 1}',
-                            'items': [
-                                {
-                                    'sku': '123456789',
-                                    'quantity': '2',
-                                    'unit_amount': {
-                                        'currency_code': 'EUR',
-                                        'value': '45.00'
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    'payer': {
-                        'email_address': 'payer@example.com',
-                        'payer_id': 'PAYERID123',
-                        'name': {
-                            'given_name': 'John',
-                            'surname': 'Doe'
-                        }
-                    }
-                }
-            }
-        }
-    },
+            invoice_data={'groups': groups},
+            description_data={
+                'gross_total': str(gross_total),
+                'delivery_total': str(total_delivery.quantize(Decimal("0.01")))
+            },
+        )
+
+        logger.info(f"PayPal metadata saved with session_key: {session_key}")
+
+        try:
+            approval_url, order_id = self.create_paypal_order(
+                line_items=line_items,
+                total_price=gross_total,
+                session_key=session_key
+            )
+            logger.info(f"PayPal order created successfully: order_id={order_id}, session_key={session_key}")
+            return Response({
+                'approval_url': approval_url,
+                'order_id': order_id,
+                'session_key': session_key
+            }, status=200)
+
+        except Exception as e:
+            logger.exception("PayPal session creation failed")
+            return Response({"error": str(e)}, status=500)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+@extend_schema(
+    summary="Handle PayPal Webhook for Approved Checkout Order",
+    description=(
+        "Processes the PayPal webhook event 'CHECKOUT.ORDER.APPROVED'.\n\n"
+        "The handler retrieves the session key from the reference_id in the webhook payload, restores the saved session metadata, "
+        "and creates one or more orders based on the original checkout data.\n\n"
+        "**Business Logic:**\n"
+        "- Verifies the PayPal webhook signature.\n"
+        "- Restores saved metadata (customer data, product groups, delivery information).\n"
+        "- Creates one or more orders grouped by seller.\n"
+        "- Creates associated order items, delivery addresses, and payments.\n"
+        "- Generates shipping labels asynchronously if applicable.\n\n"
+        "**Expected PayPal Event:**\n"
+        "- CHECKOUT.ORDER.APPROVED\n\n"
+        "**Responses:**\n"
+        "- 200: Orders and payments created successfully.\n"
+        "- 403: Invalid webhook signature.\n"
+        "- 400: Invalid JSON or invalid event type.\n"
+        "- 500: Error during order processing."
+    ),
     responses={
-        200: OpenApiResponse(
-            description='Order and Payment created successfully',
-            response={'type': 'object', 'properties': {'status': {'type': 'string', 'example': 'Order and Payment created successfully'}}}
-        ),
-        403: OpenApiResponse(description='Invalid webhook signature'),
-        500: OpenApiResponse(description='Error creating order and payment'),
+        200: OpenApiResponse(description="Orders and payments created successfully"),
+        403: OpenApiResponse(description="Invalid webhook signature"),
+        400: OpenApiResponse(description="Invalid payload or event type"),
+        500: OpenApiResponse(description="Order creation failed"),
     },
     tags=['PayPal']
 )
 class PayPalWebhookView(PayPalMixin, APIView):
     permission_classes = [AllowAny]
 
-    def create_order_from_webhook(self, data):
-        resource = data['resource']
-        logger.debug(f"Resource data: {resource}")
+    def create_orders_from_webhook(self, data):
+        resource = data.get("resource", {})
+        pu = resource.get("purchase_units", [{}])[0]
+        amount = Decimal(pu["amount"]["value"]).quantize(Decimal("0.01"), ROUND_HALF_UP)
+        currency = pu["amount"]["currency_code"]
+        session_key = pu.get("reference_id")
 
-        # Извлечение данных о заказе
-        purchase_unit = resource['purchase_units'][0]
-        amount = Decimal(purchase_unit['amount']['value'])
-        currency = purchase_unit['amount']['currency_code']
-        logger.debug(f"Amount: {amount}, Currency: {currency}")
+        if not session_key:
+            logger.error("Missing reference_id in webhook payload")
+            return None
 
-        # Извлечение кастомных данных
-        custom_data = json.loads(purchase_unit['custom_id'])
-        invoice_data = json.loads(purchase_unit['invoice_id'])
-        description_data = json.loads(purchase_unit['description'])
-        logger.debug(f"Custom data: {custom_data}, Invoice data: {invoice_data}, Description data: {description_data}")
-
-        user_id = custom_data.get('user_id')
-        email = custom_data.get('email')
-        phone = custom_data.get('phone')
-        delivery_type = invoice_data.get('delivery_type')
-        delivery_address = invoice_data.get('delivery_address')
-        delivery_cost = Decimal(description_data.get('delivery_cost'))
-        courier_service = description_data.get('courier_service')
-        logger.debug(
-            f"User data: user_id={user_id}, email={email}, phone={phone}, delivery_cost={delivery_cost}, courier_service={courier_service}, delivery_address={delivery_address}, delivery_type={delivery_type}")
-
-        products = purchase_unit.get('items', [])
-        logger.debug(f"Products: {products}")
-
-        # Получение статуса заказа
         try:
-            order_status = OrderStatus.objects.get(name="Pending")
-        except OrderStatus.DoesNotExist:
-            logger.error("Order status 'Pending' does not exist.", exc_info=True)
-            order_status = None
+            meta = PayPalMetadata.objects.get(session_key=session_key)
+        except PayPalMetadata.DoesNotExist:
+            logger.error(f"PayPalMetadata not found for {session_key}")
+            return None
 
-        # Получение пользователя
+        user_id = meta.custom_data.get("user_id")
         try:
             user = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
-            logger.error(f"User with id {user_id} does not exist.", exc_info=True)
-            return False
+            logger.error(f"CustomUser not found: {user_id}")
+            return None
 
-        # Получение типа доставки
-        if delivery_type:
-            try:
-                delivery_type_obj = DeliveryType.objects.get(id=delivery_type)
-            except DeliveryType.DoesNotExist:
-                logger.error(f"DeliveryType with id {delivery_type} does not exist.", exc_info=True)
-                delivery_type_obj = None
-        else:
-            delivery_type_obj = None
+        groups = meta.invoice_data.get("groups", [])
+        if not groups:
+            logger.error("No groups found in metadata")
+            return None
 
-        courier_service_id = description_data.get('courier_service')
-        if courier_service_id:
-            try:
-                courier_service_obj = CourierService.objects.get(id=courier_service_id)
-            except CourierService.DoesNotExist:
-                logger.error(f"CourierService with id {courier_service_id} does not exist.", exc_info=True)
-                courier_service_obj = None
-        else:
-            courier_service_obj = None
+        orders_created = []
+        for idx, group in enumerate(groups, start=1):
+            logger.info(f"Processing group #{idx}")
 
-        try:
-            # Создание заказа
+            delivery_type_id = group.get("delivery_type")
+            courier_service_id = group.get("courier_service")
+            pickup_point_id = group.get("pickup_point_id")
+            products = group.get("products", [])
+            delivery_cost = Decimal(group.get("calculated_delivery_cost", "0.00"))
+            group_total = Decimal(group.get("calculated_group_total", "0.00"))
+
+            dt = DeliveryType.objects.filter(id=delivery_type_id).first()
+            if not dt:
+                logger.error(f"Group {idx}: DeliveryType with id {delivery_type_id} not found.")
+                continue
+
+            cs = CourierService.objects.filter(id=courier_service_id).first()
+            delivery_address = None
+            if delivery_type_id == 2:
+                address_data = group.get("delivery_address", {})
+                delivery_address = DeliveryAddress.objects.create(
+                    user=user,
+                    full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}",
+                    phone=meta.custom_data.get("phone"),
+                    email=meta.custom_data.get("email"),
+                    street=address_data.get("street", ""),
+                    city=address_data.get("city", ""),
+                    zip_code=address_data.get("zip", ""),
+                    country=address_data.get("country", ""),
+                )
+
+            pending_status = OrderStatus.objects.get(name="Pending")
             order = Order.objects.create(
                 user=user,
-                customer_email=email,
-                delivery_type=delivery_type_obj,
+                first_name=meta.custom_data.get("first_name", ""),
+                last_name=meta.custom_data.get("last_name", ""),
+                customer_email=meta.custom_data.get("email"),
+                delivery_type=dt,
                 delivery_address=delivery_address,
+                pickup_point_id=pickup_point_id,
                 delivery_cost=delivery_cost,
-                order_status=order_status,
-                phone_number=phone,
+                courier_service=cs,
+                phone_number=meta.custom_data.get("phone"),
                 total_amount=amount,
-                courier_service=courier_service_obj,
+                group_subtotal=group_total,
+                order_status=pending_status,
             )
-            logger.debug(f"Order created: {order}")
 
-            # Рассчитать стоимость доставки для каждого товара
-            total_product_cost = sum(
-                Decimal(item['quantity']) * ProductVariant.objects.get(sku=item['sku']).price
-                for item in products if item.get('sku')
-            )
-            rounded_delivery_costs = []
-            total_rounded_delivery_cost = Decimal('0.00')
-
-            for item in products:
-                product_sku = item.get('sku')
-                if not product_sku:
-                    logger.debug(f"Ignoring item without SKU: {item}")
+            for product in products:
+                sku = product.get("sku")
+                qty = int(product.get("quantity", 0))
+                try:
+                    variant = ProductVariant.objects.get(sku=sku)
+                except ProductVariant.DoesNotExist:
+                    logger.error(f"Group {idx}: ProductVariant not found: {sku}")
                     continue
-                quantity = Decimal(item['quantity'])
-                product_variant = ProductVariant.objects.get(sku=product_sku)
 
-                product_total_cost = quantity * product_variant.price
-                product_delivery_cost = round((product_total_cost / total_product_cost) * delivery_cost, 2)
-                rounded_delivery_costs.append((product_variant, quantity, product_delivery_cost, product_variant.price))
-                total_rounded_delivery_cost += product_delivery_cost
+                wh_item = WarehouseItem.objects.filter(product_variant=variant, quantity_in_stock__gte=qty).first()
+                warehouse = wh_item.warehouse if wh_item else Warehouse.objects.first()
 
-            # Корректировка общей стоимости доставки
-            difference = delivery_cost - total_rounded_delivery_cost
-            if rounded_delivery_costs:
-                last_product_variant, last_quantity, last_cost, last_price = rounded_delivery_costs[-1]
-                rounded_delivery_costs[-1] = (last_product_variant, last_quantity, last_cost + difference, last_price)
-
-            # Создание записей OrderProduct
-            for product_variant, quantity, delivery_cost, product_price in rounded_delivery_costs:
                 OrderProduct.objects.create(
                     order=order,
-                    product=product_variant,
-                    quantity=quantity,
-                    delivery_cost=delivery_cost,
-                    seller_profile=product_variant.product.seller,
-                    product_price=product_price
+                    product=variant,
+                    quantity=qty,
+                    delivery_cost=Decimal("0.00"),
+                    seller_profile=variant.product.seller,
+                    product_price=variant.price,
+                    warehouse=warehouse,
+                    status=ProductStatus.AWAITING_SHIPMENT,
                 )
-                logger.debug(
-                    f"OrderProduct created for product_variant_id {product_variant.id} with delivery cost {delivery_cost}")
 
-            # Извлечение данных для платежа
-            session_id = resource.get('id', 'unknown_session_id')
-            payment_intent_id = resource.get('id', 'unknown_intent_id')
-            payment_source = resource.get('payment_source', {})
-            paypal_info = payment_source.get('paypal', {})
-            payer_name = paypal_info.get('name', {})
-            payment_method = f"{payer_name.get('given_name', '')} {payer_name.get('surname', '')}"
+            processing_status = OrderStatus.objects.get(name="Processing")
+            order.order_status = processing_status
+            order.save(update_fields=["order_status"])
+            order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
 
-            logger.debug(
-                f"Payment data before creation: session_id={session_id},"
-                f" payment_intent_id={payment_intent_id},"
-                f" payment_method={payment_method},"
-                f" amount_total={amount},"
-                f" currency={currency}"
+            Payment.objects.create(
+                order=order,
+                payment_system="paypal",
+                session_id=resource.get("id"),
+                customer_id=user.id,
+                payment_intent_id=resource.get("id"),
+                payment_method="paypal",
+                amount_total=amount,
+                currency=currency,
+                customer_email=meta.custom_data.get("email"),
             )
 
-            # Создание платежа
-            try:
-                Payment.objects.create(
-                    order=order,
-                    payment_system='paypal',
-                    session_id=session_id,
-                    customer_id=user.id,
-                    payment_intent_id=payment_intent_id,
-                    payment_method=payment_method,
-                    amount_total=amount,
-                    currency=currency,
-                    customer_email=email,
-                )
-                logger.debug(f"Payment created for order {order.id}")
-            except Exception as e:
-                logger.error(f"Error creating payment: {str(e)}", exc_info=True)
-                return False
+            async_generate_parcels_and_fetch_labels(order.id)
+            logger.info(f"Group {idx}: Order {order.id} created successfully with {len(products)} products.")
+            orders_created.append(order)
 
-            logger.info(f"Order {order.id} and Payment created successfully from webhook")
-            return order
-
-        except Exception as e:
-            logger.error(f"Error creating order: {str(e)}", exc_info=True)
-            return False
+        return orders_created if orders_created else None
 
     @csrf_exempt
     def post(self, request):
-        webhook_body = request.body.decode('utf-8')
-        data = json.loads(webhook_body)
-        logger.debug(f"Received webhook data: {data}")
-        event_type = data.get('event_type')
-        accepted_webhooks = (
-            'CHECKOUT.ORDER.APPROVED',
-        )
+        body = request.body.decode("utf-8")
+        try:
+            data = json.loads(body)
+        except json.JSONDecodeError:
+            return Response({"error": "Invalid JSON"}, status=400)
 
-        logger.debug(f"Received event: {event_type}")
+        if data.get("event_type") != "CHECKOUT.ORDER.APPROVED":
+            logger.info(f"Ignored event: {data.get('event_type')}")
+            return Response({"status": "ignored"}, status=200)
 
-        if event_type in accepted_webhooks:
-            is_verified = self.verify_webhook(request, webhook_body)
+        if not self.verify_webhook(request, body):
+            return Response({"error": "Invalid webhook signature"}, status=403)
 
-            if is_verified:
-                logger.info("Webhook verification successful.")
-                if event_type == 'CHECKOUT.ORDER.APPROVED':
-                    order = self.create_order_from_webhook(data)
-                    if order is not None:
-                        send_order_emails_safely(order)
-                        return Response({'status': 'Order and Payment created successfully'}, status=200)
-                    else:
-                        logger.error(f"Error creating order and payment for event: {event_type}", exc_info=True)
-                        return Response({'error': 'Error creating order and payment'}, status=500)
-            else:
-                logger.warning("Webhook verification failed.")
-                return Response({'error': 'Invalid webhook signature'}, status=403)
+        orders = self.create_orders_from_webhook(data)
+        if not orders:
+            return Response({"error": "Order creation failed"}, status=500)
 
-        logger.info(f"Unhandled event type: {event_type}")
-        return Response({'status': 'event not handled'}, status=200)
+        return Response({"status": f"{len(orders)} order(s) created successfully"}, status=200)

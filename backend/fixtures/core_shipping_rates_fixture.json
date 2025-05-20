@@ -1,0 +1,182 @@
+[
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 1,
+    "fields": {
+      "country": "CZ",
+      "channel": "PUDO",
+      "category": "standard",
+      "price": "72.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 2,
+    "fields": {
+      "country": "CZ",
+      "channel": "PUDO",
+      "category": "oversized",
+      "price": "130.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 3,
+    "fields": {
+      "country": "CZ",
+      "channel": "HD",
+      "category": "standard",
+      "price": "99.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 4,
+    "fields": {
+      "country": "CZ",
+      "channel": "HD",
+      "category": "oversized",
+      "price": "140.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 5,
+    "fields": {
+      "country": "SK",
+      "channel": "PUDO",
+      "category": "standard",
+      "price": "85.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 6,
+    "fields": {
+      "country": "SK",
+      "channel": "PUDO",
+      "category": "oversized",
+      "price": "150.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 7,
+    "fields": {
+      "country": "SK",
+      "channel": "HD",
+      "category": "standard",
+      "price": "135.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 8,
+    "fields": {
+      "country": "SK",
+      "channel": "HD",
+      "category": "oversized",
+      "price": "190.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 9,
+    "fields": {
+      "country": "HU",
+      "channel": "PUDO",
+      "category": "standard",
+      "price": "95.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 10,
+    "fields": {
+      "country": "HU",
+      "channel": "PUDO",
+      "category": "oversized",
+      "price": "170.00",
+      "cod_fee": "21.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 11,
+    "fields": {
+      "country": "HU",
+      "channel": "HD",
+      "category": "standard",
+      "price": "160.00",
+      "cod_fee": "30.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 12,
+    "fields": {
+      "country": "HU",
+      "channel": "HD",
+      "category": "oversized",
+      "price": "240.00",
+      "cod_fee": "30.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 13,
+    "fields": {
+      "country": "RO",
+      "channel": "PUDO",
+      "category": "standard",
+      "price": "105.00",
+      "cod_fee": "29.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 14,
+    "fields": {
+      "country": "RO",
+      "channel": "HD",
+      "category": "standard",
+      "price": "135.00",
+      "cod_fee": "15.00",
+      "estimate": ""
+    }
+  },
+  {
+    "model": "delivery.ShippingRate",
+    "pk": 15,
+    "fields": {
+      "country": "RO",
+      "channel": "HD",
+      "category": "oversized",
+      "price": "290.00",
+      "cod_fee": "15.00",
+      "estimate": ""
+    }
+  }
+]

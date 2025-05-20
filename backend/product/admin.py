@@ -23,7 +23,17 @@ class ProductVariantInline(admin.StackedInline):
     model = ProductVariant
     extra = 1
     readonly_fields = ('sku',)
-    fields = ('sku', 'name', 'text', 'image', 'price')
+    fields = (
+        'sku',
+        'name',
+        'price',
+        'weight_grams',
+        'width_mm',
+        'height_mm',
+        'length_mm',
+        'text',
+        'image',
+    )
 
 
 class BaseProductImageInline(admin.TabularInline):
@@ -47,8 +57,25 @@ class BaseProductAdminForm(forms.ModelForm):
 
 @admin.register(ProductVariant)
 class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ('id', 'product', 'name', 'price')
-    search_fields = ['product__name', 'name']
+    list_display = (
+        'id',
+        'sku',
+        'product',
+        'name',
+        'price',
+        'weight_grams',
+        'width_mm',
+        'height_mm',
+        'length_mm',
+    )
+    search_fields = [
+        'sku',
+        'product__name',
+        'name',
+    ]
+    list_filter = [
+        'product__seller',
+    ]
     readonly_fields = ('sku',)
     autocomplete_fields = ['product']
 

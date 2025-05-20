@@ -1,17 +1,29 @@
-from django.core.exceptions import ValidationError
+import logging
 
 from .models import WarehouseItem
+from warehouses.models import WarehouseItem, Warehouse
+from product.models import ProductVariant
+
+logger = logging.getLogger(__name__)
 
 
-def decrease_stock(warehouse, product_variant, quantity):
+def decrease_stock(warehouse, variant, quantity):
     """
-    Списывает `quantity` единиц `product_variant` из склада `warehouse`.
+    Уменьшает остаток. Если WarehouseItem нет или не хватает — логируем и выходим.
     """
-    warehouse_item = WarehouseItem.objects.get(
-        warehouse=warehouse,
-        product_variant=product_variant
-    )
-    if warehouse_item.quantity_in_stock < quantity:
-        raise ValidationError("Not enough stock")
-    warehouse_item.quantity_in_stock -= quantity
-    warehouse_item.save()
+    try:
+        wi = WarehouseItem.objects.get(
+            warehouse=warehouse,
+            product_variant=variant
+        )
+    except WarehouseItem.DoesNotExist:
+        logger.warning(f"No stock record for SKU {variant.sku} in warehouse {warehouse.id}")
+        return
+
+    if wi.quantity_in_stock < quantity:
+        logger.warning(f"Not enough stock for SKU {variant.sku} in warehouse {warehouse.id}: "
+                       f"{wi.quantity_in_stock} < {quantity}")
+        return
+
+    wi.quantity_in_stock -= quantity
+    wi.save(update_fields=["quantity_in_stock"])
