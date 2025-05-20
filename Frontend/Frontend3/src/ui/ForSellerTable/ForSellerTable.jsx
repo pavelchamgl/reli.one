@@ -28,7 +28,7 @@ const ForSellerTable = () => {
           <p>Art and handmade</p>
         </div>
         <div>
-          <p>20%</p>
+          <p>10% - 20%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -85,6 +85,14 @@ const ForSellerTable = () => {
         </div>
         <div>
           <p>8%</p>
+        </div>
+      </div>
+      <div className={styles.tableItem}>
+        <div>
+          <p>Food and drinks</p>
+        </div>
+        <div>
+          <p>6%</p>
         </div>
       </div>
       <div className={styles.tableItem}>

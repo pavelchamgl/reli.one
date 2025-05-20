@@ -21,7 +21,7 @@ import LoginModal from "../../LoginModal/LoginModal";
 import ConfirmYourAgeModal from "../ConfirmYourAgeModal/ConfirmYourAgeModal";
 
 const PaymentPlataBlock = ({ setSection }) => {
-  const isMobile = useMediaQuery({ maxWidth: 426 });
+  const isMobile = useMediaQuery({ maxWidth: 500 });
   const [plataType, setPlataType] = useState("card");
   const [inputError, setInputError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false)

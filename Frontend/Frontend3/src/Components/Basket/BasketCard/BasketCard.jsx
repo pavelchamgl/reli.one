@@ -17,6 +17,10 @@ import minusIcon from "../../../assets/Basket/minusIcon.svg";
 import styles from "./BasketCard.module.scss";
 
 const BasketCard = ({ all, section, productData }) => {
+
+  console.log(section, productData);
+
+
   const [count, setCount] = useState(productData.count);
   const [checkboxValue, setCheckboxValue] = useState(productData.selected);
   const [like, setLike] = useState(
@@ -91,7 +95,7 @@ const BasketCard = ({ all, section, productData }) => {
   }, [product?.variants, productData.sku]);
 
   return (
-    <div className={styles.main}>
+    <div className={styles.main} style={section === "payment" ? { width: "100%" } : {}}>
       {section === "basket" && (
         <div className={styles.cardChecked}>
           <Checkbox
