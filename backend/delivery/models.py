@@ -71,3 +71,16 @@ class ShippingRate(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2)
     cod_fee = models.DecimalField(max_digits=6, decimal_places=2, default=0)
     estimate = models.CharField(max_length=50, blank=True)
+    weight_limit = models.CharField(
+        max_length=10,
+        choices=(
+            ("1", "up to 1 kg"),
+            ("2", "up to 2 kg"),
+            ("5", "up to 5 kg"),
+            ("10", "up to 10 kg"),
+            ("15", "up to 15 kg"),
+            ("over_limit", "over limit"),
+        ),
+        default="5",
+        help_text="Weight limit for the shipping rate"
+    )

@@ -8,6 +8,7 @@ from django.core.files.base import ContentFile
 from order.models import Order
 from warehouses.models import Warehouse, WarehouseItem
 from delivery.models import DeliveryParcel, DeliveryParcelItem, CourierService
+from delivery.validators.validators import validate_phone_matches_country
 from delivery.services.packeta import PacketaService
 from delivery.services.local_rates import calculate_shipping_options
 from delivery.services.shipping_split import split_items_into_parcels
@@ -16,20 +17,40 @@ from delivery.services.packeta_point_service import resolve_country_from_local_p
 logger = logging.getLogger(__name__)
 
 
+def format_zip(zip_code: str, country_code: str) -> str:
+    """
+    Форматирует ZIP для CZ и SK, вставляя пробел после третьей цифры.
+    Например: '60200' -> '602 00'
+    """
+    original_zip = zip_code
+    if country_code.upper() in ["CZ", "SK"] and len(zip_code) == 5 and zip_code.isdigit():
+        formatted_zip = f"{zip_code[:3]} {zip_code[3:]}"
+        logger.info(f"Formatted ZIP for {country_code}: {original_zip} -> {formatted_zip}")
+        return formatted_zip
+
+    logger.info(f"No formatting applied to ZIP for {country_code}: {original_zip}")
+    return zip_code
+
+
 def generate_parcels_for_order(order_id: int):
     logger.info("Start generate_parcels_for_order(%s)", order_id)
     svc = PacketaService()
-    order = Order.objects.select_related(
-        "delivery_type", "delivery_address", "user", "courier_service"
-    ).prefetch_related("order_products__product").get(pk=order_id)
 
-    # Готовим список товаров для сплита
+    try:
+        order = Order.objects.select_related(
+            "delivery_type", "delivery_address", "user", "courier_service"
+        ).prefetch_related("order_products__product").get(pk=order_id)
+    except Order.DoesNotExist:
+        logger.error(f"Order with ID {order_id} does not exist.")
+        return
+
+    # Подготовка списка товаров для сплита
     raw = [
         {"sku": op.product.sku, "quantity": op.quantity}
         for op in order.order_products.filter(status="awaiting_shipment")
     ]
 
-    # Определяем страну
+    # Определение страны назначения
     if order.delivery_address and order.delivery_address.country:
         country_code = order.delivery_address.country
     elif order.pickup_point_id:
@@ -41,11 +62,11 @@ def generate_parcels_for_order(order_id: int):
     # Определяем валюту по стране
     currency = svc.COUNTRY_CURRENCY.get(country_code, "CZK")
 
-    # Сплитим на посылки
+    # Сплит на посылки
     parcels = split_items_into_parcels(country=country_code, items=raw, cod=False, currency="EUR")
     logger.debug("Order %s → %d parcels", order_id, len(parcels))
 
-    # Определяем склад
+    # Определение склада
     wh = Warehouse.objects.filter(pickup_by_courier=False).first() or Warehouse.objects.first()
     if not wh:
         logger.error(f"No warehouse found for order {order_id}")
@@ -62,8 +83,7 @@ def generate_parcels_for_order(order_id: int):
             # Общий вес посылки
             wt = sum(
                 order_products_by_sku[unit["sku"]].product.weight_grams * unit["quantity"]
-                for unit in block
-                if unit["sku"] in order_products_by_sku
+                for unit in block if unit["sku"] in order_products_by_sku
             )
             logger.info("Order %s, parcel #%d weight: %s grams", order_id, idx, wt)
 
@@ -92,8 +112,16 @@ def generate_parcels_for_order(order_id: int):
             # Фиксированная страховка 1 EUR
             value_amount = Decimal("1.00")
 
-            # Создание отправления
+            # ✅ Валидация номера телефона только для Home Delivery
             if is_hd:
+                phone_validation_error = validate_phone_matches_country(str(order.phone_number), country_code)
+                if phone_validation_error:
+                    logger.error(f"Phone validation failed for order {order_id}: {phone_validation_error}")
+                    raise RuntimeError(f"Invalid phone number for destination country: {phone_validation_error}")
+
+                # Нормализуем ZIP для CZ и SK перед отправкой
+                normalized_zip = format_zip(order.delivery_address.zip_code, country_code)
+
                 packet_id = svc.create_home_delivery_shipment(
                     order_number=order.order_number,
                     first_name=order.first_name,
@@ -102,7 +130,7 @@ def generate_parcels_for_order(order_id: int):
                     email=order.customer_email,
                     street=order.delivery_address.street,
                     city=order.delivery_address.city,
-                    zip_code=order.delivery_address.zip_code,
+                    zip_code=normalized_zip,
                     country=country_code,
                     weight_grams=wt,
                     value_amount=value_amount,

@@ -18,6 +18,24 @@ VAT_RATE = getattr(settings, "VAT_RATE", Decimal("0.21"))
 logger = logging.getLogger(__name__)
 
 
+def get_weight_limit_tag(weight_kg: Decimal) -> str:
+    """
+    Определяет тег weight_limit на основе веса посылки.
+    """
+    if weight_kg <= 1:
+        return "1"
+    elif weight_kg <= 2:
+        return "2"
+    elif weight_kg <= 5:
+        return "5"
+    elif weight_kg <= 10:
+        return "10"
+    elif weight_kg <= 15:
+        return "15"
+    else:
+        return "over_limit"
+
+
 def calculate_shipping_options(country, items, cod, currency, variant_map=None):
     """
     Calculate available shipping options (PUDO and HD) based on items' dimensions and weight.
@@ -84,25 +102,42 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
     else:
         raise ValueError("Package exceeds allowed dimensions or weight")
 
-    def get_rate(channel):
+    def get_rate(channel, category, chargeable_weight_kg):
+        rates = ShippingRate.objects.filter(
+            country=country.upper(),
+            channel=channel,
+            category=category,
+            courier_service__name__iexact="Zásilkovna"
+        ).order_by("weight_limit")
+
+        for rate in rates:
+            limit_value = Decimal(rate.weight_limit) if rate.weight_limit != 'over_limit' else Decimal('999')
+            if chargeable_weight_kg <= limit_value:
+                base = rate.price
+                cod_fee = rate.cod_fee if cod else Decimal("0.00")
+                return rate, base, cod_fee, base + cod_fee
+
+        # fallback to over_limit if not found
         try:
             rate = ShippingRate.objects.get(
                 country=country.upper(),
                 channel=channel,
-                category=category,
-                courier_service__name__iexact="Zásilkovna"
+                category="over_limit",
+                courier_service__name__iexact="Zásilkovna",
+                weight_limit="over_limit"
             )
-        except ObjectDoesNotExist:
-            raise ValueError(f"No shipping rate for {channel} {country.upper()} {category} Zásilkovna")
+            base = rate.price
+            cod_fee = rate.cod_fee if cod else Decimal("0.00")
+            return rate, base, cod_fee, base + cod_fee
+        except ShippingRate.DoesNotExist:
+            raise ValueError(
+                f"No shipping rate for {channel} {country.upper()} {category} Zásilkovna with weight {chargeable_weight_kg} kg"
+            )
 
-        base = rate.price
-        cod_fee = rate.cod_fee if cod else Decimal("0.00")
-        total = base + cod_fee
-        logger.info(f"Rate fetched for {channel}: base={base}, cod_fee={cod_fee}, total={total}")
-        return rate, base, cod_fee, total
+    weight_limit_tag = get_weight_limit_tag(chargeable_weight)
 
-    pudo_rate, pudo_base, pudo_cod_fee, pudo_total = get_rate("PUDO")
-    hd_rate,   hd_base,   hd_cod_fee,   hd_total   = get_rate("HD")
+    pudo_rate, pudo_base, pudo_cod_fee, pudo_total = get_rate("PUDO", category, Decimal(weight_limit_tag))
+    hd_rate, hd_base, hd_cod_fee, hd_total = get_rate("HD", category, Decimal(weight_limit_tag))
 
     def format_option(rate_obj, base_total_czk):
         price_with_vat_czk = (base_total_czk * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
