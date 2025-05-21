@@ -1,8 +1,11 @@
 .main {
   display: flex;
+  flex-direction: column;
   // height: 500px;
   height: auto;
   gap: 30px;
+  position: sticky;
+  top: 50px;
   // @media (max-width: 1300px) {
   //   height: 400px;
   // }
@@ -17,7 +20,7 @@
 .mainImage {
   width: 100%;
   min-width: 259px; /* Минимальная ширина, чтобы изображение не схлопывалось */
-  max-width: 580px;
+  max-width: 500px;
   flex-shrink: 1;
   object-fit: cover;
   aspect-ratio: 1/1;
@@ -34,7 +37,7 @@
 .smallImage {
   background-color: transparent;
   img {
-    width: clamp(78px, 10vw, 120px) ;
+    width: 75px ;
     aspect-ratio: 1/1;
     object-fit: cover;
   
@@ -43,9 +46,5 @@
 
 .smallImageDiv {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  @media (max-width: 1100px) {
-    gap: 10px;
-  }
+  gap: 10px;
 }

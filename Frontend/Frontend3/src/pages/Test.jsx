@@ -1,97 +1,73 @@
-import React, { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Rating } from "@mui/material"
+const PacketaWidget = ({open, setOpen}) => {
+  const [selectedPoint, setSelectedPoint] = useState(null);
 
-import ProdImageModal from "../Components/Product/ProdImageModal/ProdImageModal";
-import categoryTestImg from "../assets/TestImg/testCategory.svg"
+  useEffect(() => {
+    // Загружаем скрипт виджета один раз при монтировании
+    const script = document.createElement("script");
+    script.src = "https://widget.packeta.com/www/js/library.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
-import styles from "../styles/Test.module.scss";
-import Container from "../ui/Container/Container";
+  const handleOpenWidget = () => {
+    if (!window?.Packeta?.Widget) {
+      console.warn("Виджет ещё не загружен");
+      return;
+    }
+
+    const packetaApiKey = "197fd6840f332ccf"; // Твой API-ключ (для теста)
+    const packetaOptions = {
+      language: "en",
+      valueFormat: '"Packeta",id,carrierId,carrierPickupPointId,name,city,street',
+      view: "modal",
+      vendors: [
+        { country: "cz" },
+        { country: "hu" },
+        { country: "sk" },
+        { country: "ro" },
+        { country: "cz", group: "zbox" },
+        { country: "sk", group: "zbox" },
+        { country: "hu", group: "zbox" },
+        { country: "pl" },
+        { country: "ro", group: "zbox" },
+      ],
+    };
+
+    const showSelectedPickupPoint = (point) => {
+      if (point) {
+        console.log("Выбранный пункт:", point);
+        setSelectedPoint(point);
+        if (resultRef.current) {
+          resultRef.current.innerText = `Address: ${point.formatedValue}`;
+        }
+      }
+    };
+
+    window.Packeta.Widget.pick(packetaApiKey, showSelectedPickupPoint, packetaOptions);
+  };
 
 
 
-// ! карточка и четка новая
-
-
-const Card = () => {
   return (
-    <div className={styles.card}>
-      <img src="https://i.pinimg.com/736x/ed/8a/00/ed8a00c326baf894a6f86961350069f5.jpg" alt="" />
-      <div className={styles.descWrap}>
-        <p className={styles.price}>700p</p>
-        <p className={styles.name}>Lorem ipsum dolor, sit amet const adipisicing elit. Neque, quia! Optio porro voluptatem labore a quidem, non architecto minima repellendus quis praesentium blanditiis soluta ipsum autem ullam placeat doloremque suscipit?</p>
-        <div className={styles.rateDiv}>
-          <Rating size="small" value={5} />
-          <p>5</p>
+    <div>
+      <button
+        className="bg-blue-600 text-white px-4 py-2 rounded"
+        onClick={handleOpenWidget}
+      >
+        Выбрать пункт выдачи
+      </button>
+
+      {selectedPoint && (
+        <div className="mt-2 p-4 border rounded">
+          <p><strong>{selectedPoint.name}</strong></p>
+          <p>{selectedPoint.street}, {selectedPoint.city}</p>
+          <p>Код пункта: <strong>{selectedPoint.id}</strong></p>
         </div>
-        <button className={styles.btn}>
-          Buy
-        </button>
-      </div>
-    </div>
-  )
-}
-
-
-const BarChart = () => {
-  const [open, setOpen] = useState(false)
-
-  const handleClose = () => {
-    setOpen(false)
-  }
-
-  return (
-    <div className={styles.cardWrap}>
-      <Card />
-      <Card />
-      <Card />
-      <Card />
-      {/* <button onClick={() => setOpen(!open)}>
-        open
-      </button> */}
-      <Card />
-      <Card />
-      <Card />
-      <Card />
-      <ProdImageModal open={open} handleClose={handleClose} />
+      )}
     </div>
   );
 };
 
-export default BarChart;
-
-
-// const CategoryCard = () => {
-//   return (
-//     <div className={styles.categoryCard} style={{backgroundImage:`url(${"http://reli.one/media/category_images/00133-2682337464_2_6k9EuLc.png"})`}}>
-//       <p>name</p>
-//     </div>
-//   )
-// }
-
-
-// const CategoryWrap = () => {
-//   return (
-//     <Container>
-//       <div className={styles.categoryWrap}>
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         <CategoryCard />
-//         {/* <CategoryCard /> */}
-//       </div>
-//     </Container>
-//   )
-// }
-
-// export default CategoryWrap
+export default PacketaWidget;

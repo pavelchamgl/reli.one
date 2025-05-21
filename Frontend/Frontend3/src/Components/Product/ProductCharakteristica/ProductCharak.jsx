@@ -10,7 +10,7 @@ const ProductCharak = () => {
 
   const { t } = useTranslation();
 
-  const { product_parameters, product_description } = useSelector(
+  const { product_parameters, product_description, license_file } = useSelector(
     (state) => state.products.product
   );
 
@@ -60,6 +60,7 @@ const ProductCharak = () => {
           ))}
         </div>
       </div>
+      {license_file && <p className={styles.licenseText}>You can read the certificate <a href={license_file}>here</a></p>}
     </div>
   );
 };

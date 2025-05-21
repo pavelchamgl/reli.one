@@ -77,7 +77,7 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
   };
 
   useEffect(() => {
-    if (data) {
+    if (data && !selected) {
       getProductById(data.id)
         .then((res) => {
           const resData = res?.data;
@@ -88,6 +88,7 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
             const variant = resData.variants.find(
               (item) => Number(item.price) === Number(data.price)
             );
+
             if (variant) {
               setSku(variant.sku);
               setSelected(variant.sku);
@@ -108,7 +109,8 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
         })
         .catch((err) => console.error("Ошибка загрузки продукта:", err));
     }
-  }, [data, dispatch]);
+  }, [data, dispatch, selected]);
+
 
   useEffect(() => {
     const variant = variants?.find((item) => item.sku === selected);
@@ -204,7 +206,9 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
         ) : (
           <>
             <div className={styles.imageTextWrap}>
-              <img className={styles.img} src={data.image} alt="" />
+              <img className={styles.img}
+                src={data?.image || data?.images?.[0]?.image_url}
+                alt="" />
               <div className={styles.textDiv}>
                 <h3>{data.name}</h3>
                 <p>
@@ -249,20 +253,20 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
             <div className={styles.stylePackVTwoButtons}>
               {variants && variants.length > 0
                 ? variants.map((item) => (
-                    <button
-                      style={{
-                        borderColor:
-                          selected === item.sku ? "black" : "#64748b",
-                      }}
-                      onClick={() => {
-                        setSelected(item.sku);
-                      }}
-                      key={item.sku}
-                    >
-                      <img src={item?.image} alt="" />
-                      <p>{item?.price}€</p>
-                    </button>
-                  ))
+                  <button
+                    style={{
+                      borderColor:
+                        selected === item.sku ? "black" : "#64748b",
+                    }}
+                    onClick={() => {
+                      setSelected(item.sku);
+                    }}
+                    key={item.sku}
+                  >
+                    <img src={item?.image} alt="" />
+                    <p>{item?.price}€</p>
+                  </button>
+                ))
                 : null}
             </div>
           )}
@@ -270,20 +274,20 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
             <div className={styles.stylePackVThreeButtons}>
               {variants && variants.length > 0
                 ? variants.map((item) => (
-                    <button
-                      style={{
-                        borderColor:
-                          selected === item.sku ? "black" : "#64748b",
-                      }}
-                      onClick={() => {
-                        setSelected(item.sku);
-                      }}
-                      key={item.sku}
-                    >
-                      <p>{item?.text}</p>
-                      <span>{item?.price}€</span>
-                    </button>
-                  ))
+                  <button
+                    style={{
+                      borderColor:
+                        selected === item.sku ? "black" : "#64748b",
+                    }}
+                    onClick={() => {
+                      setSelected(item.sku);
+                    }}
+                    key={item.sku}
+                  >
+                    <p>{item?.text}</p>
+                    <span>{item?.price}€</span>
+                  </button>
+                ))
                 : null}
             </div>
           )}

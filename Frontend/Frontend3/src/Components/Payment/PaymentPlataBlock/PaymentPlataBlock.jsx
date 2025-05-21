@@ -18,13 +18,16 @@ import arrLeft from "../../../assets/Payment/arrLeft.svg";
 
 import styles from "./PaymentPlataBlock.module.scss";
 import LoginModal from "../../LoginModal/LoginModal";
+import ConfirmYourAgeModal from "../ConfirmYourAgeModal/ConfirmYourAgeModal";
 
 const PaymentPlataBlock = ({ setSection }) => {
-  const isMobile = useMediaQuery({ maxWidth: 426 });
+  const isMobile = useMediaQuery({ maxWidth: 500 });
   const [plataType, setPlataType] = useState("card");
   const [inputError, setInputError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false)
   const [authEnd, setAuthEnd] = useState(false)
+  const [openAgeModal, setOpenAgeModal] = useState(false)
+  const [isAdult, setIsAdult] = useState(false)
 
   const { t } = useTranslation();
 
@@ -59,13 +62,19 @@ const PaymentPlataBlock = ({ setSection }) => {
         setModalOpen(true)
       }
     } else {
+      setOpenAgeModal(true)
+    }
+  };
+
+  useEffect(() => {
+    if (isAdult) {
       if (plataType === "card") {
         dispatch(fetchCreateStripeSession(selectedProducts));
       } else {
         dispatch(fetchCreatePayPalSession(selectedProducts));
       }
     }
-  };
+  }, [isAdult])
 
   return (
     <div className={styles.main}>
@@ -111,7 +120,8 @@ const PaymentPlataBlock = ({ setSection }) => {
           {loading ? <Spinner /> : <p>{t("pay_now")}</p>}
         </button>
       </div>
-      <LoginModal  basket={true} text={"Please log in/register to continue"} open={modalOpen} handleClose={() => setModalOpen(false)} />
+      <LoginModal basket={true} text={"Please log in/register to continue"} open={modalOpen} handleClose={() => setModalOpen(false)} />
+      <ConfirmYourAgeModal setIsAdult={setIsAdult} open={openAgeModal} handleClose={() => setOpenAgeModal(false)} />
     </div>
   );
 };

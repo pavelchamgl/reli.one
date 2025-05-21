@@ -18,7 +18,7 @@ import Footer from "../Components/Footer/Footer";
 
 const PaymentPage = () => {
   const [selectedValue, setSelectedValue] = useState("female");
-  const [section, setSection] = useState(1);
+  const [section, setSection] = useState(2);
   const isMobile = useMediaQuery({ maxWidth: 426 });
 
 

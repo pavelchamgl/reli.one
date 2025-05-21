@@ -22,21 +22,33 @@ import arrBottom from "../../../assets/Payment/arrBottom.svg";
 // import zasil from "../../../assets/Payment/zasil.svg";
 import ppl from "../../../assets/Payment/ppl.svg";
 import dpd from "../../../assets/Payment/dpd.svg";
+import paketa from "../../../assets/Payment/PaketaImage.svg";
 import globalLogistic from "../../../assets/Payment/globalLogistic.svg";
 
 import styles from "./PaymentDeliverySelect.module.scss";
+import PacketaWidget from "../PaketaWidget/PaketaWidget.jsx";
 
 const PaymentDeliverySelect = () => {
   const [open, setOpen] = useState(false);
+  const [openPoint, setOpenPoint] = useState(false);
+  const [paketaOpen, setPaketaOpen] = useState(false)
+
   const [selectedValue, setSelectedValue] = useState("sclad");
   const [weight, setWeight] = useState(0);
-  const [deliImg, setDeliImg] = useState(null);
   const [pplResult, setPplResult] = useState(0);
   const [geisResult, setGeisResult] = useState(0);
   const [dpdResult, setDpdResult] = useState(0);
+
+  const [deliImg, setDeliImg] = useState(null);
   const [price, setPrice] = useState(0);
   const [boxSize, setBoxSize] = useState("s");
   const [value, setValue] = useState("address");
+
+  const [pointImg, setPointImg] = useState(null)
+  const [pointPrice, setPointPrice] = useState(0);
+  const [pointValue, setPointValue] = useState("address");
+
+
 
   const { t } = useTranslation();
 
@@ -87,7 +99,7 @@ const PaymentDeliverySelect = () => {
         return { height: height, width: width, length: length }
       });
 
-      
+
 
       const resBoxSizeT = calculateBoxTest(boxSizes)
 
@@ -200,14 +212,42 @@ const PaymentDeliverySelect = () => {
           value={selectedValue}
           onChange={handleChange}
         >
-          <div className={styles.selectBlock}>
-            <FormControlLabel
-              sx={{ fontSize: "12px" }}
-              value="sclad"
-              control={<Radio color="success" />}
-              label={t("collection_warehouse")}
-            />
-            <p className={styles.freeText}>{t("free")}</p>
+          <button
+            onClick={() => setOpenPoint((prevOpen) => !prevOpen)}
+            className={styles.selectBlock}
+          >
+            <div className={styles.radioImageDiv}>
+              <FormControlLabel
+                sx={{ marginRight: "0px" }}
+                value={value}
+                control={<Radio color="success" />}
+                label={pointImg ? "" : "Delivery point"}
+              />
+              {pointImg && <img src={pointImg} alt="" />}
+            </div>
+            <img src={openPoint ? arrBottom : arrRight} alt="" />
+          </button>
+          <div
+            className={openPoint ? styles.selectBlockAcc : styles.selectBlockNotAcc}
+          >
+            <div className={styles.selectBlock} onClick={() => setPaketaOpen(!paketaOpen)}>
+              <div className={styles.radioImageDiv} >
+                <FormControlLabel
+                  onClick={() => {
+                    setPointImg(paketa);
+                    setPointPrice(150);
+                    setPointValue("paketa");
+                  }}
+                  sx={{ marginRight: "0px" }}
+                  value={"paketa"}
+                  control={<Radio color="success" />}
+                />
+                <img src={paketa} alt="" />
+              </div>
+              <p className={styles.price}>
+                150
+              </p>
+            </div>
           </div>
           <button
             onClick={() => setOpen((prevOpen) => !prevOpen)}
@@ -261,6 +301,7 @@ const PaymentDeliverySelect = () => {
           </div>
         </RadioGroup>
       </FormControl>
+      <PacketaWidget open={paketaOpen} setOpen={setPaketaOpen} />
     </div>
   );
 };

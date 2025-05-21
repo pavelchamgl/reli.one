@@ -14,6 +14,7 @@ import MobPaymentBasket from "../MobPaymentBasket/MobPaymentBasket";
 
 import styles from "./PaymentDeliveryBlock.module.scss";
 import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
+import PaymentDeliverySuplier from "../PaymentDeliveruSuplier/PaymentDeliverySuplier";
 
 const PaymentDeliveryBlock = ({ setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -67,10 +68,8 @@ const PaymentDeliveryBlock = ({ setSection }) => {
           title={t("add_address")}
         />
       </div>
-      <div>
-        <p className={styles.sectionTitle}>{t("delivery")}</p>
-        <PaymentDeliverySelect />
-      </div>
+      <PaymentDeliverySuplier />
+  
       <div className={styles.buttonDiv}>
         <button onClick={handleReturn}>
           <img src={arrLeft} alt="" />

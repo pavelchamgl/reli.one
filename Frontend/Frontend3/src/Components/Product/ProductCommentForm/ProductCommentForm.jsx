@@ -198,7 +198,7 @@ const ProductCommentForm = ({ open, handleClose }) => {
               formik.errors.username || ""
             }`}</p>
           )}
-          {commentErr && <p className={styles.errText}>{commentErr}</p>}
+          {commentErr && <p className={styles.errText}>{commentErr?.detail}</p>}
           <div>
             <button
               disabled={

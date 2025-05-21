@@ -26,12 +26,6 @@ const ProductTab = ({ setTab }) => {
       >
         {t("review")}
       </button>
-      <button
-        onClick={() => setSection("Certifikáty")}
-        className={section === "Certifikáty" ? styles.tabAcc : styles.tab}
-      >
-        {t("certificates")}
-      </button>
     </div>
   );
 };

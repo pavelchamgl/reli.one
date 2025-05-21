@@ -12,12 +12,17 @@ import addBasketCheckIcon from "../../../assets/Product/addBasketCheckIcon.svg";
 import styles from "./ProductNameRate.module.scss";
 import { useEffect, useState } from "react";
 import ProdCharackButtons from "../ProdCharakButtons/ProdCharackButtons";
+import BasketModal from "../../Basket/BasketModal/BasketModal";
+import { useMediaQuery } from "react-responsive";
 
 const ProductNameRate = () => {
   const [inBasket, setInBasket] = useState(false);
   const [price, setPrice] = useState("10");
   const [endPrice, setEndPice] = useState(null);
   const [sku, setSku] = useState(null);
+  const [openModal, setOpenModal] = useState(false)
+
+  const isMobile = useMediaQuery({ maxWidth: 426 })
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -31,16 +36,25 @@ const ProductNameRate = () => {
   const basket = useSelector((state) => state.basket.basket);
 
   const handleAddBasket = () => {
-    dispatch(
-      addToBasket({
-        id: product.id,
-        product: { ...product, price: endPrice },
-        count: 1,
-        selected: false,
-        sku: sku,
-      })
-    );
+    if (!product || !sku || !endPrice) return;
+
+    if (product?.variants?.length > 1) {
+      if (!isMobile) {
+        setOpenModal(true);
+      }
+    } else {
+      dispatch(
+        addToBasket({
+          id: product.id,
+          product: { ...product, price: endPrice },
+          count: 1,
+          selected: false,
+          sku: sku,
+        })
+      );
+    }
   };
+
 
   useEffect(() => {
     if (basket.some((item) => item.sku === sku)) {
@@ -81,6 +95,8 @@ const ProductNameRate = () => {
     }
   }, [product, basket]);
 
+
+
   return (
     <div className={styles.main}>
       <div className={styles.ratingDiv}>
@@ -92,6 +108,7 @@ const ProductNameRate = () => {
         <span className={styles.categoryName}>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{endPrice ? endPrice : price} €</p>
+      <p className={styles.ndcPrice}>Without DPH <span>$32.71</span></p>
       <ProdCharackButtons
         setSku={setSku}
         setPrice={setEndPice}
@@ -106,6 +123,10 @@ const ProductNameRate = () => {
         <img src={ProductDeliveryCar} alt="" />
         <p>{t("delivery_btn")}</p>
       </button>
+      <BasketModal handleClose={() => setOpenModal(false)} open={openModal} productData={{
+        ...product,
+        price: endPrice
+      }} />
     </div>
   );
 };
