@@ -2,7 +2,7 @@ import io
 import uuid
 
 from PIL import Image
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.db import models
 from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
@@ -212,9 +212,15 @@ class ProductVariant(models.Model):
     )
 
     @property
-    def price_with_vat(self):
-        vat = self.base_product.vat_rate
-        return (self.price * (1 + vat / 100)).quantize(Decimal("0.01"))
+    def price_without_vat(self):
+        """
+        Возвращает цену без НДС (если price включает НДС).
+        """
+        vat = self.product.vat_rate
+        if vat > 0:
+            price_wo_vat = self.price / (1 + vat / 100)
+            return price_wo_vat.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return self.price
 
     def __str__(self):
         return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"
