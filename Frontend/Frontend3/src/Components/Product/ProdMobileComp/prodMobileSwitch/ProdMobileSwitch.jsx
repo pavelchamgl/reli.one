@@ -31,9 +31,9 @@ const ProdMobileSwitch = () => {
             <p>{product?.total_reviews}</p>
           </div>
         </button>
-        <button>
+        {/* <button>
           <p>{t("certificates")}</p>
-        </button>
+        </button> */}
       </div>
     </div>
   );

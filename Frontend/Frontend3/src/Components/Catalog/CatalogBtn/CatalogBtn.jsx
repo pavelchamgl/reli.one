@@ -13,7 +13,7 @@ const CatalogBtn = () => {
     <>
       <button onClick={() => setOpen(!open)} className={styles.wrap}>
         <img src={open ? closeIcon : burgerMenuIcon} alt="" />
-        <p>Katalog</p>
+        <p>Catalogue</p>
       </button>
       <CatalogDrawer open={open} handleClose={() => setOpen(false)} />
     </>
