@@ -33,6 +33,8 @@ class BaseProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
+    price_without_vat = serializers.SerializerMethodField()
+
     class Meta:
         model = ProductVariant
         fields = [
@@ -42,7 +44,11 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             'text',
             'image',
             'price',
+            'price_without_vat',
         ]
+
+    def get_price_without_vat(self, obj):
+        return obj.price_without_vat
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -62,6 +68,8 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
     can_review = serializers.SerializerMethodField(
         help_text="List of SKU identifiers that the authenticated user can review."
     )
+    seller_id = serializers.IntegerField(source='seller.id', read_only=True)
+    is_age_restricted = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = BaseProduct
@@ -78,6 +86,8 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'is_favorite',
             'variants',
             'can_review',
+            'seller_id',
+            'is_age_restricted',
         ]
 
     def get_license_file(self, obj):
@@ -133,6 +143,8 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     is_favorite = serializers.SerializerMethodField()
     price = serializers.DecimalField(source='min_price', max_digits=10, decimal_places=2, read_only=True)
     ordered_count = serializers.IntegerField(source='ordered_quantity', read_only=True)
+    seller_id = serializers.IntegerField(source='seller.id', read_only=True)
+    is_age_restricted = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = BaseProduct
@@ -147,6 +159,8 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'total_reviews',
             'is_favorite',
             'ordered_count',
+            'seller_id',
+            'is_age_restricted',
         ]
 
     def get_price(self, obj):

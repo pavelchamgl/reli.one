@@ -2,7 +2,7 @@ import io
 import uuid
 
 from PIL import Image
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.db import models
 from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
@@ -89,6 +89,20 @@ class BaseProduct(models.Model):
     )
     approved_at = models.DateTimeField(null=True, blank=True)
     rejected_reason = models.TextField(null=True, blank=True)
+    vat_rate = models.DecimalField(
+        max_digits=4, decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(Decimal("0.00")), MaxValueValidator(Decimal("99.99"))],
+        help_text="Процент НДС для товара (например: 0, 10, 21)"
+    )
+    is_age_restricted = models.BooleanField(
+        default=False,
+        help_text="Требует ли товар возрастного ограничения 18+"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Определяет, активен ли продукт (если False — не отображается на витрине)"
+    )
 
     def __str__(self):
         return self.name
@@ -97,10 +111,10 @@ class BaseProduct(models.Model):
 def validate_file_extension(value):
     import os
     ext = os.path.splitext(value.name)[1]
-    valid_extensions = ['.pdf', '.docx']
+    valid_extensions = ['.pdf', 'jpeg']
     if not ext.lower() in valid_extensions:
         raise ValidationError(
-            'Invalid file format. Valid formats: .pdf, .docx'
+            'Invalid file format. Valid formats: .pdf, .jpeg'
         )
 
 
@@ -196,6 +210,17 @@ class ProductVariant(models.Model):
         null=True, blank=True,
         help_text="Длина упаковки в миллиметрах"
     )
+
+    @property
+    def price_without_vat(self):
+        """
+        Возвращает цену без НДС (если price включает НДС).
+        """
+        vat = self.product.vat_rate
+        if vat > 0:
+            price_wo_vat = self.price / (1 + vat / 100)
+            return price_wo_vat.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return self.price
 
     def __str__(self):
         return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"
