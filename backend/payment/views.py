@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Payment, PayPalMetadata, StripeMetadata
 from .mixins import PayPalMixin
 from .services import send_order_emails_safely
+from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
 from product.models import BaseProduct, ProductVariant
@@ -121,24 +122,72 @@ class PaymentSessionValidator:
 @extend_schema(
     summary="Create Stripe Payment Session with Delivery and Seller-Based Grouping",
     description=(
-        "Creates a Stripe Checkout Session by validating provided customer and product data.\n\n"
-        "The request must include customer contact details and a list of product groups grouped by seller.\n\n"
-        "**Business Logic:**\n"
-        "- Validates product ownership by the specified seller.\n"
-        "- Calculates delivery costs per group based on the provided delivery type and address.\n"
-        "- Calculates total product and delivery costs.\n"
-        "- Saves complete session metadata, including customer data, product groups, and calculated costs.\n"
-        "- Returns the Stripe Checkout URL, session ID, and internal session key.\n\n"
-        "**Webhook Handling:**\n"
-        "The session key is used to restore all saved metadata when Stripe webhook confirms payment.\n\n"
-        "**Expected Fields:**\n"
-        "- email, first_name, last_name, phone, groups with product SKUs, seller IDs, delivery types, and delivery addresses or pickup points.\n\n"
-        "**Response:**\n"
-        "- checkout_url: URL to redirect the customer to Stripe Checkout\n"
-        "- session_id: Stripe session identifier\n"
-        "- session_key: Internal session key for order processing"
+            "Creates a Stripe Checkout Session by validating customer contact data and a list of product groups grouped by seller.\n\n"
+            "**Business logic:**\n"
+            "- Validates that each product belongs to the specified seller.\n"
+            "- Calculates delivery cost per group based on delivery type and destination.\n"
+            "- Calculates subtotal, delivery cost, and total amount.\n"
+            "- Persists session metadata including customer info, products, pricing, and delivery details.\n"
+            "- Returns a Stripe Checkout URL and internal session references.\n\n"
+            "**Webhook usage:**\n"
+            "The `session_key` is used to restore saved metadata when the Stripe webhook confirms successful payment.\n\n"
+            "**Note:** If `delivery_address.country` is provided, it must be a valid ISO 3166-1 alpha-2 code (e.g., `\"SK\"`, `\"CZ\"`)."
     ),
-    responses={200: OpenApiResponse(description="Stripe session created successfully")},
+    request=SessionInputSerializer,
+    responses={
+        200: OpenApiResponse(
+            response=StripeSessionOutputSerializer,
+            description="Stripe session created successfully",
+            examples=[
+                OpenApiExample(
+                    name="StripeSessionResponse",
+                    value={
+                        "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_b1de42...",
+                        "session_id": "cs_test_b1de42so99...",
+                        "session_key": "2ca170e1-d053-4c78-b35b-e929ec41dcdd"
+                    },
+                    response_only=True
+                )
+            ]
+        )
+    },
+    examples=[
+        OpenApiExample(
+            name="CreateStripePaymentRequest",
+            request_only=True,
+            value={
+                "email": "user666@example.com",
+                "first_name": "Pavel",
+                "last_name": "Ivanov",
+                "phone": "+421123456789",
+                "groups": [
+                    {
+                        "seller_id": 2,
+                        "delivery_type": 2,
+                        "courier_service": 2,
+                        "delivery_address": {
+                            "street": "Benkova 373 / 7",
+                            "city": "Nitra",
+                            "zip": "94911",
+                            "country": "SK"
+                        },
+                        "products": [
+                            {"sku": "258568745", "quantity": 15}
+                        ]
+                    },
+                    {
+                        "seller_id": 1,
+                        "delivery_type": 1,
+                        "courier_service": 2,
+                        "pickup_point_id": 292,
+                        "products": [
+                            {"sku": "272464947", "quantity": 17}
+                        ]
+                    }
+                ]
+            }
+        )
+    ],
     tags=["Stripe"]
 )
 class CreateStripePaymentView(APIView):
@@ -474,24 +523,72 @@ class StripeWebhookView(APIView):
 @extend_schema(
     summary="Create PayPal Payment Session with Delivery and Seller-Based Grouping",
     description=(
-        "Creates a PayPal payment session by validating provided customer and product data.\n\n"
-        "The request must include customer contact details and a list of product groups grouped by seller.\n\n"
-        "**Business Logic:**\n"
-        "- Validates product ownership by the specified seller.\n"
-        "- Calculates delivery costs per group based on the provided delivery type and address.\n"
-        "- Calculates total product and delivery costs.\n"
-        "- Saves complete session metadata, including customer data, product groups, and calculated costs.\n"
-        "- Returns the payment session details including redirect URL and internal session key.\n\n"
-        "**Webhook Handling:**\n"
-        "The session key is used to restore all saved metadata when the payment system confirms payment.\n\n"
-        "**Expected Fields:**\n"
-        "- email, first_name, last_name, phone, groups with product SKUs, seller IDs, delivery types, and delivery addresses or pickup points.\n\n"
-        "**Response:**\n"
-        "- approval_url (PayPal: `approval_url`)\n"
-        "- order_id"
-        "- session_key: Internal session key for order processing"
+        "Creates a PayPal payment session by validating customer contact data and a list of product groups grouped by seller.\n\n"
+        "**Business logic:**\n"
+        "- Validates that each product belongs to the specified seller.\n"
+        "- Calculates delivery cost per group based on delivery type and destination.\n"
+        "- Calculates subtotal, delivery cost, and total amount.\n"
+        "- Persists session metadata including customer info, products, pricing, and delivery details.\n"
+        "- Returns a PayPal approval URL and internal session references.\n\n"
+        "**Webhook usage:**\n"
+        "The `session_key` is used to restore saved metadata when the PayPal webhook confirms successful payment.\n\n"
+        "**Note:** If `delivery_address.country` is provided, it must be a valid ISO 3166-1 alpha-2 code (e.g., `\"SK\"`, `\"CZ\"`)."
     ),
-    responses={200: OpenApiResponse(description="PayPal session created successfully")},
+    request=SessionInputSerializer,  # используется тот же input serializer, если структура идентична
+    responses={
+        200: OpenApiResponse(
+            response=PayPalSessionOutputSerializer,  # допустимо переиспользовать, если структура совпадает
+            description="PayPal session created successfully",
+            examples=[
+                OpenApiExample(
+                    name="PayPalSessionResponse",
+                    value={
+                        "approval_url": "https://www.sandbox.paypal.com/checkoutnow?token=3FJ45213AK318393U",
+                        "order_id": "3FJ45213AK318393U",
+                        "session_key": "7b73006d-e4a4-4b94-9c13-8f76c81e56a9"
+                    },
+                    response_only=True
+                )
+            ]
+        )
+    },
+    examples=[
+        OpenApiExample(
+            name="CreatePayPalPaymentRequest",
+            request_only=True,
+            value={
+                "email": "user666@example.com",
+                "first_name": "Pavel",
+                "last_name": "Ivanov",
+                "phone": "+421123456789",
+                "groups": [
+                    {
+                        "seller_id": 2,
+                        "delivery_type": 2,
+                        "courier_service": 2,
+                        "delivery_address": {
+                            "street": "Benkova 373 / 7",
+                            "city": "Nitra",
+                            "zip": "94911",
+                            "country": "SK"
+                        },
+                        "products": [
+                            {"sku": "258568745", "quantity": 15}
+                        ]
+                    },
+                    {
+                        "seller_id": 1,
+                        "delivery_type": 1,
+                        "courier_service": 2,
+                        "pickup_point_id": 292,
+                        "products": [
+                            {"sku": "272464947", "quantity": 17}
+                        ]
+                    }
+                ]
+            }
+        )
+    ],
     tags=["PayPal"]
 )
 class CreatePayPalPaymentView(PayPalMixin, APIView):
