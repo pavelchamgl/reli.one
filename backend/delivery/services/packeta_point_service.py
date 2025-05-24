@@ -48,3 +48,21 @@ def resolve_country_from_local_pickup_point(pickup_point_id: int) -> Optional[st
     # 3. Не найдено
     logger.warning(f"Pickup point ID {pickup_point_id} not found in box or branch lists.")
     return None
+
+
+def get_pickup_point_details(pickup_point_id: int):
+    try:
+        for path in [BOX_POINTS_FILE, BRANCH_POINTS_FILE]:
+            with open(path, encoding='utf-8') as f:
+                data = json.load(f)
+                for point in data:
+                    if str(point.get("id")) == str(pickup_point_id):
+                        return {
+                            "place": point.get("place", ""),
+                            "street": point.get("street", ""),
+                            "city": point.get("city", "")
+                        }
+        return None
+    except Exception as e:
+        logger.error(f"[Packeta] Ошибка при получении данных по пункту {pickup_point_id}: {e}")
+        return None

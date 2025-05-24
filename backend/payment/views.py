@@ -18,7 +18,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment, PayPalMetadata, StripeMetadata
 from .mixins import PayPalMixin
-from .services import send_order_emails_safely
+# from .services import send_order_emails_safely
 from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
