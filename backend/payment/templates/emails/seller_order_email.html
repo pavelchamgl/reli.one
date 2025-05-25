@@ -2,80 +2,99 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Новый заказ для продавца</title>
+    <title>Новый заказ для вас</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f7f7;
-            padding: 30px;
-        }
-
-        .container {
-            background-color: #fff;
+            font-family: Roboto, Arial, sans-serif;
+            background-color: #f5f5f5;
             padding: 20px;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
             border-radius: 8px;
             max-width: 700px;
-            margin: 0 auto;
+            margin: auto;
+            color: #000;
         }
-
-        h2, h3 {
-            color: #333;
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
         }
-
-        .group-header {
+        h2 {
+            border-bottom: 2px solid #f4c542;
+            padding-bottom: 8px;
+            color: #000;
+        }
+        h3 {
             margin-top: 30px;
+            color: #000;
         }
-
+        .group-header p {
+            margin: 5px 0;
+        }
         .summary {
             margin-top: 20px;
         }
-
         .summary p {
             font-size: 14px;
             margin: 5px 0;
         }
-
+        .highlight {
+            background-color: #f4c542;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
         .desktop-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 15px;
         }
-
-        .desktop-table th,
-        .desktop-table td {
-            border: 1px solid #e0e0e0;
+        .desktop-table th, .desktop-table td {
+            border: 1px solid #ddd;
             padding: 10px;
-            text-align: left;
             font-size: 14px;
         }
-
         .desktop-table th {
-            background-color: #f1f1f1;
+            background-color: #f4c542;
+            color: #000;
         }
-
-        .mobile-item,
-        .mobile-parcel {
+        .mobile-item {
             display: none;
+        }
+        .info-box {
+            background-color: #fff9e5;
+            border-left: 4px solid #f4c542;
+            padding: 10px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .parcel-block {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .parcel-block p {
+            margin: 5px 0;
         }
 
         @media only screen and (max-width: 600px) {
             .desktop-table {
                 display: none;
             }
-
-            .mobile-item,
-            .mobile-parcel {
+            .mobile-item {
                 display: block;
                 border: 1px solid #e0e0e0;
                 border-radius: 6px;
                 padding: 10px;
                 margin-top: 10px;
                 font-size: 14px;
-                background-color: #fafafa;
             }
-
-            .mobile-item p,
-            .mobile-parcel p {
+            .mobile-item p {
                 margin: 5px 0;
             }
         }
@@ -83,6 +102,10 @@
 </head>
 <body>
 <div class="container">
+    <div class="logo">
+        <img src="cid:{{ logo_cid }}" alt="Reli" style="max-width: 100px;">
+    </div>
+
     <h2>Новый заказ для вас</h2>
 
     {% for group in groups %}
@@ -100,26 +123,26 @@
             <!-- Desktop Table -->
             <table class="desktop-table">
                 <thead>
-                <tr>
-                    <th>Название продукта</th>
-                    <th>Кол-во</th>
-                    <th>Цена за шт</th>
-                    <th>Сумма</th>
-                </tr>
+                    <tr>
+                        <th>Название продукта</th>
+                        <th>Кол-во</th>
+                        <th>Цена за шт</th>
+                        <th>Сумма</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {% for item in group.products %}
+                    {% for item in group.products %}
                     <tr>
                         <td>{{ item.product_name }}</td>
                         <td>{{ item.quantity }}</td>
                         <td>{{ item.unit_price }} €</td>
                         <td>{{ item.total_price }} €</td>
                     </tr>
-                {% endfor %}
+                    {% endfor %}
                 </tbody>
             </table>
 
-            <!-- Mobile View -->
+            <!-- Mobile Cards -->
             {% for item in group.products %}
             <div class="mobile-item">
                 <p><strong>Название продукта:</strong><br>{{ item.product_name }}</p>
@@ -132,50 +155,24 @@
             <p><strong>Стоимость доставки:</strong> {{ group.delivery_cost }} €</p>
             <p><strong>Итого по группе:</strong> {{ group.group_total }} €</p>
         </div>
-        <hr>
     {% endfor %}
 
     {% if parcels %}
-        <div class="group-header">
-            <h3>Посылки для сборки</h3>
-
-            <!-- Desktop Table -->
-            <table class="desktop-table">
-                <thead>
-                <tr>
-                    <th>Номер отслеживания</th>
-                    <th>Товары</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for parcel in parcels %}
-                    <tr>
-                        <td>{{ parcel.tracking_number }}</td>
-                        <td>
-                            <ul style="margin: 0; padding-left: 16px;">
-                                {% for item in parcel.items %}
-                                    <li>{{ item.quantity }} × {{ item.product_name }} (SKU: {{ item.sku }})</li>
-                                {% endfor %}
-                            </ul>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-
-            <!-- Mobile View -->
-            {% for parcel in parcels %}
-                <div class="mobile-parcel">
-                    <p><strong>Номер отслеживания:</strong><br>{{ parcel.tracking_number }}</p>
-                    <p><strong>Товары:</strong></p>
-                    <ul style="padding-left: 16px; margin: 5px 0;">
-                        {% for item in parcel.items %}
-                            <li>{{ item.quantity }} × {{ item.product_name }}<br><small>SKU: {{ item.sku }}</small></li>
-                        {% endfor %}
-                    </ul>
-                </div>
+        <h3>Посылки для сборки</h3>
+        {% for parcel in parcels %}
+        <div class="parcel-block">
+            <p><strong>Номер отслеживания:</strong> {{ parcel.tracking_number }}</p>
+            {% for item in parcel.items %}
+                <p>• {{ item.quantity }} × {{ item.product_name }} <small>(SKU: {{ item.sku }})</small></p>
             {% endfor %}
         </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if parcels %}
+    <div class="info-box">
+        📨 К письму приложены PDF-ярлыки для печати и наклеивания на каждую посылку.
+    </div>
     {% endif %}
 </div>
 </body>

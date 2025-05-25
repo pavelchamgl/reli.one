@@ -1,10 +1,13 @@
+import os
 import logging
 
 from decimal import Decimal
 from collections import defaultdict
 from django.conf import settings
-from django.core.mail import EmailMessage
+from email.mime.image import MIMEImage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.core.mail.message import make_msgid
 
 from .models import Payment
 from delivery.models import DeliveryParcelItem
@@ -181,10 +184,10 @@ def send_seller_emails_by_session(session_id: str):
             group["group_total"] = f"{group['group_total']:.2f}"
             group["order_date"] = group["order_date"].strftime("%d.%m.%Y %H:%M") if group["order_date"] else ""
 
-        # Добавляем посылки для продавца
         parcel_map = defaultdict(list)
+        parcel_files = set()
         parcel_items = DeliveryParcelItem.objects.select_related(
-            "parcel", "order_product__product__product", "order_product__seller_profile__user", "parcel__warehouse"
+            "parcel", "order_product__product__product", "order_product__seller_profile__user"
         ).filter(order_product_id__in=order_products_set)
 
         for item in parcel_items:
@@ -197,32 +200,48 @@ def send_seller_emails_by_session(session_id: str):
                 "product_name": item.order_product.product.product.name,
                 "sku": item.order_product.product.sku,
                 "quantity": item.quantity,
-                "warehouse": str(parcel.warehouse),
             })
+
+            if parcel.label_file and os.path.isfile(parcel.label_file.path):
+                parcel_files.add(parcel.label_file.path)
 
         parcels = []
         for tracking_number, items in parcel_map.items():
             parcels.append({
                 "tracking_number": tracking_number,
                 "items": items,
-                "warehouse": items[0]["warehouse"] if items else "",
             })
 
-        context = {
-            "seller_email": seller_email,
-            "groups": list(seller_groups.values()),
-            "parcels": parcels,
-        }
-
         try:
+            logo_cid = make_msgid(domain="reli.one")
+            context = {
+                "seller_email": seller_email,
+                "groups": list(seller_groups.values()),
+                "parcels": parcels,
+                "logo_cid": logo_cid[1:-1],
+            }
+
             html = render_to_string("emails/seller_order_email.html", context)
-            email = EmailMessage(
-                subject=f"Новый заказ для вас",
+
+            email = EmailMultiAlternatives(
+                subject="Новый заказ для вас",
                 body=html,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[seller_email],
             )
-            email.content_subtype = "html"
+            email.attach_alternative(html, "text/html")
+
+            for file_path in parcel_files:
+                email.attach_file(file_path)
+
+            logo_path = os.path.join(settings.BASE_DIR, "logo_reli.png")
+            if os.path.exists(logo_path):
+                with open(logo_path, "rb") as logo_file:
+                    logo_image = MIMEImage(logo_file.read())
+                    logo_image.add_header("Content-ID", logo_cid)
+                    logo_image.add_header("Content-Disposition", "inline", filename="logo.png")
+                    email.attach(logo_image)
+
             email.send()
             logger.info(f"[SELLER-MAIL] Письмо продавцу {seller_email} отправлено по session {session_id}")
         except Exception as e:
