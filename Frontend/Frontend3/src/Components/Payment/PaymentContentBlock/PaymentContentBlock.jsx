@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -15,16 +15,25 @@ import arrLeft from "../../../assets/Payment/arrLeft.svg";
 import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
 
 import styles from "./PaymentContentBlock.module.scss";
+import CountrySelect from "../CountrySelect/CountrySelect";
+import { useSelector } from "react-redux";
+import { isValidPhone, isValidZipCode } from "../../../code/validation/validationPayment";
 
 const PaymentContentBlock = ({ setSection }) => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery({ maxWidth: 426 });
 
+  const [phoneValid, setPhoneValid] = useState(true)
+  const [zipValid, setZipValid] = useState(true)
+
   const { t } = useTranslation();
 
-  const paymentInfo = localStorage.getItem("payment");
+  const { paymentInfo, country } = useSelector(state => state.payment)
 
   const { basketSelectedProductsPrice, editValue } = useActions();
+
+  const phoneInteracted = useRef(false);
+  const zipInteracted = useRef(false);
 
   const validationSchema = yup.object().shape({
     email: yup
@@ -32,20 +41,26 @@ const PaymentContentBlock = ({ setSection }) => {
       .typeError(t("validation.email.typeError"))
       .email(t("validation.email.email"))
       .required(t("validation.email.required")),
-    country: yup.string().required(t("validation.country.required")),
+    city: yup.string().required(t("validation.city.required")),
     name: yup.string().required(t("validation.name.required")),
     surename: yup.string().required(t("validation.surename.required")),
-    address: yup.string().required(t("validation.address.required")),
+    street: yup.string().required(t("validation.street.required")),
+    zip: yup.string().required(t("validation.zip.required")),
+    build: yup.string().required(t("validation.build.required")),
+    apartment: yup.string().required(t("validation.apartment.required")),
     phone: yup.string().required(t("validation.phone.required")),
   });
 
   const formik = useFormik({
     initialValues: {
       email: paymentInfo ? paymentInfo.email : "",
-      country: paymentInfo ? paymentInfo.country : "",
+      city: paymentInfo ? paymentInfo.city : "",
       name: paymentInfo ? paymentInfo.name : "",
-      surename: paymentInfo ? paymentInfo.surname : "",
-      address: paymentInfo ? paymentInfo.address : "",
+      surename: paymentInfo ? paymentInfo.surename : "",
+      zip: paymentInfo ? paymentInfo.zip : "",
+      build: paymentInfo ? paymentInfo.build : "",
+      street: paymentInfo ? paymentInfo.street : "",
+      apartment: paymentInfo ? paymentInfo.apartment : "",
       phone: paymentInfo ? paymentInfo.phone : "",
     },
     validationSchema: validationSchema,
@@ -61,8 +76,25 @@ const PaymentContentBlock = ({ setSection }) => {
     localStorage.removeItem("payment");
     basketSelectedProductsPrice();
   }, []);
+  const { email, city, name, phone, surename, apartment, build, street, zip } = formik.values;
 
-  const { email, address, country, name, phone, surename } = formik.values;
+  useEffect(() => {
+    if (phone && country) {
+      if (phoneInteracted.current) {
+        const isValid = isValidPhone(phone, country);
+        setPhoneValid(isValid);
+      }
+    }
+  }, [phone, country]);
+
+  useEffect(() => {
+    if (zip && country) {
+      if (zipInteracted.current) {
+        const isValid = isValidZipCode(country, zip);
+        setZipValid(isValid);
+      }
+    }
+  }, [zip, country]);
 
   const handleNext = () => {
     formik.handleSubmit();
@@ -98,15 +130,19 @@ const PaymentContentBlock = ({ setSection }) => {
       />
       <div className={styles.adressDiv}>
         <h3 className={styles.sectionTitle}>{t("add_address")}</h3>
-        <PaymentInp
-          title={t("region_city")}
-          name="country"
-          value={country}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          err={formik.errors.country}
-        />
-        <div className={styles.smallInpDiv}>
+        <div className={styles.inpWrap}>
+          <CountrySelect />
+          <PaymentInp
+            title={"City"}
+            name="city"
+            value={city}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            err={formik.errors.city}
+          />
+
+        </div>
+        <div className={styles.inpWrap}>
           <PaymentInp
             title={t("pay_name")}
             name="name"
@@ -124,21 +160,59 @@ const PaymentContentBlock = ({ setSection }) => {
             err={formik.errors.surename}
           />
         </div>
-        <PaymentInp
-          title={t("pay_address")}
-          name="address"
-          value={address}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-          err={formik.errors.address}
-        />
+        <div className={styles.inpWrap}>
+          <PaymentInp
+            title={"Street"}
+            name="street"
+            value={street}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            err={formik.errors.street}
+          />
+          <PaymentInp
+            title={"Postal code (zip code)"}
+            name="zip"
+            value={zip}
+            onChange={
+              (e) => {
+                zipInteracted.current = true;
+                formik.handleChange(e)
+              }
+            }
+            onBlur={formik.handleBlur}
+            err={zipInteracted.current && !zipValid ? "Please enter a valid zip code." : formik.errors.zip}
+          />
+        </div>
+        <div className={styles.inpWrap}>
+          <PaymentInp
+            title={"Building number"}
+            name="build"
+            value={build}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            err={formik.errors.build}
+          />
+          <PaymentInp
+            title={"Apartment number"}
+            name="apartment"
+            value={apartment}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            err={formik.errors.apartment}
+          />
+        </div>
+
+
         <PaymentInp
           title={t("pay_phone")}
           name="phone"
           value={phone}
-          onChange={formik.handleChange}
+          onChange={(e) => {
+            phoneInteracted.current = true;
+            formik.handleChange(e)
+          }}
           onBlur={formik.handleBlur}
-          err={formik.errors.phone}
+          err={phoneInteracted.current && !phoneValid ? "Please enter a valid phone number." : formik.errors.phone}
         />
         <label className={styles.checkDiv}>
           <Checkbox />
@@ -153,13 +227,20 @@ const PaymentContentBlock = ({ setSection }) => {
         <button
           disabled={
             !formik.isValid ||
-            !formik.touched ||
+            !formik.dirty ||
             !email ||
-            !address ||
             !country ||
             !name ||
             !phone ||
-            !surename
+            !surename ||
+            !apartment ||
+            !build ||
+            !street ||
+            !zip ||
+            !phoneValid ||
+            !zipValid ||
+            phone?.length === 0 ||
+            zip?.length === 0
           }
           onClick={handleNext}
         >

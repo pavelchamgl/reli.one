@@ -1,0 +1,62 @@
+.selectMainButton {
+  border: 1px solid #ced4d7;
+  height: 46px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  justify-content: flex-end;
+  padding-inline: 20px;
+
+  & p {
+    font-family: var(--font-family);
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 100%;
+    color: #000;
+  }
+}
+
+.selectBtns {
+  border: 1px solid #ced4d7;
+  width: 100%;
+  padding-left: 20px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  background-color: transparent;
+  font-weight: 400;
+  font-size: 14px;
+  height: 44px;
+  transition: 1s ease;
+
+  &:hover {
+    background-color: #ebebeb;
+  }
+}
+
+.selectBtnsHide {
+  display: none;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.labelText {
+  font-weight: 400;
+  font-size: 14px;
+  color: #828b8d;
+  padding-bottom: 3px;
+}
+
+.errorText {
+  margin-top: 5px;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 143%;
+  letter-spacing: -0.02em;
+  color: #c41010;
+}

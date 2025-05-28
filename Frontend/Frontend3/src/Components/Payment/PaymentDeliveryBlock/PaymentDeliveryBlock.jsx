@@ -15,34 +15,43 @@ import MobPaymentBasket from "../MobPaymentBasket/MobPaymentBasket";
 import styles from "./PaymentDeliveryBlock.module.scss";
 import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
 import PaymentDeliverySuplier from "../PaymentDeliveruSuplier/PaymentDeliverySuplier";
+import { groupBySeller } from "../../../pages/Test";
+import { useActionPayment } from "../../../hook/useActionPayment";
 
 const PaymentDeliveryBlock = ({ setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
-  const [paymentInfo, setPaymentInfo] = useState({});
+  const [allHasDelivery, setAllHasDelivery] = useState(false)
 
-  const paymentInfoLocal = useSelector((state) => state.payment.paymentInfo);
+  const { paymentInfo, groups } = useSelector((state) => state.payment);
 
-  useEffect(() => {
-    setPaymentInfo(paymentInfoLocal);
-  }, [paymentInfoLocal]);
+  const { email, city, street } = paymentInfo || {};
 
-  const { email, address } = paymentInfo || {};
+  const { selectedProducts } = useSelector(state => state.basket)
+
+
+
 
 
   const { plusMinusDelivery, basketSelectedProductsPrice } = useActions();
+
+  const { setGroups } = useActionPayment()
 
   const navigate = useNavigate();
 
   const { t } = useTranslation();
 
   useEffect(() => {
+    if (selectedProducts) {
+      const grouped = groupBySeller(selectedProducts);
+      setGroups(grouped)
+    }
+  }, [selectedProducts])
+
+  useEffect(() => {
     basketSelectedProductsPrice();
   }, []);
 
   const handleSubmit = () => {
-    if (paymentInfo.price) {
-      plusMinusDelivery({ type: "plus", price: paymentInfo.price });
-    }
     setSection(3);
   };
 
@@ -50,6 +59,14 @@ const PaymentDeliveryBlock = ({ setSection }) => {
     localStorage.removeItem("payment");
     setSection(1);
   };
+
+  useEffect(() => {
+    if (groups && groups.length > 0 && groups?.every((item) => !!item.deliveryType)) {
+      setAllHasDelivery(true)
+    } else {
+      setAllHasDelivery(false)
+    }
+  }, [groups])
 
   return (
     <div className={styles.main}>
@@ -61,21 +78,29 @@ const PaymentDeliveryBlock = ({ setSection }) => {
         <CustomBreadcrumbs />
       </div>
       <div className={styles.inpDiv}>
-        <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} />
+        <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} setSection={() => setSection(1)} />
         <PaymentDeliveryInp
           desc={"address"}
-          value={address}
+          city={city}
+          street={street}
+          setSection={() => setSection(1)}
           title={t("add_address")}
         />
       </div>
-      <PaymentDeliverySuplier />
-  
+      {
+        groups && groups.length > 0 &&
+        groups?.map((item, index) => (
+          <PaymentDeliverySuplier index={index} key={index} group={item} />
+        ))
+      }
+
+
       <div className={styles.buttonDiv}>
         <button onClick={handleReturn}>
           <img src={arrLeft} alt="" />
           <span>{t("back_to_info")}</span>
         </button>
-        <button onClick={handleSubmit}>{t("proceed_checkout")}</button>
+        <button disabled={!allHasDelivery} onClick={handleSubmit}>{t("proceed_checkout")}</button>
       </div>
     </div>
   );

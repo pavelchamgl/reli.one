@@ -43,6 +43,8 @@ const MobVariantDrawer = ({
             count: 1,
             selected: false,
             sku: selected,
+            seller_id: allData.seller_id,
+            price_without_vat: variant.price_without_vat
           })
         );
         handleClose()

@@ -16,16 +16,18 @@ const BasketTotalBlock = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useMediaQuery({ maxWidth: 426 });
+  const [deliveryPrice, setDeliveryPrice] = useState(null)
 
   const totalPrice = useSelector((state) => state.basket.totalCount);
 
   const [price, setPrice] = useState(totalPrice);
+  const [endPrice, setEndPrice] = useState(null)
 
   const selectedProducts = useSelector(
     (state) => state.basket.selectedProducts
   );
 
-  const { paymentInfo } = useSelector((state) => state.payment);
+  const { paymentInfo, groups } = useSelector((state) => state.payment);
 
   const dispatch = useDispatch();
 
@@ -54,8 +56,16 @@ const BasketTotalBlock = () => {
   }, [isMobile]);
 
   useEffect(() => {
-    setPrice(totalPrice);
-  }, [totalPrice]);
+    if (Array.isArray(groups) && groups?.some((item) => !!item?.deliveryPrice)) {
+      const price = groups.reduce((sum, item) => sum + (item?.deliveryPrice || 0), 0);
+      setDeliveryPrice(price);
+    }
+  }, [groups])
+
+useEffect(() => {
+  setEndPrice(totalPrice + (deliveryPrice || 0));
+}, [deliveryPrice, totalPrice]);
+
 
   return (
     <>
@@ -87,8 +97,8 @@ const BasketTotalBlock = () => {
               <span>{t("transportation")}</span>
 
               <span>
-                {paymentInfo && paymentInfo.hasOwnProperty("price")
-                  ? paymentInfo.price
+                {deliveryPrice
+                  ? deliveryPrice
                   : t("transportation_calculate_text")}
               </span>
             </div>
@@ -97,19 +107,19 @@ const BasketTotalBlock = () => {
             <p>{t("total")}</p>
             <div>
               <span>EUR</span>
-              <strong>{price?.toFixed(2)} €</strong>
+              <strong>{endPrice ? endPrice?.toFixed(2) : price?.toFixed(2)} €</strong>
             </div>
           </div>
           {(location.pathname === "/basket" ||
             location.pathname === "/mob_basket") && (
-            <button
-              className={styles.continueBtn}
-              onClick={() => navigate("/payment")}
-              disabled={!selectedProducts.length}
-            >
-              {t("basket_continue")}
-            </button>
-          )}
+              <button
+                className={styles.continueBtn}
+                onClick={() => navigate("/payment")}
+                disabled={!selectedProducts.length}
+              >
+                {t("basket_continue")}
+              </button>
+            )}
         </div>
       </div>
     </>

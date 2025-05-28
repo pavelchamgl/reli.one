@@ -38,6 +38,8 @@ const ProductImageAndName = () => {
   const dispatch = useDispatch();
 
   const handleAddBasket = () => {
+    const firstVariant = product.variants[0];
+
     dispatch(
       addToBasket({
         id: product.id,
@@ -45,6 +47,8 @@ const ProductImageAndName = () => {
         count: 1,
         selected: false,
         sku: sku,
+        seller_id: product.seller_id,
+        price_without_vat: firstVariant.price_without_vat
       })
     );
   };

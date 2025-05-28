@@ -45,39 +45,41 @@ const CatalogDrawer = ({ open, handleClose }) => {
   };
 
   return (
-    <div>
+    <div className={isPlanshet ? styles.mainWrap : ""}>
       <Drawer open={open} anchor="top" onClose={handleClose}>
         {isPlanshet && <Header />}
         <div className={styles.main}>
-          <div className={styles.catalogItemWrap}>
-            {categories.map((item) => {
-              if (item?.children) {
-                return (
-                  <CatalogItem
-                    key={item.id}
-                    catalogCategory={catalogCategory}
-                    setCatalogCategory={setCatalogCategory}
-                    data={item}
-                    handleClose={handleClose}
-                  />
-                );
-              } else {
-                return (
-                  <button
-                    key={item.id}
-                    className={styles.catalogItemBtn}
-                    onClick={() => handleCategoryClick(item?.name, item?.id)}
-                  >
+          <div className={styles.catalogItemWrapMain}>
+            <div className={styles.catalogItemWrap}>
+              {categories.map((item) => {
+                if (item?.children) {
+                  return (
                     <CatalogItem
+                      key={item.id}
                       catalogCategory={catalogCategory}
                       setCatalogCategory={setCatalogCategory}
                       data={item}
                       handleClose={handleClose}
                     />
-                  </button>
-                );
-              }
-            })}
+                  );
+                } else {
+                  return (
+                    <button
+                      key={item.id}
+                      className={styles.catalogItemBtn}
+                      onClick={() => handleCategoryClick(item?.name, item?.id)}
+                    >
+                      <CatalogItem
+                        catalogCategory={catalogCategory}
+                        setCatalogCategory={setCatalogCategory}
+                        data={item}
+                        handleClose={handleClose}
+                      />
+                    </button>
+                  );
+                }
+              })}
+            </div>
           </div>
           {!isMobile && (
             <div>

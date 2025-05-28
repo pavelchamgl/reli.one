@@ -1,28 +1,64 @@
 .main {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  grid-gap: 70px;
   height: 100%;
-  padding: 138px 109px 57px 39px;
-  display: flex;
-  gap: 70px;
+  padding: 118px 109px 57px 39px;
+  position: relative;
+
   @media (max-width: 950px) {
     padding: 22px 39px 57px 39px;
+    grid-template-columns: 280px 1fr;
   }
+
   @media (max-width: 750px) {
-    gap: 40px;
+    grid-gap: 40px;
+    position: initial;
   }
+
   @media (max-width: 670px) {
     padding: 22px 10px 57px 10px;
-    gap: 20px;
+    grid-gap: 20px;
   }
+}
+
+.mainWrap {
+  position: relative;
 }
 
 .catalogItemBtn {
   background-color: transparent;
 }
 
+.catalogItemWrapMain {
+  height: 80vh;
+  @media (max-width: 950px) {
+    height: 65vh;
+  }
+  @media (max-width: 500px) {
+    height: 100%;
+  }
+}
+
 .catalogItemWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  display: grid;
+  grid-auto-rows: min-content;
+  align-items: start;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 80vh;
+  position: fixed;
+  max-width: 320px;
+  min-width: 270px;
+
+  @media (max-width: 950px) {
+    height: 100%;
+    overflow-y: initial;
+    overflow-x: initial;
+    position: static;
+    max-width: 100%;
+    min-width: none;
+  }
 }
 
 .catalogTitle {
@@ -30,6 +66,7 @@
   font-size: clamp(20px, 2.5vw, 32px);
   color: #000;
 }
+
 .categoryCardWrap {
   margin-top: 15px;
   display: flex;
@@ -38,31 +75,28 @@
 }
 
 .categoryCardBtnWrap {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   gap: 67px;
   margin-top: 15px;
+
   @media (max-width: 700px) {
     gap: 20px;
   }
 }
 
 .categoryCardDiv {
-  display: flex;
-  // justify-content: space-between;
-  align-items: center;
-  flex-direction: column;
+  display: grid;
   gap: 20px;
-  flex-wrap: wrap;
-  padding-right: 67px;
   border-right: 1px solid #ebebeb;
+
   @media (max-width: 700px) {
     padding-right: 20px;
   }
 }
 
 .categoryTextDiv {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 15px;
 }
 
@@ -78,6 +112,7 @@
   &:hover {
     color: #f7cd56;
   }
+
   @media (max-width: 500px) {
     font-size: 12px;
   }

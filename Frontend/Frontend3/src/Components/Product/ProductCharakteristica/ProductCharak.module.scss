@@ -1,6 +1,6 @@
 .modelText {
   font-weight: 500;
-  font-size: clamp(14px, 2.5vw, 24px);
+  font-size: clamp(14px, 2.5vw, 16px);
   line-height: 130%;
   color: #000;
   width: 100vw;
@@ -67,7 +67,7 @@
   display: flex;
   flex-direction: column;
   gap: 50px;
-  margin-top: 40px;
+  margin-top: 24px;
   @media (max-width: 500px) {
     gap: 30px;
     margin-top: 10px;

@@ -14,7 +14,7 @@
 .inpBtnDiv {
   display: flex;
   align-items: center;
-  input {
+  p {
     width: 100%;
     border: 1px solid #ced4d7;
     height: 46px;
@@ -23,6 +23,8 @@
     color: black;
     outline: none;
     padding-left: 10px;
+    display: flex;
+    align-items: center;
     @media (max-width: 426px) {
       height: 36px;
     }
@@ -43,10 +45,7 @@
       background: #047857;
       color: #fff;
     }
-    &:disabled {
-      background: #595759;
-      color: #fff;
-    }
+    
     @media (max-width: 426px) {
       height: 36px;
       width: 72px;

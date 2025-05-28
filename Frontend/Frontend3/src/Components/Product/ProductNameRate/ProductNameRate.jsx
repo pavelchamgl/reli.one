@@ -21,6 +21,7 @@ const ProductNameRate = () => {
   const [endPrice, setEndPice] = useState(null);
   const [sku, setSku] = useState(null);
   const [openModal, setOpenModal] = useState(false)
+  const [priceVat, setPriceVat] = useState(null)
 
   const isMobile = useMediaQuery({ maxWidth: 426 })
 
@@ -37,6 +38,8 @@ const ProductNameRate = () => {
 
   const handleAddBasket = () => {
     if (!product || !sku || !endPrice) return;
+    const firstVariant = product.variants[0];
+
 
     if (product?.variants?.length > 1) {
       if (!isMobile) {
@@ -50,6 +53,8 @@ const ProductNameRate = () => {
           count: 1,
           selected: false,
           sku: sku,
+          seller_id: product.seller_id,
+          price_without_vat: firstVariant.price_without_vat
         })
       );
     }
@@ -87,10 +92,12 @@ const ProductNameRate = () => {
         setPrice(firstVariant.price);
         setEndPice(firstVariant.price);
         setSku(firstVariant.sku);
+        setPriceVat(firstVariant.price_without_vat)
       } else {
         // Если продукт уже в корзине, использовать данные из корзины
         setEndPice(existingProduct.product.price);
         setSku(existingProduct.sku);
+        setPriceVat(existingProduct?.price_without_vat)
       }
     }
   }, [product, basket]);
@@ -108,7 +115,7 @@ const ProductNameRate = () => {
         <span className={styles.categoryName}>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{endPrice ? endPrice : price} €</p>
-      <p className={styles.ndcPrice}>Without VAT <span>$32.71</span></p>
+      <p className={styles.ndcPrice}>Without VAT <span>{priceVat}</span></p>
       <ProdCharackButtons
         setSku={setSku}
         setPrice={setEndPice}
