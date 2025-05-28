@@ -67,6 +67,9 @@ const ProductCard = ({ data = null }) => {
             count: initialCount,
             selected: false,
             sku: firstVariant.sku || "",
+            seller_id: allData.seller_id,
+            price_without_vat: firstVariant.price_without_vat
+
           })
         );
       } else {

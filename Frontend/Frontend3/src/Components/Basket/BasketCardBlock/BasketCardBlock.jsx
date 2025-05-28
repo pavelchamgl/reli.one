@@ -34,6 +34,9 @@ const BasketCardBlock = () => {
 
   const dispatch = useDispatch();
 
+  console.log(basket);
+  
+
   const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {

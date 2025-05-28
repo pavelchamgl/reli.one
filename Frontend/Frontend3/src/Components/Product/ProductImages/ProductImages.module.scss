@@ -13,8 +13,6 @@
   //   height: 300px;
   //   gap: 20px;
   // }
-
-  
 }
 
 .mainImage {
@@ -37,14 +35,24 @@
 .smallImage {
   background-color: transparent;
   img {
-    width: 75px ;
+    width: 75px;
     aspect-ratio: 1/1;
     object-fit: cover;
-  
   }
 }
 
 .smallImageDiv {
+  min-width: 259px;
+  max-width: 500px;
+  overflow-x: scroll;
   display: flex;
   gap: 10px;
+
+  /* Скрыть скроллбар */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.smallImageDiv::-webkit-scrollbar {
+  display: none; /* Chrome, Safari и Opera */
 }

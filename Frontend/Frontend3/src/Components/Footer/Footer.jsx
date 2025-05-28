@@ -108,7 +108,7 @@ const Footer = () => {
             </Link>
           </nav>
           <div className={cls.Info_Container}>
-            <h1>Reli Group, s.r.o</h1>
+            <h1>Reli Group s.r.o</h1>
             <p>{t("phone")}: +420 797 837 856</p>
             <p>{t("email")}: info.reli.one@gmail.com</p>
             <p>

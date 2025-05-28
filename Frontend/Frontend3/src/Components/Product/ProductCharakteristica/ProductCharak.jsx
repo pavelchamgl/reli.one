@@ -60,7 +60,7 @@ const ProductCharak = () => {
           ))}
         </div>
       </div>
-      {license_file && <p className={styles.licenseText}>You can read the certificate <a href={license_file}>here</a></p>}
+      {license_file && <p className={styles.licenseText}>View certificate <a href={license_file}>here</a></p>}
     </div>
   );
 };

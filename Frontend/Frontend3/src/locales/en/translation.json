@@ -11,7 +11,7 @@
     "enter_account": "Log in",
     "orders": "Orders",
     "choice": "Favorites",
-    "bin": "Basket",
+    "bin": "Cart",
     "phone": "Number",
     "email": "Email",
     "address": "Address",
@@ -86,8 +86,8 @@
     "_payment": "payment",
     "add_address": "Add address",
     "region_city": "Country/region",
-    "pay_name": "Name",
-    "pay_surname": "Surname",
+    "pay_name": "First name",
+    "pay_surname": "Last name",
     "pay_address": "Address",
     "pay_phone": "Phone",
     "save_info_for_future": "Save the information for future purchases",
@@ -245,12 +245,12 @@
     "start_selling_list_6": "Sellers must accept our fee structure, which includes applicable listing fees, transaction commissions, and any relevant subscription charges. ",
     "start_selling_list_7": "We expect sellers to provide prompt, courteous, and professional customer service. This includes responding to messages, resolving customer issues, handling returns, and managing disputes in a timely manner. ",
     "_prod_page": "prod_page",
-    "add_basket": "Add to basket",
-    "delivery_btn": "Delivery from 2 days to 4 months",
-    "characteristics": "Characteristics",
+    "add_basket": "Add to cart",
+    "delivery_btn": "Delivery: 2 days to 4 months",
+    "characteristics": "Description ",
     "review": "Review",
     "certificates": "Certificates",
-    "transfer_charac": "Static transfer characteristic",
+    "transfer_charac": "Parameters",
     "structural_property": "Structural property",
     "_comment_form": "comment_form",
     "impressions_product": "Your impressions of the product",
@@ -261,7 +261,7 @@
         "email": {
             "typeError": "must be a string",
             "email": "invalid email address",
-            "required": "required"
+            "required": "Email is required"
         },
         "comment": {
             "typeError": "comment must be a string",
@@ -285,6 +285,21 @@
         },
         "country": {
             "required": "Country is required"
+        },
+        "street": {
+            "required": "Street is required"
+        },
+        "build": {
+            "required": "Build is required"
+        },
+        "apartment": {
+            "required": "Apartment is required"
+        },
+         "city": {
+            "required": "City is required"
+        },
+        "zip": {
+            "required": "ZIP is required"
         },
         "surename": {
             "required": "Surname is required"

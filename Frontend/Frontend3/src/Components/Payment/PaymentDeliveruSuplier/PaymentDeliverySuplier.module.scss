@@ -15,13 +15,22 @@
 }
 
 .itemCount {
-    display: block;
+  display: block;
   margin: 20px 0;
   font-weight: 400;
   font-size: 18px;
   color: #64748b;
 }
 
-.cardWrap{
-    margin-bottom: 40px;
+.cardWrap {
+  margin-bottom: 40px;
+}
+
+.errorText {
+  margin-top: 5px;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 143%;
+  letter-spacing: -0.02em;
+  color: #c41010;
 }

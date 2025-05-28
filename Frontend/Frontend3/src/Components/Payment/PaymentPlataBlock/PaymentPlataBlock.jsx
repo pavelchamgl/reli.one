@@ -27,19 +27,29 @@ const PaymentPlataBlock = ({ setSection }) => {
   const [modalOpen, setModalOpen] = useState(false)
   const [authEnd, setAuthEnd] = useState(false)
   const [openAgeModal, setOpenAgeModal] = useState(false)
-  const [isAdult, setIsAdult] = useState(false)
+  const [ageCheck, setAgeCheck] = useState(false)
 
   const { t } = useTranslation();
 
-  const { email, address, price, TK } = useSelector(
+  const { email, city, street } = useSelector(
     (state) => state.payment.paymentInfo
   );
 
-  const { loading, error } = useSelector((state) => state.payment);
+  const { loading, error, groups } = useSelector((state) => state.payment);
 
   const selectedProducts = useSelector(
     (state) => state.basket.selectedProducts
   );
+
+  useEffect(() => {
+    if (
+      selectedProducts && selectedProducts.length > 0 && selectedProducts.some((item) => !!item?.product?.is_age_restricted)
+    ) {
+      setAgeCheck(true)
+    } else {
+      setAgeCheck(false)
+    }
+  }, [])
 
   const token = localStorage.getItem("token")
 
@@ -47,14 +57,13 @@ const PaymentPlataBlock = ({ setSection }) => {
   const navigate = useNavigate();
 
   const returnBtn = () => {
-    dispatch({
-      type: "basket/plusMinusDelivery",
-      payload: { type: "minus", price },
-    });
     setSection(2);
   };
 
   const handleSubmit = () => {
+
+    console.log(token);
+
     if (!token) {
       if (isMobile) {
         navigate("/mob_login")
@@ -62,19 +71,26 @@ const PaymentPlataBlock = ({ setSection }) => {
         setModalOpen(true)
       }
     } else {
-      setOpenAgeModal(true)
+      if (ageCheck) {
+        setOpenAgeModal(true)
+      }
+      else {
+        if (plataType === "card") {
+          dispatch(fetchCreateStripeSession());
+        } else {
+          dispatch(fetchCreatePayPalSession());
+        }
+      }
     }
   };
 
-  useEffect(() => {
-    if (isAdult) {
-      if (plataType === "card") {
-        dispatch(fetchCreateStripeSession(selectedProducts));
-      } else {
-        dispatch(fetchCreatePayPalSession(selectedProducts));
-      }
-    }
-  }, [isAdult])
+  // if (isAdult) {
+  //   if (plataType === "card") {
+  //     dispatch(fetchCreateStripeSession(selectedProducts));
+  //   } else {
+  //     dispatch(fetchCreatePayPalSession(selectedProducts));
+  //   }
+  // }
 
   return (
     <div className={styles.main}>
@@ -86,17 +102,19 @@ const PaymentPlataBlock = ({ setSection }) => {
         <CustomBreadcrumbs />
       </div>
       <div className={styles.inpDiv}>
-        <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} />
+        <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} setSection={() => setSection(1)} />
         <PaymentDeliveryInp
           desc={"address"}
-          value={address}
+          city={city}
+          street={street}
           title={t("add_address")}
+          setSection={() => setSection(1)}
         />
         <PaymentDeliveryInp
           desc={"TK"}
-          value={TK}
           title={t("way_transportation")}
-          setSection={setSection}
+          setSection={() => setSection(2)}
+          groups={groups}
           setInputError={setInputError}
         />
       </div>
@@ -116,12 +134,14 @@ const PaymentPlataBlock = ({ setSection }) => {
           <img src={arrLeft} alt="" />
           <span>{t("back_to_delivery")}</span>
         </button>
-        <button disabled={inputError} onClick={handleSubmit}>
+        <button
+          //  disabled={inputError} 
+          onClick={handleSubmit}>
           {loading ? <Spinner /> : <p>{t("pay_now")}</p>}
         </button>
       </div>
       <LoginModal basket={true} text={"Please log in/register to continue"} open={modalOpen} handleClose={() => setModalOpen(false)} />
-      <ConfirmYourAgeModal setIsAdult={setIsAdult} open={openAgeModal} handleClose={() => setOpenAgeModal(false)} />
+      <ConfirmYourAgeModal plataType={plataType} open={openAgeModal} handleClose={() => setOpenAgeModal(false)} />
     </div>
   );
 };

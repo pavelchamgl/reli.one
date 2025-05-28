@@ -100,6 +100,8 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
                   count: countsBySku[variant.sku] || 1,
                   selected: false,
                   sku: variant.sku,
+                  seller_id: resData.seller_id,
+                  price_without_vat: variant.price_without_vat
                 })
               );
             } else {
@@ -122,6 +124,8 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
           count: countsBySku[selected] || 1,
           selected: false,
           sku: selected,
+          seller_id: allData.seller_id,
+          price_without_vat: variant.price_without_vat
         })
       );
     }
