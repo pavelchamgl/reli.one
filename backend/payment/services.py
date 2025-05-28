@@ -1,109 +1,126 @@
 import os
 import logging
-
 from decimal import Decimal
 from collections import defaultdict
+
 from django.conf import settings
-from email.mime.image import MIMEImage
-from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
-from django.core.mail.message import make_msgid
+from django.core.mail import EmailMessage
 
 from .models import Payment
+from .invoices.pdf_generator import generate_invoice_pdf_by_orders
 from delivery.models import DeliveryParcelItem
 from delivery.services.packeta_point_service import get_pickup_point_details
-from order.models import Order
 
 logger = logging.getLogger(__name__)
 
+def get_logo_base64():
+    """
+    Возвращает содержимое logo_reli.png в base64 для встраивания в письма.
+    """
+    path = os.path.join(settings.BASE_DIR, "logo_reli.png")
+    if not os.path.exists(path):
+        return ""
+    import base64
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
 
 def get_orders_by_payment_session_id(session_id: str):
+    """
+    Возвращает список заказов по session_id.
+    """
     logger.debug(f"[MAIL] Поиск заказов по session_id: {session_id}")
     payments = Payment.objects.filter(session_id=session_id).select_related("order")
-    orders = [p.order for p in payments if p.order is not None]
+    orders = [p.order for p in payments if p.order]
     logger.debug(f"[MAIL] Найдено заказов: {len(orders)}")
     return orders
 
 
 def prepare_merged_customer_email_context(orders):
-    context = {
+    """
+    Формирует общий контекст для писем клиенту и менеджеру.
+    """
+    first = orders[0]
+    ctx = {
+        "logo_base64": get_logo_base64(),  # полностью квалифицированный URL для email-клиентов
         "customer": {
-            "first_name": orders[0].first_name,
-            "last_name": orders[0].last_name,
-            "email": orders[0].customer_email,
-            "phone": orders[0].phone_number,
+            "first_name": first.first_name,
+            "last_name":  first.last_name,
+            "email":      first.customer_email,
+            "phone":      first.phone_number,
         },
-        "groups": [],
-        "grand_total": sum(order.group_subtotal for order in orders),
-        "order_date": orders[0].order_date.strftime("%d.%m.%Y %H:%M"),
+        "groups":      [],
+        "grand_total": f"{sum(o.group_subtotal for o in orders):.2f}",
+        "order_date":  first.order_date.strftime("%d.%m.%Y %H:%M"),
     }
 
     for order in orders:
-        delivery_type = order.delivery_type.name if order.delivery_type else ""
-        courier = order.courier_service.name if order.courier_service else ""
-        address_parts = []
-        if order.delivery_address:
-            addr = order.delivery_address
-            address_parts = [addr.street, addr.city, addr.zip_code, addr.country]
-
-        group = {
-            "order_number": order.order_number,
-            "delivery_type": delivery_type,
-            "courier_service": courier,
-            "delivery_address": ", ".join(filter(None, address_parts)) if address_parts else None,
-            "pickup_point_id": order.pickup_point_id,
-            "pickup_point_info": None,
-            "products": [],
-            "delivery_cost": f"{order.delivery_cost:.2f}",
-            "group_total": f"{order.group_subtotal:.2f}",
-            "order_date": order.order_date,
-            "seller_info": set(),
+        delivery = order.delivery_type.name   if order.delivery_type else ""
+        courier  = order.courier_service.name if order.courier_service else ""
+        grp = {
+            "order_number":     order.order_number,
+            "delivery_type":    delivery,
+            "courier_service":  courier,
+            "delivery_address": None,
+            "pickup_point_info":None,
+            "products":         [],
+            "delivery_cost":    f"{order.delivery_cost:.2f}",
+            "group_total":      f"{order.group_subtotal:.2f}",
+            "order_date":       order.order_date.strftime("%d.%m.%Y %H:%M"),
         }
 
-        if order.pickup_point_id:
-            point = get_pickup_point_details(order.pickup_point_id)
-            if point:
-                group["pickup_point_info"] = f'{point["place"]}, {point["street"]}, {point["city"]}'
+        if order.delivery_address:
+            a = order.delivery_address
+            grp["delivery_address"] = ", ".join(filter(None, [
+                a.street, a.city, a.zip_code, a.country
+            ]))
+        elif order.pickup_point_id:
+            pt = get_pickup_point_details(order.pickup_point_id)
+            if pt:
+                grp["pickup_point_info"] = f"{pt['place']}, {pt['street']}, {pt['city']}"
             else:
-                group["pickup_point_info"] = f'Пункт самовывоза №: {order.pickup_point_id}'
+                grp["pickup_point_info"] = f"Пункт самовывоза №{order.pickup_point_id}"
 
         for item in order.order_products.select_related("product__product", "seller_profile__user"):
-            group["products"].append({
+            grp["products"].append({
                 "product_name": item.product.product.name,
-                "quantity": item.quantity,
-                "unit_price": f"{item.product_price:.2f}",
-                "total_price": f"{(item.product_price * item.quantity):.2f}",
+                "quantity":     item.quantity,
+                "unit_price":   f"{item.product_price:.2f}",
+                "total_price":  f"{(item.product_price * item.quantity):.2f}",
             })
-            if item.seller_profile and item.seller_profile.user:
-                seller = item.seller_profile.user
-                group["seller_info"].add(f"{seller.first_name} {seller.last_name} <{seller.email}>")
 
-        group["seller_info"] = ", ".join(group["seller_info"])
-        context["groups"].append(group)
+        ctx["groups"].append(grp)
 
-    return context
+    return ctx
 
 
 def send_merged_customer_email_from_session(session_id: str):
     orders = get_orders_by_payment_session_id(session_id)
     if not orders:
-        logger.warning(f"[MAIL] Нет заказов по session_id {session_id}")
+        logger.warning(f"[CUSTOMER-MAIL] Нет заказов по session_id {session_id}")
         return
 
-    context = prepare_merged_customer_email_context(orders)
+    ctx = prepare_merged_customer_email_context(orders)
+    html = render_to_string("emails/order_email_customer.html", ctx)
+
+    email = EmailMessage(
+        subject="Подтверждение заказа",
+        body=html,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[ctx["customer"]["email"]],
+    )
+    email.content_subtype = "html"
+
+    # Прикрепляем PDF-счёт
+    invoice_pdf = generate_invoice_pdf_by_orders(orders, orders[0].order_number)
+    email.attach(invoice_pdf.name, invoice_pdf.read(), "application/pdf")
+
     try:
-        html = render_to_string("emails/merged_customer_email.html", context)
-        email = EmailMessage(
-            subject="Подтверждение заказа",
-            body=html,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[context["customer"]["email"]],
-        )
-        email.content_subtype = "html"
         email.send()
-        logger.info(f"[MAIL] Письмо клиенту отправлено по session {session_id}")
+        logger.info(f"[CUSTOMER-MAIL] Письмо клиенту {ctx['customer']['email']} отправлено")
     except Exception as e:
-        logger.exception(f"[MAIL] Ошибка при отправке письма клиенту: {e}")
+        logger.exception(f"[CUSTOMER-MAIL] Ошибка отправки письма клиенту: {e}")
 
 
 def send_merged_manager_email_from_session(session_id: str):
@@ -112,20 +129,22 @@ def send_merged_manager_email_from_session(session_id: str):
         logger.warning(f"[MANAGER-MAIL] Нет заказов по session_id {session_id}")
         return
 
-    context = prepare_merged_customer_email_context(orders)
+    ctx = prepare_merged_customer_email_context(orders)
+    html = render_to_string("emails/order_email_manager.html", ctx)
+
+    email = EmailMessage(
+        subject="Новый заказ",
+        body=html,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=settings.PROJECT_MANAGERS_EMAILS,
+    )
+    email.content_subtype = "html"
+
     try:
-        html = render_to_string("emails/merged_manager_email.html", context)
-        email = EmailMessage(
-            subject=f"Новый заказ",
-            body=html,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=settings.PROJECT_MANAGERS_EMAILS,
-        )
-        email.content_subtype = "html"
         email.send()
-        logger.info(f"[MANAGER-MAIL] Письмо менеджерам отправлено по session {session_id}")
+        logger.info("[MANAGER-MAIL] Письмо менеджерам отправлено")
     except Exception as e:
-        logger.exception(f"[MANAGER-MAIL] Ошибка при отправке письма менеджерам: {e}")
+        logger.exception(f"[MANAGER-MAIL] Ошибка отправки письма менеджерам: {e}")
 
 
 def send_seller_emails_by_session(session_id: str):
@@ -134,115 +153,98 @@ def send_seller_emails_by_session(session_id: str):
         logger.warning(f"[SELLER-MAIL] Нет заказов по session_id {session_id}")
         return
 
-    sellers_data = defaultdict(list)
+    # Группируем OrderProduct по email продавца
+    sellers = defaultdict(list)
     for order in orders:
         for item in order.order_products.select_related("product__product", "seller_profile__user"):
-            seller = item.seller_profile.user
-            if seller and seller.email:
-                sellers_data[seller.email].append((order, item))
+            email_to = getattr(item.seller_profile.user, "email", None)
+            if email_to:
+                sellers[email_to].append((order, item))
 
-    for seller_email, entries in sellers_data.items():
+    for seller_email, entries in sellers.items():
         seller_groups = defaultdict(lambda: {
-            "order_number": None,
-            "delivery_type": "",
-            "courier_service": "",
+            "order_number":     None,
+            "delivery_type":    "",
+            "courier_service":  "",
             "delivery_address": None,
-            "pickup_point_info": None,
-            "products": [],
-            "delivery_cost": Decimal("0.00"),
-            "group_total": Decimal("0.00"),
-            "order_date": None,
+            "pickup_point_info":None,
+            "products":         [],
+            "delivery_cost":    Decimal("0.00"),
+            "group_total":      Decimal("0.00"),
+            "order_date":       None,
         })
+        product_ids = []
 
-        order_products_set = set()
         for order, item in entries:
-            key = order.id
-            group = seller_groups[key]
-            group["order_number"] = order.order_number
-            group["delivery_type"] = order.delivery_type.name if order.delivery_type else ""
-            group["courier_service"] = order.courier_service.name if order.courier_service else ""
+            grp = seller_groups[order.id]
+            grp["order_number"]   = order.order_number
+            grp["delivery_type"]  = order.delivery_type.name    if order.delivery_type else ""
+            grp["courier_service"]= order.courier_service.name  if order.courier_service else ""
+            grp["order_date"]     = order.order_date
+
             if order.delivery_address:
-                addr = order.delivery_address
-                group["delivery_address"] = ", ".join(filter(None, [addr.street, addr.city, addr.zip_code, addr.country]))
+                a = order.delivery_address
+                grp["delivery_address"] = ", ".join(filter(None, [
+                    a.street, a.city, a.zip_code, a.country
+                ]))
             elif order.pickup_point_id:
-                point = get_pickup_point_details(order.pickup_point_id)
-                group["pickup_point_info"] = f'{point["place"]}, {point["street"]}, {point["city"]}' if point else f'Пункт самовывоза №: {order.pickup_point_id}'
+                pt = get_pickup_point_details(order.pickup_point_id)
+                grp["pickup_point_info"] = (
+                    f"{pt['place']}, {pt['street']}, {pt['city']}" if pt else
+                    f"Пункт самовывоза №{order.pickup_point_id}"
+                )
 
-            group["products"].append({
+            grp["products"].append({
                 "product_name": item.product.product.name,
-                "quantity": item.quantity,
-                "unit_price": f"{item.product_price:.2f}",
-                "total_price": f"{(item.product_price * item.quantity):.2f}",
+                "quantity":     item.quantity,
+                "unit_price":   f"{item.product_price:.2f}",
+                "total_price":  f"{(item.product_price * item.quantity):.2f}",
             })
-            group["delivery_cost"] = order.delivery_cost
-            group["group_total"] += item.product_price * item.quantity
-            group["order_date"] = order.order_date
-            order_products_set.add(item.id)
+            grp["delivery_cost"] += order.delivery_cost
+            grp["group_total"]   += item.product_price * item.quantity
+            product_ids.append(item.id)
 
-        for group in seller_groups.values():
-            group["delivery_cost"] = f"{group['delivery_cost']:.2f}"
-            group["group_total"] = f"{group['group_total']:.2f}"
-            group["order_date"] = group["order_date"].strftime("%d.%m.%Y %H:%M") if group["order_date"] else ""
+        for grp in seller_groups.values():
+            grp["delivery_cost"] = f"{grp['delivery_cost']:.2f}"
+            grp["group_total"]   = f"{grp['group_total']:.2f}"
+            grp["order_date"]    = grp["order_date"].strftime("%d.%m.%Y %H:%M")
 
         parcel_map = defaultdict(list)
         parcel_files = set()
-        parcel_items = DeliveryParcelItem.objects.select_related(
-            "parcel", "order_product__product__product", "order_product__seller_profile__user"
-        ).filter(order_product_id__in=order_products_set)
-
-        for item in parcel_items:
-            seller = item.order_product.seller_profile.user
-            if not seller or seller.email != seller_email:
-                continue
-
-            parcel = item.parcel
-            parcel_map[parcel.tracking_number or f"Parcel #{parcel.pk}"].append({
-                "product_name": item.order_product.product.product.name,
-                "sku": item.order_product.product.sku,
-                "quantity": item.quantity,
+        for dpi in (DeliveryParcelItem.objects.filter(order_product_id__in=product_ids)
+                .select_related("parcel", "order_product__product__product")):
+            tracking = dpi.parcel.tracking_number or f"Parcel #{dpi.parcel.pk}"
+            parcel_map[tracking].append({
+                "product_name": dpi.order_product.product.product.name,
+                "sku":           dpi.order_product.product.sku,
+                "quantity":      dpi.quantity,
             })
+            if dpi.parcel.label_file and os.path.isfile(dpi.parcel.label_file.path):
+                parcel_files.add(dpi.parcel.label_file.path)
 
-            if parcel.label_file and os.path.isfile(parcel.label_file.path):
-                parcel_files.add(parcel.label_file.path)
+        parcels = [{"tracking_number": t, "items": it} for t, it in parcel_map.items()]
 
-        parcels = []
-        for tracking_number, items in parcel_map.items():
-            parcels.append({
-                "tracking_number": tracking_number,
-                "items": items,
-            })
+        ctx = prepare_merged_customer_email_context(orders)
+        ctx.update({
+            "seller_email": seller_email,
+            "groups":       list(seller_groups.values()),
+            "parcels":      parcels,
+        })
+        html = render_to_string("emails/order_email_seller.html", ctx)
+
+        email = EmailMessage(
+            subject="Новый заказ для вас",
+            body=html,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[seller_email],
+        )
+        email.content_subtype = "html"
+
+        for path in parcel_files:
+            email.attach_file(path)
 
         try:
-            logo_cid = make_msgid(domain="reli.one")
-            context = {
-                "seller_email": seller_email,
-                "groups": list(seller_groups.values()),
-                "parcels": parcels,
-                "logo_cid": logo_cid[1:-1],
-            }
-
-            html = render_to_string("emails/seller_order_email.html", context)
-
-            email = EmailMultiAlternatives(
-                subject="Новый заказ для вас",
-                body=html,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[seller_email],
-            )
-            email.attach_alternative(html, "text/html")
-
-            for file_path in parcel_files:
-                email.attach_file(file_path)
-
-            logo_path = os.path.join(settings.BASE_DIR, "logo_reli.png")
-            if os.path.exists(logo_path):
-                with open(logo_path, "rb") as logo_file:
-                    logo_image = MIMEImage(logo_file.read())
-                    logo_image.add_header("Content-ID", logo_cid)
-                    logo_image.add_header("Content-Disposition", "inline", filename="logo.png")
-                    email.attach(logo_image)
-
             email.send()
-            logger.info(f"[SELLER-MAIL] Письмо продавцу {seller_email} отправлено по session {session_id}")
+            logger.info(f"[SELLER-MAIL] Письмо продавцу {seller_email} отправлено")
         except Exception as e:
             logger.exception(f"[SELLER-MAIL] Ошибка при отправке письма продавцу {seller_email}: {e}")

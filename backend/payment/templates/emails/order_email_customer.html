@@ -1,0 +1,35 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>Здравствуйте, {{ customer.first_name }} {{ customer.last_name }}!</h2>
+<p>Благодарим за ваш заказ от {{ order_date }}.</p>
+<div class="divider"></div>
+{% for group in groups %}
+  <h3>Заказ № {{ group.order_number }}</h3>
+  <p>Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
+  {% if group.delivery_address %}
+    <p>Адрес доставки: {{ group.delivery_address }}</p>
+  {% elif group.pickup_point_info %}
+    <p>Пункт самовывоза: {{ group.pickup_point_info }}</p>
+  {% endif %}
+  <table>
+    <thead>
+      <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Итого</th></tr>
+    </thead>
+    <tbody>
+      {% for p in group.products %}
+      <tr>
+        <td>{{ p.product_name }}</td>
+        <td>{{ p.quantity }}</td>
+        <td>{{ p.unit_price }} €</td>
+        <td>{{ p.total_price }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p>Стоимость доставки: {{ group.delivery_cost }} €</p>
+  <p><strong>Сумма группы: {{ group.group_total }} €</strong></p>
+  <div class="divider"></div>
+{% endfor %}
+<p><strong>Всего к оплате: {{ grand_total }} €</strong></p>
+<p>К письму прикреплён PDF-счёт с деталями заказа.</p>
+{% endblock %}

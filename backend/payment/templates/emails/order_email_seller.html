@@ -1,0 +1,39 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>Новый заказ для вас</h2>
+<div class="divider"></div>
+<p>Почта продавца: {{ seller_email }}</p>
+{% for group in groups %}
+  <h3>Заказ № {{ group.order_number }}</h3>
+  <p>Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
+  <table>
+    <thead>
+      <tr><th>Товар</th><th>Кол-во</th><th>Цена за шт</th><th>Сумма</th></tr>
+    </thead>
+    <tbody>
+      {% for p in group.products %}
+      <tr>
+        <td>{{ p.product_name }}</td>
+        <td>{{ p.quantity }}</td>
+        <td>{{ p.unit_price }} €</td>
+        <td>{{ p.total_price }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p><strong>Сумма по группе: {{ group.group_total }} €</strong></p>
+  <div class="divider"></div>
+{% endfor %}
+{% if parcels %}
+  <h3>Информация по посылкам</h3>
+  {% for parcel in parcels %}
+    <p>Номер отслеживания: {{ parcel.tracking_number }}</p>
+    <ul>
+      {% for item in parcel.items %}
+        <li>{{ item.quantity }}× {{ item.product_name }} (SKU: {{ item.sku }})</li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+  <p>К письму прикреплены PDF-ярлыки для каждой посылки.</p>
+{% endif %}
+{% endblock %}

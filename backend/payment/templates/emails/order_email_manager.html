@@ -1,0 +1,29 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+<h2>Новый заказ от {{ customer.first_name }} {{ customer.last_name }}</h2>
+<p>Email: {{ customer.email }}, Телефон: {{ customer.phone }}</p>
+<p>Дата заказа: {{ order_date }}</p>
+<div class="divider"></div>
+{% for group in groups %}
+  <h3>Заказ № {{ group.order_number }}</h3>
+  <p>Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
+  <table>
+    <thead>
+      <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Итого</th></tr>
+    </thead>
+    <tbody>
+      {% for p in group.products %}
+      <tr>
+        <td>{{ p.product_name }}</td>
+        <td>{{ p.quantity }}</td>
+        <td>{{ p.unit_price }} €</td>
+        <td>{{ p.total_price }} €</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p><strong>Сумма группы: {{ group.group_total }} €</strong></p>
+  <div class="divider"></div>
+{% endfor %}
+<p><strong>Общая сумма: {{ grand_total }} €</strong></p>
+{% endblock %}
