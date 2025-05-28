@@ -2,12 +2,11 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  min-width: 133px;
   gap: 3px;
   span {
     font-weight: 400;
     font-size: 14px;
-    line-height: 143%;
-    letter-spacing: -0.02em;
     color: #828b8d;
   }
   input {
@@ -28,8 +27,6 @@
   span {
     font-weight: 400;
     font-size: 14px;
-    line-height: 143%;
-    letter-spacing: -0.02em;
     color: #828b8d;
   }
   input {
