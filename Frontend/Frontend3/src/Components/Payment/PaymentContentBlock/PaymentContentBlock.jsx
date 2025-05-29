@@ -47,7 +47,7 @@ const PaymentContentBlock = ({ setSection }) => {
     street: yup.string().required(t("validation.street.required")),
     zip: yup.string().required(t("validation.zip.required")),
     build: yup.string().required(t("validation.build.required")),
-    apartment: yup.string().required(t("validation.apartment.required")),
+    apartment: yup.string(),
     phone: yup.string().required(t("validation.phone.required")),
   });
 

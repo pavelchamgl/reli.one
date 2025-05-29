@@ -181,6 +181,9 @@ const basketSlice = createSlice({
 
         // },
         selectProduct: (state, action) => {
+
+            console.log(action);
+            
             let totalCount = Number(state.totalCount);
 
             const selectedArr = state.basket.map((item) => {

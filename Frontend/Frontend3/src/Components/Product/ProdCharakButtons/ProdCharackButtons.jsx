@@ -6,7 +6,7 @@ import prodTestImg from "../../../assets/Product/ProductTestImage.svg";
 
 import styles from "./ProdCharackButtons.module.scss";
 
-const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
+const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }) => {
   const { image, name, text, price } = variants[0] || {};
 
   const basket = useSelector((state) => state.basket.basket);
@@ -52,6 +52,7 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
                       setSelected(item.sku);
                       setPrice(item.price);
                       setSku(item.sku);
+                      setPriceVat(item?.price_without_vat)
                       // changeVariants({
                       //   id: id,
                       //   price: item.price,
@@ -87,6 +88,7 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id }) => {
                     onClick={() => {
                       setSelected(item.sku);
                       setPrice(item.price);
+                      setPriceVat(item?.price_without_vat)
                       setSku(item.sku);
                       // changeVariants({
                       //   id: id,

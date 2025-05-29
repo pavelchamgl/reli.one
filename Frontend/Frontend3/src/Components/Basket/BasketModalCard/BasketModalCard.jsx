@@ -19,7 +19,7 @@ import minusIcon from "../../../assets/Basket/minusIcon.svg";
 import styles from "./BasketModalCard.module.scss";
 import { getProductById } from "../../../api/productsApi";
 
-const BasketModalCard = ({ data, handleClose, setMainCount }) => {
+const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
   const [countsBySku, setCountsBySku] = useState({}); // объект для хранения количества по каждому SKU
   const [like, setLike] = useState(data ? data.is_favorite : false);
   const [sku, setSku] = useState(null);
@@ -75,6 +75,11 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
       };
     });
   };
+
+  useEffect(() => {
+    setMainSku(sku)
+  }, [sku])
+
 
   useEffect(() => {
     if (data && !selected) {
