@@ -170,7 +170,7 @@ const PaymentContentBlock = ({ setSection }) => {
             err={formik.errors.street}
           />
           <PaymentInp
-            title={"Postal code (zip code)"}
+            title={isMobile ? "Postal code" : "Postal code (zip code)"}
             name="zip"
             value={zip}
             onChange={
@@ -227,7 +227,6 @@ const PaymentContentBlock = ({ setSection }) => {
         <button
           disabled={
             !formik.isValid ||
-            !formik.dirty ||
             !email ||
             !country ||
             !name ||
