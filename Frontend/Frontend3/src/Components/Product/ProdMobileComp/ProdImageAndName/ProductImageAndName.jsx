@@ -26,6 +26,8 @@ const ProductImageAndName = () => {
   const [price, setPrice] = useState("10");
   const [endPrice, setEndPice] = useState("10");
   const [sku, setSku] = useState(null);
+  const [priceVat, setPriceVat] = useState(null)
+
 
   const basket = useSelector((state) => state.basket.basket);
 
@@ -72,11 +74,15 @@ const ProductImageAndName = () => {
         setPrice(firstVariant.price);
         setEndPice(firstVariant.price);
         setSku(firstVariant.sku);
+        setPriceVat(firstVariant.price_without_vat)
+
       } else {
         // Если продукт уже в корзине, использовать данные из корзины
         // setPrice(existingProduct.product.price);
         setEndPice(existingProduct.product.price);
         setSku(existingProduct.sku);
+        setPriceVat(existingProduct?.price_without_vat)
+
       }
     }
   }, [product, basket]);
@@ -133,7 +139,7 @@ const ProductImageAndName = () => {
           <p>{endPrice ? endPrice : price} €</p>
           {/* <span>400.00 Kč</span> */}
         </div>
-        <p className={styles.ndcPrice}>Without VAT <span>$32.71</span></p>
+        <p className={styles.ndcPrice}>Without VAT <span>{priceVat} €</span></p>
         <button className={styles.basketBtn} onClick={handleAddBasket}>
           {inBasket && <img src={addBasketCheckIcon} alt="" />}
           {t("add_basket")}
