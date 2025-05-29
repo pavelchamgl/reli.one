@@ -6,9 +6,9 @@
   gap: 30px;
   position: sticky;
   top: 50px;
-  // @media (max-width: 1300px) {
-  //   height: 400px;
-  // }
+  @media (max-width: 1052px) {
+    position: initial;
+  }
   // @media (max-width: 1100px) {
   //   height: 300px;
   //   gap: 20px;
