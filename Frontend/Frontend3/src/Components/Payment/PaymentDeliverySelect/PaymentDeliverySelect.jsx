@@ -104,7 +104,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
-                <p className={styles.price}>{pointPrice?.price} €</p>
+                <p className={styles.price}>{pointPrice?.priceWithVat} €</p>
               </div>
             </div>
 
@@ -143,7 +143,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
-                <p className={styles.price}>{DHPrice.price} €</p>
+                <p className={styles.price}>{DHPrice.priceWithVat} €</p>
               </div>
             </div>
           </RadioGroup>

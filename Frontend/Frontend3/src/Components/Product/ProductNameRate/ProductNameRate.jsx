@@ -119,6 +119,7 @@ const ProductNameRate = () => {
       <ProdCharackButtons
         setSku={setSku}
         setPrice={setEndPice}
+        setPriceVat={setPriceVat}
         variants={product?.variants}
         id={product?.id}
       />
