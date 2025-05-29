@@ -68,7 +68,7 @@ const MobileProdSwiper = ({ imageProps }) => {
         <Swiper
           slidesPerView={3}
           spaceBetween={30}
-          freeMode={true}
+          // freeMode={true}
           pagination={{
             clickable: true,
             bulletActiveClass: styles.paginationActive,
