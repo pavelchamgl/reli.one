@@ -18,8 +18,8 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment, PayPalMetadata, StripeMetadata
 from .mixins import PayPalMixin
-# from .services import send_order_emails_safely
 from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
+from .services_async import async_send_all_emails
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
 from product.models import BaseProduct, ProductVariant
@@ -512,6 +512,7 @@ class StripeWebhookView(APIView):
             async_generate_parcels_and_fetch_labels(order.id)
             logger.info(f"Group {idx}: Order {order.id} created successfully with {len(products)} products.")
             orders_created.append(order)
+            async_send_all_emails(session['id'])
 
         if not orders_created:
             return Response({"error": "Order creation failed"}, status=500)
@@ -888,6 +889,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
             )
 
             async_generate_parcels_and_fetch_labels(order.id)
+            async_send_all_emails(resource.get("id"))
             logger.info(f"Group {idx}: Order {order.id} created successfully with {len(products)} products.")
             orders_created.append(order)
 

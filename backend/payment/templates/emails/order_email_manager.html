@@ -1,29 +1,61 @@
 {% extends "emails/base_email.html" %}
 {% block content %}
-<h2>Новый заказ от {{ customer.first_name }} {{ customer.last_name }}</h2>
-<p>Email: {{ customer.email }}, Телефон: {{ customer.phone }}</p>
-<p>Дата заказа: {{ order_date }}</p>
-<div class="divider"></div>
-{% for group in groups %}
-  <h3>Заказ № {{ group.order_number }}</h3>
-  <p>Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
-  <table>
-    <thead>
-      <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Итого</th></tr>
-    </thead>
-    <tbody>
-      {% for p in group.products %}
-      <tr>
-        <td>{{ p.product_name }}</td>
-        <td>{{ p.quantity }}</td>
-        <td>{{ p.unit_price }} €</td>
-        <td>{{ p.total_price }} €</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-  <p><strong>Сумма группы: {{ group.group_total }} €</strong></p>
+  <h2>Новый заказ от клиента {{ customer.first_name }} {{ customer.last_name }}</h2>
+  <p>Email: {{ customer.email }}, Телефон: {{ customer.phone }}</p>
+  <p>Дата заказа: {{ order_date }}</p>
   <div class="divider"></div>
-{% endfor %}
-<p><strong>Общая сумма: {{ grand_total }} €</strong></p>
+
+  {% for group in groups %}
+    <h3>Заказ № {{ group.order_number }}</h3>
+    <p>Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
+
+    {% if group.delivery_address %}
+      <p><strong>Адрес доставки:</strong> {{ group.delivery_address }}</p>
+    {% elif group.pickup_point_info %}
+      <p><strong>Пункт самовывоза:</strong> {{ group.pickup_point_info }}</p>
+    {% endif %}
+
+    {# Вот здесь выводим продавцов #}
+    {% if group.sellers %}
+      <p><strong>Продавец:</strong> {{ group.sellers|join:", " }}</p>
+    {% endif %}
+
+    <table>
+      <thead>
+        <tr>
+          <th>Товар</th><th>Кол-во</th><th>Цена</th><th>Итого</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in group.products %}
+          <tr>
+            <td>{{ p.product_name }}</td>
+            <td>{{ p.quantity }}</td>
+            <td>{{ p.unit_price }} €</td>
+            <td>{{ p.total_price }} €</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p><strong>Стоимость доставки:</strong> {{ group.delivery_cost }} €</p>
+    <p><strong>Сумма группы:</strong>       {{ group.group_total }} €</p>
+
+    {% if group.parcels %}
+      <div class="divider"></div>
+      <h3>Информация по посылкам</h3>
+      {% for parcel in group.parcels %}
+        <p><strong>Номер отслеживания:</strong> {{ parcel.tracking_number }}</p>
+        <ul>
+          {% for item in parcel.items %}
+            <li>{{ item.quantity }}× {{ item.product_name }} (SKU: {{ item.sku }})</li>
+          {% endfor %}
+        </ul>
+      {% endfor %}
+    {% endif %}
+
+    <div class="divider"></div>
+  {% endfor %}
+
+  <p><strong>Общая сумма:</strong> {{ grand_total }} €</p>
 {% endblock %}
