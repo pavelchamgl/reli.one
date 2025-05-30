@@ -29,9 +29,9 @@ const BasketModal = ({ open, handleClose, productData }) => {
   const handleNavigatePayment = () => {
 
     dispatch(deselectAllProducts());
-    dispatch(selectProduct({ sku: productData.sku ? productData.sku : sku, selected: true }));
+    // dispatch(selectProduct({ sku: productData.sku ? productData.sku : sku, selected: true }));
     dispatch(updateTotalPrice());
-    navigate("/payment");
+    navigate("/basket");
 
   };
 
