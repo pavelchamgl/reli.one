@@ -232,7 +232,6 @@ const PaymentContentBlock = ({ setSection }) => {
             !name ||
             !phone ||
             !surename ||
-            !apartment ||
             !build ||
             !street ||
             !zip ||
