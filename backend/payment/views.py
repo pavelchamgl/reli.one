@@ -19,7 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Payment, PayPalMetadata, StripeMetadata
 from .mixins import PayPalMixin
 from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
-from .services_async import async_send_all_emails
+from .services_async import async_send_client_email
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
 from product.models import BaseProduct, ProductVariant
@@ -34,10 +34,10 @@ from order.models import (
 )
 from warehouses.models import Warehouse, WarehouseItem
 from delivery.helpers import resolve_country_code_from_group
+from delivery.utils_async import async_parcels_and_seller_email
 from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
 from delivery.validators.zip_validator import ZipCodeValidator
 from delivery.validators.validators import validate_phone_matches_country
-from delivery.utils_async import async_generate_parcels_and_fetch_labels
 from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
 
 
@@ -509,13 +509,19 @@ class StripeWebhookView(APIView):
                 customer_email=meta.custom_data.get("email"),
             )
 
-            async_generate_parcels_and_fetch_labels(order.id)
-            logger.info(f"Group {idx}: Order {order.id} created successfully with {len(products)} products.")
             orders_created.append(order)
-            async_send_all_emails(session['id'])
+            logger.info(f"[StripeWebhook] Group {idx}: Order {order.id} created successfully with {len(products)} products.")
 
         if not orders_created:
+            logger.error("[StripeWebhook] No orders were created; aborting")
             return Response({"error": "Order creation failed"}, status=500)
+
+        order_ids = [o.id for o in orders_created]
+        async_parcels_and_seller_email(order_ids, session['id'])
+        logger.info(f"[StripeWebhook] Planned async parcels+seller_email+manager for orders {order_ids}")
+
+        async_send_client_email(session['id'])
+        logger.info(f"[StripeWebhook] Planned async client email for session {session['id']}")
 
         return Response({"status": f"{len(orders_created)} order(s) created successfully"}, status=200)
 
@@ -888,10 +894,19 @@ class PayPalWebhookView(PayPalMixin, APIView):
                 customer_email=meta.custom_data.get("email"),
             )
 
-            async_generate_parcels_and_fetch_labels(order.id)
-            async_send_all_emails(resource.get("id"))
-            logger.info(f"Group {idx}: Order {order.id} created successfully with {len(products)} products.")
             orders_created.append(order)
+            logger.info(f"[PayPalWebhook] Group {idx}: Order {order.id} created successfully")
+
+        if not orders_created:
+            logger.error("[PayPalWebhook] No orders were created; aborting")
+            return Response({"error": "Order creation failed"}, status=500)
+        order_ids = [o.id for o in orders_created]
+        session_id = resource.get("id")
+        async_parcels_and_seller_email(order_ids, session_id)
+        logger.info(f"[PayPalWebhook] Planned async parcels+seller+manager for orders {order_ids}")
+
+        async_send_client_email(session_id)
+        logger.info(f"[PayPalWebhook] Planned async client email for session {session_id}")
 
         return orders_created if orders_created else None
 

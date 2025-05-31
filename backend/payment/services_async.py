@@ -8,22 +8,20 @@ from .services import (
     send_merged_manager_email_from_session,
     send_seller_emails_by_session,
 )
+from payment.async_pool import executor
 
 logger = logging.getLogger(__name__)
 
 
-def async_send_all_emails(session_id: str):
+def async_send_client_email(session_id: str):
     """
-    Асинхронно шлёт все три письма (клиент-женеральный, менеджерам и продавцам)
-    после завершения текущей транзакции.
+    Фоновая задача: отправка письма клиенту сразу после коммита.
     """
-    def _target():
+    def _cust():
         try:
             send_merged_customer_email_from_session(session_id)
-            send_merged_manager_email_from_session(session_id)
-            send_seller_emails_by_session(session_id)
+            logger.info(f"[EMAIL→CUSTOMER] Клиент оповещён по session {session_id}")
         except Exception:
-            logger.exception(f"Error in background sending emails for session {session_id}")
+            logger.exception(f"[EMAIL→CUSTOMER] Ошибка отправки письма клиенту для session {session_id}")
 
-    # запланировать после коммита
-    transaction.on_commit(lambda: Thread(target=_target, daemon=True).start())
+    transaction.on_commit(lambda: executor.submit(_cust))

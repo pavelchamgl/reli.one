@@ -14,6 +14,7 @@ from delivery.services.packeta_point_service import get_pickup_point_details
 
 logger = logging.getLogger(__name__)
 
+
 def get_logo_base64():
     """
     Возвращает содержимое logo_reli.png в base64 для встраивания в письма.
