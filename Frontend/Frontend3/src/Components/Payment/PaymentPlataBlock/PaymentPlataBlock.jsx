@@ -19,8 +19,9 @@ import arrLeft from "../../../assets/Payment/arrLeft.svg";
 import styles from "./PaymentPlataBlock.module.scss";
 import LoginModal from "../../LoginModal/LoginModal";
 import ConfirmYourAgeModal from "../ConfirmYourAgeModal/ConfirmYourAgeModal";
+import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
 
-const PaymentPlataBlock = ({ setSection }) => {
+const PaymentPlataBlock = ({ section, setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 500 });
   const [plataType, setPlataType] = useState("card");
   const [inputError, setInputError] = useState(false);
@@ -42,6 +43,7 @@ const PaymentPlataBlock = ({ setSection }) => {
   );
 
   useEffect(() => {
+    console.log(selectedProducts);
     if (
       selectedProducts && selectedProducts.length > 0 && selectedProducts.some((item) => !!item?.product?.is_age_restricted)
     ) {
@@ -99,7 +101,8 @@ const PaymentPlataBlock = ({ setSection }) => {
           Reli Group s.r.o
         </h3>
         {isMobile && <MobPaymentBasket />}
-        <CustomBreadcrumbs />
+        {/* <CustomBreadcrumbs /> */}
+        <PayAndCartBread section={section} setSection={setSection} />
       </div>
       <div className={styles.inpDiv}>
         <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} setSection={() => setSection(1)} />

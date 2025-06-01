@@ -17,8 +17,9 @@ import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
 import PaymentDeliverySuplier from "../PaymentDeliveruSuplier/PaymentDeliverySuplier";
 import { groupBySeller } from "../../../pages/Test";
 import { useActionPayment } from "../../../hook/useActionPayment";
+import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
 
-const PaymentDeliveryBlock = ({ setSection }) => {
+const PaymentDeliveryBlock = ({ section, setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const [allHasDelivery, setAllHasDelivery] = useState(false)
 
@@ -75,7 +76,8 @@ const PaymentDeliveryBlock = ({ setSection }) => {
           Reli Group s.r.o
         </h3>
         {isMobile && <MobPaymentBasket />}
-        <CustomBreadcrumbs />
+        {/* <CustomBreadcrumbs /> */}
+        <PayAndCartBread section={section} setSection={setSection} />
       </div>
       <div className={styles.inpDiv}>
         <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} setSection={() => setSection(1)} />

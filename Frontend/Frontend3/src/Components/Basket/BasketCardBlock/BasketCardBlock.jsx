@@ -17,6 +17,7 @@ import arrLeft from "../../../assets/mobileIcons/arrLeftIcon.svg";
 
 import styles from "./BasketCardBlock.module.scss";
 import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
+import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
 
 const BasketCardBlock = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -35,7 +36,7 @@ const BasketCardBlock = () => {
   const dispatch = useDispatch();
 
   console.log(basket);
-  
+
 
   const [selectAll, setSelectAll] = useState(false);
 
@@ -97,7 +98,8 @@ const BasketCardBlock = () => {
           Reli Group s.r.o
         </Link>
       )}
-      <CustomBreadcrumbs />
+      {/* <CustomBreadcrumbs /> */}
+      <PayAndCartBread  />
       {isMobile && (
         <button className={styles.mobReturnBtn} onClick={() => navigate(-1)}>
           <img src={arrLeft} alt="" />
