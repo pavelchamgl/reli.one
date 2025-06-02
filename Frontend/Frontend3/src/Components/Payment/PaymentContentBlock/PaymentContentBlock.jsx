@@ -18,8 +18,9 @@ import styles from "./PaymentContentBlock.module.scss";
 import CountrySelect from "../CountrySelect/CountrySelect";
 import { useSelector } from "react-redux";
 import { isValidPhone, isValidZipCode } from "../../../code/validation/validationPayment";
+import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
 
-const PaymentContentBlock = ({ setSection }) => {
+const PaymentContentBlock = ({ section, setSection }) => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery({ maxWidth: 426 });
 
@@ -118,7 +119,8 @@ const PaymentContentBlock = ({ setSection }) => {
           Reli Group s.r.o
         </h3>
         {isMobile && <MobPaymentBasket />}
-        <CustomBreadcrumbs />
+        <PayAndCartBread section={section} setSection={setSection} />
+        {/* <CustomBreadcrumbs /> */}
       </div>
       <PaymentInp
         title={"Email"}
@@ -232,7 +234,6 @@ const PaymentContentBlock = ({ setSection }) => {
             !name ||
             !phone ||
             !surename ||
-            !apartment ||
             !build ||
             !street ||
             !zip ||

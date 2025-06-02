@@ -24,9 +24,9 @@ const PaymentPage = () => {
 
   return (
     <div>
-      {section === 1 && <PaymentContentBlock setSection={setSection} />}
-      {section === 2 && <PaymentDeliveryBlock setSection={setSection} />}
-      {section === 3 && <PaymentPlataBlock setSection={setSection} />}
+      {section === 1 && <PaymentContentBlock section={section} setSection={setSection} />}
+      {section === 2 && <PaymentDeliveryBlock section={section} setSection={setSection} />}
+      {section === 3 && <PaymentPlataBlock section={section} setSection={setSection} />}
 
       {!isMobile && <BasketTotalBlock />}
     </div>

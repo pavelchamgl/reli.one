@@ -28,7 +28,7 @@ const NewKontakt = () => {
                     <div className={styles.emailSection}>
                         <img src={emailIcon} alt="Email" className="w-12" />
                         <p className="text-xl font-bold xl:text-3xl">Email</p>
-                        <p className="xl:text-xl">info.reli.one@gmail.com</p>
+                        <p className="xl:text-xl">info@reli.one</p>
                     </div>
                 </div>
                 <div className={styles.secWrap}>

@@ -1,0 +1,37 @@
+.main {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 15px;
+
+  & div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  & img {
+    height: 12px;
+
+    @media (max-width: 426px) {
+      height: 8px;
+    }
+  }
+  & button {
+    font-weight: 400;
+    font-size: clamp(10px, 2.5vw, 14px);
+    text-transform: uppercase;
+    color: black;
+    background: transparent;
+  }
+  & button:disabled {
+    color: #888;
+  }
+}
+
+.buttonAcc {
+  color: #047857 !important; // гарантирует перекрытие
+}
+
+.buttonAcc:disabled {
+  color: #047857 !important; // оставляет зелёный даже когда кнопка отключена
+}
