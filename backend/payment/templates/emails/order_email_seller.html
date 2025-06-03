@@ -1,66 +1,102 @@
 {% extends "emails/base_email.html" %}
+
 {% block content %}
-  <h2>Новый заказ для вас</h2>
-  <div class="divider"></div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial, sans-serif; font-size:14px; color:#333333; border-collapse:collapse; width:100%;">
+    <tr>
+      <td style="padding-bottom:10px;">
+        <h2 style="margin:0; font-size:20px;">Новый заказ для вас</h2>
+      </td>
+    </tr>
 
-  <!-- Инструкции для продавца -->
-  <h3>Инструкции для продавца</h3>
-  <ol>
-    <li>Подтвердите получение и готовность заказа в течение <strong>24 часов</strong> с момента получения этого письма.</li>
-    <li>Упакуйте заказ в течение <strong>3 суток</strong> после подтверждения.</li>
-    <li>Передайте упакованный заказ курьерской службе любым удобным способом:
-      <ul>
-        <li>Самостоятельно отнесите в пункт приёма курьера;</li>
-        <li>Или вызовите курьера на ваш адрес.</li>
-      </ul>
-    </li>
-  </ol>
-  <p>Если у вас возникнут вопросы, связанные с отправлением, пожалуйста, обратитесь в службу поддержки курьерской компании:</p>
-  <p><a href="https://www.zasilkovna.cz/en/contacts" target="_blank">https://www.zasilkovna.cz/en/contacts</a></p>
-  <div class="divider"></div>
+    <!-- Инструкции -->
+    <tr>
+      <td style="padding:10px 0; border-top:2px solid #FFD247;">
+        <h3 style="margin:0 0 10px 0; font-size:16px;">Инструкции для продавца</h3>
+        <ol style="padding-left:20px; margin:0;">
+          <li style="margin-bottom:8px;">Подтвердите получение и готовность заказа в течение <strong>24 часов</strong>.</li>
+          <li style="margin-bottom:8px;">Упакуйте заказ в течение <strong>3 суток</strong> после подтверждения.</li>
+          <li style="margin-bottom:8px;">Передайте упакованный заказ курьерской службе:
+            <ul style="margin:4px 0 8px 20px; padding:0;">
+              <li>в пункт приёма курьера</li>
+              <li>или вызовите курьера на ваш адрес</li>
+            </ul>
+          </li>
+        </ol>
+        <p style="margin:8px 0;">Если возникнут вопросы, обратитесь в службу поддержки курьерской компании:</p>
+        <p style="margin:0;"><a href="https://www.zasilkovna.cz/en/contacts" target="_blank" style="color:#0066cc;">https://www.zasilkovna.cz/en/contacts</a></p>
+      </td>
+    </tr>
 
-  {% for group in groups %}
-    <h3>Заказ № {{ group.order_number }}</h3>
-    <p>Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
-    {% if group.delivery_address %}
-      <p><strong>Адрес доставки:</strong> {{ group.delivery_address }}</p>
-    {% elif group.pickup_point_info %}
-      <p><strong>Пункт самовывоза:</strong> {{ group.pickup_point_info }}</p>
-    {% endif %}
+    {% for group in groups %}
+      <!-- Информация по заказу -->
+      <tr>
+        <td style="padding:20px 0 10px 0; border-top:2px solid #FFD247;">
+          <h3 style="margin:0; font-size:16px;">Заказ № {{ group.order_number }}</h3>
+          <p style="margin:5px 0;">Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Товар</th><th>Кол-во</th><th>Цена за шт</th><th>Сумма</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in group.products %}
-        <tr>
-          <td>{{ p.product_name }}</td>
-          <td>{{ p.quantity }}</td>
-          <td>{{ p.unit_price }} €</td>
-          <td>{{ p.total_price }} €</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          {% if group.delivery_address %}
+            <p style="margin:5px 0;"><strong>Адрес доставки:</strong> {{ group.delivery_address }}</p>
+          {% elif group.pickup_point_info %}
+            <p style="margin:5px 0;"><strong>Пункт самовывоза:</strong> {{ group.pickup_point_info }}</p>
+          {% endif %}
+        </td>
+      </tr>
 
-    <p><strong>Сумма по группе:</strong> {{ group.group_total }} €</p>
-    <div class="divider"></div>
-  {% endfor %}
-
-  {% if parcels %}
-    <h3>Информация по посылкам</h3>
-    {% for parcel in parcels %}
-      <p><strong>Номер отслеживания:</strong> {{ parcel.tracking_number }}</p>
-      <ul>
-        {% for item in parcel.items %}
-          <li>{{ item.quantity }}× {{ item.product_name }} (SKU: {{ item.sku }})</li>
-        {% endfor %}
-      </ul>
+      <!-- Таблица товаров -->
+      <tr>
+        <td>
+          <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse; margin-top:10px;">
+            <thead>
+              <tr>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Товар</th>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Кол-во</th>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Цена за шт</th>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Сумма</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in group.products %}
+                <tr>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Товар</div>
+                    <div>{{ p.product_name }}</div>
+                  </td>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Кол-во</div>
+                    <div>{{ p.quantity }}</div>
+                  </td>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Цена за шт</div>
+                    <div>{{ p.unit_price }} €</div>
+                  </td>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Сумма</div>
+                    <div>{{ p.total_price }} €</div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p style="margin-top:10px;"><strong>Сумма по группе:</strong> {{ group.group_total }} €</p>
+        </td>
+      </tr>
     {% endfor %}
-    <p>К письму прикреплены PDF-ярлыки для каждой посылки.</p>
-    <div class="divider"></div>
-  {% endif %}
+
+    {% if parcels %}
+    <tr>
+      <td style="padding:20px 0 10px 0; border-top:2px solid #FFD247;">
+        <h3 style="margin:0 0 10px 0; font-size:16px;">Информация по посылкам</h3>
+        {% for parcel in parcels %}
+          <p style="margin:5px 0;"><strong>Номер отслеживания:</strong> {{ parcel.tracking_number }}</p>
+          <ul style="margin:0 0 10px 20px; padding:0;">
+            {% for item in parcel.items %}
+              <li style="margin:2px 0;">{{ item.quantity }}× {{ item.product_name }} (SKU: {{ item.sku }})</li>
+            {% endfor %}
+          </ul>
+        {% endfor %}
+        <p style="margin-top:10px;">К письму прикреплены PDF-ярлыки для каждой посылки.</p>
+      </td>
+    </tr>
+    {% endif %}
+  </table>
 {% endblock %}

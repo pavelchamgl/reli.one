@@ -1,11 +1,12 @@
 import os
 import logging
 from decimal import Decimal
+from premailer import transform
 from collections import defaultdict
 
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 from .models import Payment
 from .invoices.pdf_generator import generate_invoice_pdf_by_orders
@@ -13,6 +14,8 @@ from delivery.models import DeliveryParcelItem
 from delivery.services.packeta_point_service import get_pickup_point_details
 
 logger = logging.getLogger(__name__)
+
+LOGO_URL = 'https://res.cloudinary.com/daffwdfvn/image/upload/v1748957272/Reli/logo_reli_ouhtmo.png'
 
 
 def get_logo_base64():
@@ -51,7 +54,7 @@ def prepare_merged_customer_email_context(orders):
     """
     first = orders[0]
     ctx = {
-        "logo_base64": get_logo_base64(),
+        "logo_url": LOGO_URL,
         "customer": {
             "first_name": first.first_name,
             "last_name":  first.last_name,
@@ -277,14 +280,15 @@ def send_seller_emails_by_session(session_id: str):
         })
 
         # Рендерим и отправляем HTML-письмо
-        html = render_to_string("emails/order_email_seller.html", ctx)
-        email = EmailMessage(
+        html_raw = render_to_string("emails/order_email_seller.html", ctx)
+        html_inline = transform(html_raw)
+        email = EmailMultiAlternatives(
             subject="Новый заказ для вас",
-            body=html,
+            body="123",
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[seller_email],
         )
-        email.content_subtype = "html"
+        email.attach_alternative(html_inline, "text/html")
 
         # Прикрепляем PDF-ярлыки
         for fpath in parcel_files:
