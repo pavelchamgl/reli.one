@@ -95,7 +95,7 @@ const BasketCardBlock = () => {
     <div className={styles.main}>
       {!isMobile && (
         <Link to={"/"} className={styles.title}>
-          Reli Group s.r.o
+          Reli Group s.r.o.
         </Link>
       )}
       {/* <CustomBreadcrumbs /> */}

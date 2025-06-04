@@ -86,7 +86,11 @@ const CustomBreadcrumbs = () => {
 
   return (
     <div className={styles.main}>
-      <Breadcrumbs aria-label="breadcrumb">
+      <Breadcrumbs aria-label="breadcrumb"
+        maxItems={4}
+        itemsBeforeCollapse={1}
+        itemsAfterCollapse={2}
+      >
         <Link
           color="inherit"
           href="/"

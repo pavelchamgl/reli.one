@@ -37,7 +37,7 @@ const ConfirmYourAgeModal = ({ open, handleClose, plataType }) => {
                     <img src={xIcon} alt="" />
                 </button>
                 <div className={styles.content}>
-                    <p>Confirm that you are 18 years of age</p>
+                    <p>Confirm you are 18 years old</p>
                     <div className={styles.btnsWrap}>
                         <button onClick={isAdult}>Yes</button>
                         <button onClick={isNotAdult}>No</button>

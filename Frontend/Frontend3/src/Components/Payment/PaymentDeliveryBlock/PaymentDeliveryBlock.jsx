@@ -73,7 +73,7 @@ const PaymentDeliveryBlock = ({ section, setSection }) => {
     <div className={styles.main}>
       <div>
         <h3 onClick={() => navigate("/")} className={styles.title}>
-          Reli Group s.r.o
+          Reli Group s.r.o.
         </h3>
         {isMobile && <MobPaymentBasket />}
         {/* <CustomBreadcrumbs /> */}

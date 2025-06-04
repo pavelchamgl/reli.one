@@ -36,6 +36,10 @@
     font-size: 11px;
     line-height: 178%;
     color: #64748b;
+    & span:nth-child(2) {
+      font-family: var(--ft);
+      color: black;
+    }
   }
 }
 
@@ -46,17 +50,20 @@
 
 .price {
   font-weight: 300;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 140%;
   color: #000;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 5px;
+  font-family: var(--ft);
 
   strong {
     font-weight: 600;
     font-size: 12px;
     line-height: 163%;
     color: #000;
+  font-family: var(--ft);
+
   }
 }

@@ -57,12 +57,12 @@ const ProductImageAndName = () => {
   };
 
   useEffect(() => {
-    if (basket.some((item) => item.id === Number(id))) {
+    if (basket.some((item) => item.sku === sku)) {
       setInBasket(true);
     } else {
       setInBasket(false);
     }
-  }, [id, basket]);
+  }, [id, basket, sku]);
 
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
@@ -75,14 +75,14 @@ const ProductImageAndName = () => {
         setPrice(firstVariant.price);
         setEndPice(firstVariant.price);
         setSku(firstVariant.sku);
-        setPriceVatMain(firstVariant.price_without_vat)
+        // setPriceVatMain(firstVariant.price_without_vat)
 
       } else {
         // Если продукт уже в корзине, использовать данные из корзины
         // setPrice(existingProduct.product.price);
-        setEndPice(existingProduct.product.price);
+        // setEndPice(existingProduct.product.price);
         setSku(existingProduct.sku);
-        setPriceVatMain(existingProduct?.price_without_vat)
+        // setPriceVatMain(existingProduct?.price_without_vat)
 
       }
     }
@@ -116,6 +116,14 @@ const ProductImageAndName = () => {
 
     setFormattedText(replacedText);
   }, [product?.name]);
+
+
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      const firstVariant = product.variants[0];
+      setPriceVatMain(firstVariant.price_without_vat)
+    }
+  }, [])
 
   return (
     <div className={styles.main}>

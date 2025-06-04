@@ -55,6 +55,8 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
             if (point) {
                 hasChosenPointRef.current = true;
                 setSelectedPoint(point);
+                console.log(point);
+
                 setPointInfo({
                     pickup_point_id: point.id,
                     country: point.country,

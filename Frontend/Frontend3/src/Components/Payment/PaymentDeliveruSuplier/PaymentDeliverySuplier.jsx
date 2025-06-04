@@ -15,7 +15,7 @@ const PaymentDeliverySuplier = ({ group, index }) => {
 
     const { t } = useTranslation()
 
-    const { postCalculateDelivery, setCountry } = useActionPayment()
+    const { postCalculateDelivery, setCountry, setPointInfo } = useActionPayment()
     const { country, pointInfo, deliveryCalculateErr } = useSelector(state => state.payment)
 
 
@@ -32,6 +32,25 @@ const PaymentDeliverySuplier = ({ group, index }) => {
         }
         postCalculateDelivery(obj)
     }, [])
+
+    useEffect(() => {
+        if (
+            pointInfo?.country !== country &&
+            pointInfo?.sellerId === group?.seller_id // <-- проверка по sellerId
+        ) {
+            const obj = {
+                seller_id: group?.seller_id,
+                items: group?.items?.map((item) => ({
+                    sku: item?.sku,
+                    quantity: item?.count
+                })),
+                country: pointInfo?.country,
+                queryType: "change"
+            }
+            postCalculateDelivery(obj)
+        }
+    }, [pointInfo, country])
+
 
 
     return (
