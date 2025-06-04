@@ -1,35 +1,75 @@
 {% extends "emails/base_email.html" %}
+
 {% block content %}
-<h2>Здравствуйте, {{ customer.first_name }} {{ customer.last_name }}!</h2>
-<p>Благодарим за ваш заказ от {{ order_date }}.</p>
-<div class="divider"></div>
-{% for group in groups %}
-  <h3>Заказ № {{ group.order_number }}</h3>
-  <p>Доставка: {{ group.delivery_type }} {{ group.courier_service }}</p>
-  {% if group.delivery_address %}
-    <p>Адрес доставки: {{ group.delivery_address }}</p>
-  {% elif group.pickup_point_info %}
-    <p>Пункт самовывоза: {{ group.pickup_point_info }}</p>
-  {% endif %}
-  <table>
-    <thead>
-      <tr><th>Товар</th><th>Кол-во</th><th>Цена</th><th>Итого</th></tr>
-    </thead>
-    <tbody>
-      {% for p in group.products %}
+  <table width="100%" cellpadding="0" cellspacing="0" style="font-family:Arial, sans-serif; font-size:14px; color:#333333; border-collapse:collapse; width:100%;">
+    <tr>
+      <td style="padding-bottom:10px;">
+        <h2 style="margin:0; font-size:20px;">Hello, {{ customer.first_name }} {{ customer.last_name }}!</h2>
+        <p style="margin:10px 0;">Thanks for your order from {{ order_date }}.</p>
+      </td>
+    </tr>
+
+    {% for group in groups %}
       <tr>
-        <td>{{ p.product_name }}</td>
-        <td>{{ p.quantity }}</td>
-        <td>{{ p.unit_price }} €</td>
-        <td>{{ p.total_price }} €</td>
+        <td style="padding:20px 0 10px 0; border-top:2px solid #FFD247;">
+          <h3 style="margin:0; font-size:16px;">Order No.: {{ group.order_number }}</h3>
+          <p style="margin:5px 0;">Delivery Method: {{ group.delivery_type }} {{ group.courier_service }}</p>
+
+          {% if group.delivery_address %}
+            <p style="margin:5px 0;"><strong>Delivery address:</strong> {{ group.delivery_address }}</p>
+          {% elif group.pickup_point_info %}
+            <p style="margin:5px 0;"><strong>Pickup Point:</strong> {{ group.pickup_point_info }}</p>
+          {% endif %}
+        </td>
       </tr>
-      {% endfor %}
-    </tbody>
+
+      <!-- Таблица товаров -->
+      <tr>
+        <td>
+          <table cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse; margin-top:10px;">
+            <thead>
+              <tr>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Item</th>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Quantity</th>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Price per unit</th>
+                <th style="background-color:#FFD247; color:#000000; padding:10px; border:1px solid #dddddd; text-align:left;">Total Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in group.products %}
+                <tr>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Item</div>
+                    <div>{{ p.product_name }}</div>
+                  </td>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Quantity</div>
+                    <div>{{ p.quantity }}</div>
+                  </td>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Price per unit</div>
+                    <div>{{ p.unit_price }} €</div>
+                  </td>
+                  <td style="padding:10px; border:1px solid #dddddd;">
+                    <div class="mobile-label" style="display:none; font-weight:bold;">Total Price</div>
+                    <div>{{ p.total_price }} €</div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p style="margin-top:10px;">Delivery price: {{ group.delivery_cost }} €</p>
+          <p><strong>Total for this order: {{ group.group_total }} €</strong></p>
+        </td>
+      </tr>
+    {% endfor %}
+
+    <!-- Итого -->
+    <tr>
+      <td style="padding-top:20px; border-top:2px solid #FFD247;">
+        <p style="font-size:16px;"><strong>Total amount paid: {{ grand_total }} €</strong></p>
+        <p>* An invoice (PDF) is attached to the letter.</p>
+      </td>
+    </tr>
   </table>
-  <p>Стоимость доставки: {{ group.delivery_cost }} €</p>
-  <p><strong>Сумма группы: {{ group.group_total }} €</strong></p>
-  <div class="divider"></div>
-{% endfor %}
-<p><strong>Всего к оплате: {{ grand_total }} €</strong></p>
-<p>К письму прикреплён PDF-счёт с деталями заказа.</p>
 {% endblock %}
