@@ -38,8 +38,9 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
     const obj = {
       deliveryType: selectedValue,
       sellerId,
-      deliveryPrice: selectedValue === "courier" ? DHPrice?.price : pointPrice?.price
+      deliveryPrice: selectedValue === "courier" ? DHPrice?.priceWithVat : pointPrice?.priceWithVat
     }
+
     setDeliveryType(obj)
   }, [selectedValue])
 

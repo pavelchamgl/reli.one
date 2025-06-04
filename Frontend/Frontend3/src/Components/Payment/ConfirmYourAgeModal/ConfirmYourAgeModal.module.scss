@@ -30,7 +30,7 @@
 
   & p {
     font-weight: 500;
-    font-size: clamp(20px, 2.5vw, 26px);
+    font-size: clamp(18px, 2.5vw, 26px);
     color: #333;
     text-align: center;
   }
@@ -44,6 +44,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 15px;
 
   & button {
     width: 104px;
@@ -69,5 +70,8 @@
   background-color: transparent;
   @media (max-width: 426px) {
     --positionDistance: 17px;
+  }
+  @media (max-width: 321px) {
+    --positionDistance: 12px;
   }
 }

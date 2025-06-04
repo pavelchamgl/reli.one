@@ -28,7 +28,7 @@ const PaymentPage = () => {
       {section === 2 && <PaymentDeliveryBlock section={section} setSection={setSection} />}
       {section === 3 && <PaymentPlataBlock section={section} setSection={setSection} />}
 
-      {!isMobile && <BasketTotalBlock />}
+      {!isMobile && <BasketTotalBlock section={section} />}
     </div>
   );
 };

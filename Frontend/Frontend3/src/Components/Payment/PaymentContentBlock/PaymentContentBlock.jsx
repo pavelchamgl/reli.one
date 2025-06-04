@@ -116,7 +116,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
     <div className={styles.main}>
       <div>
         <h3 onClick={() => navigate("/")} className={styles.title}>
-          Reli Group s.r.o
+          Reli Group s.r.o.
         </h3>
         {isMobile && <MobPaymentBasket />}
         <PayAndCartBread section={section} setSection={setSection} />
@@ -183,6 +183,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
             }
             onBlur={formik.handleBlur}
             err={zipInteracted.current && !zipValid ? "Please enter a valid zip code." : formik.errors.zip}
+            fontNum={true}
           />
         </div>
         <div className={styles.inpWrap}>
@@ -193,6 +194,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             err={formik.errors.build}
+            fontNum={true}
           />
           <PaymentInp
             title={"Apartment number"}
@@ -201,6 +203,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             err={formik.errors.apartment}
+            fontNum={true}
           />
         </div>
 
@@ -215,6 +218,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
           }}
           onBlur={formik.handleBlur}
           err={phoneInteracted.current && !phoneValid ? "Please enter a valid phone number." : formik.errors.phone}
+          fontNum={true}
         />
         <label className={styles.checkDiv}>
           <Checkbox />

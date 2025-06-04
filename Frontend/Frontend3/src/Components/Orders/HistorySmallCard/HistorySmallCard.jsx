@@ -40,7 +40,7 @@ const HistorySmallCard = ({ item = null, setSmall }) => {
       <div onClick={() => setSmall(true)}>
         <div className={styles.prodNumberDiv}>
           <p className={styles.prodNumber}>
-            {t("order")} <span>№{item?.order_number}</span>
+            {t("order")} <span>{item?.order_number}</span>
           </p>
           <p className={styles.prodNumber}>
             {t("order_time")}: <span>{item?.order_date}</span>

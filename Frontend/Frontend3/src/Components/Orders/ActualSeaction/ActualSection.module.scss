@@ -12,6 +12,7 @@
   span {
     font-weight: 500;
     color: #000;
+    font-family: var(--ft);
   }
 }
 
@@ -44,6 +45,9 @@
   }
   p:first-child {
     color: #535353;
+  }
+  & p:nth-child(2) {
+    font-family: var(--ft);
   }
 }
 
@@ -79,6 +83,7 @@
     letter-spacing: -0.04em;
     text-align: right;
     color: #323232;
+    font-family: var(--ft);
   }
   span {
     font-weight: 400;
@@ -172,7 +177,6 @@
   @media (max-width: 470px) {
     grid-template-columns: repeat(1, 1fr); // по умолчанию 3 карточки
   }
-  
 }
 
 .loaderWrap {

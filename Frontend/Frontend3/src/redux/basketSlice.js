@@ -123,7 +123,7 @@ const basketSlice = createSlice({
 
         minusCount: (state, action) => {
             const newArr = state.basket.map((item) => {
-                if (item.slu === action.payload.sku) {
+                if (item.sku === action.payload.sku) {
                     return {
                         ...item,
                         count: action.payload.count

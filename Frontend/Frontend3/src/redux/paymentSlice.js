@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { createStripeSession, createPayPalSession, calculateDelivery } from "../api/payment";
+import { object } from "yup";
 
 const initialPaymentInfo = JSON.parse(localStorage.getItem("payment")) || {};
 
@@ -9,8 +10,11 @@ export const fetchCreateStripeSession = createAsyncThunk(
     "payment/fetchCreateStripeSession",
     async (_, { rejectWithValue, getState }) => {
         try {
-            const { paymentInfo, groups, country } = getState().payment;
+            const { paymentInfo, groups, country, pointInfo } = getState().payment;
             const { email, name, surename, phone, street, city, zip } = paymentInfo;
+
+            console.log(pointInfo);
+
 
             const newGroups = groups.map((item) => {
                 if (item.deliveryType === "delivery_point") {
@@ -18,14 +22,12 @@ export const fetchCreateStripeSession = createAsyncThunk(
                         seller_id: item.seller_id,
                         delivery_type: 1,
                         courier_service: 2,
-                        pickup_point_id: item.pickup_point_id,
-                        products: item?.items?.map((product) => {
+                        pickup_point_id: item?.pickup_point_id, products: item?.items?.map((product) => {
                             return {
                                 sku: product.sku,
                                 quantity: product.count
                             }
                         })
-
                     }
                 } else {
                     return {
@@ -77,7 +79,7 @@ export const fetchCreatePayPalSession = createAsyncThunk(
     "payment/fetchCreatePayPalSession",
     async (_, { rejectWithValue, getState }) => {
         try {
-            const { paymentInfo, groups, country } = getState().payment;
+            const { paymentInfo, groups, country, pointInfo } = getState().payment;
             const { email, name, surename, phone, street, city, zip } = paymentInfo;
 
             const newGroups = groups.map((item) => {
@@ -86,7 +88,7 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                         seller_id: item.seller_id,
                         delivery_type: 1,
                         courier_service: 2,
-                        pickup_point_id: item.pickup_point_id,
+                        pickup_point_id: item?.pickup_point_id,
                         products: item?.items?.map((product) => {
                             return {
                                 sku: product.sku,
@@ -155,6 +157,7 @@ export const postCalculateDelivery = createAsyncThunk(
             return {
                 ...res,
                 seller_id: obj.seller_id,
+                queryType: obj?.queryType === "change" ? "change" : null
             };
         } catch (error) {
             const message =
@@ -194,7 +197,7 @@ const paymentSlice = createSlice({
         setPointInfo: (state, action) => {
             console.log(state.groups);
             console.log(action.payload);
-
+            state.pointInfo = action.payload
 
             state.groups = state.groups?.map((item) => {
                 if (item.seller_id === action.payload.sellerId) {
@@ -253,17 +256,38 @@ const paymentSlice = createSlice({
                 state.deliveryStatus = "pending"
             })
             .addCase(postCalculateDelivery.fulfilled, (state, action) => {
-                state.deliveryStatus = "fulfilled"
-                state.groups = state.groups?.map((item) => {
-                    if (item.seller_id === action.payload.seller_id) {
-                        return {
-                            ...item,
-                            ...action.payload
-                        }
-                    } else {
-                        return item
-                    }
-                })
+                state.deliveryStatus = "fulfilled";
+
+                const payload = action.payload;
+                const { seller_id, queryType, options } = payload;
+
+                const targetGroup = state.groups?.find(group => group.seller_id === seller_id);
+                const remainingGroups = state.groups?.filter(group => group.seller_id !== seller_id);
+
+                if (queryType === "change" && targetGroup) {
+                    const nonPudoOptions = targetGroup.options?.filter(opt => opt.channel !== "PUDO") || [];
+                    const newPudoOption = options?.find(opt => opt.channel === "PUDO");
+
+
+                    console.log(newPudoOption);
+
+
+                    const updatedGroup = {
+                        ...targetGroup,
+                        deliveryPrice: newPudoOption?.priceWithVat,
+                        options: [...nonPudoOptions, ...(newPudoOption ? [newPudoOption] : [])]
+                    };
+
+                    // ❗ Сохраняем порядок
+                    state.groups = state.groups?.map(group =>
+                        group.seller_id === seller_id ? updatedGroup : group
+                    );
+                } else {
+                    // Обновляем только одну нужную группу, если queryType !== 'change'
+                    state.groups = state.groups?.map(group =>
+                        group.seller_id === seller_id ? { ...group, ...payload } : group
+                    );
+                }
             })
             .addCase(postCalculateDelivery.rejected, (state, action) => {
                 state.deliveryStatus = "rejected"

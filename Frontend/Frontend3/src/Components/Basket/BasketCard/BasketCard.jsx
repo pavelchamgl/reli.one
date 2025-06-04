@@ -145,8 +145,9 @@ const BasketCard = ({ all, section, productData }) => {
             </div>
             <div className={styles.priceDiv}>
               <p>
-                {(Number(variants?.price) || Number(product?.price) || 0) *
-                  count}
+                {
+                  ((Number(variants?.price) || Number(product?.price) || 0) * count).toFixed(2)
+                }
                 €
               </p>
             </div>
@@ -187,7 +188,9 @@ const BasketCard = ({ all, section, productData }) => {
 
           <div className={styles.priceDiv}>
             <p>
-              {(Number(variants?.price) || Number(product?.price) || 0) * count}
+              {
+                ((Number(variants?.price) || Number(product?.price) || 0) * count).toFixed(2)
+              }
               €
             </p>
             {/* <span>{product.price} Kč</span> */}

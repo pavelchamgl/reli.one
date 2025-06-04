@@ -86,21 +86,31 @@ const ProductNameRate = () => {
       // Проверка, есть ли продукт с текущим id в корзине
       const existingProduct = basket.find((item) => item.id === product.id);
 
+      console.log(existingProduct);
+
       if (!existingProduct) {
         // Если продукта нет в корзине, установить значения первого варианта
         const firstVariant = product.variants[0];
         setPrice(firstVariant.price);
         setEndPice(firstVariant.price);
         setSku(firstVariant.sku);
-        setPriceVat(firstVariant.price_without_vat)
+        // setPriceVat(firstVariant.price_without_vat)
       } else {
         // Если продукт уже в корзине, использовать данные из корзины
         setEndPice(existingProduct.product.price);
         setSku(existingProduct.sku);
-        setPriceVat(existingProduct?.price_without_vat)
+        // setPriceVat(existingProduct?.price_without_vat)
       }
     }
   }, [product, basket]);
+
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      const firstVariant = product.variants[0];
+      setPriceVat(firstVariant.price_without_vat)
+    }
+  }, [])
+
 
 
 

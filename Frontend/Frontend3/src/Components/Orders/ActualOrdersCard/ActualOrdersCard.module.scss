@@ -32,6 +32,7 @@
   font-size: clamp(11px, 2.5vw, 15px);
   line-height: 131%;
   color: #64748b;
+  font-family: var(--ft);
 }
 .main {
   display: flex;
@@ -71,14 +72,18 @@
   line-height: 123%;
   color: #000;
   text-wrap: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   span:first-child {
     font-weight: 300;
-    font-size: clamp(12px, 2.5vw, 14px);
+    font-size: clamp(12px, 2.5vw, 16px);
   }
   span {
     font-weight: 600;
     font-size: clamp(12px, 2.5vw, 16px);
     line-height: 123%;
     color: #000;
+    font-family: var(--ft);
   }
 }

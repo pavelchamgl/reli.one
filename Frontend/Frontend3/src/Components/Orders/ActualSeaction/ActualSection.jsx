@@ -54,7 +54,7 @@ const ActualSection = () => {
           <div className={styles.mainWithOpen}>
             <div className={styles.buttonDiv}>
               <p className={styles.prodNumber}>
-                {t("order")} <span>№{order?.order_number}</span>
+                {t("order")} <span>{order?.order_number}</span>
               </p>
               <button onClick={() => setSmall(false)}>
                 <img src={arrTop} alt="" />
