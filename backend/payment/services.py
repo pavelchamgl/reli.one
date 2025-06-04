@@ -123,7 +123,7 @@ def send_merged_customer_email_from_session(session_id: str):
     html = render_to_string("emails/order_email_customer.html", ctx)
 
     email = EmailMessage(
-        subject="Подтверждение заказа",
+        subject="ORDER CONFIRMATION",
         body=html,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[ctx["customer"]["email"]],
@@ -177,7 +177,7 @@ def send_merged_manager_email_from_session(session_id: str):
     # 4) рендер и отправка
     html = render_to_string("emails/order_email_manager.html", ctx)
     email = EmailMessage(
-        subject="Новый заказ",
+        subject="NEW ORDER",
         body=html,
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=settings.PROJECT_MANAGERS_EMAILS,
@@ -272,7 +272,7 @@ def send_seller_emails_by_session(session_id: str):
                 parcel_files.add(dpi.parcel.label_file.path)
         parcels = [{"tracking_number": t, "items": it} for t, it in parcel_map.items()]
 
-        # Общий контекст (включает logo_base64 из prepare_merged_customer_email_context)
+        # Общий контекст (включает logo_url из prepare_merged_customer_email_context)
         ctx = prepare_merged_customer_email_context(orders)
         ctx.update({
             "groups":  list(seller_groups.values()),
@@ -283,8 +283,7 @@ def send_seller_emails_by_session(session_id: str):
         html_raw = render_to_string("emails/order_email_seller.html", ctx)
         html_inline = transform(html_raw)
         email = EmailMultiAlternatives(
-            subject="Новый заказ для вас",
-            body="123",
+            subject="NEW ORDER",
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[seller_email],
         )
