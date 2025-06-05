@@ -9,25 +9,13 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 from .models import Payment
-from .invoices.pdf_generator import generate_invoice_pdf_by_orders
+from order.services.invoice_generator import generate_invoice_pdf_by_orders
 from delivery.models import DeliveryParcelItem
 from delivery.services.packeta_point_service import get_pickup_point_details
 
 logger = logging.getLogger(__name__)
 
 LOGO_URL = 'https://res.cloudinary.com/daffwdfvn/image/upload/v1748957272/Reli/logo_reli_ouhtmo.png'
-
-
-def get_logo_base64():
-    """
-    Возвращает содержимое logo_reli.png в base64 для встраивания в письма.
-    """
-    path = os.path.join(settings.BASE_DIR, "logo_reli.png")
-    if not os.path.exists(path):
-        return ""
-    import base64
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
 
 
 def get_orders_by_payment_session_id(session_id: str):
