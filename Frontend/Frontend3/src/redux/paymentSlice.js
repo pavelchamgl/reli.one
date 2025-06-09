@@ -224,6 +224,14 @@ const paymentSlice = createSlice({
         },
         setGroups: (state, action) => {
             state.groups = action.payload
+        },
+        clearDeliveryPrice: (state) => {
+            if (Array.isArray(state.groups)) {
+                state.groups = state.groups.map(group => ({
+                    ...group,
+                    deliveryPrice: 0
+                }));
+            }
         }
     },
     extraReducers: (builder) => {
@@ -296,5 +304,5 @@ const paymentSlice = createSlice({
     }
 });
 
-export const { editValue, setCountry, setPointInfo, setDeliveryType, setGroups } = paymentSlice.actions;
+export const { editValue, setCountry, setPointInfo, setDeliveryType, setGroups, clearDeliveryPrice } = paymentSlice.actions;
 export const { reducer } = paymentSlice;

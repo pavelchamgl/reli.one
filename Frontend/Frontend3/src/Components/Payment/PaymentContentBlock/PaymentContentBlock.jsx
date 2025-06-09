@@ -118,7 +118,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
         <h3 onClick={() => navigate("/")} className={styles.title}>
           Reli Group s.r.o.
         </h3>
-        {isMobile && <MobPaymentBasket />}
+        {isMobile && <MobPaymentBasket section={section} />}
         <PayAndCartBread section={section} setSection={setSection} />
         {/* <CustomBreadcrumbs /> */}
       </div>
