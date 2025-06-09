@@ -1,254 +1,226 @@
 import os
-from io import BytesIO
-from decimal import Decimal, ROUND_HALF_UP
-from collections import defaultdict
 
+from io import BytesIO
+from PIL import Image
+from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
+from reportlab.lib import colors
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Table, TableStyle
+from reportlab.lib.units import mm
 from django.core.files.base import ContentFile
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib.units import mm
 
-from order.models import Order, OrderProduct
-from product.models import ProductVariant
-from sellers.models import SellerProfile
+from .invoice_data import prepare_invoice_data
 
 
-def format_eur(value):
-    return f"{Decimal(value).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)} €"
+def format_currency(value, symbol='€'):
+    val = Decimal(str(value)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+    val_str = f"{val:,.2f}"
+    return f"{symbol} {val_str}"
 
 
-def prepare_invoice_data(session_id):
-    """
-    Готовит данные для генерации PDF-инвойса в требуемой структуре.
-    На вход — session_id платежа.
-    """
+def draw_logo_and_header(c, width, height):
+    top_margin = 15 * mm
+    right_margin = 20 * mm
+    logo_height = 18 * mm
 
-    orders = (
-        Order.objects.filter(payment__session_id=session_id)
-        .select_related('delivery_address', 'user')
-        .prefetch_related('order_products__product__product')
-    )
-    if not orders.exists():
-        raise ValueError("Нет заказов по session_id")
+    logo_path = os.path.join(settings.BASE_DIR, 'logo_reli.png')
+    if os.path.isfile(logo_path):
+        im = Image.open(logo_path)
+        aspect = im.width / im.height
+        logo_width = logo_height * aspect
+        logo_x = width - right_margin - logo_width
+        logo_y = height - top_margin - logo_height
+        c.drawImage(logo_path, logo_x, logo_y, width=logo_width, height=logo_height, mask='auto')
+        logo_bottom = logo_y
+    else:
+        logo_bottom = height - top_margin - logo_height
 
-    # --- Клиент (берем из первого заказа, т.к. все должны быть от одного клиента и адреса)
-    order0 = orders[0]
-    delivery = order0.delivery_address
-    customer = {
-        "full_name": f"{delivery.first_name} {delivery.last_name}",
-        "address": delivery.address_line,
-        "zip_code": delivery.zip_code,
-        "city": delivery.city,
-        "country": delivery.country,
-    }
+    stripe_offset = 3 * mm
+    bar_height = 5 * mm
+    bar_y = logo_bottom - stripe_offset - bar_height
+    c.setFillColor(colors.HexColor('#FFC107'))
+    c.rect(0, bar_y, width, bar_height, stroke=0, fill=1)
 
-    # --- Общая дата и номер инвойса (берём из первого заказа)
-    invoice_number = order0.invoice_number
-    order_date = order0.created_at.strftime('%d.%m.%Y')
+    green_text = "Reli s.r.o.- Na lysinách 551/34, Hodkovičky, 14700 Prague, Czech Republic"
+    green_font_size = 10
+    c.setFont('Helvetica', green_font_size)
+    c.setFillColor(colors.black)
+    text_width = c.stringWidth(green_text, 'Helvetica', green_font_size)
+    text_y = bar_y + (bar_height - green_font_size) / 2 + 1
+    c.drawString((width - text_width) / 2, text_y, green_text)
+    c.setFillColor(colors.black)
 
-    # --- Группируем товары по продавцам
-    vendors_map = {}  # seller_id -> vendor_data
-
-    for order in orders:
-        # Получаем продавца через первую позицию в заказе (все позиции в заказе должны быть от одного продавца)
-        order_products = order.order_products.select_related('product', 'product__product')
-        if not order_products:
-            continue
-
-        # Берем SellerProfile из BaseProduct первого OrderProduct (допустим все товары в заказе от одного продавца)
-        base_product = order_products[0].product.product
-        seller_profile = getattr(base_product, "seller_profile", None)
-        if not seller_profile:
-            # Если не найден, можно либо пропустить, либо подставить дефолтные данные, либо кинуть ошибку
-            raise ValueError("Не найден профиль продавца у BaseProduct")
-
-        seller_id = seller_profile.id
-
-        # Если продавец ещё не в vendors_map — добавляем
-        if seller_id not in vendors_map:
-            vendors_map[seller_id] = {
-                "company_name": seller_profile.company_name,
-                "company_address": seller_profile.company_address,
-                "tax_id": seller_profile.tax_id,
-                "iban": seller_profile.iban,
-                "products": [],
-                "vat_summary": defaultdict(Decimal),
-                "order_total": Decimal("0.00"),
-            }
-
-        vendor = vendors_map[seller_id]
-
-        for op in order_products:
-            variant = op.product
-            base = variant.product
-            vat_rate = Decimal(str(base.vat_rate or "0.00"))
-            qty = op.quantity
-            unit_price = Decimal(str(op.product_price)).quantize(Decimal('0.01'), ROUND_HALF_UP)
-            total = (unit_price * qty).quantize(Decimal('0.01'), ROUND_HALF_UP)
-
-            # Добавляем в таблицу товаров
-            vendor["products"].append({
-                "qty": qty,
-                "sku": variant.sku,
-                "name": f"{base.name} – {variant.name}",
-                "unit_price": float(unit_price),
-                "total": float(total),
-                "vat_rate": float(vat_rate),
-            })
-
-            # Подсчёт по VAT
-            # Сумма НДС = total * vat_rate / (100 + vat_rate) — если цены с НДС
-            vat_value = (total * vat_rate / (100 + vat_rate)).quantize(Decimal('0.01'), ROUND_HALF_UP) if vat_rate > 0 else Decimal('0.00')
-            vendor["vat_summary"][vat_rate] += vat_value
-
-            # Итог по группе
-            vendor["order_total"] += total
-
-    # --- Формируем vendors для итоговой структуры
-    vendors = []
-    grand_total = Decimal("0.00")
-    for vendor in vendors_map.values():
-        # Преобразуем vat_summary из defaultdict в обычный dict с округлением
-        vendor["vat_summary"] = {float(rate): float(val.quantize(Decimal('0.01'), ROUND_HALF_UP))
-                                 for rate, val in vendor["vat_summary"].items()}
-        vendor["order_total"] = float(vendor["order_total"].quantize(Decimal('0.01'), ROUND_HALF_UP))
-        grand_total += Decimal(str(vendor["order_total"]))
-        vendors.append(vendor)
-
-    # --- Финальный датасет
-    invoice_data = {
-        "invoice_number": invoice_number,
-        "order_date": order_date,
-        "customer": customer,
-        "vendors": vendors,
-        "grand_total": float(grand_total.quantize(Decimal('0.01'), ROUND_HALF_UP)),
-    }
-    return invoice_data
+    return bar_y - 8 * mm
 
 
-def generate_invoice_pdf_by_orders(orders, invoice_number):
-    if not orders:
-        raise ValueError("Orders list is empty")
+def draw_company_and_customer_info(c, data, width, y):
+    left_x = 20 * mm
+    right_x = width - 90 * mm
+
+    company_text = c.beginText()
+    company_text.setFont('Helvetica-Bold', 12)
+    company_text.setTextOrigin(left_x, y)
+    company_text.textLine(data['company_name'])
+    company_text.setFont('Helvetica', 9)
+    for line in data['company_address'].split(', '):
+        company_text.textLine(line)
+    company_text.textLine(f"Tax ID: {data['tax_id']}")
+    company_text.textLine(f"IBAN: {data['iban']}")
+    c.drawText(company_text)
+
+    customer = data['customer']
+    customer_text = c.beginText()
+    customer_text.setFont('Helvetica-Bold', 11)
+    customer_text.setTextOrigin(right_x, y)
+    customer_text.textLine("Bill To:")
+    customer_text.setFont('Helvetica', 9)
+    customer_text.textLine(customer['full_name'])
+    customer_text.textLine(customer['address'])
+    customer_text.textLine(f"{customer['zip_code']} {customer['city']}")
+    customer_text.textLine(customer['country'])
+    c.drawText(customer_text)
+
+    return y - 30 * mm
+
+
+def draw_invoice_meta(c, data, width, y):
+    text = c.beginText()
+    text.setFont('Helvetica-Bold', 10)
+    x0 = width - 20*mm - 70*mm
+    text.setTextOrigin(x0, y)
+    text.textLine(f"Invoice Number: {data['invoice_number']}")
+    text.textLine(f"Invoice Date: {data['order_date']}")
+    text.textLine(f"Payment Method: {data.get('payment_method', '-')}")
+    c.drawText(text)
+    return y - 15 * mm
+
+
+def draw_invoice_title(c, y):
+    c.setFont("Helvetica-Bold", 18)
+    text = "INVOICE"
+    text_width = c.stringWidth(text, "Helvetica-Bold", 18)
+    x = (c._pagesize[0] - text_width) / 2
+    c.drawString(x, y, text)
+    return y - 5 * mm
+
+
+def draw_products_table(c, data, y, page_width):
+    table_data = [[
+        'Qty', 'SKU', 'Description', 'Unit Price (incl. VAT)', 'Total (incl. VAT)', 'VAT Rate'
+    ]]
+    for p in data['products']:
+        table_data.append([
+            str(p['qty']), p['sku'], p['name'],
+            format_currency(p['unit_price']), format_currency(p['total']), f"{p.get('vat_rate',0)}%"
+        ])
+    col_widths = [15*mm, 25*mm, page_width - (20*mm + 15*mm + 25*mm + 35*mm + 35*mm + 15*mm + 20*mm), 35*mm, 35*mm, 15*mm]
+    tbl = Table(table_data, colWidths=col_widths, repeatRows=1)
+    tbl.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#FFC107')),
+        ('GRID',       (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
+        ('FONT',       (0, 0), (-1, 0), 'Helvetica-Bold', 9),
+        ('FONT',       (0, 1), (-1, -1), 'Helvetica', 9),
+        ('ALIGN',      (0, 0), (1, -1), 'CENTER'),
+        ('ALIGN',      (3, 0), (4, -1), 'RIGHT'),
+        ('ALIGN',      (5, 0), (5, -1), 'CENTER'),
+    ]))
+    avail_w = page_width - 40*mm
+    w, h = tbl.wrap(avail_w, y)
+    tbl.drawOn(c, 20*mm, y - h)
+    return y - h - 10 * mm
+
+
+def draw_totals(c, data, y_top, page_width):
+    c.setStrokeColor(colors.HexColor("#CCCCCC"))
+    c.setLineWidth(0.5)
+    c.line(20 * mm, y_top + 5 * mm, page_width - 20 * mm, y_top + 5 * mm)
+
+    total = Decimal(str(data.get('grand_total', 0)))
+    vat_amount = sum(Decimal(str(v)) for v in data.get('vat_summary', {}).values())
+    net_amount = (total - vat_amount).quantize(Decimal('0.01'), ROUND_HALF_UP)
+    vat_rate = next(iter(data.get('vat_summary', {})), 0)
+
+    x0 = page_width - 20 * mm - 70 * mm
+    y = y_top
+    line_height = 5 * mm
+
+    c.setFont('Helvetica', 9)
+    c.drawString(x0, y, 'Net Amount (incl. VAT, EUR):')
+    c.drawRightString(page_width - 20 * mm, y, format_currency(net_amount))
+    y -= line_height
+
+    c.drawString(x0, y, f'VAT Amount (EUR, {vat_rate}%):')
+    c.drawRightString(page_width - 20 * mm, y, format_currency(vat_amount))
+    y -= line_height + 2 * mm
+
+    c.setFont('Helvetica-Bold', 10)
+    c.drawString(x0, y, 'Total Amount Due (EUR):')
+    c.drawRightString(page_width - 20 * mm, y, format_currency(total))
+
+    return y - 10 * mm
+
+
+def draw_terms_block(c, page_width):
+    c.setFont("Helvetica", 8)
+    c.setFillColor(colors.black)
+    x = 20 * mm
+    y = 31 * mm
+
+    terms = [
+        "Order paid in advance. Returns accepted within 14 days from delivery. No VAT deduction possible (B2C transaction).",
+        "Contact: info@reli.one",
+    ]
+
+    for line in terms:
+        c.drawString(x, y, line)
+        y -= 4 * mm
+
+    return y
+
+
+def draw_footer(c, data, page_width):
+    c.setFont("Helvetica-Bold", 8)
+    c.setFillColor(colors.black)
+    x = 20 * mm
+    y = 22 * mm
+    lines = data.get('footer_lines') or [
+        "Order paid. Invoice issued.",
+        "For return inquiries, contact: office@reli.one"
+    ]
+    for line in lines:
+        c.drawString(x, y, line)
+        y -= 4 * mm
+
+    method = data.get("payment_method")
+    if method:
+        c.setFont("Helvetica", 8)
+        c.drawString(x, y - 1 * mm, f"Paid via {method.title()}")
+
+
+def generate_invoice_pdf(data_or_session_id) -> ContentFile:
+    if isinstance(data_or_session_id, dict):
+        data = data_or_session_id
+    else:
+        data = prepare_invoice_data(data_or_session_id)
 
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
+    page_w, page_h = A4
 
-    # Register fonts
-    font_path = os.path.join(settings.BASE_DIR, "order", "fonts", "Roboto-Regular.ttf")
-    bold_font_path = os.path.join(settings.BASE_DIR, "order", "fonts", "Roboto-Bold.ttf")
-    pdfmetrics.registerFont(TTFont("Roboto", font_path))
-    pdfmetrics.registerFont(TTFont("Roboto-Bold", bold_font_path))
+    y = draw_logo_and_header(c, page_w, page_h)
+    y = draw_company_and_customer_info(c, data, page_w, y)
+    y = draw_invoice_meta(c, data, page_w, y)
+    y = draw_invoice_title(c, y)
+    y = draw_products_table(c, data, y, page_w)
+    y = draw_totals(c, data, y, page_w)
+    y = draw_terms_block(c, page_w)
+    draw_footer(c, data, page_w)
 
-    c.setFont("Roboto", 10)
-    cursor_y = height - 20 * mm
-
-    # Header
-    logo_path = os.path.join(settings.BASE_DIR, "order", "static", "logo_invoice.png")
-    if os.path.exists(logo_path):
-        c.drawImage(logo_path, 20 * mm, cursor_y - 10 * mm, width=40 * mm, preserveAspectRatio=True, mask='auto')
-    c.setFont("Roboto-Bold", 14)
-    c.drawRightString(width - 20 * mm, cursor_y, "Faktura / Invoice")
-    cursor_y -= 25 * mm
-
-    # Seller
-    c.setFont("Roboto", 9)
-    seller_lines = [
-        "Zooshop Marketplace s.r.o.",
-        "Herzog-Wilhelm-Strasse 18",
-        "80331 München, Germany",
-        "IBAN: DE00000000000000000000",
-        "SWIFT: TESTDEFF",
-        "DIČ: CZ123456789"
-    ]
-    for line in seller_lines:
-        c.drawString(20 * mm, cursor_y, line)
-        cursor_y -= 5 * mm
-
-    # Buyer
-    buyer = orders[0]
-    buyer_lines = [
-        f"{buyer.first_name} {buyer.last_name}",
-        buyer.customer_email or "",
-        str(buyer.phone_number or "")
-    ]
-    tmp_y = height - 40 * mm
-    for line in buyer_lines:
-        c.drawRightString(width - 20 * mm, tmp_y, line)
-        tmp_y -= 5 * mm
-
-    # Metadata
-    meta_data = {
-        "Invoice no.": invoice_number,
-        "Order date": buyer.order_date.strftime('%d.%m.%Y')
-    }
-    cursor_y -= 10 * mm
-    for key, val in meta_data.items():
-        c.drawString(20 * mm, cursor_y, key + ":")
-        c.drawString(60 * mm, cursor_y, str(val))
-        cursor_y -= 5 * mm
-
-    # Table Header
-    c.setFont("Roboto-Bold", 9)
-    headers = ["Qty", "SKU", "Name", "Price/pc", "Total", "VAT"]
-    x_positions = [22 * mm, 35 * mm, 55 * mm, 135 * mm, 160 * mm, 180 * mm]
-
-    cursor_y -= 10 * mm
-    for i, header in enumerate(headers):
-        c.drawString(x_positions[i], cursor_y, header)
-    cursor_y -= 2 * mm
-    c.line(20 * mm, cursor_y, width - 20 * mm, cursor_y)
-    cursor_y -= 6 * mm
-
-    # Table Rows
-    c.setFont("Roboto", 9)
-    total_sum = Decimal("0.00")
-    vat_by_rate = {}
-    for order in orders:
-        for op in order.order_products.select_related("product"):
-            variant = op.product
-            name = f"{variant.product.name} – {variant.name}"
-            qty = op.quantity
-            unit_price = Decimal(op.product_price)
-            total = unit_price * qty
-            vat_rate = Decimal(variant.product.vat_rate or "0.00")
-            vat_value = total * vat_rate / (100 + vat_rate) if vat_rate > 0 else Decimal("0.00")
-
-            vat_by_rate.setdefault(vat_rate, Decimal("0.00"))
-            vat_by_rate[vat_rate] += vat_value
-            total_sum += total
-
-            c.drawString(x_positions[0] - 1, cursor_y, str(qty))
-            c.drawString(x_positions[1], cursor_y, variant.sku)
-            c.drawString(x_positions[2], cursor_y, name[:45])
-            c.drawRightString(x_positions[3] + 39, cursor_y, format_eur(unit_price))
-            c.drawRightString(x_positions[4] + 35, cursor_y, format_eur(total))
-            c.drawRightString(x_positions[5] + 22, cursor_y, f"{vat_rate:.2f}%")
-            cursor_y -= 5 * mm
-
-            if cursor_y < 30 * mm:
-                c.showPage()
-                cursor_y = height - 20 * mm
-                c.setFont("Roboto", 9)
-
-    # VAT Summary & Total
-    cursor_y -= 5 * mm
-    for rate, vat_val in vat_by_rate.items():
-        c.drawRightString(width - 20 * mm, cursor_y, f"Including VAT: {format_eur(vat_val)}")
-        cursor_y -= 5 * mm
-    c.setFont("Roboto-Bold", 10)
-    c.drawRightString(width - 20 * mm, cursor_y, f"Total amount: {format_eur(total_sum)}")
-    cursor_y -= 10 * mm
-
-    # Footer
-    c.setFont("Roboto", 9)
-    c.drawString(20 * mm, 25 * mm, "Заказ оплачен. Счёт предоставлен.")
-    c.drawString(20 * mm, 20 * mm, "По вопросам возврата — support@zooshop.eu")
-
+    c.showPage()
     c.save()
     buffer.seek(0)
-    filename = f"invoice_{invoice_number}.pdf"
+
+    filename = f"Invoice_{data['invoice_number']}.pdf"
     return ContentFile(buffer.read(), name=filename)
