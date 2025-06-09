@@ -1,14 +1,17 @@
 from decimal import Decimal, ROUND_HALF_UP
 from collections import defaultdict
+from django_countries.fields import Country
+
 from order.models import Order
 from payment.models import Payment
+
 
 def prepare_invoice_data(session_id):
     """
     Готовит данные для PDF-инвойса под твои модели и требования.
     """
 
-    COMPANY_NAME = "Reli s.r.o."
+    COMPANY_NAME = "Reli Group s.r.o."
     COMPANY_ADDRESS = "Na lysinách 551/34, Hodkovičky, 14700 Prague, Czech Republic"
     TAX_ID = "CZ123456789"
     IBAN = "DE00000000000000000000"
@@ -29,7 +32,7 @@ def prepare_invoice_data(session_id):
         "address": delivery.street if delivery else "",
         "zip_code": delivery.zip_code if delivery else "",
         "city": delivery.city if delivery else "",
-        "country": delivery.country if delivery else "",
+        "country": Country(delivery.country).name if delivery and delivery.country else "",
     }
 
     invoice_number = order0.order_number if hasattr(order0, "order_number") else order0.invoice_number
@@ -52,7 +55,7 @@ def prepare_invoice_data(session_id):
             products.append({
                 "qty": qty,
                 "sku": variant.sku,
-                "name": f"{base.name} - {variant.name}",
+                "name": f"{base.name} - {variant.name}: {variant.text}",
                 "unit_price": float(unit_price),
                 "total": float(total),
                 "vat_rate": float(vat_rate),

@@ -6,12 +6,19 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 from reportlab.lib import colors
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
 from reportlab.platypus import Table, TableStyle
 from reportlab.lib.units import mm
-from django.core.files.base import ContentFile
 from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase.ttfonts import TTFont
+from django.core.files.base import ContentFile
 
 from .invoice_data import prepare_invoice_data
+
+
+font_dir = os.path.join(settings.BASE_DIR, "order", "fonts")
+pdfmetrics.registerFont(TTFont("Roboto", os.path.join(font_dir, "Roboto-Regular.ttf")))
+pdfmetrics.registerFont(TTFont("Roboto-Bold", os.path.join(font_dir, "Roboto-Bold.ttf")))
 
 
 def format_currency(value, symbol='€'):
@@ -43,11 +50,11 @@ def draw_logo_and_header(c, width, height):
     c.setFillColor(colors.HexColor('#FFC107'))
     c.rect(0, bar_y, width, bar_height, stroke=0, fill=1)
 
-    green_text = "Reli s.r.o.- Na lysinách 551/34, Hodkovičky, 14700 Prague, Czech Republic"
+    green_text = "Reli Group s.r.o.- Na lysinách 551/34, Hodkovičky, 14700 Prague, Czech Republic"
     green_font_size = 10
-    c.setFont('Helvetica', green_font_size)
+    c.setFont('Roboto', green_font_size)
     c.setFillColor(colors.black)
-    text_width = c.stringWidth(green_text, 'Helvetica', green_font_size)
+    text_width = c.stringWidth(green_text, 'Roboto', green_font_size)
     text_y = bar_y + (bar_height - green_font_size) / 2 + 1
     c.drawString((width - text_width) / 2, text_y, green_text)
     c.setFillColor(colors.black)
@@ -60,10 +67,10 @@ def draw_company_and_customer_info(c, data, width, y):
     right_x = width - 90 * mm
 
     company_text = c.beginText()
-    company_text.setFont('Helvetica-Bold', 12)
+    company_text.setFont('Roboto-Bold', 12)
     company_text.setTextOrigin(left_x, y)
     company_text.textLine(data['company_name'])
-    company_text.setFont('Helvetica', 9)
+    company_text.setFont('Roboto', 9)
     for line in data['company_address'].split(', '):
         company_text.textLine(line)
     company_text.textLine(f"Tax ID: {data['tax_id']}")
@@ -72,10 +79,10 @@ def draw_company_and_customer_info(c, data, width, y):
 
     customer = data['customer']
     customer_text = c.beginText()
-    customer_text.setFont('Helvetica-Bold', 11)
+    customer_text.setFont('Roboto-Bold', 11)
     customer_text.setTextOrigin(right_x, y)
     customer_text.textLine("Bill To:")
-    customer_text.setFont('Helvetica', 9)
+    customer_text.setFont('Roboto', 9)
     customer_text.textLine(customer['full_name'])
     customer_text.textLine(customer['address'])
     customer_text.textLine(f"{customer['zip_code']} {customer['city']}")
@@ -87,7 +94,7 @@ def draw_company_and_customer_info(c, data, width, y):
 
 def draw_invoice_meta(c, data, width, y):
     text = c.beginText()
-    text.setFont('Helvetica-Bold', 10)
+    text.setFont('Roboto-Bold', 10)
     x0 = width - 20*mm - 70*mm
     text.setTextOrigin(x0, y)
     text.textLine(f"Invoice Number: {data['invoice_number']}")
@@ -98,9 +105,9 @@ def draw_invoice_meta(c, data, width, y):
 
 
 def draw_invoice_title(c, y):
-    c.setFont("Helvetica-Bold", 18)
+    c.setFont("Roboto-Bold", 18)
     text = "INVOICE"
-    text_width = c.stringWidth(text, "Helvetica-Bold", 18)
+    text_width = c.stringWidth(text, "Roboto-Bold", 18)
     x = (c._pagesize[0] - text_width) / 2
     c.drawString(x, y, text)
     return y - 5 * mm
@@ -120,8 +127,8 @@ def draw_products_table(c, data, y, page_width):
     tbl.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#FFC107')),
         ('GRID',       (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
-        ('FONT',       (0, 0), (-1, 0), 'Helvetica-Bold', 9),
-        ('FONT',       (0, 1), (-1, -1), 'Helvetica', 9),
+        ('FONT',       (0, 0), (-1, 0), 'Roboto-Bold', 9),
+        ('FONT',       (0, 1), (-1, -1), 'Roboto', 9),
         ('ALIGN',      (0, 0), (1, -1), 'CENTER'),
         ('ALIGN',      (3, 0), (4, -1), 'RIGHT'),
         ('ALIGN',      (5, 0), (5, -1), 'CENTER'),
@@ -146,16 +153,16 @@ def draw_totals(c, data, y_top, page_width):
     y = y_top
     line_height = 5 * mm
 
-    c.setFont('Helvetica', 9)
+    c.setFont('Roboto', 9)
     c.drawString(x0, y, 'Net Amount (incl. VAT, EUR):')
     c.drawRightString(page_width - 20 * mm, y, format_currency(net_amount))
     y -= line_height
 
-    c.drawString(x0, y, f'VAT Amount (EUR, {vat_rate}%):')
+    c.drawString(x0, y, f'VAT Amount (EUR):')
     c.drawRightString(page_width - 20 * mm, y, format_currency(vat_amount))
     y -= line_height + 2 * mm
 
-    c.setFont('Helvetica-Bold', 10)
+    c.setFont('Roboto-Bold', 10)
     c.drawString(x0, y, 'Total Amount Due (EUR):')
     c.drawRightString(page_width - 20 * mm, y, format_currency(total))
 
@@ -163,7 +170,7 @@ def draw_totals(c, data, y_top, page_width):
 
 
 def draw_terms_block(c, page_width):
-    c.setFont("Helvetica", 8)
+    c.setFont("Roboto", 8)
     c.setFillColor(colors.black)
     x = 20 * mm
     y = 31 * mm
@@ -181,7 +188,7 @@ def draw_terms_block(c, page_width):
 
 
 def draw_footer(c, data, page_width):
-    c.setFont("Helvetica-Bold", 8)
+    c.setFont("Roboto-Bold", 8)
     c.setFillColor(colors.black)
     x = 20 * mm
     y = 22 * mm
@@ -195,7 +202,7 @@ def draw_footer(c, data, page_width):
 
     method = data.get("payment_method")
     if method:
-        c.setFont("Helvetica", 8)
+        c.setFont("Roboto", 8)
         c.drawString(x, y - 1 * mm, f"Paid via {method.title()}")
 
 
