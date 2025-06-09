@@ -35,7 +35,8 @@ const PaymentDeliveryBlock = ({ section, setSection }) => {
 
   const { plusMinusDelivery, basketSelectedProductsPrice } = useActions();
 
-  const { setGroups } = useActionPayment()
+
+  const { setGroups, clearDeliveryPrice } = useActionPayment()
 
   const navigate = useNavigate();
 
@@ -45,6 +46,7 @@ const PaymentDeliveryBlock = ({ section, setSection }) => {
     if (selectedProducts) {
       const grouped = groupBySeller(selectedProducts);
       setGroups(grouped)
+      clearDeliveryPrice()
     }
   }, [selectedProducts])
 
@@ -75,7 +77,7 @@ const PaymentDeliveryBlock = ({ section, setSection }) => {
         <h3 onClick={() => navigate("/")} className={styles.title}>
           Reli Group s.r.o.
         </h3>
-        {isMobile && <MobPaymentBasket />}
+        {isMobile && <MobPaymentBasket section={section} />}
         {/* <CustomBreadcrumbs /> */}
         <PayAndCartBread section={section} setSection={setSection} />
       </div>

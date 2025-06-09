@@ -100,7 +100,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
         <h3 onClick={() => navigate("/")} className={styles.title}>
           Reli Group s.r.o.
         </h3>
-        {isMobile && <MobPaymentBasket />}
+        {isMobile && <MobPaymentBasket section={section} />}
         {/* <CustomBreadcrumbs /> */}
         <PayAndCartBread section={section} setSection={setSection} />
       </div>
