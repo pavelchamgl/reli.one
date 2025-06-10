@@ -9,8 +9,10 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 from .models import Payment
-from order.services.invoice_generator import generate_invoice_pdf_by_orders
+# from order.services.invoice_generator import generate_invoice_pdf_by_orders
 from delivery.models import DeliveryParcelItem
+from order.services.invoice_data import prepare_invoice_data
+from order.services.invoice_generator import generate_invoice_pdf
 from delivery.services.packeta_point_service import get_pickup_point_details
 
 logger = logging.getLogger(__name__)
@@ -119,7 +121,8 @@ def send_merged_customer_email_from_session(session_id: str):
     email.content_subtype = "html"
 
     # Прикрепляем PDF-счёт
-    invoice_pdf = generate_invoice_pdf_by_orders(orders, orders[0].order_number)
+    invoice_data = prepare_invoice_data(session_id)
+    invoice_pdf = generate_invoice_pdf(invoice_data)
     email.attach(invoice_pdf.name, invoice_pdf.read(), "application/pdf")
 
     try:
