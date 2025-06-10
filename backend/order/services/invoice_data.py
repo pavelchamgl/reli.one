@@ -12,9 +12,9 @@ def prepare_invoice_data(session_id):
     """
 
     COMPANY_NAME = "Reli Group s.r.o."
-    COMPANY_ADDRESS = "Na lysinách 551/34, Hodkovičky, 14700 Prague, Czech Republic"
-    TAX_ID = "CZ123456789"
-    IBAN = "DE00000000000000000000"
+    COMPANY_ADDRESS = "Na lysinách 551/34, Hodkovičky, 14700 Praha 4, Czech Republic"
+    TAX_ID = "28003896"
+    IBAN = "CZ9455000000005003011074"
 
     orders = (
         Order.objects.filter(payments__session_id=session_id)

@@ -50,7 +50,7 @@ def draw_logo_and_header(c, width, height):
     c.setFillColor(colors.HexColor('#FFC107'))
     c.rect(0, bar_y, width, bar_height, stroke=0, fill=1)
 
-    green_text = "Reli Group s.r.o.- Na lysinách 551/34, Hodkovičky, 14700 Prague, Czech Republic"
+    green_text = "Reli Group s.r.o. - Na lysinách 551/34, Hodkovičky, 14700 Praha 4, Czech Republic"
     green_font_size = 10
     c.setFont('Roboto', green_font_size)
     c.setFillColor(colors.black)
