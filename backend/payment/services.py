@@ -115,7 +115,7 @@ def send_merged_customer_email_from_session(session_id: str):
     email = EmailMessage(
         subject="ORDER CONFIRMATION",
         body=html,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL"),
         to=[ctx["customer"]["email"]],
     )
     email.content_subtype = "html"
@@ -170,7 +170,7 @@ def send_merged_manager_email_from_session(session_id: str):
     email = EmailMessage(
         subject="NEW ORDER",
         body=html,
-        from_email=settings.DEFAULT_FROM_EMAIL,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL"),
         to=settings.PROJECT_MANAGERS_EMAILS,
     )
     email.content_subtype = "html"
@@ -275,7 +275,7 @@ def send_seller_emails_by_session(session_id: str):
         html_inline = transform(html_raw)
         email = EmailMultiAlternatives(
             subject="NEW ORDER",
-            from_email=settings.DEFAULT_FROM_EMAIL,
+            from_email=getattr(settings, "DEFAULT_FROM_EMAIL"),
             to=[seller_email],
         )
         email.attach_alternative(html_inline, "text/html")
