@@ -125,13 +125,16 @@ class PaymentSessionValidator:
             "Creates a Stripe Checkout Session by validating customer contact data and a list of product groups grouped by seller.\n\n"
             "**Business logic:**\n"
             "- Validates that each product belongs to the specified seller.\n"
+            "- Validates the required delivery address provided at the root level.\n"
             "- Calculates delivery cost per group based on delivery type and destination.\n"
             "- Calculates subtotal, delivery cost, and total amount.\n"
             "- Persists session metadata including customer info, products, pricing, and delivery details.\n"
             "- Returns a Stripe Checkout URL and internal session references.\n\n"
             "**Webhook usage:**\n"
             "The `session_key` is used to restore saved metadata when the Stripe webhook confirms successful payment.\n\n"
-            "**Note:** If `delivery_address.country` is provided, it must be a valid ISO 3166-1 alpha-2 code (e.g., `\"SK\"`, `\"CZ\"`)."
+            "**Note:**\n"
+            "- The root-level `delivery_address` is required and must include `street`, `city`, `zip`, and `country` (ISO 3166-1 alpha-2).\n"
+            "- Each group may also have its own delivery address or pickup point depending on the delivery type."
     ),
     request=SessionInputSerializer,
     responses={
@@ -160,6 +163,12 @@ class PaymentSessionValidator:
                 "first_name": "Pavel",
                 "last_name": "Ivanov",
                 "phone": "+421123456789",
+                "delivery_address": {
+                    "street": "Benkova 373 / 7",
+                    "city": "Nitra",
+                    "zip": "94911",
+                    "country": "SK"
+                },
                 "groups": [
                     {
                         "seller_id": 2,
@@ -199,7 +208,7 @@ class CreateStripePaymentView(APIView):
 
         logger.info("Stripe session creation request received", extra={"data": data})
 
-        required_fields = ['email', 'first_name', 'last_name', 'phone', 'groups']
+        required_fields = ['email', 'first_name', 'last_name', 'phone', 'delivery_address', 'groups']
         for field in required_fields:
             if field not in data:
                 return Response({"error": f"Missing required field: {field}"}, status=400)
@@ -209,6 +218,13 @@ class CreateStripePaymentView(APIView):
         last_name = data['last_name']
         phone = data['phone']
         groups = data['groups']
+        delivery_address = data['delivery_address']
+
+        if delivery_address:
+            required_subfields = ['street', 'city', 'zip', 'country']
+            for field in required_subfields:
+                if field not in delivery_address:
+                    return Response({"error": f"Missing '{field}' in delivery_address"}, status=400)
 
         validation_response = PaymentSessionValidator.validate_groups(groups)
         if validation_response:
@@ -314,6 +330,7 @@ class CreateStripePaymentView(APIView):
                 'first_name': first_name,
                 'last_name': last_name,
                 'phone': phone,
+                'delivery_address': delivery_address,
             },
             invoice_data={'groups': groups},
             description_data={
@@ -530,16 +547,19 @@ class StripeWebhookView(APIView):
 @extend_schema(
     summary="Create PayPal Payment Session with Delivery and Seller-Based Grouping",
     description=(
-        "Creates a PayPal payment session by validating customer contact data and a list of product groups grouped by seller.\n\n"
-        "**Business logic:**\n"
-        "- Validates that each product belongs to the specified seller.\n"
-        "- Calculates delivery cost per group based on delivery type and destination.\n"
-        "- Calculates subtotal, delivery cost, and total amount.\n"
-        "- Persists session metadata including customer info, products, pricing, and delivery details.\n"
-        "- Returns a PayPal approval URL and internal session references.\n\n"
-        "**Webhook usage:**\n"
-        "The `session_key` is used to restore saved metadata when the PayPal webhook confirms successful payment.\n\n"
-        "**Note:** If `delivery_address.country` is provided, it must be a valid ISO 3166-1 alpha-2 code (e.g., `\"SK\"`, `\"CZ\"`)."
+            "Creates a PayPal payment session by validating customer contact data and a list of product groups grouped by seller.\n\n"
+            "**Business logic:**\n"
+            "- Validates that each product belongs to the specified seller.\n"
+            "- Validates the general delivery address if provided at the root level.\n"
+            "- Calculates delivery cost per group based on delivery type and destination.\n"
+            "- Calculates subtotal, delivery cost, and total amount.\n"
+            "- Persists session metadata including customer info, general delivery address, products, pricing, and delivery details.\n"
+            "- Returns a PayPal approval URL and internal session references.\n\n"
+            "**Webhook usage:**\n"
+            "The `session_key` is used to restore saved metadata when the PayPal webhook confirms successful payment.\n\n"
+            "**Note:**\n"
+            "- If `delivery_address` is provided, it must include all of: `street`, `city`, `zip`, and `country` (ISO 3166-1 alpha-2).\n"
+            "- Each group may also have its own delivery address or pickup point depending on the delivery type."
     ),
     request=SessionInputSerializer,  # используется тот же input serializer, если структура идентична
     responses={
@@ -568,6 +588,12 @@ class StripeWebhookView(APIView):
                 "first_name": "Pavel",
                 "last_name": "Ivanov",
                 "phone": "+421123456789",
+                "delivery_address": {
+                    "street": "Benkova 373 / 7",
+                    "city": "Nitra",
+                    "zip": "94911",
+                    "country": "SK"
+                },
                 "groups": [
                     {
                         "seller_id": 2,
@@ -607,7 +633,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 
         logger.info("PayPal session creation request received", extra={"data": data})
 
-        required_fields = ['email', 'first_name', 'last_name', 'phone', 'groups']
+        required_fields = ['email', 'first_name', 'last_name', 'phone', 'delivery_address', 'groups']
         for field in required_fields:
             if field not in data:
                 return Response({"error": f"Missing required field: {field}"}, status=400)
@@ -617,6 +643,13 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
         last_name = data['last_name']
         phone = data['phone']
         groups = data['groups']
+        delivery_address = data['delivery_address']
+
+        if delivery_address:
+            required_subfields = ['street', 'city', 'zip', 'country']
+            for field in required_subfields:
+                if field not in delivery_address:
+                    return Response({"error": f"Missing '{field}' in delivery_address"}, status=400)
 
         validation_response = PaymentSessionValidator.validate_groups(groups)
         if validation_response:
@@ -717,6 +750,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 'first_name': first_name,
                 'last_name': last_name,
                 'phone': phone,
+                'delivery_address': delivery_address,
             },
             invoice_data={'groups': groups},
             description_data={
