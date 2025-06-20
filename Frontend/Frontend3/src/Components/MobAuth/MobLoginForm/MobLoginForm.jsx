@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
@@ -11,23 +11,31 @@ import openEye from "../../../assets/Input/openEyesIcon.svg";
 
 import styles from "./MobLoginForm.module.scss";
 
+import { useSelector, useDispatch } from "react-redux";
+import { updateBasket, syncBasket } from "../../../redux/basketSlice";
+import { useActionPayment } from "../../../hook/useActionPayment";
+
 const MobLoginForm = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   const [type, setType] = useState("password");
   const [regErr, setRegErr] = useState("");
+  const [isLogged, setIsLoged] = useState(false)
 
-  const { t } = useTranslation();
+
+  const basketLocal = useSelector((state) => state.basket.basket) || [];
+  const baskets = useSelector((state) => state.basket.baskets) || [];
 
   const validationLogin = yup.object().shape({
     email: yup
       .string()
-      .typeError(({ path }) => t(`validation.email.typeError`))
-      .email(t(`validation.email.email`))
-      .required(t(`validation.email.required`)),
+      .email(t("validation.email.email"))
+      .required(t("validation.email.required")),
     password: yup
       .string()
-      .test("password", t(`validation.password.passwordCriteria`), (value) => {
+      .test("password", t("validation.password.passwordCriteria"), (value) => {
         return (
           /[a-z]/.test(value) &&
           /[A-Z]/.test(value) &&
@@ -35,14 +43,14 @@ const MobLoginForm = () => {
           /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value)
         );
       })
-      .min(8, t(`validation.password.minLength`))
-      .max(20, t(`validation.password.maxLength`))
-      .required(t(`validation.password.required`)),
+      .min(8, t("validation.password.minLength"))
+      .max(20, t("validation.password.maxLength"))
+      .required(t("validation.password.required")),
   });
 
-  const basketLocal = JSON.parse(localStorage.getItem("basket")) || []
-  const basketsLocal = JSON.parse(localStorage.getItem("baskets")) || []
-  const token = JSON.parse(localStorage.getItem("token")) || null
+  const { setIsBuy, setPageSection } = useActionPayment()
+
+  const { isBuy } = useSelector((state) => state.payment);
 
 
   const formik = useFormik({
@@ -51,86 +59,59 @@ const MobLoginForm = () => {
       password: "",
     },
     validationSchema: validationLogin,
-    onSubmit: (values) => {
-      login(values)
-        .then((res) => {
-          localStorage.setItem("token", JSON.stringify(res.data));
-          localStorage.setItem("email", JSON.stringify(values.email));
+    onSubmit: async (values) => {
 
-          if (!token && basketLocal?.length > 0) {
-            if (basketsLocal.some((item) => item?.email === values.email)) {
-              const emailBasket = basketsLocal.find(item => item?.email === values.email)
-              const filteredBaskets = basketsLocal.filter(item => item?.email !== values.email)
-              const filteredBasket = (emailBasket?.basket || []).filter(
-                (item) => !basketLocal.some(basketItem => basketItem?.sku === item?.sku)
-              );
-              const basketUnselected = filteredBasket?.map((item) => {
-                return {
-                  ...item,
-                  selected: false
-                }
-              })
-              localStorage.setItem("baskets", JSON.stringify([
-                ...filteredBaskets, {
-                  email: values.email,
-                  basket: [...basketUnselected, ...basketLocal]
-                }
-              ]))
-              localStorage.setItem("basket", JSON.stringify([...basketUnselected, ...basketLocal]))
-            } else {
-              const allBaskets = [...basketsLocal, {
-                email: values.email,
-                basket: basketLocal
-              }]
-              localStorage.setItem("baskets", JSON.stringify(allBaskets))
-            }
-            window.location.reload()
-          }
-          else {
-            setRegErr("");
-            navigate("/");
-          }
-        })
-        .catch((err) => {
-          if (err.response) {
-            if (err.response.status === 500) {
-              setRegErr(
-                "An error occurred on the server. Please try again later."
-              );
-            } else if (err.response.status === 401) {
-              const errorData = err.response.data;
-              let errorMessage = "";
+      try {
+        const res = await login(values)
+        localStorage.setItem("token", JSON.stringify(res.data));
+        localStorage.setItem("email", JSON.stringify(values.email));
+        setIsLoged(true)
 
-              for (const key in errorData) {
-                if (errorData[key] && Array.isArray(errorData[key])) {
-                  // Добавляем имя поля к сообщению об ошибке
-                  errorMessage += `${key}: ${errorData[key].join(", ")} `;
-                }
+        dispatch(syncBasket())
+
+      } catch (err) {
+        if (err.response) {
+          if (err.response.status === 500) {
+            setRegErr("An error occurred on the server. Please try again later.");
+          } else if (err.response.status === 401) {
+            const errorData = err.response.data;
+            let errorMessage = "";
+
+            for (const key in errorData) {
+              if (Array.isArray(errorData[key])) {
+                errorMessage += `${key}: ${errorData[key].join(", ")} `;
               }
-
-              setRegErr(
-                errorMessage.trim() ||
-                "No active account found with the given credentials."
-              );
-            } else {
-              setRegErr("An unknown error occurred.");
             }
-          } else {
-            // Обработка случаев, когда нет ответа (например, сетевые ошибки)
+
             setRegErr(
-              "Failed to connect to the server. Check your internet connection."
+              errorMessage.trim() ||
+              "No active account found with the given credentials."
             );
+          } else {
+            setRegErr("An unknown error occurred.");
           }
-        });
+        } else {
+          setRegErr("Failed to connect to the server. Check your internet connection.");
+        }
+      }
     },
   });
 
-  const handleChangeType = () => {
-    if (type === "password") {
-      setType("email");
-    } else {
-      setType("password");
+  useEffect(() => {
+    if (isLogged && baskets.length > 0) {
+      setRegErr("");
+      if (isBuy) {
+        navigate("/payment");
+        setPageSection(3)
+        setIsBuy(false)
+      } else {
+        navigate("/");
+      }
     }
+  }, [isLogged, baskets, setIsBuy, navigate]);
+
+  const handleChangeType = () => {
+    setType(type === "password" ? "text" : "password");
   };
 
   return (
@@ -171,8 +152,8 @@ const MobLoginForm = () => {
               placeholder="password"
               type={type}
             />
-            <button onClick={handleChangeType}>
-              <img src={type === "password" ? closeEye : openEye} alt="" />
+            <button type="button" onClick={handleChangeType}>
+              <img src={type === "password" ? closeEye : openEye} alt="toggle visibility" />
             </button>
           </div>
           <p className={styles.errText}>{formik.errors.password}</p>

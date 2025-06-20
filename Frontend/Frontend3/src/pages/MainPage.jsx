@@ -20,30 +20,6 @@ const MainPage = () => {
   const { fetchGetCategory, fetchGetProducts } = useActions();
   const { t } = useTranslation();
 
-  const localEmail = localStorage.getItem("email");
-
-  useEffect(() => {
-    const existingValue = localStorage.getItem("baskets");
-    const existingValueParse = existingValue ? JSON.parse(existingValue) : [];
-
-    if (localEmail) {
-      const userBasket = existingValueParse.find(
-        (item) => item.email === localEmail
-      );
-
-      if (userBasket) {
-        localStorage.setItem("basket", JSON.stringify(userBasket.basket));
-      } else {
-        localStorage.setItem("basket", JSON.stringify([]));
-      }
-    }
-
-    if (!existingValue) {
-      localStorage.setItem("baskets", JSON.stringify([]));
-    }
-  }, [localEmail]);
-
-
   useEffect(() => {
     fetchGetCategory();
     fetchGetProducts();

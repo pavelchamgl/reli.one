@@ -5,7 +5,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import store from "./redux/index.js";
+import { persistor, store } from "./redux/index.js";
 
 import HomePage from "./pages/HomePage.jsx";
 import MainPage from "./pages/MainPage.jsx";
@@ -43,6 +43,7 @@ import SellerPreviewPage from "./pages/SellerPreviewPage.jsx";
 import SellerPage from "./pages/SellerPage.jsx";
 import EditGoodsPage from "./pages/EditGoodsPage.jsx";
 import SellerEditPreview from "./pages/SellerEditPreview.jsx";
+import { PersistGate } from "redux-persist/integration/react";
 
 const router = createBrowserRouter([
   {
@@ -154,12 +155,14 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <Provider store={store}>
-    <RouterProvider router={router}>
-      <I18nextProvider i18n={i18n}>
-        <React.StrictMode>
-          <App />
-        </React.StrictMode>
-      </I18nextProvider>
-    </RouterProvider>
+    <PersistGate loading={null} persistor={persistor}>
+      <RouterProvider router={router}>
+        <I18nextProvider i18n={i18n}>
+          <React.StrictMode>
+            <App />
+          </React.StrictMode>
+        </I18nextProvider>
+      </RouterProvider>
+    </PersistGate>
   </Provider>
 );
