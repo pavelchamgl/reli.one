@@ -80,6 +80,7 @@ class CourierService(models.Model):
 class Invoice(models.Model):
     payment = models.OneToOneField("payment.Payment", on_delete=models.CASCADE, related_name="invoice")
     invoice_number = models.CharField(max_length=50, unique=True)
+    variable_symbol = models.CharField(max_length=20, unique=True)
     file = models.FileField(upload_to="invoices/")
     created_at = models.DateTimeField(auto_now_add=True)
 

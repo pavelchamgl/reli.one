@@ -29,7 +29,7 @@ def format_currency(value, symbol='€'):
 
 def draw_logo_and_header(c, width, height):
     top_margin = 15 * mm
-    right_margin = 20 * mm
+    right_margin = 25 * mm
     logo_height = 18 * mm
 
     logo_path = os.path.join(settings.BASE_DIR, 'logo_reli.png')
@@ -64,7 +64,7 @@ def draw_logo_and_header(c, width, height):
 
 def draw_company_and_customer_info(c, data, width, y):
     left_x = 20 * mm
-    right_x = width - 90 * mm
+    right_x = width - 75 * mm
 
     company_text = c.beginText()
     company_text.setFont('Roboto-Bold', 12)
@@ -75,6 +75,8 @@ def draw_company_and_customer_info(c, data, width, y):
         company_text.textLine(line)
     company_text.textLine(f"Tax ID: {data['tax_id']}")
     company_text.textLine(f"IBAN: {data['iban']}")
+    company_text.textLine(f"Account number/bank code: {data['account number']}")
+    company_text.textLine(f"SWIFT (BIC): {data['swift']}")
     c.drawText(company_text)
 
     customer = data['customer']
@@ -95,13 +97,14 @@ def draw_company_and_customer_info(c, data, width, y):
 def draw_invoice_meta(c, data, width, y):
     text = c.beginText()
     text.setFont('Roboto-Bold', 10)
-    x0 = width - 20*mm - 70*mm
+    x0 = width - 75 * mm
     text.setTextOrigin(x0, y)
     text.textLine(f"Invoice Number: {data['invoice_number']}")
+    text.textLine(f"Variable Symbol: {data.get('variable_symbol', data['invoice_number'])}")
     text.textLine(f"Invoice Date: {data['order_date']}")
     text.textLine(f"Payment Method: {data.get('payment_method', '-')}")
     c.drawText(text)
-    return y - 15 * mm
+    return y - 20 * mm
 
 
 def draw_invoice_title(c, y):
@@ -120,22 +123,23 @@ def draw_products_table(c, data, y, page_width):
     for p in data['products']:
         table_data.append([
             str(p['qty']), p['sku'], p['name'],
-            format_currency(p['unit_price']), format_currency(p['total']), f"{p.get('vat_rate',0)}%"
+            format_currency(p['unit_price']), format_currency(p['total']), f"{p.get('vat_rate', 0)}%"
         ])
-    col_widths = [15*mm, 25*mm, page_width - (20*mm + 15*mm + 25*mm + 35*mm + 35*mm + 15*mm + 20*mm), 35*mm, 35*mm, 15*mm]
+    col_widths = [15 * mm, 25 * mm, page_width - (20 * mm + 15 * mm + 25 * mm + 35 * mm + 35 * mm + 15 * mm + 20 * mm),
+                  35 * mm, 35 * mm, 15 * mm]
     tbl = Table(table_data, colWidths=col_widths, repeatRows=1)
     tbl.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#FFC107')),
-        ('GRID',       (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
-        ('FONT',       (0, 0), (-1, 0), 'Roboto-Bold', 9),
-        ('FONT',       (0, 1), (-1, -1), 'Roboto', 9),
-        ('ALIGN',      (0, 0), (1, -1), 'CENTER'),
-        ('ALIGN',      (3, 0), (4, -1), 'RIGHT'),
-        ('ALIGN',      (5, 0), (5, -1), 'CENTER'),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
+        ('FONT', (0, 0), (-1, 0), 'Roboto-Bold', 9),
+        ('FONT', (0, 1), (-1, -1), 'Roboto', 9),
+        ('ALIGN', (0, 0), (1, -1), 'CENTER'),
+        ('ALIGN', (3, 0), (4, -1), 'RIGHT'),
+        ('ALIGN', (5, 0), (5, -1), 'CENTER'),
     ]))
-    avail_w = page_width - 40*mm
+    avail_w = page_width - 40 * mm
     w, h = tbl.wrap(avail_w, y)
-    tbl.drawOn(c, 20*mm, y - h)
+    tbl.drawOn(c, 20 * mm, y - h)
     return y - h - 10 * mm
 
 
@@ -146,8 +150,8 @@ def draw_totals(c, data, y_top, page_width):
 
     total = Decimal(str(data.get('grand_total', 0)))
     vat_amount = sum(Decimal(str(v)) for v in data.get('vat_summary', {}).values())
+    delivery_total = Decimal(str(data.get('delivery_total', '0.00'))).quantize(Decimal('0.01'), ROUND_HALF_UP)
     net_amount = (total - vat_amount).quantize(Decimal('0.01'), ROUND_HALF_UP)
-    vat_rate = next(iter(data.get('vat_summary', {})), 0)
 
     x0 = page_width - 20 * mm - 70 * mm
     y = y_top
@@ -160,6 +164,10 @@ def draw_totals(c, data, y_top, page_width):
 
     c.drawString(x0, y, f'VAT Amount (EUR):')
     c.drawRightString(page_width - 20 * mm, y, format_currency(vat_amount))
+    y -= line_height
+
+    c.drawString(x0, y, 'Delivery Total (EUR):')
+    c.drawRightString(page_width - 20 * mm, y, format_currency(delivery_total))
     y -= line_height + 2 * mm
 
     c.setFont('Roboto-Bold', 10)
@@ -212,6 +220,13 @@ def generate_invoice_pdf(data_or_session_id) -> ContentFile:
     else:
         data = prepare_invoice_data(data_or_session_id)
 
+    # Проверка обязательных ключей
+    if 'invoice_number' not in data:
+        raise ValueError("Missing 'invoice_number' in invoice data")
+
+    if 'variable_symbol' not in data:
+        data['variable_symbol'] = data['invoice_number']
+
     buffer = BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     page_w, page_h = A4
@@ -230,4 +245,10 @@ def generate_invoice_pdf(data_or_session_id) -> ContentFile:
     buffer.seek(0)
 
     filename = f"Invoice_{data['invoice_number']}.pdf"
+
+    # Логгирование (опционально)
+    logger = getattr(settings, "INVOICE_LOGGER", None)
+    if logger:
+        logger.info(f"[INVOICE] PDF generated for invoice {data['invoice_number']}")
+
     return ContentFile(buffer.read(), name=filename)
