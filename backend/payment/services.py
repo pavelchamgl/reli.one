@@ -7,9 +7,11 @@ from collections import defaultdict
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, EmailMultiAlternatives
+from django.core.files.storage import default_storage
 
 from .models import Payment
 # from order.services.invoice_generator import generate_invoice_pdf_by_orders
+from order.models import Order, Invoice
 from delivery.models import DeliveryParcelItem
 from order.services.invoice_data import prepare_invoice_data
 from order.services.invoice_generator import generate_invoice_pdf
@@ -22,13 +24,13 @@ LOGO_URL = 'https://res.cloudinary.com/daffwdfvn/image/upload/v1748957272/Reli/l
 
 def get_orders_by_payment_session_id(session_id: str):
     """
-    Возвращает список заказов по session_id.
+    Возвращает список заказов по session_id из Payment.
     """
     logger.debug(f"[MAIL] Поиск заказов по session_id: {session_id}")
-    payments = Payment.objects.filter(session_id=session_id).select_related("order")
-    orders = [p.order for p in payments if p.order]
-    logger.debug(f"[MAIL] Найдено заказов: {len(orders)}")
-    return orders
+    orders = Order.objects.filter(payment__session_id=session_id)
+    logger.debug(f"[MAIL] Найдено заказов: {orders.count()}")
+    return list(orders)
+
 
 
 def prepare_merged_customer_email_context(orders):
@@ -104,14 +106,17 @@ def prepare_merged_customer_email_context(orders):
 
 
 def send_merged_customer_email_from_session(session_id: str):
+    # Получаем все заказы, связанные с сессией
     orders = get_orders_by_payment_session_id(session_id)
     if not orders:
         logger.warning(f"[CUSTOMER-MAIL] Нет заказов по session_id {session_id}")
         return
 
+    # Формируем контекст письма
     ctx = prepare_merged_customer_email_context(orders)
     html = render_to_string("emails/order_email_customer.html", ctx)
 
+    # Готовим письмо
     email = EmailMessage(
         subject="ORDER CONFIRMATION",
         body=html,
@@ -120,14 +125,23 @@ def send_merged_customer_email_from_session(session_id: str):
     )
     email.content_subtype = "html"
 
-    # Прикрепляем PDF-счёт
-    invoice_data = prepare_invoice_data(session_id)
-    invoice_pdf = generate_invoice_pdf(invoice_data)
-    email.attach(invoice_pdf.name, invoice_pdf.read(), "application/pdf")
+    # Прикрепляем ранее сгенерированный PDF-инвойс
+    invoice = Invoice.objects.filter(payment__session_id=session_id).first()
+    if invoice and invoice.file and default_storage.exists(invoice.file.name):
+        with default_storage.open(invoice.file.name, "rb") as f:
+            email.attach(
+                os.path.basename(invoice.file.name),
+                f.read(),
+                "application/pdf"
+            )
+        logger.info(f"[CUSTOMER-MAIL] Прикреплён существующий инвойс: {invoice.invoice_number}")
+    else:
+        logger.warning(f"[CUSTOMER-MAIL] Не найден файл инвойса для session_id {session_id}")
 
+    # Отправляем письмо
     try:
         email.send()
-        logger.info(f"[CUSTOMER-MAIL] Письмо клиенту {ctx['customer']['email']} отправлено")
+        logger.info(f"[CUSTOMER-MAIL] Письмо клиенту {ctx['customer']['email']} отправлено успешно")
     except Exception as e:
         logger.exception(f"[CUSTOMER-MAIL] Ошибка отправки письма клиенту: {e}")
 

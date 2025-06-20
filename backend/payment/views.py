@@ -31,15 +31,17 @@ from order.models import (
     OrderProduct,
     OrderStatus,
     ProductStatus,
+    Invoice,
 )
 from warehouses.models import Warehouse, WarehouseItem
 from delivery.helpers import resolve_country_code_from_group
 from delivery.utils_async import async_parcels_and_seller_email
+from order.services.invoice_data import prepare_invoice_data
+from order.services.invoice_generator import generate_invoice_pdf
 from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
 from delivery.validators.zip_validator import ZipCodeValidator
 from delivery.validators.validators import validate_phone_matches_country
 from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
-
 
 logging.basicConfig(level=logging.INFO)
 
@@ -81,6 +83,12 @@ def apply_promo_code(promo_code, basket_items):
             raise ValidationError("Invalid or expired promo code.")
     except PromoCode.DoesNotExist:
         raise ValidationError("Invalid promo code.")
+
+
+def generate_next_invoice_number():
+    last = Invoice.objects.order_by('-id').first()
+    next_id = (last.id + 1) if last else 1
+    return f"{next_id:06d}"
 
 
 def get_warehouse_for_sku(sku):
@@ -125,13 +133,16 @@ class PaymentSessionValidator:
             "Creates a Stripe Checkout Session by validating customer contact data and a list of product groups grouped by seller.\n\n"
             "**Business logic:**\n"
             "- Validates that each product belongs to the specified seller.\n"
+            "- Validates the required delivery address provided at the root level.\n"
             "- Calculates delivery cost per group based on delivery type and destination.\n"
             "- Calculates subtotal, delivery cost, and total amount.\n"
             "- Persists session metadata including customer info, products, pricing, and delivery details.\n"
             "- Returns a Stripe Checkout URL and internal session references.\n\n"
             "**Webhook usage:**\n"
             "The `session_key` is used to restore saved metadata when the Stripe webhook confirms successful payment.\n\n"
-            "**Note:** If `delivery_address.country` is provided, it must be a valid ISO 3166-1 alpha-2 code (e.g., `\"SK\"`, `\"CZ\"`)."
+            "**Note:**\n"
+            "- The root-level `delivery_address` is required and must include `street`, `city`, `zip`, and `country` (ISO 3166-1 alpha-2).\n"
+            "- Each group may also have its own delivery address or pickup point depending on the delivery type."
     ),
     request=SessionInputSerializer,
     responses={
@@ -160,6 +171,12 @@ class PaymentSessionValidator:
                 "first_name": "Pavel",
                 "last_name": "Ivanov",
                 "phone": "+421123456789",
+                "delivery_address": {
+                    "street": "Benkova 373 / 7",
+                    "city": "Nitra",
+                    "zip": "94911",
+                    "country": "SK"
+                },
                 "groups": [
                     {
                         "seller_id": 2,
@@ -199,7 +216,7 @@ class CreateStripePaymentView(APIView):
 
         logger.info("Stripe session creation request received", extra={"data": data})
 
-        required_fields = ['email', 'first_name', 'last_name', 'phone', 'groups']
+        required_fields = ['email', 'first_name', 'last_name', 'phone', 'delivery_address', 'groups']
         for field in required_fields:
             if field not in data:
                 return Response({"error": f"Missing required field: {field}"}, status=400)
@@ -209,6 +226,13 @@ class CreateStripePaymentView(APIView):
         last_name = data['last_name']
         phone = data['phone']
         groups = data['groups']
+        delivery_address = data['delivery_address']
+
+        if delivery_address:
+            required_subfields = ['street', 'city', 'zip', 'country']
+            for field in required_subfields:
+                if field not in delivery_address:
+                    return Response({"error": f"Missing '{field}' in delivery_address"}, status=400)
 
         validation_response = PaymentSessionValidator.validate_groups(groups)
         if validation_response:
@@ -306,6 +330,7 @@ class CreateStripePaymentView(APIView):
         logger.info(f"Gross total for all groups: {gross_total} EUR (including total delivery: {total_delivery} EUR)")
 
         session_key = str(uuid.uuid4())
+        invoice_number = generate_next_invoice_number()
         StripeMetadata.objects.create(
             session_key=session_key,
             custom_data={
@@ -314,11 +339,16 @@ class CreateStripePaymentView(APIView):
                 'first_name': first_name,
                 'last_name': last_name,
                 'phone': phone,
+                'delivery_address': delivery_address,
             },
-            invoice_data={'groups': groups},
+            invoice_data={
+                'groups': groups,
+                'invoice_number': invoice_number,
+            },
             description_data={
                 'gross_total': str(gross_total),
-                'delivery_total': str(total_delivery)
+                'delivery_total': str(total_delivery),
+                'variable_symbol': invoice_number,
             },
         )
 
@@ -331,7 +361,10 @@ class CreateStripePaymentView(APIView):
                 mode='payment',
                 success_url=settings.REDIRECT_DOMAIN + 'payment_end/',
                 cancel_url=settings.REDIRECT_DOMAIN + 'basket/',
-                metadata={'session_key': session_key}
+                metadata={
+                    'session_key': session_key,
+                    'invoice_number': invoice_number,
+                }
             )
 
             logger.info(
@@ -497,31 +530,65 @@ class StripeWebhookView(APIView):
             order.save(update_fields=["order_status"])
             order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
 
-            Payment.objects.create(
-                order=order,
-                payment_system="stripe",
-                session_id=session['id'],
-                customer_id=session.get('customer'),
-                payment_intent_id=session.get('payment_intent'),
-                payment_method="stripe",
-                amount_total=amount,
-                currency=currency,
-                customer_email=meta.custom_data.get("email"),
-            )
-
             orders_created.append(order)
-            logger.info(f"[StripeWebhook] Group {idx}: Order {order.id} created successfully with {len(products)} products.")
+            logger.info(
+                f"[StripeWebhook] Group {idx}: Order {order.id} created successfully with {len(products)} products.")
 
         if not orders_created:
             logger.error("[StripeWebhook] No orders were created; aborting")
             return Response({"error": "Order creation failed"}, status=500)
 
         order_ids = [o.id for o in orders_created]
-        async_parcels_and_seller_email(order_ids, session['id'])
-        logger.info(f"[StripeWebhook] Planned async parcels+seller_email+manager for orders {order_ids}")
+        session_id = session["id"]
 
-        async_send_client_email(session['id'])
-        logger.info(f"[StripeWebhook] Planned async client email for session {session['id']}")
+        # ✅ Создание единого Payment
+        payment = Payment.objects.create(
+            payment_system="stripe",
+            session_id=session_id,
+            session_key=session_key,
+            customer_id=session.get('customer'),
+            payment_intent_id=session.get('payment_intent'),
+            payment_method="stripe",
+            amount_total=Decimal(session["amount_total"]) / Decimal(100),
+            currency=session["currency"].upper(),
+            customer_email=meta.custom_data.get("email"),
+        )
+
+        for order in orders_created:
+            order.payment = payment
+            order.save(update_fields=["payment"])
+
+        # ✅ Генерация инвойса
+        invoice_created = False
+        try:
+            invoice_number = meta.invoice_data.get("invoice_number")
+            if not invoice_number:
+                raise ValueError("Missing invoice_number in metadata")
+
+            invoice_data = prepare_invoice_data(session_id)
+            pdf_file = generate_invoice_pdf(invoice_data)
+
+            Invoice.objects.create(
+                payment=payment,
+                invoice_number=invoice_number,
+                variable_symbol=invoice_number,
+                file=pdf_file,
+            )
+            logger.info(f"[INVOICE] Created Invoice {invoice_number} for Payment {session_id}")
+            invoice_created = True
+        except Exception as e:
+            logger.exception(f"[INVOICE] Failed to create invoice for Payment {session_id}: {e}")
+
+        # ✅ Письмо клиенту — только если инвойс есть
+        if invoice_created:
+            async_send_client_email(session_id)
+            logger.info(f"[StripeWebhook] Planned async client email for session {session_id}")
+        else:
+            logger.warning(f"[StripeWebhook] Skipped client email — invoice not ready for session {session_id}")
+
+        # ✅ Продавцы и менеджеры
+        async_parcels_and_seller_email(order_ids, session_id)
+        logger.info(f"[StripeWebhook] Planned async parcels+seller_email+manager for orders {order_ids}")
 
         return Response({"status": f"{len(orders_created)} order(s) created successfully"}, status=200)
 
@@ -530,16 +597,19 @@ class StripeWebhookView(APIView):
 @extend_schema(
     summary="Create PayPal Payment Session with Delivery and Seller-Based Grouping",
     description=(
-        "Creates a PayPal payment session by validating customer contact data and a list of product groups grouped by seller.\n\n"
-        "**Business logic:**\n"
-        "- Validates that each product belongs to the specified seller.\n"
-        "- Calculates delivery cost per group based on delivery type and destination.\n"
-        "- Calculates subtotal, delivery cost, and total amount.\n"
-        "- Persists session metadata including customer info, products, pricing, and delivery details.\n"
-        "- Returns a PayPal approval URL and internal session references.\n\n"
-        "**Webhook usage:**\n"
-        "The `session_key` is used to restore saved metadata when the PayPal webhook confirms successful payment.\n\n"
-        "**Note:** If `delivery_address.country` is provided, it must be a valid ISO 3166-1 alpha-2 code (e.g., `\"SK\"`, `\"CZ\"`)."
+            "Creates a PayPal payment session by validating customer contact data and a list of product groups grouped by seller.\n\n"
+            "**Business logic:**\n"
+            "- Validates that each product belongs to the specified seller.\n"
+            "- Validates the general delivery address if provided at the root level.\n"
+            "- Calculates delivery cost per group based on delivery type and destination.\n"
+            "- Calculates subtotal, delivery cost, and total amount.\n"
+            "- Persists session metadata including customer info, general delivery address, products, pricing, and delivery details.\n"
+            "- Returns a PayPal approval URL and internal session references.\n\n"
+            "**Webhook usage:**\n"
+            "The `session_key` is used to restore saved metadata when the PayPal webhook confirms successful payment.\n\n"
+            "**Note:**\n"
+            "- If `delivery_address` is provided, it must include all of: `street`, `city`, `zip`, and `country` (ISO 3166-1 alpha-2).\n"
+            "- Each group may also have its own delivery address or pickup point depending on the delivery type."
     ),
     request=SessionInputSerializer,  # используется тот же input serializer, если структура идентична
     responses={
@@ -568,6 +638,12 @@ class StripeWebhookView(APIView):
                 "first_name": "Pavel",
                 "last_name": "Ivanov",
                 "phone": "+421123456789",
+                "delivery_address": {
+                    "street": "Benkova 373 / 7",
+                    "city": "Nitra",
+                    "zip": "94911",
+                    "country": "SK"
+                },
                 "groups": [
                     {
                         "seller_id": 2,
@@ -607,7 +683,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 
         logger.info("PayPal session creation request received", extra={"data": data})
 
-        required_fields = ['email', 'first_name', 'last_name', 'phone', 'groups']
+        required_fields = ['email', 'first_name', 'last_name', 'phone', 'delivery_address', 'groups']
         for field in required_fields:
             if field not in data:
                 return Response({"error": f"Missing required field: {field}"}, status=400)
@@ -617,6 +693,13 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
         last_name = data['last_name']
         phone = data['phone']
         groups = data['groups']
+        delivery_address = data['delivery_address']
+
+        if delivery_address:
+            required_subfields = ['street', 'city', 'zip', 'country']
+            for field in required_subfields:
+                if field not in delivery_address:
+                    return Response({"error": f"Missing '{field}' in delivery_address"}, status=400)
 
         validation_response = PaymentSessionValidator.validate_groups(groups)
         if validation_response:
@@ -709,6 +792,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             })
 
         session_key = str(uuid.uuid4())
+        invoice_number = generate_next_invoice_number()
         PayPalMetadata.objects.create(
             session_key=session_key,
             custom_data={
@@ -717,11 +801,16 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 'first_name': first_name,
                 'last_name': last_name,
                 'phone': phone,
+                'delivery_address': delivery_address,
             },
-            invoice_data={'groups': groups},
+            invoice_data={
+                'groups': groups,
+                'invoice_number': invoice_number,
+            },
             description_data={
                 'gross_total': str(gross_total),
-                'delivery_total': str(total_delivery.quantize(Decimal("0.01")))
+                'delivery_total': str(total_delivery.quantize(Decimal("0.01"))),
+                'variable_symbol': invoice_number,
             },
         )
 
@@ -731,7 +820,8 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             approval_url, order_id = self.create_paypal_order(
                 line_items=line_items,
                 total_price=gross_total,
-                session_key=session_key
+                session_key=session_key,
+                invoice_number=invoice_number,
             )
             logger.info(f"PayPal order created successfully: order_id={order_id}, session_key={session_key}")
             return Response({
@@ -882,33 +972,66 @@ class PayPalWebhookView(PayPalMixin, APIView):
             order.save(update_fields=["order_status"])
             order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
 
-            Payment.objects.create(
-                order=order,
-                payment_system="paypal",
-                session_id=resource.get("id"),
-                customer_id=user.id,
-                payment_intent_id=resource.get("id"),
-                payment_method="paypal",
-                amount_total=amount,
-                currency=currency,
-                customer_email=meta.custom_data.get("email"),
-            )
-
             orders_created.append(order)
             logger.info(f"[PayPalWebhook] Group {idx}: Order {order.id} created successfully")
 
         if not orders_created:
             logger.error("[PayPalWebhook] No orders were created; aborting")
-            return Response({"error": "Order creation failed"}, status=500)
+            return None
+
         order_ids = [o.id for o in orders_created]
         session_id = resource.get("id")
+
+        # ✅ Создаём единый Payment
+        payment = Payment.objects.create(
+            payment_system="paypal",
+            session_id=session_id,
+            session_key=session_key,
+            customer_id=user.id,
+            payment_intent_id=session_id,
+            payment_method="paypal",
+            amount_total=amount,
+            currency=currency,
+            customer_email=meta.custom_data.get("email"),
+        )
+
+        for order in orders_created:
+            order.payment = payment
+            order.save(update_fields=["payment"])
+
+        # ✅ Генерация и привязка Invoice
+        invoice_created = False
+        try:
+            invoice_number = meta.invoice_data.get("invoice_number")
+            if not invoice_number:
+                raise ValueError("Missing invoice_number in metadata")
+
+            invoice_data = prepare_invoice_data(session_id)
+            pdf_file = generate_invoice_pdf(invoice_data)
+
+            Invoice.objects.create(
+                payment=payment,
+                invoice_number=invoice_number,
+                variable_symbol=invoice_number,
+                file=pdf_file,
+            )
+            logger.info(f"[INVOICE] Created Invoice {invoice_number} for Payment {session_id}")
+            invoice_created = True
+        except Exception as e:
+            logger.exception(f"[INVOICE] Failed to create invoice for Payment {session_id}: {e}")
+
+        # ✅ Письмо клиенту только если инвойс успешно создан
+        if invoice_created:
+            async_send_client_email(session_id)
+            logger.info(f"[PayPalWebhook] Planned async client email for session {session_id}")
+        else:
+            logger.warning(f"[PayPalWebhook] Skipped client email — invoice not ready for session {session_id}")
+
+        # ✅ Продавец и менеджеры — можно отправлять независимо
         async_parcels_and_seller_email(order_ids, session_id)
         logger.info(f"[PayPalWebhook] Planned async parcels+seller+manager for orders {order_ids}")
 
-        async_send_client_email(session_id)
-        logger.info(f"[PayPalWebhook] Planned async client email for session {session_id}")
-
-        return orders_created if orders_created else None
+        return orders_created
 
     @csrf_exempt
     def post(self, request):

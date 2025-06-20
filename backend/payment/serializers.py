@@ -29,6 +29,7 @@ class SessionInputSerializer(serializers.Serializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     phone = serializers.CharField()
+    delivery_address = DeliveryAddressSerializer(required=True)
     groups = GroupSerializer(many=True)
 
 

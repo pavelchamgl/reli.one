@@ -3,21 +3,48 @@ from collections import defaultdict
 from django_countries.fields import Country
 
 from order.models import Order
-from payment.models import Payment
+from payment.models import Payment, PayPalMetadata, StripeMetadata
 
 
 def prepare_invoice_data(session_id):
     """
-    Готовит данные для PDF-инвойса под твои модели и требования.
+    Подготавливает данные для PDF-инвойса.
+    Работает как для Stripe, так и для PayPal — через session_key в Payment.
     """
 
     COMPANY_NAME = "Reli Group s.r.o."
     COMPANY_ADDRESS = "Na lysinách 551/34, Hodkovičky, 14700 Praha 4, Czech Republic"
     TAX_ID = "28003896"
     IBAN = "CZ9455000000005003011074"
+    ACCOUNT_NUMBER = "8115228001/5500"
+    SWIFT = "RZBCCZPP"
 
+    # Получаем Payment
+    payment = Payment.objects.filter(session_id=session_id).first()
+    if not payment:
+        raise ValueError("Payment not found for session_id")
+
+    session_key = payment.session_key
+    if not session_key:
+        raise ValueError("Missing session_key in Payment")
+
+    # Получаем метаданные (PayPal или Stripe)
+    metadata = (
+        PayPalMetadata.objects.filter(session_key=session_key).first() or
+        StripeMetadata.objects.filter(session_key=session_key).first()
+    )
+    if not metadata or not metadata.invoice_data:
+        raise ValueError("Missing invoice metadata")
+
+    invoice_number = metadata.invoice_data.get("invoice_number")
+    if not invoice_number:
+        raise ValueError("Missing invoice_number in metadata")
+
+    delivery_total = Decimal(metadata.description_data.get("delivery_total", "0.00")).quantize(Decimal("0.01"))
+
+    # Получаем связанные заказы
     orders = (
-        Order.objects.filter(payments__session_id=session_id)
+        Order.objects.filter(payment__session_id=session_id)
         .select_related('delivery_address', 'user')
         .prefetch_related('order_products__product__product')
     )
@@ -35,7 +62,6 @@ def prepare_invoice_data(session_id):
         "country": Country(delivery.country).name if delivery and delivery.country else "",
     }
 
-    invoice_number = order0.order_number if hasattr(order0, "order_number") else order0.invoice_number
     order_date = order0.order_date.strftime('%d.%m.%Y')
 
     products = []
@@ -65,15 +91,18 @@ def prepare_invoice_data(session_id):
             vat_summary[vat_rate] += vat_value
             order_total += total
 
-    vat_summary = {float(rate): float(val.quantize(Decimal('0.01'), ROUND_HALF_UP)) for rate, val in vat_summary.items()}
+    # Добавляем стоимость доставки в общий итог
+    grand_total = (order_total + delivery_total).quantize(Decimal("0.01"))
 
-    payment = Payment.objects.filter(session_id=session_id).first()
-    payment_label = "Unknown"
-    if payment:
-        if payment.payment_system == 'stripe':
-            payment_label = "Stripe"
-        elif payment.payment_system == 'paypal':
-            payment_label = "PayPal"
+    vat_summary = {
+        float(rate): float(val.quantize(Decimal('0.01'), ROUND_HALF_UP))
+        for rate, val in vat_summary.items()
+    }
+
+    payment_label = {
+        'stripe': "Stripe",
+        'paypal': "PayPal"
+    }.get(payment.payment_system, "Unknown")
 
     invoice_data = {
         "invoice_number": invoice_number,
@@ -83,9 +112,12 @@ def prepare_invoice_data(session_id):
         "company_address": COMPANY_ADDRESS,
         "tax_id": TAX_ID,
         "iban": IBAN,
+        "account number": ACCOUNT_NUMBER,
+        "swift": SWIFT,
         "products": products,
         "vat_summary": vat_summary,
-        "grand_total": float(order_total.quantize(Decimal('0.01'), ROUND_HALF_UP)),
+        "delivery_total": float(delivery_total),
+        "grand_total": float(grand_total),
         "payment_method": payment_label,
     }
     return invoice_data

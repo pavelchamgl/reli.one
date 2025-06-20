@@ -99,7 +99,7 @@ class PayPalMixin:
             logger.warning(f"Webhook verification failed: {verification_status}")
             return False
 
-    def create_paypal_order(self, line_items, total_price, session_key):
+    def create_paypal_order(self, line_items, total_price, session_key, invoice_number):
         """
         Creates a PayPal order and returns the approval_url and order_id.
         """
@@ -109,6 +109,8 @@ class PayPalMixin:
 
         purchase_units = [{
             "reference_id": session_key,
+            "invoice_id": invoice_number,
+            "description": f"Invoice {invoice_number}",
             "amount": {
                 "currency_code": "EUR",
                 "value": f"{total_price:.2f}",
