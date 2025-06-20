@@ -20,6 +20,8 @@ import styles from "./PaymentPlataBlock.module.scss";
 import LoginModal from "../../LoginModal/LoginModal";
 import ConfirmYourAgeModal from "../ConfirmYourAgeModal/ConfirmYourAgeModal";
 import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
+import { useActionPayment } from "../../../hook/useActionPayment";
+import { updateTotalPrice } from "../../../redux/basketSlice";
 
 const PaymentPlataBlock = ({ section, setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 500 });
@@ -35,6 +37,8 @@ const PaymentPlataBlock = ({ section, setSection }) => {
   const { email, city, street } = useSelector(
     (state) => state.payment.paymentInfo
   );
+
+  const { setIsBuy } = useActionPayment()
 
   const { loading, error, groups } = useSelector((state) => state.payment);
 
@@ -53,6 +57,11 @@ const PaymentPlataBlock = ({ section, setSection }) => {
     }
   }, [])
 
+  useEffect(() => {
+    dispatch(updateTotalPrice())
+  }, [])
+
+
   const token = localStorage.getItem("token")
 
   const dispatch = useDispatch();
@@ -69,8 +78,10 @@ const PaymentPlataBlock = ({ section, setSection }) => {
     if (!token) {
       if (isMobile) {
         navigate("/mob_login")
+        setIsBuy(true)
       } else {
         setModalOpen(true)
+        setIsBuy(true)
       }
     } else {
       if (ageCheck) {

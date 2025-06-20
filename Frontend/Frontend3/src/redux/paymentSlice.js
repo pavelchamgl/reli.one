@@ -22,6 +22,12 @@ export const fetchCreateStripeSession = createAsyncThunk(
                         seller_id: item.seller_id,
                         delivery_type: 1,
                         courier_service: 2,
+                        delivery_address: {
+                            street: street,
+                            city: city,
+                            zip: zip,
+                            country: country?.toUpperCase()
+                        },
                         pickup_point_id: item?.pickup_point_id, products: item?.items?.map((product) => {
                             return {
                                 sku: product.sku,
@@ -58,6 +64,12 @@ export const fetchCreateStripeSession = createAsyncThunk(
                 first_name: name,
                 last_name: surename,
                 phone: phone,
+                delivery_address: {
+                    street: street,
+                    city: city,
+                    zip: zip,
+                    country: country?.toUpperCase()
+                },
                 groups: newGroups
             });
 
@@ -89,6 +101,12 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                         delivery_type: 1,
                         courier_service: 2,
                         pickup_point_id: item?.pickup_point_id,
+                        delivery_address: {
+                            street: street,
+                            city: city,
+                            zip: zip,
+                            country: country?.toUpperCase()
+                        },
                         products: item?.items?.map((product) => {
                             return {
                                 sku: product.sku,
@@ -126,6 +144,12 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                 first_name: name,
                 last_name: surename,
                 phone: phone,
+                delivery_address: {
+                    street: street,
+                    city: city,
+                    zip: zip,
+                    country: country?.toUpperCase()
+                },
                 groups: newGroups
             });
 
@@ -183,7 +207,9 @@ const paymentSlice = createSlice({
         delivery: delivery,
         selectedProducts: JSON.parse(localStorage.getItem("selectedProducts")) || [],
         country: null,
-        groups: null
+        groups: null,
+        pageSection: 1,
+        isBuy: false
     },
     reducers: {
         editValue: (state, action) => {
@@ -232,6 +258,12 @@ const paymentSlice = createSlice({
                     deliveryPrice: 0
                 }));
             }
+        },
+        setPageSection: (state, action) => {
+            state.pageSection = action.payload
+        },
+        setIsBuy: (state, action) => {
+            state.isBuy = action.payload
         }
     },
     extraReducers: (builder) => {
@@ -304,5 +336,5 @@ const paymentSlice = createSlice({
     }
 });
 
-export const { editValue, setCountry, setPointInfo, setDeliveryType, setGroups, clearDeliveryPrice } = paymentSlice.actions;
+export const { editValue, setCountry, setPointInfo, setDeliveryType, setGroups, clearDeliveryPrice, setPageSection, setIsBuy } = paymentSlice.actions;
 export const { reducer } = paymentSlice;

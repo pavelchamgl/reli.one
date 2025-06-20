@@ -4,9 +4,17 @@ import BasketCardBlock from "../Components/Basket/BasketCardBlock/BasketCardBloc
 import BasketTotalBlock from "../Components/Basket/BasketTotalBlock/BasketTotalBlock";
 
 import styles from "../styles/BasketPage.module.scss";
+import { useEffect } from "react";
+import { useActionPayment } from "../hook/useActionPayment";
 
 const BasketPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
+
+  const { setPageSection } = useActionPayment()
+
+  useEffect(() => {
+    setPageSection(1)
+  }, [])
 
   return (
     <>

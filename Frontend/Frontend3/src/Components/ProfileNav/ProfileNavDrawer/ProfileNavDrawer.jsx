@@ -11,8 +11,10 @@ import settingsIcon from "../../../assets/profileNav/settingsIcon.svg";
 import arrRight from "../../../assets/profileNav/arrRight.svg";
 import arrDown from "../../../assets/profileNav/arrDown.svg";
 
+import { useDispatch } from "react-redux";
 import styles from "./ProfileNavDrawer.module.scss";
 import { useActions } from "../../../hook/useAction";
+import { deleteBaskets, deselectAllProducts, updateBasket } from "../../../redux/basketSlice";
 
 const ProfileNavDrawer = ({ open, handleClose }) => {
   const [logOut, setLogout] = useState(false);
@@ -24,6 +26,8 @@ const ProfileNavDrawer = ({ open, handleClose }) => {
     refresh: "",
   });
   const [error, setError] = useState("");
+
+  const dispatch = useDispatch()
 
   useEffect(() => {
     // Получаем данные из localStorage
@@ -69,11 +73,9 @@ const ProfileNavDrawer = ({ open, handleClose }) => {
   const handleLogout = () => {
     logout({ refresh_token: userData?.refresh }).then((res) => {
       localStorage.removeItem("token");
-      localStorage.removeItem("basket");
-      localStorage.removeItem("selectedProducts");
-      localStorage.removeItem("basketTotal");
-      localStorage.removeItem("email");
+      dispatch(deselectAllProducts())
       clearBasket();
+      localStorage.removeItem("email");
       window.location.reload();
     });
   };
@@ -81,13 +83,7 @@ const ProfileNavDrawer = ({ open, handleClose }) => {
   const handleDeleteAgree = () => {
     deleteAccount().then((res) => {
       localStorage.removeItem("token");
-      localStorage.removeItem("basket");
-      localStorage.removeItem("selectedProducts");
-      localStorage.removeItem("basketTotal");
-      const newBaskets = baskets.filter(
-        (item) => item?.email !== JSON.parse(localEmail)
-      );
-      localStorage.setItem("baskets", JSON.stringify(newBaskets));
+      dispatch(deleteBaskets())
       localStorage.removeItem("email");
       window.location.reload();
     });

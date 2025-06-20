@@ -2,7 +2,7 @@ import { bindActionCreators } from "@reduxjs/toolkit"
 import { useDispatch } from "react-redux"
 import { useMemo } from "react"
 
-import { postCalculateDelivery, setPointInfo, setDeliveryType, setCountry, setGroups, clearDeliveryPrice } from "../redux/paymentSlice"
+import { postCalculateDelivery, setPointInfo, setDeliveryType, setCountry, setGroups, clearDeliveryPrice, setPageSection, setIsBuy } from "../redux/paymentSlice"
 
 
 const rootActions = {
@@ -11,7 +11,9 @@ const rootActions = {
     setDeliveryType,
     setCountry,
     setGroups,
-    clearDeliveryPrice
+    clearDeliveryPrice,
+    setPageSection,
+    setIsBuy
 }
 
 
