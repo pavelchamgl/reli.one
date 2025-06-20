@@ -1,3 +1,9 @@
+input,
+textarea {
+  cursor: text;
+  caret-color: black;
+}
+
 .main {
   display: flex;
   flex-direction: column;
@@ -18,7 +24,13 @@
     font-weight: 400;
     font-size: 14px;
     color: #787778;
+    cursor: text;
   }
+}
+
+.main:hover {
+  cursor: text;
+  caret-color: black;
 }
 .mainErr {
   display: flex;
@@ -38,7 +50,12 @@
     font-weight: 400;
     font-size: 14px;
     color: #ff0000;
+    cursor: text;
   }
+}
+.mainErr:hover {
+  cursor: text;
+  caret-color: black;
 }
 
 .errText {

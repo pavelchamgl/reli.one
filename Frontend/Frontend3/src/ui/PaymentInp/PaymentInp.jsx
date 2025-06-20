@@ -5,7 +5,7 @@ const PaymentInp = ({ title, err = null, fontNum, ...props }) => {
     <>
       <label className={err ? styles.main : styles.main}>
         <span>{title}</span>
-        <input style={fontNum ? { fontFamily: "var(--ft)" } : null} type="text" {...props} />
+        <input style={fontNum ? { fontFamily: "var(--ft)", caretColor: "black", } : null} type="text" {...props} />
         <p className={styles.errText}>{err}</p>
       </label>
     </>
