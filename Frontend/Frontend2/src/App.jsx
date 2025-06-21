@@ -38,6 +38,10 @@ const App = () => {
     };
   }, [i18n]);
 
+  useEffect(() => {
+    console.log(i18n.language);
+  }, [i18n])
+
   return (
     <div className="font-Inter relative">
       <Domu />
