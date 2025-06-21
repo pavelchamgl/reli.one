@@ -2,15 +2,15 @@ import i18n from "i18next"
 import { initReactI18next } from "react-i18next"
 
 import translationEn from "./en/translations.json"
-import translationCs from "./cs/translations.json"
+import translationCz from "./cz/translations.json"
 
 
 const resources = {
     en: {
         translation: translationEn
     },
-    cs: {
-        translation: translationCs
+    cz: {
+        translation: translationCz
     }
 };
 
