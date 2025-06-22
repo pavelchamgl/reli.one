@@ -33,4 +33,4 @@ def create_and_send_otp(user, otp_title):
         subject = "Change Password"
         message = f"Hi {user.email}! Use the following code to change your password: {value}"
 
-    send_mail(subject, message, "auth_server@admin.com", [user.email])
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
