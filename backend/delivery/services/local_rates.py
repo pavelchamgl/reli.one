@@ -18,6 +18,18 @@ VAT_RATE = getattr(settings, "VAT_RATE", Decimal("0.21"))
 logger = logging.getLogger(__name__)
 
 
+def get_toll_surcharge(weight_kg: Decimal) -> Decimal:
+    """
+    Возвращает надбавку за проезд (toll surcharge) по весу.
+    """
+    if weight_kg <= 5:
+        return Decimal("2.10")
+    elif weight_kg <= 30:
+        return Decimal("4.80")
+    else:
+        return Decimal("4.80")  # запасной вариант
+
+
 def get_weight_limit_tag(weight_kg: Decimal) -> str:
     """
     Определяет тег weight_limit на основе веса посылки.
@@ -103,6 +115,13 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
         raise ValueError("Package exceeds allowed dimensions or weight")
 
     def get_rate(channel, category, chargeable_weight_kg):
+        """
+        Возвращает:
+        - объект тарифа (ShippingRate)
+        - базовую цену без надбавок (base)
+        - cod_fee
+        - total_price = base + cod + toll + fuel
+        """
         rates = ShippingRate.objects.filter(
             country=country.upper(),
             channel=channel,
@@ -115,9 +134,12 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
             if chargeable_weight_kg <= limit_value:
                 base = rate.price
                 cod_fee = rate.cod_fee if cod else Decimal("0.00")
-                return rate, base, cod_fee, base + cod_fee
+                toll_surcharge = get_toll_surcharge(chargeable_weight_kg)
+                fuel_surcharge = (base * Decimal("0.05")).quantize(Decimal("0.01"))
+                total = base + cod_fee + toll_surcharge + fuel_surcharge
+                return rate, base, cod_fee, total
 
-        # fallback to over_limit if not found
+        # fallback для "over_limit"
         try:
             rate = ShippingRate.objects.get(
                 country=country.upper(),
@@ -128,16 +150,14 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
             )
             base = rate.price
             cod_fee = rate.cod_fee if cod else Decimal("0.00")
-            return rate, base, cod_fee, base + cod_fee
+            toll_surcharge = get_toll_surcharge(chargeable_weight_kg)
+            fuel_surcharge = (base * Decimal("0.05")).quantize(Decimal("0.01"))
+            total = base + cod_fee + toll_surcharge + fuel_surcharge
+            return rate, base, cod_fee, total
         except ShippingRate.DoesNotExist:
             raise ValueError(
                 f"No shipping rate for {channel} {country.upper()} {category} Zásilkovna with weight {chargeable_weight_kg} kg"
             )
-
-    weight_limit_tag = get_weight_limit_tag(chargeable_weight)
-
-    pudo_rate, pudo_base, pudo_cod_fee, pudo_total = get_rate("PUDO", category, Decimal(weight_limit_tag))
-    hd_rate, hd_base, hd_cod_fee, hd_total = get_rate("HD", category, Decimal(weight_limit_tag))
 
     def format_option(rate_obj, base_total_czk):
         price_with_vat_czk = (base_total_czk * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
@@ -157,6 +177,11 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
             "currency": "EUR",
             "estimate": rate_obj.estimate or ""
         }
+
+    # Вызов get_rate для PUDO и HD
+    weight_limit_tag = get_weight_limit_tag(chargeable_weight)
+    pudo_rate, pudo_base, pudo_cod_fee, pudo_total = get_rate("PUDO", category, Decimal(weight_limit_tag))
+    hd_rate, hd_base, hd_cod_fee, hd_total = get_rate("HD", category, Decimal(weight_limit_tag))
 
     return [
         format_option(pudo_rate, pudo_total),
