@@ -62,17 +62,20 @@ class ToggleFavoriteAPIView(APIView):
 @extend_schema_view(
     get=extend_schema(
         description=(
-            "Retrieve all favorite products of the current authenticated user. "
-            "By default, products are sorted by the date they were added to favorites, with the most recent first. "
-            "You can also sort the products by popularity (based on average rating of reviews), "
-            "ascending price, or descending price."
+            "Retrieve all favorite products of the current authenticated user.\n\n"
+            "Products are sorted by the selected criterion:\n"
+            "- `popular`: by rating (descending)\n"
+            "- `price_asc`: by ascending final price (includes acquiring fee)\n"
+            "- `price_desc`: by descending final price (includes acquiring fee)\n"
+            "- default: by the date they were added to favorites (most recent first)\n\n"
+            "The `price` field shown in each product includes the acquiring (processing) fee."
         ),
         parameters=[
             OpenApiParameter(
                 name='sort_by',
                 description=(
-                    "Sort products by popularity, ascending price, descending price, or date added to favorites. "
-                    "If not specified, products are sorted by the date they were added to favorites."
+                    "Sort products by popularity, ascending price (with acquiring fee), "
+                    "descending price (with acquiring fee), or date added to favorites."
                 ),
                 type=str,
                 enum=['popular', 'price_asc', 'price_desc'],
@@ -95,9 +98,9 @@ class FavoriteProductListAPIView(ListAPIView):
         products = BaseProduct.objects.filter(
             favorite__user=user
         ).annotate(
-            min_price=Min('variants__price')
+            min_price_with_acquiring=Min('variants__price_with_acquiring')
         ).filter(
-            min_price__isnull=False
+            min_price_with_acquiring__isnull=False
         ).prefetch_related(
             'images',
             'variants',
@@ -107,9 +110,9 @@ class FavoriteProductListAPIView(ListAPIView):
         if sort_by == 'popular':
             products = products.order_by('-rating')
         elif sort_by == 'price_asc':
-            products = products.order_by('min_price')
+            products = products.order_by('min_price_with_acquiring')
         elif sort_by == 'price_desc':
-            products = products.order_by('-min_price')
+            products = products.order_by('-min_price_with_acquiring')
         else:
             products = products.order_by('-favorite__added_at')
 

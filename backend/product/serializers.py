@@ -33,6 +33,7 @@ class BaseProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
+    price = serializers.DecimalField(source="price_with_acquiring", max_digits=10, decimal_places=2)
     price_without_vat = serializers.SerializerMethodField()
 
     class Meta:
@@ -141,7 +142,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     product_parameters = ProductParameterSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
-    price = serializers.DecimalField(source='min_price', max_digits=10, decimal_places=2, read_only=True)
+    price = serializers.DecimalField(source='min_price_with_acquiring', max_digits=10, decimal_places=2, read_only=True)
     ordered_count = serializers.IntegerField(source='ordered_quantity', read_only=True)
     seller_id = serializers.IntegerField(source='seller.id', read_only=True)
     is_age_restricted = serializers.BooleanField(read_only=True)
@@ -162,9 +163,6 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'seller_id',
             'is_age_restricted',
         ]
-
-    def get_price(self, obj):
-        return obj.min_price
 
     def get_image(self, obj):
         request = self.context.get('request')

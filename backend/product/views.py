@@ -25,15 +25,29 @@ from .serializers import (
     description="""
         Search for products and categories. Supports filtering by price range and sorting by rating or price.
 
+        The `price` value includes the acquiring (processing) fee.
+
+        Filtering with `min_price` and `max_price` and sorting by `price` is based on this final price.
+
         Each product in the result includes `seller_id` and `is_age_restricted` fields.
-        """,
+    """,
     parameters=[
         OpenApiParameter(name='q', description='Search query', required=False, type=OpenApiTypes.STR),
-        OpenApiParameter(name='min_price', description='Minimum price', required=False, type=OpenApiTypes.NUMBER),
-        OpenApiParameter(name='max_price', description='Maximum price', required=False, type=OpenApiTypes.NUMBER),
+        OpenApiParameter(
+            name='min_price',
+            description='Minimum price (includes acquiring fee)',
+            required=False,
+            type=OpenApiTypes.NUMBER
+        ),
+        OpenApiParameter(
+            name='max_price',
+            description='Maximum price (includes acquiring fee)',
+            required=False,
+            type=OpenApiTypes.NUMBER
+        ),
         OpenApiParameter(
             name='ordering',
-            description='Sort by price or rating. Use "-" prefix for descending order.',
+            description='Sort by price or rating (price includes acquiring fee). Use "-" prefix for descending order.',
             required=False,
             type=OpenApiTypes.STR,
             enum=['price', '-price', 'rating', '-rating']
@@ -42,7 +56,7 @@ from .serializers import (
     responses={
         status.HTTP_200_OK: OpenApiResponse(
             response=BaseProductListSerializer,
-            description="A list of search results including products and categories.",
+            description="A list of search results including products and categories. Price values include acquiring fee.",
             examples=[
                 OpenApiExample(
                     name="SearchExample",
@@ -60,7 +74,7 @@ from .serializers import (
                                         {"id": 10, "name": "Weight", "value": "250g"}
                                     ],
                                     "image": "http://localhost:8081/media/base_product_images/iphone14pro.jpg",
-                                    "price": "1000.00",
+                                    "price": "1000.00",  # includes acquiring fee
                                     "rating": "4.8",
                                     "total_reviews": 120,
                                     "is_favorite": False,
@@ -76,7 +90,7 @@ from .serializers import (
                                         {"id": 11, "name": "Weight", "value": "220g"}
                                     ],
                                     "image": "http://localhost:8081/media/base_product_images/galaxys21.jpg",
-                                    "price": "950.00",
+                                    "price": "950.00",  # includes acquiring fee
                                     "rating": "4.5",
                                     "total_reviews": 98,
                                     "is_favorite": True,
@@ -184,10 +198,14 @@ class SearchView(generics.ListAPIView):
 
         Supports pagination, filtering by price range and rating, and sorting by rating or price.
 
+        The `price` value includes the acquiring (processing) fee.
+
+        Filtering with `min_price` and `max_price` and sorting by `price` is based on this final price.
+
         Each product in the result includes `seller_id` and `is_age_restricted` fields.
 
         **Note:** When sorting by fields that may contain `null` values (e.g., `rating`), such values will be placed at the end of the list.
-        """,
+    """,
     parameters=[
         OpenApiParameter(
             name='category_id',
@@ -198,64 +216,19 @@ class SearchView(generics.ListAPIView):
         ),
         OpenApiParameter(
             name='ordering',
-            description='Sort products by price or rating. Use "-" prefix for descending order.',
+            description='Sort products by price (including acquiring fee) or rating. Use "-" prefix for descending order.',
             required=False,
             type=str,
             enum=['price', '-price', 'rating', '-rating']
         ),
-        OpenApiParameter(name='min_price', description='Minimum price to filter products', required=False, type=float),
-        OpenApiParameter(name='max_price', description='Maximum price to filter products', required=False, type=float),
+        OpenApiParameter(name='min_price', description='Minimum price (includes acquiring fee)', required=False, type=float),
+        OpenApiParameter(name='max_price', description='Maximum price (includes acquiring fee)', required=False, type=float),
         OpenApiParameter(name='rating', description='Minimum rating to filter products', required=False, type=float),
     ],
     responses={
         200: OpenApiResponse(
             response=BaseProductListSerializer(many=True),
-            description="A list of products in the specified category.",
-            examples=[
-                OpenApiExample(
-                    name="CategoryProductListExample",
-                    value={
-                        "count": 2,
-                        "next": None,
-                        "previous": None,
-                        "results": [
-                            {
-                                "id": 1,
-                                "name": "IPhone 14 Pro",
-                                "product_description": "Latest model of iPhone with advanced features.",
-                                "product_parameters": [
-                                    {"id": 10, "name": "Weight", "value": "250g"}
-                                ],
-                                "image": "http://localhost:8081/media/base_product_images/iphone14pro.jpg",
-                                "price": "1000.00",
-                                "rating": "4.8",
-                                "total_reviews": 120,
-                                "is_favorite": False,
-                                "ordered_count": 1535,
-                                "seller_id": 5,
-                                "is_age_restricted": False
-                            },
-                            {
-                                "id": 2,
-                                "name": "Vodka Classic",
-                                "product_description": "Premium distilled spirit.",
-                                "product_parameters": [
-                                    {"id": 11, "name": "Volume", "value": "0.5L"}
-                                ],
-                                "image": "http://localhost:8081/media/base_product_images/vodka.jpg",
-                                "price": "12.99",
-                                "rating": "4.5",
-                                "total_reviews": 50,
-                                "is_favorite": True,
-                                "ordered_count": 342,
-                                "seller_id": 2,
-                                "is_age_restricted": True
-                            }
-                        ]
-                    },
-                    response_only=True
-                )
-            ]
+            description="A list of products in the specified category. Price values include acquiring fee.",
         ),
         404: OpenApiResponse(description="Category not found.")
     },
@@ -307,16 +280,25 @@ class CategoryBaseProductListView(generics.ListAPIView):
 
 
 @extend_schema(
-    description=(
-        "Retrieve detailed information about a specific product by its ID. "
-        "The response includes product details such as name, description, product parameters, rating, total number of reviews, "
-        "license file, images, variants (with price and price without VAT), seller ID, whether the product is age-restricted (18+), "
-        "whether it is in the user's favorites, and a list of SKUs the authenticated user can review."
-    ),
+    description="""
+        Retrieve detailed information about a specific product by its ID.
+
+        Each product includes:
+        - product parameters
+        - rating and total number of reviews
+        - list of variants, each showing:
+            - `price` (includes acquiring fee)
+            - `price_without_vat`
+            - `image`, `sku`, etc.
+        - list of SKUs that the authenticated user can review
+        - seller ID and whether the product is age-restricted
+
+        The `price` field for each variant represents the final price **with acquiring fee**.
+    """,
     responses={
         200: OpenApiResponse(
             response=BaseProductDetailSerializer,
-            description="A detailed view of the product."
+            description="A detailed view of the product. Variant prices include acquiring fee."
         ),
         404: OpenApiResponse(description="Product not found.")
     },

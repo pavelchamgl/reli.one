@@ -6,6 +6,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.db import models
 from django.conf import settings
 from mptt.models import MPTTModel, TreeForeignKey
+from django.db.models import Min
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
 from django.template.defaultfilters import filesizeformat
@@ -106,6 +107,14 @@ class BaseProduct(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def min_price_with_acquiring(self):
+        if self.variants.exists():
+            base_min = self.variants.aggregate(Min("price"))["price__min"]
+            if base_min is not None:
+                return (base_min * Decimal("1.04")).quantize(Decimal("0.01"))
+        return None
 
 
 def validate_file_extension(value):
@@ -221,6 +230,11 @@ class ProductVariant(models.Model):
             price_wo_vat = self.price / (1 + vat / 100)
             return price_wo_vat.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         return self.price
+
+    @property
+    def price_with_acquiring(self):
+        price = self.price or Decimal("0.00")
+        return (price * Decimal("1.04")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def __str__(self):
         return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"
