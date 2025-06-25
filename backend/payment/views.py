@@ -300,7 +300,7 @@ class CreateStripePaymentView(APIView):
             group_total = Decimal('0.00')
             for product in products:
                 variant = variant_map[product['sku']]
-                unit_price = Decimal(variant.price).quantize(Decimal("0.01"))
+                unit_price = variant.price_with_acquiring
                 quantity = int(product['quantity'])
                 group_total += unit_price * quantity
 
@@ -520,7 +520,7 @@ class StripeWebhookView(APIView):
                     quantity=qty,
                     delivery_cost=Decimal("0.00"),
                     seller_profile=variant.product.seller,
-                    product_price=variant.price,
+                    product_price=variant.price_with_acquiring,
                     warehouse=warehouse,
                     status=ProductStatus.AWAITING_SHIPMENT,
                 )
@@ -766,7 +766,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             group_total = Decimal("0.00")
             for product in products:
                 variant = variant_map[product['sku']]
-                unit_price = Decimal(variant.price).quantize(Decimal("0.01"))
+                unit_price = variant.price_with_acquiring
                 quantity = int(product['quantity'])
                 group_total += unit_price * quantity
 
@@ -962,7 +962,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
                     quantity=qty,
                     delivery_cost=Decimal("0.00"),
                     seller_profile=variant.product.seller,
-                    product_price=variant.price,
+                    product_price=variant.price_with_acquiring,
                     warehouse=warehouse,
                     status=ProductStatus.AWAITING_SHIPMENT,
                 )
