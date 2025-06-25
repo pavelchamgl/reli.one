@@ -233,6 +233,44 @@ const basketSlice = createSlice({
             }
         },
 
+        selectProduct: (state, action) => {
+            let totalCount = state.totalCount;
+
+            // Обновляем корзину с новым состоянием выбранных товаров
+            state.basket = state.basket.map((item) => {
+                const itemTotal = item.product.price * item.count;
+
+                if (item.sku === action.payload.sku) {
+                    if (action.payload.selected) {
+                        // Добавляем товар в общий итог, если он выбран
+                        totalCount += itemTotal;
+                    } else {
+                        // Убираем товар из общего итога, если он снят с выбора
+                        totalCount -= itemTotal;
+                    }
+                    return { ...item, selected: action.payload.selected };
+                }
+                return item;
+            });
+
+            // Обновляем общий итог
+            state.totalCount = totalCount;
+
+            // Обновляем список выбранных товаров
+            state.selectedProducts = state.basket.filter(item => item.selected);
+
+            // Если корзина синхронизирована с сервером, обновляем соответствующее состояние
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    // Обновляем корзину в глобальном состоянии, если этот пользователь уже есть
+                    state.baskets[existingIndex].basket = state.basket;
+                }
+            }
+        },
+
+
         // Поиск товаров
         searchProducts: (state, action) => {
             const searchTerm = action.payload.text.toLowerCase();
