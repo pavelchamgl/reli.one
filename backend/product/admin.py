@@ -63,6 +63,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
         'product',
         'name',
         'price',
+        'price_with_acquiring',
         'weight_grams',
         'width_mm',
         'height_mm',
@@ -76,7 +77,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
     list_filter = [
         'product__seller',
     ]
-    readonly_fields = ('sku',)
+    readonly_fields = ('sku', 'price_with_acquiring')
     autocomplete_fields = ['product']
 
 
