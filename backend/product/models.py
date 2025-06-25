@@ -233,8 +233,8 @@ class ProductVariant(models.Model):
 
     @property
     def price_with_acquiring(self):
-        return (self.price * Decimal("1.04")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    price_with_acquiring.short_description = "Цена с эквайрингом (4%)"
+        price = self.price or Decimal("0.00")
+        return (price * Decimal("1.04")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def __str__(self):
         return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"

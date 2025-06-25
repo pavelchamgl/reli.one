@@ -22,11 +22,12 @@ class LicenseFileInline(admin.StackedInline):
 class ProductVariantInline(admin.StackedInline):
     model = ProductVariant
     extra = 1
-    readonly_fields = ('sku',)
+    readonly_fields = ('sku', 'get_price_with_acquiring')
     fields = (
         'sku',
         'name',
         'price',
+        'get_price_with_acquiring',
         'weight_grams',
         'width_mm',
         'height_mm',
@@ -34,6 +35,11 @@ class ProductVariantInline(admin.StackedInline):
         'text',
         'image',
     )
+
+    def get_price_with_acquiring(self, obj):
+        return obj.price_with_acquiring
+
+    get_price_with_acquiring.short_description = "Price with acquiring (4%)"
 
 
 class BaseProductImageInline(admin.TabularInline):
@@ -63,7 +69,7 @@ class ProductVariantAdmin(admin.ModelAdmin):
         'product',
         'name',
         'price',
-        'price_with_acquiring',
+        'get_price_with_acquiring',
         'weight_grams',
         'width_mm',
         'height_mm',
@@ -77,8 +83,13 @@ class ProductVariantAdmin(admin.ModelAdmin):
     list_filter = [
         'product__seller',
     ]
-    readonly_fields = ('sku', 'price_with_acquiring')
+    readonly_fields = ('sku', 'get_price_with_acquiring')
     autocomplete_fields = ['product']
+
+    def get_price_with_acquiring(self, obj):
+        return obj.price_with_acquiring
+
+    get_price_with_acquiring.short_description = "Цена с эквайрингом (4%)"
 
 
 @admin.register(BaseProduct)
