@@ -112,7 +112,7 @@ def prepare_invoice_data(session_id):
         "company_address": COMPANY_ADDRESS,
         "tax_id": TAX_ID,
         "iban": IBAN,
-        "account number": ACCOUNT_NUMBER,
+        "account_number": ACCOUNT_NUMBER,
         "swift": SWIFT,
         "products": products,
         "vat_summary": vat_summary,

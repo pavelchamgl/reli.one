@@ -37,7 +37,7 @@ from warehouses.models import Warehouse, WarehouseItem
 from delivery.helpers import resolve_country_code_from_group
 from delivery.utils_async import async_parcels_and_seller_email
 from order.services.invoice_data import prepare_invoice_data
-from order.services.invoice_generator import generate_invoice_pdf
+from order.services.invoice_generator_without_vat import generate_invoice_pdf
 from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
 from delivery.validators.zip_validator import ZipCodeValidator
 from delivery.validators.validators import validate_phone_matches_country

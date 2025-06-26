@@ -9,12 +9,8 @@ from django.template.loader import render_to_string
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.files.storage import default_storage
 
-from .models import Payment
-# from order.services.invoice_generator import generate_invoice_pdf_by_orders
 from order.models import Order, Invoice
 from delivery.models import DeliveryParcelItem
-from order.services.invoice_data import prepare_invoice_data
-from order.services.invoice_generator import generate_invoice_pdf
 from delivery.services.packeta_point_service import get_pickup_point_details
 
 logger = logging.getLogger(__name__)
