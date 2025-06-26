@@ -44,7 +44,6 @@ SECURE_HSTS_PRELOAD = True
 
 ALLOWED_HOSTS = ['*']
 
-PAYPAL_TEST = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -82,7 +81,6 @@ INSTALLED_APPS = [
     'vacancies',
     'warehouses',
 ]
-PAYPAL_RECEIVER_EMAIL = 'novapiple228@gmail.com'
 
 AUTH_USER_MODEL = "accounts.CustomUser"
 
