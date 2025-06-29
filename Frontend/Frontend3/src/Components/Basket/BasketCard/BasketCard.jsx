@@ -30,7 +30,7 @@ const BasketCard = ({ all, section, productData }) => {
 
   const navigate = useNavigate();
 
-  const { plusCardCount, minusCardCount } = useActions();
+  const { plusCardCount, minusCardCount, updateProductPrice } = useActions();
 
   const dispatch = useDispatch();
 
@@ -60,26 +60,7 @@ const BasketCard = ({ all, section, productData }) => {
     );
   };
 
-  // const isChangePrice = async (id) => {
-  //   try {
-  //     const res = await getProductById(id).then((res) => {
-  //       if (res.status === 200) {
-  //         const data = res.data
-  //         const variant = product?.variants?.find(item => item.sku === productData?.sku)
 
-  //         const variantQuery = data?.variant?.find(item => item.sku === productData?.sku)
-
-  //         console.log(variant);
-  //         console.log(variantQuery);
-
-
-
-  //       }
-  //     })
-  //   } catch (error) {
-
-  //   }
-  // }
 
   const handleDelete = () => {
     dispatch(deleteFromBasket({ sku: productData.sku }));
@@ -111,17 +92,28 @@ const BasketCard = ({ all, section, productData }) => {
         console.error("Variant not found for sku:", productData.sku);
       }
     }
-  }, [product?.variants, productData.sku]);
+  }, [product?.variants, productData.sku, productData]);
 
-  // useEffect(() => {
-  //   if (productData) {
-  //     const isChange = await isChangePrice(productData.id)
+  useEffect(() => {
+    if (productData) {
+      getProductById(productData?.id).then((res) => {
+        if (res.status === 200) {
+          const data = res.data
+          const variant = data?.variants?.find(item => item?.sku === productData?.sku)
+          if (variant && variant?.price !== product?.price) {
+            console.log("ekjfhuheriuh");
+            updateProductPrice({
+              data: data,
+              sku: productData?.sku,
+              price: variant?.price
+            })
+          } else {
 
-  //     console.log(isChange);
-
-
-  //   }
-  // }, [productData])
+          }
+        }
+      })
+    }
+  }, [productData])
 
   return (
     <div className={styles.main} style={section === "payment" ? { width: "100%" } : {}}>
