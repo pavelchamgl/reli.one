@@ -1,0 +1,27 @@
+.main {
+  --borderSize: 1px solid black;
+  width: 100%;
+  border-top: var(--borderSize);
+  border-bottom: var(--borderSize);
+
+  & button {
+    width: 100%;
+    background-color: transparent;
+    height: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-right: 12px;
+  }
+}
+
+.title {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+}
+
+.text {
+  font-weight: 500;
+  font-size: clamp(14px, 2.5vw, 16px);
+  margin-bottom: 8px;
+}

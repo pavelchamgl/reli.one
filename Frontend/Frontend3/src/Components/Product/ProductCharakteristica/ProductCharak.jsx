@@ -4,6 +4,7 @@ import { useMediaQuery } from "react-responsive";
 import { useTranslation } from "react-i18next";
 
 import styles from "./ProductCharak.module.scss";
+import ProductAdditionalDetails from "../productAdditionalDetails/ProductAdditionalDetails";
 
 const ProductCharak = () => {
   const isMobile = useMediaQuery({ maxWidth: 400 });
@@ -41,6 +42,8 @@ const ProductCharak = () => {
     <div className={styles.main}>
       {isMobile && <p className={styles.mobTitle}>{t("characteristics")}</p>}
       <pre className={styles.modelText}>{formattedText}</pre>
+
+      <ProductAdditionalDetails />
 
       <div className={styles.totalTable}>
         <div className={styles.blackTitle}>{t("transfer_charac")}</div>
