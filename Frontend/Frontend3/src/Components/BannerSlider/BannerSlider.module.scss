@@ -1,0 +1,88 @@
+.swiperContainer {
+  position: relative;
+  width: 100%;
+  height: auto; // или auto
+  background: #ffffff;
+}
+
+.swiper {
+  width: calc(100% - 200px) !important;
+
+  height: 460px !important;
+
+  @media (max-width: 500px) {
+    width: calc(100% - 20px) !important;
+
+    height: 270px !important;
+  }
+}
+
+.swiperSlide {
+  width: 100% !important;
+}
+
+.bannerImg {
+  width: 100% !important;
+  height: 400px !important;
+  object-fit: cover;
+  @media (max-width: 500px) {
+    height: 210px !important;
+  }
+}
+
+.swiperButtonPrev,
+.swiperButtonNext {
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 24px;
+  user-select: none;
+  border-radius: 50%;
+  transform: translateY(-50%);
+
+  & img {
+    height: 19px;
+  }
+
+  @media (max-width: 500px) {
+    display: none;
+  }
+}
+
+.swiperButtonPrev {
+  left: 40px;
+}
+
+.swiperButtonNext {
+  right: 40px;
+}
+
+.swiperPagination {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+}
+
+.paginationActive {
+  width: 8px; /* Width of the bullet */
+  height: 8px; /* Height of the bullet */
+  background: #000; /* Default bullet color */
+  opacity: 1; /* Ensure bullets are fully opaque */
+  border-radius: 50%; /* Make the bullets round */
+  margin: 0 4px;
+  background: #3f7f6d; /* Active bullet color */
+}
+
+.left {
+  transform: rotate(180deg);
+}

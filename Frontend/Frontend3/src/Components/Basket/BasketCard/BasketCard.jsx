@@ -15,11 +15,9 @@ import plusIcon from "../../../assets/Basket/plusIcon.svg";
 import minusIcon from "../../../assets/Basket/minusIcon.svg";
 
 import styles from "./BasketCard.module.scss";
+import { getProductById } from "../../../api/productsApi";
 
 const BasketCard = ({ all, section, productData }) => {
-
-  console.log(section, productData);
-
 
   const [count, setCount] = useState(productData.count);
   const [checkboxValue, setCheckboxValue] = useState(productData.selected);
@@ -62,6 +60,27 @@ const BasketCard = ({ all, section, productData }) => {
     );
   };
 
+  // const isChangePrice = async (id) => {
+  //   try {
+  //     const res = await getProductById(id).then((res) => {
+  //       if (res.status === 200) {
+  //         const data = res.data
+  //         const variant = product?.variants?.find(item => item.sku === productData?.sku)
+
+  //         const variantQuery = data?.variant?.find(item => item.sku === productData?.sku)
+
+  //         console.log(variant);
+  //         console.log(variantQuery);
+
+
+
+  //       }
+  //     })
+  //   } catch (error) {
+
+  //   }
+  // }
+
   const handleDelete = () => {
     dispatch(deleteFromBasket({ sku: productData.sku }));
   };
@@ -93,6 +112,16 @@ const BasketCard = ({ all, section, productData }) => {
       }
     }
   }, [product?.variants, productData.sku]);
+
+  // useEffect(() => {
+  //   if (productData) {
+  //     const isChange = await isChangePrice(productData.id)
+
+  //     console.log(isChange);
+
+
+  //   }
+  // }, [productData])
 
   return (
     <div className={styles.main} style={section === "payment" ? { width: "100%" } : {}}>

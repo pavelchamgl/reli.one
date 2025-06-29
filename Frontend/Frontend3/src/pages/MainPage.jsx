@@ -10,6 +10,7 @@ import ProductCard from "../Components/Product/ProductCard/ProductCard";
 import styles from "../styles/MainPage.module.scss";
 import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
 import NoContentText from "../ui/NoContentText/NoContentText";
+import BannerSlider from "../Components/BannerSlider/BannerSlider";
 
 const MainPage = () => {
   const productsData = useSelector((state) => state.products.products || []);
@@ -26,36 +27,39 @@ const MainPage = () => {
   }, []);
 
   return (
-    <Container>
-      <div className={styles.breadHide}>
-        <CustomBreadcrumbs />
-      </div>
-      <div className={styles.categoryWrap}>
-        <div className={styles.categoryCardWrap}>
-          {allCategory.length > 0 ? (
-            allCategory
-              ?.slice(0, 18)
-              ?.reverse()
-              .map((item) => <CategoryCard key={item.id} item={item} />)
-          ) : (
-            <NoContentText />
-          )}
+    <>
+      <BannerSlider />
+      <Container>
+        <div className={styles.breadHide}>
+          <CustomBreadcrumbs />
         </div>
-      </div>
+        <div className={styles.categoryWrap}>
+          <div className={styles.categoryCardWrap}>
+            {allCategory.length > 0 ? (
+              allCategory
+                ?.slice(0, 18)
+                ?.reverse()
+                .map((item) => <CategoryCard key={item.id} item={item} />)
+            ) : (
+              <NoContentText />
+            )}
+          </div>
+        </div>
 
-      <div className={styles.productCardWrapMain}>
-        <p className={styles.title}>{t("recommend")}</p>
-        <div className={styles.productCardWrap}>
-          {productsData.length > 0 ? (
-            productsData.map((item) => (
-              <ProductCard data={item} key={item.id} />
-            ))
-          ) : (
-            <NoContentText />
-          )}
+        <div className={styles.productCardWrapMain}>
+          <p className={styles.title}>{t("recommend")}</p>
+          <div className={styles.productCardWrap}>
+            {productsData.length > 0 ? (
+              productsData.map((item) => (
+                <ProductCard data={item} key={item.id} />
+              ))
+            ) : (
+              <NoContentText />
+            )}
+          </div>
         </div>
-      </div>
-    </Container>
+      </Container>
+    </>
   );
 };
 

@@ -43,6 +43,8 @@ const BasketTotalBlock = ({ section = null }) => {
     ? totalPrice + deliveryPrice
     : totalPrice;
 
+  const normalizedFinalPrice = Math.abs(finalPrice) < 0.005 ? 0 : finalPrice;
+
 
   useEffect(() => {
     if (isMobile && isPaymentPage) {
@@ -102,7 +104,7 @@ const BasketTotalBlock = ({ section = null }) => {
           <p>{t("total")}</p>
           <div>
             <span>EUR</span>
-            <strong>{finalPrice.toFixed(2)} €</strong>
+            <strong>{normalizedFinalPrice.toFixed(2)} €</strong>
           </div>
         </div>
 
