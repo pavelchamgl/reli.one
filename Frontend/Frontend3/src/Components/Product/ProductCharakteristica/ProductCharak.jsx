@@ -7,7 +7,7 @@ import styles from "./ProductCharak.module.scss";
 import ProductAdditionalDetails from "../productAdditionalDetails/ProductAdditionalDetails";
 
 const ProductCharak = () => {
-  const isMobile = useMediaQuery({ maxWidth: 400 });
+  const isMobile = useMediaQuery({ maxWidth: 500 });
 
   const { t } = useTranslation();
 
@@ -45,6 +45,7 @@ const ProductCharak = () => {
 
       <ProductAdditionalDetails />
 
+        {isMobile && <p className={styles.charackTitle}>Characteristics</p>}
       <div className={styles.totalTable}>
         <div className={styles.blackTitle}>{t("transfer_charac")}</div>
 
