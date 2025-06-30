@@ -15,7 +15,7 @@ import MobPaymentBasket from "../MobPaymentBasket/MobPaymentBasket";
 import styles from "./PaymentDeliveryBlock.module.scss";
 import CustomBreadcrumbs from "../../../ui/CustomBreadCrumps/CustomBreadCrumps";
 import PaymentDeliverySuplier from "../PaymentDeliveruSuplier/PaymentDeliverySuplier";
-import { groupBySeller } from "../../../pages/Test";
+import { groupBySeller } from "../../../code/code";
 import { useActionPayment } from "../../../hook/useActionPayment";
 import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
 

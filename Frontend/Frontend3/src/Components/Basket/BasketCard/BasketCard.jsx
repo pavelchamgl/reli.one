@@ -15,11 +15,9 @@ import plusIcon from "../../../assets/Basket/plusIcon.svg";
 import minusIcon from "../../../assets/Basket/minusIcon.svg";
 
 import styles from "./BasketCard.module.scss";
+import { getProductById } from "../../../api/productsApi";
 
 const BasketCard = ({ all, section, productData }) => {
-
-  console.log(section, productData);
-
 
   const [count, setCount] = useState(productData.count);
   const [checkboxValue, setCheckboxValue] = useState(productData.selected);
@@ -32,7 +30,7 @@ const BasketCard = ({ all, section, productData }) => {
 
   const navigate = useNavigate();
 
-  const { plusCardCount, minusCardCount } = useActions();
+  const { plusCardCount, minusCardCount, updateProductPrice } = useActions();
 
   const dispatch = useDispatch();
 
@@ -61,6 +59,8 @@ const BasketCard = ({ all, section, productData }) => {
       selectProduct({ sku: productData.sku, selected: newCheckboxValue })
     );
   };
+
+
 
   const handleDelete = () => {
     dispatch(deleteFromBasket({ sku: productData.sku }));
@@ -92,7 +92,28 @@ const BasketCard = ({ all, section, productData }) => {
         console.error("Variant not found for sku:", productData.sku);
       }
     }
-  }, [product?.variants, productData.sku]);
+  }, [product?.variants, productData.sku, productData]);
+
+  useEffect(() => {
+    if (productData) {
+      getProductById(productData?.id).then((res) => {
+        if (res.status === 200) {
+          const data = res.data
+          const variant = data?.variants?.find(item => item?.sku === productData?.sku)
+          if (variant && variant?.price !== product?.price) {
+            console.log("ekjfhuheriuh");
+            updateProductPrice({
+              data: data,
+              sku: productData?.sku,
+              price: variant?.price
+            })
+          } else {
+
+          }
+        }
+      })
+    }
+  }, [productData])
 
   return (
     <div className={styles.main} style={section === "payment" ? { width: "100%" } : {}}>

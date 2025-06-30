@@ -57,9 +57,6 @@ const HomePage = () => {
     }
   }, [location]);
 
-  useEffect(() => {
-    dispatch(syncBasket())
-  }, [])
 
   return (
     <div className={styles.main}>

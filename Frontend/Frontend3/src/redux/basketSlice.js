@@ -344,6 +344,37 @@ const basketSlice = createSlice({
             state.basket = []; // очищаем текущую корзину
             state.totalCount = 0;
             state.selectedProducts = [];
+        },
+
+        updateProductPrice: (state, action) => {
+
+            console.log(action.payload);
+
+            state.basket = state.basket.map((item) => {
+                if (action.payload.sku === item?.sku) {
+                    console.log(item);
+
+                    return {
+                        ...item,
+                        product: {
+                            ...action.payload.data,
+                            price: action.payload.price
+                        }
+                    }
+                } else {
+                    return item
+                }
+            })
+
+            console.log(state.basket);
+
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
+            }
         }
     }
 });
@@ -368,7 +399,8 @@ export const {
     updateBaskets,
     paymentEndBasket,
     syncBasket,
-    deleteBaskets
+    deleteBaskets,
+    updateProductPrice
 } = basketSlice.actions;
 
 export const { reducer } = basketSlice;

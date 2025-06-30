@@ -75,15 +75,12 @@ const ProductImageAndName = () => {
         setPrice(firstVariant.price);
         setEndPice(firstVariant.price);
         setSku(firstVariant.sku);
-        // setPriceVatMain(firstVariant.price_without_vat)
-
+        // setPriceVat(firstVariant.price_without_vat)
       } else {
         // Если продукт уже в корзине, использовать данные из корзины
-        // setPrice(existingProduct.product.price);
-        // setEndPice(existingProduct.product.price);
+        setEndPice(existingProduct.product.price);
         setSku(existingProduct.sku);
-        // setPriceVatMain(existingProduct?.price_without_vat)
-
+        // setPriceVat(existingProduct?.price_without_vat)
       }
     }
   }, [product, basket]);
