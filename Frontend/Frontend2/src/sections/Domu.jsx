@@ -10,7 +10,7 @@ const Domu = () => {
       <div className="xl:mx-auto xl:max-w-[1439px]" id="Domu">
         <div className="px-7 lg:px-10 xl:px-32">
           <Header_menu />
-      <BannerSlider />
+      {/* <BannerSlider /> */}
         </div>
       </div>
       <div className="bg-[url('assets/background-phone.png')] bg-cover lg:bg-[url(assets/image.png)]">
