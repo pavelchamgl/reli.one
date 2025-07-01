@@ -5,7 +5,7 @@ import arrBottom from "../../../assets/Payment/arrBottom.svg"
 
 import styles from "./ProductAdditionalDetails.module.scss"
 
-const ProductAdditionalDetails = () => {
+const ProductAdditionalDetails = ({ detail }) => {
     const [open, setOpen] = useState(false)
 
     return (
@@ -17,7 +17,7 @@ const ProductAdditionalDetails = () => {
             {
                 open &&
                 <p className={styles.text}>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Facere tempora minus nesciunt eum veniam at veritatis expedita hic corporis mollitia! Veritatis sapiente facilis neque, iure dolorum libero! Quam, vitae optio?
+                    {detail}
                 </p>
             }
         </div>
