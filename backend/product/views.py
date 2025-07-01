@@ -309,6 +309,7 @@ class CategoryBaseProductListView(generics.ListAPIView):
                 "id": 1,
                 "name": "Sample Product",
                 "product_description": "This is a sample product description.",
+                "additional_details": "This is a sample product additional details.",
                 "product_parameters": [
                     {"id": 10, "name": "Power", "value": "120W"},
                     {"id": 11, "name": "Length", "value": "1m"}
