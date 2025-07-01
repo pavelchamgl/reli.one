@@ -101,12 +101,12 @@ class AdminBaseProduct(admin.ModelAdmin):
     )
     list_filter = ['status', 'category', 'seller', 'is_age_restricted', 'is_active']
     readonly_fields = ('approved_at',)
-    search_fields = ['name', 'product_description', 'article']
+    search_fields = ['name', 'product_description', 'additional_details', 'article']
 
     fieldsets = (
         (None, {
             'fields': (
-                'name', 'product_description', 'category', 'seller',
+                'name', 'product_description', 'additional_details', 'category', 'seller',
                 'status', 'article', 'is_active'
             )
         }),

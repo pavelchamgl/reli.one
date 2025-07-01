@@ -42,6 +42,7 @@ class Category(MPTTModel):
 class BaseProduct(models.Model):
     name = models.CharField(max_length=100)
     product_description = models.TextField()
+    additional_details = models.TextField(null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     seller = models.ForeignKey(
         SellerProfile,

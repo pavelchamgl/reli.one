@@ -78,6 +78,7 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'product_description',
+            'additional_details',
             'category_name',
             'product_parameters',
             'rating',
