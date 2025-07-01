@@ -11,9 +11,10 @@ const ProductCharak = () => {
 
   const { t } = useTranslation();
 
-  const { product_parameters, product_description, license_file } = useSelector(
+  const { product_parameters, product_description, license_file, additional_details } = useSelector(
     (state) => state.products.product
   );
+
 
   const [formattedText, setFormattedText] = useState(product_description || "");
 
@@ -43,9 +44,14 @@ const ProductCharak = () => {
       {isMobile && <p className={styles.mobTitle}>{t("characteristics")}</p>}
       <pre className={styles.modelText}>{formattedText}</pre>
 
-      <ProductAdditionalDetails />
 
-        {isMobile && <p className={styles.charackTitle}>Characteristics</p>}
+      {
+        additional_details &&
+        <ProductAdditionalDetails detail={additional_details} />
+
+      }
+
+      {isMobile && <p className={styles.charackTitle}>Characteristics</p>}
       <div className={styles.totalTable}>
         <div className={styles.blackTitle}>{t("transfer_charac")}</div>
 
