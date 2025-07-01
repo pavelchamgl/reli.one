@@ -73,10 +73,11 @@ def draw_company_and_customer_info(c, data, width, y):
     company_text.setFont('Roboto', 9)
     for line in data['company_address'].split(', '):
         company_text.textLine(line)
-    company_text.textLine(f"Tax ID: {data['tax_id']}")
+    company_text.textLine(f"Company Identification Number: {data['tax_id']}")
     company_text.textLine(f"IBAN: {data['iban']}")
     company_text.textLine(f"Account number/bank code: {data['account_number']}")
     company_text.textLine(f"SWIFT (BIC): {data['swift']}")
+    company_text.textLine("VAT: Not VAT registered")
     c.drawText(company_text)
 
     customer = data['customer']
