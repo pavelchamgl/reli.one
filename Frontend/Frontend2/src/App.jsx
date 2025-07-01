@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
+
 import Domu from './sections/Domu';
 import Proc_Zrovna_Me from './sections/Proc_Zrovna_Me';
 import News from './sections/News';
@@ -8,7 +10,6 @@ import Footer from './sections/Footer';
 import Vacancies from './sections/Vacancies';
 import NewKontakt from './sections/NewKontakt';
 import ChangeLang from './components/changeLang/ChangeLang';
-import { useEffect } from 'react';
 
 const App = () => {
 
@@ -38,9 +39,6 @@ const App = () => {
     };
   }, [i18n]);
 
-  useEffect(() => {
-    console.log(i18n.language);
-  }, [i18n])
 
   return (
     <div className="font-Inter relative">
