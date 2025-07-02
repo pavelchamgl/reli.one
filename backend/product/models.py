@@ -224,13 +224,17 @@ class ProductVariant(models.Model):
     @property
     def price_without_vat(self):
         """
-        Возвращает цену без НДС (если price включает НДС).
+        Возвращает цену без НДС, но с учётом эквайринга.
         """
-        vat = self.product.vat_rate
+        price = self.price or Decimal("0.00")
+        vat = self.product.vat_rate or Decimal("0.00")
+
         if vat > 0:
-            price_wo_vat = self.price / (1 + vat / 100)
-            return price_wo_vat.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        return self.price
+            base_price_wo_vat = price / (1 + vat / 100)
+        else:
+            base_price_wo_vat = price
+
+        return (base_price_wo_vat * Decimal("1.04")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @property
     def price_with_acquiring(self):
