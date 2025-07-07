@@ -1,10 +1,11 @@
+from decimal import Decimal
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, extend_schema_view
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Min
+from django.db.models import Min, F, ExpressionWrapper, DecimalField
 
 from .models import Favorite
 from product.models import BaseProduct
@@ -95,12 +96,17 @@ class FavoriteProductListAPIView(ListAPIView):
         user = self.request.user
         sort_by = self.request.query_params.get('sort_by', None)
 
+        # Расчёт min цены с эквайрингом (1.04)
         products = BaseProduct.objects.filter(
             favorite__user=user
         ).annotate(
-            min_price_with_acquiring=Min('variants__price_with_acquiring')
+            raw_min_price=Min('variants__price'),
+            annotated_min_price_with_acquiring=ExpressionWrapper(
+                F('raw_min_price') * Decimal('1.04'),
+                output_field=DecimalField(max_digits=10, decimal_places=2)
+            )
         ).filter(
-            min_price_with_acquiring__isnull=False
+            raw_min_price__isnull=False
         ).prefetch_related(
             'images',
             'variants',
@@ -110,9 +116,9 @@ class FavoriteProductListAPIView(ListAPIView):
         if sort_by == 'popular':
             products = products.order_by('-rating')
         elif sort_by == 'price_asc':
-            products = products.order_by('min_price_with_acquiring')
+            products = products.order_by('annotated_min_price_with_acquiring')
         elif sort_by == 'price_desc':
-            products = products.order_by('-min_price_with_acquiring')
+            products = products.order_by('-annotated_min_price_with_acquiring')
         else:
             products = products.order_by('-favorite__added_at')
 
