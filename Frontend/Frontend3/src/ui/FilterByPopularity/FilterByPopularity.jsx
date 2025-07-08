@@ -13,6 +13,7 @@ import { useLocation } from "react-router-dom";
 const FilterByPopularity = ({
   setOrderingState = null,
   setOrdering = null,
+  section = null
 }) => {
   const [open, setOpen] = useState(false);
   const [filterValue, setFilterValue] = useState("rating");
@@ -22,23 +23,45 @@ const FilterByPopularity = ({
   const { pathname } = useLocation();
 
   useEffect(() => {
-    if (setOrdering) {
-      // if (pathname === "/liked") {
-      if (filterValue === "rating") {
-        setOrderingState("rating");
-        setOrdering("rating");
+    if (section === "liked") {
+      if (setOrdering) {
+        // if (pathname === "/liked") {
+        if (filterValue === "rating") {
+          setOrderingState("popular");
+          setOrdering("popular");
+        }
+        if (filterValue === "price") {
+          setOrderingState("price_asc");
+          setOrdering("price_asc");
+        }
+        if (filterValue === "-price") {
+          setOrderingState("price_desc");
+          setOrdering("price_desc");
+        }
+        if (filterValue === "order") {
+          setOrderingState("order");
+          setOrdering("order");
+        }
       }
-      if (filterValue === "price") {
-        setOrderingState("price");
-        setOrdering("price");
-      }
-      if (filterValue === "-price") {
-        setOrderingState("-price");
-        setOrdering("-price");
-      }
-      if (filterValue === "order") {
-        setOrderingState("order");
-        setOrdering("order");
+    } else {
+      if (setOrdering) {
+        // if (pathname === "/liked") {
+        if (filterValue === "popular") {
+          setOrderingState("rating");
+          setOrdering("rating");
+        }
+        if (filterValue === "price") {
+          setOrderingState("price");
+          setOrdering("price");
+        }
+        if (filterValue === "-price") {
+          setOrderingState("-price");
+          setOrdering("-price");
+        }
+        if (filterValue === "order") {
+          setOrderingState("order");
+          setOrdering("order");
+        }
       }
     }
   }, [filterValue]);
