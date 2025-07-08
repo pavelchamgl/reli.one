@@ -60,6 +60,7 @@ const LikedPage = () => {
           {!isMobile && (
             <div style={{ display: "flex", gap: "10px" }}>
               <FilterByPopularity
+                section={"liked"}
                 setOrderingState={setOrderingState}
                 setOrdering={setOrderingFav}
               />
