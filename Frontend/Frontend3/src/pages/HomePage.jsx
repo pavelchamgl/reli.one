@@ -13,6 +13,7 @@ import MobNav from "../Components/MobNav/MobNav";
 import { deselectAllProducts, syncBasket } from "../redux/basketSlice";
 import { useActionPayment } from "../hook/useActionPayment";
 import { useDispatch, useSelector } from "react-redux";
+import ScrollToTop from "../ui/ScrollToTop/ScrollToTop";
 
 const HomePage = () => {
   const isMobile = useMediaQuery({ maxWidth: 950 });
@@ -62,6 +63,7 @@ const HomePage = () => {
     <div className={styles.main}>
       {!isSeller && <Header />}
       <div>
+        <ScrollToTop />
         <Outlet />
         {isMobile && <MobNav />}
       </div>
