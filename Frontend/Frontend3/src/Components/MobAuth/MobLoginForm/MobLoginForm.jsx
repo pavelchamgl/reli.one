@@ -14,6 +14,8 @@ import styles from "./MobLoginForm.module.scss";
 import { useSelector, useDispatch } from "react-redux";
 import { updateBasket, syncBasket } from "../../../redux/basketSlice";
 import { useActionPayment } from "../../../hook/useActionPayment";
+import GoogleAuth from "../../Auth/googleAuth/GoogleAuth";
+import FacebookAuth from "../../Auth/facebookAuth/FacebookAuth";
 
 const MobLoginForm = () => {
   const navigate = useNavigate();
@@ -176,6 +178,14 @@ const MobLoginForm = () => {
           >
             {t("register_here")}
           </button>
+        </div>
+      </div>
+
+      <div className={styles.otherWaysWrap}>
+        <p className={styles.otherWaysTitle}>Other ways to log in</p>
+        <div className={styles.otherWaysBtns}>
+          <GoogleAuth />
+          <FacebookAuth />
         </div>
       </div>
     </div>
