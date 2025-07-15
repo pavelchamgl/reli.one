@@ -30,6 +30,15 @@
   }
 }
 
+.bannerVideo {
+  width: 100% !important;
+  height: 400px !important;
+  object-fit: cover;
+  @media (max-width: 500px) {
+    height: 210px !important;
+  }
+}
+
 .swiperButtonPrev,
 .swiperButtonNext {
   position: absolute;

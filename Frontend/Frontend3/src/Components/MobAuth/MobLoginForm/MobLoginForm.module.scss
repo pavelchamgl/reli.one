@@ -210,3 +210,23 @@
   color: #dc2626;
   margin-bottom: 5px;
 }
+
+.otherWaysWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 21px;
+}
+
+.otherWaysTitle {
+  font-weight: 400;
+  font-size: 13px;
+  color: #191919;
+}
+
+.otherWaysBtns {
+  display: flex;
+  gap: 7px;
+}

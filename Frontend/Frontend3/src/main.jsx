@@ -44,6 +44,7 @@ import SellerPage from "./pages/SellerPage.jsx";
 import EditGoodsPage from "./pages/EditGoodsPage.jsx";
 import SellerEditPreview from "./pages/SellerEditPreview.jsx";
 import { PersistGate } from "redux-persist/integration/react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const router = createBrowserRouter([
   {
@@ -154,15 +155,17 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <Provider store={store}>
-    <PersistGate loading={null} persistor={persistor}>
-      <RouterProvider router={router}>
+  <GoogleOAuthProvider clientId='753017334760-v3imfms11jdfc2tjttk26mficri9upac.apps.googleusercontent.com'>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
         <I18nextProvider i18n={i18n}>
           <React.StrictMode>
-            <App />
+            <RouterProvider router={router}>
+              <App />
+            </RouterProvider>
           </React.StrictMode>
         </I18nextProvider>
-      </RouterProvider>
-    </PersistGate>
-  </Provider>
+      </PersistGate>
+    </Provider>
+  </GoogleOAuthProvider >
 );
