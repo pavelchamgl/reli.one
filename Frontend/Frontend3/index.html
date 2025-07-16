@@ -11,6 +11,18 @@
 
 <body>
   <div id="root"></div>
+
+  <script>
+    window.fbAsyncInit = function () {
+      FB.init({
+        appId: '1651574469095196',
+        cookie: true,
+        xfbml: false,
+        version: 'v19.0'
+      });
+    };
+  </script>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

@@ -1,26 +1,51 @@
-import FacebookLogin from 'react-facebook-login';
-import facebookIcon from "../../../assets/Auth/facebookIc.svg"
-
-import styles from "./FacebookAuth.module.scss"
+import { useEffect, useState } from "react";
+import facebookIcon from "../../../assets/Auth/facebookIc.svg";
+import styles from "./FacebookAuth.module.scss";
 
 const FacebookAuth = () => {
-    const responseFacebook = (response) => {
-        console.log(response);
-        // Здесь можно обработать ответ Facebook, например, отправить токен на сервер
+    const [sdkReady, setSdkReady] = useState(!!window.FB);
+
+    useEffect(() => {
+        if (window.FB) {
+            setSdkReady(true);
+            return;
+        }
+
+        const interval = setInterval(() => {
+            if (window.FB) {
+                setSdkReady(true);
+                clearInterval(interval);
+            }
+        }, 300);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleFacebookLogin = () => {
+        if (!window.FB) return;
+
+        window.FB.login(
+            (response) => {
+                if (response.authResponse) {
+                    console.log("Login success:", response);
+
+                    // Запрашиваем профиль
+                    window.FB.api('/me', { fields: 'name,email,picture' }, function (profile) {
+                        console.log("Profile:", profile);
+                    });
+                } else {
+                    console.log("User cancelled login or did not fully authorize.");
+                }
+            },
+            { scope: 'public_profile,email' }
+        );
     };
 
     return (
-        <div>
-            <FacebookLogin
-                appId="1651574469095196" // Замените на ваш App ID
-                autoLoad={false} // Опционально: автоматически показывать кнопку
-                fields="name,email,picture"
-                callback={responseFacebook}
-                textButton="Facebook"
-                cssClass={styles.button} // Вы можете стилизовать кнопку
-                icon={<img src={facebookIcon} alt=''/>} // Иконка Facebook (требуется font-awesome)
-            />
-        </div>
+        <button onClick={handleFacebookLogin} className={styles.button} disabled={!sdkReady}>
+            <img src={facebookIcon} alt="facebook" />
+            Facebook
+        </button>
     );
 };
 
