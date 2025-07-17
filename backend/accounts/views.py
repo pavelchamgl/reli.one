@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 
 from .choices import UserRole
 from .utils import create_and_send_otp
@@ -876,3 +878,115 @@ class UserProfileUpdateAPIView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@extend_schema(
+    description="Authenticate user with Google OAuth2 access token.\n\n"
+                "This endpoint accepts a Google `access_token` and returns both "
+                "a JWT access token and a refresh token for the user, "
+                "along with user's first and last name.",
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string",
+                    "description": "Google OAuth2 access token"
+                }
+            },
+            "required": ["access_token"]
+        },
+    },
+    responses={
+        status.HTTP_200_OK: OpenApiResponse(
+            description="Successful authentication. Returns JWT tokens and user's name.",
+            response={
+                "type": "object",
+                "properties": {
+                    "access": {"type": "string", "description": "JWT access token"},
+                    "refresh": {"type": "string", "description": "JWT refresh token"},
+                    "first_name": {"type": "string", "description": "User's first name"},
+                    "last_name": {"type": "string", "description": "User's last name"},
+                },
+                "required": ["access", "refresh", "first_name", "last_name"]
+            },
+            examples=[
+                OpenApiExample(
+                    "Success Response",
+                    value={
+                        "access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+                        "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "first_name": "John",
+                        "last_name": "Doe"
+                    },
+                    response_only=True,
+                    status_codes=["200"]
+                )
+            ]
+        ),
+        status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+            description="Invalid or missing Google access token.",
+            response={
+                "type": "object",
+                "properties": {
+                    "non_field_errors": {
+                        "type": "array",
+                        "items": {"type": "string"}
+                    }
+                },
+                "required": ["non_field_errors"]
+            },
+            examples=[
+                OpenApiExample(
+                    "Invalid Token",
+                    value={
+                        "non_field_errors": [
+                            "Incorrect input. access_token or code is required."
+                        ]
+                    },
+                    response_only=True,
+                    status_codes=["400"]
+                )
+            ]
+        ),
+        status.HTTP_500_INTERNAL_SERVER_ERROR: OpenApiResponse(
+            description="OAuth2Error: Failed to fetch user info from Google.",
+            response={
+                "type": "object",
+                "properties": {
+                    "detail": {"type": "string"}
+                },
+                "required": ["detail"]
+            },
+            examples=[
+                OpenApiExample(
+                    "OAuth2 Error",
+                    value={
+                        "detail": "OAuth2Error: Request to user info failed"
+                    },
+                    response_only=True,
+                    status_codes=["500"]
+                )
+            ]
+        )
+    },
+    tags=["Accounts Authentication Google"]
+)
+class GoogleLogin(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+
+    def get_response(self):
+        """
+        Override default response to include refresh token.
+        """
+        user = self.user
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            "access": str(refresh.access_token),
+            "refresh": str(refresh),
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+
+        })
