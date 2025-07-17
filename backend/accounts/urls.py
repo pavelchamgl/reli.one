@@ -14,6 +14,7 @@ from .views import (
     AccountDeletionAPIView,
     SendOTPForPasswordResetAPIView,
     CheckingOTPPasswordResetAPIView,
+    GoogleLogin,
 )
 
 urlpatterns = [
@@ -30,4 +31,5 @@ urlpatterns = [
     path('deletion/me/', AccountDeletionAPIView.as_view(), name='deletion_me'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('password/reset/otp/send/', SendOTPForPasswordResetAPIView.as_view(), name='send_orp_for_password_reset'),
+    path("auth/social/google/", GoogleLogin.as_view(), name="google_login"),
 ]
