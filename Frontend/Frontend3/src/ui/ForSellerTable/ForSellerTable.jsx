@@ -28,7 +28,7 @@ const ForSellerTable = () => {
           <p>Art and handmade</p>
         </div>
         <div>
-          <p>10% - 20%</p>
+          <p>10%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -44,7 +44,7 @@ const ForSellerTable = () => {
           <p>{t("table_bags")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -52,7 +52,7 @@ const ForSellerTable = () => {
           <p>{t("table_beauty")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -108,7 +108,7 @@ const ForSellerTable = () => {
           <p>{t("table_home")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableBigItem}>
@@ -129,7 +129,7 @@ const ForSellerTable = () => {
           <p>{t("table_garden")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -137,7 +137,7 @@ const ForSellerTable = () => {
           <p>{t("table_office")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -145,7 +145,7 @@ const ForSellerTable = () => {
           <p>{t("table_pets")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -153,7 +153,7 @@ const ForSellerTable = () => {
           <p>{t("table_sports")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -161,7 +161,7 @@ const ForSellerTable = () => {
           <p>{t("table_toys")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableBigItem}>
