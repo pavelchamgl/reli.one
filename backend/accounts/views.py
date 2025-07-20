@@ -8,6 +8,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 
 from .choices import UserRole
 from .utils import create_and_send_otp
@@ -990,3 +991,61 @@ class GoogleLogin(SocialLoginView):
             "last_name": user.last_name,
 
         })
+
+
+@extend_schema(
+    operation_id="facebook_social_login",
+    description=(
+        "Authenticate user using Facebook OAuth2 access token.\n\n"
+        "This endpoint accepts a Facebook `access_token` and returns a JWT access and refresh token.\n\n"
+        "**Error cases:**\n"
+        "- 400: access_token is missing or invalid\n"
+        "- 500: Error fetching user info from Facebook"
+    ),
+    request={
+        "application/json": {
+            "type": "object",
+            "properties": {
+                "access_token": {"type": "string", "description": "Facebook OAuth2 access token"},
+            },
+            "required": ["access_token"]
+        }
+    },
+    responses={
+        200: OpenApiResponse(
+            description="Successful authentication",
+            examples=[
+                OpenApiExample(
+                    name="Success",
+                    value={
+                        "access": "eyJ0eXAiOiJKV1QiLCJh...",
+                        "refresh": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                        "first_name": "John",
+                        "last_name": "Doe"
+                    }
+                )
+            ]
+        ),
+        400: OpenApiResponse(
+            description="Invalid token or missing input",
+            examples=[
+                OpenApiExample(
+                    name="Missing Token",
+                    value={"non_field_errors": ["Incorrect input. access_token or code is required."]}
+                )
+            ]
+        ),
+        500: OpenApiResponse(
+            description="Facebook error",
+            examples=[
+                OpenApiExample(
+                    name="OAuth2Error",
+                    value={"detail": "OAuth2Error: Request to user info failed"}
+                )
+            ]
+        )
+    },
+    tags=["Accounts Authentication Facebook"],
+)
+class FacebookLogin(SocialLoginView):
+    adapter_class = FacebookOAuth2Adapter
