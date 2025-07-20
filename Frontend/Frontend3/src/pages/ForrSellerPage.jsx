@@ -11,6 +11,22 @@ const ForrSellerPage = () => {
 
   const { t } = useTranslation();
 
+  const prodNameDesc = [
+    "Product name",
+    "SKU (unique code)",
+    "Product category",
+    "Short description (up to 500 characters)",
+    "Full description (up to 2000 characters, with advantages and features)"
+  ]
+
+  const imagesRules = [
+    "Format: JPG or PNG",
+    "Minimum resolution: 708 x 708 pixels, RECOMMENDED 1024 x 1024 pixels",
+    "Images must be clear, sharp, well-lit, and free from watermarks, logos, or text overlays",
+    "The product should occupy at least 80% of the image frame",
+    "Include at least 1 main image (up to 5 additional ones from different angles or in use)"
+  ]
+
   return (
     <Container>
       <div className={styles.main}>
@@ -57,7 +73,7 @@ const ForrSellerPage = () => {
               style={{ color: section === "start" ? "#3f7f6d" : "#000" }}
               onClick={() => setSection("start")}
             >
-              3.  {t("start_selling_title")}
+              3. To start sellingon marketplace Reli
             </a>
           </div>
 
@@ -181,6 +197,8 @@ const ForrSellerPage = () => {
               textDecoration: "underline"
             }}>{t("cost_by_category")}</h4>
             <ForSellerTable />
+            <p className={styles.afterTableText}>Reli Group s.r.o. applies a standard acquiring fee, which covers the cost of payment processing.
+              Additional marketplace commission is applied depending on category or promotion agreements.</p>
           </div>
 
           <div id="start" className={styles.paragDiv}>
@@ -190,47 +208,124 @@ const ForrSellerPage = () => {
             <p className={styles.textDesc} style={{ marginBottom: "10px" }}>
               {t("start_selling_desc")}
             </p>
+            <p className={styles.textDesc} style={{ marginTop: "20px" }}>PLEASE PREPARE ALL REQUIRED PRODUCT INFORMATION BEFORE THE ONBOARDING EMAIL
+              EXCHANGE TO SPEED UP THE PROCESS.</p>
+
+            <h4 className={styles.textTitle} style={{
+              textDecoration: "underline",
+              margin: "30px 0"
+            }}>REQUIRED INFORMATION FOR MARKETPLACE LISTING:</h4>
 
             <div className={styles.newTextWrap}>
-              <h4>Account Registration </h4>
-              <p>{t("start_selling_list_1")}</p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>Product Name and Description</h4>
+              <ul>
+                {
+                  prodNameDesc.map((text) => (
+                    <li>{text}</li>
+                  ))
+                }
+              </ul>
+              <p style={{ margin: "20px 0", fontStyle: "italic" }}>Language Requirement!</p>
+              <ul>
+                <li>All information must be provided in English</li>
+                <li>Providing the same information in Czech is highly encouraged and helps speed up the
+                  approval and listing process</li>
+              </ul>
             </div>
 
             <div className={styles.newTextWrap}>
-              <h4>Agreement to Terms and Policies </h4>
-              <p>{t("start_selling_list_2")}</p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>Images</h4>
+              <ul>
+                {
+                  imagesRules.map((text) => (
+                    <li>{text}</li>
+                  ))
+                }
+              </ul>
             </div>
 
             <div className={styles.newTextWrap}>
-              <h4>Product Listings</h4>
-              <p>{t("start_selling_list_3")}</p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>VAT Percentage</h4>
+              <p>The applicable Value Added Tax (VAT) rate for each product, based on your local legislations or
+                country of sale</p>
             </div>
 
             <div className={styles.newTextWrap}>
-              <h4>Policy Compliance </h4>
-              <p>{t("start_selling_list_4")}</p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>Product Dimensions and Weight</h4>
+              <p>Provide accurate measurements in the following format:</p>
+              <ul style={{ margin: "20px 0" }}>
+                <li>Length x Width x Height (in cm), (L x W x H – in this exact order)</li>
+                <li>Weight (in kg)</li>
+              </ul>
+              <p>MISSING OR INACCURATE DIMENSIONS CAN RESULT IN SHIPPING ERRORS,
+                INCORECT DELIVERY PRICING, AND DELAYS</p>
             </div>
 
             <div className={styles.newTextWrap}>
-              <h4>Quality Standards</h4>
-              <p>{t("start_selling_list_5")}</p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>DEADLINE FOR SUBMITTING PRODUCT INFORMATION</h4>
+              <p>You must submit all required product information within 30 days from the initial
+                onboarding contact. </p>
             </div>
 
             <div className={styles.newTextWrap}>
-              <h4>Payment and Fees Agreement</h4>
-              <p>{t("start_selling_list_6")}</p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>STEP 2: Agreement Signing</h4>
+              <p>You have 30 calendar days to confirm and sign the cooperation agreement. If the
+                agreement is not signed in time, onboarding will be paused. </p>
             </div>
 
             <div className={styles.newTextWrap}>
-              <h4>Customer Service Commitment </h4>
-              <p>{t("start_selling_list_7")}</p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>STEP 3: Final Approval and Product Listing</h4>
+              <p>Once all product data is delivered and approved, Reli Group s.r.o. will publish the
+                products on the marketplace. Your assigned manager will support you throughout
+                the process. </p>
             </div>
 
             <div className={styles.newTextWrap}>
-              <p>If you have any questions or would like to speak with our team, please reach out.
-                We look forward to welcoming you to Marketplace Reli and supporting your
-                success in the global marketplace. </p>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>IF YOU GET THE ORDER</h4>
+              <div className={styles.getOrderWrap}>
+                <p>1. Order Confirmation</p>
+                <p>You must confirm each new order within 24 hours (business days only).</p>
+                <p>2. Packing the Order</p>
+                <p>You are responsible for packing the order yourself, including.</p>
+                <p>3. Shipping Deadline</p>
+                <p>The order must be shipped our within 3 business days after confirmation.</p>
+                <p>4. Shipping Method</p>
+                <p>The parcel must be handed over to the agreed transport company which is
+                  chosen by a buyer. </p>
+              </div>
             </div>
+
+            <div className={styles.newTextWrap}>
+              <h4 className={styles.textTitle} style={{
+                textDecoration: "underline"
+              }}>Communication Policy</h4>
+              <p>To avoid delays and ensure clear communication, please note:</p>
+              <ul>
+                <li>All communication must go through email: <a target="_blank" href="mailto:office@reli.one" className={styles.emailText}>office@reli.one</a></li>
+                <li>If you have questions, consult this document first, it was designed to
+                  answer most common issues and reduce back-and-forth</li>
+                <li>Repeated or avoidable questions slow down the onboarding process for
+                  everyone. Please follow the steps and formats described here carefully.</li>
+              </ul>
+            </div>
+
+
 
             {/* <ul className={styles.listDiv}>
               <li>{t("start_selling_list_1")}</li>

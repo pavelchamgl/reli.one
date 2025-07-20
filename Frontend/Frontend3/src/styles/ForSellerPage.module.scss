@@ -47,6 +47,7 @@
   color: #000;
   text-decoration: none;
   transition: 0.5s ease;
+  // font-family: var(--ft);
 }
 
 .container {
@@ -62,6 +63,7 @@
   line-height: 140%;
   color: #000;
   margin-bottom: 10px;
+  font-family: var(--ft);
 }
 .textDesc {
   font-weight: 500;
@@ -118,6 +120,13 @@
     margin-bottom: 10px;
     font-size: clamp(12px, 2.5vw, 24px);
   }
+
+  & ul {
+    padding-left: 30px;
+  }
+  & li {
+    margin-bottom: 5px;
+  }
 }
 
 .newList {
@@ -131,5 +140,18 @@
     & span {
       font-weight: 700;
     }
+  }
+}
+
+.afterTableText {
+  font-weight: 500;
+  font-size: clamp(12px, 2.5vw, 19px);
+  line-height: 115%;
+  margin-top: 5px;
+}
+
+.getOrderWrap {
+  & p:nth-child(odd) {
+    margin: 15px 0 15px 20px;
   }
 }
