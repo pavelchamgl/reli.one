@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from django.http import HttpResponse
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
@@ -15,9 +16,12 @@ from .views import (
     SendOTPForPasswordResetAPIView,
     CheckingOTPPasswordResetAPIView,
     GoogleLogin,
+    FacebookLogin,
 )
 
 urlpatterns = [
+    path('', include('allauth.urls')),
+    path("signup/", lambda request: HttpResponse("Signup not used", status=204)),
     path('register/customer/', CustomerRegistrationView.as_view(), name='register_customer'),
     path('register/seller/', SellerRegistrationView.as_view(), name='register_seller'),
     path('email/confirmation/', EmailConfirmationAPIView.as_view(), name='email_confirmation'),
@@ -32,4 +36,5 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('password/reset/otp/send/', SendOTPForPasswordResetAPIView.as_view(), name='send_orp_for_password_reset'),
     path("auth/social/google/", GoogleLogin.as_view(), name="google_login"),
+    path('auth/social/facebook/', FacebookLogin.as_view(), name='facebook_login'),
 ]
