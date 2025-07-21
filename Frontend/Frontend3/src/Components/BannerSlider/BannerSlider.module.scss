@@ -95,3 +95,85 @@
 .left {
   transform: rotate(180deg);
 }
+
+.videoWrapper {
+  position: relative;
+
+  .bannerVideo {
+    width: 100%;
+    height: auto;
+  }
+
+  .videoControls {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+
+    button {
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.7);
+      }
+    }
+  }
+}
+
+.videoWrapper {
+  position: relative;
+
+  .bannerVideo {
+    width: 100%;
+    height: auto;
+  }
+
+  .videoControls {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+    align-items: center;
+
+    button {
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      & img {
+        width: 25px;
+        height: 25px;
+      }
+      &:hover {
+        background: rgba(0, 0, 0, 0.7);
+      }
+    }
+
+    input[type="range"] {
+      width: 120px;
+      cursor: pointer;
+      accent-color: #3f7f6d;
+    }
+  }
+}
+
+.videoWrapper {
+  .videoControls {
+    input[type="range"] {
+      width: 100px;
+      cursor: pointer;
+      accent-color: #3f7f6d;
+    }
+  }
+}

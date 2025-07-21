@@ -94,3 +94,18 @@ export const getInfoForG = async (token) => {
         console.log(error);
     }
 }
+
+export const googleLogin = async (token) => {
+    try {
+        const data = await mainInstance.post("/accounts/auth/social/google/", {
+            access_token: token
+        }
+        )
+        console.log(data);
+
+        return data
+    } catch (error) {
+        console.log(error);
+
+    }
+}

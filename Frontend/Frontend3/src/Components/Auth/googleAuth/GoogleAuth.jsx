@@ -1,21 +1,60 @@
+import { useState } from "react";
 import googleIcon from "../../../assets/Auth/googleIc.svg"
 import { useGoogleLogin, GoogleLogin } from "@react-oauth/google";
-import { getInfoForG } from "../../../api/auth";
-
+import { getInfoForG, googleLogin } from "../../../api/auth";
+import { useDispatch } from "react-redux";
 // import jwt_decode from "jwt-decode";
 
 
 import styles from "./GoogleAuth.module.scss"
 
-const GoogleAuth = () => {
+const GoogleAuth = ({ setRegErr, setIsLoged, syncBasket }) => {
+
+    const [email, setEmail] = useState("")
+
+    const dispatch = useDispatch()
+
     const login = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            console.log(tokenResponse);
+
             getInfoForG(tokenResponse.access_token).then((res) => {
                 console.log(res);
-                
-                console.log(res.data);
+                localStorage.setItem("email", JSON.stringify(res.data?.email));
+
             });
+            googleLogin(tokenResponse.access_token).then((res) => {
+                console.log(res.data);
+                localStorage.setItem("token", JSON.stringify(res.data));
+                setIsLoged(true)
+
+                dispatch(syncBasket())
+
+            }).catch((err) => {
+                if (err.response) {
+                    if (err.response.status === 500) {
+                        setRegErr("An error occurred on the server. Please try again later.");
+                    } else if (err.response.status === 401) {
+                        const errorData = err.response.data;
+                        let errorMessage = "";
+
+                        for (const key in errorData) {
+                            if (Array.isArray(errorData[key])) {
+                                errorMessage += `${key}: ${errorData[key].join(", ")} `;
+                            }
+                        }
+
+                        setRegErr(
+                            errorMessage.trim() ||
+                            "No active account found with the given credentials."
+                        );
+                    } else {
+                        setRegErr("An unknown error occurred.");
+                    }
+                } else {
+                    setRegErr("Failed to connect to the server. Check your internet connection.");
+                }
+            })
+
         },
     });
 

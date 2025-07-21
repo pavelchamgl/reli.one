@@ -6,6 +6,11 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
+import unmute from "../../assets/player/unmute.svg"
+import mute from "../../assets/player/mute.svg"
+import play from "../../assets/player/play.svg"
+import stop from "../../assets/player/stop.svg"
+
 import styles from "./BannerSlider.module.scss";
 
 import arrowIcon from "../../assets/Product/detalImgSwiper.svg";
@@ -14,26 +19,64 @@ const BannerSlider = () => {
   const prevRef = useRef(null);
   const nextRef = useRef(null);
   const paginationRef = useRef(null);
+  const videoRefs = useRef([]);
   const [swiperReady, setSwiperReady] = useState(false);
+  const [videoStates, setVideoStates] = useState({});
 
   useEffect(() => {
     setSwiperReady(true);
   }, []);
 
   const images = [
-    "https://i.pinimg.com/736x/32/5c/ff/325cff33a4ed1d703fe740f796ee33ed.jpg",
-    "https://www.w3schools.com/html/mov_bbb.mp4",
-    "https://i.pinimg.com/736x/32/5c/ff/325cff33a4ed1d703fe740f796ee33ed.jpg",
-    "https://i.pinimg.com/736x/57/ed/10/57ed10178667bab8f5cca8ec105f3a2c.jpg",
-    "https://www.w3schools.com/html/mov_bbb.mp4",
-    "https://i.pinimg.com/736x/41/be/77/41be776eb3651a0607d9e5bdc3c7c8e5.jpg",
-    "https://i.pinimg.com/736x/32/5c/ff/325cff33a4ed1d703fe740f796ee33ed.jpg",
-    "https://i.pinimg.com/736x/57/ed/10/57ed10178667bab8f5cca8ec105f3a2c.jpg",
-    "https://i.pinimg.com/736x/41/be/77/41be776eb3651a0607d9e5bdc3c7c8e5.jpg",
+    "https://i.pinimg.com/736x/e1/89/a4/e189a4788d1139978ef4a8d2c7244682.jpg",
+    "https://videos.pexels.com/video-files/857195/857195-hd_1280_720_25fps.mp4",
+    "https://i.pinimg.com/736x/33/9d/b7/339db75e3f90b69c3923d0644f9486c0.jpg",
+    "https://www.w3schools.com/html/mov_bbb.mp4"
   ];
 
   const isImage = (url) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
   const isVideo = (url) => /\.(mp4|webm|ogg|mov|avi)$/i.test(url);
+
+  const togglePlay = (index) => {
+    const video = videoRefs.current[index];
+    if (!video) return;
+
+    if (video.paused) {
+      video.play();
+      setVideoStates((prev) => ({
+        ...prev,
+        [index]: { ...prev[index], paused: false },
+      }));
+    } else {
+      video.pause();
+      setVideoStates((prev) => ({
+        ...prev,
+        [index]: { ...prev[index], paused: true },
+      }));
+    }
+  };
+
+  const toggleMute = (index) => {
+    const video = videoRefs.current[index];
+    if (!video) return;
+
+    video.muted = !video.muted;
+    setVideoStates((prev) => ({
+      ...prev,
+      [index]: { ...prev[index], muted: video.muted },
+    }));
+  };
+
+  const setVolume = (index, value) => {
+    const video = videoRefs.current[index];
+    if (!video) return;
+
+    video.volume = value;
+    setVideoStates((prev) => ({
+      ...prev,
+      [index]: { ...prev[index], volume: value },
+    }));
+  };
 
   return (
     <div className={styles.swiperContainer}>
@@ -49,9 +92,9 @@ const BannerSlider = () => {
         <Swiper
           slidesPerView={1}
           spaceBetween={10}
-          slidesPerGroup={1}       // Вот ключевой параметр — листаем по 1 слайду
-          loop={false}             // Можно поставить true, если нужен бесконечный цикл
-          mousewheel={true}        // Можно включить, если хочешь прокрутку колесом
+          slidesPerGroup={1}
+          loop={false}
+          mousewheel={true}
           keyboard={true}
           navigation={{
             prevEl: prevRef.current,
@@ -65,38 +108,70 @@ const BannerSlider = () => {
           modules={[Navigation, Pagination, Mousewheel, Keyboard]}
           className={styles.swiper}
           onSwiper={(swiper) => {
-            // Навигация может не сразу подцепиться, обновляем её вручную
             setTimeout(() => {
               swiper.navigation.init();
               swiper.navigation.update();
               swiper.pagination.init();
               swiper.pagination.update();
             });
-          }}
-          breakpoints={{
-            640: {
-              slidesPerView: 1,
-              spaceBetween: 20,
-            },
-            1024: {
-              slidesPerView: 1,
-              spaceBetween: 30,
-            },
+
+            swiper.on("slideChangeTransitionStart", () => {
+              const videos = document.querySelectorAll(`.${styles.bannerVideo}`);
+              videos.forEach((video, index) => {
+                video.pause();
+                video.currentTime = 0;
+                video.muted = true;
+
+                setVideoStates((prev) => ({
+                  ...prev,
+                  [index]: { paused: true, muted: true, volume: 0.5 },
+                }));
+              });
+            });
           }}
         >
           {images.map((item, index) => (
             <SwiperSlide key={index} className={styles.swiperSlide}>
               {isImage(item) ? (
-                <img src={item} alt={`img-${index}`} className={styles.bannerImg} />
-              ) : isVideo(item) ? (
-                <video
+                <img
                   src={item}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className={styles.bannerVideo}
+                  alt={`img-${index}`}
+                  className={styles.bannerImg}
                 />
+              ) : isVideo(item) ? (
+                <div className={styles.videoWrapper}>
+                  <video
+                    ref={(el) => (videoRefs.current[index] = el)}
+                    src={item}
+                    autoPlay
+                    muted
+                    loop={false}
+                    playsInline
+                    className={styles.bannerVideo}
+                  />
+                  <div className={styles.videoControls}>
+                    <button onClick={() => togglePlay(index)}>
+                      <img src={
+                        videoStates[index]?.paused !== false ? play : stop
+                      } alt="" />
+                    </button>
+                    <button onClick={() => toggleMute(index)}>
+                      <img src={
+                        videoStates[index]?.muted !== false ? mute : unmute
+                      } alt="" />
+                    </button>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={videoStates[index]?.volume ?? 0.5}
+                      onChange={(e) =>
+                        setVolume(index, parseFloat(e.target.value))
+                      }
+                    />
+                  </div>
+                </div>
               ) : (
                 <div>Unsupported format</div>
               )}
