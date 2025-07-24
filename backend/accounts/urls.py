@@ -20,14 +20,11 @@ from .views import (
 )
 
 urlpatterns = [
-    path('', include('allauth.urls')),
     path("signup/", lambda request: HttpResponse("Signup not used", status=204)),
     path('register/customer/', CustomerRegistrationView.as_view(), name='register_customer'),
     path('register/seller/', SellerRegistrationView.as_view(), name='register_seller'),
     path('email/confirmation/', EmailConfirmationAPIView.as_view(), name='email_confirmation'),
     path('email/otp/resend/', SendOTPForEmailVerificationAPIView.as_view(), name='resend_otp_for_email_verification'),
-    path('login/', CustomTokenObtainPairView.as_view(), name='login'),
-    path('logout/', CustomLogoutView.as_view(), name='logout'),
     path('check-otp-password-reset/', CheckingOTPPasswordResetAPIView.as_view(), name='check-otp-password-reset'),
     path('password/reset/confirmation/', PasswordResetConfirmationAPIView.as_view(), name='reset_password_confirmation'),
     path('profile/me/', UserProfileGetAPIView.as_view(), name='my_profile'),
@@ -37,4 +34,9 @@ urlpatterns = [
     path('password/reset/otp/send/', SendOTPForPasswordResetAPIView.as_view(), name='send_orp_for_password_reset'),
     path("auth/social/google/", GoogleLogin.as_view(), name="google_login"),
     path('auth/social/facebook/', FacebookLogin.as_view(), name='facebook_login'),
+    path('login/', CustomTokenObtainPairView.as_view(), name='login'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
+
+
+    path('', include('allauth.urls')),
 ]
