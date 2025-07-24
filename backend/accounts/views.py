@@ -13,6 +13,7 @@ from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
 from .choices import UserRole
 from .utils import create_and_send_otp
 from .models import CustomUser, OTP
+from .mixins import SocialLoginResponseMixin
 from .serializers import (
     UserRegistrationSerializer,
     EmailSerializer,
@@ -974,23 +975,9 @@ class UserProfileUpdateAPIView(APIView):
     },
     tags=["Accounts Authentication Google"]
 )
-class GoogleLogin(SocialLoginView):
+class GoogleLogin(SocialLoginResponseMixin, SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
-    def get_response(self):
-        """
-        Override default response to include refresh token.
-        """
-        user = self.user
-        refresh = RefreshToken.for_user(user)
-
-        return Response({
-            "access": str(refresh.access_token),
-            "refresh": str(refresh),
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-
-        })
 
 
 @extend_schema(
@@ -1047,5 +1034,5 @@ class GoogleLogin(SocialLoginView):
     },
     tags=["Accounts Authentication Facebook"],
 )
-class FacebookLogin(SocialLoginView):
+class FacebookLogin(SocialLoginResponseMixin, SocialLoginView):
     adapter_class = FacebookOAuth2Adapter
