@@ -53,8 +53,8 @@ const Header = () => {
 
   const handleBasketClick = () => {
     // if (token) {
-      navigate("/basket");
-      setBasketAuth(false);
+    navigate("/basket");
+    setBasketAuth(false);
     // } else {
     //   setBasketAuth(true);
     //   AuthNeed(t("toast.auth_required"));
@@ -88,7 +88,7 @@ const Header = () => {
       <div className={styles.headerBottomWrap}>
         <div className={styles.headerLogo}>
           <img onClick={() => navigate("/")} src={logo} alt="" />
-          <CatalogBtn />
+          <CatalogBtn loginModalOpen={open} profileNavOpen={navOpen} />
         </div>
         <SearchInp />
         <div className={styles.headerBottomLinkWrap}>
