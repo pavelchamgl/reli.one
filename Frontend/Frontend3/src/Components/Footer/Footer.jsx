@@ -69,6 +69,15 @@ const Footer = () => {
           <Link to={"/for_buy"} className={cls.mobileLink} href="#">
             {t("for_buyers")}
           </Link>
+          <Link to={"/privacy-policy"} className={cls.mobileLink} href="#">
+            Privacy policy
+          </Link>
+          <Link to={"/terms"} className={cls.mobileLink} href="#">
+            Terms
+          </Link>
+          <Link to={"/delete-my-data"} className={cls.mobileLink} href="#">
+            Delete my data
+          </Link>
           <a className={cls.mobileLink} href="https://info.reli.one">
             {t("about_company")}
           </a>
@@ -113,6 +122,15 @@ const Footer = () => {
             </Link>
             <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
               {t("for_buyers")}
+            </Link>
+            <Link to={"/privacy-policy"} className={cls.LinkNavigate} href="#">
+              Privacy policy
+            </Link>
+            <Link to={"/terms"} className={cls.LinkNavigate} href="#">
+              Terms
+            </Link>
+            <Link to={"/delete-my-data"} className={cls.LinkNavigate} href="#">
+              Delete my data
             </Link>
             <Link className={cls.LinkNavigate} to="https://info.reli.one">
               {t("about_company")}
