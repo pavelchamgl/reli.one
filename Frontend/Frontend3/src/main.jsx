@@ -45,6 +45,9 @@ import EditGoodsPage from "./pages/EditGoodsPage.jsx";
 import SellerEditPreview from "./pages/SellerEditPreview.jsx";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
+import TermsPage from "./pages/TermsPage.jsx";
+import DeleteMyDataPage from "./pages/DeleteMyDataPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -81,6 +84,9 @@ const router = createBrowserRouter([
       { path: "/otp_pass_conf", element: <OtpPassConfirmPage /> },
       { path: "/otp_conf", element: <OtpConfirmPage /> },
       { path: "/create_new_pass", element: <CreateNewPass /> },
+      { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
+      { path: "/terms", element: <TermsPage /> },
+      { path: "/delete-my-data", element: <DeleteMyDataPage /> },
 
       { path: "/mob_login", element: <MobLoginPage /> },
       { path: "/mob_basket", element: <BasketPage /> },
