@@ -10,12 +10,17 @@ export const fetchGetCategory = createAsyncThunk(
             const res = await getCategory()
             const resultArr = getAllLowestLevelChildren(res.data)
             dispatch(setAllCategories(resultArr))
+            dispatch(setMainCategories(resultArr))
             return res
         } catch (error) {
             return rejectWithValue(error.message)
         }
     }
 )
+
+const categoryIds = [
+    127, 170, 156, 145, 67, 68, 69, 161
+]
 
 const categorySlice = createSlice({
     name: "category",
@@ -24,6 +29,7 @@ const categorySlice = createSlice({
         category: {},
         podCategory: {},
         allCategories: [],
+        mainCategories: [],
         err: "",
         status: ""
     },
@@ -45,7 +51,20 @@ const categorySlice = createSlice({
                 ...state,
                 allCategories: action.payload
             }
+        },
+        setMainCategories: (state, action) => {
+            return {
+                ...state,
+                mainCategories: action.payload?.filter((item) => {
+                    if (categoryIds.includes(item.id)) {
+                        return item
+
+                    }
+                })
+            }
         }
+
+
     },
     extraReducers: (builder) => {
         builder.addCase(fetchGetCategory.pending, (state, action) => {
@@ -62,6 +81,6 @@ const categorySlice = createSlice({
     }
 })
 
-export const { setCategory, setPodCategory, allCategories, setAllCategories } = categorySlice.actions
+export const { setCategory, setPodCategory, allCategories, setAllCategories, setMainCategories } = categorySlice.actions
 
 export const { reducer } = categorySlice

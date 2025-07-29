@@ -31,10 +31,11 @@
 }
 
 .bannerVideo {
-  width: 100% !important;
+  width: calc(100vw - 200px) !important;
   height: 400px !important;
   object-fit: cover;
   @media (max-width: 500px) {
+    width: calc(100vw - 10px) !important;
     height: 210px !important;
   }
 }
@@ -96,36 +97,7 @@
   transform: rotate(180deg);
 }
 
-.videoWrapper {
-  position: relative;
 
-  .bannerVideo {
-    width: 100%;
-    height: auto;
-  }
-
-  .videoControls {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    display: flex;
-    gap: 10px;
-    z-index: 10;
-
-    button {
-      background: rgba(0, 0, 0, 0.5);
-      color: #fff;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-
-      &:hover {
-        background: rgba(0, 0, 0, 0.7);
-      }
-    }
-  }
-}
 
 .videoWrapper {
   position: relative;

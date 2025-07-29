@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useActions } from "../hook/useAction";
 import { useTranslation } from "react-i18next";
 
@@ -14,9 +14,10 @@ import BannerSlider from "../Components/BannerSlider/BannerSlider";
 
 const MainPage = () => {
   const productsData = useSelector((state) => state.products.products || []);
-  const allCategory = useSelector(
-    (state) => state.category.allCategories || []
+  const mainCategories = useSelector(
+    (state) => state.category.mainCategories || []
   );
+
 
   const { fetchGetCategory, fetchGetProducts } = useActions();
   const { t } = useTranslation();
@@ -25,6 +26,9 @@ const MainPage = () => {
     fetchGetCategory();
     fetchGetProducts();
   }, []);
+
+
+
 
   return (
     <>
@@ -35,8 +39,8 @@ const MainPage = () => {
         </div>
         <div className={styles.categoryWrap}>
           <div className={styles.categoryCardWrap}>
-            {allCategory.length > 0 ? (
-              allCategory
+            {mainCategories.length > 0 ? (
+              mainCategories
                 ?.slice(0, 18)
                 ?.reverse()
                 .map((item) => <CategoryCard key={item.id} item={item} />)
