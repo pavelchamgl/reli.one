@@ -42,7 +42,6 @@ const MainPage = () => {
             {mainCategories.length > 0 ? (
               mainCategories
                 ?.slice(0, 18)
-                ?.reverse()
                 .map((item) => <CategoryCard key={item.id} item={item} />)
             ) : (
               <NoContentText />
