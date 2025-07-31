@@ -53,14 +53,22 @@ const categorySlice = createSlice({
             }
         },
         setMainCategories: (state, action) => {
+
+            const itemsCategory = action.payload?.filter((item) => {
+                if (categoryIds.includes(item.id)) {
+                    return item
+                }
+            })
+
+            const itemNoCategory = action.payload?.filter((item) => {
+                if (!categoryIds.includes(item.id)) {
+                    return item
+                }
+            })
+
             return {
                 ...state,
-                mainCategories: action.payload?.filter((item) => {
-                    if (categoryIds.includes(item.id)) {
-                        return item
-
-                    }
-                })
+                mainCategories: [...itemsCategory, ...itemNoCategory]
             }
         }
 
