@@ -1,9 +1,15 @@
 import { useEffect, useState } from "react";
 import facebookIcon from "../../../assets/Auth/facebookIc.svg";
-import styles from "./FacebookAuth.module.scss";
 
-const FacebookAuth = () => {
+import { useDispatch } from "react-redux";
+
+import styles from "./FacebookAuth.module.scss";
+import { facebookLogin } from "../../../api/auth";
+
+const FacebookAuth = ({ setRegErr, setIsLoged, syncBasket }) => {
     const [sdkReady, setSdkReady] = useState(!!window.FB);
+
+    const dispatch = useDispatch()
 
     useEffect(() => {
         if (window.FB) {
@@ -27,14 +33,21 @@ const FacebookAuth = () => {
         window.FB.login(
             (response) => {
                 if (response.authResponse) {
-                    console.log("Login success:", response);
+                    facebookLogin(response?.authResponse?.accessToken).then((res) => {
+                        setIsLoged(true)
+                        dispatch(syncBasket())
+                    }).catch((err) => {
+                        setRegErr("Error logging in with Facebook")
+                    })
+
 
                     // Запрашиваем профиль
                     window.FB.api('/me', { fields: 'name,email,picture' }, function (profile) {
-                        console.log("Profile:", profile);
+                        // console.log("Profile:", profile);
                     });
                 } else {
                     console.log("User cancelled login or did not fully authorize.");
+                    setRegErr("User cancelled login or did not fully authorize.")
                 }
             },
             { scope: 'public_profile,email' }
