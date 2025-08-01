@@ -34,8 +34,13 @@ const FacebookAuth = ({ setRegErr, setIsLoged, syncBasket }) => {
             (response) => {
                 if (response.authResponse) {
                     facebookLogin(response?.authResponse?.accessToken).then((res) => {
-                        setIsLoged(true)
-                        dispatch(syncBasket())
+                        if (res.status === 200) {
+
+                            setIsLoged(true)
+                            dispatch(syncBasket())
+                            localStorage.setItem("token", JSON.stringify(res.data));
+
+                        }
                     }).catch((err) => {
                         setRegErr("Error logging in with Facebook")
                     })
@@ -43,7 +48,8 @@ const FacebookAuth = ({ setRegErr, setIsLoged, syncBasket }) => {
 
                     // Запрашиваем профиль
                     window.FB.api('/me', { fields: 'name,email,picture' }, function (profile) {
-                        // console.log("Profile:", profile);
+                        localStorage.setItem("email", JSON.stringify(profile.email));
+
                     });
                 } else {
                     console.log("User cancelled login or did not fully authorize.");
