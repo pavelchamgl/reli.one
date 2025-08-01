@@ -109,3 +109,18 @@ export const googleLogin = async (token) => {
 
     }
 }
+
+export const facebookLogin = async (token) => {
+    try {
+        const data = await mainInstance.post("/accounts/auth/social/facebook/", {
+            access_token: token
+        }
+        )
+        console.log(data);
+
+        return data
+    } catch (error) {
+        console.log(error);
+
+    }
+}
