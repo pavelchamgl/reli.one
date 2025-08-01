@@ -188,7 +188,7 @@ const LoginModal = ({ open, handleClose, text, basket = false }) => {
           <p className={styles.otherWaysTitle}>Other ways to log in</p>
           <div className={styles.otherWaysBtns}>
             <GoogleAuth setRegErr={setRegErr} setIsLoged={setIsLoged} syncBasket={syncBasket} />
-            <FacebookAuth />
+            <FacebookAuth setIsLoged={setIsLoged} setRegErr={setRegErr} syncBasket={syncBasket} />
           </div>
         </div>
       </div>
