@@ -14,6 +14,7 @@ import stop from "../../assets/player/stop.svg"
 import styles from "./BannerSlider.module.scss";
 
 import arrowIcon from "../../assets/Product/detalImgSwiper.svg";
+import { useNavigate } from "react-router-dom";
 
 const BannerSlider = () => {
   const prevRef = useRef(null);
@@ -31,11 +32,15 @@ const BannerSlider = () => {
     "https://i.pinimg.com/736x/e1/89/a4/e189a4788d1139978ef4a8d2c7244682.jpg",
     "https://videos.pexels.com/video-files/857195/857195-hd_1280_720_25fps.mp4",
     "https://i.pinimg.com/736x/33/9d/b7/339db75e3f90b69c3923d0644f9486c0.jpg",
-    "https://www.w3schools.com/html/mov_bbb.mp4"
+    "https://www.w3schools.com/html/mov_bbb.mp4",
+    "button"
   ];
 
   const isImage = (url) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
   const isVideo = (url) => /\.(mp4|webm|ogg|mov|avi)$/i.test(url);
+  const isButtonSlide = (url) => url === "button"
+
+  const navigate = useNavigate()
 
   const togglePlay = (index) => {
     const video = videoRefs.current[index];
@@ -173,7 +178,11 @@ const BannerSlider = () => {
                   </div>
                 </div>
               ) : (
-                <div>Unsupported format</div>
+                <div className={styles.buttonSlide} style={{ backgroundImage: `url(${"https://i.pinimg.com/1200x/30/ce/7d/30ce7d788a7b25e0b70cacca7272f063.jpg"})` }}>
+                  <button onClick={() => navigate("/liked")}>
+                    Click
+                  </button>
+                </div>
               )}
             </SwiperSlide>
           ))}

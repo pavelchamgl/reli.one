@@ -4,6 +4,7 @@
     "en": "English",
     "cs": "Czech",
     "de": "German",
+    "catalog": "Catalogue",
     "_headerAndFooter": "headerAndFooter",
     "for_seller": "For sellers",
     "for_buyers": "For buyers",
@@ -22,6 +23,9 @@
     "_main": "_main",
     "recommend": "We recommend",
     "_loginModal": "loginModal",
+    "you_agree": "You agree to the ",
+    "rules": "rules",
+    "other_ways_log": "Other ways to log in",
     "login": "Log in",
     "email_address": "Email address",
     "password": "Password",
@@ -294,7 +298,7 @@
         "apartment": {
             "required": "Apartment is required"
         },
-         "city": {
+        "city": {
             "required": "City is required"
         },
         "zip": {
@@ -327,5 +331,57 @@
     "office supplies": "Office supplies",
     "toys/games": "Toys/games",
     "jewelry": "Jewelry",
-    "watches": "Watches"
+    "watches": "Watches",
+    "complaintsProcedure": "Complaints Procedure",
+    "generalProvisions": {
+        "title": "General Provisions",
+        "text1": "The Complaints Procedure is an integral part of the General Terms and Conditions of the seller Reli Group s.r.o, Company ID: 280 03 896, with its registered office at Na lysinách 551/34, 147 00 Prague 4, registered in the Commercial Register maintained by the Municipal Court in Prague, file no. C 361093 (hereinafter referred to as the \"seller\" or \"Reli Group\"), and describes the procedure for handling complaints regarding goods purchased from Reli Group.",
+        "text2": "The buyer is obliged to familiarize themselves with the Complaints Procedure and the General Terms and Conditions (hereinafter \"GTC\") before ordering goods. The buyer also acknowledges that they are required to provide Reli Group with the necessary cooperation for processing the complaint; otherwise, the time limits are adequately extended by the time during which the buyer did not provide the required cooperation.",
+        "text3": "By concluding the purchase contract and accepting the goods from the seller, the buyer agrees to this Complaints Procedure.",
+        "text4": "Definitions contained in this Complaints Procedure take precedence over definitions in the GTC. If this Complaints Procedure does not define a term, it is understood in the sense defined in the GTC. If it is not defined there either, it is understood in the sense in which it is used in legal regulations.",
+        "text5": "In case of claiming service under a purchased or agreed service, this service intervention is governed exclusively by the terms of the respective service."
+    },
+    "warrantyForQuality": {
+        "title": "Warranty for Quality",
+        "text1": "As proof of the warranty, Reli Group issues a document of purchase (invoice) for each purchased item, containing legally required details necessary for claiming the warranty (especially the name of the goods, length of the warranty, price, quantity, serial number).",
+        "text2": "At the express request of the buyer, Reli Group provides a warranty in the form of a warranty certificate. However, usually, if the nature of the item allows it, the seller issues a proof of purchase instead of a warranty certificate containing the specified details.",
+        "text3": "If required for the provided warranty, Reli Group will clearly explain the content of the warranty in the warranty certificate, stating its scope, conditions, duration, and the way claims can be made. The warranty certificate will also state that providing the warranty does not affect the buyer's rights related to the purchase of the item.",
+        "text4": "1. Period for Exercising Rights from Defective Performance",
+        "text5": "The period for exercising rights from defective performance starts from the day the buyer takes over the goods, i.e., the day indicated on the proof of purchase or warranty certificate.",
+        "text6_1": "The period is:",
+        "text6_2": "24 months for new (including unpacked) goods.",
+        "text6_3": "21 months for almost new goods (almost new goods are used goods that have been checked by our specialists and marked as such).",
+        "text6_4": "12 months for used goods (used goods are those marked as used or serviced without defect, and the completeness of the package does not prevent full use of the product).",
+        "text6_5": "12 months for refurbished goods (refurbished goods are those marked \"refurbished\" and have undergone a service intervention by our specialists).",
+        "text7": "For consumable goods (e.g., cosmetics, toiletries, etc.), the buyer is entitled to exercise the right from defect within twenty-four (24) months unless an expiration date is indicated on the goods, in which case the period is shortened only to the date indicated on the packaging.",
+        "text8": "The period ends on the corresponding date, which numerically matches the start date. The length of the period in months is indicated for each product in the seller's store and is sufficiently marked on the proof of purchase.",
+        "text9": "Rights from liability for defects in goods, for which a quality warranty applies, expire if not exercised within the specified period. In the case of resolving a complaint by replacing the goods, a new period does not start; the decisive period is the one starting from the day the buyer takes over the goods.",
+        "text10": "2. Rights from Defective Performance",
+        "text11": "If the item has a defect, the buyer can request its removal. According to their choice, they can request the delivery of a new item without defects or the repair of the item unless the chosen method of defect removal is impossible or disproportionately costly compared to the other, considering the significance of the defect, the value the item would have without the defect, and whether the defect can be removed in another way without significant difficulties for the buyer.",
+        "text12": "The seller may refuse to remove the defect if it is impossible or disproportionately costly, particularly considering the significance of the defect and the value the item would have without the defect.",
+        "text13_1": "The buyer can request a reasonable discount or withdraw from the contract if:",
+        "text13_2": "a) the seller refused to remove the defect or did not remove it in accordance with § 2170 (1) and (2);",
+        "text13_3": "b) the defect appears repeatedly;",
+        "text13_4": "c) the defect is a substantial breach of the contract;",
+        "text13_5": "d) it is clear from the seller's statement or the circumstances that the defect will not be removed within a reasonable time or without significant difficulties for the buyer.",
+        "text14": "A reasonable discount is determined as the difference between the value of the item without the defect and the defective item received by the buyer.",
+        "text15": "If the buyer withdraws from the contract, the seller will return the purchase price to the buyer without undue delay after receiving the item or after the buyer proves that the item has been sent.",
+        "text16": "3. Quality upon Acceptance",
+        "text17": "The seller is responsible to the buyer that the item is without defects upon acceptance. Specifically, the seller is responsible that at the time the buyer took over the item: - The item has properties that the parties agreed on, and if such an agreement is missing, properties that the seller or manufacturer described or that the buyer expected given the nature of the goods and based on the advertising they conducted. - The item is suitable for the purpose the seller states for its use or for which an item of this kind is usually used. - The item is in the corresponding quantity, measure, or weight. - The item complies with the requirements of legal regulations.",
+        "text18": "If a defect appears within one year of acceptance, it is assumed that the item was defective upon acceptance unless the seller proves otherwise.",
+        "text19": "4. Contractual Warranty for Quality",
+        "text20": "Beyond the legal period (24 months), Reli Group may provide free service within the indicated period, governed exclusively by this Complaints Procedure and especially by the free service, see Article VII. This free service does not mean the same as the paid \"Extended Warranty\" service, the conditions of which are governed exclusively by the conditions of that service."
+    },
+    "warrantyConditions": {
+        "title": "Warranty Conditions",
+        "text": "Reli Group provides a warranty that the sold item is, upon receipt by the buyer, free from defects. In particular, the seller warrants to the buyer that, at the time the buyer received the item: (a) the item has the characteristics agreed upon between the parties, and in the absence of an agreement, such characteristics as the seller or manufacturer described or that the buyer expected given the nature of the goods and based on the advertising they made; (b) the item is suitable for the purpose stated by the seller or for which an item of that kind is usually used; (c) the item is in the appropriate quantity, measure, or weight; and (d) the item complies with the requirements of legal regulations. If a defect appears within six months after receipt, the item is presumed to have been defective upon receipt. The buyer is entitled to exercise the right from a defect that occurs in consumer goods within twenty-four months from receipt, unless a longer period is agreed upon. If a period during which the item can be used is stated on the item, its packaging, in the instructions attached to the item, or in advertising, the warranty period does not end before the expiry of this period. The provisions regarding the quality warranty also apply to an item with digital features, where digital content or service is provided continuously for the agreed period, at least two years from receipt."
+    },
+    "handlingComplaints": {
+        "title": "Handling Complaints",
+        "text": "The buyer is obliged to check the goods immediately upon receipt and report any defects found without undue delay. The complaint must be made in writing or electronically, stating the buyer’s identification details, a description of the defect, and a request for how the complaint should be handled. The seller or an authorized service center will assess the legitimacy of the complaint and decide on its acceptance or rejection. If the complaint is justified, the seller will repair or replace the goods or refund the purchase price. The seller will process the complaint, including defect removal, without undue delay, no later than 30 days from the date of the complaint, unless the seller and the buyer agree on a longer period. After this period, the buyer has the same rights as if it were a material breach of contract. The seller will issue the buyer with a written confirmation of when the complaint was filed, what its content is, what method of handling is required, as well as confirmation of the date and manner of handling the complaint, including confirmation of the repair and its duration, or a written justification for rejecting the complaint."
+    },
+    "consumablesAndLifespan": {
+        "title": "Consumables and Lifespan",
+        "text": "When the goods are sold at a lower price due to a defect for which a lower price was agreed, the warranty does not apply to this defect. Wear and tear caused by normal use of the item is also not considered a defect. In the case of goods that are perishable or subject to rapid wear and tear, the warranty period is limited to the period stated on the packaging of such goods. If the goods are to function properly only with regular maintenance, the buyer must carry out such maintenance at their own expense and risk. Failure to perform necessary maintenance can result in the loss of warranty rights. For used goods, the seller is not liable for defects corresponding to the degree of use or wear and tear that the goods had when taken over by the buyer."
+    }
 }
