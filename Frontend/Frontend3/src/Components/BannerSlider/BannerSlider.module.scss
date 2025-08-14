@@ -97,8 +97,6 @@
   transform: rotate(180deg);
 }
 
-
-
 .videoWrapper {
   position: relative;
 
@@ -147,5 +145,29 @@
       cursor: pointer;
       accent-color: #3f7f6d;
     }
+  }
+}
+
+.buttonSlide {
+  width: 100% !important;
+  height: 400px !important;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  @media (max-width: 500px) {
+    height: 210px !important;
+  }
+
+  & button {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    background-color: white;
+    color: #3f7f6d;
+    font-weight: 700;
+    width: 150px;
+    height: 40px;
+    font-size: 20px;
+    border-radius: 10px;
   }
 }

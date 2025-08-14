@@ -85,7 +85,7 @@ const SignUpForm = () => {
 
               setRegErr(
                 errorMessage.trim() ||
-                  "An account with these details has already been registered."
+                "An account with these details has already been registered."
               );
             } else {
               setRegErr("An unknown error occurred.");
@@ -192,8 +192,8 @@ const SignUpForm = () => {
       <label className={styles.checkDiv}>
         <CheckBox check={agreeRules} onChange={setAgreeRules} />
         <p>
-          You agree to the
-          <Link to={"/register_rules"}>rules</Link>
+          {t("you_agree")}
+          <Link to={"/register_rules"}>{t("rules")}</Link>
         </p>
       </label>
       <p className={styles.errText}>{regErr}</p>

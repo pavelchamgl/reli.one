@@ -118,6 +118,7 @@ const Header = () => {
             <img src={basketAuth ? basketDisabledIcon : basketIcon} alt="" />
             <p>{t("bin")}</p>
           </button>
+          {/* <ChangeLang /> */}
         </div>
       </div>
       <ProfileNavDrawer open={navOpen} handleClose={() => setNavOpen(false)} />

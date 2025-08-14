@@ -1,112 +1,109 @@
-import { useState, useRef, useEffect } from "react";
-import { useMediaQuery } from "react-responsive";
-import { useTranslation } from "react-i18next";
+import { useTranslation } from 'react-i18next';
+import { useState, useRef, useEffect } from 'react';
+import { Drawer } from "@mui/material"
 
-import langGeoIcon from "../../assets/Header/langGeo.svg";
-import checkedRadio from "../../assets/Filter/checkedRadio.svg";
-import notCheckedRadio from "../../assets/Filter/notCheckedRadio.svg";
+import { useWindowSize } from '../../hook/useWindowSize';
+import enIcon from "../../assets/lang/en.svg";
+import csIcon from "../../assets/lang/cs.svg";
+import checkMark from "../../assets/lang/checkMark.svg";
+import closeIcon from "../../assets/lang/closeIcon.svg";
 
-import styles from "./ChangeLang.module.css";
+import styles from "./ChangeLang.module.css"
+
+
+const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
+    return (
+        <>
+            <h4 className='font-semibold text-xl'>Choose a language</h4>
+            <button onClick={() => handleChangeLang('en')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
+                <div className="flex items-center gap-2">
+                    <img className="w-5" src={enIcon} alt="English" />
+                    <span>English</span>
+                </div>
+                {
+                    lang === "en" && <img src={checkMark} alt="" />
+                }
+            </button>
+            <button onClick={() => handleChangeLang('cz')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
+                <div className='flex items-center gap-2'>
+                    <img className="w-5" src={csIcon} alt="Czech" />
+                    <span>Czech</span>
+                </div>
+                {
+                    lang === "cz" && <img src={checkMark} alt="" />
+                }
+            </button>
+        </>
+    )
+}
+
+
+
 
 const ChangeLang = () => {
-  const [langSelectClick, setLangSelectClick] = useState(false);
+    const [open, setOpen] = useState(false);
+    const { i18n } = useTranslation();
+    const dropdownRef = useRef(null);
 
-  const [langValue, setLangValue] = useState("сzech");
+    const { width, height } = useWindowSize();
 
-  const isPlanshet = useMediaQuery({ maxWidth: 950 });
-
-  const { t, i18n } = useTranslation();
-
-  let position = {
-    left: "0",
-  };
-
-  if (isPlanshet) {
-    position = {
-      left: "-77px",
+    const handleChangeLang = (lang) => {
+        i18n.changeLanguage(lang);
+        setOpen(false); // Закрываем после выбора языка
     };
-  }
 
-  const selectDivRef = useRef(null);
+    const lang = i18n.language
 
-  const handleClickOutside = (event) => {
-    if (selectDivRef.current && !selectDivRef.current.contains(event.target)) {
-      setLangSelectClick(false);
-    }
-  };
 
-  useEffect(() => {
-    if (langSelectClick) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [langSelectClick]);
+    // Закрытие при клике вне компонента
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setOpen(false);
+            }
+        };
 
-  const handleChangeLang = (lang) => {
-    i18n.changeLanguage(lang);
-  };
+        if (open) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
 
-  return (
-    <div className={styles.wrap}>
-      <button
-        onClick={() => setLangSelectClick(!langSelectClick)}
-        className={styles.selectBtn}
-      >
-        <img src={langGeoIcon} alt="" />
-        <p>{t("language")}</p>
-      </button>
-      <div
-        ref={selectDivRef}
-        style={position}
-        className={langSelectClick ? styles.selectDiv : styles.selectDivHid}
-      >
-        <button
-          onClick={() => {
-            setLangValue("сzech");
-            handleChangeLang("cs");
-          }}
-          className={styles.radioInpBtn}
-        >
-          <img
-            src={langValue === "сzech" ? checkedRadio : notCheckedRadio}
-            alt=""
-          />
-          <p>{t("cs")}</p>
-        </button>
-        <button
-          onClick={() => {
-            setLangValue("english");
-            handleChangeLang("en");
-          }}
-          className={styles.radioInpBtn}
-        >
-          <img
-            src={langValue === "english" ? checkedRadio : notCheckedRadio}
-            alt=""
-          />
-          <p>{t("en")}</p>
-        </button>
-        <button
-          onClick={() => {
-            setLangValue("german");
-            handleChangeLang("de");
-          }}
-          className={styles.radioInpBtn}
-        >
-          <img
-            src={langValue === "german" ? checkedRadio : notCheckedRadio}
-            alt=""
-          />
-          <p>{t("de")}</p>
-        </button>
-      </div>
-    </div>
-  );
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [open]);
+
+
+    return (
+        <>
+            <button onClick={() => setOpen(!open)} className={styles.langBtn}>
+                <img className="w-5" src={lang === "en" ? enIcon : csIcon} alt="" />
+                <p className="font-medium text-xl">{lang === "en" ? "En" : "Cz"}</p>
+            </button >
+            {open &&
+                width > 426 ?
+
+                (
+                    <div ref={dropdownRef} className={styles.modal}>
+                        <ModalAndDrawerContent lang={lang} handleChangeLang={handleChangeLang} />
+                    </div>
+                )
+                :
+                <Drawer
+                    open={open}
+                    onClose={() => setOpen(false)}
+                    anchor='bottom'
+                >
+                    <div className={styles.drawerWrap}>
+                        <button onClick={() => setOpen(false)} className={styles.closeBtn}>
+                            <img src={closeIcon} alt="" />
+                        </button>
+                        <ModalAndDrawerContent lang={lang} handleChangeLang={handleChangeLang} />
+                    </div>
+                </Drawer>
+            }
+        </>
+    );
 };
 
 export default ChangeLang;

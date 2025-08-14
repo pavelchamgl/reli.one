@@ -9,6 +9,7 @@ import payPal from "../../../assets/Payment/payPal.svg";
 import visa from "../../../assets/Payment/visa.svg";
 import mastercard from "../../../assets/Payment/mastercard.svg";
 import maestro from "../../../assets/Payment/maestro.svg";
+import applePay from "../../../assets/Payment/applePay.svg";
 
 import styles from "./PlataRadio.module.scss";
 
@@ -43,6 +44,7 @@ const PlataRadio = ({ setPlata }) => {
               label={t("debit_credit")}
             />
             <div className={styles.plataImageWrap}>
+              <img src={applePay} alt="" />
               <img src={visa} alt="" />
               <img src={mastercard} alt="" />
               <img src={maestro} alt="" />

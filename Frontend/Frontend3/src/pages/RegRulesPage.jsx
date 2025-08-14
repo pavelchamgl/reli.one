@@ -12,7 +12,7 @@ const RegRulesPage = () => {
   return (
     <Container>
       <div className={styles.main}>
-        <p className={styles.title}>Complaints Procedure</p>
+        <p className={styles.title}>{t("complaintsProcedure")}</p>
         <div className={styles.container}>
           <div className={styles.linkDivForBuy}>
             <a
@@ -21,7 +21,7 @@ const RegRulesPage = () => {
               onClick={() => setSection("general")}
               href="#general"
             >
-              1. General Provisions
+              1. {t("generalProvisions.title")}
             </a>
             <a
               style={{ color: section === "warranty" ? "#3f7f6d" : "#000" }}
@@ -29,7 +29,7 @@ const RegRulesPage = () => {
               className={styles.linkItem}
               href="#warranty"
             >
-              2. Warranty for Quality
+              2. {t("warrantyForQuality.title")}
             </a>
             <a
               className={styles.linkItem}
@@ -37,7 +37,7 @@ const RegRulesPage = () => {
               style={{ color: section === "conditions" ? "#3f7f6d" : "#000" }}
               onClick={() => setSection("conditions")}
             >
-              3. Warranty Conditions
+              3. {t("warrantyConditions.title")}
             </a>
             <a
               className={styles.linkItem}
@@ -45,7 +45,7 @@ const RegRulesPage = () => {
               style={{ color: section === "handing" ? "#3f7f6d" : "#000" }}
               onClick={() => setSection("handing")}
             >
-              4. Handling Complaints
+              4. {t("handlingComplaints.title")}
             </a>
             <a
               className={styles.linkItem}
@@ -53,7 +53,7 @@ const RegRulesPage = () => {
               style={{ color: section === "provisions" ? "#3f7f6d" : "#000" }}
               onClick={() => setSection("provisions")}
             >
-              5. General Provisions
+              5. {t("generalProvisions.title")}
             </a>
             <a
               className={styles.linkItem}
@@ -61,168 +61,107 @@ const RegRulesPage = () => {
               style={{ color: section === "min" ? "#3f7f6d" : "#000" }}
               onClick={() => setSection("min")}
             >
-              6. Consumables and Minimum Lifespan
+              6. {t("consumablesAndLifespan.title")}
             </a>
           </div>
 
           <div className={styles.paragDiv}>
             <h4 className={styles.textTitle} id="general">
-              General Provisions
+              {t("generalProvisions.title")}
             </h4>
             <p className={styles.textDesc}>
-              The Complaints Procedure is an integral part of the General Terms
-              and Conditions of the seller Reli Group s.r.o, Company ID: 280 03
-              896, with its registered office at Na lysinách 551/34, 147 00
-              Prague 4, registered in the Commercial Register maintained by the
-              Municipal Court in Prague, file no. C 361093 (hereinafter referred
-              to as the "seller" or "Reli Group"), and describes the procedure
-              for handling complaints regarding goods purchased from Reli Group.
+              {t("generalProvisions.text1")}
               <br />
               <span>
-                The buyer is obliged to familiarize themselves with the
-                Complaints Procedure and the General Terms and Conditions
-                (hereinafter "GTC") before ordering goods. The buyer also
-                acknowledges that they are required to provide Reli Group with
-                the necessary cooperation for processing the complaint;
-                otherwise, the time limits are adequately extended by the time
-                during which the buyer did not provide the required cooperation.
+                {t("generalProvisions.text2")}
               </span>
               <br />
               <span>
-                By concluding the purchase contract and accepting the goods from
-                the seller, the buyer agrees to this Complaints Procedure.
+                {t("generalProvisions.text3")}
               </span>
               <br />
               <span>
-                Definitions contained in this Complaints Procedure take
-                precedence over definitions in the GTC. If this Complaints
-                Procedure does not define a term, it is understood in the sense
-                defined in the GTC. If it is not defined there either, it is
-                understood in the sense in which it is used in legal
-                regulations.
+                {t("generalProvisions.text4")}
               </span>
               <br />
               <span>
-                In case of claiming service under a purchased or agreed service,
-                this service intervention is governed exclusively by the terms
-                of the respective service.
+                {t("generalProvisions.text5")}
               </span>
             </p>
           </div>
 
           <div className={styles.paragDiv}>
             <h4 className={styles.textTitle} id="warranty">
-              Warranty for Quality
+              {t("warrantyForQuality.title")}
             </h4>
             <p className={styles.textDesc}>
-              As proof of the warranty, Reli Group issues a document of purchase
-              (invoice) for each purchased item, containing legally required
-              details necessary for claiming the warranty (especially the name
-              of the goods, length of the warranty, price, quantity, serial
-              number).
+              {t("warrantyForQuality.text1")}
               <br />
               <span>
-                At the express request of the buyer, Reli Group provides a
-                warranty in the form of a warranty certificate. However,
-                usually, if the nature of the item allows it, the seller issues
-                a proof of purchase instead of a warranty certificate containing
-                the specified details.
+                {t("warrantyForQuality.text2")}
               </span>
               <br />
               <span>
-                If required for the provided warranty, Reli Group will clearly
-                explain the content of the warranty in the warranty certificate,
-                stating its scope, conditions, duration, and the way claims can
-                be made. The warranty certificate will also state that providing
-                the warranty does not affect the buyer's rights related to the
-                purchase of the item
+                {t("warrantyForQuality.text3")}
               </span>
               <span style={{ fontWeight: "400", margin: "15px" }}>
-                1. Period for Exercising Rights from Defective Performance
+                {t("warrantyForQuality.text4")}
               </span>
               <br />
               <span>
-                The period for exercising rights from defective performance
-                starts from the day the buyer takes over the goods, i.e., the
-                day indicated on the proof of purchase or warranty certificate.
+                {t("warrantyForQuality.text5")}
               </span>
               <br />
               <span>
-                The period is:
+                {t("warrantyForQuality.text6_1")}
                 <br />
                 <ul>
-                  <li>- 24 months for new (including unpacked) goods; -</li>
+                  <li>{t("warrantyForQuality.text6_2")}</li>
                   <li>
-                    - 21 months for almost new goods (almost new goods are used
-                    goods that have been checked by our specialists and marked
-                    as such);
+                    {t("warrantyForQuality.text6_3")}
                   </li>
                   <li>
-                    - 12 months for used goods (used goods are those marked as
-                    used or serviced without defect, and the completeness of the
-                    package does not prevent full use of the product);
+                    {t("warrantyForQuality.text_4")}
                   </li>
                   <li>
-                    - 12 months for refurbished goods (refurbished goods are
-                    those marked "refurbished" and have undergone a service
-                    intervention by our specialists).
+                    {t("warrantyForQuality.text_5")}
                   </li>
                 </ul>
               </span>
               <br />
               <span>
-                For consumable goods (e.g., cosmetics, toiletries, etc.), the
-                buyer is entitled to exercise the right from defect within
-                twenty-four (24) months unless an expiration date is indicated
-                on the goods, in which case the period is shortened only to the
-                date indicated on the packaging.
+                {t("warrantyForQuality.text7")}
               </span>
               <br />
               <span>
-                The period ends on the corresponding date, which numerically
-                matches the start date. The length of the period in months is
-                indicated for each product in the seller's store and is
-                sufficiently marked on the proof of purchase.
+                {t("warrantyForQuality.text8")}
               </span>
               <br />
               <span>
-                Rights from liability for defects in goods, for which a quality
-                warranty applies, expire if not exercised within the specified
-                period. In the case of resolving a complaint by replacing the
-                goods, a new period does not start; the decisive period is the
-                one starting from the day the buyer takes over the goods.
+                {t("warrantyForQuality.text9")}
               </span>
               <span style={{ fontWeight: "400", margin: "15px" }}>
-                2. Rights from Defective Performance
+                {t("warrantyForQuality.text10")}
               </span>
               <br />
               <span>
-                If the item has a defect, the buyer can request its removal.
-                According to their choice, they can request the delivery of a
-                new item without defects or the repair of the item unless the
-                chosen method of defect removal is impossible or
-                disproportionately costly compared to the other, considering the
-                significance of the defect, the value the item would have
-                without the defect, and whether the defect can be removed in
-                another way without significant difficulties for the buyer.
+                {t("warrantyForQuality.text11")}
               </span>
               <br />
               <span>
-                The seller may refuse to remove the defect if it is impossible
-                or disproportionately costly, particularly considering the
-                significance of the defect and the value the item would have
-                without the defect.
+                {t("warrantyForQuality.text12")}
               </span>
               <br />
               <span>
-                The buyer can request a reasonable discount or withdraw from the
-                contract if:
+                {t("warrantyForQuality.text13_1")}
+
                 <ul>
                   <li>
-                    a) the seller refused to remove the defect or did not remove
-                    it in accordance with § 2170 (1) and (2);
+                    {t("warrantyForQuality.text13_2")}
+
                   </li>
-                  <li>b) the defect appears repeatedly;</li>
+                  <li> {t("warrantyForQuality.text13_3")}
+                  </li>
                   <li>
                     c) the defect is a substantial breach of the contract; or
                   </li>
@@ -236,7 +175,7 @@ const RegRulesPage = () => {
               </span>
               <br />
               <span>
-                A reasonable discount is determined as the difference between
+                A reasonable discount is det_1ermined as the difference between
                 the value of the item without the defect and the defective item
                 received by the buyer.
               </span>

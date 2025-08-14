@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import closeIcon from "../../../assets/Header/closeCatalogIcon.svg";
 import burgerMenuIcon from "../../../assets/Header/BurgerIcon.svg";
@@ -12,6 +13,8 @@ const CatalogBtn = ({ loginModalOpen, profileNavOpen }) => {
 
   const { pathname } = useLocation()
 
+  const { t } = useTranslation()
+
   useEffect(() => {
     setOpen(false)
   }, [pathname, profileNavOpen, loginModalOpen])
@@ -20,7 +23,7 @@ const CatalogBtn = ({ loginModalOpen, profileNavOpen }) => {
     <>
       <button onClick={() => setOpen(!open)} className={styles.wrap}>
         <img src={open ? closeIcon : burgerMenuIcon} alt="" />
-        <p>Catalogue</p>
+        <p>{t("catalog")}</p>
       </button>
       <CatalogDrawer open={open} handleClose={() => setOpen(false)} />
     </>

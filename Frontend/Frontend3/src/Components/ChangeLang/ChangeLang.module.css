@@ -1,54 +1,58 @@
-.wrap {
-    position: relative;
-}
-
-.selectBtn {
+/* flex items-center gap-1 absolute top-4 right-10 lg:right-0  */
+.langBtn {
     display: flex;
+    gap: 5px;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    height: 21px;
-    outline: none;
-    border: none;
-    background-color: transparent;
-    font-weight: 400;
-    font-size: 16px;
-    color: #000;
+    /* position: absolute;
+    top: 16px;
+    right: 40px; */
 }
 
-.selectDiv {
-    position: absolute;
-    top: 25px;
+/* w-72 h-40 bg-white rounded-2xl absolute top-4 right-10 shadow-lg py-4 px-5 flex flex-col gap-3 sm:right-auto sm:left-10 md:left-10   */
 
-    box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
-    background: #eee;
+.modal {
+    width: 289px;
+    height: 159px;
+    border-radius: 20px;
+    background: #fff;
+    padding: 16px 22px;
     display: flex;
-    padding: 13px 11px;
     flex-direction: column;
-    gap: 14px;
-    width: 145px;
-    height: 96px;
-    transition: transform 0.5s ease;
-    transform: scale(1);
+    gap: 18px;
 
-}
-
-.selectDivHid {
     position: absolute;
-    transform: scale(0);
+    top: 16px;
+    right: 40px;
 }
 
 
-.radioInpBtn {
-    background-color: transparent;
-    font-weight: 400;
-    font-size: 14px;
-    color: #000;
-    display: flex;
-    gap: 6px;
-    align-items: center;
+
+@media (max-width:641px) {
+    .langBtn {
+        top: 12px;
+        right: 18px;
+    }
+
+    .modal {
+        width: 250px;
+    }
 }
 
-.radioInpBtn img {
-    width: 14px;
+.drawerWrap {
+    width: 100%;
+    padding: 27px 15px 20px;
+    border-radius: 25px;
+
+
+}
+
+.drawerRadius {
+    border-radius: 25px;
+}
+
+.closeBtn {
+    /* position: absolute; */
+    --pos: 18px;
+    top: var(--pos);
+    right: var(--pos);
 }

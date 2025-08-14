@@ -28,14 +28,16 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 40px;
+  width: 100%;
 }
 
 .headerBottomLinkWrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 350px;
-  gap: 60px;
+  /* max-width: 350px; */
+  width: 350px;
+
 }
 
 .headerBottomLink {
@@ -93,15 +95,17 @@
 }
 
 @media only screen and (max-width: 1300px) {
+
   /* Стили для экранов шириной 600px и меньше */
   .headerBottomLinkWrap {
-    gap: 40px;
+    /* gap: 40px; */
   }
 }
 
 @media only screen and (max-width: 1150px) {
+
   /* Стили для экранов шириной 600px и меньше */
   .headerBottomLinkWrap {
-    gap: 20px;
+    /* gap: 20px; */
   }
 }
