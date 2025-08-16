@@ -55,8 +55,8 @@ const PaymentDeliverySuplier = ({ group, index }) => {
 
     return (
         <div>
-            <p className={styles.suplierTitle}>Delivery from supplier {index + 1}</p>
-            <span className={styles.itemCount}>2 positions</span>
+            <p className={styles.suplierTitle}>{`${t("payment_page.delivery_from_supplier")} ${index + 1}`}</p>
+            <span className={styles.itemCount}>{`${group?.items ? group?.items?.length : 0} ${t("payment_page.positions")}`}</span>
             <div className={styles.cardWrap}>
                 {
                     group?.items && group?.items?.map((item) => (

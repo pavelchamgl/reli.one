@@ -84,14 +84,10 @@ const ForBuyersPage = () => {
 
           <div className={styles.paragDiv}>
             <h4 className={styles.textTitle} >
-              Marketplace Reli
+              {t("marketplaceReli.title")}
             </h4>
             <p className={styles.textDesc}>
-              At <span>Marketplace Reli</span>, we are committed to delivering a seamless, secure, and
-              enriching platform that empowers both buyers and sellers to engage, transact, and
-              flourish. Whether you are in search of unique, high-quality products, seeking
-              exceptional value, or aiming to showcase your own offerings, we strive to make
-              your experience outstanding at every touchpoint. </p>
+              {t("marketplaceReli.at")} <span>{t("marketplaceReli.market")}</span>{t("marketplaceReli.other_text")} </p>
           </div>
 
           <div className={styles.paragDiv}>
@@ -112,15 +108,15 @@ const ForBuyersPage = () => {
           <div id="sets" className={styles.paragDiv}>
             <h4 className={styles.textTitle}>{t("what_sets_us")}</h4>
             <p className={styles.textDesc}>
-              <span>Trust & Safety:</span>
+              <span>{t("trust_safety")}</span>
               {t("what_sets_us_first")}
             </p>
             <p className={styles.textDesc} style={{ margin: "5px 0" }}>
-              <span>Diverse Product Range:</span>
+              <span>{t("diverse_product_range")}</span>
               {t("what_sets_us_second")}
             </p>
             <p className={styles.textDesc}>
-              <span>Unparalleled Support:</span>
+              <span>{t("unparalleled_support")}</span>
               {t("what_sets_us_third")}
             </p>
           </div>
@@ -128,18 +124,18 @@ const ForBuyersPage = () => {
           <div id="values" className={styles.paragDiv}>
             <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>{t("our_values")}</h4>
             <p className={styles.textDesc}>
-              <span>Integrity: </span>
+              <span>{t("integrity")} </span>
               {t("our_values_first")}</p>
             <p className={styles.textDesc} >
-              <span>Innovation: </span>
+              <span>{t("innovation")}</span>
               {t("our_values_second")}
             </p>
             <p className={styles.textDesc}>
-              <span>Community: </span>
+              <span>{t("community")}</span>
               {t("our_values_third")}
             </p>
             <p className={styles.textDesc}>
-              <span>Sustainability: </span>
+              <span>{t("sustainability")}</span>
               {t("our_values_4")}
             </p>
           </div>
@@ -148,30 +144,28 @@ const ForBuyersPage = () => {
             <h4 className={styles.textTitle}>{t("account_information")}</h4>
             <p className={styles.textDesc}>{t("how_start_desc")}</p>
 
-            <strong className={styles.textDesc} style={{ fontWeight: "700" }}>Steps to Create Your Account: </strong>
+            <strong className={styles.textDesc} style={{ fontWeight: "700" }}>{t("steps_to_create_account")}</strong>
 
             <ol className={styles.newList}>
               <li>
-                <span>Initiate Registration: </span> Click on the <span>“Sign Up”</span> or <span>“Register”</span> button on our
-                homepage.
+                <span>{t("step1_title")}</span>
+                {t("step1_text.click")}
+                <span>{t("step1_text.sign")}</span>
+                {t("step1_text.or")}
+                <span>{t("step1_text.register")}</span>
+                {t("step1_text.other_text")}
               </li>
               <li>
-                <span>Enter Your Information: </span> Complete the registration form by providing your
-                email address, desired username, and password. Additional details may be
-                requested to better tailor our services to your preferences.
+                <span>{t("step2_title")}</span> {t("step2_text")}
               </li>
               <li>
-                <span>Verify Your Email Address: </span> After submission, you will receive a
-                verification email. Follow the link to confirm your address and activate your
-                account.
+                <span>{t("step3_title")}</span> {t("step3_text")}
               </li>
               <li>
-                <span>Complete Your Profile: </span> Finalize your registration by updating your profile
-                for a customized experience.
+                <span>{t("step4_title")}</span> {t("step4_text")}
               </li>
               <li>
-                <span>Begin Exploring: </span>With your account activated, you are free to browse,
-                shop, and enjoy all the benefits our marketplace offers.
+                <span>{t("step5_title")}</span> {t("step5_text")}
               </li>
             </ol>
 
@@ -193,16 +187,13 @@ const ForBuyersPage = () => {
 
             <ul className={styles.newList}>
               <li>
-                <span>Tailored Recommendations: </span>Receive personalized product suggestions
-                based on your browsing and purchase history.
+                <span>{t("benefit1_title")}</span>{t("benefit1_text")}
               </li>
               <li>
-                <span>Expedited Checkout: </span>Save your shipping and payment information
-                securely for a quicker checkout experience.
+                <span>{t("benefit2_title")}</span>{t("benefit2_text")}
               </li>
               <li>
-                <span>Order Management: </span>Monitor your order history and track deliveries
-                effortlessly.
+                <span>{t("benefit3_title")}</span>{t("benefit3_text")}
               </li>
 
             </ul>
@@ -215,10 +206,9 @@ const ForBuyersPage = () => {
           </div>
 
           <div className={styles.paragDiv}>
-            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>Need Help? </h4>
-            <p className={styles.textDesc}>For assistance during registration or any account-related concerns, our support
-              team is readily available. Contact us at
-              <a href="mailto:support600.reli@gmail.com" className={styles.emailText}>support600.reli@gmail.com</a>.
+            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>{t("need_help_title")}</h4>
+            <p className={styles.textDesc}>{t("need_help_text")}
+              <a href="mailto:support600.reli@gmail.com" className={styles.emailText}>{t("need_help_text_email")}</a>.
             </p>
           </div>
 
@@ -228,37 +218,28 @@ const ForBuyersPage = () => {
 
             <ol className={styles.newList}>
               <li>
-                <span>Explore Listings: </span>Use our search function or browse product categories to
-                find items that interest you.
+                <span>{t("purchase_step1_title")}</span>{t("purchase_step1_text")}
               </li>
               <li>
-                <span>Review Item Details: </span>Click on a listing to see descriptions, images, and
-                seller ratings. Evaluate carefully before proceeding.
+                <span>{t("purchase_step2_title")}</span>{t("purchase_step2_text")}
               </li>
               <li>
-                <span>Add to Cart & Review: </span>After selecting your desired items, review your
-                cart. You may modify quantities, remove items, or apply promotional codes
-                as needed.
+                <span>{t("purchase_step3_title")}</span>{t("purchase_step3_text")}
               </li>
               <li>
-                <span>Proceed to Checkout: </span>When ready, click the “Checkout” button to
-                continue.
+                <span>{t("purchase_step4_title")}</span>{t("purchase_step4_text")}
               </li>
               <li>
-                <span>Input Shipping Information: </span>Provide accurate delivery details to ensure
-                successful order fulfillment.
+                <span>{t("purchase_step5_title")}</span>{t("purchase_step5_text")}
               </li>
               <li>
-                <span>Select Payment Method: </span>Choose from our available secure payment
-                options.
+                <span>{t("purchase_step6_title")}</span>{t("purchase_step6_text")}
               </li>
               <li>
-                <span>Finalize Your Order: </span>Follow the final prompts to confirm payment and
-                complete the transaction. A confirmation email will follow.
+                <span>{t("purchase_step7_title")}</span>{t("purchase_step7_text")}
               </li>
               <li>
-                <span>Track Your Order: </span>Stay updated with real-time order tracking through
-                your account or email notifications.
+                <span>{t("purchase_step8_title")}</span>{t("purchase_step8_text")}
               </li>
             </ol>
 
@@ -313,9 +294,9 @@ const ForBuyersPage = () => {
           </div>
 
           <div className={styles.paragDiv}>
-            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>Need Support?</h4>
-            <p className={styles.textDesc}>For purchasing inquiries or technical support, contact us at
-              <a href="mailto:support600.reli@gmail.com" className={styles.emailText}>support600.reli@gmail.com</a>.
+            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>{t("buy_support_title")}</h4>
+            <p className={styles.textDesc}>{t("support_text")}
+              <a href="mailto:support600.reli@gmail.com" className={styles.emailText}>{t("support_text_email")}</a>.
             </p>
           </div>
 
@@ -323,27 +304,26 @@ const ForBuyersPage = () => {
             <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>{t("delivery_options")}</h4>
             <p className={styles.textDesc}>{t("delivery_title")}</p>
             <p className={styles.textDesc}>
-              <span>Courier Delivery: </span>
+              <span>{t("delivery_courier_title")}</span>
               {t("delivery_first_desc")}
             </p>
             <p className={styles.textDesc}>
-              <span>Warehouse Pickup: </span>
+              <span>{t("delivery_warehouse_title")}</span>
               {t("delivery_second_desc")}
             </p>
             <p className={styles.textDesc}>
-              <span>International Shipping: </span>
+              <span>{t("delivery_international_title")}</span>
               {t("delivery_third_desc")}
             </p>
             <p className={styles.textDesc}>
-              <span>Real-Time Tracking: </span>
+              <span>{t("delivery_tracking_title")}</span>
               {t("delivery_fourth_desc")}
             </p>
           </div>
 
           <div className={styles.paragDiv}>
-            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>Questions Regarding Shipping?</h4>
-            <p className={styles.textDesc}>Reach out to our team at <a href="mailto:support600.reli@gmail.com" className={styles.emailText}>support600.reli@gmail.com</a> for assistance with delivery
-              options or logistics.
+            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>{t("shipping_questions_title")}</h4>
+            <p className={styles.textDesc}>{t("shipping_questions_text")} <a href="mailto:support600.reli@gmail.com" className={styles.emailText}>{t("shipping_questions_email")}</a> {t("shipping_questions_other")}
             </p>
           </div>
 
@@ -351,24 +331,26 @@ const ForBuyersPage = () => {
             <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>{t("payment_options")}</h4>
             <p className={styles.textDesc}>{t("payment_title")}</p>
             <p className={styles.textDesc}>
-              <span>Online Payment: </span>
+              <span>{t("payment_online_title")} </span>
               {t("payment_first_desc")}
             </p>
             <p className={styles.textDesc}>
-              <span>Cash on Pickup: </span>Prefer in-person transactions? Choose the <span>Cash on
-                Pickup</span> option and pay upon collection. Please note that cash is accepted in local
-              currency only.
+              <span>{t("payment_cash_title")}</span>
+              {t("payment_cash_text")}
+              <span>{t("payment_cash_pickup")}</span>
+              {t("payment_cash_other")}
             </p>
             <p className={styles.textDesc}>
-              <span>Secure Transactions: </span>
+              <span>{t("payment_secure_title")} </span>
               {t("payment_third_desc")}
             </p>
           </div>
 
           <div className={styles.paragDiv}>
-            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>Need Assistance with Payments?</h4>
-            <p className={styles.textDesc}>If you need help choosing a payment method or experience any payment-related
-              issues, contact us at<a href="mailto:support600.reli@gmail.com" className={styles.emailText}>support600.reli@gmail.com</a>
+            <h4 className={styles.textTitle} style={{ textDecoration: "underline" }}>{t("payment_support_title")}</h4>
+            <p className={styles.textDesc}>
+              {t("payment_support_text")}
+              <a href="mailto:support600.reli@gmail.com" className={styles.emailText}>{t("payment_support_email")}</a>
             </p>
           </div>
 

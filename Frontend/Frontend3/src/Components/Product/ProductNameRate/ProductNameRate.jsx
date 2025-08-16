@@ -125,7 +125,7 @@ const ProductNameRate = () => {
         <span className={styles.categoryName}>{product?.category_name}</span>
       </div>
       <p className={styles.price}>{endPrice ? endPrice : price} €</p>
-      <p className={styles.ndcPrice}>Without VAT <span>{priceVat} €</span></p>
+      <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVat} €</span></p>
       <ProdCharackButtons
         setSku={setSku}
         setPrice={setEndPice}

@@ -6,10 +6,13 @@ import { fetchCreatePayPalSession, fetchCreateStripeSession } from "../../../red
 import xIcon from "../../../assets/Payment/closeIcon.svg"
 
 import styles from "./ConfirmYourAgeModal.module.scss"
+import { useTranslation } from "react-i18next"
 
 const ConfirmYourAgeModal = ({ open, handleClose, plataType }) => {
 
     const dispatch = useDispatch()
+
+    const { t } = useTranslation()
 
     const isNotAdult = () => {
         handleClose()
@@ -37,10 +40,10 @@ const ConfirmYourAgeModal = ({ open, handleClose, plataType }) => {
                     <img src={xIcon} alt="" />
                 </button>
                 <div className={styles.content}>
-                    <p>Confirm you are 18 years old</p>
+                    <p>{t("payment_page.confirmMessage")}</p>
                     <div className={styles.btnsWrap}>
-                        <button onClick={isAdult}>Yes</button>
-                        <button onClick={isNotAdult}>No</button>
+                        <button onClick={isAdult}>{t("payment_page.yes")}</button>
+                        <button onClick={isNotAdult}>{t("payment_page.no")}</button>
                     </div>
                 </div>
             </div>

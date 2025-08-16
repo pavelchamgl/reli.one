@@ -6,6 +6,7 @@ import arrRight from "../../assets/Payment/arrRight.svg"
 import styles from "./PayAndCartBread.module.scss"
 import { useMediaQuery } from "react-responsive"
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 const PayAndCartBread = ({ section, setSection }) => {
 
@@ -21,6 +22,8 @@ const PayAndCartBread = ({ section, setSection }) => {
     const { pathname } = useLocation()
 
     const navigate = useNavigate()
+
+    const { t } = useTranslation()
 
 
     const handleLink = (isLink, step) => {
@@ -66,37 +69,28 @@ const PayAndCartBread = ({ section, setSection }) => {
         }
     }, [pathname, section])
 
-    useEffect(() => {
-        console.log(section);
-        console.log(setSection);
-
-
-    }, [section])
-
-
-
-   return (
+    return (
         <div className={styles.main}>
             <div>
                 <button className={basketActive ? styles.buttonAcc : null} disabled={!basketActive} onClick={() => handleLink(true, basketLink)}>
-                    Cart
+                    {t("basket.breadcrump.button_cart")}
                 </button>
                 <img src={arrRight} alt="" />
             </div>
             <div>
                 <button className={infoActive ? styles.buttonAcc : null} disabled={!infoActive} onClick={() => setSection(1)}>
-                    Information
+                    {t("basket.breadcrump.button_information")}
                 </button>
                 <img src={arrRight} alt="" />
             </div>
             <div>
                 <button className={deliveryActive ? styles.buttonAcc : null} disabled={!deliveryActive} onClick={() => setSection(2)}>
-                    Delivery
+                    {t("basket.breadcrump.button_delivery")}
                 </button>
                 <img src={arrRight} alt="" />
             </div>
             <button className={paymentActive ? styles.buttonAcc : null} disabled={!paymentActive} onClick={() => handleLink(false, 3)}>
-                Payment
+                {t("basket.breadcrump.button_payment")}
             </button>
 
         </div>

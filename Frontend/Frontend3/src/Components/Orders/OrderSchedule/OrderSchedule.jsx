@@ -65,7 +65,7 @@ const OrderSchedule = ({ status = 0 }) => {
               <img src={CollectingIcon} alt="" />
             </div>
             <p style={{ color: percent === 0 ? "#c6c6c6" : "#3f7f6d" }}>
-              Being processed
+              {t("my_order.order_stage.text1")}
             </p>
           </div>
 
@@ -78,7 +78,7 @@ const OrderSchedule = ({ status = 0 }) => {
             </div>
 
             <p style={{ color: percent >= 25 ? "#3f7f6d" : "#c6c6c6" }}>
-              On the way
+              {t("my_order.order_stage.text2")}
             </p>
           </div>
 
@@ -103,7 +103,7 @@ const OrderSchedule = ({ status = 0 }) => {
               <img src={IssueIcon} alt="" />
             </div>
             <p style={{ color: percent >= 75 ? "#3f7f6d" : "#c6c6c6" }}>
-              Ready for dispatch / pickup
+              {t("my_order.order_stage.text3")}
             </p>
           </div>
         </div>

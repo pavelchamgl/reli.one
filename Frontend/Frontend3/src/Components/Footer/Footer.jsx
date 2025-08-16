@@ -58,10 +58,10 @@ const Footer = () => {
         <MessengerBtns />
         <div className={cls.mobLinkMain}>
           <Link className={cls.mobileLink} to={"/mob_login"}>
-            Log in
+            {t("enter_account")}
           </Link>
           <Link className={cls.mobileLink} to={"/my_orders"}>
-            Orders
+            {t("footer_order")}
           </Link>
           <Link to={"/for_sell"} className={cls.mobileLink} href="#">
             {t("for_seller")}

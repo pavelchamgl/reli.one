@@ -12,13 +12,13 @@
 
 .modal {
     width: 289px;
-    height: 159px;
+    /* height: 159px; */
     border-radius: 20px;
     background: #fff;
     padding: 16px 22px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 15px;
 
     position: absolute;
     top: 16px;
@@ -40,7 +40,7 @@
 
 .drawerWrap {
     width: 100%;
-    padding: 27px 15px 20px;
+    padding: 27px 15px 65px;
     border-radius: 25px;
 
 
@@ -55,4 +55,70 @@
     --pos: 18px;
     top: var(--pos);
     right: var(--pos);
+}
+
+.langBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.langLabel {
+    font-weight: 500;
+    font-size: 18px;
+}
+
+.langIcon {
+    width: 20px;
+    height: 20px;
+}
+
+
+
+.modalTitle {
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+.langOption {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 9999px;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.langOption:hover {
+    background-color: #e0e0e0;
+}
+
+.langInfo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.active {
+    font-weight: 600;
+}
+
+
+
+.closeBtn {
+    border: none;
+    background: none;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+    cursor: pointer;
 }

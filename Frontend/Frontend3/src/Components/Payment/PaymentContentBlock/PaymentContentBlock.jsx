@@ -123,7 +123,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
         {/* <CustomBreadcrumbs /> */}
       </div>
       <PaymentInp
-        title={"Email"}
+        title={t("email")}
         name="email"
         value={email}
         onChange={formik.handleChange}
@@ -135,7 +135,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
         <div className={styles.inpWrap}>
           <CountrySelect />
           <PaymentInp
-            title={"City"}
+            title={t("city")}
             name="city"
             value={city}
             onChange={formik.handleChange}
@@ -164,7 +164,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
         </div>
         <div className={styles.inpWrap}>
           <PaymentInp
-            title={"Street"}
+            title={t("street")}
             name="street"
             value={street}
             onChange={formik.handleChange}
@@ -172,7 +172,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
             err={formik.errors.street}
           />
           <PaymentInp
-            title={isMobile ? "Postal code" : "Postal code (zip code)"}
+            title={isMobile ? t("postal_code") : `${t("postal_code")} ${t("zip_code")}`}
             name="zip"
             value={zip}
             onChange={
@@ -188,7 +188,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
         </div>
         <div className={styles.inpWrap}>
           <PaymentInp
-            title={"Building number"}
+            title={t("building_number")}
             name="build"
             value={build}
             onChange={formik.handleChange}
@@ -197,7 +197,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
             fontNum={true}
           />
           <PaymentInp
-            title={"Apartment number"}
+            title={t("apartment_number")}
             name="apartment"
             value={apartment}
             onChange={formik.handleChange}

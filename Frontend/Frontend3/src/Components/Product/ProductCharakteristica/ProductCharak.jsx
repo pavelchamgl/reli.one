@@ -51,7 +51,7 @@ const ProductCharak = () => {
 
       }
 
-      {isMobile && <p className={styles.charackTitle}>Characteristics</p>}
+      {isMobile && <p className={styles.charackTitle}>{t("prod_charack")}</p>}
       <div className={styles.totalTable}>
         <div className={styles.blackTitle}>{t("transfer_charac")}</div>
 
