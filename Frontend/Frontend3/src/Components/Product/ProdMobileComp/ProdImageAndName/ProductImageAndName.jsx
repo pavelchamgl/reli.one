@@ -146,7 +146,7 @@ const ProductImageAndName = () => {
           <p>{endPrice ? endPrice : price} €</p>
           {/* <span>400.00 Kč</span> */}
         </div>
-        <p className={styles.ndcPrice}>Without VAT <span>{priceVatMain} €</span></p>
+        <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVatMain} €</span></p>
         <button className={styles.basketBtn} onClick={handleAddBasket}>
           {inBasket && <img src={addBasketCheckIcon} alt="" />}
           {t("add_basket")}

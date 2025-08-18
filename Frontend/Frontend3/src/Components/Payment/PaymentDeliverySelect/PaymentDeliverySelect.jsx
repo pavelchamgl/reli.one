@@ -13,6 +13,7 @@ import styles from "./PaymentDeliverySelect.module.scss";
 import PacketaWidget from "../PaketaWidget/PaketaWidget.jsx";
 import { useSelector } from "react-redux";
 import { useActionPayment } from "../../../hook/useActionPayment.js";
+import { t } from "i18next";
 
 const PaymentDeliverySelect = ({ sellerId, group }) => {
   const [selectedValue, setSelectedValue] = useState("");
@@ -83,7 +84,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   value="delivery_point"
                   control={<Radio color="success" />}
                 />
-                {selectedValue === "delivery_point" ? <img src={paketa} alt="" /> : <p className={styles.labelText}>Delivery point</p>}
+                {selectedValue === "delivery_point" ? <img src={paketa} alt="" /> : <p className={styles.labelText}>{t("payment_page.delivery_point")}</p>}
               </div>
               <img src={openPoint ? arrBottom : arrRight} alt="" />
             </button>
@@ -122,7 +123,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   control={<Radio color="success" />}
 
                 />
-                {selectedValue === "courier" ? <img src={paketa} alt="" /> : <p className={styles.labelText}>Courier delivery</p>}
+                {selectedValue === "courier" ? <img src={paketa} alt="" /> : <p className={styles.labelText}>{t("payment_page.courier_delivery")}</p>}
 
               </div>
               <img src={openDH ? arrBottom : arrRight} alt="" />

@@ -82,7 +82,7 @@ const PaymentDeliveryBlock = ({ section, setSection }) => {
         <PayAndCartBread section={section} setSection={setSection} />
       </div>
       <div className={styles.inpDiv}>
-        <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} setSection={() => setSection(1)} />
+        <PaymentDeliveryInp desc={"email"} value={email} title={t("email")} setSection={() => setSection(1)} />
         <PaymentDeliveryInp
           desc={"address"}
           city={city}

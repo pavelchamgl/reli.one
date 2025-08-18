@@ -47,7 +47,6 @@ const PaymentPlataBlock = ({ section, setSection }) => {
   );
 
   useEffect(() => {
-    console.log(selectedProducts);
     if (
       selectedProducts && selectedProducts.length > 0 && selectedProducts.some((item) => !!item?.product?.is_age_restricted)
     ) {
@@ -116,7 +115,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
         <PayAndCartBread section={section} setSection={setSection} />
       </div>
       <div className={styles.inpDiv}>
-        <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} setSection={() => setSection(1)} />
+        <PaymentDeliveryInp desc={"email"} value={email} title={t("email")} setSection={() => setSection(1)} />
         <PaymentDeliveryInp
           desc={"address"}
           city={city}

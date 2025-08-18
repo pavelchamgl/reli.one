@@ -68,6 +68,7 @@ const Header = () => {
           <Link to={"/"}>
             <img className={styles.logo} src={logo} alt="" />
           </Link>
+          <ChangeLang />
           {/* <ChangeLang /> */}
         </div>
         <SearchInp />
@@ -118,7 +119,7 @@ const Header = () => {
             <img src={basketAuth ? basketDisabledIcon : basketIcon} alt="" />
             <p>{t("bin")}</p>
           </button>
-          {/* <ChangeLang /> */}
+          <ChangeLang />
         </div>
       </div>
       <ProfileNavDrawer open={navOpen} handleClose={() => setNavOpen(false)} />
