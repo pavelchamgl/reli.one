@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+import i18n from "../../../../language/i18next";
 import categoryCardImage from "../../../assets/Category/CategoryCardImage.svg";
 
 import styles from "./CategoryCard.module.scss";
@@ -8,12 +9,25 @@ import styles from "./CategoryCard.module.scss";
 const CategoryCard = ({ item }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [name, setName] = useState(null)
+
+
+  const lang = i18n.language
+
 
   useEffect(() => {
     setTimeout(() => {
       setIsLoading(false);
     }, 2000);
   });
+
+  useEffect(() => {
+    if (lang === "en") {
+      setName(item.name)
+    } else {
+      setName(item.translatedName)
+    }
+  }, [lang])
 
   if (isLoading) {
     return (
@@ -37,7 +51,7 @@ const CategoryCard = ({ item }) => {
         className={styles.main}
         style={{ backgroundImage: `url(${item.image_url})` }}
       >
-        <p>{item?.name}</p>
+        <p>{name}</p>
       </div>
     );
   } else {

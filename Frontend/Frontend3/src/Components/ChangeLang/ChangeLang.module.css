@@ -11,18 +11,17 @@
 /* w-72 h-40 bg-white rounded-2xl absolute top-4 right-10 shadow-lg py-4 px-5 flex flex-col gap-3 sm:right-auto sm:left-10 md:left-10   */
 
 .modal {
-    width: 289px;
+    width: 233px;
     /* height: 159px; */
-    border-radius: 20px;
+    border-radius: 10px;
     background: #fff;
-    padding: 16px 22px;
+    padding-block: 16px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
 
     position: absolute;
-    top: 16px;
-    right: 40px;
+    top: 0;
+    right: 200px;
 }
 
 
@@ -40,8 +39,11 @@
 
 .drawerWrap {
     width: 100%;
-    padding: 27px 15px 65px;
+    /* padding: 20px 24px 65px; */
+    padding-top: 20px;
+    padding-bottom: 65px;
     border-radius: 25px;
+    position: relative;
 
 
 }
@@ -51,30 +53,32 @@
 }
 
 .closeBtn {
-    /* position: absolute; */
+    position: absolute;
     --pos: 18px;
     top: var(--pos);
     right: var(--pos);
 }
 
+
+
 .langBtn {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 6px;
     border: none;
     background-color: transparent;
     cursor: pointer;
 }
 
 .langLabel {
-    font-weight: 500;
-    font-size: 18px;
+    font-weight: 300;
+    font-size: clamp(12px, 2.5vw, 16px);
+    cursor: pointer;
 }
 
 .langIcon {
-    width: 20px;
-    height: 20px;
+    width: clamp(15px, 2.5vw, 20px);
+    height: clamp(15px, 2.5vw, 20px);
 }
 
 
@@ -82,7 +86,8 @@
 .modalTitle {
     font-weight: 600;
     font-size: 20px;
-    margin-bottom: 12px;
+    margin-bottom: 19px;
+    padding-inline: 20px;
 }
 
 .langOption {
@@ -90,12 +95,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    border-radius: 9999px;
+    padding-block: 12px;
+    padding-inline: 20px;
     background-color: white;
     cursor: pointer;
     transition: background-color 0.2s;
+}
+
+.langOption span {
+    font-weight: 500;
+    font-size: clamp(16px, 2.5vw, 18px);
+    color: #333;
 }
 
 .langOption:hover {
@@ -105,11 +115,16 @@
 .langInfo {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 20px;
 }
 
 .active {
     font-weight: 600;
+}
+
+.optionLangIcon {
+    width: 27px;
+    height: 27px;
 }
 
 
