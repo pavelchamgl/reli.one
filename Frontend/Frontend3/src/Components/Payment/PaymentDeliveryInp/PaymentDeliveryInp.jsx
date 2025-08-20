@@ -61,7 +61,7 @@ useEffect(() => {
             desc === "address"
               ? adressText
               : desc === "TK"
-                ? `Current delivery methods: ${deliveryTypeText}`
+                ? `${t("currentDeliveryMethods")}: ${deliveryTypeText}`
                 : value
           }
         </p>

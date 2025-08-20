@@ -80,7 +80,7 @@ const Header = () => {
     <div className={styles.main}>
       <div className={styles.headerTop}>
         <div className={styles.headerTopWrap}>
-          {/* <ChangeLang /> */}
+          <ChangeLang />
           <Link to={"/for_sell"}>{t("for_seller")}</Link>
           <Link to={"/for_buy"}>{t("for_buyers")}</Link>
           <a href="https://info.reli.one">{t("about_company")}</a>
@@ -119,7 +119,7 @@ const Header = () => {
             <img src={basketAuth ? basketDisabledIcon : basketIcon} alt="" />
             <p>{t("bin")}</p>
           </button>
-          <ChangeLang />
+          {/* <ChangeLang /> */}
         </div>
       </div>
       <ProfileNavDrawer open={navOpen} handleClose={() => setNavOpen(false)} />

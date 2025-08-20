@@ -15,27 +15,29 @@ const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
     return (
         <>
             <h4 className={styles.modalTitle}>{t("choose_lang")}</h4>
-            <button
-                onClick={() => handleChangeLang('en')}
-                className={`${styles.langOption} ${lang === "en" ? styles.active : ""}`}
-            >
-                <div className={styles.langInfo}>
-                    <img className={styles.langIcon} src={enIcon} alt="English" />
-                    <span>English</span>
-                </div>
-                {lang === "en" && <img src={checkMark} alt="" />}
-            </button>
+            <div className={styles.langBtns}>
+                <button
+                    onClick={() => handleChangeLang('en')}
+                    className={`${styles.langOption} ${lang === "en" ? styles.active : ""}`}
+                >
+                    <div className={styles.langInfo}>
+                        <img className={styles.optionLangIcon} src={enIcon} alt="English" />
+                        <span>English</span>
+                    </div>
+                    {lang === "en" && <img src={checkMark} alt="" />}
+                </button>
 
-            <button
-                onClick={() => handleChangeLang('cz')}
-                className={`${styles.langOption} ${lang === "cz" ? styles.active : ""}`}
-            >
-                <div className={styles.langInfo}>
-                    <img className={styles.langIcon} src={csIcon} alt="Czech" />
-                    <span>Czech</span>
-                </div>
-                {lang === "cz" && <img src={checkMark} alt="" />}
-            </button>
+                <button
+                    onClick={() => handleChangeLang('cz')}
+                    className={`${styles.langOption} ${lang === "cz" ? styles.active : ""}`}
+                >
+                    <div className={styles.langInfo}>
+                        <img className={styles.optionLangIcon} src={csIcon} alt="Czech" />
+                        <span>Česky</span>
+                    </div>
+                    {lang === "cz" && <img src={checkMark} alt="" />}
+                </button>
+            </div>
         </>
     );
 };
@@ -74,7 +76,7 @@ const ChangeLang = () => {
         <>
             <button onClick={() => setOpen(!open)} className={styles.langBtn}>
                 <img className={styles.langIcon} src={lang === "en" ? enIcon : csIcon} alt="" />
-                <p className={styles.langLabel}>{lang === "en" ? "En" : "Cz"}</p>
+                <p className={styles.langLabel}>{lang === "en" ? "English" : "Česky"}</p>
             </button>
 
             {open && (

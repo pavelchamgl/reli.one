@@ -6,6 +6,7 @@ import arrRight from "../../../assets/Payment/arrRight.svg";
 import arrBottom from "../../../assets/Payment/arrBottom.svg";
 
 import styles from "./CountrySelect.module.scss";
+import { useTranslation } from "react-i18next";
 
 const CountrySelect = () => {
   const { country } = useSelector(state => state.payment);
@@ -17,11 +18,13 @@ const CountrySelect = () => {
   const hasInteracted = useRef(false);
   const dispatch = useDispatch();
 
+  const { t } = useTranslation()
+
   const countries = [
-    { text: "Czech Republic", code: "cz" },
-    { text: "Slovakia", code: "sk" },
-    { text: "Romania", code: "ro" },
-    { text: "Hungary", code: "hu" },
+    { text: t("countries.cz"), code: "cz" },
+    { text: t("countries.sk"), code: "sk" },
+    { text: t("countries.ro"), code: "ro" },
+    { text: t("countries.hu"), code: "hu" },
   ];
 
   // Устанавливаем выбранную страну при первом рендере
@@ -58,7 +61,7 @@ const CountrySelect = () => {
 
   return (
     <div className={styles.main}>
-      <p className={styles.labelText}>Country</p>
+      <p className={styles.labelText}>{t("country")}</p>
       <button
         style={selectedCountry ? { justifyContent: "space-between" } : {}}
         className={styles.selectMainButton}
@@ -78,7 +81,7 @@ const CountrySelect = () => {
           </button>
         ))}
       </div>
-      {err && <p className={styles.errorText}>Please select a country</p>}
+      {err && <p className={styles.errorText}>{t("selectCountry")}</p>}
     </div>
   );
 };

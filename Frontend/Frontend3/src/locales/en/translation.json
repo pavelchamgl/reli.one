@@ -87,7 +87,7 @@
     "basket_use": "Use",
     "subtotal": "Subtotal",
     "transportation": "Transportation",
-    "transportation_calculate_text": "Shipping calculated in the next step",
+    "transportation_calculate_text": "Shipping will be calculated at the next step",
     "total": "Total",
     "basket_continue": "Continue",
     "basket_empty": "The basket is still empty",
@@ -682,5 +682,36 @@
     "without_vat": "Without VAT ",
     "description": "Description",
     "prod_charack": "Characteristics",
-    "choose_lang": "Choose a language"
+    "choose_lang": "Language",
+    "currentDeliveryMethods": "Current delivery methods",
+    "country": "Country",
+    "countries": {
+        "cz": "Czech Republic",
+        "sk": "Slovakia",
+        "ro": "Romania",
+        "hu": "Hungary"
+    },
+    "selectCountry": "Please select a country",
+    "categories": {
+        "paintings": "Paintings",
+        "bodyCare": "Body care",
+        "facialCare": "Facial care",
+        "hairCare": "Hair care",
+        "healthFoods": "Health and wellness foods",
+        "vitamins": "Vitamins",
+        "sportNutrition": "Sport nutrition",
+        "puzzles": "Puzzles and brain teasers",
+        "drawings": "Drawings, illustrations, posters",
+        "handmadeAccessories": "Handmade accessories",
+        "handmadeDecor": "Handmade decor",
+        "personalizedItems": "Personalized items",
+        "photography": "Photography",
+        "prints": "Prints",
+        "sculptures": "Sculptures",
+        "decorativeCosmetics": "Decorative cosmetics",
+        "giftSets": "Gift sets",
+        "automotiveParts": "Automotive parts",
+        "carAccessories": "Car accessories",
+        "carCare": "Car care"
+    }
 }
