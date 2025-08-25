@@ -32,7 +32,6 @@ const ActualSection = () => {
   );
 
 
-  console.log(orders);
   
 
   useEffect(() => {

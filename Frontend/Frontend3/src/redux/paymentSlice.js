@@ -13,7 +13,6 @@ export const fetchCreateStripeSession = createAsyncThunk(
             const { paymentInfo, groups, country, pointInfo } = getState().payment;
             const { email, name, surename, phone, street, city, zip } = paymentInfo;
 
-            console.log(pointInfo);
 
 
             const newGroups = groups.map((item) => {
@@ -73,7 +72,6 @@ export const fetchCreateStripeSession = createAsyncThunk(
                 groups: newGroups
             });
 
-            console.log(res.data);
 
 
 
@@ -153,7 +151,6 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                 groups: newGroups
             });
 
-            console.log(res);
 
             if (res.status === 200) {
                 window.location.href = res.data.approval_url;
@@ -221,8 +218,6 @@ const paymentSlice = createSlice({
             state.country = action.payload.country
         },
         setPointInfo: (state, action) => {
-            console.log(state.groups);
-            console.log(action.payload);
             state.pointInfo = action.payload
 
             state.groups = state.groups?.map((item) => {
@@ -307,10 +302,6 @@ const paymentSlice = createSlice({
                 if (queryType === "change" && targetGroup) {
                     const nonPudoOptions = targetGroup.options?.filter(opt => opt.channel !== "PUDO") || [];
                     const newPudoOption = options?.find(opt => opt.channel === "PUDO");
-
-
-                    console.log(newPudoOption);
-
 
                     const updatedGroup = {
                         ...targetGroup,

@@ -101,7 +101,6 @@ const BasketCard = ({ all, section, productData }) => {
           const data = res.data
           const variant = data?.variants?.find(item => item?.sku === productData?.sku)
           if (variant && variant?.price !== product?.price) {
-            console.log("ekjfhuheriuh");
             updateProductPrice({
               data: data,
               sku: productData?.sku,

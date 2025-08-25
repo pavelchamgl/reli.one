@@ -2,7 +2,6 @@ export function ppl(volume = 'm', weight = 15, isHand = true, region = 'cz') {
     // Проверка на null, undefined и 0
     weight = (weight == null || weight === 0) ? 15 : weight;
 
-    console.log(volume, weight, isHand, region);
 
 
     if (weight > 31.5) {
@@ -39,7 +38,6 @@ export function ppl(volume = 'm', weight = 15, isHand = true, region = 'cz') {
 
 export function geis(weight = 75) {
     // Проверка на null, undefined и 0
-    console.log(weight);
     
     weight = (weight == null || weight === 0) ? 50 : weight;
 

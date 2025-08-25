@@ -20,7 +20,6 @@ export const fetchPostComment = createAsyncThunk(
     async (formData, { rejectWithValue, dispatch }) => {
         try {
             const res = await postComment(formData); // Передаём formData напрямую
-            console.log(res);
 
             if (res.status === 201) {
                 // dispatch(addComment(res.data)); // Добавляем новый комментарий
@@ -32,7 +31,6 @@ export const fetchPostComment = createAsyncThunk(
             if (error && error?.response) {
                 if (error?.response?.status === 400) {
                     if (Object.keys(error?.response?.data).includes("rating")) {
-                        console.log(5);
                         return rejectWithValue(error.response?.data?.rating[0] || error.message);
                     }
                 }

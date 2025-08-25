@@ -10,7 +10,6 @@ import { useSelector } from 'react-redux'
 
 const PaymentDeliverySuplier = ({ group, index }) => {
 
-    console.log(group);
 
 
     const { t } = useTranslation()

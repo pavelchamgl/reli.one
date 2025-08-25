@@ -86,8 +86,6 @@ const CreateLisence = () => {
         const updatedFiles = files.filter((item) => item !== index);
         const updatedUrls = imageUrls.filter((item) => item !== index);
 
-        console.log(updatedFiles);
-        console.log(updatedUrls);
 
 
         setFiles([]); // Обновляем files

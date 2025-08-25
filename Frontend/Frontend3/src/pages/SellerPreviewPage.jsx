@@ -32,7 +32,6 @@ const SellerPreviewPage = () => {
       navigate("/seller/goods-list");
       window.location.reload();
     }
-    console.log(product.status);
     
   }, [product?.status]);
 

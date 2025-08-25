@@ -51,7 +51,6 @@ const
       validationSchema: validateGoods,
       onSubmit: (values) => {
 
-        console.log(values);
 
 
         navigate("/seller/seller-preview")

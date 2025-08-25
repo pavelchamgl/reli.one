@@ -21,7 +21,6 @@ const SellerEditPreview = () => {
 
     const product = useSelector(state => state.edit_goods)
 
-    console.log(product);
 
     //   const { fetchCreateProduct } = useActionCreatePrev()
 

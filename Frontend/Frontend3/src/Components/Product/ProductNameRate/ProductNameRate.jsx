@@ -86,7 +86,6 @@ const ProductNameRate = () => {
       // Проверка, есть ли продукт с текущим id в корзине
       const existingProduct = basket.find((item) => item.id === product.id);
 
-      console.log(existingProduct);
 
       if (!existingProduct) {
         // Если продукта нет в корзине, установить значения первого варианта

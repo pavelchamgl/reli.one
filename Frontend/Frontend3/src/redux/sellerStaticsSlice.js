@@ -7,7 +7,6 @@ export const fetchSellerStatics = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const res = await mainInstance.get("/sellers/statistics/sales/?days=15");
-            console.log(res.data);
 
             return res.data; // Возвращаем данные при успешном запросе
         } catch (error) {

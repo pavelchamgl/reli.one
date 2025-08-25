@@ -75,7 +75,6 @@ const EditLicense = () => {
 
         readFilesAsBase64(newFiles)
             .then((base64Images) => {
-                console.log(base64Images);
                 setLicense(base64Images[0])
 
 

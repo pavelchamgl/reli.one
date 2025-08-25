@@ -5,7 +5,6 @@ import styles from "./MobCardSecond.module.scss";
 const MobCardSecond = ({ product, sku, count }) => {
   const [variant, setVariant] = useState(null);
 
-  console.log(count);
 
 
   useEffect(() => {

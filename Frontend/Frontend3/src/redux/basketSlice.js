@@ -348,11 +348,9 @@ const basketSlice = createSlice({
 
         updateProductPrice: (state, action) => {
 
-            console.log(action.payload);
 
             state.basket = state.basket.map((item) => {
                 if (action.payload.sku === item?.sku) {
-                    console.log(item);
 
                     return {
                         ...item,
@@ -366,7 +364,6 @@ const basketSlice = createSlice({
                 }
             })
 
-            console.log(state.basket);
 
             const email = JSON.parse(localStorage.getItem("email"));
             if (email) {

@@ -273,12 +273,10 @@ const editGoodsSlice = createSlice({
             }
         },
         setImages: (state, action) => {
-            console.log(action.payload);
             state.images = [...state.images, ...action.payload];
         },
 
         deleteImage: (state, action) => {
-            console.log(action.payload);
 
             return {
                 ...state,
@@ -380,8 +378,6 @@ const editGoodsSlice = createSlice({
             ErrToast(action.payload || "An error occurred while deleting parameters."); // Ошибка
         })
         build.addCase(fetchDeleteImage.rejected, (state, action) => {
-            console.log(action.payload);
-
             state.status = "rejected";
             state.err = action.payload;
             ErrToast(action.payload?.detail || "An error occurred while deleting image."); // Ошибка
