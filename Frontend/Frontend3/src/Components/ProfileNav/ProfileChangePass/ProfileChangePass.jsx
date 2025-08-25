@@ -43,7 +43,6 @@ const ProfileChangePass = () => {
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
-      console.log(values);
     },
   });
 

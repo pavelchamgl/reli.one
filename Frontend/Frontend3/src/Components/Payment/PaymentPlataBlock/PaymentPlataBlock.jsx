@@ -72,7 +72,6 @@ const PaymentPlataBlock = ({ section, setSection }) => {
 
   const handleSubmit = () => {
 
-    console.log(token);
 
     if (!token) {
       if (isMobile) {

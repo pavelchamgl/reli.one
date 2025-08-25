@@ -97,6 +97,8 @@ const productsSlice = createSlice({
             }
         },
         setCategoryForProduct: (state, action) => {
+
+            
             return {
                 ...state, category: action.payload
             }

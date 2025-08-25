@@ -46,7 +46,6 @@ export const fetchCreateProduct = createAsyncThunk(
                     : Promise.resolve(),
             ]);
 
-            console.log(results);
 
 
             // Проверяем, были ли ошибки
@@ -194,8 +193,7 @@ const createProdPrevSlice = createSlice({
         }),
             build.addCase(fetchCreateProduct.fulfilled, (state, action) => {
                 state.status = "fulfilled",
-                    state.err = null,
-                    console.log(action.payload);
+                    state.err = null
 
             }),
             build.addCase(fetchCreateProduct.rejected, (state, action) => {

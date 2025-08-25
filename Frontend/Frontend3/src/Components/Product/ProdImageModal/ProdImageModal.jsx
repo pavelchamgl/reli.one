@@ -25,10 +25,7 @@ const ProdImageModal = ({ open, handleClose, imageUrl }) => {
     // ]
 
 
-    useEffect(() => {
-        console.log(imageUrl);
 
-    }, [imageUrl])
 
     const handleNext = () => {
         if (count < imageUrl.length - 1) {

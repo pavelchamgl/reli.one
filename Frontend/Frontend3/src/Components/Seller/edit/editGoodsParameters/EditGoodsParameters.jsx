@@ -62,7 +62,6 @@ const EditGoodsParameters = ({ parameters, err, setErr }) => {
     const handleDelete = (item) => {
         setErr(false)
 
-        console.log(item.id);
 
         if (item?.status === "server") {
             fetchDeleteParameters({

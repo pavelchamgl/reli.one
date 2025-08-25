@@ -63,7 +63,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
 
     const handleLabelClick = (e) => {
         if (e.target.tagName === 'BUTTON') {
-            console.log(e.target);
+            // console.log(e.target);
 
             // Если кликнули на кнопку, предотвратим открытие input
             e.stopPropagation();

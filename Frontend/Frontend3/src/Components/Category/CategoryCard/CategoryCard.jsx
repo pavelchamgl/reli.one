@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import i18n from "../../../../language/i18next";
 import categoryCardImage from "../../../assets/Category/CategoryCardImage.svg";
 
 import styles from "./CategoryCard.module.scss";
@@ -11,6 +11,7 @@ const CategoryCard = ({ item }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [name, setName] = useState(null)
 
+  const { i18n } = useTranslation()
 
   const lang = i18n.language
 

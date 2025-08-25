@@ -17,7 +17,6 @@ const BasketModal = ({ open, handleClose, productData }) => {
   const [count, setCount] = useState(0);
   const [sku, setSku] = useState(null)
 
-  console.log(productData);
 
 
   const navigate = useNavigate();

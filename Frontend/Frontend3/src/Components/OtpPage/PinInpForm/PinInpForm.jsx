@@ -59,7 +59,6 @@ const PinInpForm = () => {
       dispatch(syncBasket()); // Синхронизация корзины после успешного логина
 
     } catch (err) {
-      console.log(err);
       
       if (err.response) {
         if (err.response.status === 500) {

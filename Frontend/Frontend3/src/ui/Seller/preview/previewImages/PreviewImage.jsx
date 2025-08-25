@@ -4,7 +4,6 @@ import styles from "./PreviewImages.module.scss"
 const PreviewImage = ({ product }) => {
   const [image, setImage] = useState("");
 
-  console.log(product);
   
 
   const [src1, setSrc1] = useState("");

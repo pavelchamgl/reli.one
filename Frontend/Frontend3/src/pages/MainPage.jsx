@@ -25,12 +25,12 @@ const MainPage = () => {
 
 
   const { fetchGetCategory, fetchGetProducts } = useActions();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     fetchGetCategory();
     fetchGetProducts();
-  }, []);
+  }, [i18n.language]);
 
   useEffect(() => {
     if (isMobile) {

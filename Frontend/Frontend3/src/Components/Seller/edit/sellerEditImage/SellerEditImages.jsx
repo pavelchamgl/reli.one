@@ -88,7 +88,6 @@ const SellerEditImages = ({ err, setErr }) => {
 
 
     const handleDelete = (url) => {
-        console.log(url);
         if (url?.status === "local") {
             deleteImage({ id: url.id })
         } else {

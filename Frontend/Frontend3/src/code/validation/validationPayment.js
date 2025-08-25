@@ -13,8 +13,6 @@ const phoneRegexes = {
 export function isValidPhone(phone, countryCode) {
     const cleaned = phone?.replace(/\s|-/g, ''); // удаляем пробелы и дефисы
     const regex = phoneRegexes[countryCode];
-    console.log(phone, countryCode);
-    console.log(regex?.test(cleaned) ?? false);
 
 
     return regex?.test(cleaned) ?? false;
@@ -23,7 +21,6 @@ export function isValidPhone(phone, countryCode) {
 
 export function isValidZipCode(country, zip) {
 
-    console.log(country, zip);
     
     const normalized = zip.replace(/\s/g, "");
     if (country === "cz") {

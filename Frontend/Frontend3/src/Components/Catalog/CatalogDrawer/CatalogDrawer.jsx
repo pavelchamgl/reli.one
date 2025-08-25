@@ -18,6 +18,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
   const isMobile = useMediaQuery({ maxWidth: 500 });
   const [catalogCategory, setCatalogCategory] = useState("");
 
+
   const navigate = useNavigate();
 
   const { fetchGetCategory } = useActions();
@@ -25,9 +26,9 @@ const CatalogDrawer = ({ open, handleClose }) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (open) {
-      fetchGetCategory();
-    }
+
+    fetchGetCategory();
+
   }, [open]);
 
   const categories = useSelector((state) => state.category.categories);
@@ -43,6 +44,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
     )
     handleClose();
   };
+
 
   return (
     <div className={isPlanshet ? styles.mainWrap : ""}>
@@ -83,7 +85,10 @@ const CatalogDrawer = ({ open, handleClose }) => {
           </div>
           {!isMobile && (
             <div>
-              <h4 className={styles.catalogTitle}>{category?.name}</h4>
+              {
+                Object.keys(category).length > 0 &&
+                <h4 className={styles.catalogTitle}>{t(`categories.${category.id}`, { defaultValue: category.name })}</h4>
+              }
               <div className={styles.categoryCardWrap}>
                 {categoryItem?.children?.map((item, index) => {
                   if (!item?.children) {
@@ -109,12 +114,12 @@ const CatalogDrawer = ({ open, handleClose }) => {
                               {podCategory?.children?.map((child) => (
                                 <p
                                   onClick={() =>
-                                    handleCategoryClick(child?.name, child?.id)
+                                    handleCategoryClick(`${child?.name}!${child?.translatedName}`, child?.id)
                                   }
                                   className={styles.categoryText}
                                   key={child.id}
                                 >
-                                  {child.name}
+                                  {t(`categories.${child.id}`, { defaultValue: child.name })}
                                 </p>
                               ))}
                             </div>

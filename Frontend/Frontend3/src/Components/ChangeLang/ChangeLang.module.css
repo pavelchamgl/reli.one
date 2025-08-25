@@ -20,6 +20,7 @@
     flex-direction: column;
 
     position: absolute;
+    z-index: 1000px;
     top: 0;
     right: 200px;
 }

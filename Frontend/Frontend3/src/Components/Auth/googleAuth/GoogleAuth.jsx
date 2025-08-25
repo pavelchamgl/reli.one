@@ -18,12 +18,10 @@ const GoogleAuth = ({ setRegErr, setIsLoged, syncBasket }) => {
         onSuccess: async (tokenResponse) => {
 
             getInfoForG(tokenResponse.access_token).then((res) => {
-                console.log(res);
                 localStorage.setItem("email", JSON.stringify(res.data?.email));
 
             });
             googleLogin(tokenResponse.access_token).then((res) => {
-                console.log(res.data);
                 localStorage.setItem("token", JSON.stringify(res.data));
                 setIsLoged(true)
 

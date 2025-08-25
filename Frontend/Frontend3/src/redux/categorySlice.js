@@ -9,10 +9,25 @@ export const fetchGetCategory = createAsyncThunk(
     async (_, { rejectWithValue, dispatch }) => {
         try {
             const res = await getCategory()
+            const t = i18n.getFixedT();
+
+            const translateCategories = (categories) =>
+                categories.map((cat) => {
+
+                    return {
+                        ...cat,
+                        originalName: cat.name,                              // оригинал
+                        translatedName: cat?.id ? t(`categories.${cat?.id}`, { defaultValue: cat.name }) : cat.name // если ключ есть → переводим, иначе оставляем name
+                    };
+                });
+
+            const translatedCategory = translateCategories(res.data)
+
+
             const resultArr = getAllLowestLevelChildren(res.data)
             dispatch(setAllCategories(resultArr))
             dispatch(setMainCategories(resultArr))
-            return res
+            return translatedCategory
         } catch (error) {
             return rejectWithValue(error.message)
         }
@@ -47,9 +62,30 @@ const categorySlice = createSlice({
     },
     reducers: {
         setCategory: (state, action) => {
+            const t = i18n.getFixedT();
+
+            const translateCategories = (categories) =>
+                categories.map((cat) => {
+                    const translatedChildren = cat.children
+                        ? cat.children.map((item) => ({
+                            ...item,
+                            translatedName: item?.id ? t(`categories.${item?.id}`, { defaultValue: cat.name }) : item.name,
+                        }))
+                        : undefined; // не добавляем пустой массив
+
+                    return {
+                        ...cat,
+                        originalName: cat.name,
+                        translatedName: cat?.id ? t(`categories.${cat?.id}`, { defaultValue: cat.name }) : cat.name,
+                        ...(translatedChildren && { children: translatedChildren }), // добавляем только если есть
+                    };
+                });
+
+
+            const translatedChildren = translateCategories(action.payload?.children)
             return {
                 ...state,
-                category: action.payload
+                category: { ...action.payload, children: translatedChildren }
             }
         },
         setPodCategory: (state, action) => {
@@ -59,13 +95,35 @@ const categorySlice = createSlice({
             }
         },
         setAllCategories: (state, action) => {
+            const t = i18n.getFixedT();
+
+            const translateCategories = (categories) =>
+                categories.map((cat) => {
+
+                    return {
+                        ...cat,
+                        originalName: cat.name,                              // оригинал
+                        translatedName: cat?.id ? t(`categories.${cat?.id}`, { defaultValue: cat.name }) : cat.name // если ключ есть → переводим, иначе оставляем name
+                    };
+                });
+
+            // return {
+            //     ...state,
+            //     mainCategories: [
+            //         ...translateCategories(itemsCategory),
+            //         ...translateCategories(itemNoCategory),
+            //     ],
+            // };
+
             return {
                 ...state,
-                allCategories: action.payload
+                allCategories: translateCategories(action.payload)
             }
         },
         setMainCategories: (state, action) => {
             const t = i18n.getFixedT();
+
+
 
 
             const itemsCategory = action.payload?.filter((item) =>
@@ -82,7 +140,7 @@ const categorySlice = createSlice({
                     return {
                         ...cat,
                         originalName: cat.name,                              // оригинал
-                        translatedName: key ? t(`categories.${key}`) : cat.name // если ключ есть → переводим, иначе оставляем name
+                        translatedName: key ? t(`categories.${key}`,  { defaultValue: cat.name }) : cat.name // если ключ есть → переводим, иначе оставляем name
                     };
                 });
 
@@ -103,8 +161,8 @@ const categorySlice = createSlice({
             state.status = "pending"
         }),
             builder.addCase(fetchGetCategory.fulfilled, (state, action) => {
-                state.status = "fulfilled",
-                    state.categories = action.payload.data
+                state.status = "fulfilled"
+                state.categories = action.payload
             }),
             builder.addCase(fetchGetCategory.rejected, (state, action) => {
                 state.status = "rejected",

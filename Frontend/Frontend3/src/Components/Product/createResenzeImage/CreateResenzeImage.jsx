@@ -63,7 +63,6 @@ const CreateResenzeImage = ({ setMainFiles }) => {
         {files.map((file, index) => {
           const isVideo = file.type.startsWith("video/"); // Проверяем MIME-тип файла
 
-          console.log(imageUrls);
 
           return (
             <div

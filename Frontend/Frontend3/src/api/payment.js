@@ -21,7 +21,6 @@ export const createPayPalSession = async (obj) => {
 export const calculateDelivery = async (obj) => {
     try {
         const res = await mainInstance.post("/delivery/seller-shipping-options/", obj)
-        console.log(res);
         
         return res.data
     } catch (error) {

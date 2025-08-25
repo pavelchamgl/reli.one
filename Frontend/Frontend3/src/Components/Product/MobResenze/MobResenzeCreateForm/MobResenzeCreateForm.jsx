@@ -82,11 +82,11 @@ const MobResenzeCreateForm = () => {
       // Для отладки: проверим, что добавлено в formData
       for (const [key, value] of formData.entries()) {
         if (value instanceof File) {
-          console.log(
-            `Key: ${key}, File Name: ${value.name}, Size: ${value.size}`
-          );
+          // console.log(
+          //   `Key: ${key}, File Name: ${value.name}, Size: ${value.size}`
+          // );
         } else {
-          console.log(`Key: ${key}, Value: ${value}`);
+          // console.log(`Key: ${key}, Value: ${value}`);
         }
       }
 

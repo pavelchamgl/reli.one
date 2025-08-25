@@ -31,7 +31,6 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
 
   const handleChange = (event) => {
     setSelectedValue(event.target.value);
-    console.log(event.target.value);
 
   };
 

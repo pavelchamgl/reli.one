@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useLocation, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 
 import Container from "../ui/Container/Container";
 import ProductCard from "../Components/Product/ProductCard/ProductCard";
@@ -23,6 +25,12 @@ const CategoryPage = () => {
   const [orderingState, setOrderingState] = useState("rating");
   const [filter, setFilter] = useState(false);
   const [page, setPage] = useState(1);
+  const [categoryName, setCategoryName] = useState(null)
+  const [name, setName] = useState("")
+
+
+  const { i18n, t } = useTranslation();
+
 
   const { id } = useParams()
 
@@ -36,6 +44,8 @@ const CategoryPage = () => {
   } = useActions();
 
   const { search } = useLocation();
+
+
 
   useEffect(() => {
     const searchParams = new URLSearchParams(search);
@@ -52,6 +62,8 @@ const CategoryPage = () => {
     const searchText = searchParams.get("categoryValue");
     if (searchText) {
       setCategoryValue(searchText);
+      const names = searchText.split("!")
+      setCategoryName({ en: names[0], cz: names[1] })
     }
     setCategoryId(id)
   }, [id])
@@ -70,16 +82,25 @@ const CategoryPage = () => {
     setProductsData(products);
   }, [products]);
 
+  useEffect(() => {
+    if (i18n.language === "en" && categoryName) {
+      setName(categoryName.en || "");
+    } else if (categoryName) {
+      setName(categoryName.cz || "");
+    }
+  }, [i18n.language, categoryName]);
+
 
   const handleChange = (event, value) => {
     setPage(value);
     setProdPage(value);
   };
 
+
   return (
     <>
       <div className={styles.titleDiv}>
-        <p className={styles.title}>{categoryValue}</p>
+        <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryName?.en })}</p>
       </div>
 
       <Container>
