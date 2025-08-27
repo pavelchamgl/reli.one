@@ -9,11 +9,9 @@ import styles from "./CategoryCard.module.scss";
 const CategoryCard = ({ item }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
-  const [name, setName] = useState(null)
 
-  const { i18n } = useTranslation()
+  const {  t } = useTranslation()
 
-  const lang = i18n.language
 
 
   useEffect(() => {
@@ -21,14 +19,6 @@ const CategoryCard = ({ item }) => {
       setIsLoading(false);
     }, 2000);
   });
-
-  useEffect(() => {
-    if (lang === "en") {
-      setName(item.name)
-    } else {
-      setName(item.translatedName)
-    }
-  }, [lang])
 
   if (isLoading) {
     return (
@@ -45,14 +35,14 @@ const CategoryCard = ({ item }) => {
         onClick={() =>
           navigate(
             `/product_category/${item?.id}?categoryValue=${encodeURIComponent(
-              item?.name
+              `${item?.name}!${item?.translatedName}`
             )}&categoryID=${item?.id}`
           )
         }
         className={styles.main}
         style={{ backgroundImage: `url(${item.image_url})` }}
       >
-        <p>{name}</p>
+        <p>{t(`categories.${item.id}`, { defaultValue: item.name })}</p>
       </div>
     );
   } else {
