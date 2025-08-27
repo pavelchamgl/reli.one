@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
+import React from "react";
 
 import returnIcon from "../assets/mobileIcons/returnCategoryIcon.svg";
 import Container from "../ui/Container/Container";
