@@ -25,11 +25,8 @@ const CategoryPage = () => {
   const [orderingState, setOrderingState] = useState("rating");
   const [filter, setFilter] = useState(false);
   const [page, setPage] = useState(1);
-  const [categoryName, setCategoryName] = useState(null)
-  const [name, setName] = useState("")
 
-
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
 
 
   const { id } = useParams()
@@ -62,8 +59,6 @@ const CategoryPage = () => {
     const searchText = searchParams.get("categoryValue");
     if (searchText) {
       setCategoryValue(searchText);
-      const names = searchText.split("!")
-      setCategoryName({ en: names[0], cz: names[1] })
     }
     setCategoryId(id)
   }, [id])
@@ -82,14 +77,6 @@ const CategoryPage = () => {
     setProductsData(products);
   }, [products]);
 
-  useEffect(() => {
-    if (i18n.language === "en" && categoryName) {
-      setName(categoryName.en || "");
-    } else if (categoryName) {
-      setName(categoryName.cz || "");
-    }
-  }, [i18n.language, categoryName]);
-
 
   const handleChange = (event, value) => {
     setPage(value);
@@ -100,7 +87,7 @@ const CategoryPage = () => {
   return (
     <>
       <div className={styles.titleDiv}>
-        <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryName?.en })}</p>
+        <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryValue })}</p>
       </div>
 
       <Container>

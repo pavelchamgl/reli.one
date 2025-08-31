@@ -47,7 +47,7 @@ const MainPage = () => {
 
   return (
     <>
-      {/* <BannerSlider />  */}
+      <BannerSlider /> 
       <Container>
         <div className={styles.breadHide}>
           <CustomBreadcrumbs />

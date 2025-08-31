@@ -5,6 +5,7 @@ import { useActions } from "../../../hook/useAction";
 import prodTestImg from "../../../assets/Product/ProductTestImage.svg";
 
 import styles from "./ProdCharackButtons.module.scss";
+import { useTranslation } from "react-i18next";
 
 const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }) => {
   const { image, name, text, price } = variants[0] || {};
@@ -15,6 +16,8 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }
   const [selected, setSelected] = useState(
     variants.length > 0 ? variants[0].sku : null
   );
+
+  const { t } = useTranslation()
 
   const { changeVariants } = useActions();
 
@@ -39,32 +42,33 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }
       <div className={styles.main}>
         <div>
           <p className={styles.styleText}>
-            <span>Style: </span> {name}
+            <span>{t("style")}: </span>
+            {name}
           </p>
           <div className={styles.stylePackVThreeButtons}>
             {variants && variants.length > 0
               ? variants.map((item, index) => (
-                  <button
-                    style={{
-                      borderColor: selected === item.sku ? "black" : "#64748b",
-                    }}
-                    onClick={() => {
-                      setSelected(item.sku);
-                      setPrice(item.price);
-                      setSku(item.sku);
-                      setPriceVat(item?.price_without_vat)
-                      // changeVariants({
-                      //   id: id,
-                      //   price: item.price,
-                      //   sku: item.sku,
-                      // });
-                    }}
-                    key={item?.sku}
-                  >
-                    <p>{item.text}</p>
-                    <span>{item.price}€</span>
-                  </button>
-                ))
+                <button
+                  style={{
+                    borderColor: selected === item.sku ? "black" : "#64748b",
+                  }}
+                  onClick={() => {
+                    setSelected(item.sku);
+                    setPrice(item.price);
+                    setSku(item.sku);
+                    setPriceVat(item?.price_without_vat)
+                    // changeVariants({
+                    //   id: id,
+                    //   price: item.price,
+                    //   sku: item.sku,
+                    // });
+                  }}
+                  key={item?.sku}
+                >
+                  <p>{item.text}</p>
+                  <span>{item.price}€</span>
+                </button>
+              ))
               : null}
           </div>
         </div>
@@ -75,33 +79,33 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }
       <div className={styles.main}>
         <div>
           <p className={styles.styleText}>
-            <span>Style: </span>
+            <span>{t("style")}: </span>
             {name}
           </p>
           <div className={styles.stylePackVTwoButtons}>
             {variants && variants.length > 0
               ? variants.map((item) => (
-                  <button
-                    style={{
-                      borderColor: selected === item.sku ? "black" : "#64748b",
-                    }}
-                    onClick={() => {
-                      setSelected(item.sku);
-                      setPrice(item.price);
-                      setPriceVat(item?.price_without_vat)
-                      setSku(item.sku);
-                      // changeVariants({
-                      //   id: id,
-                      //   price: item.price,
-                      //   sku: item.sku,
-                      // });
-                    }}
-                    key={item?.sku}
-                  >
-                    <img src={item?.image} alt="" />
-                    <p>{item?.price}€</p>
-                  </button>
-                ))
+                <button
+                  style={{
+                    borderColor: selected === item.sku ? "black" : "#64748b",
+                  }}
+                  onClick={() => {
+                    setSelected(item.sku);
+                    setPrice(item.price);
+                    setPriceVat(item?.price_without_vat)
+                    setSku(item.sku);
+                    // changeVariants({
+                    //   id: id,
+                    //   price: item.price,
+                    //   sku: item.sku,
+                    // });
+                  }}
+                  key={item?.sku}
+                >
+                  <img src={item?.image} alt="" />
+                  <p>{item?.price}€</p>
+                </button>
+              ))
               : null}
           </div>
         </div>
@@ -112,7 +116,7 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }
       <div className={styles.main}>
         <div>
           <p className={styles.styleText}>
-            <span>Color: </span>Grey
+            <span>{t("style")}: </span>
           </p>
           <div className={styles.buttonsDiv}>
             {[...Array(8)].map((_, index) => (

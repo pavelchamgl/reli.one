@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Mousewheel, Keyboard } from "swiper/modules";
+import { useMediaQuery } from "react-responsive";
+import { useNavigate } from "react-router-dom";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -10,11 +12,10 @@ import unmute from "../../assets/player/unmute.svg"
 import mute from "../../assets/player/mute.svg"
 import play from "../../assets/player/play.svg"
 import stop from "../../assets/player/stop.svg"
+import arrowIcon from "../../assets/Product/detalImgSwiper.svg";
 
 import styles from "./BannerSlider.module.scss";
 
-import arrowIcon from "../../assets/Product/detalImgSwiper.svg";
-import { useNavigate } from "react-router-dom";
 
 const BannerSlider = () => {
   const prevRef = useRef(null);
@@ -24,16 +25,18 @@ const BannerSlider = () => {
   const [swiperReady, setSwiperReady] = useState(false);
   const [videoStates, setVideoStates] = useState({});
 
+  const isMobile = useMediaQuery({ maxWidth: 500 })
+
   useEffect(() => {
     setSwiperReady(true);
   }, []);
 
   const images = [
     "https://i.pinimg.com/736x/e1/89/a4/e189a4788d1139978ef4a8d2c7244682.jpg",
-    "https://videos.pexels.com/video-files/857195/857195-hd_1280_720_25fps.mp4",
+    `${isMobile ? "https://videos-5pe8.vercel.app/videos/292%D0%A5210.mp4" : "https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"}`,
     "https://i.pinimg.com/736x/33/9d/b7/339db75e3f90b69c3923d0644f9486c0.jpg",
-    "https://www.w3schools.com/html/mov_bbb.mp4",
-    "button"
+    `${isMobile ? "https://videos-5pe8.vercel.app/videos/292%D0%A5210.mp4" : "https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"}`,
+    "https://i.pinimg.com/736x/e1/89/a4/e189a4788d1139978ef4a8d2c7244682.jpg",
   ];
 
   const isImage = (url) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
@@ -120,19 +123,30 @@ const BannerSlider = () => {
               swiper.pagination.update();
             });
 
-            swiper.on("slideChangeTransitionStart", () => {
-              const videos = document.querySelectorAll(`.${styles.bannerVideo}`);
-              videos.forEach((video, index) => {
-                video.pause();
-                video.currentTime = 0;
-                video.muted = true;
+            swiper.on("slideChangeTransitionEnd", () => {
+              const activeIndex = swiper.activeIndex;
 
-                setVideoStates((prev) => ({
-                  ...prev,
-                  [index]: { paused: true, muted: true, volume: 0.5 },
-                }));
+              videoRefs.current.forEach((video, index) => {
+                if (video) {
+                  if (index === activeIndex) {
+                    video.play().then(() => {
+                      setVideoStates((prev) => ({
+                        ...prev,
+                        [index]: { ...prev[index], paused: false },
+                      }));
+                    }).catch(() => { });
+                  } else {
+                    video.pause();
+                    video.currentTime = 0;
+                    setVideoStates((prev) => ({
+                      ...prev,
+                      [index]: { ...prev[index], paused: true },
+                    }));
+                  }
+                }
               });
             });
+
           }}
         >
           {images.map((item, index) => (
@@ -150,7 +164,7 @@ const BannerSlider = () => {
                     src={item}
                     autoPlay
                     muted
-                    loop={false}
+                    loop={true}
                     playsInline
                     className={styles.bannerVideo}
                   />

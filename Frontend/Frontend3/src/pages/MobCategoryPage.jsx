@@ -54,7 +54,7 @@ const MobCategoryPage = () => {
                   {podCategory?.children?.map((child) => (
                     <button
                       onClick={() =>
-                        handleCategoryClick(`${child?.name}!${child?.translatedName}`, child?.id)
+                        handleCategoryClick(child?.name, child?.id)
                       }
                       className={styles.categoryText}
                       key={child.id}
