@@ -68,27 +68,35 @@ class Banner(models.Model):
 
     def generate_webp(self, *, options: WebpOptions = WebpOptions()):
         """
-        Обрезает/вписывает изображение под 1230x400 (центр-кроп), конвертирует в WebP.
+        Resize image to fit into 1230x400 with white padding (keep aspect ratio).
         """
-        # читаем из стораджа (локально/S3 — прозрачно)
         with default_storage.open(self.image_original.name, "rb") as f:
-            im = Image.open(f).convert("RGB")  # убираем альфу + EXIF не переносим
+            im = Image.open(f).convert("RGB")
 
-        # Центр-кроп под нужное соотношение и ресайз с LANCZOS
-        fitted = ImageOps.fit(im, (TARGET_W, TARGET_H), method=Image.LANCZOS, centering=(0.5, 0.5))
+        # Вписываем в рамку 1230x400 без обрезки (thumbnail сохраняет пропорции)
+        im.thumbnail((TARGET_W, TARGET_H), Image.LANCZOS)
 
-        # В буфер -> WebP
+        # Создаём белый холст 1230x400
+        canvas = Image.new("RGB", (TARGET_W, TARGET_H), (255, 255, 255))
+
+        # Вычисляем координаты для центрирования
+        offset_x = (TARGET_W - im.width) // 2
+        offset_y = (TARGET_H - im.height) // 2
+
+        # Вставляем картинку в центр холста
+        canvas.paste(im, (offset_x, offset_y))
+
+        # Сохраняем в WebP
         buf = io.BytesIO()
-        fitted.save(
+        canvas.save(
             buf,
             format="WEBP",
             quality=options.quality,
             method=options.method,
-            lossless=options.lossless
+            lossless=options.lossless,
         )
         buf.seek(0)
 
-        # сохраняем файл в сторадж
         webp_path = banner_webp_upload_to(self, None)
         saved_path = default_storage.save(webp_path, ContentFile(buf.read()))
         self.image_webp.name = saved_path
