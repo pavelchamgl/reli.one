@@ -24,6 +24,25 @@ class SellerProfile(models.Model):
         related_name='sellers_managed',
         blank=True
     )
+    # склад по умолчанию (для Чехии сейчас — обязателен)
+    default_warehouse = models.ForeignKey(
+        'warehouses.Warehouse',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='default_for_sellers',
+        help_text="Основной склад продавца (origin). Пока только CZ."
+    )
+    # в будущем — список складов в разных странах
+    warehouses = models.ManyToManyField(
+        'warehouses.Warehouse',
+        blank=True,
+        related_name='sellers',
+        help_text="Дополнительные склады (для мульти-origin в будущем)."
+    )
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"SellerProfile: {self.user.email}"
