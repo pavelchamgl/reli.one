@@ -13,7 +13,7 @@ const MobCategoryCard = ({ item }) => {
   const handleCategoryClick = () => {
     navigate(
       `/product_category/${item?.id}?categoryValue=${encodeURIComponent(
-        `${item?.name}!${item?.translatedName}`
+        item?.name
       )}&categoryID=${item?.id}`
     )
   };
@@ -27,7 +27,7 @@ const MobCategoryCard = ({ item }) => {
       className={styles.cardItem}
       style={{ backgroundImage: `url(${item?.image_url})` }}
     >
-      <p>{ t(`categories.${item.id }`, { defaultValue: item.name })}</p>
+      <p>{t(`categories.${item.id}`, { defaultValue: item.name })}</p>
     </div>
   );
 };

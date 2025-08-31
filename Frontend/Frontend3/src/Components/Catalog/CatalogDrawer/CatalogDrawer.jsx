@@ -114,12 +114,12 @@ const CatalogDrawer = ({ open, handleClose }) => {
                               {podCategory?.children?.map((child) => (
                                 <p
                                   onClick={() =>
-                                    handleCategoryClick(`${child?.name}!${child?.translatedName}`, child?.id)
+                                    handleCategoryClick(child?.name, child?.id)
                                   }
                                   className={styles.categoryText}
                                   key={child.id}
                                 >
-                                  {t(`categories.${child.id}`, { defaultValue: child.name })}
+                                  {t(`categories.${ child.id }`, { defaultValue: child.name })}
                                 </p>
                               ))}
                             </div>

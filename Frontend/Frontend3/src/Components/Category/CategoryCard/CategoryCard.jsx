@@ -10,7 +10,7 @@ const CategoryCard = ({ item }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
 
-  const {  t } = useTranslation()
+  const { t } = useTranslation()
 
 
 
@@ -35,7 +35,7 @@ const CategoryCard = ({ item }) => {
         onClick={() =>
           navigate(
             `/product_category/${item?.id}?categoryValue=${encodeURIComponent(
-              `${item?.name}!${item?.translatedName}`
+              item.name
             )}&categoryID=${item?.id}`
           )
         }

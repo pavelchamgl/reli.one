@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Breadcrumbs, Link, Typography } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -12,6 +13,8 @@ const CustomBreadcrumbs = () => {
   const { product } = useSelector((state) => state.products);
 
   const [pathnames, setPathnames] = useState([]);
+
+  const { t } = useTranslation()
 
   const searchParams = new URLSearchParams(location.search);
   const searchText = searchParams.get("categoryValue");
@@ -54,19 +57,20 @@ const CustomBreadcrumbs = () => {
           if (!searchText) {
             lastSegment = product.name;
           } else {
-            lastSegment = searchText;
+            lastSegment = t(`categories.${categoryID}`, { defaultValue: searchText.split("!")[0] });
             isCategory = true;
-            categoryName = searchText;
+            categoryName = lastSegment;
           }
         }
 
         const exists = updatedPathnames.some((item) => item.path === pathname);
         if (!exists) {
           updatedPathnames.push({
-            name: lastSegment,
+            name: lastSegment, // оригинальное название товара
             path: pathname,
             category: isCategory,
-            categoryName: categoryName,
+            categoryName: searchText, // оригинальное название категории
+            categoryID: categoryID,   // чтобы t() брал ключ
           });
         }
       }
@@ -100,9 +104,13 @@ const CustomBreadcrumbs = () => {
         </Link>
         {pathnames.map((value, index) => {
           const isLast = index === pathnames.length - 1;
+          const displayName = value.category
+            ? t(`categories.${value.categoryID}`, { defaultValue: value.categoryName })
+            : value.name;
+
           return isLast ? (
             <Typography color="textPrimary" key={value.path}>
-              {truncateText(value.name || "", 10)}
+              {truncateText(displayName || "", 10)}
             </Typography>
           ) : (
             <Link
@@ -118,7 +126,7 @@ const CustomBreadcrumbs = () => {
               }
               key={value.path}
             >
-              {truncateText(value.name || "", 20)}
+              {truncateText(displayName || "", 20)}
             </Link>
           );
         })}

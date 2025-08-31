@@ -22,6 +22,7 @@ const ProductNameRate = () => {
   const [sku, setSku] = useState(null);
   const [openModal, setOpenModal] = useState(false)
   const [priceVat, setPriceVat] = useState(null)
+  const [categoryId, setCategoryId] = useState(null)
 
   const isMobile = useMediaQuery({ maxWidth: 426 })
 
@@ -59,7 +60,6 @@ const ProductNameRate = () => {
       );
     }
   };
-
 
   useEffect(() => {
     if (basket.some((item) => item.sku === sku)) {
@@ -110,7 +110,16 @@ const ProductNameRate = () => {
     }
   }, [])
 
+  // ? получения путей, для перевода id
 
+  const paths = JSON.parse(localStorage.getItem("paths")) || {}
+
+
+  useEffect(() => {
+    if (paths.length > 0 && paths[0] && Object.keys(paths[0]).length > 0) {
+      setCategoryId(paths[0].categoryID);
+    }
+  }, [paths]);
 
 
   return (
@@ -121,7 +130,7 @@ const ProductNameRate = () => {
       </div>
       <div className={styles.nameCategoryDiv}>
         <p className={styles.name}>{formattedText}</p>
-        <span className={styles.categoryName}>{product?.category_name}</span>
+        <span className={styles.categoryName}>{t(`categories.${categoryId}`, { defaultValue: product.category_name })}</span>
       </div>
       <p className={styles.price}>{endPrice ? endPrice : price} €</p>
       <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVat} €</span></p>
