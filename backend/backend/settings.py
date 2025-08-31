@@ -196,13 +196,15 @@ REST_AUTH = {
 REST_USE_JWT = True
 
 SOCIALACCOUNT_PROVIDERS = {
-    'facebook': {
-        'METHOD': 'oauth2',
-        'SCOPE': ['email', 'public_profile'],
-        'FIELDS': ['email', 'name', 'first_name', 'last_name'],
-        'AUTH_PARAMS': {'auth_type': 'reauthenticate'},
-        'INIT_PARAMS': {'cookie': True},
-        'VERIFIED_EMAIL': False,
+    "facebook": {
+        "APP": {
+            "client_id": "твоя ID",
+            "secret": "твой секрет",
+            "key": ""
+        },
+        "SCOPE": ["email"],
+        "FIELDS": ["email", "name", "first_name", "last_name"],
+        "AUTH_PARAMS": {"auth_type": "reauthenticate"},
     }
 }
 
@@ -302,6 +304,21 @@ PACKETA_ESHOP_CODE = os.getenv("PACKETA_ESHOP_CODE")
 PACKETA_API_LOCALE = os.getenv("PACKETA_API_LOCALE", "en_GB")
 PACKETA_INVOICE_LOCALE = os.getenv("PACKETA_INVOICE_LOCALE", "cs_CZ")
 
+
+MYGLS_API_BASE = os.getenv("MYGLS_API_BASE")
+MYGLS_USERNAME = os.getenv("MYGLS_USERNAME")
+MYGLS_PASSWORD_SHA512 = os.getenv("MYGLS_PASSWORD_SHA512")
+MYGLS_WEBSHOP_ENGINE = os.getenv("MYGLS_WEBSHOP_ENGINE")
+MYGLS_CLIENT_NUMBER = os.getenv("MYGLS_CLIENT_NUMBER")
+MYGLS_TYPE_OF_PRINTER = os.getenv("MYGLS_TYPE_OF_PRINTER")
+MYGLS_HTTP_TIMEOUT = os.getenv("MYGLS_HTTP_TIMEOUT")
+MYGLS_HTTP_RETRIES = os.getenv("MYGLS_HTTP_RETRIES")
+# Прайс-параметры:
+FUEL_DIESEL_AVG_CZ = os.getenv("FUEL_DIESEL_AVG_CZ")
+SEASONAL_SURCHARGE_ENABLED = os.getenv("SEASONAL_SURCHARGE_ENABLED")
+# Опции на случай «капризного» стенда
+MYGLS_PASSWORD_FORMAT = "bytes"         # или base64
+MYGLS_INCLUDE_CLIENT_NUMBER_LIST = False
 
 LOGGING = {
     'version': 1,
