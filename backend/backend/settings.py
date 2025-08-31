@@ -73,6 +73,7 @@ INSTALLED_APPS = [
 
     'accounts',
     'analytics',
+    'banners',
     'contactform',
     "delivery",
     'favorites',
