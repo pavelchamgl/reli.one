@@ -3,21 +3,18 @@
   width: 100%;
   height: auto;
   background: #ffffff;
-  /* margin-top: 23px; */
-  margin-bottom: 50px;
+  z-index: 0;
 }
 
 .swiper {
-  width: calc(100%) !important;
-  height: 460px !important;
+  width: calc(100% - 200px) !important;
+  height: 440px !important;
 }
 
 @media (max-width: 500px) {
   .swiper {
-    height: 270px !important;
-  }
-  .swiperContainer{
-    margin-bottom: 35px;
+    width: calc(100% - 20px) !important;
+    height: 230px !important;
   }
 }
 
@@ -33,6 +30,19 @@
 
 @media (max-width: 500px) {
   .bannerImg {
+    height: 210px !important;
+  }
+}
+
+.bannerVideo {
+  width: calc(100vw - 200px) !important;
+  height: 400px !important;
+  object-fit: cover;
+}
+
+@media (max-width: 500px) {
+  .bannerVideo {
+    width: calc(100vw - 10px) !important;
     height: 210px !important;
   }
 }
@@ -70,11 +80,11 @@
 }
 
 .swiperButtonPrev {
-  left: -60px;
+  left: 40px;
 }
 
 .swiperButtonNext {
-  right: -60px;
+  right: 40px;
 }
 
 .swiperPagination {
@@ -96,4 +106,84 @@
 
 .left {
   transform: rotate(180deg);
+}
+
+.videoWrapper {
+  position: relative;
+}
+
+.videoWrapper .bannerVideo {
+  width: 100%;
+  height: auto;
+}
+
+.videoWrapper .videoControls {
+  position: absolute;
+  bottom: 10px;
+  left: 30px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+  align-items: center;
+}
+
+@media (max-width: 500px) {
+  .videoWrapper .videoControls {
+    left: 15px;
+  }
+}
+
+.videoWrapper .videoControls button {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.videoWrapper .videoControls button img {
+  width: 25px;
+  height: 25px;
+}
+
+.videoWrapper .videoControls button:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.videoWrapper .videoControls input[type="range"] {
+  width: 120px;
+  cursor: pointer;
+  accent-color: #3f7f6d;
+}
+
+.videoWrapper .videoControls input[type="range"] {
+  width: 100px;
+}
+
+.buttonSlide {
+  width: 100% !important;
+  height: 400px !important;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+@media (max-width: 500px) {
+  .buttonSlide {
+    height: 210px !important;
+  }
+}
+
+.buttonSlide button {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  background-color: white;
+  color: #3f7f6d;
+  font-weight: 700;
+  width: 150px;
+  height: 40px;
+  font-size: 20px;
+  border-radius: 10px;
 }
