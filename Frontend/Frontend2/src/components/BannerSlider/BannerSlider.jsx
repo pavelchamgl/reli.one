@@ -29,7 +29,7 @@ const BannerSlider = () => {
 
     const images = [
         {
-            image_url: `${isMobile ? "https://videos-5pe8.vercel.app/videos/292%D0%A5210.mp4" : "https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"}`,
+            image_url: `${"https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"}`,
         }
     ]
 
