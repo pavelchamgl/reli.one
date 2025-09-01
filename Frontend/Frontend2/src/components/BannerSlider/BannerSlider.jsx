@@ -86,12 +86,12 @@ const BannerSlider = () => {
 
     return (
         <div className={styles.swiperContainer}>
-            <div ref={prevRef} className={styles.swiperButtonPrev}>
+            {/* <div ref={prevRef} className={styles.swiperButtonPrev}>
                 <img src={arrowIcon} alt="prev" />
             </div>
             <div ref={nextRef} className={styles.swiperButtonNext}>
                 <img src={arrowIcon} className={styles.left} alt="next" />
-            </div>
+            </div> */}
             <div ref={paginationRef} className={styles.swiperPagination}></div>
 
             {swiperReady && (
