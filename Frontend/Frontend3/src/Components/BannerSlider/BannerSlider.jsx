@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Pagination, Mousewheel, Keyboard } from "swiper/modules";
+import { Navigation, Pagination, Mousewheel, Keyboard, Autoplay } from "swiper/modules";
 import { useMediaQuery } from "react-responsive";
 import { useNavigate } from "react-router-dom";
 
@@ -58,7 +58,7 @@ const BannerSlider = () => {
     getBannerImg()
       .then((res) => {
         if (res.status === 200) {
-          setImages([...res.data, ...images]);
+          setImages(res.data);
         }
       })
       .catch(console.error)
@@ -135,19 +135,23 @@ const BannerSlider = () => {
             slidesPerView={1}
             spaceBetween={10}
             slidesPerGroup={1}
-            loop={false}
+            loop={true}
             mousewheel={true}
             keyboard={true}
             navigation={{
               prevEl: prevRef.current,
               nextEl: nextRef.current,
             }}
+            autoplay={{
+              delay: 3000, // каждые 3 секунды
+              disableOnInteraction: false // автоплей не останавливается при взаимодействии
+            }}
             pagination={{
               el: paginationRef.current,
               clickable: true,
               bulletActiveClass: styles.paginationActive,
             }}
-            modules={[Navigation, Pagination, Mousewheel, Keyboard]}
+            modules={[Navigation, Pagination, Mousewheel, Keyboard, Autoplay]}
             className={styles.swiper}
             onSwiper={(swiper) => {
               setTimeout(() => {
