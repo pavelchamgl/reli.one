@@ -82,6 +82,10 @@ const BannerSlider = () => {
 
     useEffect(() => {
         setSwiperReady(true);
+        setVideoStates((prev) => ({
+            ...prev,
+            [0]: { ...prev[0], paused: false },
+        }));
     }, []);
 
     return (
@@ -172,6 +176,8 @@ const BannerSlider = () => {
                                                 videoStates[index]?.paused !== false ? play : stop
                                             } alt="" />
                                         </button>
+                                    </div>
+                                    <div className={styles.noiseControl}>
                                         <button onClick={() => toggleMute(index)}>
                                             <img src={
                                                 videoStates[index]?.muted !== false ? mute : unmute
