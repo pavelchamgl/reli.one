@@ -189,3 +189,41 @@
   font-size: 20px;
   border-radius: 10px;
 }
+
+.noiseControl {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 30px;
+  bottom: 10px;
+}
+
+@media (max-width: 500px) {
+  .noiseControl {
+    right: 15px;
+  }
+}
+
+.noiseControl input {
+  writing-mode: bt-lr;
+  /* Вертикальное направление */
+  -webkit-appearance: slider-vertical;
+  /* Для Safari */
+  width: 8px;
+  /* толщина */
+  height: 100px;
+  /* высота */
+  accent-color: #3f7f6d;
+}
+
+.noiseControl button {
+  width: 45px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}

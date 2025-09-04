@@ -143,7 +143,7 @@ const BannerSlider = () => {
               nextEl: nextRef.current,
             }}
             autoplay={{
-              delay: 3000, // каждые 3 секунды
+              delay: 6000, // каждые 3 секунды
               disableOnInteraction: false // автоплей не останавливается при взаимодействии
             }}
             pagination={{
@@ -191,6 +191,7 @@ const BannerSlider = () => {
               <SwiperSlide key={index} className={styles.swiperSlide}>
                 {isImage(item?.image_url) ? (
                   <img
+                    // onClick={() => navigate("/liked")}
                     src={item?.image_url}
                     alt={`img-${index}`}
                     className={styles.bannerImg}
