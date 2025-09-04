@@ -1,145 +1,160 @@
-import base64
-import binascii
-import hashlib
-import logging
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
 
 import requests
-from django.conf import settings
+import base64, binascii, hashlib, logging
 
-from .errors import raise_for_response
+from typing import Any, Dict, Optional, Tuple
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
-def _sha512_digest_from_env(value: str) -> bytes:
+def _as_sha512_bytes(value: str) -> bytes:
     """
-    Поддерживает:
-    - 'b64:...' — base64 от sha512-digest (рекомендуемо)
-    - 'hex:...' — hex от sha512-digest
-    - иначе — считаем, что это сырой пароль и хэшируем на лету (dev-фолбэк)
+    Поддерживаем форматы в .env:
+      - 'b64:<base64(sha512(password))>'
+      - 'hex:<hex(sha512(password))>'
+      - 'raw:<plain_password>'  ИЛИ просто '<plain_password>'
+      - также примем '<base64(sha512)>' или '<hex(sha512)>' без префикса
+    Возвращаем digest длиной 64 байта.
     """
-    if not value:
-        raise ValueError("MYGLS_PASSWORD_SHA512 is empty")
-    v = value.strip()
-    if v.lower().startswith("b64:"):
-        try:
-            return base64.b64decode(v[4:])
-        except binascii.Error as e:
-            raise ValueError("Invalid base64 in MYGLS_PASSWORD_SHA512") from e
-    if v.lower().startswith("hex:"):
-        try:
-            return bytes.fromhex(v[4:])
-        except ValueError as e:
-            raise ValueError("Invalid hex in MYGLS_PASSWORD_SHA512") from e
-    logger.warning("MYGLS_PASSWORD_SHA512 looks like plain password. Hashing it on the fly.")
+    v = (value or "").strip()
+    if not v:
+        return b""
+
+    low = v.lower()
+    if low.startswith("b64:") or low.startswith("base64:"):
+        b = base64.b64decode(v.split(":", 1)[1], validate=True)
+        if len(b) != 64:
+            raise ValueError("MYGLS_PASSWORD_SHA512(b64): decoded length != 64")
+        return b
+    if low.startswith("hex:"):
+        b = binascii.unhexlify(v.split(":", 1)[1])
+        if len(b) != 64:
+            raise ValueError("MYGLS_PASSWORD_SHA512(hex): decoded length != 64")
+        return b
+    if low.startswith("raw:"):
+        return hashlib.sha512(v.split(":", 1)[1].encode("utf-8")).digest()
+
+    # без префикса — попробуем как b64/hex, затем как плейн
+    try:
+        b = base64.b64decode(v, validate=True)
+        if len(b) == 64:
+            return b
+    except Exception:
+        pass
+    try:
+        b = binascii.unhexlify(v)
+        if len(b) == 64:
+            return b
+    except Exception:
+        pass
     return hashlib.sha512(v.encode("utf-8")).digest()
 
 
-def _to_json_byte_array(digest: bytes) -> List[int]:
-    """Пароль как byte[] в JSON → массив чисел 0..255 (требование API)."""
-    return list(digest)
+def _normalize_base_json(base_url: str) -> str:
+    base = (base_url or "").strip().rstrip("/")
+    if not base:
+        raise ValueError("MYGLS_API_BASE is not set. Example: https://api.test.mygls.cz")
+    low = base.lower()
+    if low.endswith("/parcelservice.svc/json"):
+        return base
+    if low.endswith("/parcelservice.svc"):
+        return base + "/json"
+    return base + "/ParcelService.svc/json"
 
 
 class MyGlsClient:
-    """
-    Лёгкий HTTP-клиент для MyGLS ParcelService.svc/json.
-    Поддерживает два формата пароля:
-      - bytes-array (стандарт по PDF) — settings.MYGLS_PASSWORD_FORMAT=bytes
-      - base64-строка — settings.MYGLS_PASSWORD_FORMAT=base64
-    Также опционально может слать ClientNumberList (если понадобится) —
-      settings.MYGLS_INCLUDE_CLIENT_NUMBER_LIST=true
-    """
     def __init__(
         self,
         base_url: str,
         username: str,
-        password_sha512_env: str,
+        password_env_value: str,
         webshop_engine: str,
-        client_number: Optional[int] = None,
+        client_number: str,
+        type_of_printer: str = "A4_2x2",
         timeout: int = 15,
-        retries: int = 3,
+        retries: int = 2,
         session: Optional[requests.Session] = None,
     ):
-        if not (base_url and username and password_sha512_env and webshop_engine):
-            raise ValueError("MyGLS client missing base settings")
-
-        self.base_url = base_url.rstrip("/")
-        self.username = username
-        # На всякий случай ограничим WebshopEngine ASCII (некоторые стенды чувствительны)
-        self.webshop_engine = str(webshop_engine).encode("ascii", "ignore").decode("ascii")
-        self.client_number = int(client_number) if client_number else None
-        self.timeout = timeout
-        self.retries = retries
+        self.base_json = _normalize_base_json(base_url)
+        self.username = (username or "").strip()
+        self.password_bytes = _as_sha512_bytes(password_env_value)
+        self.webshop_engine = (webshop_engine or "").strip()
+        self.client_number = str(client_number or "").strip()
+        self.type_of_printer = type_of_printer
+        self.timeout = int(timeout or 15)
+        self.retries = int(retries or 2)
         self.session = session or requests.Session()
+        # стабильные заголовки на все вызовы
+        self.session.headers.update({
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        })
 
-        digest = _sha512_digest_from_env(password_sha512_env)
-        self.password_format = (getattr(settings, "MYGLS_PASSWORD_FORMAT", "bytes") or "bytes").lower()
-        if self.password_format not in ("bytes", "base64"):
-            self.password_format = "bytes"
-
-        # Готовим два представления — выберем в _auth_payload()
-        self._password_bytes_array = _to_json_byte_array(digest)
-        self._password_b64_string = base64.b64encode(digest).decode("ascii")
-
-        # Флаг отправки ClientNumberList (по умолчанию выключен — changelog: "do not use")
-        self.include_client_number_list = bool(getattr(settings, "MYGLS_INCLUDE_CLIENT_NUMBER_LIST", False))
+        # Жёстко валидируем, чтоб не было "Webshop engine is required!"
+        if not self.webshop_engine:
+            raise ValueError("MYGLS_WEBSHOP_ENGINE is empty. Set it in env/settings.")
 
     @classmethod
-    def from_settings(cls):
-        required = {
-            "MYGLS_API_BASE": getattr(settings, "MYGLS_API_BASE", None),
-            "MYGLS_USERNAME": getattr(settings, "MYGLS_USERNAME", None),
-            "MYGLS_PASSWORD_SHA512": getattr(settings, "MYGLS_PASSWORD_SHA512", None),
-            "MYGLS_WEBSHOP_ENGINE": getattr(settings, "MYGLS_WEBSHOP_ENGINE", None),
-        }
-        missing = [k for k, v in required.items() if not v]
-        if missing:
-            raise ValueError(f"Missing MyGLS settings: {', '.join(missing)}")
+    def from_settings(cls) -> "MyGlsClient":
         return cls(
-            base_url=settings.MYGLS_API_BASE,
-            username=settings.MYGLS_USERNAME,
-            password_sha512_env=settings.MYGLS_PASSWORD_SHA512,
-            webshop_engine=settings.MYGLS_WEBSHOP_ENGINE,
-            client_number=getattr(settings, "MYGLS_CLIENT_NUMBER", None),
-            timeout=int(getattr(settings, "MYGLS_HTTP_TIMEOUT", 15) or 15),
-            retries=int(getattr(settings, "MYGLS_HTTP_RETRIES", 3) or 3),
+            getattr(settings, "MYGLS_API_BASE", ""),
+            getattr(settings, "MYGLS_USERNAME", ""),
+            getattr(settings, "MYGLS_PASSWORD_SHA512", ""),
+            getattr(settings, "MYGLS_WEBSHOP_ENGINE", ""),
+            getattr(settings, "MYGLS_CLIENT_NUMBER", ""),
+            getattr(settings, "MYGLS_TYPE_OF_PRINTER", "A4_2x2"),
+            int(getattr(settings, "MYGLS_HTTP_TIMEOUT", 15) or 15),
+            int(getattr(settings, "MYGLS_HTTP_RETRIES", 2) or 2),
         )
 
     def _auth_payload(self) -> Dict[str, Any]:
         """
-        APIRequestBase: Username, Password(byte[]) и WebshopEngine обязательны. :contentReference[oaicite:3]{index=3}
-        По желанию — ClientNumberList (если понадобится под конкретный стенд).
+        Минимальный корректный набор полей для JSON-профиля:
+        Username, Password(byte[]), WebshopEngine.
+        НИЧЕГО про ClientNumber/ClientNumberList не отправляем.
         """
-        if self.password_format == "base64":
-            password = self._password_b64_string  # как строка
-        else:
-            password = self._password_bytes_array  # как byte[]
-
-        payload = {
+        return {
             "Username": self.username,
-            "Password": password,
+            "Password": list(self.password_bytes),   # sha512 digest как массив чисел 0..255
             "WebshopEngine": self.webshop_engine,
         }
-        if self.include_client_number_list and self.client_number:
-            payload["ClientNumberList"] = [int(self.client_number)]
-        return payload
 
-    def _post(self, method: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-        url = f"{self.base_url}/{method}"
-        body = {**self._auth_payload(), **payload}
-        last_exc = None
-        for attempt in range(self.retries):
+    # удобный алиас для сервис-слоя
+    def auth_base(self) -> Dict[str, Any]:
+        return self._auth_payload()
+
+    def debug_preview(self, payload: dict) -> dict:
+        preview = dict(payload)
+        if "Password" in preview:
+            preview["Password"] = "<bytes:{}>".format(len(self.password_bytes or b""))
+        if "ParcelList" in preview:
+            preview["ParcelList"] = f"<list:{len(preview['ParcelList'])}>"
+        return preview
+
+    def _post(self, method: str, body: Dict[str, Any]) -> Tuple[int, Dict[str, Any]]:
+        """
+        Универсальный POST: возвращает (status_code, json).
+        Тело запроса всегда включает auth-блок (Username/Password/WebshopEngine).
+        """
+        url = f"{self.base_json}/{method}"
+        payload = {**self._auth_payload(), **(body or {})}
+        last_exc: Optional[Exception] = None
+        for attempt in range(1, self.retries + 1):
             try:
-                resp = self.session.post(url, json=body, timeout=self.timeout)
-                if resp.status_code >= 400:
-                    raise_for_response(resp)
-                return resp.json()
+                r = self.session.post(url, json=payload, timeout=self.timeout)
+                try:
+                    data = r.json()
+                except Exception:
+                    data = {"raw": r.text}
+                return r.status_code, data
             except Exception as e:
                 last_exc = e
-                if attempt == self.retries - 1:
-                    raise
-                logger.warning("MyGLS POST %s failed (%s), retrying %d/%d", method, e, attempt + 1, self.retries)
+                logger.warning(
+                    "MyGLS POST %s failed (%s) attempt %d/%d",
+                    method, e, attempt, self.retries
+                )
         if last_exc:
             raise last_exc
-        raise RuntimeError("Unexpected MyGLS client state")
+        raise RuntimeError("Unexpected MyGlsClient state")

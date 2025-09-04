@@ -1,120 +1,164 @@
+from __future__ import annotations
+import os
+import base64
+
+from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
-
 from django.conf import settings
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
+from django.utils.timezone import now
 
 from .client import MyGlsClient
-from . import builders
-from .endpoints import print_labels, prepare_labels, get_printed_labels
 
 
 @dataclass
 class SimpleShipment:
-    client_reference: Optional[str]
-    sender: Dict[str, Any]
-    receiver: Dict[str, Any]
-    services: List[Dict[str, Any]]
-    properties: List[Dict[str, Any]]
-
-
-def _extract_parcel_numbers(print_info: Dict[str, Any]) -> List[str]:
-    if not isinstance(print_info, dict):
-        return []
-    candidates = []
-    for k in ("PrintLabelsInfoList", "PrintDataInfoList", "PrintedParcelInfoList", "ParcelInfoList"):
-        v = print_info.get(k)
-        if isinstance(v, list):
-            candidates.extend(v)
-    out = []
-    for it in candidates:
-        if isinstance(it, dict):
-            num = it.get("ParcelNumber") or it.get("ParcelNo") or it.get("Barcode")
-            if num:
-                out.append(str(num))
-    return out
+    parcel: Dict[str, Any]
+    type_of_printer: str = "A4_2x2"  # A4_2x2, A4_4x1, Connect, Thermo, ThermoZPL
 
 
 class MyGlsService:
     def __init__(self, client: Optional[MyGlsClient] = None):
         self.client = client or MyGlsClient.from_settings()
-        self.client_number = int(settings.MYGLS_CLIENT_NUMBER)
-        self.type_of_printer = settings.MYGLS_TYPE_OF_PRINTER or "A4_2x2"  # PDF по умолчанию
 
-    def build_parcel_payload(self, s: SimpleShipment) -> Dict[str, Any]:
-        return builders.build_parcel(
-            client_number=self.client_number,
-            pickup_address=s.sender,
-            delivery_address=s.receiver,
-            service_list=s.services,
-            properties=s.properties,
-            client_reference=s.client_reference,
-            pickup_date=None,
-        )
+    @classmethod
+    def from_settings(cls) -> "MyGlsService":
+        return cls(MyGlsClient.from_settings())
 
-    def create_and_print(
-        self,
-        shipments: List[SimpleShipment],
-        type_of_printer: Optional[str] = None,
-        print_position: int = 1,
-    ) -> Tuple[bytes, Dict[str, Any], List[str], List[Dict[str, Any]]]:
-        """
-        Возвращает (file_bytes, info, parcel_numbers, errors)
-        """
-        printer = (type_of_printer or self.type_of_printer)
-        parcel_list = [self.build_parcel_payload(s) for s in shipments]
-        file_bytes, info, errors = print_labels(self.client, parcel_list, printer, print_position=print_position)
-        numbers = _extract_parcel_numbers(info)
-        return file_bytes, info, numbers, errors
+    # единообразно вытаскиваем ошибки из разных ответов
+    @staticmethod
+    def _collect_errors(resp: Dict[str, Any]) -> List[Dict[str, Any]]:
+        out: List[Dict[str, Any]] = []
+        for key in (
+            "PrintLabelsErrorList",
+            "PrepareLabelsError",
+            "GetPrintedLabelsErrorList",
+            "GetParcelListErrors",
+            "GetParcelStatusErrors",
+        ):
+            if key in resp and resp[key]:
+                out.extend(resp[key] or [])
+        return out
 
-    def prepare_then_print(
-        self,
-        shipments: List[SimpleShipment],
-        type_of_printer: Optional[str] = None,
-        print_position: int = 1,
-    ) -> Tuple[bytes, Dict[str, Any], List[int], List[str], List[Dict[str, Any]]]:
-        """
-        Возвращает (file_bytes, info, parcel_ids, parcel_numbers, errors)
-        """
-        printer = (type_of_printer or self.type_of_printer)
-        parcel_list = [self.build_parcel_payload(s) for s in shipments]
-        ids, errors_prepare = prepare_labels(self.client, parcel_list)
-        file_bytes, info, errors_print = get_printed_labels(self.client, ids, printer, print_position=print_position)
-        numbers = _extract_parcel_numbers(info)
-        return file_bytes, info, ids, numbers, (errors_prepare + errors_print)
+    @staticmethod
+    def _ensure_dir(path: str) -> None:
+        os.makedirs(path, exist_ok=True)
 
-    def save_label_file(self, file_bytes: bytes, dirname: str = "shipping_labels/mygls", printer: Optional[str] = None) -> Tuple[str, str]:
-        p = (printer or self.type_of_printer).lower()
-        if p.startswith("a4_"):
-            ext = ".pdf"
-        elif p == "thermozpl":
-            ext = ".zpl"
+    def _save_labels(self, labels_any, type_of_printer: str, store_dir: str) -> Tuple[str, str]:
+        """
+        Принимает ярлык как:
+          - list[int]  -> bytes(labels_any)
+          - str (base64) -> base64.b64decode
+          - bytes/bytearray -> 그대로
+        Возвращает (abs_path, rel_url).
+        """
+        # нормализуем в bytes
+        if isinstance(labels_any, list):
+            raw = bytes(labels_any)
+        elif isinstance(labels_any, (bytes, bytearray)):
+            raw = bytes(labels_any)
+        elif isinstance(labels_any, str):
+            s = labels_any.strip()
+            # если вдруг прилетит уже текстовый PDF/ZPL (крайне маловероятно)
+            if s.startswith("%PDF") or s.startswith("^XA") or s.startswith("~D"):
+                raw = s.encode("latin1")
+            else:
+                raw = base64.b64decode(s)
         else:
-            # Thermo часто тоже PDF как Byte[], но на всякий случай оставим .pdf
-            ext = ".pdf"
-        from uuid import uuid4
-        name = f"{dirname}/{uuid4()}{ext}"
-        path = default_storage.save(name, ContentFile(file_bytes))
-        url = default_storage.url(path)
-        return path, url
+            raw = b""
+
+        ext = ".pdf"
+        if (type_of_printer or "").lower() == "thermozpl":
+            ext = ".zpl"
+
+        media_root = getattr(settings, "MEDIA_ROOT", ".")
+        media_url = getattr(settings, "MEDIA_URL", "/media/")
+        subdir = store_dir.strip("/")
+
+        out_dir = os.path.join(media_root, subdir)
+        os.makedirs(out_dir, exist_ok=True)
+
+        fname = f"mygls_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}{ext}"
+        abs_path = os.path.join(out_dir, fname)
+
+        with open(abs_path, "wb") as f:
+            f.write(raw or b"")
+
+        rel_url = f"{media_url.rstrip('/')}/{subdir}/{fname}"
+        return abs_path, rel_url
 
     def create_print_and_store(
         self,
         shipments: List[SimpleShipment],
-        store_dir: str = "shipping_labels/mygls",
-        type_of_printer: Optional[str] = None,
-        print_position: int = 1,
+        *,
+        store_dir: str = "dev/mygls_labels",
+        flow: str = "print",  # "print" | "prepare"
     ) -> Dict[str, Any]:
-        file_bytes, info, numbers, errors = self.create_and_print(
-            shipments, type_of_printer=type_of_printer, print_position=print_position
-        )
-        storage_path, url = self.save_label_file(file_bytes, store_dir, printer=(type_of_printer or self.type_of_printer))
+        """
+        flow="prepare" -> PrepareLabels
+        flow="print"   -> PrintLabels (в один шаг)
+        """
+        if not shipments:
+            return {"status": 400, "errors": [{"ErrorCode": 11, "ErrorDescription": "Parcel list is empty"}]}
+
+        # Для простоты выполняем по одному отправлению за запрос
+        last_status = 0
+        all_errors: List[Dict[str, Any]] = []
+        all_numbers: List[str] = []
+        last_url: Optional[str] = None
+        last_print_info: Dict[str, Any] = {}
+        used_printer = shipments[0].type_of_printer
+
+        for sh in shipments:
+            if flow == "prepare":
+                status, resp = self.client._post("PrepareLabels", {
+                    "ParcelList": sh.parcel.get("ParcelList", []),
+                })
+                errors = self._collect_errors(resp)
+                last_status = status
+                all_errors.extend(errors)
+                last_print_info = {
+                    "ParcelInfoList": resp.get("ParcelInfoList", []),
+                    "PrepareLabelsError": resp.get("PrepareLabelsError", []),
+                }
+                # Номеров и ярлыка тут нет
+                continue
+
+            # flow == "print"
+            status, resp = self.client._post("PrintLabels", {
+                "ParcelList": sh.parcel.get("ParcelList", []),
+                "TypeOfPrinter": sh.type_of_printer,
+            })
+            last_status = status
+            errors = self._collect_errors(resp)
+            all_errors.extend(errors)
+
+            # Номера
+            info_list = resp.get("PrintLabelsInfoList") or []
+            for it in info_list:
+                num = it.get("ParcelNumber")
+                if num:
+                    all_numbers.append(str(num))
+
+            # Ярлык
+            labels_b64 = resp.get("Labels")
+            if labels_b64:
+                _, url = self._save_labels(labels_b64, sh.type_of_printer, store_dir)
+                last_url = url
+
+            last_print_info = {
+                "PrintLabelsInfoList": info_list,
+                "GetPrintedLabelsErrorList": resp.get("GetPrintedLabelsErrorList", []),
+                "PrintLabelsErrorList": resp.get("PrintLabelsErrorList", []),
+            }
+
+        ok = (last_status == 200) and not all_errors
         return {
-            "parcel_numbers": numbers,
-            "storage_path": storage_path,
-            "url": url,
-            "print_info": info,
-            "errors": errors,
-            "printer": (type_of_printer or self.type_of_printer),
+            "status": last_status or 200,
+            "errors": all_errors,
+            "parcel_numbers": all_numbers,
+            "url": last_url,
+            "print_info": last_print_info,
+            "printer": used_printer,
+            "ts": now().isoformat(),
         }

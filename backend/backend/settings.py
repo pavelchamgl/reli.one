@@ -321,6 +321,27 @@ SEASONAL_SURCHARGE_ENABLED = os.getenv("SEASONAL_SURCHARGE_ENABLED")
 MYGLS_PASSWORD_FORMAT = "bytes"         # или base64
 MYGLS_INCLUDE_CLIENT_NUMBER_LIST = False
 
+MYGLS_PICKUP_NAME = os.getenv("MYGLS_PICKUP_NAME", "Reli Group s.r.o.")
+MYGLS_PICKUP_STREET = os.getenv("MYGLS_PICKUP_STREET", "Hlavni")
+MYGLS_PICKUP_HOUSE_NUMBER = os.getenv("MYGLS_PICKUP_HOUSE_NUMBER", "1")
+MYGLS_PICKUP_CITY = os.getenv("MYGLS_PICKUP_CITY", "Praha")
+MYGLS_PICKUP_ZIP = os.getenv("MYGLS_PICKUP_ZIP", "11000")
+MYGLS_PICKUP_COUNTRY_ISO = os.getenv("MYGLS_PICKUP_COUNTRY_ISO", "CZ")
+MYGLS_PICKUP_EMAIL = os.getenv("MYGLS_PICKUP_EMAIL", "warehouse@example.cz")
+MYGLS_PICKUP_PHONE = os.getenv("MYGLS_PICKUP_PHONE", "+420123456789")
+# --- MyGLS dev helpers ---
+MYGLS_AUTHCHECK_CACHE_SECONDS = int(os.getenv("MYGLS_AUTHCHECK_CACHE_SECONDS", 600))
+
+# Простейший in-memory кэш для дев-окружения
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "mygls-local-cache",
+        "TIMEOUT": None,
+    }
+}
+
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
