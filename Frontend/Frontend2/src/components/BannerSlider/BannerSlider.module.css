@@ -120,6 +120,7 @@
 }
 
 .videoWrapper .videoControls {
+  width: 100%;
   position: absolute;
   bottom: 10px;
   left: 30px;
@@ -197,12 +198,12 @@
   gap: 10px;
   position: absolute;
   right: 30px;
-  bottom: 10px;
+  bottom: 0px;
 }
 
 @media (max-width: 500px) {
   .noiseControl {
-    right: 15px;
+    right: 0px;
   }
 }
 

@@ -33,19 +33,7 @@ const BannerSlider = () => {
   const [images, setImages] = useState(
     [
       {
-        image_url: "https://i.pinimg.com/736x/e1/89/a4/e189a4788d1139978ef4a8d2c7244682.jpg",
-      },
-      {
-        image_url: `${isMobile ? "https://videos-5pe8.vercel.app/videos/292%D0%A5210.mp4" : "https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"}`,
-      },
-      {
-        image_url: "https://i.pinimg.com/736x/e1/89/a4/e189a4788d1139978ef4a8d2c7244682.jpg",
-      },
-      {
-        image_url: `${isMobile ? "https://videos-5pe8.vercel.app/videos/292%D0%A5210.mp4" : "https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"}`,
-      },
-      {
-        image_url: "https://i.pinimg.com/736x/e1/89/a4/e189a4788d1139978ef4a8d2c7244682.jpg",
+        image_url: "https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4",
       }
     ]
   )
@@ -58,12 +46,28 @@ const BannerSlider = () => {
     getBannerImg()
       .then((res) => {
         if (res.status === 200) {
-          setImages(res.data);
+          setImages([
+            ...res.data,
+            {
+              image_url: "https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"
+            }
+          ]);
         }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (images.length > 0) {
+      const initStates = {};
+      images.forEach((_, i) => {
+        initStates[i] = { paused: true, muted: true, volume: 0.5 };
+      });
+      setVideoStates(initStates);
+    }
+  }, [images]);
+
 
 
   const isImage = (url) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
@@ -143,8 +147,9 @@ const BannerSlider = () => {
               nextEl: nextRef.current,
             }}
             autoplay={{
-              delay: 6000, // каждые 3 секунды
-              disableOnInteraction: false // автоплей не останавливается при взаимодействии
+              delay: 6000, // работает только для картинок
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
             }}
             pagination={{
               el: paginationRef.current,
@@ -161,19 +166,50 @@ const BannerSlider = () => {
                 swiper.pagination.update();
               });
 
-              swiper.on("slideChangeTransitionEnd", () => {
-                const activeIndex = swiper.activeIndex;
+              swiper.on("slideChange", () => {
+                const realIndex = swiper.realIndex;
+                const activeSlide = images[realIndex];
 
-                videoRefs.current.forEach((video, index) => {
+                if (isVideo(activeSlide?.image_url)) {
+                  swiper.autoplay.stop();
+
+                  const video = videoRefs.current[realIndex];
                   if (video) {
-                    if (index === activeIndex) {
-                      video.play().then(() => {
+                    video.currentTime = 0;
+                    video.muted = true;
+                    video.play()
+                      .then(() => {
                         setVideoStates((prev) => ({
                           ...prev,
-                          [index]: { ...prev[index], paused: false },
+                          [realIndex]: { ...prev[realIndex], paused: false },
                         }));
-                      }).catch(() => { });
-                    } else {
+                      })
+                      .catch(() => { });
+
+                    video.onpause = () => {
+                      setVideoStates((prev) => ({
+                        ...prev,
+                        [realIndex]: { ...prev[realIndex], paused: true },
+                      }));
+                    };
+                    video.onplay = () => {
+                      setVideoStates((prev) => ({
+                        ...prev,
+                        [realIndex]: { ...prev[realIndex], paused: false },
+                      }));
+                    };
+
+                    video.onended = () => {
+                      swiper.slideNext();
+                      swiper.autoplay.start();
+                    };
+                  }
+                } else {
+                  swiper.autoplay.start();
+
+                  // стопаем все видео
+                  videoRefs.current.forEach((video, index) => {
+                    if (video) {
                       video.pause();
                       video.currentTime = 0;
                       setVideoStates((prev) => ({
@@ -181,9 +217,11 @@ const BannerSlider = () => {
                         [index]: { ...prev[index], paused: true },
                       }));
                     }
-                  }
-                });
+                  });
+                }
               });
+
+
 
             }}
           >
@@ -203,31 +241,61 @@ const BannerSlider = () => {
                       src={item.image_url}
                       autoPlay
                       muted
-                      loop={true}
                       playsInline
                       className={styles.bannerVideo}
                     />
                     <div className={styles.videoControls}>
                       <button onClick={() => togglePlay(index)}>
-                        <img src={
-                          videoStates[index]?.paused !== false ? play : stop
-                        } alt="" />
+                        <img
+                          src={videoStates[index]?.paused ? play : stop}
+                          alt={videoStates[index]?.paused ? "Play" : "Stop"}
+                        />
                       </button>
-                      <button onClick={() => toggleMute(index)}>
-                        <img src={
-                          videoStates[index]?.muted !== false ? mute : unmute
-                        } alt="" />
-                      </button>
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        value={videoStates[index]?.volume ?? 0.5}
-                        onChange={(e) =>
-                          setVolume(index, parseFloat(e.target.value))
-                        }
-                      />
+
+                      {
+                        isMobile ?
+                          <div className={styles.noiseControl}>
+                            <button onClick={() => toggleMute(index)}>
+                              <img
+                                src={videoStates[index]?.muted ? mute : unmute}
+                                alt={videoStates[index]?.muted ? "Muted" : "Unmuted"}
+                              />
+                            </button>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.01"
+                              value={videoStates[index]?.volume ?? 0.5}
+                              onChange={(e) =>
+                                setVolume(index, parseFloat(e.target.value))
+                              }
+                            />
+                          </div>
+                          :
+                          (
+                            <>
+                              <button onClick={() => toggleMute(index)}>
+                                <img
+                                  src={videoStates[index]?.muted ? mute : unmute}
+                                  alt={videoStates[index]?.muted ? "Muted" : "Unmuted"}
+                                />
+                              </button>
+                              <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={videoStates[index]?.volume ?? 0.5}
+                                onChange={(e) =>
+                                  setVolume(index, parseFloat(e.target.value))
+                                }
+                              />
+                            </>
+                          )
+
+                      }
+
                     </div>
                   </div>
                 ) : (
