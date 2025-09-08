@@ -82,10 +82,11 @@ const BannerSlider = () => {
 
     useEffect(() => {
         setSwiperReady(true);
-        setVideoStates((prev) => ({
-            ...prev,
-            [0]: { ...prev[0], paused: false },
-        }));
+        const initialStates = {};
+        images.forEach((_, i) => {
+            initialStates[i] = { paused: false, muted: true, volume: 0.5 };
+        });
+        setVideoStates(initialStates);
     }, []);
 
     return (
@@ -176,24 +177,51 @@ const BannerSlider = () => {
                                                 videoStates[index]?.paused !== false ? play : stop
                                             } alt="" />
                                         </button>
+                                        {
+                                            isMobile ?
+                                                <div className={styles.noiseControl}>
+                                                    <button onClick={() => toggleMute(index)}>
+                                                        <img
+                                                            src={videoStates[index]?.muted ? mute : unmute}
+                                                            alt={videoStates[index]?.muted ? "Muted" : "Unmuted"}
+                                                        />
+                                                    </button>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                        value={videoStates[index]?.volume ?? 0.5}
+                                                        onChange={(e) =>
+                                                            setVolume(index, parseFloat(e.target.value))
+                                                        }
+                                                    />
+                                                </div>
+                                                :
+                                                (
+                                                    <>
+                                                        <button onClick={() => toggleMute(index)}>
+                                                            <img
+                                                                src={videoStates[index]?.muted ? mute : unmute}
+                                                                alt={videoStates[index]?.muted ? "Muted" : "Unmuted"}
+                                                            />
+                                                        </button>
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max="1"
+                                                            step="0.01"
+                                                            value={videoStates[index]?.volume ?? 0.5}
+                                                            onChange={(e) =>
+                                                                setVolume(index, parseFloat(e.target.value))
+                                                            }
+                                                        />
+                                                    </>
+                                                )
+
+                                        }
                                     </div>
-                                    <div className={styles.noiseControl}>
-                                        <button onClick={() => toggleMute(index)}>
-                                            <img src={
-                                                videoStates[index]?.muted !== false ? mute : unmute
-                                            } alt="" />
-                                        </button>
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="1"
-                                            step="0.01"
-                                            value={videoStates[index]?.volume ?? 0.5}
-                                            onChange={(e) =>
-                                                setVolume(index, parseFloat(e.target.value))
-                                            }
-                                        />
-                                    </div>
+
                                 </div>
                             ) : (
                                 <div className={styles.buttonSlide} style={{ backgroundImage: `url(${"https://i.pinimg.com/1200x/30/ce/7d/30ce7d788a7b25e0b70cacca7272f063.jpg"})` }}>

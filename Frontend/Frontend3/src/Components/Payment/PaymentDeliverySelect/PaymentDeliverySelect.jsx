@@ -9,17 +9,20 @@ import {
 import arrRight from "../../../assets/Payment/arrRight.svg";
 import arrBottom from "../../../assets/Payment/arrBottom.svg";
 import paketa from "../../../assets/Payment/PaketaImage.svg";
+import gls from "../../../assets/Payment/gls.png";
 import styles from "./PaymentDeliverySelect.module.scss";
 import PacketaWidget from "../PaketaWidget/PaketaWidget.jsx";
 import { useSelector } from "react-redux";
 import { useActionPayment } from "../../../hook/useActionPayment.js";
 import { t } from "i18next";
+import GlsWidget from "../GplsWidget/GplsWidget.jsx";
 
 const PaymentDeliverySelect = ({ sellerId, group }) => {
   const [selectedValue, setSelectedValue] = useState("");
   const [openPoint, setOpenPoint] = useState(false);
   const [openDH, setOpenDH] = useState(false);
   const [paketaOpen, setPaketaOpen] = useState(false);
+  const [glsOpen, setGlsOpen] = useState(false);
 
   const [isNotChoosePoint, setIsNotChoosePoint] = useState(false)
 
@@ -107,6 +110,28 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                 </div>
                 <p className={styles.price}>{pointPrice?.priceWithVat} €</p>
               </div>
+              <div
+                className={styles.selectBlock}
+                onClick={() => {
+                  setSelectedValue("delivery_point");
+                  setGlsOpen(true);
+
+                  // запускаем GLS widget
+                  if (window.findGlsPs) {
+                    window.findGlsPs();
+                  }
+                }}
+              >
+                <div className={styles.radioImageDiv}>
+                  <FormControlLabel
+                    value="delivery_point"
+                    control={<Radio color="success" />}
+                    label={<img src={gls} alt="gls" />}
+                  />
+                </div>
+                <p className={styles.price}>{pointPrice?.priceWithVat} €</p>
+              </div>
+
             </div>
 
             {/* Courier Delivery Group */}
@@ -150,6 +175,19 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
           </RadioGroup>
         </FormControl>
 
+        <GlsWidget
+          sellerId={sellerId}
+          open={glsOpen}
+          setOpen={setGlsOpen}
+          onSelect={(point) => {
+            setDeliveryType({
+              deliveryType: "delivery_point",
+              sellerId,
+              deliveryPrice: pointPrice?.priceWithVat,
+              pointInfo: point, // сюда кладём результат GLS
+            });
+          }}
+        />
         <PacketaWidget setIsNotChoose={setIsNotChoosePoint} sellerId={sellerId} open={paketaOpen} setOpen={setPaketaOpen} />
       </div>
     );

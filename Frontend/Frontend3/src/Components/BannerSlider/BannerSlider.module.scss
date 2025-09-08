@@ -14,10 +14,15 @@
 
     height: 270px !important;
   }
-  @media (max-width: 401px) {
+
+  @media (max-width: 400px) {
     width: calc(100% - 20px) !important;
 
-    height: 205px !important;
+    height: 270px !important;
+  }
+
+  @media (min-width: 1550px) {
+    height: calc(100% + 50px) !important;
   }
 }
 
@@ -34,20 +39,35 @@
   }
   @media (max-width: 401px) {
     object-fit: contain;
-    height: 160px !important;
+    height: 190px !important;
+  }
+  @media (max-width: 361px) {
+    object-fit: contain;
+    height: 150px !important;
+  }
+  @media (min-width: 1550px) {
+    object-fit: cover;
+    height: auto !important;
+    padding-top: 30px;
+    padding-bottom: 40px;
   }
 }
 
 .bannerVideo {
-  width: calc(100vw - 200px) !important;
+  width: 100%;
   height: 400px !important;
   object-fit: cover;
   // width: 100% !important;
   // height: 400px !important;
   // object-fit: contain;
   @media (max-width: 500px) {
-    width: calc(100vw - 10px) !important;
     height: 210px !important;
+  }
+  @media (min-width: 1550px) {
+    object-fit: cover;
+    height: auto !important;
+    padding-top: 30px;
+    padding-bottom: 40px;
   }
 }
 
@@ -117,13 +137,17 @@
   }
 
   .videoControls {
+    width: 100%;
     position: absolute;
-    bottom: 10px;
+    bottom: 60px;
     left: 30px;
     display: flex;
     gap: 10px;
     z-index: 10;
     align-items: center;
+    @media (max-width: 1550px) {
+      bottom: 20px;
+    }
     @media (max-width: 500px) {
       left: 15px;
     }
@@ -184,4 +208,39 @@
     font-size: 20px;
     border-radius: 10px;
   }
+}
+
+.noiseControl {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 30px;
+  bottom: 0px;
+  @media (max-width: 500px) {
+    right: 0px;
+  }
+}
+
+.noiseControl input {
+  writing-mode: bt-lr;
+  /* Вертикальное направление */
+  -webkit-appearance: slider-vertical;
+  /* Для Safari */
+  width: 8px;
+  /* толщина */
+  height: 100px;
+  /* высота */
+  accent-color: #3f7f6d;
+}
+
+.noiseControl button {
+  width: 45px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
 }

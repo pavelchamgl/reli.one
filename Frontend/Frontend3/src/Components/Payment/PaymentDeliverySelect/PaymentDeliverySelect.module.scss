@@ -6,6 +6,10 @@
   padding: 0 21px;
   border: 1px solid #ced4d7;
   background-color: white;
+
+  & img{
+    height: 25px;
+  }
 }
 .freeText {
   font-weight: 600;
