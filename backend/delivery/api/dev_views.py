@@ -16,7 +16,6 @@ from delivery.providers.mygls import builders
 logger = logging.getLogger(__name__)
 
 
-
 # ---------- Serializers ----------
 
 class ShipSerializer(serializers.Serializer):
@@ -86,7 +85,6 @@ def _brief_addr(a: dict) -> dict:
         "ContactEmail": _mask_email(a.get("ContactEmail")),
         "ContactPhone": _mask_phone(a.get("ContactPhone")),
     }
-
 
 
 # ---------- Views ----------
