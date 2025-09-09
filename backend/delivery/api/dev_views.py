@@ -1,3 +1,5 @@
+import logging
+
 from uuid import uuid4
 from typing import Optional, List, Dict, Any
 
@@ -10,6 +12,9 @@ from rest_framework.permissions import AllowAny
 from delivery.providers.mygls.client import MyGlsClient
 from delivery.providers.mygls.service import MyGlsService, SimpleShipment
 from delivery.providers.mygls import builders
+
+logger = logging.getLogger(__name__)
+
 
 
 # ---------- Serializers ----------
@@ -50,6 +55,40 @@ class ShipSerializer(serializers.Serializer):
         return attrs
 
 
+# ---------- Small helpers for safe logs ----------
+
+def _mask_email(s: str | None) -> str:
+    if not s:
+        return ""
+    local, _, domain = s.partition("@")
+    return (local[:2] + "***@" + domain) if domain else "***"
+
+
+def _mask_phone(s: str | None) -> str:
+    if not s:
+        return ""
+    d = "".join(ch for ch in s if ch.isdigit())
+    if len(d) <= 3:
+        return "***"
+    return f"{'*'*(len(d)-3)}{d[-3:]}"
+
+
+def _brief_addr(a: dict) -> dict:
+    return {
+        "Name": a.get("Name"),
+        "Street": a.get("Street"),
+        "HouseNumber": a.get("HouseNumber"),
+        "HouseNumberInfo": a.get("HouseNumberInfo"),
+        "City": a.get("City"),
+        "ZipCode": a.get("ZipCode"),
+        "CountryIsoCode": a.get("CountryIsoCode"),
+        "ContactName": a.get("ContactName"),
+        "ContactEmail": _mask_email(a.get("ContactEmail")),
+        "ContactPhone": _mask_phone(a.get("ContactPhone")),
+    }
+
+
+
 # ---------- Views ----------
 
 class DevShipMyGLS(APIView):
@@ -78,6 +117,12 @@ class DevShipMyGLS(APIView):
         s = ShipSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         d = s.validated_data
+
+        corr_id = uuid4().hex[:8]
+        logger.info(
+            "GLS DEV ship start id=%s mode=%s ref=%s printer=%s",
+            corr_id, d["mode"], d.get("client_reference"), d.get("type_of_printer") or "A4_2x2"
+        )
 
         # 1) Адрес отправителя
         pickup_addr = self._sender_from_settings()
@@ -109,7 +154,13 @@ class DevShipMyGLS(APIView):
         if d["mode"] == "pudo":
             services.append(builders.build_service_psd(d["pickup_point_id"]))
 
-        # 5) Собираем Parcel (билдер ожидает именованные аргументы)
+        logger.debug("id=%s PickupAddress=%s", corr_id, _brief_addr(pickup_addr))
+        logger.debug("id=%s DeliveryAddress=%s", corr_id, _brief_addr(delivery_addr))
+        logger.debug("id=%s ParcelProperties=%s", corr_id, props)
+        if services:
+            logger.debug("id=%s Services=%s", corr_id, services)
+
+        # 5) Собираем Parcel
         client_number: Optional[str] = getattr(settings, "MYGLS_CLIENT_NUMBER", None)
         client_reference = d.get("client_reference") or f"DEV-{uuid4().hex[:8]}"
         parcel = builders.build_parcel(
@@ -124,12 +175,24 @@ class DevShipMyGLS(APIView):
         # 6) Печать / сохранение ярлыков
         svc = MyGlsService()
         type_of_printer = (d.get("type_of_printer") or getattr(settings, "MYGLS_TYPE_OF_PRINTER", "A4_2x2")) or "A4_2x2"
+        logger.info("GLS DEV PrintLabels call id=%s", corr_id)
         result = svc.create_print_and_store(
             [SimpleShipment(parcel=parcel, type_of_printer=type_of_printer)],
             store_dir="dev/mygls_labels",
         )
 
         ok = (result.get("status") == 200) and not result.get("errors")
+        if ok:
+            logger.info(
+                "GLS DEV ship OK id=%s nums=%s file=%s",
+                corr_id, result.get("parcel_numbers"), result.get("url"),
+            )
+        else:
+            logger.error(
+                "GLS DEV ship FAIL id=%s status=%s errors=%s",
+                corr_id, result.get("status"), result.get("errors"),
+            )
+
         return Response(
             {
                 "ok": bool(ok),
@@ -161,6 +224,8 @@ class DevMyGLSAuthCheck(APIView):
             payload = r.json()
         except Exception:
             payload = {"raw": r.text[:800]}
+
+        logger.info("GLS DEV authcheck → status=%s base=%s", r.status_code, client.base_json)
 
         debug = {
             "username": client.username,

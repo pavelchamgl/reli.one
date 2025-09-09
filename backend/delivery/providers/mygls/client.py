@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 import requests
 import base64, binascii, hashlib, logging
 
@@ -143,11 +144,17 @@ class MyGlsClient:
         last_exc: Optional[Exception] = None
         for attempt in range(1, self.retries + 1):
             try:
+                t0 = time.perf_counter()
                 r = self.session.post(url, json=payload, timeout=self.timeout)
+                dt = (time.perf_counter() - t0) * 1000
                 try:
                     data = r.json()
                 except Exception:
                     data = {"raw": r.text}
+                logger.debug(
+                    "MyGLS POST %s status=%s ms=%.1f attempt=%s timeout=%s body_keys=%s",
+                    method, r.status_code, dt, attempt, self.timeout, list(payload.keys())
+                )
                 return r.status_code, data
             except Exception as e:
                 last_exc = e

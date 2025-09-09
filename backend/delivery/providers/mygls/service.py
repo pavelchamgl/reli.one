@@ -1,6 +1,9 @@
 from __future__ import annotations
+
 import os
+import time
 import base64
+import logging
 
 from datetime import datetime
 from dataclasses import dataclass
@@ -9,6 +12,8 @@ from django.conf import settings
 from django.utils.timezone import now
 
 from .client import MyGlsClient
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -85,6 +90,7 @@ class MyGlsService:
             f.write(raw or b"")
 
         rel_url = f"{media_url.rstrip('/')}/{subdir}/{fname}"
+        logger.info("GLS label saved: path=%s bytes=%s", abs_path, len(raw or b""))
         return abs_path, rel_url
 
     def create_print_and_store(
@@ -101,6 +107,11 @@ class MyGlsService:
         if not shipments:
             return {"status": 400, "errors": [{"ErrorCode": 11, "ErrorDescription": "Parcel list is empty"}]}
 
+        logger.info(
+            "GLS create_print_and_store start: flow=%s count=%s printer=%s",
+            flow, len(shipments), shipments[0].type_of_printer if shipments else None,
+        )
+
         # Для простоты выполняем по одному отправлению за запрос
         last_status = 0
         all_errors: List[Dict[str, Any]] = []
@@ -108,6 +119,8 @@ class MyGlsService:
         last_url: Optional[str] = None
         last_print_info: Dict[str, Any] = {}
         used_printer = shipments[0].type_of_printer
+
+        t0 = time.perf_counter()
 
         for sh in shipments:
             if flow == "prepare":
@@ -121,7 +134,8 @@ class MyGlsService:
                     "ParcelInfoList": resp.get("ParcelInfoList", []),
                     "PrepareLabelsError": resp.get("PrepareLabelsError", []),
                 }
-                # Номеров и ярлыка тут нет
+                if errors:
+                    logger.warning("GLS PrepareLabels errors=%s", errors)
                 continue
 
             # flow == "print"
@@ -139,6 +153,10 @@ class MyGlsService:
                 num = it.get("ParcelNumber")
                 if num:
                     all_numbers.append(str(num))
+                    logger.info(
+                        "GLS parcel registered: ref=%s id=%s num=%s",
+                        it.get("ClientReference"), it.get("ParcelId"), it.get("ParcelNumber"),
+                    )
 
             # Ярлык
             labels_b64 = resp.get("Labels")
@@ -146,11 +164,25 @@ class MyGlsService:
                 _, url = self._save_labels(labels_b64, sh.type_of_printer, store_dir)
                 last_url = url
 
+            if errors:
+                for e in errors:
+                    logger.warning(
+                        "GLS PrintLabels error: code=%s desc=%s refs=%s parcels=%s",
+                        e.get("ErrorCode"), e.get("ErrorDescription"),
+                        e.get("ClientReferenceList"), e.get("ParcelIdList"),
+                    )
+
             last_print_info = {
                 "PrintLabelsInfoList": info_list,
                 "GetPrintedLabelsErrorList": resp.get("GetPrintedLabelsErrorList", []),
                 "PrintLabelsErrorList": resp.get("PrintLabelsErrorList", []),
             }
+
+        ms = (time.perf_counter() - t0) * 1000
+        logger.info(
+            "GLS create_print_and_store done: status=%s ms=%.1f numbers=%s url=%s errors=%s",
+            last_status, ms, all_numbers, last_url, bool(all_errors),
+        )
 
         ok = (last_status == 200) and not all_errors
         return {
