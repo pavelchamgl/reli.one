@@ -398,6 +398,11 @@ LOGGING = {
         },
     },
     'loggers': {
+        'django.db.backends': {
+            'handlers': ['debug_file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
         'django': {
             'handlers': ['error_file', 'debug_file'],
             'level': 'DEBUG',

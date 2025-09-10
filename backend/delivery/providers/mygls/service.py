@@ -45,10 +45,6 @@ class MyGlsService:
                 out.extend(resp[key] or [])
         return out
 
-    @staticmethod
-    def _ensure_dir(path: str) -> None:
-        os.makedirs(path, exist_ok=True)
-
     def _save_labels(self, labels_any, type_of_printer: str, store_dir: str) -> Tuple[str, str]:
         """
         Принимает ярлык как:
@@ -99,6 +95,7 @@ class MyGlsService:
         *,
         store_dir: str = "dev/mygls_labels",
         flow: str = "print",  # "print" | "prepare"
+        corr_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         flow="prepare" -> PrepareLabels
@@ -108,8 +105,9 @@ class MyGlsService:
             return {"status": 400, "errors": [{"ErrorCode": 11, "ErrorDescription": "Parcel list is empty"}]}
 
         logger.info(
-            "GLS create_print_and_store start: flow=%s count=%s printer=%s",
-            flow, len(shipments), shipments[0].type_of_printer if shipments else None,
+            "GLS create_print_and_store start id=%s flow=%s count=%s printer=%s",
+            corr_id, flow, len(shipments),
+            shipments[0].type_of_printer if shipments else None
         )
 
         # Для простоты выполняем по одному отправлению за запрос
@@ -126,7 +124,7 @@ class MyGlsService:
             if flow == "prepare":
                 status, resp = self.client._post("PrepareLabels", {
                     "ParcelList": sh.parcel.get("ParcelList", []),
-                })
+                }, corr_id=corr_id)
                 errors = self._collect_errors(resp)
                 last_status = status
                 all_errors.extend(errors)
@@ -142,7 +140,7 @@ class MyGlsService:
             status, resp = self.client._post("PrintLabels", {
                 "ParcelList": sh.parcel.get("ParcelList", []),
                 "TypeOfPrinter": sh.type_of_printer,
-            })
+            }, corr_id=corr_id)
             last_status = status
             errors = self._collect_errors(resp)
             all_errors.extend(errors)
@@ -164,6 +162,21 @@ class MyGlsService:
                 _, url = self._save_labels(labels_b64, sh.type_of_printer, store_dir)
                 last_url = url
 
+            # Контроль расхождений между InfoList и Labels
+            if info_list and not labels_b64:
+                logger.warning(
+                    "GLS response mismatch id=%s: have PrintLabelsInfoList (%d) but no Labels",
+                    corr_id, len(info_list)
+                )
+
+            if labels_b64 and not info_list:
+                size_hint = (len(labels_b64) if isinstance(labels_b64, list) else None)
+                logger.warning(
+                    "GLS response mismatch id=%s: have Labels%s but empty PrintLabelsInfoList",
+                    corr_id,
+                    f'[{size_hint}]' if size_hint is not None else ""
+                )
+
             if errors:
                 for e in errors:
                     logger.warning(
@@ -180,10 +193,8 @@ class MyGlsService:
 
         ms = (time.perf_counter() - t0) * 1000
         logger.info(
-            "GLS create_print_and_store done: status=%s ms=%.1f numbers=%s url=%s errors=%s",
-            last_status, ms, all_numbers, last_url, bool(all_errors),
-        )
-
+            "GLS create_print_and_store done id=%s status=%s ms=%.1f numbers=%s url=%s errors=%s",
+            corr_id, last_status, ms, all_numbers, last_url, bool(all_errors))
         ok = (last_status == 200) and not all_errors
         return {
             "status": last_status or 200,

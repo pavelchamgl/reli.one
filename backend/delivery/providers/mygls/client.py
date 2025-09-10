@@ -91,6 +91,7 @@ class MyGlsClient:
         self.session.headers.update({
             "Content-Type": "application/json",
             "Accept": "application/json",
+            "User-Agent": f"CZShop-MyGLS/1.0 ({self.webshop_engine})",
         })
 
         # Жёстко валидируем, чтоб не было "Webshop engine is required!"
@@ -134,7 +135,7 @@ class MyGlsClient:
             preview["ParcelList"] = f"<list:{len(preview['ParcelList'])}>"
         return preview
 
-    def _post(self, method: str, body: Dict[str, Any]) -> Tuple[int, Dict[str, Any]]:
+    def _post(self, method: str, body: Dict[str, Any], corr_id: Optional[str] = None) -> Tuple[int, Dict[str, Any]]:
         """
         Универсальный POST: возвращает (status_code, json).
         Тело запроса всегда включает auth-блок (Username/Password/WebshopEngine).
@@ -142,26 +143,68 @@ class MyGlsClient:
         url = f"{self.base_json}/{method}"
         payload = {**self._auth_payload(), **(body or {})}
         last_exc: Optional[Exception] = None
+
         for attempt in range(1, self.retries + 1):
             try:
                 t0 = time.perf_counter()
                 r = self.session.post(url, json=payload, timeout=self.timeout)
                 dt = (time.perf_counter() - t0) * 1000
+
                 try:
                     data = r.json()
                 except Exception:
                     data = {"raw": r.text}
+
+                status_code = r.status_code
+
+                # Телеметрия в DEBUG — всегда
                 logger.debug(
-                    "MyGLS POST %s status=%s ms=%.1f attempt=%s timeout=%s body_keys=%s",
-                    method, r.status_code, dt, attempt, self.timeout, list(payload.keys())
+                    "id=%s MyGLS POST %s status=%s ms=%.1f attempt=%s timeout=%s body_keys=%s",
+                    corr_id or "-", method, status_code, dt, attempt, self.timeout, list(payload.keys())
                 )
-                return r.status_code, data
+
+                # 5xx → можно повторить (кроме последней попытки)
+                if 500 <= status_code < 600:
+                    if attempt < self.retries:
+                        logger.warning(
+                            "id=%s MyGLS POST %s HTTP_%s ms=%.1f retry %d/%d",
+                            corr_id or "-", method, status_code, dt, attempt, self.retries
+                        )
+                        continue
+                    else:
+                        logger.warning(
+                            "id=%s MyGLS POST %s HTTP_%s ms=%.1f (final attempt)",
+                            corr_id or "-", method, status_code, dt
+                        )
+
+                # 4xx → просто подсветить
+                elif status_code >= 400:
+                    logger.warning(
+                        "id=%s MyGLS POST %s HTTP_%s ms=%.1f",
+                        corr_id or "-", method, status_code, dt
+                    )
+
+                return status_code, data
+
+            except requests.Timeout as e:
+                last_exc = e
+                logger.warning(
+                    "id=%s MyGLS POST %s timeout after %ss (url=%s) attempt %d/%d",
+                    corr_id or "-", method, self.timeout, url, attempt, self.retries
+                )
+                # после таймаута пробуем ещё раз, если есть попытки
+                continue
+
             except Exception as e:
                 last_exc = e
                 logger.warning(
-                    "MyGLS POST %s failed (%s) attempt %d/%d",
-                    method, e, attempt, self.retries
+                    "id=%s MyGLS POST %s failed (%s) attempt %d/%d",
+                    corr_id or "-", method, e, attempt, self.retries
                 )
+                # для сетевых/прочих ошибок тоже даём шанс ретрая
+                continue
+
+        # Если все попытки исчерпаны — бросаем последнюю ошибку
         if last_exc:
             raise last_exc
         raise RuntimeError("Unexpected MyGlsClient state")

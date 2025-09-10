@@ -66,10 +66,11 @@ def _mask_email(s: str | None) -> str:
 def _mask_phone(s: str | None) -> str:
     if not s:
         return ""
-    d = "".join(ch for ch in s if ch.isdigit())
-    if len(d) <= 3:
+    digits = "".join(ch for ch in s if ch.isdigit())
+    if len(digits) <= 3:
         return "***"
-    return f"{'*'*(len(d)-3)}{d[-3:]}"
+    prefix = "+" if s.strip().startswith("+") else ""
+    return f"{prefix}{'*'*(len(digits)-3)}{digits[-3:]}"
 
 
 def _brief_addr(a: dict) -> dict:
@@ -177,6 +178,7 @@ class DevShipMyGLS(APIView):
         result = svc.create_print_and_store(
             [SimpleShipment(parcel=parcel, type_of_printer=type_of_printer)],
             store_dir="dev/mygls_labels",
+            corr_id=corr_id,
         )
 
         ok = (result.get("status") == 200) and not result.get("errors")
@@ -200,6 +202,7 @@ class DevShipMyGLS(APIView):
                 "print_info": result.get("print_info"),
                 "errors": result.get("errors") or [],
                 "printer": result.get("printer"),
+                "debug_id": corr_id,
             },
             status=status.HTTP_200_OK if ok else status.HTTP_400_BAD_REQUEST,
         )
