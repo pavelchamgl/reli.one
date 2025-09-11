@@ -29,7 +29,7 @@ class DeliveryParcel(models.Model):
 
     def label_link(self):
         if self.label_url:
-            return format_html('<a href="{}" target="_blank">Скачать PDF</a>', self.label_url)
+            return format_html('<a href="{}" target="_blank">Скачать PDF</a>', self.label_file.url)
         return "Нет"
     label_link.short_description = "Этикетка"
 
@@ -84,3 +84,11 @@ class ShippingRate(models.Model):
         default="5",
         help_text="Weight limit for the shipping rate"
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["courier_service", "country", "channel", "category", "weight_limit"],
+                name="uniq_rate_per_courier_country_channel_category_weight"
+            )
+        ]
