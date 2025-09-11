@@ -59,6 +59,8 @@ class CourierService(models.Model):
     )
     code = models.CharField(
         max_length=50,
+        unique=True,
+        db_index=True,
         null=True,
         blank=True,
         help_text="Уникальный код службы (например, packeta, zasilkovna)"
