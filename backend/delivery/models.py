@@ -11,6 +11,7 @@ class DeliveryParcel(models.Model):
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     service = models.ForeignKey(CourierService, on_delete=models.PROTECT)
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    # TODO: при переходе GLS — можно сделать upload_to='labels/'
     label_file = models.FileField(upload_to='packeta_labels/', null=True, blank=True)
     weight_grams = models.PositiveIntegerField()
     parcel_index = models.PositiveIntegerField(
@@ -18,7 +19,8 @@ class DeliveryParcel(models.Model):
         help_text="Порядковый номер посылки в рамках заказа",
     )
     shipping_price = models.DecimalField(
-        max_digits=10, decimal_places=2,
+        max_digits=10,
+        decimal_places=2,
         help_text="Стоимость доставки для этой посылки",
     )
     status = models.CharField(max_length=50, default="created")
@@ -28,7 +30,7 @@ class DeliveryParcel(models.Model):
         return f"Parcel #{self.pk} for Order {self.order.order_number}"
 
     def label_link(self):
-        if self.label_url:
+        if self.label_file:
             return format_html('<a href="{}" target="_blank">Скачать PDF</a>', self.label_file.url)
         return "Нет"
     label_link.short_description = "Этикетка"
@@ -58,12 +60,25 @@ class DeliveryAddress(models.Model):
 class ShippingRate(models.Model):
     CHANNELS = [('PUDO', 'Pick-up point'), ('HD', 'Home Delivery')]
     CATEGORIES = [('standard', 'Standard'), ('oversized', 'Oversized')]
+    ADDRESS_BUNDLE = [('one', '1 parcel / address'), ('multi', '2+ parcels / address')]
+
+    WEIGHT_LIMITS = (
+        ("1", "up to 1 kg"),
+        ("2", "up to 2 kg"),
+        ("5", "up to 5 kg"),
+        ("10", "up to 10 kg"),
+        ("15", "up to 15 kg"),
+        # для GLS добавляем ступени 20 и 31.5
+        ("20", "up to 20 kg"),
+        ("31_5", "up to 31.5 kg"),
+        ("over_limit", "over limit"),
+    )
 
     courier_service = models.ForeignKey(
         CourierService,
         on_delete=models.CASCADE,
         related_name='shipping_rates',
-        help_text="Courier service this rate belongs to"
+        help_text='Courier service this rate belongs to',
     )
     country = models.CharField(max_length=2)
     channel = models.CharField(max_length=4, choices=CHANNELS)
@@ -73,22 +88,46 @@ class ShippingRate(models.Model):
     estimate = models.CharField(max_length=50, blank=True)
     weight_limit = models.CharField(
         max_length=10,
-        choices=(
-            ("1", "up to 1 kg"),
-            ("2", "up to 2 kg"),
-            ("5", "up to 5 kg"),
-            ("10", "up to 10 kg"),
-            ("15", "up to 15 kg"),
-            ("over_limit", "over limit"),
-        ),
+        choices=WEIGHT_LIMITS,
         default="5",
-        help_text="Weight limit for the shipping rate"
+        help_text="Weight limit for the shipping rate",
+    )
+    # GLS: различие цены для 1 посылки на адрес и 2+ (BusinessParcel).
+    # Для Zásilkovna 'one' по умолчанию.
+    address_bundle = models.CharField(
+        max_length=8,
+        choices=ADDRESS_BUNDLE,
+        default="one",
+        blank=True,
+        help_text="GLS BusinessParcel: 1 vs 2+ parcels to the same address/date",
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["courier_service", "country", "channel", "category", "weight_limit"],
-                name="uniq_rate_per_courier_country_channel_category_weight"
+                fields=[
+                    "courier_service",
+                    "country",
+                    "channel",
+                    "category",
+                    "weight_limit",
+                    "address_bundle",
+                ],
+                name="uniq_rate_per_courier_country_channel_category_weight_bundle",
             )
         ]
+        indexes = [
+            models.Index(
+                fields=[
+                    "courier_service",
+                    "country",
+                    "channel",
+                    "category"
+                ],
+                name="rate_cccc_idx"
+            ),
+        ]
+
+    def __str__(self):
+        wl = self.weight_limit.replace("_", ".")
+        return f"{self.courier_service.name} {self.country} {self.channel} {self.category} ≤{wl}"
