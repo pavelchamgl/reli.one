@@ -2,6 +2,7 @@ import os
 import json
 from pathlib import Path
 from dotenv import load_dotenv
+from decimal import Decimal
 from datetime import timedelta
 
 # Import .env.dev vars
@@ -331,6 +332,12 @@ MYGLS_PICKUP_EMAIL = os.getenv("MYGLS_PICKUP_EMAIL", "warehouse@example.cz")
 MYGLS_PICKUP_PHONE = os.getenv("MYGLS_PICKUP_PHONE", "+420123456789")
 # --- MyGLS dev helpers ---
 MYGLS_AUTHCHECK_CACHE_SECONDS = int(os.getenv("MYGLS_AUTHCHECK_CACHE_SECONDS", 600))
+
+GLS_FUEL_PCT = Decimal("0.011")          # 1.1% (статично на время тестов)
+GLS_TOLL_PER_KG_DOMESTIC = Decimal("1.47")
+GLS_TOLL_PER_KG_EXPORT = Decimal("3.00")
+GLS_PUDO_EXPORT_DISCOUNT_CZK = Decimal("27")  # скидка к HD базе
+
 
 # Простейший in-memory кэш для дев-окружения
 CACHES = {
