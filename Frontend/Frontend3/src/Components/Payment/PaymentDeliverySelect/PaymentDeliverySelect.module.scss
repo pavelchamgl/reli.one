@@ -7,7 +7,7 @@
   border: 1px solid #ced4d7;
   background-color: white;
 
-  & img{
+  & img {
     height: 25px;
   }
 }
@@ -65,4 +65,14 @@
   font-weight: 500;
   font-size: 14px;
   color: #000;
+}
+
+.closeGls {
+  position: absolute;
+  z-index: 100000000;
+  width: 200px;
+  height: 60px;
+  position: fixed;
+  bottom: 50px;
+  left: 50px;
 }

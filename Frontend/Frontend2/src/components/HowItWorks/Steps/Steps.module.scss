@@ -1,0 +1,36 @@
+.main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.step {
+  max-width: 224px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 17px;
+  text-align: center;
+  color: #101828;
+  margin-top: 10px;
+}
+
+.desc {
+  font-weight: 400;
+  font-size: 12px;
+  text-align: center;
+  color: #4a5565;
+}
+
+.arrow {
+  position: absolute;
+  top: 24px;
+  right: -10px;
+}

@@ -67,7 +67,7 @@ const PaymentDeliverySuplier = ({ group, index }) => {
                 <p className={styles.sectionTitle}>{t("delivery")}</p>
                 <PaymentDeliverySelect group={group} sellerId={group?.seller_id} />
             </div>
-            {deliveryCalculateErr && <p className={styles.errorText}>{deliveryCalculateErr}</p>}
+            {/* {deliveryCalculateErr && <p className={styles.errorText}>{deliveryCalculateErr}</p>} */}
         </div>
     )
 }

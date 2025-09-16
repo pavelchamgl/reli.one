@@ -74,18 +74,10 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
     const isFirstRender = useRef(true);
 
     useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return; // Пропускаем первый запуск
+        if (open) {
+            handleOpenWidget();
         }
-
-        handleOpenWidget();
     }, [open]);
-
-
-
-
-
 
     return (
         <div>

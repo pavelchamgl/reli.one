@@ -1,0 +1,39 @@
+.stepText {
+  font-weight: 600;
+  font-size: 14px;
+  color: #101828;
+}
+
+.stepWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.stepWithArr {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+
+.mainWrap {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin-top: 48px;
+  margin-bottom: 42px;
+}
+
+.logoImg {
+  border-radius: 33554400px;
+  width: 70px;
+  height: 70px;
+  box-shadow:
+    0 4px 6px -4px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: #eef0f2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
