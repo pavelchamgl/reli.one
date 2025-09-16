@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import argparse
 from decimal import Decimal
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
@@ -132,7 +133,13 @@ class Command(BaseCommand):
             "--with-export-multi",
             dest="with_export_multi",
             action="store_true",
-            help="Also create export rates with address_bundle='multi' (duplicate prices).",
+            help="Also create export rates with address_bundle='multi'.",
+        )
+        parser.add_argument(
+            "--include-export-multi",
+            dest="with_export_multi",
+            action="store_true",
+            help=argparse.SUPPRESS,
         )
         parser.add_argument(
             "--reset",

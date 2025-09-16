@@ -50,14 +50,18 @@ def _toll_surcharge_czk(weight_kg: Decimal) -> Decimal:
 
 
 def _weight_tag_gls(weight_kg: Decimal) -> str:
-    """Теги весовых ступеней в БД: 1,2,5,10,15,20,31_5."""
-    if weight_kg <= 1:   return "1"
-    if weight_kg <= 2:   return "2"
-    if weight_kg <= 5:   return "5"
-    if weight_kg <= 10:  return "10"
-    if weight_kg <= 15:  return "15"
-    if weight_kg <= 20:  return "20"
-    if weight_kg <= Decimal("31.5"): return "31_5"
+    """
+    GLS has tiers: 5, 10, 20, 31.5 kg (stored as '31_5').
+    Map any weight to the smallest tier >= weight.
+    """
+    if weight_kg <= Decimal("5"):
+        return "5"
+    if weight_kg <= Decimal("10"):
+        return "10"
+    if weight_kg <= Decimal("20"):
+        return "20"
+    if weight_kg <= Decimal("31.5"):
+        return "31_5"
     return "over_limit"
 
 

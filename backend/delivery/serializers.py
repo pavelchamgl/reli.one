@@ -63,3 +63,26 @@ class ShippingOptionsResponseSerializer(serializers.Serializer):
     """
     total_parcels = serializers.IntegerField(help_text="Total number of split parcels")
     options = ShippingOptionSerializer(many=True, help_text="List of available shipping options")
+
+
+class CourierBlockSerializer(serializers.Serializer):
+    """
+    Результаты расчёта по одному курьеру.
+    Если расчёт не удался, вернётся поле error.
+    """
+    total_parcels = serializers.IntegerField(required=False, help_text="Сколько посылок после сплита")
+    options = ShippingOptionSerializer(many=True, required=False, help_text="PUDO/HD агрегировано по всем посылкам")
+    error = serializers.CharField(required=False, help_text="Ошибка расчёта этого курьера")
+
+
+class CouriersSerializer(serializers.Serializer):
+    zasilkovna = CourierBlockSerializer()
+    gls = CourierBlockSerializer()
+
+
+class CombinedShippingOptionsResponseSerializer(serializers.Serializer):
+    """
+    Итоговый ответ: два блока (zasilkovna и gls) + немного метаданных.
+    """
+    couriers = CouriersSerializer()
+    meta = serializers.DictField(help_text="Служебные данные (страна, валюта и т.п.)")
