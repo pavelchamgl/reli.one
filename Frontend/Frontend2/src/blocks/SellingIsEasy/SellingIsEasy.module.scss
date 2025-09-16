@@ -1,0 +1,26 @@
+.title {
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 137%;
+  color: #101828;
+  margin-bottom: 14px;
+}
+
+.wrap {
+  background: linear-gradient(161deg, #fafefe 0%, #f4fffa 50%, #faf5ff 100%);
+}
+
+.main {
+  height: 676px;
+}
+
+.content {
+  padding-top: 93px;
+  display: flex;
+  justify-content: space-between;
+  gap: 73px;
+}
+
+.textContent {
+  max-width: 516px;
+}

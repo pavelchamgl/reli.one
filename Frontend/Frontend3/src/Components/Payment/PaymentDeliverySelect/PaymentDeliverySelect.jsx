@@ -18,11 +18,14 @@ import { t } from "i18next";
 import GlsWidget from "../GplsWidget/GplsWidget.jsx";
 
 const PaymentDeliverySelect = ({ sellerId, group }) => {
-  const [selectedValue, setSelectedValue] = useState("");
+  const [selectedValue, setSelectedValue] = useState(""); // группа (delivery_point / courier)
+  const [selectedProviderPoint, setSelectedProviderPoint] = useState(""); // для delivery_point
+  const [selectedProviderCourier, setSelectedProviderCourier] = useState(""); // для courier  
   const [openPoint, setOpenPoint] = useState(false);
   const [openDH, setOpenDH] = useState(false);
   const [paketaOpen, setPaketaOpen] = useState(false);
   const [glsOpen, setGlsOpen] = useState(false);
+
 
   const [isNotChoosePoint, setIsNotChoosePoint] = useState(false)
 
@@ -65,6 +68,9 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
 
   }, [setIsNotChoosePoint])
 
+
+
+
   if (pointPrice && DHPrice) {
     return (
       <div>
@@ -86,52 +92,59 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   value="delivery_point"
                   control={<Radio color="success" />}
                 />
-                {selectedValue === "delivery_point" ? <img src={paketa} alt="" /> : <p className={styles.labelText}>{t("payment_page.delivery_point")}</p>}
+                {selectedValue === "delivery_point"
+                  ? (
+                    <span>
+                      {selectedProviderPoint === "packeta" && <img src={paketa} alt="Packeta" />}
+                      {selectedProviderPoint === "gls" && <img src={gls} alt="GLS" />}
+                    </span>
+                  )
+                  : <p className={styles.labelText}>{t("payment_page.delivery_point")}</p>}
               </div>
               <img src={openPoint ? arrBottom : arrRight} alt="" />
             </button>
 
             <div className={openPoint ? styles.selectBlockAcc : styles.selectBlockNotAcc}>
-              {/* Example: Packeta inside Delivery Point */}
+              {/* Packeta */}
               <div
                 className={styles.selectBlock}
                 onClick={() => {
                   setSelectedValue("delivery_point");
+                  setSelectedProviderPoint("packeta");
                   setPaketaOpen(!paketaOpen);
-                  setOpenPoint(false)
+                  setOpenPoint(false);
                 }}
               >
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="delivery_point"
-                    control={<Radio color="success" />}
+                    control={<Radio color="success" checked={selectedProviderPoint === "packeta"} />}
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
                 <p className={styles.price}>{pointPrice?.priceWithVat} €</p>
               </div>
+
+              {/* GLS */}
               <div
                 className={styles.selectBlock}
                 onClick={() => {
                   setSelectedValue("delivery_point");
+                  setSelectedProviderPoint("gls");
                   setGlsOpen(true);
-
-                  // запускаем GLS widget
-                  if (window.findGlsPs) {
-                    window.findGlsPs();
-                  }
+                  if (window.findGlsPs) window.findGlsPs();
+                  setOpenPoint(false);
                 }}
               >
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="delivery_point"
-                    control={<Radio color="success" />}
-                    label={<img src={gls} alt="gls" />}
+                    control={<Radio color="success" checked={selectedProviderPoint === "gls"} />}
+                    label={<img src={gls} alt="GLS" />}
                   />
                 </div>
                 <p className={styles.price}>{pointPrice?.priceWithVat} €</p>
               </div>
-
             </div>
 
             {/* Courier Delivery Group */}
@@ -147,29 +160,59 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   control={<Radio color="success" />}
 
                 />
-                {selectedValue === "courier" ? <img src={paketa} alt="" /> : <p className={styles.labelText}>{t("payment_page.courier_delivery")}</p>}
+                {selectedValue === "courier"
+                  ? (
+                    <span>
+                      {selectedProviderCourier === "packeta" && <img src={paketa} alt="Packeta" />}
+                      {selectedProviderCourier === "gls" && <img src={gls} alt="GLS" />}
+                    </span>
+                  )
+                  : <p className={styles.labelText}>{t("payment_page.courier_delivery")}</p>}
 
               </div>
               <img src={openDH ? arrBottom : arrRight} alt="" />
             </button>
 
             <div className={openDH ? styles.selectBlockAcc : styles.selectBlockNotAcc}>
+              {/* packeta */}
               <div
                 className={styles.selectBlock}
                 onClick={() => {
                   setSelectedValue("courier");
-                  // setPaketaOpen(!paketaOpen);
+                  setSelectedProviderCourier("packeta");
+                  setPaketaOpen(!paketaOpen);
                   setOpenDH(false)
                 }}
               >
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="courier"
-                    control={<Radio color="success" />}
+                    control={<Radio color="success" checked={selectedProviderCourier === "packeta"} />}
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
                 <p className={styles.price}>{DHPrice.priceWithVat} €</p>
+              </div>
+
+              {/* GLS */}
+              <div
+                className={styles.selectBlock}
+                onClick={() => {
+                  setSelectedValue("courier");
+                  setSelectedProviderCourier("gls");
+                  setGlsOpen(true);
+                  if (window.findGlsPs) window.findGlsPs();
+                  setOpenPoint(false);
+                }}
+              >
+                <div className={styles.radioImageDiv}>
+                  <FormControlLabel
+                    value="courier"
+                    control={<Radio color="success" checked={selectedProviderCourier === "gls"} />}
+                    label={<img src={gls} alt="GLS" />}
+                  />
+                </div>
+                <p className={styles.price}>{DHPrice?.priceWithVat} €</p>
               </div>
             </div>
           </RadioGroup>
@@ -179,13 +222,9 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
           sellerId={sellerId}
           open={glsOpen}
           setOpen={setGlsOpen}
+          setIsNotChoose={setIsNotChoosePoint}
           onSelect={(point) => {
-            setDeliveryType({
-              deliveryType: "delivery_point",
-              sellerId,
-              deliveryPrice: pointPrice?.priceWithVat,
-              pointInfo: point, // сюда кладём результат GLS
-            });
+            console.log(point);
           }}
         />
         <PacketaWidget setIsNotChoose={setIsNotChoosePoint} sellerId={sellerId} open={paketaOpen} setOpen={setPaketaOpen} />

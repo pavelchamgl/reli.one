@@ -1,6 +1,11 @@
 import { useEffect } from "react";
+import { useActionPayment } from "../../../hook/useActionPayment";
 
-const GlsWidget = ({ open, setOpen, onSelect }) => {
+const GlsWidget = ({ open, setOpen, onSelect, setIsNotChoose, sellerId }) => {
+
+    const { setPointInfo } = useActionPayment()
+
+
     useEffect(() => {
         if (!open) return;
 
@@ -13,38 +18,57 @@ const GlsWidget = ({ open, setOpen, onSelect }) => {
             document.body.appendChild(script);
         }
 
-        // Ждём когда GLS вставит ID в hidden input
-        const handleInterval = setInterval(() => {
-            const id = document.getElementById("psGlsId")?.value;
-            if (id) {
-                clearInterval(handleInterval);
-                onSelect({
-                    id,
-                    name: document.getElementById("psGlsName")?.value,
-                    address: document.getElementById("psGlsStreet")?.value,
-                    cityZip: document.getElementById("psGlsZipAndCity")?.value,
-                    country: document.getElementById("psGlsCountry")?.value,
-                });
-                setOpen(false);
-            }
-        }, 500);
+        // Ловим событие postMessage от GLS (когда пользователь выбрал пункт)
+        const handleMessage = (event) => {
+            if (!event.data?.parcelshop) {
+                setIsNotChoose(true)
+                return
+            };
 
-        return () => clearInterval(handleInterval);
-    }, [open]);
+            const ps = event.data.parcelshop;
+
+            const parcelShop = {
+                id: ps.detail.pclshopid,
+                name: ps.detail.name,
+                street: ps.detail.address,
+                city: ps.detail.city,
+                zipcode: ps.detail.zipcode,
+                country: ps.detail.ctrcode,
+            };
+
+            console.log("Выбранный ParcelShop:", parcelShop);
+            setPointInfo(
+                {
+                    pickup_point_id: ps.detail.pclshopid,
+                    country: ps.detail.ctrcode,
+                    street: ps.detail.address,
+                    city: ps.detail.city,
+                    zip: ps.detail.zipcode,
+                    sellerId
+                }
+            )
+            onSelect(parcelShop);
+            setOpen(false);
+        };
+
+        window.addEventListener("message", handleMessage);
+
+        return () => {
+            window.removeEventListener("message", handleMessage);
+        };
+    }, [open, onSelect, setOpen]);
 
     if (!open) return null;
 
     return (
         <div>
-            <button onClick={() => window.findGlsPs()}>
-                Vybrat GLS ParcelShop
-            </button>
+            {/* <button onClick={() => window.findGlsPs()}>
+        Vybrat GLS ParcelShop
+      </button> */}
 
-            <input type="hidden" id="psGlsId" />
-            <input type="hidden" id="psGlsName" />
-            <input type="hidden" id="psGlsStreet" />
-            <input type="hidden" id="psGlsZipAndCity" />
-            <input type="hidden" id="psGlsCountry" />
+            {/* Эти скрытые поля нужны, чтобы GLS виджет работал корректно */}
+            <input type="hidden" id="ctrcodeGls" value="CZ" />
+            <input type="hidden" id="lngGls" value="cs" />
         </div>
     );
 };

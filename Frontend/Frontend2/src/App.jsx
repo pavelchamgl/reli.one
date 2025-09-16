@@ -10,6 +10,12 @@ import Footer from './sections/Footer';
 import Vacancies from './sections/Vacancies';
 import NewKontakt from './sections/NewKontakt';
 import ChangeLang from './components/changeLang/ChangeLang';
+import Header from './components/Header/Header';
+import FocusOnBuss from './blocks/FocusOnBussines/FocusOnBuss';
+import SellingIsEasy from './blocks/SellingIsEasy/SellingIsEasy';
+import WhyChoose from './blocks/WhyChoose/WhyChoose';
+import HowItWorks from './blocks/HowItWorks/HowItWorks';
+import OurSellersSay from './blocks/OurSellersSay/OurSellersSay';
 
 const App = () => {
 
@@ -42,6 +48,14 @@ const App = () => {
 
   return (
     <div className="font-Inter relative">
+      {/* <Header />
+      <div className="h-[662px] bg-slate-600"></div>
+      <FocusOnBuss />
+      <SellingIsEasy />
+      <WhyChoose />
+      <HowItWorks />
+      <OurSellersSay /> */}
+
       <Domu />
       <Proc_Zrovna_Me />
       <Vacancies />
