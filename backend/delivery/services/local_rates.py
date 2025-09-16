@@ -1,7 +1,7 @@
 import logging
 
 from py3dbp import Packer, Bin, Item
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from django.conf import settings
 
 from product.models import ProductVariant
@@ -77,7 +77,7 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
       - HD   oversized : ≤30 kg & max_side ≤120 & sum_sides ≤999
 
     Surcharges:
-      - PUDO: toll=0, fuel=0
+      - PUDO: toll by weight (get_toll_surcharge), fuel = 5% of base
       - HD  : toll by weight (get_toll_surcharge), fuel = 5% of base
     """
     if variant_map is None:
@@ -174,12 +174,14 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
 
     def _format(rate_obj: ShippingRate, total_czk: Decimal):
         total_czk_vat = (total_czk * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
+        price_eur = convert_czk_to_eur(total_czk).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        price_eur_vat = convert_czk_to_eur(total_czk_vat).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         return {
             "courier": rate_obj.courier_service.name,
             "service": "Pick-up point" if rate_obj.channel == "PUDO" else "Home Delivery",
             "channel": rate_obj.channel,
-            "price": float(convert_czk_to_eur(total_czk)),
-            "priceWithVat": float(convert_czk_to_eur(total_czk_vat)),
+            "price": price_eur,
+            "priceWithVat": price_eur_vat,
             "currency": "EUR",
             "estimate": rate_obj.estimate or "",
         }
@@ -193,10 +195,13 @@ def calculate_shipping_options(country, items, cod, currency, variant_map=None):
             rate = _pick_rate("PUDO", pudo_category, chargeable_weight)
             base = rate.price
             cod_fee = rate.cod_fee if cod else Decimal("0.00")
-            toll = Decimal("0.00")
-            fuel = Decimal("0.00")
+            toll = get_toll_surcharge(chargeable_weight)  # 2.10 / 4.80 CZK
+            fuel = (base * Decimal("0.05")).quantize(Decimal("0.01"))  # 5% от базы
             total = (base + cod_fee + toll + fuel).quantize(Decimal("0.01"))
-            logger.debug("Zasilkovna PUDO: base=%s cod=%s total=%s", base, cod_fee, total)
+            logger.debug(
+                "Zasilkovna PUDO: base=%s cod=%s toll=%s fuel=%s total=%s",
+                base, cod_fee, toll, fuel, total
+            )
             options.append(_format(rate, total))
         except Exception as e:
             logger.info("Zásilkovna PUDO skipped: %s", e)
