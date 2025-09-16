@@ -192,3 +192,20 @@ class OrderProduct(models.Model):
                 self.received_at = datetime.now()
 
         super().save(*args, **kwargs)
+
+
+class InvoiceSequence(models.Model):
+    """
+    Последовательность для номеров инвойсов.
+    series — обычно год (например, "2025"). На каждую серию ведётся свой счётчик.
+    """
+    series = models.CharField(max_length=16, unique=True, db_index=True)
+    last_number = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Invoice sequence"
+        verbose_name_plural = "Invoice sequences"
+
+    def __str__(self):
+        return f"{self.series}:{self.last_number}"
