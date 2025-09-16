@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import logging
-from decimal import Decimal, ROUND_UP
+from decimal import Decimal, ROUND_UP, ROUND_HALF_UP
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
 from py3dbp import Packer, Bin, Item
 
+from .gls_split import split_items_into_parcels_gls
 from product.models import ProductVariant
 from delivery.models import ShippingRate
 from delivery.services.currency_converter import convert_czk_to_eur
@@ -237,8 +238,8 @@ def calculate_gls_shipping_options(
         total_czk = (base_service + cod_fee + fuel_czk + toll_czk).quantize(Decimal("0.01"))
         total_czk_vat = (total_czk * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
 
-        price_eur = convert_czk_to_eur(total_czk)
-        price_eur_vat = convert_czk_to_eur(total_czk_vat)
+        price_eur = convert_czk_to_eur(total_czk).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        price_eur_vat = convert_czk_to_eur(total_czk_vat).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
         logger.debug(
             "GLS %s: base_hd=%s base_service=%s fuel=%s toll=%s cod=%s tag=%s bundle=%s total=%s",
@@ -249,8 +250,8 @@ def calculate_gls_shipping_options(
             "courier": hd_rate.courier_service.name,
             "service": "Pick-up point" if channel == "PUDO" else "Home Delivery",
             "channel": channel,
-            "price": float(price_eur),
-            "priceWithVat": float(price_eur_vat),
+            "price": price_eur,
+            "priceWithVat": price_eur_vat,
             "currency": "EUR",
             "estimate": hd_rate.estimate or "",
         }
@@ -273,3 +274,44 @@ def calculate_gls_shipping_options(
         raise ValueError("GLS: no rates found for given parameters")
 
     return options
+
+
+def calculate_order_shipping_gls(country: str, items: list[dict], cod: bool, currency: str):
+    parcels = split_items_into_parcels_gls(items)
+    address_bundle = "multi" if len(parcels) >= 2 else "one"
+
+    per_parcel_opts = []
+    for parcel in parcels:
+        opts = calculate_gls_shipping_options(
+            country=country,
+            items=parcel,
+            currency=currency,
+            cod=cod,
+            address_bundle=address_bundle,
+        )
+        per_parcel_opts.append(opts)
+
+    # аккумулируем по каналу (PUDO/HD), как в combine_parcel_options
+    agg = {"PUDO": Decimal("0.00"), "HD": Decimal("0.00")}
+    opt_by_channel = {"PUDO": None, "HD": None}
+    for opts in per_parcel_opts:
+        for opt in opts:
+            ch = opt["channel"]
+            agg[ch] += opt["priceWithVat"]
+            opt_by_channel[ch] = opt  # держим последний для estimate/названия
+
+    result = []
+    for ch in ["PUDO", "HD"]:
+        base = opt_by_channel[ch]
+        if base:
+            result.append({
+                "courier": "GLS",
+                "service": base["service"],
+                "channel": ch,
+                "price": agg[ch].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+                "priceWithVat": agg[ch].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+                "currency": "EUR",
+                "estimate": base.get("estimate", ""),
+            })
+
+    return {"options": result, "total_parcels": len(parcels)}
