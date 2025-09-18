@@ -68,10 +68,10 @@ class ShippingRate(models.Model):
         ("5", "up to 5 kg"),
         ("10", "up to 10 kg"),
         ("15", "up to 15 kg"),
-        # для GLS добавляем ступени 20 и 31.5
         ("20", "up to 20 kg"),
         ("30", "up to 30 kg"),
         ("31_5", "up to 31.5 kg"),
+        ("50", "up to 50 kg"),
         ("over_limit", "over limit"),
     )
 
