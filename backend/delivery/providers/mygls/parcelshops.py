@@ -1,10 +1,12 @@
-# delivery/providers/mygls/parcelshops.py
-import xml.etree.ElementTree as ET
-from functools import lru_cache
+from __future__ import annotations
 import requests
+import xml.etree.ElementTree as ET
+
 from typing import Optional, Dict
+from functools import lru_cache
 
 FEED_URL = "https://ps-maps.gls-czech.com/getDropoffPoints.php"
+
 
 @lru_cache(maxsize=32)
 def _load_country_feed(ctrcode: str) -> dict[str, dict]:
@@ -23,31 +25,18 @@ def _load_country_feed(ctrcode: str) -> dict[str, dict]:
             "address": dp.attrib.get("Address", ""),
             "zip": dp.attrib.get("ZipCode", ""),
             "city": dp.attrib.get("CityName") or dp.attrib.get("City") or "",
-            "country": dp.attrib.get("CtrCode", "").upper(),
+            "country": (dp.attrib.get("CtrCode") or "").upper(),
             "lat": dp.attrib.get("GeoLat"),
             "lng": dp.attrib.get("GeoLng"),
             "is_parcel_locker": dp.attrib.get("IsParcelLocker") == "1",
         }
     return out
 
-def get_parcelshop_by_id(ps_id: str) -> Optional[Dict]:
-    """Перебираем 1–2 вероятные страны по префиксу, иначе придётся знать страну заранее."""
-    # Если ID имеет префикс 'CZ...' — попробуем сначала его.
-    if isinstance(ps_id, str) and len(ps_id) >= 2:
-        guess = ps_id[:2].upper()
-        try:
-            feed = _load_country_feed(guess)
-            if ps_id in feed:
-                return feed[ps_id]
-        except Exception:
-            pass
-    # Как правило, фронт знает страну получателя — лучше дергать _load_country_feed(receiver_country)
-    return None
 
 def get_parcelshop(ps_id: str, ctrcode: str) -> Optional[Dict]:
     """Надёжный способ: знать страну (ctrcode) и искать только там."""
     try:
-        feed = _load_country_feed(ctrcode.upper())
+        feed = _load_country_feed((ctrcode or "").upper())
     except Exception:
         return None
     return feed.get(ps_id)

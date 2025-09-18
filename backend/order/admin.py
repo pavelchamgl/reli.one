@@ -12,7 +12,9 @@ from .models import (
     DeliveryStatus,
     CourierService,
     Invoice,
+    InvoiceSequence,
 )
+
 
 # ------------------------ OrderProduct Inline -------------------------
 
@@ -53,6 +55,7 @@ class OrderProductInline(admin.TabularInline):
             if obj.order.order_status.name not in ['Pending', 'Processing']:
                 readonly_fields.append('received')
         return readonly_fields
+
 
 # ------------------------ Order Admin -------------------------
 
@@ -100,6 +103,7 @@ class OrderAdmin(admin.ModelAdmin):
         order.refund_amount = order.calculate_refund()
         order.save()
 
+
 # ------------------------ OrderProduct Admin -------------------------
 
 class OrderProductAdmin(admin.ModelAdmin):
@@ -114,6 +118,7 @@ class OrderProductAdmin(admin.ModelAdmin):
     def product_variant_display(self, obj):
         return f"{obj.product.sku}: {obj.product.product.name} - {obj.product.name}"
     product_variant_display.short_description = 'Product Variant'
+
 
 # ------------------------ Invoice Admin -------------------------
 
@@ -135,6 +140,13 @@ class InvoiceAdmin(admin.ModelAdmin):
             return format_html('<a href="{}" download>Download PDF</a>', obj.file.url)
         return "-"
     download_link.short_description = 'Invoice PDF'
+
+
+@admin.register(InvoiceSequence)
+class InvoiceSequenceAdmin(admin.ModelAdmin):
+    list_display = ("series", "last_number", "updated_at")
+    search_fields = ("series",)
+
 
 # ------------------------ Register Other Models -------------------------
 

@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class MyGlsError(Exception):
     """Базовое исключение MyGLS."""
 
@@ -16,19 +19,25 @@ class MyGlsServerError(MyGlsError):
 
 def raise_for_response(resp):
     """
-    Преобразует HTTP-ошибки к понятным исключениям.
+    Превращает HTTP-статусы/ответы в понятные исключения.
     """
     code = getattr(resp, "status_code", None)
+    data = None
     try:
         data = resp.json()
     except Exception:
-        data = None
+        try:
+            data = resp.text
+        except Exception:
+            data = None
 
     message = None
     if isinstance(data, dict):
         message = data.get("Message") or data.get("ErrorMessage") or str(data)
     elif isinstance(data, list):
         message = str(data)
+    elif isinstance(data, str):
+        message = data
 
     if code and 400 <= code < 500:
         if code in (401, 403):

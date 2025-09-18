@@ -78,7 +78,7 @@
           <td style="padding:20px 0;">
             <h3 style="margin:0 0 10px 0; font-size:16px;">SHIPMENT DETAILS</h3>
             {% for parcel in group.parcels %}
-              <p style="margin:5px 0;"><strong>Tracking Number:</strong> {{ parcel.tracking_number }}</p>
+              <p style="margin:5px 0;"><strong>Tracking Number:</strong> {{ parcel.courier_short }} — {{ parcel.tracking_number }}</p>
               <ul style="margin:0 0 10px 20px; padding:0;">
                 {% for item in parcel.items %}
                   <li style="margin:2px 0;">{{ item.quantity }}× {{ item.product_name }} (SKU: {{ item.sku }})</li>

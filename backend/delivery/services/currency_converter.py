@@ -26,6 +26,8 @@ def get_czk_to_eur_rate_cached():
 
 def convert_czk_to_eur(amount_czk: Decimal) -> Decimal:
     rate = get_czk_to_eur_rate_cached()
-    logger.info(f"Used CZK to EUR rate in Stripe session: {rate}")
+    logger.info(f"CZK→EUR rate used: {rate}")
+    if not isinstance(rate, Decimal):
+        rate = Decimal(str(rate))
     amount_eur = amount_czk / rate
     return amount_eur.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

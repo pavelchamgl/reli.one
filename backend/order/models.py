@@ -59,6 +59,8 @@ class CourierService(models.Model):
     )
     code = models.CharField(
         max_length=50,
+        unique=True,
+        db_index=True,
         null=True,
         blank=True,
         help_text="Уникальный код службы (например, packeta, zasilkovna)"
@@ -115,7 +117,7 @@ class Order(models.Model):
     refund_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), validators=[MinValueValidator(Decimal('0.00'))])
     courier_service = models.ForeignKey(CourierService, on_delete=models.SET_NULL, null=True, blank=True)
     delivery_date = models.DateField(null=True, blank=True)
-    pickup_point_id = models.PositiveIntegerField(null=True, blank=True)
+    pickup_point_id = models.CharField(max_length=64, null=True, blank=True)
 
     class Meta:
         verbose_name = 'Order'
@@ -190,3 +192,20 @@ class OrderProduct(models.Model):
                 self.received_at = datetime.now()
 
         super().save(*args, **kwargs)
+
+
+class InvoiceSequence(models.Model):
+    """
+    Последовательность для номеров инвойсов.
+    series — обычно год (например, "2025"). На каждую серию ведётся свой счётчик.
+    """
+    series = models.CharField(max_length=16, unique=True, db_index=True)
+    last_number = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Invoice sequence"
+        verbose_name_plural = "Invoice sequences"
+
+    def __str__(self):
+        return f"{self.series}:{self.last_number}"

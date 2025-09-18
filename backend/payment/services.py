@@ -1,5 +1,7 @@
 import os
 import logging
+import unicodedata
+
 from decimal import Decimal
 from premailer import transform
 from collections import defaultdict
@@ -16,6 +18,36 @@ from delivery.services.packeta_point_service import get_pickup_point_details
 logger = logging.getLogger(__name__)
 
 LOGO_URL = 'https://res.cloudinary.com/daffwdfvn/image/upload/v1748957272/Reli/logo_reli_ouhtmo.png'
+
+# ссылки на поддержку курьеров (используются только в письме продавцу) ---
+COURIER_SUPPORT = {
+    "gls": "https://gls-group.com/CZ/en/senders/client-zone",
+    "zasilkovna": "https://www.zasilkovna.cz/en/contacts",  # Packeta/Zásilkovna
+    "packeta": "https://www.packeta.com/contact",
+}
+
+
+def _normalize_courier_name(s: str) -> str:
+    """lower + убираем диакритику, чтобы 'Zásilkovna' == 'Zasilkovna'."""
+    if not s:
+        return ""
+    s = unicodedata.normalize("NFKD", s)
+    s = "".join(ch for ch in s if not unicodedata.combining(ch))
+    return s.lower()
+
+
+def _courier_meta(name: str):
+    """
+    Возвращает (short_name, support_url) по названию курьерской службы.
+    Матчит по подстроке на нормализованном имени (без диакритики).
+    """
+    key = _normalize_courier_name(name)
+    if "gls" in key:
+        return "GLS", COURIER_SUPPORT["gls"]
+    if "zasil" in key or "packeta" in key:
+        # считаем Zásilkovna == Packeta (бренд)
+        return "Zásilkovna", COURIER_SUPPORT["zasilkovna"]
+    return (name or "").strip() or "Courier", None
 
 
 def get_orders_by_payment_session_id(session_id: str):
@@ -142,46 +174,55 @@ def send_merged_customer_email_from_session(session_id: str):
         logger.exception(f"[CUSTOMER-MAIL] Ошибка отправки письма клиенту: {e}")
 
 
-def send_merged_manager_email_from_session(session_id: str):
+def send_merged_manager_email_from_session(session_id: str) -> None:
     orders = get_orders_by_payment_session_id(session_id)
     if not orders:
         logger.warning(f"[MANAGER-MAIL] Нет заказов по session_id {session_id}")
         return
 
-    # 1) базовый контекст
     ctx = prepare_merged_customer_email_context(orders)
 
-    # 2) собрать данные по посылкам
-    order_ids = [g["order_id"] for g in ctx["groups"]]
-    parcel_map = {oid: defaultdict(list) for oid in order_ids}
-
-    items = DeliveryParcelItem.objects.filter(
-        order_product__order_id__in=order_ids
-    ).select_related("parcel", "order_product__product__product", "order_product")
-
-    for dpi in items:
-        oid = dpi.order_product.order_id
-        tn  = dpi.parcel.tracking_number or f"Parcel #{dpi.parcel.pk}"
-        parcel_map[oid][tn].append({
-            "product_name": dpi.order_product.product.product.name,
-            "sku":           dpi.order_product.product.sku,
-            "quantity":      dpi.quantity,
-        })
-
-    # 3) вложить parcels в группы
+    # Посылки подгружаем отдельно для каждой группы (заказа)
     for grp in ctx["groups"]:
+        oid = grp["order_id"]
+        dpi_qs = (
+            DeliveryParcelItem.objects
+            .filter(order_product__order_id=oid)
+            .select_related(
+                "parcel",
+                "order_product__product__product",
+                "order_product__order__courier_service",
+            )
+        )
+
+        local_map = defaultdict(list)  # ключ: (courier_short, tracking)
+        for dpi in dpi_qs:
+            order_obj = dpi.order_product.order
+            courier_name = order_obj.courier_service.name if order_obj.courier_service else ""
+            try:
+                courier_short, _ = _courier_meta(courier_name)  # тот же хелпер, что у письма продавцу
+            except NameError:
+                courier_short = (courier_name or "").strip() or "Courier"
+
+            tn = dpi.parcel.tracking_number or f"Parcel #{dpi.parcel.pk}"
+            local_map[(courier_short, tn)].append({
+                "product_name": dpi.order_product.product.product.name,
+                "sku":          dpi.order_product.product.sku,
+                "quantity":     dpi.quantity,
+            })
+
         grp["parcels"] = [
-            {"tracking_number": tn, "items": itm}
-            for tn, itm in parcel_map[grp["order_id"]].items()
+            {"courier_short": cs, "tracking_number": tn, "items": items}
+            for (cs, tn), items in local_map.items()
         ]
 
-    # 4) рендер и отправка
     html = render_to_string("emails/order_email_manager.html", ctx)
     email = EmailMessage(
         subject="NEW ORDER",
         body=html,
         from_email=getattr(settings, "DEFAULT_FROM_EMAIL"),
         to=settings.PROJECT_MANAGERS_EMAILS,
+        # опционально: headers={"Reply-To": "office@reli.one"},
     )
     email.content_subtype = "html"
 
@@ -212,6 +253,8 @@ def send_seller_emails_by_session(session_id: str):
             "order_number":      None,
             "delivery_type":     "",
             "courier_service":   "",
+            "courier_short":     "",         # ← ДОБАВЛЕНО
+            "courier_support_url": None,     # ← ДОБАВЛЕНО
             "delivery_address":  None,
             "pickup_point_info": None,
             "products":          [],
@@ -227,9 +270,14 @@ def send_seller_emails_by_session(session_id: str):
             grp["order_number"]    = order.order_number
             grp["delivery_type"]   = order.delivery_type.name   if order.delivery_type else ""
             grp["courier_service"] = order.courier_service.name if order.courier_service else ""
+            # короткое имя и ссылка поддержки курьера (для блока группы)
+            short, support = _courier_meta(grp["courier_service"])
+            grp["courier_short"] = short
+            grp["courier_support_url"] = support
+
             grp["order_date"]      = order.order_date
 
-            # Адрес или пункт самовывоза
+            # Адрес или пункт самовывоза (оставляем прежний порядок)
             if order.delivery_address:
                 a = order.delivery_address
                 grp["delivery_address"] = ", ".join(filter(None, [
@@ -259,25 +307,44 @@ def send_seller_emails_by_session(session_id: str):
             g["group_total"]   = f"{g['group_total']:.2f}"
             g["order_date"]    = g["order_date"].strftime("%d.%m.%Y %H:%M")
 
-        # Подготовить данные по посылкам и PDF-ярлыкам
+        # Посылки и PDF-ярлыки (строго по товарам этого продавца)
         parcel_map, parcel_files = defaultdict(list), set()
-        for dpi in DeliveryParcelItem.objects.filter(order_product_id__in=product_ids) \
-                                             .select_related("parcel", "order_product__product__product"):
+        dpi_qs = (
+            DeliveryParcelItem.objects
+            .filter(order_product_id__in=product_ids)
+            .select_related(
+                "parcel",
+                "order_product__product__product",
+                "order_product__order__courier_service",  # ← чтобы не делать N+1 за курьером
+            )
+        )
+
+        for dpi in dpi_qs:
+            # короткое имя курьера берём из заказа конкретного DPI
+            ord_obj = dpi.order_product.order
+            courier_name = ord_obj.courier_service.name if ord_obj.courier_service else ""
+            courier_short, _ = _courier_meta(courier_name)
+
             tracking = dpi.parcel.tracking_number or f"Parcel #{dpi.parcel.pk}"
-            parcel_map[tracking].append({
+            # ключ теперь (courier_short, tracking), чтобы маркировать трек курьером
+            parcel_map[(courier_short, tracking)].append({
                 "product_name": dpi.order_product.product.product.name,
                 "sku":           dpi.order_product.product.sku,
                 "quantity":      dpi.quantity,
             })
             if dpi.parcel.label_file and os.path.isfile(dpi.parcel.label_file.path):
                 parcel_files.add(dpi.parcel.label_file.path)
-        parcels = [{"tracking_number": t, "items": it} for t, it in parcel_map.items()]
+
+        parcels = [
+            {"courier_short": cs, "tracking_number": tn, "items": it}
+            for (cs, tn), it in parcel_map.items()
+        ]
 
         # Общий контекст (включает logo_url из prepare_merged_customer_email_context)
         ctx = prepare_merged_customer_email_context(orders)
         ctx.update({
             "groups":  list(seller_groups.values()),
-            "parcels": parcels,
+            "parcels": parcels,  # в шаблоне рядом с треком будет {{ parcel.courier_short }} —
         })
 
         # Рендерим и отправляем HTML-письмо
