@@ -14,7 +14,7 @@
         <h3 style="margin:0 0 10px 0; font-size:16px;">Instructions for the Seller:</h3>
         <ol style="padding-left:20px; margin:0;">
           <li style="margin-bottom:8px;">Please confirm receipt and order readiness within <strong>one business day (24 hours)</strong> of receiving this message by email to <a href="mailto:office@reli.one" style="color:#333333; text-decoration:none;"><strong>office@reli.one</strong></a></li>
-          <li style="margin-bottom:8px;">Ensure the order is packed within <strong>3 business days</strong> after confirmation, and confirm completion by email to <a href="mailto:office@reli.one" style="color:#333333; text-decoration:none;"><strong>office@reli.one</strong></li>
+          <li style="margin-bottom:8px;">Ensure the order is packed within <strong>3 business days</strong> after confirmation, and confirm completion by email to <a href="mailto:office@reli.one" style="color:#333333; text-decoration:none;"><strong>office@reli.one</strong></a></li>
           <li style="margin-bottom:8px;">Dispatch the packed order to the courier using one of the following options:
             <ul style="margin:4px 0 8px 20px; padding:0;">
               <li>Drop it off at a designated courier drop-off point;</li>
@@ -22,8 +22,7 @@
             </ul>
           </li>
         </ol>
-        <p style="margin:8px 0;">If you have any questions regarding shipping, please contact the courier’s customer support:</p>
-        <p style="margin:0;"><a href="https://www.zasilkovna.cz/en/contacts" target="_blank" style="color:#0066cc;">https://www.zasilkovna.cz/en/contacts</a></p>
+        <p style="margin:8px 0;">If you have any questions regarding shipping, please contact the courier’s customer support for the respective order group below.</p>
       </td>
     </tr>
 
@@ -38,6 +37,15 @@
             <p style="margin:5px 0;"><strong>Delivery address:</strong> {{ group.delivery_address }}</p>
           {% elif group.pickup_point_info %}
             <p style="margin:5px 0;"><strong>Pickup Point:</strong> {{ group.pickup_point_info }}</p>
+          {% endif %}
+
+          {% if group.courier_support_url %}
+            <p style="margin:5px 0;">
+              <strong>Courier support:</strong>
+              <a href="{{ group.courier_support_url }}" target="_blank" rel="noopener" style="color:#0066cc;">
+                Contact {{ group.courier_short }}
+              </a>
+            </p>
           {% endif %}
         </td>
       </tr>
@@ -87,7 +95,9 @@
       <td style="padding:20px 0 10px 0; border-top:2px solid #FFD247;">
         <h3 style="margin:0 0 10px 0; font-size:16px;">SHIPMENT DETAILS</h3>
         {% for parcel in parcels %}
-          <p style="margin:5px 0;"><strong>Tracking Number:</strong> {{ parcel.tracking_number }}</p>
+          <p style="margin:5px 0;">
+            <strong>Tracking Number:</strong> {{ parcel.courier_short }} — {{ parcel.tracking_number }}
+          </p>
           <ul style="margin:0 0 10px 20px; padding:0;">
             {% for item in parcel.items %}
               <li style="margin:2px 0;">{{ item.quantity }}× {{ item.product_name }} (SKU: {{ item.sku }})</li>
