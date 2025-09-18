@@ -20,7 +20,7 @@ class GroupSerializer(serializers.Serializer):
     delivery_type = serializers.IntegerField()
     courier_service = serializers.IntegerField()
     delivery_address = DeliveryAddressSerializer(required=False)
-    pickup_point_id = serializers.IntegerField(required=False)
+    pickup_point_id = serializers.CharField(required=False)
     products = ProductItemSerializer(many=True)
 
 
