@@ -35,7 +35,7 @@ from delivery.models import ShippingRate
 
 COURIER_DEFAULT_NAME = "Zásilkovna"
 PUDO_KEYS: Tuple[str, ...] = ("5", "10", "15")
-HD_KEYS:   Tuple[str, ...] = ("1", "2", "5", "10", "15", "30")
+HD_KEYS:   Tuple[str, ...] = ("1", "2", "5", "10", "15", "30", "50")
 CATS:      Tuple[str, ...] = ("standard", "oversized")
 
 
