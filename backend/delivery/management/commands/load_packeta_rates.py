@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, Tuple, List
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -27,16 +27,19 @@ from delivery.models import ShippingRate
 }
 
 Правила:
-- Пишем оба channel: PUDO и HD
-- Для КАЖДОГО тарифа создаём обе категории: "standard" и "oversized" (цены одинаковые),
-  чтобы рантайм-логика категоризации всегда находила запись.
-- address_bundle всегда "one" для Zásilkovna.
+- Пишем оба channel: PUDO и HD.
+- Категории управляются флагом CLI: --categories (по умолчанию только 'standard').
+- address_bundle всегда 'one' для Zásilkovna (входит в уникальный ключ).
 """
 
 COURIER_DEFAULT_NAME = "Zásilkovna"
+
+# фиксированный whitelist ключей и их порядок
 PUDO_KEYS: Tuple[str, ...] = ("5", "10", "15")
 HD_KEYS:   Tuple[str, ...] = ("1", "2", "5", "10", "15", "30", "50")
-CATS:      Tuple[str, ...] = ("standard", "oversized")
+
+# допустимые категории в нашей модели
+ALLOWED_CATEGORIES: Tuple[str, ...] = ("standard", "oversized")
 
 
 def _ensure_courier(code: str) -> CourierService:
@@ -64,49 +67,50 @@ def _validate_tables(country_block: Dict, strict: bool = True) -> None:
     pudo = country_block.get("pudo", {})
     hd   = country_block.get("hd", {})
 
-    bad_pudo = [k for k in pudo.keys() if str(k) not in PUDO_KEYS]
-    bad_hd   = [k for k in hd.keys()   if str(k) not in HD_KEYS]
+    bad_pudo = [str(k) for k in pudo.keys() if str(k) not in PUDO_KEYS]
+    bad_hd   = [str(k) for k in hd.keys()   if str(k) not in HD_KEYS]
 
     if strict and (bad_pudo or bad_hd):
         raise CommandError(
             f"{country}: unexpected weight keys. "
-            f"PUDO allowed {PUDO_KEYS}, got {sorted(pudo.keys())}; "
-            f"HD allowed {HD_KEYS}, got {sorted(hd.keys())}"
+            f"PUDO allowed {PUDO_KEYS}, got {sorted(map(str, pudo.keys()))}; "
+            f"HD allowed {HD_KEYS}, got {sorted(map(str, hd.keys()))}"
         )
 
 
-def _upsert(
+def _upsert_one(
     courier: CourierService,
     *,
     country: str,
     channel: str,
+    category: str,
     weight_limit: str,
     price: Decimal,
-) -> tuple[int, int]:
+) -> Tuple[int, int]:
+    """Создаёт/обновляет одну запись (на 1 категорию). Возвращает (created, updated)."""
     created = updated = 0
-    for cat in CATS:
-        obj, was_created = ShippingRate.objects.update_or_create(
-            courier_service=courier,
-            country=country,
-            channel=channel,
-            category=cat,
-            weight_limit=weight_limit,
-            address_bundle="one",  # обязательно для уникального ключа
-            defaults={
-                "price": price,
-                "cod_fee": Decimal("0.00"),
-                "estimate": "",
-            },
-        )
-        if was_created:
-            created += 1
-        else:
-            updated += 1
+    obj, was_created = ShippingRate.objects.update_or_create(
+        courier_service=courier,
+        country=country,
+        channel=channel,
+        category=category,
+        weight_limit=weight_limit,
+        address_bundle="one",  # часть уникального ключа
+        defaults={
+            "price": price,
+            "cod_fee": Decimal("0.00"),
+            "estimate": "",
+        },
+    )
+    if was_created:
+        created += 1
+    else:
+        updated += 1
     return created, updated
 
 
 class Command(BaseCommand):
-    help = "Load Packeta/Zásilkovna rates from JSON into ShippingRate (both categories mirror the same price)."
+    help = "Load Packeta/Zásilkovna rates from JSON into ShippingRate (categories controlled via --categories)."
 
     def add_arguments(self, parser):
         parser.add_argument("--json", required=True, help="Path to JSON file (see module docstring).")
@@ -124,22 +128,36 @@ class Command(BaseCommand):
             action="store_true",
             help="Show what would be written without touching DB.",
         )
+        parser.add_argument(
+            "--categories",
+            default="standard",  # важно: по умолчанию только standard, чтобы не плодить дубли
+            help="Comma-separated categories to import (default: standard). Example: standard,oversized",
+        )
 
     @transaction.atomic
     def handle(self, *args, **opts):
         path = Path(opts["json"])
         data = _read_json(path)
 
+        # разбор категорий из CLI
+        categories: List[str] = [
+            c.strip() for c in str(opts.get("categories", "standard")).split(",") if c.strip()
+        ]
+        for c in categories:
+            if c not in ALLOWED_CATEGORIES:
+                raise CommandError(f"Unknown category '{c}'. Allowed: {ALLOWED_CATEGORIES}")
+
         courier_code = data["courier_code"]
         countries_block = data["countries"]
 
         courier = _ensure_courier(courier_code)
 
-        # filter countries (if provided)
+        # фильтр стран (если указан)
         only = None
         if opts.get("countries"):
             only = [x.strip().upper() for x in opts["countries"].split(",") if x.strip()]
 
+        # reset при необходимости
         if opts.get("reset"):
             qs = ShippingRate.objects.filter(courier_service=courier)
             cnt = qs.count()
@@ -159,28 +177,47 @@ class Command(BaseCommand):
             _validate_tables(block, strict=True)
 
             # PUDO
-            for wl, price in block.get("pudo", {}).items():
-                wl_str = str(wl)
-                price_dec = Decimal(str(price))
+            pudo = block.get("pudo", {})
+            for wl in PUDO_KEYS:
+                if wl not in map(str, pudo.keys()):
+                    # пропускаем отсутствующие веса (файл может не содержать все)
+                    continue
+                price_dec = Decimal(str(pudo[wl]))
                 if opts.get("dry_run"):
-                    self.stdout.write(f"[dry-run] {courier_code} {country} PUDO ≤{wl_str}: {price_dec} CZK")
+                    self.stdout.write(f"[dry-run] {courier_code} {country} PUDO ≤{wl}: {price_dec} CZK")
                 else:
-                    c, u = _upsert(courier, country=country, channel="PUDO",
-                                   weight_limit=wl_str, price=price_dec)
-                    created_total += c
-                    updated_total += u
+                    for cat in categories:
+                        c, u = _upsert_one(
+                            courier,
+                            country=country,
+                            channel="PUDO",
+                            category=cat,
+                            weight_limit=wl,
+                            price=price_dec,
+                        )
+                        created_total += c
+                        updated_total += u
 
             # HD
-            for wl, price in block.get("hd", {}).items():
-                wl_str = str(wl)
-                price_dec = Decimal(str(price))
+            hd = block.get("hd", {})
+            for wl in HD_KEYS:
+                if wl not in map(str, hd.keys()):
+                    continue
+                price_dec = Decimal(str(hd[wl]))
                 if opts.get("dry_run"):
-                    self.stdout.write(f"[dry-run] {courier_code} {country} HD   ≤{wl_str}: {price_dec} CZK")
+                    self.stdout.write(f"[dry-run] {courier_code} {country} HD   ≤{wl}: {price_dec} CZK")
                 else:
-                    c, u = _upsert(courier, country=country, channel="HD",
-                                   weight_limit=wl_str, price=price_dec)
-                    created_total += c
-                    updated_total += u
+                    for cat in categories:
+                        c, u = _upsert_one(
+                            courier,
+                            country=country,
+                            channel="HD",
+                            category=cat,
+                            weight_limit=wl,
+                            price=price_dec,
+                        )
+                        created_total += c
+                        updated_total += u
 
         msg = f"Created: {created_total}, updated: {updated_total}"
         if opts.get("dry_run"):
