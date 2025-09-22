@@ -9,6 +9,7 @@ from .views import (
     LicenseFileViewSet,
     SellerProductListView,
     SellerSalesStatisticsView,
+    SellerBaseProductListView,
 )
 
 router = routers.SimpleRouter()
@@ -44,4 +45,5 @@ urlpatterns = [
     path('', include(products_router.urls)),
     path('my-products/', SellerProductListView.as_view(), name='seller-product-list'),
     path('statistics/sales/', SellerSalesStatisticsView.as_view(), name='seller-sales-statistics'),
+    path("<int:seller_id>/products/", SellerBaseProductListView.as_view(), name="seller-products"),
 ]

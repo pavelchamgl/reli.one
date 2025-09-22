@@ -1,3 +1,4 @@
+from drf_spectacular.types import OpenApiTypes
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -15,7 +16,7 @@ from drf_spectacular.utils import (
     OpenApiResponse,
     OpenApiParameter, OpenApiExample,
 )
-from django.db.models import Min, Sum
+from django.db.models import Min, Sum, F
 
 from .models import SellerProfile
 from .services import get_seller_sales_statistics
@@ -847,3 +848,115 @@ class SellerSalesStatisticsView(APIView):
         days = int(request.query_params.get('days', 15))
         stats = get_seller_sales_statistics(seller_profile, days=days)
         return Response(stats, status=200)
+
+
+@extend_schema(
+    operation_id="listSellerProducts",
+    summary="List products for a seller",
+    description="""
+        Retrieve a list of products that belong to a specific **seller**.
+
+        Returns **404 Not Found** if the seller does not exist.
+
+        Supports pagination, filtering (via `BaseProductFilter`) and sorting by **rating** or **price**
+        (where `price` represents the minimum variant price; acquiring fee is applied in the serializer).
+    """,
+    parameters=[
+        OpenApiParameter(
+            name='seller_id',
+            description='ID of the seller',
+            required=True,
+            type=int,
+            location=OpenApiParameter.PATH
+        ),
+        OpenApiParameter(
+            name='ordering',
+            description='Sort by price (includes acquiring fee) or rating. Use "-" for descending.',
+            required=False,
+            type=OpenApiTypes.STR,
+            enum=['price', '-price', 'rating', '-rating']
+        ),
+        OpenApiParameter(name='min_price', description='Minimum price (includes acquiring fee)', required=False, type=OpenApiTypes.NUMBER),
+        OpenApiParameter(name='max_price', description='Maximum price (includes acquiring fee)', required=False, type=OpenApiTypes.NUMBER),
+        OpenApiParameter(name='rating', description='Minimum rating to filter products', required=False, type=OpenApiTypes.NUMBER),
+    ],
+    responses={
+        200: OpenApiResponse(
+            response=BaseProductListSerializer(many=True),
+            description="Seller's products. Price values include acquiring fee."
+        ),
+        404: OpenApiResponse(description="Seller not found."),
+    },
+    examples=[
+        OpenApiExample(
+            name="Seller products (paginated)",
+            value={
+                "count": 2,
+                "next": None,
+                "previous": None,
+                "results": [
+                    {
+                        "id": 1,
+                        "name": "IPhone 14 Pro",
+                        "product_description": "Latest model...",
+                        "product_parameters": [{"id": 10, "name": "Weight", "value": "250g"}],
+                        "image": "http://localhost:8081/media/base_product_images/iphone14pro.webp",
+                        "price": "1000.00",
+                        "rating": "4.8",
+                        "total_reviews": 120,
+                        "is_favorite": False,
+                        "ordered_count": 153521,
+                        "seller_id": 3,
+                        "is_age_restricted": False
+                    }
+                ]
+            },
+            response_only=True
+        )
+    ],
+    tags=["Seller"]
+)
+class SellerBaseProductListView(ListAPIView):
+    serializer_class = BaseProductListSerializer
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = BaseProductFilter
+
+    ALLOWED_ORDERING_FIELDS = ['min_price', 'rating']
+
+    def get_base_queryset(self):
+        seller_id = self.kwargs.get('seller_id')
+        qs = (
+            BaseProduct.objects
+            .filter(seller_id=seller_id, is_active=True)
+            .annotate(
+                # минимальная цена варианта (эквайринг добавляется в сериализаторе)
+                min_price=Min('variants__price'),
+                ordered_quantity=Sum('variants__orderproduct__quantity')
+            )
+            .filter(min_price__isnull=False)
+            .prefetch_related('images', 'variants', 'product_parameters')
+            .distinct()
+        )
+
+        ordering = self.request.query_params.get('ordering', '-rating')
+        if ordering.lstrip('-') in self.ALLOWED_ORDERING_FIELDS:
+            field = ordering.lstrip('-')
+            qs = qs.order_by(F(field).desc(nulls_last=True) if ordering.startswith('-')
+                             else F(field).asc(nulls_last=True))
+        else:
+            qs = qs.order_by(F('rating').desc(nulls_last=True))
+        return qs
+
+    def list(self, request, *args, **kwargs):
+        seller_id = kwargs.get('seller_id')
+        if not SellerProfile.objects.filter(id=seller_id).exists():
+            return Response({"detail": "Seller not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        queryset = self.filter_queryset(self.get_base_queryset())
+
+        page = self.paginate_queryset(queryset)
+        serializer = self.get_serializer(page if page is not None else queryset, many=True)
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
