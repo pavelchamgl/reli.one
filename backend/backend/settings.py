@@ -265,6 +265,8 @@ EMAIL_USE_SSL = str_to_bool(os.getenv('EMAIL_USE_SSL', 'False'))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")
+SERVER_EMAIL = os.getenv("SERVER_EMAIL")
+EMAIL_TIMEOUT = float(os.getenv("EMAIL_TIMEOUT", "10.0"))
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Reli market API',
