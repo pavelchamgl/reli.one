@@ -249,7 +249,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
               <div
                 className={styles.selectBlock}
                 onClick={() => {
-                  // if (!glsDHPrice) return
+                  if (!glsDHPrice) return
                   setSelectedValue("courier");
                   setSelectedProviderCourier("gls");
                   setGlsOpen(true);
