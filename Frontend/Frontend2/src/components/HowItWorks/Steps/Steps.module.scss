@@ -1,7 +1,9 @@
 .main {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  flex-wrap: wrap;
   align-items: flex-start;
+  gap: 28px;
 }
 
 .step {
@@ -33,4 +35,8 @@
   position: absolute;
   top: 24px;
   right: -10px;
+
+  @media (max-width:860px) {
+    display: none;
+  }
 }

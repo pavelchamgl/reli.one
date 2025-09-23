@@ -26,6 +26,11 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
   const [paketaOpen, setPaketaOpen] = useState(false);
   const [glsOpen, setGlsOpen] = useState(false);
 
+  const [paketaPointPrice, setPacketaPointPrice] = useState(null)
+  const [paketaDHPrice, setPacketaDHPrice] = useState(null)
+  const [glsPointPrice, setGlsPointPrice] = useState(null)
+  const [glsDHPrice, setGlsDHPrice] = useState(null)
+
 
   const [isNotChoosePoint, setIsNotChoosePoint] = useState(false)
 
@@ -51,14 +56,48 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
   }, [selectedValue])
 
   useEffect(() => {
-    if (group?.options?.length) {
-      const pudoOption = group.options.find(item => item.channel === "PUDO");
-      const hdOption = group.options.find(item => item.channel === "HD");
+    if (!group?.couriers) return;
 
-      if (pudoOption) setPointPrice(pudoOption);
-      if (hdOption) setDHPrice(hdOption);
+    // --- Zásilkovna ---
+    const zasilkovna = group.couriers.zasilkovna;
+    if (zasilkovna?.options?.length) {
+      const pudo = zasilkovna.options.find(item => item.channel === "PUDO");
+      const hd = zasilkovna.options.find(item => item.channel === "HD");
+
+      console.log(pudo);
+
+
+      if (pudo) setPacketaPointPrice(pudo);
+      if (hd) setPacketaDHPrice(hd);
+    } else if (zasilkovna?.error) {
+      console.error("Zásilkovna error:", zasilkovna.error);
+      setPacketaPointPrice(null);
+      setPacketaDHPrice(null);
+    }
+
+    // --- GLS ---
+    const gls = group.couriers.gls;
+    if (gls?.options?.length) {
+      const pudo = gls.options.find(item => item.channel === "PUDO");
+      const hd = gls.options.find(item => item.channel === "HD");
+
+      console.log(pudo);
+
+
+      if (pudo) setGlsPointPrice(pudo.priceWithVat);
+      if (hd) setGlsDHPrice(hd.priceWithVat);
+    } else if (gls?.error) {
+      console.error("GLS error:", gls.error);
+      setGlsPointPrice(null);
+      setGlsDHPrice(null);
     }
   }, [group]);
+
+
+  useEffect(() => {
+    console.log(pointPrice, DHPrice);
+
+  }, [pointPrice, DHPrice])
 
   useEffect(() => {
     if (isNotChoosePoint) {
@@ -71,7 +110,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
 
 
 
-  if (pointPrice && DHPrice) {
+  if (paketaPointPrice || paketaDHPrice || glsDHPrice || glsPointPrice) {
     return (
       <div>
         <FormControl fullWidth>
@@ -109,6 +148,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
               <div
                 className={styles.selectBlock}
                 onClick={() => {
+                  if (!paketaPointPrice) return
                   setSelectedValue("delivery_point");
                   setSelectedProviderPoint("packeta");
                   setPaketaOpen(!paketaOpen);
@@ -118,17 +158,21 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="delivery_point"
-                    control={<Radio color="success" checked={selectedProviderPoint === "packeta"} />}
+                    control={<Radio color="success"
+                      disabled={!paketaPointPrice}
+                    // checked={selectedProviderPoint === "packeta"} 
+                    />}
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
-                <p className={styles.price}>{pointPrice?.priceWithVat} €</p>
+                <p className={styles.price}>{paketaPointPrice ? paketaPointPrice?.priceWithVat : "Delivery not available"} €</p>
               </div>
 
               {/* GLS */}
               <div
                 className={styles.selectBlock}
                 onClick={() => {
+                  if (!glsPointPrice) return
                   setSelectedValue("delivery_point");
                   setSelectedProviderPoint("gls");
                   setGlsOpen(true);
@@ -139,11 +183,14 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="delivery_point"
-                    control={<Radio color="success" checked={selectedProviderPoint === "gls"} />}
+                    control={<Radio color="success"
+                    // checked={selectedProviderPoint === "gls"}
+                    />}
+                    disabled={!glsPointPrice}
                     label={<img src={gls} alt="GLS" />}
                   />
                 </div>
-                <p className={styles.price}>{pointPrice?.priceWithVat} €</p>
+                <p className={styles.price}>{glsPointPrice ? glsPointPrice?.priceWithVat : "Delivery not available"} €</p>
               </div>
             </div>
 
@@ -178,6 +225,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
               <div
                 className={styles.selectBlock}
                 onClick={() => {
+                  if (!paketaDHPrice) return
                   setSelectedValue("courier");
                   setSelectedProviderCourier("packeta");
                   setPaketaOpen(!paketaOpen);
@@ -187,17 +235,21 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="courier"
-                    control={<Radio color="success" checked={selectedProviderCourier === "packeta"} />}
+                    control={<Radio color="success"
+                      disabled={!paketaDHPrice}
+                    // checked={selectedProviderCourier === "packeta"} 
+                    />}
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
-                <p className={styles.price}>{DHPrice.priceWithVat} €</p>
+                <p className={styles.price}>{paketaDHPrice ? paketaDHPrice?.priceWithVat : "Delivery not available"} €</p>
               </div>
 
               {/* GLS */}
               <div
                 className={styles.selectBlock}
                 onClick={() => {
+                  // if (!glsDHPrice) return
                   setSelectedValue("courier");
                   setSelectedProviderCourier("gls");
                   setGlsOpen(true);
@@ -208,11 +260,14 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="courier"
-                    control={<Radio color="success" checked={selectedProviderCourier === "gls"} />}
+                    disabled={!glsDHPrice}
+                    control={<Radio color="success"
+                    // checked={selectedProviderCourier === "gls"} 
+                    />}
                     label={<img src={gls} alt="GLS" />}
                   />
                 </div>
-                <p className={styles.price}>{DHPrice?.priceWithVat} €</p>
+                <p className={styles.price}>{glsDHPrice ? glsDHPrice?.priceWithVat : "Delivery not available"} €</p>
               </div>
             </div>
           </RadioGroup>

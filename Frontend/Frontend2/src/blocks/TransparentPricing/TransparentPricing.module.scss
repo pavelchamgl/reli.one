@@ -1,0 +1,32 @@
+.title {
+  font-weight: 700;
+  font-size: clamp(21px, 5vw, 30px);
+  text-align: center;
+  color: #101828;
+}
+
+.desc {
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+  color: #4a5565;
+  margin-top: 14px;
+  margin-bottom: 56px;
+}
+
+.main {
+  padding-block: 70px;
+}
+
+.wrap {
+  background: linear-gradient(167deg, #f9fafb 0%, #fefce8 100%);
+}
+
+.blocksWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 42px;
+}

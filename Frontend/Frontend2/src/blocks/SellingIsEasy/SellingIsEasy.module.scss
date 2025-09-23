@@ -1,6 +1,6 @@
 .title {
   font-weight: 700;
-  font-size: 48px;
+  font-size: clamp(33px, 5vw, 48px);
   line-height: 137%;
   color: #101828;
   margin-bottom: 14px;
@@ -11,16 +11,36 @@
 }
 
 .main {
-  height: 676px;
+  height: auto;
+  padding-block: 70px;
 }
 
 .content {
-  padding-top: 93px;
   display: flex;
   justify-content: space-between;
-  gap: 73px;
+  flex-wrap: wrap-reverse;
+  // gap: 73px;
 }
 
 .textContent {
   max-width: 516px;
+  @media (max-width: 1300px) {
+    max-width: 100%;
+  }
+  @media (max-width: 500px) {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.img {
+  @media (max-width: 1380px) {
+    width: 100%;
+    object-fit: cover;
+    height: 420px;
+    border-radius: 20px;
+    margin-bottom: 15px;
+  }
 }

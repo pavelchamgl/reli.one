@@ -1,3 +1,11 @@
 .main {
   padding-inline: 230px;
+
+  @media (max-width: 760px) {
+    padding-inline: 100px;
+  }
+
+  @media (max-width: 500px) {
+    padding-inline: 14px;
+  }
 }

@@ -15,7 +15,7 @@ const WhyChoose = () => {
             <section className={styles.main}>
                 <CTA image={trustIc} text={"Trusted support from day one"} color={"#a65f00"} bgColor={"#fef9c2"} />
                 <h2 className={styles.title}>Why Choose RELI?</h2>
-                <DescText text={"Everything you need to succeed as an online seller, all in one powerful platform designed to maximize your sales and minimize your effort."} style={{ maxWidth: "672px" }} />
+                <DescText text={"Everything you need to succeed as an online seller, all in one powerful platform designed to maximize your sales and minimize your effort."} style={{ maxWidth: "672px", textAlign: "center", fontSize: "clamp(16px, 5vw, 19px)" }} />
                 <OurBenefits />
                 <StartSelling />
             </section>

@@ -8,7 +8,7 @@
 
 .title {
   font-weight: 700;
-  font-size: 30px;
+  font-size: clamp(25px, 5vw, 30px);
   text-align: center;
   color: #101828;
 }

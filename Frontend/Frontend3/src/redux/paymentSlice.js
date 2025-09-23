@@ -27,7 +27,8 @@ export const fetchCreateStripeSession = createAsyncThunk(
                             zip: zip,
                             country: country?.toUpperCase()
                         },
-                        pickup_point_id: item?.pickup_point_id, products: item?.items?.map((product) => {
+                        pickup_point_id: String(item?.pickup_point_id),
+                        products: item?.items?.map((product) => {
                             return {
                                 sku: product.sku,
                                 quantity: product.count
@@ -98,7 +99,7 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                         seller_id: item.seller_id,
                         delivery_type: 1,
                         courier_service: 2,
-                        pickup_point_id: item?.pickup_point_id,
+                        pickup_point_id: String(item?.pickup_point_id),
                         delivery_address: {
                             street: street,
                             city: city,
@@ -233,7 +234,7 @@ const paymentSlice = createSlice({
         },
         setDeliveryType: (state, action) => {
             console.log(action.payload);
-            
+
             state.groups = state.groups?.map((item) => {
                 if (item.seller_id === action.payload.sellerId) {
                     return {

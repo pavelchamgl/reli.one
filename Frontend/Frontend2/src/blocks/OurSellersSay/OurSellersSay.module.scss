@@ -2,7 +2,7 @@
   text-align: center;
 
   font-weight: 700;
-  font-size: 30px;
+  font-size: clamp(25px, 5vw, 30px);
   color: #101828;
 }
 
@@ -35,6 +35,11 @@
   padding: 29px;
   width: 476px;
   height: 218px;
+
+  @media (max-width: 500px) {
+    width: 100%;
+    height: auto;
+  }
 }
 
 .commentQuote {
@@ -78,8 +83,9 @@
   margin-top: 7px;
 }
 
-.comments{
-    display: flex;
-    align-items: center;
-    gap: 28px;
+.comments {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 28px;
 }

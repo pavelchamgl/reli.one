@@ -1,0 +1,88 @@
+.form {
+  box-shadow:
+    0 4px 6px -4px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: #fff;
+
+  border-radius: 14px;
+  padding: 28px;
+  width: 100%;
+  max-width: 469px;
+  height: 523px;
+}
+
+.title {
+  font-family: var(--font-family);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 137%;
+  color: #101828;
+  margin-bottom: 20px;
+}
+
+.inpLabel {
+  width: 100%;
+  & p {
+    font-weight: 400;
+    font-size: 11px;
+    line-height: 152%;
+    color: #364153;
+    margin-bottom: 7px;
+  }
+
+  & input {
+    background: #f3f3f5;
+    border-radius: 7px;
+    width: 100%;
+    height: 31px;
+    outline: none;
+    padding-left: 10px;
+
+    font-weight: 400;
+    font-size: 11px;
+    color: #717182;
+  }
+
+  & textarea {
+    background: #f3f3f5;
+    border-radius: 7px;
+    width: 100%;
+    height: 112px;
+    resize: none;
+
+    outline: none;
+    padding: 10px;
+
+    font-weight: 400;
+    font-size: 11px;
+    color: #717182;
+  }
+}
+
+.subBtn {
+  background: #155dfc;
+
+  font-weight: 400;
+  font-size: 11px;
+  text-align: center;
+  color: #fff;
+
+  border-radius: 7px;
+  width: 100%;
+  height: 32px;
+}
+
+.nameAndLast {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+.formContent {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
