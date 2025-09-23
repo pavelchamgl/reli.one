@@ -24,8 +24,8 @@ import AskedQuestions from './blocks/AskedQuestions/AskedQuestions';
 import StartSelling from './blocks/StartSelling/StartSelling';
 import GetInTouch from './blocks/GetInTouch/GetInTouch';
 import FooterMain from './components/Footer/FooterMain/FooterMain';
-import ScrollToTop from '../../Frontend3/src/ui/ScrollToTop/ScrollToTop';
 import BannerNew from './components/BannerNew/BannerNew';
+import ScrollToTop from './components/ScrollToTop/ScrollToTop';
 
 const App = () => {
 
