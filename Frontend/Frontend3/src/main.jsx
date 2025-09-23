@@ -48,6 +48,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
 import DeleteMyDataPage from "./pages/DeleteMyDataPage.jsx";
+import SellerIdPage from "./pages/SellerIdPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -99,6 +100,7 @@ const router = createBrowserRouter([
       { path: "/product_category/:id", element: <CategoryPage /> },
     ],
   },
+  { path: "/products-seller/:id", element: <SellerIdPage /> },
   {
     path: "/basket",
     element: <BasketPage />,

@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
-import { getProductById, getProducts } from "../api/productsApi"
+import { getProductById, getProducts, getProductsBySellerId } from "../api/productsApi"
 import axios from "axios";
 import mainInstance from "../api";
 
@@ -55,6 +55,35 @@ export const fetchSearchProducts = createAsyncThunk(
     }
 )
 
+export const fetchSellerProducts = createAsyncThunk(
+    "products/fetchSellerProducts",
+    async (id, { rejectWithValue, getState }) => {
+
+        try {
+            const state = getState().products
+            const res = await mainInstance.get(`https://reli.one/api/sellers/${id}/products/`, {
+                params: {
+                    max_price: state.max,
+                    min_price: state.min,
+                    ordering: state.ordering,
+                    page: state.searchPage,
+                    page_size: 35
+                },
+                headers: {
+                    Authorization: token ? `Bearer ${token.access}` : ''
+                }
+            });
+            return res.data
+
+
+        } catch (error) {
+            console.log(error);
+
+            return rejectWithValue()
+        }
+    }
+)
+
 const pendingStatus = (state, action) => {
     state.status = "loading"
 }
@@ -78,7 +107,10 @@ const productsSlice = createSlice({
         searchResult: {},
         searchStatus: null,
         count: null,
-        categoryName: null
+        categoryName: null,
+
+        sellerResult: [],
+        sellerStatus: null
     },
     reducers: {
         setOrdering: (state, action) => {
@@ -98,7 +130,7 @@ const productsSlice = createSlice({
         },
         setCategoryForProduct: (state, action) => {
 
-            
+
             return {
                 ...state, category: action.payload
             }
@@ -117,17 +149,31 @@ const productsSlice = createSlice({
     extraReducers: builder => {
         builder.addCase(fetchGetProducts.pending, pendingStatus),
             builder.addCase(fetchGetProducts.fulfilled, (state, action) => {
-                state.products = action.payload.results                
+                state.products = action.payload.results
                 state.status = "fulfilled",
                     state.count = action.payload.count
             }),
             builder.addCase(fetchGetProducts.rejected, errStatus),
+
             builder.addCase(fetchGetProductById.pending, pendingStatus),
             builder.addCase(fetchGetProductById.fulfilled, (state, action) => {
                 state.status = "fulfilled"
                 state.product = action.payload.data
             })
         builder.addCase(fetchGetProductById.rejected, errStatus)
+
+        builder.addCase(fetchSellerProducts.pending, (state, action) => {
+            state.sellerStatus = "loading"
+        }),
+            builder.addCase(fetchSellerProducts.fulfilled, (state, action) => {
+                state.sellerStatus = "fulfilled"
+                state.sellerResult = action.payload.results
+                state.count = action.payload.count
+            })
+        builder.addCase(fetchSellerProducts.rejected, (state, action) => {
+            state.sellerStatus = "error"
+        })
+
         builder.addCase(fetchSearchProducts.fulfilled, (state, action) => {
             state.searchStatus = "fulfilled"
             state.searchResult = action.payload.results

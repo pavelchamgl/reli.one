@@ -16,8 +16,10 @@ import styles from "../styles/CategoryPage.module.scss";
 import { useActions } from "../hook/useAction";
 import { Pagination } from "@mui/material";
 import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
+import Header from "../Components/Header/Header";
+import Footer from "../Components/Footer/Footer";
 
-const CategoryPage = () => {
+const SellerIdPage = () => {
     const isMobile = useMediaQuery({ maxWidth: 426 });
     const [categoryValue, setCategoryValue] = useState("");
     const [categoryId, setCategoryId] = useState(null);
@@ -32,50 +34,24 @@ const CategoryPage = () => {
     const { id } = useParams()
 
     const {
-        fetchGetProducts,
-        setCategoryForProduct,
         setMax,
         setMin,
         setOrdering,
         setProdPage,
+        fetchSellerProducts
     } = useActions();
 
-    const { search } = useLocation();
 
-
-
-    useEffect(() => {
-        const searchParams = new URLSearchParams(search);
-        const searchText = searchParams.get("categoryValue");
-        const categoryID = searchParams.get("categoryID");
-        if (categoryID && searchText) {
-            setCategoryId(Number(categoryID));
-            setCategoryValue(searchText);
-        }
-    }, [search]);
+    const { sellerResult, sellerStatus, count } = useSelector((state) => state.products);
 
     useEffect(() => {
-        const searchParams = new URLSearchParams(search);
-        const searchText = searchParams.get("categoryValue");
-        if (searchText) {
-            setCategoryValue(searchText);
-        }
-        setCategoryId(id)
-    }, [id])
+        fetchSellerProducts(id);
+    }, [orderingState, filter, page]);
 
     useEffect(() => {
-        if (categoryId !== null) {
-            setCategoryForProduct(categoryId);
-            setProdPage(1)
-            fetchGetProducts();
-        }
-    }, [categoryId, categoryValue, orderingState, filter, page]);
+        setProductsData(sellerResult);
+    }, [sellerResult]);
 
-    const { products, count } = useSelector((state) => state.products);
-
-    useEffect(() => {
-        setProductsData(products);
-    }, [products]);
 
 
     const handleChange = (event, value) => {
@@ -86,8 +62,9 @@ const CategoryPage = () => {
 
     return (
         <>
+            <Header />
             <div className={styles.titleDiv}>
-                <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryValue })}</p>
+                <p className={styles.title}>Seller products</p>
             </div>
 
             <Container>
@@ -99,7 +76,7 @@ const CategoryPage = () => {
                         filter={filter}
                         setMax={setMax}
                         setMin={setMin}
-                        products={products}
+                        products={sellerResult}
                     />
                 )}
                 <div className={styles.filterDiv}>
@@ -114,16 +91,14 @@ const CategoryPage = () => {
                                 filter={filter}
                                 setMax={setMax}
                                 setMin={setMin}
-                                products={products}
+                                products={sellerResult}
                             />
                         </div>
                     )}
                 </div>
-                <div className={styles.breadHide}>
-                    <CustomBreadcrumbs />
-                </div>
+
                 <div className={styles.likedProdWrap}>
-                    {productsData && productsData.length > 0 ? (
+                    {sellerStatus === "fulfilled" && productsData && productsData.length > 0 ? (
                         productsData.map((item) => (
                             <ProductCard key={item.id} data={item} />
                         ))
@@ -140,8 +115,9 @@ const CategoryPage = () => {
                     />
                 </div>
             </Container>
+            <Footer />
         </>
     );
 };
 
-export default CategoryPage;
+export default SellerIdPage;

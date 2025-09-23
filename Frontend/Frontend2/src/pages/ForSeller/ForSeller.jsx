@@ -7,7 +7,7 @@ import ForSellerTable from "../../components/ForSeller/ForSellerTable/ForSellerT
 import styles from "./ForSeller.module.scss";
 import Header from "../../components/Header/Header";
 import FooterMain from "../../components/Footer/FooterMain/FooterMain";
-import ScrollToTop from "../../../../Frontend3/src/ui/ScrollToTop/ScrollToTop";
+import ScrollToTop from "../../components/ScrollToTop/ScrollToTop";
 
 const ForrSeller = () => {
     const [section, setSection] = useState("market");
