@@ -229,7 +229,7 @@ const BannerSlider = () => {
               <SwiperSlide key={index} className={styles.swiperSlide}>
                 {isImage(item?.image_url) ? (
                   // ? настроил переход на страницу и отображение другой картинки на мобилке
-                  <Link to={"/products-seller/3"}>
+                  // <Link to={"/products-seller/3"}>
                     <img
                       // onClick={() => navigate("/liked")}
                       // src={isMobile ? "https://i.pinimg.com/736x/35/47/69/354769a6c144b2d298f2acf91849981f.jpg" : }
@@ -237,7 +237,7 @@ const BannerSlider = () => {
                       alt={`img-${index}`}
                       className={styles.bannerImg}
                     />
-                  </Link>
+                  {/* </Link> */}
                 ) : isVideo(item?.image_url) ? (
                   <div className={styles.videoWrapper}>
                     <video
