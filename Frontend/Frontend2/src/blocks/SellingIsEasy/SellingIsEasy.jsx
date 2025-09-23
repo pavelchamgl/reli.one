@@ -15,12 +15,12 @@ const SellingIsEasy = () => {
                     <div className={styles.content}>
                         <div className={styles.textContent}>
                             <h1 className={styles.title}>Selling with Reli is easy</h1>
-                            <DescText text={"Just send us your product detail - we upload and promote them for you. "} />
+                            <DescText style={{ fontSize: "clamp(16px, 5vw, 20px)" }} text={"Just send us your product detail - we upload and promote them for you. "} />
                             <Steps />
                             <YellowBtn text={"Start Selling Today"} />
                         </div>
 
-                        <img src={bigImg} alt="" />
+                        <img className={styles.img} src={bigImg} alt="" />
 
 
                     </div>

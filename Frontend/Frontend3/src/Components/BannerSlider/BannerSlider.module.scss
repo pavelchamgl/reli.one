@@ -3,11 +3,22 @@
   width: 100%;
   height: auto; // или auto
   background: #ffffff;
+  @media (max-width: 955px) {
+    width: 950px !important;
+  }
+
+  @media (max-width: 500px) {
+    width: 100% !important;
+  }
 }
 
 .swiper {
   width: calc(100% - 265px) !important;
   height: 460px !important;
+
+  @media (max-width: 955px) {
+    width: 950px !important;
+  }
 
   @media (max-width: 500px) {
     width: calc(100% - 20px) !important;
@@ -34,7 +45,11 @@
   width: 100% !important;
   height: 400px !important;
   object-fit: cover;
+  @media (max-width: 955px) {
+    width: 950px !important;
+  }
   @media (max-width: 500px) {
+    width: 100% !important;
     height: 210px !important;
   }
   @media (max-width: 401px) {

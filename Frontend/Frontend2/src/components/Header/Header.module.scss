@@ -3,4 +3,6 @@
   --rigthB: 16px;
   padding-inline: var(--rigthI);
   padding-block: var(--rigthB);
+  display: flex;
+  align-items: center;
 }

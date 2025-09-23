@@ -16,6 +16,16 @@ import SellingIsEasy from './blocks/SellingIsEasy/SellingIsEasy';
 import WhyChoose from './blocks/WhyChoose/WhyChoose';
 import HowItWorks from './blocks/HowItWorks/HowItWorks';
 import OurSellersSay from './blocks/OurSellersSay/OurSellersSay';
+import TransparentPricing from './blocks/TransparentPricing/TransparentPricing';
+import SellerSupport from './blocks/SellerSupport/SellerSupport';
+import TechnicalIntegration from './blocks/TechnicalIntegration/TechnicalIntegration';
+import Security from './blocks/Security/Security';
+import AskedQuestions from './blocks/AskedQuestions/AskedQuestions';
+import StartSelling from './blocks/StartSelling/StartSelling';
+import GetInTouch from './blocks/GetInTouch/GetInTouch';
+import FooterMain from './components/Footer/FooterMain/FooterMain';
+import ScrollToTop from '../../Frontend3/src/ui/ScrollToTop/ScrollToTop';
+import BannerNew from './components/BannerNew/BannerNew';
 
 const App = () => {
 
@@ -48,21 +58,30 @@ const App = () => {
 
   return (
     <div className="font-Inter relative">
-      {/* <Header />
-      <div className="h-[662px] bg-slate-600"></div>
+      <Header />
+      <BannerNew />
       <FocusOnBuss />
       <SellingIsEasy />
       <WhyChoose />
       <HowItWorks />
-      <OurSellersSay /> */}
+      <OurSellersSay />
+      <TransparentPricing />
+      <AskedQuestions />
+      <SellerSupport />
+      <StartSelling />
+      <TechnicalIntegration />
+      <GetInTouch />
+      <Security />
+      <FooterMain />
+      <ScrollToTop />
 
-      <Domu />
+      {/* <Domu />
       <Proc_Zrovna_Me />
       <Vacancies />
       <News />
       <NewKontakt />
       <Footer />
-      <ChangeLang />
+      <ChangeLang /> */}
     </div>
   );
 };

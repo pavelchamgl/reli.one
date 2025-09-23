@@ -1,0 +1,25 @@
+.main {
+  padding-block: 70px;
+}
+
+.needHelp {
+  font-weight: 400;
+  font-size: 13px;
+  text-align: center;
+  color: #4a5565;
+  margin-top: 42px;
+  margin-bottom: 13px;
+  @media (max-width: 500px) {
+    margin-top: 21px;
+  }
+}
+
+.contactInfo {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  text-decoration: underline;
+  text-decoration-skip-ink: none;
+  text-align: center;
+  color: #155dfc;
+}

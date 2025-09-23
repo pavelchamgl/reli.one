@@ -38,7 +38,9 @@ const Steps = () => {
                         <Step image={item.image} num={item.num} color={item.color} />
                         <p className={styles.stepText}>{item.text}</p>
                     </div>
-                    <img src={arrRight} alt="" />
+                    <div className={styles.arrow}>
+                        <img src={arrRight} alt="" />
+                    </div>
                 </div>
             ))}
             <div className={styles.stepWrap}>

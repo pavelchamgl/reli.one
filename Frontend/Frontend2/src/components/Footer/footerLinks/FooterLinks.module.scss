@@ -1,0 +1,45 @@
+.main{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 21px;
+
+    @media (max-width:500px) {
+      flex-direction: column;
+    }
+}
+
+.linksWrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  & img {
+    height: 17px;
+  }
+}
+
+.footerDesc {
+  font-weight: 400;
+  font-size: 11px;
+  color: #99a1af;
+  margin-top: 13px;
+  margin-bottom: 13px;
+}
+
+.logoWrap {
+  width: 173px;
+}
+
+.listTitle {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.listItem {
+  font-weight: 400;
+  font-size: 11px;
+  color: #99a1af;
+}

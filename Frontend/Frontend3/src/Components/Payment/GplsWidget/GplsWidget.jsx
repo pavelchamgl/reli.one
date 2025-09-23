@@ -1,9 +1,13 @@
 import { useEffect } from "react";
 import { useActionPayment } from "../../../hook/useActionPayment";
+import { useSelector } from "react-redux";
 
 const GlsWidget = ({ open, setOpen, onSelect, setIsNotChoose, sellerId }) => {
 
     const { setPointInfo } = useActionPayment()
+
+    const payment = useSelector(state => state.payment)
+
 
 
     useEffect(() => {
@@ -67,8 +71,21 @@ const GlsWidget = ({ open, setOpen, onSelect, setIsNotChoose, sellerId }) => {
       </button> */}
 
             {/* Эти скрытые поля нужны, чтобы GLS виджет работал корректно */}
-            <input type="hidden" id="ctrcodeGls" value="CZ" />
-            <input type="hidden" id="lngGls" value="cs" />
+            <input
+                type="hidden"
+                id="ctrcodeGls"
+                value={payment?.country?.toUpperCase() || "SK"} // страна
+            />
+            <input
+                type="hidden"
+                id="zipcodeGls"
+                value={payment?.paymentInfo?.zip || ""} // почтовый индекс
+            />
+            <input
+                type="hidden"
+                id="cityGls"
+                value={payment?.paymentInfo?.city || ""} // город
+            />
         </div>
     );
 };

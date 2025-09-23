@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Mousewheel, Keyboard, Autoplay } from "swiper/modules";
 import { useMediaQuery } from "react-responsive";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -228,12 +228,16 @@ const BannerSlider = () => {
             {images.map((item, index) => (
               <SwiperSlide key={index} className={styles.swiperSlide}>
                 {isImage(item?.image_url) ? (
-                  <img
-                    // onClick={() => navigate("/liked")}
-                    src={item?.image_url}
-                    alt={`img-${index}`}
-                    className={styles.bannerImg}
-                  />
+                  // ? настроил переход на страницу и отображение другой картинки на мобилке
+                  // <Link to={"/product_category/145"}>
+                    <img
+                      // onClick={() => navigate("/liked")}
+                      // src={isMobile ? "https://i.pinimg.com/736x/35/47/69/354769a6c144b2d298f2acf91849981f.jpg" : }
+                      src={item?.image_url}
+                      alt={`img-${index}`}
+                      className={styles.bannerImg}
+                    />
+                  // </Link>
                 ) : isVideo(item?.image_url) ? (
                   <div className={styles.videoWrapper}>
                     <video

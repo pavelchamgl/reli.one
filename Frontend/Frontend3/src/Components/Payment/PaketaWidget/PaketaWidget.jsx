@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useActionPayment } from "../../../hook/useActionPayment";
+import { useSelector } from "react-redux";
 
 const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
     const [selectedPoint, setSelectedPoint] = useState(null);
 
     const { setPointInfo } = useActionPayment()
+
+    const payment = useSelector(state => state.payment)
+
 
     useEffect(() => {
         // Загружаем скрипт виджета один раз при монтировании
@@ -28,15 +32,8 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
             valueFormat: '"Packeta",id,carrierId,carrierPickupPointId,name,city,street',
             view: "modal",
             vendors: [
-                { country: "cz" },
-                { country: "hu" },
-                { country: "sk" },
-                { country: "ro" },
-                { country: "cz", group: "zbox" },
-                { country: "sk", group: "zbox" },
-                { country: "hu", group: "zbox" },
-                { country: "pl" },
-                { country: "ro", group: "zbox" },
+                { country: payment?.country },
+                { country: payment?.country, group: "zbox" },
             ],
             onClose: () => {
                 if (!hasChosenPointRef.current) {

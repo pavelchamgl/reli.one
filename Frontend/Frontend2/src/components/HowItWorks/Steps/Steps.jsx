@@ -44,12 +44,15 @@ const Steps = () => {
 
     return (
         <div className={styles.main}>
-            {steps.map((item) => (
+            {steps.map((item, index) => (
                 <div className={styles.step}>
                     <Step image={item.image} color={item.color} num={item.num} />
                     <p className={styles.title}>{item.title}</p>
                     <p className={styles.desc}>{item.desc}</p>
-                    <img className={styles.arrow} src={arrRight} alt="" />
+                    {
+                        index !== 3 &&
+                        <img className={styles.arrow} src={arrRight} alt="" />
+                    }
                 </div>
 
             ))}

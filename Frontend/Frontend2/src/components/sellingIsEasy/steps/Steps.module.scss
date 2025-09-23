@@ -23,6 +23,18 @@
   gap: 17px;
   margin-top: 48px;
   margin-bottom: 42px;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+    margin-top: 25px;
+    margin-bottom: 25px;
+  }
+}
+
+.arrow {
+  @media (max-width: 500px) {
+    display: none;
+  }
 }
 
 .logoImg {

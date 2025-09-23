@@ -2,6 +2,45 @@
 @tailwind components;
 @tailwind utilities;
 
-.slick-slide > div {
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+
+.slick-slide>div {
   margin: 0 5px;
+}
+
+* {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* кастомизация точек пагинации Swiper */
+.swiper-pagination {
+  position: relative;
+  /* чтобы было как на скрине */
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.swiper-pagination-bullet {
+  width: 10px;
+  height: 10px;
+  background: #d1d5db;
+  /* серый */
+  opacity: 1;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.swiper-pagination-bullet-active {
+  background: #065f46;
+  width: 42px;
+  border-radius: 5px;
+  /* тёмно-зелёный */
+  /* чтобы выделялась */
 }
