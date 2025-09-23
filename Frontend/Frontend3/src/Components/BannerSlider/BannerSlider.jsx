@@ -237,7 +237,7 @@ const BannerSlider = () => {
                       alt={`img-${index}`}
                       className={styles.bannerImg}
                     />
-                  {/* </Link> */}
+                  
                 ) : isVideo(item?.image_url) ? (
                   <div className={styles.videoWrapper}>
                     <video
