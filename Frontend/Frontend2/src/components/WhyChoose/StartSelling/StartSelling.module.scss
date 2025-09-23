@@ -33,7 +33,7 @@
     0 10px 15px -3px rgba(0, 0, 0, 0.1);
   background: #fdc700;
   border-radius: 14px;
-  width: 100%;
+  width: 314px;
   height: 51px;
   display: flex;
   justify-content: center;
@@ -49,6 +49,7 @@
   @media (max-width: 330px) {
     gap: 5px;
     padding: 13px 0;
+    width: 100%;
 
     & p {
       font-size: 13px;
