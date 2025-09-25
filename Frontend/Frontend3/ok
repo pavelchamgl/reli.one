@@ -1,0 +1,41 @@
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tracking Template — GA4, GTM, Google Ads</title>
+
+  <!-- 1) Google Analytics 4 (GA4) -->
+  <!-- Вставить в <head> всех страниц -->
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D2YFDWVX4X"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} // общая dataLayer
+    gtag('js', new Date());
+
+    // Инициализация GA4 — сохраните ID как есть или замените
+    gtag('config', 'G-D2YFDWVX4X');
+  </script>
+
+  <!-- 2) Google Tag Manager (GTM) -->
+  <!-- Вставить в <head> всех страниц -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-NNZ77M58');</script>
+  <!-- End Google Tag Manager -->
+
+  <!-- 3) Google Ads Global Tag -->
+  <!-- Вставить в <head> всех страниц -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17579423844"></script>
+  <script>
+    // gtag уже определён выше и использует ту же dataLayer
+    gtag('config', 'AW-17579423844');
+  </script>
+
+  <!-- Доп. инструкции:
+       - Не удаляйте или не меняйте порядок скриптов без необходимости.
+       - GTM использует dataLayer: если вы будете передавать динамические значения —
+         лучше пушить через dataLayer и обрабатывать в Tag Manager.
+  -->
+</head>

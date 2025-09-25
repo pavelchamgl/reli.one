@@ -18,6 +18,7 @@ import { Pagination } from "@mui/material";
 import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
 import Header from "../Components/Header/Header";
 import Footer from "../Components/Footer/Footer";
+import BannerCube from "../Components/bannerCube/BannerCube";
 
 const SellerIdPage = () => {
     const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -42,7 +43,9 @@ const SellerIdPage = () => {
     } = useActions();
 
 
-    const { sellerResult, sellerStatus, count } = useSelector((state) => state.products);
+    const { sellerResult,
+        sellerStatus,
+        count } = useSelector((state) => state.products);
 
     useEffect(() => {
         fetchSellerProducts(id);
@@ -54,70 +57,83 @@ const SellerIdPage = () => {
 
 
 
+
     const handleChange = (event, value) => {
         setPage(value);
         setProdPage(value);
     };
 
+    if (sellerResult?.length === 0 || sellerStatus === "error") {
+        return (
+            <>
+                <Header />
 
-    return (
-        <>
-            <Header />
-            <div className={styles.titleDiv}>
-                <p className={styles.title}>Seller products</p>
-            </div>
+                <BannerCube />
 
-            <Container>
-                {isMobile && (
-                    <MobFilter
-                        setOrderingState={setOrderingState}
-                        setOrdering={setOrdering}
-                        handleFilter={setFilter}
-                        filter={filter}
-                        setMax={setMax}
-                        setMin={setMin}
-                        products={sellerResult}
-                    />
-                )}
-                <div className={styles.filterDiv}>
-                    {!isMobile && (
-                        <div style={{ display: "flex", gap: "10px" }}>
-                            <FilterByPopularity
-                                setOrderingState={setOrderingState}
-                                setOrdering={setOrdering}
-                            />
-                            <FilterByPrice
-                                handleFilter={setFilter}
-                                filter={filter}
-                                setMax={setMax}
-                                setMin={setMin}
-                                products={sellerResult}
-                            />
-                        </div>
+                <Footer />
+            </>
+        )
+    } else {
+        return (
+            <>
+                <Header />
+                <div className={styles.titleDiv}>
+                    <p className={styles.title}>Seller products</p>
+                </div>
+
+                <Container>
+                    {isMobile && (
+                        <MobFilter
+                            setOrderingState={setOrderingState}
+                            setOrdering={setOrdering}
+                            handleFilter={setFilter}
+                            filter={filter}
+                            setMax={setMax}
+                            setMin={setMin}
+                            products={sellerResult}
+                        />
                     )}
-                </div>
+                    <div className={styles.filterDiv}>
+                        {!isMobile && (
+                            <div style={{ display: "flex", gap: "10px" }}>
+                                <FilterByPopularity
+                                    setOrderingState={setOrderingState}
+                                    setOrdering={setOrdering}
+                                />
+                                <FilterByPrice
+                                    handleFilter={setFilter}
+                                    filter={filter}
+                                    setMax={setMax}
+                                    setMin={setMin}
+                                    products={sellerResult}
+                                />
+                            </div>
+                        )}
+                    </div>
 
-                <div className={styles.likedProdWrap}>
-                    {sellerStatus === "fulfilled" && productsData && productsData.length > 0 ? (
-                        productsData.map((item) => (
-                            <ProductCard key={item.id} data={item} />
-                        ))
-                    ) : (
-                        <NoContentText />
-                    )}
-                </div>
-                <div className={styles.paginationDiv}>
-                    <Pagination
-                        shape="rounded"
-                        count={Math.ceil(count / 35)} // Использование Math.ceil для округления вверх
-                        page={page}
-                        onChange={handleChange}
-                    />
-                </div>
-            </Container>
-            <Footer />
-        </>
-    );
+                    <div className={styles.likedProdWrap}>
+                        {sellerStatus === "fulfilled" && productsData && productsData.length > 0 ? (
+                            productsData.map((item) => (
+                                <ProductCard key={item.id} data={item} />
+                            ))
+                        ) : (
+                            <NoContentText />
+                        )}
+                    </div>
+                    <div className={styles.paginationDiv}>
+                        <Pagination
+                            shape="rounded"
+                            count={Math.ceil(count / 35)} // Использование Math.ceil для округления вверх
+                            page={page}
+                            onChange={handleChange}
+                        />
+                    </div>
+                </Container>
+                <Footer />
+            </>
+        );
+    }
+
 };
 
 export default SellerIdPage;
