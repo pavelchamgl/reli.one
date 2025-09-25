@@ -45,6 +45,8 @@ const BannerSlider = () => {
 
     getBannerImg()
       .then((res) => {
+        console.log(res);
+
         if (res.status === 200) {
           setImages([
             ...res.data,
@@ -229,15 +231,15 @@ const BannerSlider = () => {
               <SwiperSlide key={index} className={styles.swiperSlide}>
                 {isImage(item?.image_url) ? (
                   // ? настроил переход на страницу и отображение другой картинки на мобилке
-                  // <Link to={"/products-seller/3"}>
+                  <Link to={`/products-seller/${item?.seller_id}`}>
                     <img
                       // onClick={() => navigate("/liked")}
-                      // src={isMobile ? "https://i.pinimg.com/736x/35/47/69/354769a6c144b2d298f2acf91849981f.jpg" : }
-                      src={item?.image_url}
+                      src={isMobile ? item?.image_url_mobile : item.image_url}
+                      // src={item?.image_url}
                       alt={`img-${index}`}
                       className={styles.bannerImg}
                     />
-                  
+                  </Link>
                 ) : isVideo(item?.image_url) ? (
                   <div className={styles.videoWrapper}>
                     <video

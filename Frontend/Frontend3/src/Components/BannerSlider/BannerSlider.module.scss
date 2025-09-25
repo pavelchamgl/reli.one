@@ -3,10 +3,10 @@
   width: 100%;
   height: auto; // или auto
   background: #ffffff;
-  @media (max-width: 955px) {
-    width: 950px !important;
-  }
 
+  @media (max-width: 955px) {
+    width: 950px !important; // фикс ширина
+  }
   @media (max-width: 500px) {
     width: 100% !important;
   }
@@ -17,7 +17,8 @@
   height: 460px !important;
 
   @media (max-width: 955px) {
-    width: 950px !important;
+    width: 950px !important; // фикс ширина
+    height: 370px !important;
   }
 
   @media (max-width: 500px) {
@@ -26,10 +27,10 @@
     height: 270px !important;
   }
 
-  @media (max-width: 400px) {
+  @media (max-width: 361px) {
     width: calc(100% - 20px) !important;
 
-    height: 270px !important;
+    height: 220px !important;
   }
 
   @media (min-width: 1550px) {
@@ -46,7 +47,8 @@
   height: 400px !important;
   object-fit: cover;
   @media (max-width: 955px) {
-    width: 950px !important;
+    width: 780px !important;
+    height: 300px !important;
   }
   @media (max-width: 500px) {
     width: 100% !important;
@@ -75,7 +77,12 @@
   // width: 100% !important;
   // height: 400px !important;
   // object-fit: contain;
+  @media (max-width: 955px) {
+    width: 780px !important;
+    height: 300px !important;
+  }
   @media (max-width: 500px) {
+    width: 100% !important;
     height: 210px !important;
   }
   @media (min-width: 1550px) {
