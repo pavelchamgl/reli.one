@@ -74,8 +74,6 @@ export const fetchCreateStripeSession = createAsyncThunk(
             });
 
 
-
-
             if (res.status === 200) {
                 window.location.href = res.data.checkout_url;
             }

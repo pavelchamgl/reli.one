@@ -30,9 +30,9 @@ const FooterLinks = () => {
                     <a href="#">
                         <img src={face} alt="" />
                     </a>
-                    <a href="#">
+                    {/* <a href="#">
                         <img src={tel} alt="" />
-                    </a>
+                    </a> */}
                     <a href="#">
                         <img src={insta} alt="" />
                     </a>

@@ -1,46 +1,18 @@
 .wrapper {
   width: 100%;
   height: auto;
+  display: flex;
+  justify-content: center;
+  margin-block: 30px;
 }
 
-.swiper {
-  width: 100% !important;
-  height: 460px !important;
-  overflow: hidden;
-  margin-block: 20px;
-}
+.video {
+  width: 500px;
+  height: 400px;
+  object-fit: cover;
 
-.front,
-.back {
-  height: 400px !important;
-  width: 100% !important;
-  background-image: url("../../assets/banner/frontBanner.jpg");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-}
-
-@media (max-width: 600px) {
-  .swiper {
-    height: 270px !important;
-    margin-block: 10px;
+  @media (max-width: 550px) {
+    width: calc(100% - 20px);
+    height: auto;
   }
-  .front,
-  .back {
-    height: 210px !important;
-  }
-}
-
-.back {
-  background-image: url("../../assets/banner/bannerBack.jpeg");
-}
-
-.paginationActive {
-  width: 8px; /* Width of the bullet */
-  height: 8px; /* Height of the bullet */
-  background: #000; /* Default bullet color */
-  opacity: 1; /* Ensure bullets are fully opaque */
-  border-radius: 50%; /* Make the bullets round */
-  margin: 0 4px;
-  background: #3f7f6d; /* Active bullet color */
 }

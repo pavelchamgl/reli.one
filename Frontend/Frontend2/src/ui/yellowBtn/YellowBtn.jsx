@@ -2,11 +2,14 @@ import arrRight from "@/assets/general/arrRightBtn.svg"
 
 import styles from "./YellowBtn.module.scss"
 
-const YellowBtn = ({ text }) => {
+const YellowBtn = ({ text, style, arr }) => {
     return (
-        <button className={styles.main}>
+        <button style={style} className={styles.main}>
             <p>{text}</p>
-            <img src={arrRight} alt="" />
+            {
+                arr &&
+                <img src={arrRight} alt="" />
+            }
         </button>
     )
 }

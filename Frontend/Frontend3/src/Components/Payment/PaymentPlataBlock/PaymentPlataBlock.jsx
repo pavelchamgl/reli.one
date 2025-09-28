@@ -31,6 +31,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
   const [authEnd, setAuthEnd] = useState(false)
   const [openAgeModal, setOpenAgeModal] = useState(false)
   const [ageCheck, setAgeCheck] = useState(false)
+  const [check, setCheck] = useState(false)
 
   const { t } = useTranslation();
 
@@ -133,12 +134,22 @@ const PaymentPlataBlock = ({ section, setSection }) => {
       <div className={styles.plataDiv}>
         <p className={styles.sectionTitle}>{t("payment")}</p>
         <PlataRadio setPlata={setPlataType} />
-        {!isMobile && (
-          <label className={styles.checkDiv}>
-            <CheckBox />
-            <span>{t("save_info_for_future")}</span>
-          </label>
-        )}
+
+        <label className={styles.checkDiv}>
+          <CheckBox />
+          <span>{t("save_info_for_future")}</span>
+        </label>
+        <label className={styles.checkDiv}>
+          <CheckBox check={check} onChange={() => setCheck(!check)} />
+          <span>
+            {t("iAgreeToTerms.agreeToThe")}{" "}
+            <a href="#">{t("iAgreeToTerms.terms")}</a>{" "}
+            {t("iAgreeToTerms.and")}{" "}
+            <a href="#">{t("iAgreeToTerms.privacy")}</a>
+          </span>
+
+        </label>
+
       </div>
       {error && <p className={styles.errText}>{error}</p>}
       <div className={styles.buttonDiv}>
@@ -147,7 +158,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
           <span>{t("back_to_delivery")}</span>
         </button>
         <button
-          //  disabled={inputError} 
+          disabled={inputError || !check}
           onClick={handleSubmit}>
           {loading ? <Spinner /> : <p>{t("pay_now")}</p>}
         </button>

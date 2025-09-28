@@ -714,5 +714,11 @@
         "carAccessories": "Car accessories",
         "carCare": "Car care"
     },
-    "style": "Style"
+    "style": "Style",
+    "iAgreeToTerms": {
+        "agreeToThe": "I agree to the",
+        "terms": "Terms and Conditions",
+        "and": "and",
+        "privacy": "Privacy Policy (GDPR)"
+    }
 }

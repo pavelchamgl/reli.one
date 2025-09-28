@@ -47,6 +47,7 @@ const SellerIdPage = () => {
         sellerStatus,
         count } = useSelector((state) => state.products);
 
+
     useEffect(() => {
         fetchSellerProducts(id);
     }, [orderingState, filter, page]);
