@@ -17,7 +17,13 @@ const SellingIsEasy = () => {
                             <h1 className={styles.title}>Selling with Reli is easy</h1>
                             <DescText style={{ fontSize: "clamp(16px, 5vw, 20px)" }} text={"Just send us your product detail - we upload and promote them for you. "} />
                             <Steps />
-                            <YellowBtn text={"Start Selling Today"} />
+                            <div className={styles.btnWrap}>
+                                <YellowBtn text={"Start Selling Today"} />
+                                <YellowBtn text={"Go To Marketplace"} arr={true} style={{
+                                    background: "#eef0f2"
+                                }} />
+
+                            </div>
                         </div>
 
                         <img className={styles.img} src={bigImg} alt="" />

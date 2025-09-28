@@ -44,3 +44,14 @@
     margin-bottom: 15px;
   }
 }
+
+.btnWrap {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  flex-wrap: wrap;
+
+  @media (max-width: 500px) {
+    justify-content: center;
+  }
+}
