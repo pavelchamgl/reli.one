@@ -3,9 +3,7 @@ services:
     container_name: postgres_db
     image: postgres:latest
     volumes:
-      - .reli_db./postgres/:/var/lib/postgresql/data/
-    ports:
-      - "5432:5432"
+      - .reli_db./postgres/:/var/lib/postgresql/data
     logging:
       driver: "json-file"
       options:
