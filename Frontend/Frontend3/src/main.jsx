@@ -5,7 +5,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import store from "./redux/index.js";
+import { persistor, store } from "./redux/index.js";
 
 import HomePage from "./pages/HomePage.jsx";
 import MainPage from "./pages/MainPage.jsx";
@@ -43,6 +43,12 @@ import SellerPreviewPage from "./pages/SellerPreviewPage.jsx";
 import SellerPage from "./pages/SellerPage.jsx";
 import EditGoodsPage from "./pages/EditGoodsPage.jsx";
 import SellerEditPreview from "./pages/SellerEditPreview.jsx";
+import { PersistGate } from "redux-persist/integration/react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
+import TermsPage from "./pages/TermsPage.jsx";
+import DeleteMyDataPage from "./pages/DeleteMyDataPage.jsx";
+import SellerIdPage from "./pages/SellerIdPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -79,6 +85,9 @@ const router = createBrowserRouter([
       { path: "/otp_pass_conf", element: <OtpPassConfirmPage /> },
       { path: "/otp_conf", element: <OtpConfirmPage /> },
       { path: "/create_new_pass", element: <CreateNewPass /> },
+      { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
+      { path: "/terms", element: <TermsPage /> },
+      { path: "/delete-my-data", element: <DeleteMyDataPage /> },
 
       { path: "/mob_login", element: <MobLoginPage /> },
       { path: "/mob_basket", element: <BasketPage /> },
@@ -91,6 +100,7 @@ const router = createBrowserRouter([
       { path: "/product_category/:id", element: <CategoryPage /> },
     ],
   },
+  { path: "/products-seller/:id", element: <SellerIdPage /> },
   {
     path: "/basket",
     element: <BasketPage />,
@@ -153,13 +163,17 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <Provider store={store}>
-    <RouterProvider router={router}>
-      <I18nextProvider i18n={i18n}>
-        <React.StrictMode>
-          <App />
-        </React.StrictMode>
-      </I18nextProvider>
-    </RouterProvider>
-  </Provider>
+  <GoogleOAuthProvider clientId='974091491236-ugkti9gk7vado9hn0k6acutbfhv86d8f.apps.googleusercontent.com'>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <I18nextProvider i18n={i18n}>
+          <React.StrictMode>
+            <RouterProvider router={router}>
+              <App />
+            </RouterProvider>
+          </React.StrictMode>
+        </I18nextProvider>
+      </PersistGate>
+    </Provider>
+  </GoogleOAuthProvider >
 );

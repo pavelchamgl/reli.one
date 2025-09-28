@@ -50,16 +50,17 @@ const LikedPage = () => {
       </div>
 
       <Container>
-        {isMobile && (
+        {/* {isMobile && (
           <MobFilter
             setOrdering={setOrderingFav}
             setOrderingState={setOrderingState}
           />
-        )}
+        )} */}
         <div className={styles.filterDiv}>
           {!isMobile && (
             <div style={{ display: "flex", gap: "10px" }}>
               <FilterByPopularity
+                section={"liked"}
                 setOrderingState={setOrderingState}
                 setOrdering={setOrderingFav}
               />

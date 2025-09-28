@@ -18,7 +18,7 @@ const ProductTab = ({ setTab }) => {
         onClick={() => setSection("Charakteristika")}
         className={section === "Charakteristika" ? styles.tabAcc : styles.tab}
       >
-        {t("characteristics")}
+        {t("description")}
       </button>
       <button
         onClick={() => setSection("Recenze")}

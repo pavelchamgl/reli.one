@@ -1,7 +1,7 @@
 .main {
   width: 100%;
   height: auto;
-  @media (max-width:450px) {
+  @media (max-width: 450px) {
     width: 286px;
     height: auto;
   }
@@ -22,6 +22,7 @@
   span {
     font-weight: 500;
     color: #000;
+    font-family: var(--ft);
   }
 }
 
@@ -41,11 +42,10 @@
   margin-top: 15px;
   margin-bottom: 20px;
   img {
-   
     width: 120px;
     height: 114px;
     object-fit: cover;
-    @media (max-width:450px) {
+    @media (max-width: 450px) {
       width: 73px;
       height: 69px;
     }
@@ -70,6 +70,9 @@
     line-height: 114%;
     color: #323232;
   }
+  & p:nth-child(2) {
+   font-family: var(--ft);
+  }
 }
 
 .commentBtn {
@@ -83,8 +86,7 @@
   text-align: center;
   color: #000;
   background-color: transparent;
-  @media (max-width:450px) {
-  width: 100%;
-    
+  @media (max-width: 450px) {
+    width: 100%;
   }
 }

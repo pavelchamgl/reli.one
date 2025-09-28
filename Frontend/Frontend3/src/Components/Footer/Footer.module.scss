@@ -150,7 +150,6 @@
   flex-direction: column;
   gap: 15px;
   margin-top: 10px;
- 
 }
 
 .mobLogo {
@@ -197,6 +196,10 @@
   align-items: center;
   margin-bottom: 20px;
   gap: clamp(10px, 2.5vw, 20px);
+
+  @media (max-width: 426px) {
+    flex-wrap: wrap;
+  }
 }
 
 .messBtns a {

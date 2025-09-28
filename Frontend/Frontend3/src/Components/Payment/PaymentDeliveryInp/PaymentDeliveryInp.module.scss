@@ -14,8 +14,10 @@
 .inpBtnDiv {
   display: flex;
   align-items: center;
-  input {
+  p {
     width: 100%;
+    overflow-x: scroll;
+    white-space: nowrap;
     border: 1px solid #ced4d7;
     height: 46px;
     font-weight: 400;
@@ -23,9 +25,16 @@
     color: black;
     outline: none;
     padding-left: 10px;
+    display: flex;
+    align-items: center;
     @media (max-width: 426px) {
       height: 36px;
     }
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE и Edge */
+  }
+  p::-webkit-scrollbar {
+    display: none; /* Chrome, Safari и Opera */
   }
   button {
     background: #fff;
@@ -43,10 +52,7 @@
       background: #047857;
       color: #fff;
     }
-    &:disabled {
-      background: #595759;
-      color: #fff;
-    }
+
     @media (max-width: 426px) {
       height: 36px;
       width: 72px;

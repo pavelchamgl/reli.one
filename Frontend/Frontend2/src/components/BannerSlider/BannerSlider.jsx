@@ -1,0 +1,245 @@
+import { useRef, useEffect, useState } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Mousewheel, Keyboard } from "swiper/modules";
+import { useMediaQuery } from "react-responsive";
+
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+
+import unmute from "../../assets/player/unmute.svg"
+import mute from "../../assets/player/mute.svg"
+import play from "../../assets/player/play.svg"
+import stop from "../../assets/player/stop.svg"
+import arrowIcon from "../../assets/player/detalImgSwiper.svg";
+
+import styles from "./BannerSlider.module.css";
+
+
+const BannerSlider = () => {
+    const prevRef = useRef(null);
+    const nextRef = useRef(null);
+    const paginationRef = useRef(null);
+    const videoRefs = useRef([]);
+    const [swiperReady, setSwiperReady] = useState(false);
+    const [videoStates, setVideoStates] = useState({});
+    const [loading, setLoading] = useState(true)
+
+    const isMobile = useMediaQuery({ maxWidth: 500 })
+
+    const images = [
+        {
+            image_url: `${"https://videos-5pe8.vercel.app/videos/1230%D0%A5400.mp4"}`,
+        }
+    ]
+
+
+    const isImage = (url) => /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
+    const isVideo = (url) => /\.(mp4|webm|ogg|mov|avi)$/i.test(url);
+    const isButtonSlide = (url) => url === "button"
+
+
+    const togglePlay = (index) => {
+        const video = videoRefs.current[index];
+        if (!video) return;
+
+        if (video.paused) {
+            video.play();
+            setVideoStates((prev) => ({
+                ...prev,
+                [index]: { ...prev[index], paused: false },
+            }));
+        } else {
+            video.pause();
+            setVideoStates((prev) => ({
+                ...prev,
+                [index]: { ...prev[index], paused: true },
+            }));
+        }
+    };
+
+    const toggleMute = (index) => {
+        const video = videoRefs.current[index];
+        if (!video) return;
+
+        video.muted = !video.muted;
+        setVideoStates((prev) => ({
+            ...prev,
+            [index]: { ...prev[index], muted: video.muted },
+        }));
+    };
+
+    const setVolume = (index, value) => {
+        const video = videoRefs.current[index];
+        if (!video) return;
+
+        video.volume = value;
+        setVideoStates((prev) => ({
+            ...prev,
+            [index]: { ...prev[index], volume: value },
+        }));
+    };
+
+    useEffect(() => {
+        setSwiperReady(true);
+        const initialStates = {};
+        images.forEach((_, i) => {
+            initialStates[i] = { paused: false, muted: true, volume: 0.5 };
+        });
+        setVideoStates(initialStates);
+    }, []);
+
+    return (
+        <div className={styles.swiperContainer}>
+            {/* <div ref={prevRef} className={styles.swiperButtonPrev}>
+                <img src={arrowIcon} alt="prev" />
+            </div>
+            <div ref={nextRef} className={styles.swiperButtonNext}>
+                <img src={arrowIcon} className={styles.left} alt="next" />
+            </div> */}
+            <div ref={paginationRef} className={styles.swiperPagination}></div>
+
+            {swiperReady && (
+                <Swiper
+                    slidesPerView={1}
+                    spaceBetween={10}
+                    slidesPerGroup={1}
+                    mousewheel={true}
+                    keyboard={true}
+                    loop={false}
+                    navigation={{
+                        prevEl: prevRef.current,
+                        nextEl: nextRef.current,
+                    }}
+                    pagination={{
+                        el: paginationRef.current,
+                        clickable: true,
+                        bulletActiveClass: styles.paginationActive,
+                    }}
+                    modules={[Navigation, Pagination, Mousewheel, Keyboard]}
+                    className={styles.swiper}
+                    onSwiper={(swiper) => {
+                        setTimeout(() => {
+                            swiper.navigation.init();
+                            swiper.navigation.update();
+                            swiper.pagination.init();
+                            swiper.pagination.update();
+                        });
+
+                        swiper.on("slideChangeTransitionEnd", () => {
+                            const activeIndex = swiper.activeIndex;
+
+                            videoRefs.current.forEach((video, index) => {
+                                if (video) {
+                                    if (index === activeIndex) {
+                                        video.play().then(() => {
+                                            setVideoStates((prev) => ({
+                                                ...prev,
+                                                [index]: { ...prev[index], paused: false },
+                                            }));
+                                        }).catch(() => { });
+                                    } else {
+                                        video.pause();
+                                        video.currentTime = 0;
+                                        setVideoStates((prev) => ({
+                                            ...prev,
+                                            [index]: { ...prev[index], paused: true },
+                                        }));
+                                    }
+                                }
+                            });
+                        });
+
+                    }}
+                >
+                    {images.map((item, index) => (
+                        <SwiperSlide key={index} className={styles.swiperSlide}>
+                            {isImage(item?.image_url) ? (
+                                <img
+                                    src={item?.image_url}
+                                    alt={`img-${index}`}
+                                    className={styles.bannerImg}
+                                />
+                            ) : isVideo(item?.image_url) ? (
+                                <div className={styles.videoWrapper}>
+                                    <video
+                                        ref={(el) => (videoRefs.current[index] = el)}
+                                        src={item.image_url}
+                                        autoPlay
+                                        muted
+                                        loop={true}
+                                        playsInline
+                                        className={styles.bannerVideo}
+                                    />
+                                    <div className={styles.videoControls}>
+                                        <button onClick={() => togglePlay(index)}>
+                                            <img src={
+                                                videoStates[index]?.paused !== false ? play : stop
+                                            } alt="" />
+                                        </button>
+                                        {
+                                            isMobile ?
+                                                <div className={styles.noiseControl}>
+                                                    <button onClick={() => toggleMute(index)}>
+                                                        <img
+                                                            src={videoStates[index]?.muted ? mute : unmute}
+                                                            alt={videoStates[index]?.muted ? "Muted" : "Unmuted"}
+                                                        />
+                                                    </button>
+                                                    <input
+                                                        type="range"
+                                                        min="0"
+                                                        max="1"
+                                                        step="0.01"
+                                                        value={videoStates[index]?.volume ?? 0.5}
+                                                        onChange={(e) =>
+                                                            setVolume(index, parseFloat(e.target.value))
+                                                        }
+                                                    />
+                                                </div>
+                                                :
+                                                (
+                                                    <>
+                                                        <button onClick={() => toggleMute(index)}>
+                                                            <img
+                                                                src={videoStates[index]?.muted ? mute : unmute}
+                                                                alt={videoStates[index]?.muted ? "Muted" : "Unmuted"}
+                                                            />
+                                                        </button>
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max="1"
+                                                            step="0.01"
+                                                            value={videoStates[index]?.volume ?? 0.5}
+                                                            onChange={(e) =>
+                                                                setVolume(index, parseFloat(e.target.value))
+                                                            }
+                                                        />
+                                                    </>
+                                                )
+
+                                        }
+                                    </div>
+
+                                </div>
+                            ) : (
+                                <div className={styles.buttonSlide} style={{ backgroundImage: `url(${"https://i.pinimg.com/1200x/30/ce/7d/30ce7d788a7b25e0b70cacca7272f063.jpg"})` }}>
+                                    <button>
+                                        Click
+                                    </button>
+                                </div>
+                            )}
+                        </SwiperSlide>
+                    ))}
+                </Swiper>
+            )}
+        </div>
+    );
+}
+
+
+
+
+
+export default BannerSlider;

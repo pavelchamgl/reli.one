@@ -58,3 +58,12 @@ export const getSearchProducts = async () => {
         throw error
     }
 }
+
+
+export const getProductsBySellerId = async (id) => {
+    try {
+        const res = await mainInstance.get(`sellers/${id}/products/`)
+    } catch (error) {
+        throw error
+    }
+}

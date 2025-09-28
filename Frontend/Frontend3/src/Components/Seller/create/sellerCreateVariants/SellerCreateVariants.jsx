@@ -42,10 +42,6 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
         }
     }, [variantsName]);
 
-    useEffect(() => {
-        console.log(variantsMain);
-
-    }, [variantsMain])
 
 
 

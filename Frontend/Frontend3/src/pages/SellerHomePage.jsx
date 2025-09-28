@@ -22,14 +22,11 @@ const SellerHomePage = () => {
     dispatch(fetchSellerStatics())
   }, [])
 
-  useEffect(() => {
-    console.log(grapheData);
-  }, [grapheData])
+
 
   const { statics, status } = useSelector(state => state.seller_statics)
 
 
-  console.log(statics);
 
   if (status === "pending") {
     return (

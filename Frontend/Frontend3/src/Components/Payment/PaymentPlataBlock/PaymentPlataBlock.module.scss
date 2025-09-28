@@ -29,9 +29,6 @@
   font-size: 18px;
   line-height: 130%;
   color: #333;
-  @media (max-width: 426px) {
-    margin-bottom: 20px;
-  }
 }
 
 .smallInpDiv {
@@ -58,6 +55,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
+
+  color: #545454;
+
+  & span {
+    font-size: clamp(12px, 2.5vw, 16px);
+  }
+
+  & a {
+    color: #545454;
+  }
 }
 
 .adressDiv {
@@ -104,14 +111,13 @@
     &:hover {
       background-color: #06664b;
     }
-    &:disabled{
+    &:disabled {
       background-color: #787778;
     }
     @media (max-width: 426px) {
       width: 100%;
       margin-bottom: 22px;
     }
-    
   }
 }
 

@@ -23,3 +23,17 @@ export const getAllLowestLevelChildren = (data) => {
     return result;
 };
 
+
+
+export const groupBySeller = (items) => {
+    const map = new Map();
+
+    for (const item of items) {
+        if (!map.has(item.seller_id)) {
+            map.set(item.seller_id, []);
+        }
+        map.get(item.seller_id).push(item);
+    }
+
+    return Array.from(map, ([seller_id, items]) => ({ seller_id, items }));
+};

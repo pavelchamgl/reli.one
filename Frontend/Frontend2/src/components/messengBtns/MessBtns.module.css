@@ -1,5 +1,6 @@
 .messBtns {
     margin-top: clamp(10px, 2.5vw, 20px);
+    padding-inline: 10px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -28,4 +29,10 @@
     font-size: clamp(12px, 2.5vw, 20px);
     color: #b5b5b5;
     cursor: pointer;
+}
+
+@media (max-width: 426px) {
+    .messBtns {
+        flex-wrap: wrap;
+    }
 }

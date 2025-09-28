@@ -38,7 +38,7 @@ const Header = () => {
           </div>
         </Portal_menu>
       )}
-      <div className="flex items-center justify-between pt-3 lg:justify-normal">
+      <div className="flex items-center justify-between pt-3 lg:justify-normal mb-5">
 
         <div className="lg:hidden">
           <button onClick={() => setOpenMenu(!openMenu)}>

@@ -21,6 +21,8 @@ const ProductNameRate = () => {
   const [endPrice, setEndPice] = useState(null);
   const [sku, setSku] = useState(null);
   const [openModal, setOpenModal] = useState(false)
+  const [priceVat, setPriceVat] = useState(null)
+  const [categoryId, setCategoryId] = useState(null)
 
   const isMobile = useMediaQuery({ maxWidth: 426 })
 
@@ -37,6 +39,8 @@ const ProductNameRate = () => {
 
   const handleAddBasket = () => {
     if (!product || !sku || !endPrice) return;
+    const firstVariant = product.variants[0];
+
 
     if (product?.variants?.length > 1) {
       if (!isMobile) {
@@ -50,11 +54,12 @@ const ProductNameRate = () => {
           count: 1,
           selected: false,
           sku: sku,
+          seller_id: product.seller_id,
+          price_without_vat: firstVariant.price_without_vat
         })
       );
     }
   };
-
 
   useEffect(() => {
     if (basket.some((item) => item.sku === sku)) {
@@ -81,20 +86,40 @@ const ProductNameRate = () => {
       // Проверка, есть ли продукт с текущим id в корзине
       const existingProduct = basket.find((item) => item.id === product.id);
 
+
       if (!existingProduct) {
         // Если продукта нет в корзине, установить значения первого варианта
         const firstVariant = product.variants[0];
         setPrice(firstVariant.price);
         setEndPice(firstVariant.price);
         setSku(firstVariant.sku);
+        // setPriceVat(firstVariant.price_without_vat)
       } else {
         // Если продукт уже в корзине, использовать данные из корзины
         setEndPice(existingProduct.product.price);
         setSku(existingProduct.sku);
+        // setPriceVat(existingProduct?.price_without_vat)
       }
     }
   }, [product, basket]);
 
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      const firstVariant = product.variants[0];
+      setPriceVat(firstVariant.price_without_vat)
+    }
+  }, [])
+
+  // ? получения путей, для перевода id
+
+  const paths = JSON.parse(localStorage.getItem("paths")) || {}
+
+
+  useEffect(() => {
+    if (paths.length > 0 && paths[0] && Object.keys(paths[0]).length > 0) {
+      setCategoryId(paths[0].categoryID);
+    }
+  }, [paths]);
 
 
   return (
@@ -105,13 +130,14 @@ const ProductNameRate = () => {
       </div>
       <div className={styles.nameCategoryDiv}>
         <p className={styles.name}>{formattedText}</p>
-        <span className={styles.categoryName}>{product?.category_name}</span>
+        <span className={styles.categoryName}>{t(`categories.${categoryId}`, { defaultValue: product.category_name })}</span>
       </div>
       <p className={styles.price}>{endPrice ? endPrice : price} €</p>
-      <p className={styles.ndcPrice}>Without DPH <span>$32.71</span></p>
+      <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVat} €</span></p>
       <ProdCharackButtons
         setSku={setSku}
         setPrice={setEndPice}
+        setPriceVat={setPriceVat}
         variants={product?.variants}
         id={product?.id}
       />

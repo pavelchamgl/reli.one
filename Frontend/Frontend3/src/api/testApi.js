@@ -5,6 +5,5 @@ export const testApi = async () => {
         const res = await mainInstance.get("/create")
         return res
     } catch (error) {
-        // console.log(error);
     }
 }

@@ -3,10 +3,10 @@ import { useDispatch } from "react-redux"
 import { useMemo } from "react"
 
 import { setAllCategories, fetchGetCategory, setCategory, setPodCategory } from "../redux/categorySlice"
-import { fetchGetProducts, fetchGetProductById, fetchSearchProducts, setOrdering, setMax, setMin, setCategoryForProduct, setProdPage, setSearchPage } from "../redux/productsSlice"
+import { fetchGetProducts, fetchGetProductById, fetchSearchProducts, setOrdering, setMax, setMin, setCategoryForProduct, setProdPage, setSearchPage, fetchSellerProducts } from "../redux/productsSlice"
 import { fetchGetComments, fetchPostComment, setCommentPage } from "../redux/commentSlice"
 import { editValue, fetchCreateStripeSession, fetchCreatePayPalSession } from "../redux/paymentSlice"
-import { plusMinusDelivery, basketSelectedProductsPrice, plusCount, minusCount, minusCardCount, plusCardCount, changeVariants, paymentEndBasket, clearBasket } from "../redux/basketSlice"
+import { plusMinusDelivery, basketSelectedProductsPrice, plusCount, minusCount, minusCardCount, plusCardCount, changeVariants, paymentEndBasket, clearBasket, updateProductPrice } from "../redux/basketSlice"
 import { fetchFavoriteProducts, setOrderingFav, setPageFav } from "../redux/favoriteSlice"
 import { fetchGetOrders, fetchGetDetalOrders, fetchGetOrdersCurrent } from "../redux/ordersSlice"
 import { fetchCategories, setCategoriesStage, setChildCategories, setChildCategoryName, setClearAll } from "../redux/createGoodsSlice"
@@ -46,6 +46,8 @@ const rootActions = {
     fetchGetOrdersCurrent,
     paymentEndBasket,
     clearBasket,
+    updateProductPrice,
+    fetchSellerProducts,
     // seller
     fetchCategories,
     setChildCategories,

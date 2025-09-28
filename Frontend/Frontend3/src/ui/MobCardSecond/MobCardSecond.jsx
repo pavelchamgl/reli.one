@@ -5,8 +5,7 @@ import styles from "./MobCardSecond.module.scss";
 const MobCardSecond = ({ product, sku, count }) => {
   const [variant, setVariant] = useState(null);
 
-  console.log(count);
-  
+
 
   useEffect(() => {
     if (product?.variants) {
@@ -35,13 +34,13 @@ const MobCardSecond = ({ product, sku, count }) => {
           <p>{product?.name}</p>
           <span>
             {!variant?.image && variant?.text
-              ? ` ${variant?.name}: ${variant?.text}`
+              ? <><span>{variant?.name}: </span> <span>{variant?.text}</span></>
               : ""}
           </span>
         </div>
       </div>
       <p className={styles.price}>
-        {count} x<strong>{variant ? variant?.price : null}</strong>
+        <span>{count}</span> <span>x</span><strong>{variant ? variant?.price : null}</strong>
       </p>
     </div>
   );

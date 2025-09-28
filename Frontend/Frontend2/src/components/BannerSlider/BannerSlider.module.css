@@ -1,0 +1,230 @@
+.swiperContainer {
+  position: relative;
+  width: 100%;
+  height: auto;
+  background: #ffffff;
+  z-index: 0;
+}
+
+.swiper {
+  width: calc(100% - 200px) !important;
+  height: 440px !important;
+}
+
+@media (max-width: 500px) {
+  .swiper {
+    width: calc(100% - 20px) !important;
+    height: 230px !important;
+  }
+}
+
+/* isMobile ? "https://videos-5pe8.vercel.app/videos/292%D0%A5210.mp4" : */
+
+.swiperSlide {
+  width: 100% !important;
+}
+
+.bannerImg {
+  width: 100% !important;
+  height: 400px !important;
+  object-fit: cover;
+}
+
+@media (max-width: 500px) {
+  .bannerImg {
+    height: 210px !important;
+  }
+}
+
+.bannerVideo {
+  width: calc(100vw - 200px) !important;
+  height: 400px !important;
+  object-fit: cover;
+}
+
+@media (max-width: 500px) {
+  .bannerVideo {
+    width: calc(100vw - 10px) !important;
+    height: 210px !important;
+  }
+}
+
+.swiperButtonPrev,
+.swiperButtonNext {
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 24px;
+  user-select: none;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.swiperButtonPrev img,
+.swiperButtonNext img {
+  height: 19px;
+}
+
+@media (max-width: 500px) {
+
+  .swiperButtonPrev,
+  .swiperButtonNext {
+    display: none;
+  }
+}
+
+.swiperButtonPrev {
+  left: 40px;
+}
+
+.swiperButtonNext {
+  right: 40px;
+}
+
+.swiperPagination {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+}
+
+.paginationActive {
+  width: 8px;
+  height: 8px;
+  background: #3f7f6d;
+  opacity: 1;
+  border-radius: 50%;
+  margin: 0 4px;
+}
+
+.left {
+  transform: rotate(180deg);
+}
+
+.videoWrapper {
+  position: relative;
+}
+
+.videoWrapper .bannerVideo {
+  width: 100%;
+  height: auto;
+}
+
+.videoWrapper .videoControls {
+  width: 100%;
+  position: absolute;
+  bottom: 10px;
+  left: 30px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+  align-items: center;
+}
+
+@media (max-width: 500px) {
+  .videoWrapper .videoControls {
+    left: 15px;
+  }
+}
+
+.videoWrapper .videoControls button {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.videoWrapper .videoControls button img {
+  width: 25px;
+  height: 25px;
+}
+
+.videoWrapper .videoControls button:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.videoWrapper .videoControls input[type="range"] {
+  width: 120px;
+  cursor: pointer;
+  accent-color: #3f7f6d;
+}
+
+.videoWrapper .videoControls input[type="range"] {
+  width: 100px;
+}
+
+.buttonSlide {
+  width: 100% !important;
+  height: 400px !important;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+@media (max-width: 500px) {
+  .buttonSlide {
+    height: 210px !important;
+  }
+}
+
+.buttonSlide button {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  background-color: white;
+  color: #3f7f6d;
+  font-weight: 700;
+  width: 150px;
+  height: 40px;
+  font-size: 20px;
+  border-radius: 10px;
+}
+
+.noiseControl {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  right: 30px;
+  bottom: 0px;
+}
+
+@media (max-width: 500px) {
+  .noiseControl {
+    right: 0px;
+  }
+}
+
+.noiseControl input {
+  writing-mode: bt-lr;
+  /* Вертикальное направление */
+  -webkit-appearance: slider-vertical;
+  /* Для Safari */
+  width: 8px;
+  /* толщина */
+  height: 100px;
+  /* высота */
+  accent-color: #3f7f6d;
+}
+
+.noiseControl button {
+  width: 45px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}

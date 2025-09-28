@@ -127,6 +127,7 @@
         letter-spacing: -0.02em;
         color: #000;
         cursor: pointer;
+        font-family: var(--ft);
       }
       & p:first-child {
         font-weight: 400;
@@ -231,6 +232,7 @@
       letter-spacing: -0.02em;
       color: #000;
       cursor: pointer;
+      font-family: var(--ft);
     }
 
     & span {

@@ -26,12 +26,11 @@ const MobileProdSwiper = ({ imageProps }) => {
         <Swiper
           slidesPerView={3}
           spaceBetween={30}
-          freeMode={true}
           pagination={{
             clickable: true,
             bulletActiveClass: styles.paginationActive,
           }}
-          modules={[FreeMode, Pagination]}
+          modules={[ Pagination]}
           className={styles.swiper}
           breakpoints={{
             // when window width is >= 320px
@@ -67,13 +66,13 @@ const MobileProdSwiper = ({ imageProps }) => {
       <>
         <Swiper
           slidesPerView={3}
-          spaceBetween={30}
-          freeMode={true}
+          spaceBetween={30} 
+          // freeMode={true}
           pagination={{
             clickable: true,
             bulletActiveClass: styles.paginationActive,
           }}
-          modules={[FreeMode, Pagination]}
+          modules={[ Pagination]}
           className={styles.swiper}
           breakpoints={{
             // when window width is >= 320px

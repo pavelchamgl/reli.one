@@ -13,7 +13,6 @@ const GoodsListCard = ({ item, isLoading }) => {
   const [open, setOpen] = useState(false);
 
 
-  console.log(item);
 
 
 

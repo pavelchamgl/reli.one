@@ -9,7 +9,7 @@ const ForSellerTable = () => {
     <div>
       <div className={styles.tableItem}>
         <div>
-          <p>Alcohol</p>
+          <p>{t("table_alcohol")}</p>
         </div>
         <div>
           <p>10%</p>
@@ -25,10 +25,10 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Art and handmade</p>
+          <p>{t("table_art_and_handmade")}</p>
         </div>
         <div>
-          <p>10% - 20%</p>
+          <p>10%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -44,7 +44,7 @@ const ForSellerTable = () => {
           <p>{t("table_bags")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -52,7 +52,7 @@ const ForSellerTable = () => {
           <p>{t("table_beauty")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -73,7 +73,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Equipment</p>
+          <p>{t("table_equipment")}</p>
         </div>
         <div>
           <p>5.5%</p>
@@ -89,7 +89,7 @@ const ForSellerTable = () => {
       </div>
       <div className={styles.tableItem}>
         <div>
-          <p>Food and drinks</p>
+          <p>{t("table_food_and_drinks")}</p>
         </div>
         <div>
           <p>6%</p>
@@ -108,7 +108,7 @@ const ForSellerTable = () => {
           <p>{t("table_home")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableBigItem}>
@@ -129,7 +129,7 @@ const ForSellerTable = () => {
           <p>{t("table_garden")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -137,7 +137,7 @@ const ForSellerTable = () => {
           <p>{t("table_office")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -145,7 +145,7 @@ const ForSellerTable = () => {
           <p>{t("table_pets")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -153,7 +153,7 @@ const ForSellerTable = () => {
           <p>{t("table_sports")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableItem}>
@@ -161,7 +161,7 @@ const ForSellerTable = () => {
           <p>{t("table_toys")}</p>
         </div>
         <div>
-          <p>15%</p>
+          <p>13%</p>
         </div>
       </div>
       <div className={styles.tableBigItem}>

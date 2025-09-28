@@ -19,7 +19,7 @@ import minusIcon from "../../../assets/Basket/minusIcon.svg";
 import styles from "./BasketModalCard.module.scss";
 import { getProductById } from "../../../api/productsApi";
 
-const BasketModalCard = ({ data, handleClose, setMainCount }) => {
+const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
   const [countsBySku, setCountsBySku] = useState({}); // объект для хранения количества по каждому SKU
   const [like, setLike] = useState(data ? data.is_favorite : false);
   const [sku, setSku] = useState(null);
@@ -77,6 +77,11 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
   };
 
   useEffect(() => {
+    setMainSku(sku)
+  }, [sku])
+
+
+  useEffect(() => {
     if (data && !selected) {
       getProductById(data.id)
         .then((res) => {
@@ -100,6 +105,8 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
                   count: countsBySku[variant.sku] || 1,
                   selected: false,
                   sku: variant.sku,
+                  seller_id: resData.seller_id,
+                  price_without_vat: variant.price_without_vat
                 })
               );
             } else {
@@ -122,6 +129,8 @@ const BasketModalCard = ({ data, handleClose, setMainCount }) => {
           count: countsBySku[selected] || 1,
           selected: false,
           sku: selected,
+          seller_id: allData.seller_id,
+          price_without_vat: variant.price_without_vat
         })
       );
     }

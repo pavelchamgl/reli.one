@@ -55,7 +55,7 @@ const ActualOrdersCard = ({ item }) => {
           </div>
         </div>
         <p className={styles.countPrice}>
-          {item?.quantity} <span>x</span> <span>{item?.product_price} €</span>
+          <span>{item?.quantity}</span> <span>x</span> <span>{item?.product_price} €</span>
         </p>
       </div>
     );

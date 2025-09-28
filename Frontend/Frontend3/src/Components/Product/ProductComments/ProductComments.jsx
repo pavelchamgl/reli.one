@@ -1,5 +1,5 @@
 import { Rating } from "@mui/material";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 
@@ -26,13 +26,6 @@ const ProductComments = () => {
     setPage(value);
     setCommentPage(value);
   };
-
-  useEffect(() => {
-    console.log(product);
-    console.log(comments);
-
-
-  }, [])
 
   return (
     <div className={styles.main}>

@@ -1,12 +1,18 @@
+input,
+textarea {
+  cursor: text;
+  caret-color: black;
+}
+
 .main {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  min-width: 133px;
   gap: 3px;
   span {
     font-weight: 400;
     font-size: 14px;
-    line-height: 143%;
-    letter-spacing: -0.02em;
     color: #828b8d;
   }
   input {
@@ -18,7 +24,13 @@
     font-weight: 400;
     font-size: 14px;
     color: #787778;
+    cursor: text;
   }
+}
+
+.main:hover {
+  cursor: text;
+  caret-color: black;
 }
 .mainErr {
   display: flex;
@@ -27,8 +39,6 @@
   span {
     font-weight: 400;
     font-size: 14px;
-    line-height: 143%;
-    letter-spacing: -0.02em;
     color: #828b8d;
   }
   input {
@@ -40,7 +50,12 @@
     font-weight: 400;
     font-size: 14px;
     color: #ff0000;
+    cursor: text;
   }
+}
+.mainErr:hover {
+  cursor: text;
+  caret-color: black;
 }
 
 .errText {

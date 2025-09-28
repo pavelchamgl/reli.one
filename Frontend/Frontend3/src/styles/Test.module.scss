@@ -1,145 +1,82 @@
-.cardWrap {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 20px;
-  justify-content: center;
-  max-width: 100%;
-  padding: 0 100px;
+.swiperContainer {
+  position: relative;
+  width: 100%;
+  height: auto; // или auto
+  background: #ffffff;
+}
 
-  @media (max-width: 769px) {
-    
-    padding: 0 50px;
-  }
+.swiper {
+  width: calc(100% - 200px) !important;
+  height: 460px !important;
 
   @media (max-width: 500px) {
-    padding: 0 10px;
-    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-    padding: 0 10px;
-    gap: 20px;
+    height: 210px;
   }
 }
 
-.card {
-  width: 100%;
-  max-width: 231px;
-  height: auto;
-  border: 1px solid black;
-  padding: 8px;
-  background: #f0f0f0;
-  border: 1px solid rgba(128, 128, 128, 0.555);
-  padding-bottom: 10px;
+.swiperSlide {
+  width: 100% !important;
+}
+
+.bannerImg {
+  width: 100% !important;
+  height: 400px !important;
+  object-fit: cover;
+}
+
+.swiperButtonPrev,
+.swiperButtonNext {
+  position: absolute;
+  top: 50%;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  background-color: rgba(255, 255, 255, 0.5);
+  color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  font-size: 24px;
+  user-select: none;
+  border-radius: 50%;
+  transform: translateY(-50%);
 
   & img {
-    width: 100%;
-    aspect-ratio: 1/1;
-    object-fit: cover;
+    height: 19px;
   }
-
-
-}
-
-.rateDiv {
-  display: flex;
-  gap: 5px;
-}
-
-.price {
-  font-family: var(--ft);
-  font-weight: 600;
-  font-size: clamp(10px, 2.5vw, 20px);
-}
-
-.name {
-  font-family: var(--ft);
-  font-weight: 500;
-  font-size: clamp(10px, 2.5vw, 14px);
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-height: 4.5em; /* Высота = 3 строки (зависит от шрифта) */
-  line-height: 1.5em; /* Регулируем высоту строки */
-}
-
-.btn {
-  background: #047857;
-  border-radius: 2px;
-  width: min(112px, 25vw);
-  height: min(31px, 5vw);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  font-weight: 600;
-  font-size: clamp(11px, 2.5vw, 18px);
-  color: #fff;
-}
-
-.descWrap {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(7px, 2.5vw, 10px);
 
   @media (max-width: 500px) {
-    gap: 7px;
+    display: none;
   }
 }
 
-// ! category
-
-.categoryCard {
-  max-width: 252px;
-  min-width: 91px;
-  height: 220px;
-  background-color: #f0f0f0;
-  border-radius: 10px;
-  padding: 18px 30px 5px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  background-size: 161px 161px;
-  background-position: center calc(100% - 10px);
-  background-repeat: no-repeat;
-
-  & p {
-    width: 100%;
-    font-weight: 600;
-    font-size: clamp(12px, 2.5vw, 24px);
-    text-align: center;
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* Обрезка до 2 строк */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-height: calc(1.2em * 2); /* Ограничиваем высоту под 2 строки */
-    line-height: 1.2em;
-  }
-
-  @media (max-width: 510px) {
-    height: 102px;
-    padding: 5px 18px 0px;
-    
-
-    background-size: 90px 90px;
-  }
+.swiperButtonPrev {
+  left: 40px;
 }
 
-.categoryWrap {
-  margin: 50px 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 30px; /* Расстояние между карточками на десктопе */
+.swiperButtonNext {
+  right: 40px;
+}
 
-  @media (max-width: 768px) {
-    gap: 10px; /* Уменьшение расстояния на мобильных устройствах */
-  }
+.swiperPagination {
+  position: absolute;
+  bottom: 10px;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+}
 
-  @media (max-width: 510px) {
-    grid-template-columns: repeat(
-      3,
-      1fr
-    ); /* 2 карточки в ряд на очень маленьких экранах */
-  }
+.paginationActive {
+  width: 8px; /* Width of the bullet */
+  height: 8px; /* Height of the bullet */
+  background: #000; /* Default bullet color */
+  opacity: 1; /* Ensure bullets are fully opaque */
+  border-radius: 50%; /* Make the bullets round */
+  margin: 0 4px;
+  background: #3f7f6d; /* Active bullet color */
+}
+
+.left {
+  transform: rotate(180deg);
 }

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useLocation, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 
 import Container from "../ui/Container/Container";
 import ProductCard from "../Components/Product/ProductCard/ProductCard";
@@ -24,6 +26,9 @@ const CategoryPage = () => {
   const [filter, setFilter] = useState(false);
   const [page, setPage] = useState(1);
 
+  const { t } = useTranslation();
+
+
   const { id } = useParams()
 
   const {
@@ -36,6 +41,8 @@ const CategoryPage = () => {
   } = useActions();
 
   const { search } = useLocation();
+
+
 
   useEffect(() => {
     const searchParams = new URLSearchParams(search);
@@ -76,10 +83,11 @@ const CategoryPage = () => {
     setProdPage(value);
   };
 
+
   return (
     <>
       <div className={styles.titleDiv}>
-        <p className={styles.title}>{categoryValue}</p>
+        <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryValue })}</p>
       </div>
 
       <Container>

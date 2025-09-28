@@ -2,7 +2,6 @@ import { Dialog } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
-import { AuthNeed } from "../../../ui/Toastify";
 import {
   deselectAllProducts,
   selectProduct,
@@ -14,10 +13,10 @@ import BasketModalCard from "../BasketModalCard/BasketModalCard";
 import styles from "./BasketModal.module.scss";
 import { useState } from "react";
 
-const BasketModal = ({ open, handleClose, productData}) => {
+const BasketModal = ({ open, handleClose, productData }) => {
   const [count, setCount] = useState(0);
+  const [sku, setSku] = useState(null)
 
-  console.log(productData);
 
 
   const navigate = useNavigate();
@@ -27,14 +26,12 @@ const BasketModal = ({ open, handleClose, productData}) => {
   const token = localStorage.getItem("token");
 
   const handleNavigatePayment = () => {
-    if (token) {
-      dispatch(deselectAllProducts());
-      dispatch(selectProduct({ sku: productData.sku, selected: true }));
-      dispatch(updateTotalPrice());
-      navigate("/payment");
-    } else {
-      AuthNeed(t("toast.auth_required"));
-    }
+
+    dispatch(deselectAllProducts());
+    // dispatch(selectProduct({ sku: productData.sku ? productData.sku : sku, selected: true }));
+    dispatch(updateTotalPrice());
+    navigate("/basket");
+
   };
 
   return (
@@ -54,6 +51,7 @@ const BasketModal = ({ open, handleClose, productData}) => {
           <div className={styles.cardAndButtonWrap}>
             <BasketModalCard
               setMainCount={setCount}
+              setMainSku={setSku}
               handleClose={handleClose}
               data={productData}
             />

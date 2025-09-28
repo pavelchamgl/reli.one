@@ -19,27 +19,48 @@ import arrLeft from "../../../assets/Payment/arrLeft.svg";
 import styles from "./PaymentPlataBlock.module.scss";
 import LoginModal from "../../LoginModal/LoginModal";
 import ConfirmYourAgeModal from "../ConfirmYourAgeModal/ConfirmYourAgeModal";
+import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
+import { useActionPayment } from "../../../hook/useActionPayment";
+import { updateTotalPrice } from "../../../redux/basketSlice";
 
-const PaymentPlataBlock = ({ setSection }) => {
+const PaymentPlataBlock = ({ section, setSection }) => {
   const isMobile = useMediaQuery({ maxWidth: 500 });
   const [plataType, setPlataType] = useState("card");
   const [inputError, setInputError] = useState(false);
   const [modalOpen, setModalOpen] = useState(false)
   const [authEnd, setAuthEnd] = useState(false)
   const [openAgeModal, setOpenAgeModal] = useState(false)
-  const [isAdult, setIsAdult] = useState(false)
+  const [ageCheck, setAgeCheck] = useState(false)
+  const [check, setCheck] = useState(false)
 
   const { t } = useTranslation();
 
-  const { email, address, price, TK } = useSelector(
+  const { email, city, street } = useSelector(
     (state) => state.payment.paymentInfo
   );
 
-  const { loading, error } = useSelector((state) => state.payment);
+  const { setIsBuy } = useActionPayment()
+
+  const { loading, error, groups } = useSelector((state) => state.payment);
 
   const selectedProducts = useSelector(
     (state) => state.basket.selectedProducts
   );
+
+  useEffect(() => {
+    if (
+      selectedProducts && selectedProducts.length > 0 && selectedProducts.some((item) => !!item?.product?.is_age_restricted)
+    ) {
+      setAgeCheck(true)
+    } else {
+      setAgeCheck(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    dispatch(updateTotalPrice())
+  }, [])
+
 
   const token = localStorage.getItem("token")
 
@@ -47,68 +68,88 @@ const PaymentPlataBlock = ({ setSection }) => {
   const navigate = useNavigate();
 
   const returnBtn = () => {
-    dispatch({
-      type: "basket/plusMinusDelivery",
-      payload: { type: "minus", price },
-    });
     setSection(2);
   };
 
   const handleSubmit = () => {
+
+
     if (!token) {
       if (isMobile) {
         navigate("/mob_login")
+        setIsBuy(true)
       } else {
         setModalOpen(true)
+        setIsBuy(true)
       }
     } else {
-      setOpenAgeModal(true)
+      if (ageCheck) {
+        setOpenAgeModal(true)
+      }
+      else {
+        if (plataType === "card") {
+          dispatch(fetchCreateStripeSession());
+        } else {
+          dispatch(fetchCreatePayPalSession());
+        }
+      }
     }
   };
 
-  useEffect(() => {
-    if (isAdult) {
-      if (plataType === "card") {
-        dispatch(fetchCreateStripeSession(selectedProducts));
-      } else {
-        dispatch(fetchCreatePayPalSession(selectedProducts));
-      }
-    }
-  }, [isAdult])
+  // if (isAdult) {
+  //   if (plataType === "card") {
+  //     dispatch(fetchCreateStripeSession(selectedProducts));
+  //   } else {
+  //     dispatch(fetchCreatePayPalSession(selectedProducts));
+  //   }
+  // }
 
   return (
     <div className={styles.main}>
       <div>
         <h3 onClick={() => navigate("/")} className={styles.title}>
-          Reli Group s.r.o
+          Reli Group s.r.o.
         </h3>
-        {isMobile && <MobPaymentBasket />}
-        <CustomBreadcrumbs />
+        {isMobile && <MobPaymentBasket section={section} />}
+        {/* <CustomBreadcrumbs /> */}
+        <PayAndCartBread section={section} setSection={setSection} />
       </div>
       <div className={styles.inpDiv}>
-        <PaymentDeliveryInp desc={"email"} value={email} title={"Email"} />
+        <PaymentDeliveryInp desc={"email"} value={email} title={t("email")} setSection={() => setSection(1)} />
         <PaymentDeliveryInp
           desc={"address"}
-          value={address}
+          city={city}
+          street={street}
           title={t("add_address")}
+          setSection={() => setSection(1)}
         />
         <PaymentDeliveryInp
           desc={"TK"}
-          value={TK}
           title={t("way_transportation")}
-          setSection={setSection}
+          setSection={() => setSection(2)}
+          groups={groups}
           setInputError={setInputError}
         />
       </div>
       <div className={styles.plataDiv}>
         <p className={styles.sectionTitle}>{t("payment")}</p>
         <PlataRadio setPlata={setPlataType} />
-        {!isMobile && (
-          <label className={styles.checkDiv}>
-            <CheckBox />
-            <span>{t("save_info_for_future")}</span>
-          </label>
-        )}
+
+        <label className={styles.checkDiv}>
+          <CheckBox />
+          <span>{t("save_info_for_future")}</span>
+        </label>
+        <label className={styles.checkDiv}>
+          <CheckBox check={check} onChange={() => setCheck(!check)} />
+          <span>
+            {t("iAgreeToTerms.agreeToThe")}{" "}
+            <a href="#">{t("iAgreeToTerms.terms")}</a>{" "}
+            {t("iAgreeToTerms.and")}{" "}
+            <a href="#">{t("iAgreeToTerms.privacy")}</a>
+          </span>
+
+        </label>
+
       </div>
       {error && <p className={styles.errText}>{error}</p>}
       <div className={styles.buttonDiv}>
@@ -116,12 +157,14 @@ const PaymentPlataBlock = ({ setSection }) => {
           <img src={arrLeft} alt="" />
           <span>{t("back_to_delivery")}</span>
         </button>
-        <button disabled={inputError} onClick={handleSubmit}>
+        <button
+          disabled={inputError || !check}
+          onClick={handleSubmit}>
           {loading ? <Spinner /> : <p>{t("pay_now")}</p>}
         </button>
       </div>
       <LoginModal basket={true} text={"Please log in/register to continue"} open={modalOpen} handleClose={() => setModalOpen(false)} />
-      <ConfirmYourAgeModal setIsAdult={setIsAdult} open={openAgeModal} handleClose={() => setOpenAgeModal(false)} />
+      <ConfirmYourAgeModal plataType={plataType} open={openAgeModal} handleClose={() => setOpenAgeModal(false)} />
     </div>
   );
 };

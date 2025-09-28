@@ -1,0 +1,18 @@
+.wrapper {
+  width: 100%;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  margin-block: 30px;
+}
+
+.video {
+  width: 500px;
+  height: 400px;
+  object-fit: cover;
+
+  @media (max-width: 550px) {
+    width: calc(100% - 20px);
+    height: auto;
+  }
+}

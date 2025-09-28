@@ -1,0 +1,29 @@
+.main {
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none; // для Firefox
+  -ms-overflow-style: none; // для IE и Edge
+
+  &::-webkit-scrollbar {
+    display: none; // для Chrome и Safari
+  }
+
+  & a, & p {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 150%;
+    text-transform: uppercase;
+    color: #888;
+    text-decoration: none;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
+  }
+
+  .MuiBreadcrumbs-ol {
+    flex-wrap: nowrap !important;
+  }
+}

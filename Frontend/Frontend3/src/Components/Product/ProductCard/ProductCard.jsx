@@ -42,7 +42,7 @@ const ProductCard = ({ data = null }) => {
   const { t } = useTranslation();
 
   const dispatch = useDispatch();
-  const { status, searchStatus } = useSelector((state) => state.products);
+  const { status, searchStatus, sellerStatus } = useSelector((state) => state.products);
   const statusFav = useSelector((state) => state.favorites.status);
   const basket = useSelector((state) => state.basket.basket);
 
@@ -67,6 +67,9 @@ const ProductCard = ({ data = null }) => {
             count: initialCount,
             selected: false,
             sku: firstVariant.sku || "",
+            seller_id: allData.seller_id,
+            price_without_vat: firstVariant.price_without_vat
+
           })
         );
       } else {
@@ -96,7 +99,8 @@ const ProductCard = ({ data = null }) => {
     if (
       searchStatus === "loading" ||
       status === "loading" ||
-      statusFav === "loading"
+      statusFav === "loading" ||
+      sellerStatus === "loading"
     ) {
       setIsLoading(true);
     } else {

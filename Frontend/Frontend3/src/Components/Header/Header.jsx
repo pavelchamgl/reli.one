@@ -53,8 +53,8 @@ const Header = () => {
 
   const handleBasketClick = () => {
     // if (token) {
-      navigate("/basket");
-      setBasketAuth(false);
+    navigate("/basket");
+    setBasketAuth(false);
     // } else {
     //   setBasketAuth(true);
     //   AuthNeed(t("toast.auth_required"));
@@ -68,6 +68,7 @@ const Header = () => {
           <Link to={"/"}>
             <img className={styles.logo} src={logo} alt="" />
           </Link>
+          <ChangeLang />
           {/* <ChangeLang /> */}
         </div>
         <SearchInp />
@@ -79,7 +80,7 @@ const Header = () => {
     <div className={styles.main}>
       <div className={styles.headerTop}>
         <div className={styles.headerTopWrap}>
-          {/* <ChangeLang /> */}
+          <ChangeLang />
           <Link to={"/for_sell"}>{t("for_seller")}</Link>
           <Link to={"/for_buy"}>{t("for_buyers")}</Link>
           <a href="https://info.reli.one">{t("about_company")}</a>
@@ -88,7 +89,7 @@ const Header = () => {
       <div className={styles.headerBottomWrap}>
         <div className={styles.headerLogo}>
           <img onClick={() => navigate("/")} src={logo} alt="" />
-          <CatalogBtn />
+          <CatalogBtn loginModalOpen={open} profileNavOpen={navOpen} />
         </div>
         <SearchInp />
         <div className={styles.headerBottomLinkWrap}>
@@ -118,6 +119,7 @@ const Header = () => {
             <img src={basketAuth ? basketDisabledIcon : basketIcon} alt="" />
             <p>{t("bin")}</p>
           </button>
+          {/* <ChangeLang /> */}
         </div>
       </div>
       <ProfileNavDrawer open={navOpen} handleClose={() => setNavOpen(false)} />

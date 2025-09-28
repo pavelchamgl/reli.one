@@ -97,7 +97,6 @@ const SellerHomeGraphe = ({ data, tabMain, setGrapheData }) => {
     };
   });
 
-  console.log(data);
   
 
   // Функция для обработки клика

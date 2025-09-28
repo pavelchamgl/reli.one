@@ -24,8 +24,6 @@
   cursor: pointer;
 }
 
-
-
 .smallInpDiv {
   display: flex;
   justify-content: space-between;
@@ -93,6 +91,9 @@
     background: #047857;
     &:hover {
       background-color: #06664b;
+    }
+    &:disabled {
+      background-color: #b0b2b1;
     }
     @media (max-width: 426px) {
       width: 100%;

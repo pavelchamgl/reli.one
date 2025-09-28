@@ -1,3 +1,4 @@
+import axios from "axios";
 import { mainInstance } from ".";
 
 export const register = async (obj) => {
@@ -78,5 +79,48 @@ export const createNewPassApi = async (obj) => {
         return res
     } catch (error) {
         throw error
+    }
+}
+
+export const getInfoForG = async (token) => {
+    try {
+        const data = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        })
+        return data
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export const googleLogin = async (token) => {
+    try {
+        const data = await mainInstance.post("/accounts/auth/social/google/", {
+            access_token: token
+        }
+        )
+        console.log(data);
+
+        return data
+    } catch (error) {
+        console.log(error);
+
+    }
+}
+
+export const facebookLogin = async (token) => {
+    try {
+        const data = await mainInstance.post("/accounts/auth/social/facebook/", {
+            access_token: token
+        }
+        )
+        console.log(data);
+
+        return data
+    } catch (error) {
+        console.log(error);
+
     }
 }

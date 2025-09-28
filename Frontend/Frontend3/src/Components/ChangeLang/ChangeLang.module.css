@@ -1,54 +1,140 @@
-.wrap {
-    position: relative;
+/* flex items-center gap-1 absolute top-4 right-10 lg:right-0  */
+.langBtn {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    /* position: absolute;
+    top: 16px;
+    right: 40px; */
 }
 
-.selectBtn {
+/* w-72 h-40 bg-white rounded-2xl absolute top-4 right-10 shadow-lg py-4 px-5 flex flex-col gap-3 sm:right-auto sm:left-10 md:left-10   */
+
+.modal {
+    width: 233px;
+    /* height: 159px; */
+    border-radius: 10px;
+    background: #fff;
+    padding-block: 16px;
+    display: flex;
+    flex-direction: column;
+
+    position: absolute;
+    z-index: 1000px;
+    top: 0;
+    right: 200px;
+}
+
+
+
+@media (max-width:641px) {
+    .langBtn {
+        top: 12px;
+        right: 18px;
+    }
+
+    .modal {
+        width: 250px;
+    }
+}
+
+.drawerWrap {
+    width: 100%;
+    /* padding: 20px 24px 65px; */
+    padding-top: 20px;
+    padding-bottom: 65px;
+    border-radius: 25px;
+    position: relative;
+
+
+}
+
+.drawerRadius {
+    border-radius: 25px;
+}
+
+.closeBtn {
+    position: absolute;
+    --pos: 18px;
+    top: var(--pos);
+    right: var(--pos);
+}
+
+
+
+.langBtn {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 10px;
-    height: 21px;
-    outline: none;
+    gap: 6px;
     border: none;
     background-color: transparent;
-    font-weight: 400;
-    font-size: 16px;
-    color: #000;
+    cursor: pointer;
 }
 
-.selectDiv {
-    position: absolute;
-    top: 25px;
+.langLabel {
+    font-weight: 300;
+    font-size: clamp(12px, 2.5vw, 16px);
+    cursor: pointer;
+}
 
-    box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
-    background: #eee;
+.langIcon {
+    width: clamp(15px, 2.5vw, 20px);
+    height: clamp(15px, 2.5vw, 20px);
+}
+
+
+
+.modalTitle {
+    font-weight: 600;
+    font-size: 20px;
+    margin-bottom: 19px;
+    padding-inline: 20px;
+}
+
+.langOption {
+    width: 100%;
     display: flex;
-    padding: 13px 11px;
-    flex-direction: column;
-    gap: 14px;
-    width: 145px;
-    height: 96px;
-    transition: transform 0.5s ease;
-    transform: scale(1);
-
-}
-
-.selectDivHid {
-    position: absolute;
-    transform: scale(0);
-}
-
-
-.radioInpBtn {
-    background-color: transparent;
-    font-weight: 400;
-    font-size: 14px;
-    color: #000;
-    display: flex;
-    gap: 6px;
+    justify-content: space-between;
     align-items: center;
+    padding-block: 12px;
+    padding-inline: 20px;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.radioInpBtn img {
-    width: 14px;
+.langOption span {
+    font-weight: 500;
+    font-size: clamp(16px, 2.5vw, 18px);
+    color: #333;
+}
+
+.langOption:hover {
+    background-color: #e0e0e0;
+}
+
+.langInfo {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.active {
+    font-weight: 600;
+}
+
+.optionLangIcon {
+    width: 27px;
+    height: 27px;
+}
+
+
+
+.closeBtn {
+    border: none;
+    background: none;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+    cursor: pointer;
 }

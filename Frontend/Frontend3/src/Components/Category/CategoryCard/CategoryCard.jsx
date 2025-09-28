@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import categoryCardImage from "../../../assets/Category/CategoryCardImage.svg";
 
@@ -8,6 +9,10 @@ import styles from "./CategoryCard.module.scss";
 const CategoryCard = ({ item }) => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+
+  const { t } = useTranslation()
+
+
 
   useEffect(() => {
     setTimeout(() => {
@@ -30,14 +35,14 @@ const CategoryCard = ({ item }) => {
         onClick={() =>
           navigate(
             `/product_category/${item?.id}?categoryValue=${encodeURIComponent(
-              item?.name
+              item.name
             )}&categoryID=${item?.id}`
           )
         }
         className={styles.main}
         style={{ backgroundImage: `url(${item.image_url})` }}
       >
-        <p>{item?.name}</p>
+        <p>{t(`categories.${item.id}`, { defaultValue: item.name })}</p>
       </div>
     );
   } else {

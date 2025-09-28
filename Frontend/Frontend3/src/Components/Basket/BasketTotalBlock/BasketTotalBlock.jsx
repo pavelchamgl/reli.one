@@ -10,35 +10,44 @@ import arrRight from "../../../assets/Basket/arrRight.svg";
 
 import styles from "./BasketTotalBlock.module.scss";
 
-const BasketTotalBlock = () => {
+const BasketTotalBlock = ({ section = null }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const navigate = useNavigate();
   const location = useLocation();
+  const pathname = location.pathname;
+
   const isMobile = useMediaQuery({ maxWidth: 426 });
 
-  const totalPrice = useSelector((state) => state.basket.totalCount);
-
-  const [price, setPrice] = useState(totalPrice);
-
-  const selectedProducts = useSelector(
-    (state) => state.basket.selectedProducts
-  );
-
-  const { paymentInfo } = useSelector((state) => state.payment);
-
   const dispatch = useDispatch();
-
   const { t } = useTranslation();
 
+  const totalPrice = useSelector((state) => state.basket.totalCount);
+  const selectedProducts = useSelector((state) => state.basket.selectedProducts);
+  const { groups } = useSelector((state) => state.payment);
+
   const [style, setStyle] = useState({
-    padding: " 63px 59px",
+    padding: "63px 59px",
     height: "100vh",
     marginBottom: "71px",
   });
 
+  const deliveryPrice = Array.isArray(groups)
+    ? groups.reduce((sum, item) => sum + (item?.deliveryPrice || 0), 0)
+    : 0;
+
+  const isBasketPage = pathname === "/basket" || pathname === "/mob_basket";
+  const isPaymentPage = pathname === "/payment" && section >= 2;
+
+  const finalPrice = isPaymentPage
+    ? totalPrice + deliveryPrice
+    : totalPrice;
+
+  const normalizedFinalPrice = Math.abs(finalPrice) < 0.005 ? 0 : finalPrice;
+
+
   useEffect(() => {
-    if (isMobile && location.pathname === "/payment") {
+    if (isMobile && isPaymentPage) {
       setStyle({
         padding: "0px 0px 27px",
         marginBottom: "11px",
@@ -46,73 +55,70 @@ const BasketTotalBlock = () => {
       });
     } else {
       setStyle({
-        padding: " 63px 59px",
+        padding: "63px 59px",
         height: "100vh",
         marginBottom: "71px",
       });
     }
-  }, [isMobile]);
-
-  useEffect(() => {
-    setPrice(totalPrice);
-  }, [totalPrice]);
+  }, [isMobile, isPaymentPage]);
 
   return (
-    <>
-      <div
-        style={location.pathname === "/payment" ? style : {}}
-        className={styles.main}
-      >
-        {isMobile && <p className={styles.mobText}>Propagační kód</p>}
-        <div className={styles.mainContent}>
-          <div className={styles.inpDiv}>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button
-              onClick={() => dispatch(searchProducts({ text: searchTerm }))}
-            >
-              <span>{t("basket_use")}</span>
-              <img src={arrRight} alt="" />
-            </button>
-          </div>
-          <div className={styles.textDiv}>
-            <div className={styles.priceDiv}>
-              <span>{t("subtotal")}:</span>
-              <p>{price?.toFixed(2)} €</p>
-            </div>
-            <div className={styles.calculateDiv}>
-              <span>{t("transportation")}</span>
+    <div
+      style={isPaymentPage ? style : {}}
+      className={styles.main}
+    >
+      {isMobile && <p className={styles.mobText}>Propagační kód</p>}
 
-              <span>
-                {paymentInfo && paymentInfo.hasOwnProperty("price")
-                  ? paymentInfo.price
-                  : t("transportation_calculate_text")}
-              </span>
-            </div>
-          </div>
-          <div className={styles.totalDiv}>
-            <p>{t("total")}</p>
-            <div>
-              <span>EUR</span>
-              <strong>{price?.toFixed(2)} €</strong>
-            </div>
-          </div>
-          {(location.pathname === "/basket" ||
-            location.pathname === "/mob_basket") && (
-            <button
-              className={styles.continueBtn}
-              onClick={() => navigate("/payment")}
-              disabled={!selectedProducts.length}
-            >
-              {t("basket_continue")}
-            </button>
-          )}
+      <div className={styles.mainContent}>
+        <div className={styles.inpDiv}>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <button
+            onClick={() => dispatch(searchProducts({ text: searchTerm }))}
+          >
+            <span>{t("basket_use")}</span>
+            <img src={arrRight} alt="" />
+          </button>
         </div>
+
+        <div className={styles.textDiv}>
+          <div className={styles.priceDiv}>
+            <span>{t("subtotal")}:</span>
+            <p>{totalPrice.toFixed(2)} €</p>
+          </div>
+
+          <div className={styles.calculateDiv}>
+            <span>{t("transportation")}</span>
+            <span>
+              {isPaymentPage
+                ? `${deliveryPrice.toFixed(2)} €`
+                : t("transportation_calculate_text")}
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.totalDiv}>
+          <p>{t("total")}</p>
+          <div>
+            <span>EUR</span>
+            <strong>{normalizedFinalPrice.toFixed(2)} €</strong>
+          </div>
+        </div>
+
+        {isBasketPage && (
+          <button
+            className={styles.continueBtn}
+            onClick={() => navigate("/payment")}
+            disabled={!selectedProducts.length}
+          >
+            {t("basket_continue")}
+          </button>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

@@ -24,13 +24,13 @@ const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
                     lang === "en" && <img src={checkMark} alt="" />
                 }
             </button>
-            <button onClick={() => handleChangeLang('cs')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
+            <button onClick={() => handleChangeLang('cz')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
                 <div className='flex items-center gap-2'>
                     <img className="w-5" src={csIcon} alt="Czech" />
                     <span>Czech</span>
                 </div>
                 {
-                    lang === "cs" && <img src={checkMark} alt="" />
+                    lang === "cz" && <img src={checkMark} alt="" />
                 }
             </button>
         </>

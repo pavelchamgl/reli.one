@@ -1,0 +1,21 @@
+.button {
+  border: 1.5px solid #64748b;
+  border-radius: 2px;
+  width: 159px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background-color: white;
+
+  & img {
+  }
+
+  font-weight: 600;
+  font-size: clamp(12px, 2.5vw, 14px);
+
+  @media (max-width: 426px) {
+    width: 136px;
+  }
+}

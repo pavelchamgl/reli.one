@@ -6,11 +6,54 @@
   <link rel="icon" type="image/svg+xml" href="./public/Shortcuticon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reli</title>
+
+  <!-- ? скрипты для аналитики -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D2YFDWVX4X"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-D2YFDWVX4X');
+  </script>
+
+  <!-- Google Tag Manager -->
+  <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-NNZ77M58');</script>
+
+  <!-- Google Ads Global Tag -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17579423844"></script>
+  <script>
+    gtag('config', 'AW-17579423844');
+  </script>
+
+  <!-- ? мои скрипты -->
+
+
   <script src="https://widget.packeta.com/v6/www/js/library.js"></script>
+  <script src="https://ps-maps.gls-czech.com/widget/gls_psd_widget.js?v=2"></script>
+
 </head>
 
 <body>
   <div id="root"></div>
+
+  <script>
+    window.fbAsyncInit = function () {
+      FB.init({
+        appId: '614593414613282',
+        cookie: true,
+        xfbml: false,
+        version: 'v19.0'
+      });
+    };
+  </script>
+  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

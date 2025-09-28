@@ -1,76 +1,91 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { ErrToast } from "../ui/Toastify";
+import { trackAddToCart } from "../analytics/analytics";
 
-// Получаем значение корзины из localStorage и парсим его
-const basketValue = JSON.parse(localStorage.getItem("basket")) || [];
-const basketTotalCount = JSON.parse(localStorage.getItem("basketTotal")) || 0;
-const basketSelectedProducts = JSON.parse(localStorage.getItem("selectedProducts")) || [];
-
-const localEmail = localStorage.getItem("email");
-const baskets = JSON.parse(localStorage.getItem("baskets")) || [];
-
-const filteredBaskets = baskets.filter((item) => item.email !== localEmail);
-
-
-
-const editBaskets = (basket) => {
-    if (localEmail) {
-        const newBaskets = [
-            ...filteredBaskets, {
-                email: JSON.parse(localEmail),
-                basket: basket
-            }
-        ]
-
-        localStorage.setItem("baskets", JSON.stringify(newBaskets))
-    }
-}
-
+const initialState = {
+    basket: [],       // Корзина текущего пользователя
+    baskets: [],      // Корзины всех пользователей
+    err: "",
+    status: "",
+    totalCount: 0,
+    selectedProducts: [],
+    filteredBasket: null,
+    searchTerm: ""
+};
 
 const basketSlice = createSlice({
     name: "basket",
-    initialState: {
-        basket: basketValue,
-        err: "",
-        status: "",
-        totalCount: basketTotalCount,
-        selectedProducts: basketSelectedProducts
-    },
+    initialState,
     reducers: {
+        // Добавление товара в корзину
         addToBasket: (state, action) => {
-            if (state.basket?.length < 55) {
+            if (state.basket.length < 55) {
                 if (state.basket.every((item) => item.sku !== action.payload.sku)) {
-                    const newBasket = [...state.basket, action.payload];
-                    localStorage.setItem("basket", JSON.stringify(newBasket));
-                    editBaskets(newBasket)
-                    return {
-                        ...state,
-                        basket: newBasket
-                    };
+                    state.basket.push(action.payload);
                 }
+                trackAddToCart(action.payload?.product)
             } else {
-                ErrToast("There should be no more than 55 items in the basket")
+                ErrToast("There should be no more than 55 items in the basket");
+            }
+
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
             }
         },
-        plusCount: (state, action) => {
-            const newArr = state.basket.map((item) => {
-                if (item.sku === action.payload.sku) {
-                    return {
-                        ...item,
-                        count: action.payload.count
-                    };
-                }
-                return item;
-            });
-            localStorage.setItem("basket", JSON.stringify(newArr));
-            editBaskets(newArr)
-            return {
-                ...state,
-                basket: newArr
-            };
-        },
-        plusCardCount: (state, action) => {
 
+        // Обновление количества товара в корзине
+        plusCount: (state, action) => {
+            state.basket = state.basket.map((item) =>
+                item.sku === action.payload.sku
+                    ? { ...item, count: action.payload.count }
+                    : item
+            );
+
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
+            }
+
+            // Пересчитываем общую сумму
+            state.totalCount = state.basket.reduce((sum, item) =>
+                item.selected ? sum + item.count * item.product.price : sum, 0
+            );
+        },
+
+        // Уменьшение количества товара в корзине
+        minusCount: (state, action) => {
+            state.basket = state.basket.map((item) =>
+                item.sku === action.payload.sku
+                    ? { ...item, count: action.payload.count }
+                    : item
+            );
+
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
+            }
+
+            // Пересчитываем общую сумму
+            state.totalCount = state.basket.reduce((sum, item) =>
+                item.selected ? sum + item.count * item.product.price : sum, 0
+            );
+        },
+
+        // Увеличение количества товара (по кнопке)
+        plusCardCount: (state, action) => {
             state.basket = state.basket.map((item) => {
                 if (item.sku === action.payload.sku) {
                     item.count = action.payload.count;
@@ -78,23 +93,22 @@ const basketSlice = createSlice({
                 return item;
             });
 
-            // Пересчитываем общее количество товаров только для выбранных продуктов
-            let newTotalCount = 0;
-            state.basket.forEach((item) => {
-                if (item.selected) {
-                    newTotalCount += item.count * item.product.price;
-                }
-            });
-            state.totalCount = newTotalCount;
+            state.totalCount = state.basket.reduce((sum, item) =>
+                item.selected ? sum + item.count * item.product.price : sum, 0);
 
             state.selectedProducts = state.basket.filter((item) => item.selected);
 
-            localStorage.setItem("basket", JSON.stringify(state.basket));
-            localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
-            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts));
-            editBaskets(state.basket)
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
+            }
         },
 
+        // Уменьшение количества товара (по кнопке)
         minusCardCount: (state, action) => {
             state.basket = state.basket.map((item) => {
                 if (item.sku === action.payload.sku) {
@@ -103,310 +117,289 @@ const basketSlice = createSlice({
                 return item;
             });
 
-            // Пересчитываем общее количество товаров только для выбранных продуктов
-            let newTotalCount = 0;
-            state.basket.forEach((item) => {
-                if (item.selected) {
-                    newTotalCount += item.count * item.product.price;
-                }
-            });
-            state.totalCount = newTotalCount;
+            state.totalCount = state.basket.reduce((sum, item) =>
+                item.selected ? sum + item.count * item.product.price : sum, 0);
 
             state.selectedProducts = state.basket.filter((item) => item.selected);
 
-            localStorage.setItem("basket", JSON.stringify(state.basket));
-            localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
-            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts));
-            editBaskets(state.basket)
-
-        },
-
-        minusCount: (state, action) => {
-            const newArr = state.basket.map((item) => {
-                if (item.slu === action.payload.sku) {
-                    return {
-                        ...item,
-                        count: action.payload.count
-                    };
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
                 }
-                return item;
-            });
-            localStorage.setItem("basket", JSON.stringify(newArr));
-            return {
-                ...state,
-                basket: newArr
-            };
+            }
         },
+
+        // Удаление товара из корзины
         deleteFromBasket: (state, action) => {
             const itemToDelete = state.basket.find(item => item.sku === action.payload.sku);
 
-            if (itemToDelete && itemToDelete.selected) {
+            if (itemToDelete?.selected) {
                 state.totalCount -= Number(itemToDelete.product.price) * Number(itemToDelete.count);
             }
 
-            // Фильтруем корзину и выбранные продукты
             state.basket = state.basket.filter(item => item.sku !== action.payload.sku);
-            state.selectedProducts = state.basket.filter((item) => item.selected);
+            state.selectedProducts = state.basket.filter(item => item.selected);
 
-            localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
-            localStorage.setItem("basket", JSON.stringify(state.basket));
-            localStorage.setItem("selectedProducts", JSON.stringify(state.selectedProducts))
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
+            }
         },
-        // deleteFromBasket: (state, action) => {
-        //     const itemToDelete = state.basket.find(item => item.sku === action.payload.sku);
 
-        //     console.log(action.payload.sku);
-        //     console.log(itemToDelete);
-        //     console.log(itemToDelete.selected);
+        // Синхронизация корзины с baskets (при логине)
+        syncBasket: (state) => {
+            const email = JSON.parse(localStorage.getItem("email"));  // Получаем email из localStorage
+            if (!email) return;
+
+            const currentBasket = [...state.basket];
+
+            // ✅ Если baskets не инициализирован, инициализируем как пустой массив
+            if (!Array.isArray(state.baskets)) {
+                state.baskets = [];
+            }
+
+            // ✅ Безопасно ищем индекс корзины пользователя
+            const existingIndex = state.baskets.findIndex(item => item?.email === email);
+
+            if (existingIndex === -1) {
+                // Если корзины еще нет — создаём новую
+                state.baskets.push({ email, basket: currentBasket });
+            } else {
+                // Если корзина есть — мержим
+                const existingBasket = state.baskets[existingIndex].basket;
+                const mergedBasket = [...existingBasket];
+
+                currentBasket.forEach(newItem => {
+                    const existingItemIndex = mergedBasket.findIndex(item => item.sku === newItem.sku);
+                    if (existingItemIndex === -1) {
+                        mergedBasket.push(newItem);
+                    }
+                });
+
+                state.baskets[existingIndex].basket = mergedBasket;
+            }
+
+            // Обновляем текущую корзину и сумму
+            state.basket = state.baskets.find(item => item?.email === email)?.basket || [];
+            state.totalCount = state.basket.reduce((sum, item) => sum + item.count * item.product.price, 0);
+        },
 
 
+        // Очистка корзины
+        clearBasket: (state) => {
+            state.basket = [];
+            state.totalCount = 0;
+            state.selectedProducts = [];
+            state.filteredBasket = null;
+        },
 
-        //     if (itemToDelete && itemToDelete.selected) {
-        //         state.totalCount = Number(state.totalCount) - Number(itemToDelete.product.price) * Number(itemToDelete.count);
-        //     }
+        // Выбор всех товаров
+        selectAllProducts: (state) => {
+            state.totalCount = state.basket.reduce(
+                (sum, item) => sum + item.product.price * item.count, 0
+            );
 
-        //     const newBasket = state.basket.filter(item => item.sku !== action.payload.sku);
-        //     const newSelected = state.basket.filter((item) => item.selected)
+            state.basket = state.basket.map((item) => ({ ...item, selected: true }));
+            state.selectedProducts = [...state.basket];
 
-        //     localStorage.setItem("basketTotal", JSON.stringify(state.totalCount));
-        //     localStorage.setItem("basket", JSON.stringify(newBasket));
-        //     localStorage.setItem("selectedProducts", JSON.stringify(newSelected))
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
+            }
+        },
 
-        //     editBaskets(state.basket)
-        //     return {
-        //         ...state,
-        //         basket: newBasket,
-        //         selectedProducts: newSelected
-        //     }
+        // Снятие выбора всех товаров
+        deselectAllProducts: (state) => {
+            state.basket = state.basket.map((item) => ({ ...item, selected: false }));
+            state.totalCount = 0;
+            state.selectedProducts = [];
 
-        // },
+            // Синхронизация корзины с baskets
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
+            }
+        },
+
         selectProduct: (state, action) => {
-            let totalCount = Number(state.totalCount);
+            let totalCount = state.totalCount;
 
-            const selectedArr = state.basket.map((item) => {
-                const itemPrice = parseFloat(item.product.price) || 0;
-                const itemCount = parseInt(item.count) || 0;
-                const itemTotal = itemPrice * itemCount;
+            // Обновляем корзину с новым состоянием выбранных товаров
+            state.basket = state.basket.map((item) => {
+                const itemTotal = item.product.price * item.count;
 
                 if (item.sku === action.payload.sku) {
                     if (action.payload.selected) {
+                        // Добавляем товар в общий итог, если он выбран
                         totalCount += itemTotal;
+                    } else {
+                        // Убираем товар из общего итога, если он снят с выбора
+                        totalCount -= itemTotal;
                     }
-                    else {
-                        if (totalCount) {
-                            totalCount -= itemTotal;
-                        }
-                    }
-                    return {
-                        ...item,
-                        selected: action.payload.selected
-                    };
+                    return { ...item, selected: action.payload.selected };
                 }
-
                 return item;
             });
 
-            const selectedProducts = selectedArr.filter(item => item.selected);
-            localStorage.setItem("basket", JSON.stringify(selectedArr));
-            localStorage.setItem("basketTotal", JSON.stringify(totalCount));
-            localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-            editBaskets(selectedArr)
+            // Обновляем общий итог
+            state.totalCount = totalCount;
 
+            // Обновляем список выбранных товаров
+            state.selectedProducts = state.basket.filter(item => item.selected);
 
-            return {
-                ...state,
-                basket: selectedArr,
-                totalCount: totalCount,
-                selectedProducts: selectedProducts
-            };
+            // Если корзина синхронизирована с сервером, обновляем соответствующее состояние
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    // Обновляем корзину в глобальном состоянии, если этот пользователь уже есть
+                    state.baskets[existingIndex].basket = state.basket;
+                }
+            }
         },
-        selectAllProducts: (state) => {
-            let totalCount = 0;
 
-            const selectedArr = state.basket.map((item) => {
-                const itemPrice = parseFloat(item.product.price) || 0;
-                const itemCount = parseInt(item.count) || 0;
-                const itemTotal = itemPrice * itemCount;
 
-                totalCount += itemTotal;
-
-                return {
-                    ...item,
-                    selected: true
-                };
-            });
-
-            const selectedProducts = selectedArr.filter(item => item.selected);
-
-            localStorage.setItem("basket", JSON.stringify(selectedArr));
-            localStorage.setItem("basketTotal", JSON.stringify(totalCount));
-            localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
-
-            editBaskets(selectedArr)
-
-            return {
-                ...state,
-                basket: selectedArr,
-                totalCount: totalCount,
-                selectedProducts: selectedProducts
-            };
-        },
-        deselectAllProducts: (state) => {
-            const selectedArr = state.basket.map((item) => {
-                return {
-                    ...item,
-                    selected: false
-                };
-            });
-
-            localStorage.setItem("basket", JSON.stringify(selectedArr));
-            localStorage.setItem("basketTotal", JSON.stringify(0));
-            localStorage.setItem("selectedProducts", JSON.stringify([]));
-            editBaskets(selectedArr)
-
-            return {
-                ...state,
-                basket: selectedArr,
-                totalCount: 0,
-                selectedProducts: []
-            };
-        },
+        // Поиск товаров
         searchProducts: (state, action) => {
             const searchTerm = action.payload.text.toLowerCase();
 
-            // Если поисковый запрос пустой, возвращаем оригинальную корзину
-            if (!searchTerm) {
-                return {
-                    ...state,
-                    filteredBasket: null,  // Восстанавливаем изначальную корзину
-                    searchTerm: ''
-                };
-            }
-
-            // Фильтруем корзину на основе поискового запроса
-            const filteredBasket = state.basket.filter((item) =>
-                item.product.name.toLowerCase().includes(searchTerm)
-            );
-
-            return {
-                ...state,
-                filteredBasket: filteredBasket,
-                searchTerm: searchTerm
-            };
+            state.searchTerm = searchTerm;
+            state.filteredBasket = searchTerm
+                ? state.basket.filter(item =>
+                    item.product.name.toLowerCase().includes(searchTerm))
+                : null;
         },
+
+        // Изменение стоимости доставки
         plusMinusDelivery: (state, action) => {
-            let newTotal;
-
-            if (action.payload.type === "plus") {
-                newTotal = state.totalCount + action.payload.price
-            } else {
-                newTotal = state.totalCount - action.payload.price
-            }
-            localStorage.setItem("basketTotal", JSON.stringify(newTotal))
-            return {
-                ...state,
-                totalCount: newTotal
-            }
+            const price = action.payload.price;
+            state.totalCount += action.payload.type === "plus" ? price : -price;
         },
-        basketSelectedProductsPrice: (state, action) => {
-            // Вычисление общей стоимости продуктов с использованием reduce
-            const totalPrice = state.selectedProducts.reduce((sum, element) => {
-                return sum + (Number(element.product.price) * element.count)
-            }, 0);
 
-            // Сохранение общей стоимости в localStorage
-            localStorage.setItem("basketTotal", JSON.stringify(totalPrice));
-
-            // Возвращение обновленного состояния
-            return {
-                ...state,
-                totalCount: totalPrice  // Предполагая, что вам нужно обновить `totalPrice`, а не `totalCount`
-            };
+        // Пересчет общей стоимости выбранных товаров
+        basketSelectedProductsPrice: (state) => {
+            state.totalCount = state.selectedProducts.reduce(
+                (sum, item) => sum + item.count * item.product.price, 0
+            );
         },
+
+        // Обновление общей стоимости корзины
         updateTotalPrice: (state) => {
-            const totalPrice = state.basket.reduce((sum, item) => {
-                if (item.selected) {
-                    return sum + (Number(item.product.price) * item.count);
-                }
-                return sum;
-            }, 0);
-
-            localStorage.setItem("basketTotal", JSON.stringify(totalPrice));
-
-            return {
-                ...state,
-                totalCount: totalPrice
-            };
+            state.totalCount = state.basket.reduce(
+                (sum, item) => item.selected ? sum + item.count * item.product.price : sum, 0
+            );
         },
+
+        // Обновление вариантов товара (например, цены или SKU)
         changeVariants: (state, action) => {
             const { id, price, sku } = action.payload;
 
-            const basketProduct = state.basket.find((item) => item.id === id);
-
-            // Проверяем, найден ли продукт в корзине
-            if (!basketProduct) {
-                return state;
-            }
-
-            const newProduct = {
-                ...basketProduct,
-                product: { ...basketProduct.product, price },
-                sku
-            };
-
-            const newBasket = state.basket.map((item) =>
-                item.id === id ? newProduct : item
+            state.basket = state.basket.map((item) =>
+                item.id === id
+                    ? { ...item, product: { ...item.product, price }, sku }
+                    : item
             );
 
-            const newSelectedProduct = state.selectedProducts.map((item) =>
-                item.id === id ? newProduct : item
+            state.selectedProducts = state.selectedProducts.map((item) =>
+                item.id === id
+                    ? { ...item, product: { ...item.product, price }, sku }
+                    : item
             );
-
-            // Записываем в localStorage только если изменились данные
-            if (JSON.stringify(newBasket) !== localStorage.getItem("basket")) {
-                localStorage.setItem("basket", JSON.stringify(newBasket));
-                editBaskets(newBasket)
-
-            }
-            if (JSON.stringify(newSelectedProduct) !== localStorage.getItem("selectedProducts")) {
-                localStorage.setItem("selectedProducts", JSON.stringify(newSelectedProduct));
-            }
-
-            return {
-                ...state,
-                basket: newBasket,
-                selectedProducts: newSelectedProduct
-            };
         },
-        clearBasket: (state, action) => {
-            localStorage.removeItem("basket")
-            return {
-                ...state, basket: []
-            }
-        },
+
+        // Обновление корзины
         updateBasket: (state, action) => {
-            return {
-                ...state,
-                basket: action.payload
-            }
+            state.basket = action.payload;
         },
-        paymentEndBasket: (state, action) => {
-            let newBasket = state.basket.filter((item) => !item.selected)
-            localStorage.setItem("basket", JSON.stringify(newBasket))
-            localStorage.removeItem("selectedProducts")
-            return {
-                ...state,
-                basket: newBasket
+
+        // Обновление всех корзин
+        updateBaskets: (state, action) => {
+            state.baskets = action.payload;
+        },
+
+        // Завершение покупки
+        paymentEndBasket: (state) => {
+            state.basket = state.basket.filter(item => !item.selected);
+            state.selectedProducts = [];
+            state.totalCount = 0;
+        },
+
+        deleteBaskets: (state, action) => {
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (!email) return;
+
+            state.baskets = state.baskets.filter(item => item?.email !== email);
+            state.basket = []; // очищаем текущую корзину
+            state.totalCount = 0;
+            state.selectedProducts = [];
+        },
+
+        updateProductPrice: (state, action) => {
+
+
+            state.basket = state.basket.map((item) => {
+                if (action.payload.sku === item?.sku) {
+
+                    return {
+                        ...item,
+                        product: {
+                            ...action.payload.data,
+                            price: action.payload.price
+                        }
+                    }
+                } else {
+                    return item
+                }
+            })
+
+
+            const email = JSON.parse(localStorage.getItem("email"));
+            if (email) {
+                const existingIndex = state.baskets.findIndex(item => item.email === email);
+                if (existingIndex !== -1) {
+                    state.baskets[existingIndex].basket = [...state.basket];
+                }
             }
         }
-
-    },
-
-    extraReducers: builder => {
-        // Здесь можно добавить дополнительные редюсеры, если это необходимо
     }
 });
 
-export const { addToBasket, plusCount, minusCount, deleteFromBasket, selectProduct, selectAllProducts, deselectAllProducts, searchProducts, plusMinusDelivery, basketSelectedProductsPrice, plusCardCount, minusCardCount, updateTotalPrice, changeVariants, clearBasket, updateBasket, paymentEndBasket } = basketSlice.actions;
+export const {
+    addToBasket,
+    plusCount,
+    minusCount,
+    deleteFromBasket,
+    selectProduct,
+    selectAllProducts,
+    deselectAllProducts,
+    searchProducts,
+    plusMinusDelivery,
+    basketSelectedProductsPrice,
+    plusCardCount,
+    minusCardCount,
+    updateTotalPrice,
+    changeVariants,
+    clearBasket,
+    updateBasket,
+    updateBaskets,
+    paymentEndBasket,
+    syncBasket,
+    deleteBaskets,
+    updateProductPrice
+} = basketSlice.actions;
 
 export const { reducer } = basketSlice;

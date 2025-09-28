@@ -4,15 +4,17 @@ import { useMediaQuery } from "react-responsive";
 import { useTranslation } from "react-i18next";
 
 import styles from "./ProductCharak.module.scss";
+import ProductAdditionalDetails from "../productAdditionalDetails/ProductAdditionalDetails";
 
 const ProductCharak = () => {
-  const isMobile = useMediaQuery({ maxWidth: 400 });
+  const isMobile = useMediaQuery({ maxWidth: 500 });
 
   const { t } = useTranslation();
 
-  const { product_parameters, product_description, license_file } = useSelector(
+  const { product_parameters, product_description, license_file, additional_details } = useSelector(
     (state) => state.products.product
   );
+
 
   const [formattedText, setFormattedText] = useState(product_description || "");
 
@@ -42,6 +44,14 @@ const ProductCharak = () => {
       {isMobile && <p className={styles.mobTitle}>{t("characteristics")}</p>}
       <pre className={styles.modelText}>{formattedText}</pre>
 
+
+      {
+        additional_details &&
+        <ProductAdditionalDetails detail={additional_details} />
+
+      }
+
+      {isMobile && <p className={styles.charackTitle}>{t("prod_charack")}</p>}
       <div className={styles.totalTable}>
         <div className={styles.blackTitle}>{t("transfer_charac")}</div>
 
@@ -60,7 +70,7 @@ const ProductCharak = () => {
           ))}
         </div>
       </div>
-      {license_file && <p className={styles.licenseText}>You can read the certificate <a href={license_file}>here</a></p>}
+      {license_file && <p className={styles.licenseText}>View certificate <a href={license_file}>here</a></p>}
     </div>
   );
 };

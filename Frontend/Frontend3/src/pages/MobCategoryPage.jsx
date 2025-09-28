@@ -1,25 +1,30 @@
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import React from "react";
 
 import returnIcon from "../assets/mobileIcons/returnCategoryIcon.svg";
 import Container from "../ui/Container/Container";
 import MobCategoryCard from "../ui/MobCategoryCard/MobCategoryCard";
-
-import styles from "../styles/MobCategoryPage.module.scss";
 import MobCategoryCardBtn from "../ui/MobCategoryCardBtn/MobCategoryCardBtn";
 import CatalogDrawer from "../Components/Catalog/CatalogDrawer/CatalogDrawer";
-import { fetchGetCategory } from "../redux/categorySlice";
+
+import styles from "../styles/MobCategoryPage.module.scss";
 
 const MobCategoryPage = () => {
   const navigate = useNavigate();
 
-  const [categoryType, setCategoryType] = useState(1);
+  const { t } = useTranslation()
+
+
 
   const categories = useSelector((state) => state.category.categories);
   const categoryItem = useSelector((state) => state.category.category);
   const podCategory = useSelector((state) => state.category.podCategory);
   const category = useSelector((state) => state.category.category);
+
+
 
   const handleCategoryClick = (name, id) => {
     navigate(
@@ -54,7 +59,7 @@ const MobCategoryPage = () => {
                       className={styles.categoryText}
                       key={child.id}
                     >
-                      {child.name}
+                      {t(`categories.${child.id}`, { defaultValue: child.name })}
                     </button>
                   ))}
                 </div>
@@ -72,15 +77,19 @@ const MobCategoryPage = () => {
 
   return (
     <Container>
-      <button
-        onClick={() => {
-          setCatalogOpen(true);
-        }}
-        className={styles.returnBtn}
-      >
-        <img src={returnIcon} alt="" />
-        <p>{category?.name}</p>
-      </button>
+      {
+        Object.keys(category).length > 0
+        &&
+        <button
+          onClick={() => {
+            setCatalogOpen(true);
+          }}
+          className={styles.returnBtn}
+        >
+          <img src={returnIcon} alt="" />
+          <p>{t(`categories.${category.id}`, { defaultValue: category.name })}</p>
+        </button>
+      }
       <div
         className={`${styles.cardItemWrap} ${isCardBtnRendered ? styles.cardItemWrap2 : ""
           }`}

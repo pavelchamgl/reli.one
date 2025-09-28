@@ -1,0 +1,17 @@
+.main {
+  border-radius: 21px;
+  padding: 21px 14px;
+  width: 225px;
+  height: 42px;
+  font-weight: 700;
+  font-size: 17px;
+  color: #1e2939;
+  background: #fdc700;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  box-shadow:
+    0 8px 10px -6px rgba(0, 0, 0, 0.1),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}

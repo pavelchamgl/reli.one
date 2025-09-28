@@ -7,7 +7,6 @@ const ProductCommentItem = ({ item }) => {
   const [date, setDate] = useState(null);
   const [urls, setUrls] = useState(null);
 
-  console.log(item);
 
   useEffect(() => {
     if (item) {

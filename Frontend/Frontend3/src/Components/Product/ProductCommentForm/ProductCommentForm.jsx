@@ -23,9 +23,7 @@ const ProductCommentForm = ({ open, handleClose }) => {
 
   const product = useSelector((state) => state.products.product);
   const commentErr = useSelector((state) => state.comment.err);
-  console.log(commentErr);
 
-  console.log(product);
 
   useEffect(() => {
     if (product?.variants && product?.can_review) {

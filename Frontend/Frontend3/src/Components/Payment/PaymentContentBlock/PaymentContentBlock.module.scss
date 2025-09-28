@@ -106,3 +106,15 @@
     }
   }
 }
+
+
+.inpWrap{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+
+  @media (max-width:425px) {
+    gap: 20px;
+  }
+}

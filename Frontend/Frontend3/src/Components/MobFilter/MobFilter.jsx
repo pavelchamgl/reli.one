@@ -91,7 +91,6 @@ const MobFilter = ({
   };
 
   const applyFilter = () => {
-    console.log("Фильтр применен с ценами от", value[0], "до", value[1]);
     // Здесь можно добавить логику для применения фильтра
     setMin(value[0]);
     setMax(value[1]);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive";
 
 import BasketTotalBlock from "../Components/Basket/BasketTotalBlock/BasketTotalBlock";
@@ -14,21 +14,33 @@ import {
 import PaymentDeliveryBlock from "../Components/Payment/PaymentDeliveryBlock/PaymentDeliveryBlock";
 import PaymentPlataBlock from "../Components/Payment/PaymentPlataBlock/PaymentPlataBlock";
 import Footer from "../Components/Footer/Footer";
+import { useActionPayment } from "../hook/useActionPayment";
+import { useSelector } from "react-redux";
 
 
 const PaymentPage = () => {
   const [selectedValue, setSelectedValue] = useState("female");
-  const [section, setSection] = useState(2);
   const isMobile = useMediaQuery({ maxWidth: 426 });
+
+  const { setPageSection } = useActionPayment()
+
+  const { pageSection } = useSelector(state => state.payment)
+
+  const [section, setSection] = useState(pageSection);
+
+  useEffect(() => {
+    setPageSection(section)
+  }, [section])
+
 
 
   return (
     <div>
-      {section === 1 && <PaymentContentBlock setSection={setSection} />}
-      {section === 2 && <PaymentDeliveryBlock setSection={setSection} />}
-      {section === 3 && <PaymentPlataBlock setSection={setSection} />}
+      {section === 1 && <PaymentContentBlock section={section} setSection={setSection} />}
+      {section === 2 && <PaymentDeliveryBlock section={section} setSection={setSection} />}
+      {section === 3 && <PaymentPlataBlock section={section} setSection={setSection} />}
 
-      {!isMobile && <BasketTotalBlock />}
+      {!isMobile && <BasketTotalBlock section={section} />}
     </div>
   );
 };

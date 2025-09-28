@@ -11,6 +11,8 @@ import arrRight from "../assets/profileNav/arrRight.svg";
 import arrDown from "../assets/profileNav/arrDown.svg";
 
 import styles from "../styles/MobProfileNavPage.module.scss";
+import { useDispatch } from "react-redux";
+import { deleteBaskets, deselectAllProducts } from "../redux/basketSlice";
 
 const MobProfileNavPage = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -31,6 +33,8 @@ const MobProfileNavPage = () => {
     refresh: "",
   });
   const [error, setError] = useState("");
+
+  const dispatch = useDispatch()
 
   useEffect(() => {
     // Получаем данные из localStorage
@@ -67,9 +71,8 @@ const MobProfileNavPage = () => {
   const handleLogout = () => {
     logout({ refresh_token: userData?.refresh }).then((res) => {
       localStorage.removeItem("token");
-      localStorage.removeItem("basket");
-      localStorage.removeItem("selectedProducts");
-      localStorage.removeItem("basketTotal");
+      dispatch(deselectAllProducts())
+      clearBasket()
       localStorage.removeItem("email");
       clearBasket();
       navigate("/");
@@ -80,13 +83,7 @@ const MobProfileNavPage = () => {
   const handleDeleteAgree = () => {
     deleteAccount().then((res) => {
       localStorage.removeItem("token");
-      localStorage.removeItem("basket");
-      localStorage.removeItem("selectedProducts");
-      localStorage.removeItem("basketTotal");
-      const newBaskets = baskets.filter(
-        (item) => item?.email !== JSON.parse(localEmail)
-      );
-      localStorage.setItem("baskets", JSON.stringify(newBaskets));
+      dispatch(deleteBaskets())
       localStorage.removeItem("email");
       window.location.reload();
     });

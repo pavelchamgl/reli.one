@@ -9,15 +9,16 @@ import MobCardSecond from "../../../ui/MobCardSecond/MobCardSecond";
 
 import styles from "./MobPaymentBasket.module.scss";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
-const MobPaymentBasket = () => {
+const MobPaymentBasket = ({ section }) => {
   const [open, setOpen] = useState(false);
   const selectedProducts = useSelector(
     (state) => state.basket.selectedProducts
   );
 
+  const { t } = useTranslation()
 
-  console.log(selectedProducts);
 
 
   return (
@@ -29,7 +30,7 @@ const MobPaymentBasket = () => {
       >
         <div>
           <img src={greenBasketIcon} alt="" />
-          <p>Nákupní košík</p>
+          <p>{t("bin")}</p>
         </div>
         <img src={open ? arrBottom : arrRight} alt="" />
       </button>
@@ -40,7 +41,7 @@ const MobPaymentBasket = () => {
             selectedProducts.map((item) => (
               <MobCardSecond key={item.sku} product={item?.product} count={item?.count} sku={item?.sku} />
             ))}
-          <BasketTotalBlock />
+          <BasketTotalBlock section={section} />
         </div>
       )}
     </div>

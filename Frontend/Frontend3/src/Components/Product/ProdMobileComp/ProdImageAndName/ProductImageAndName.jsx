@@ -26,6 +26,9 @@ const ProductImageAndName = () => {
   const [price, setPrice] = useState("10");
   const [endPrice, setEndPice] = useState("10");
   const [sku, setSku] = useState(null);
+  const [priceVatMain, setPriceVatMain] = useState(null)
+
+
 
   const basket = useSelector((state) => state.basket.basket);
 
@@ -38,6 +41,8 @@ const ProductImageAndName = () => {
   const dispatch = useDispatch();
 
   const handleAddBasket = () => {
+    const firstVariant = product.variants[0];
+
     dispatch(
       addToBasket({
         id: product.id,
@@ -45,17 +50,19 @@ const ProductImageAndName = () => {
         count: 1,
         selected: false,
         sku: sku,
+        seller_id: product.seller_id,
+        price_without_vat: firstVariant.price_without_vat
       })
     );
   };
 
   useEffect(() => {
-    if (basket.some((item) => item.id === Number(id))) {
+    if (basket.some((item) => item.sku === sku)) {
       setInBasket(true);
     } else {
       setInBasket(false);
     }
-  }, [id, basket]);
+  }, [id, basket, sku]);
 
   useEffect(() => {
     if (product && product.variants && product.variants.length > 0) {
@@ -68,11 +75,12 @@ const ProductImageAndName = () => {
         setPrice(firstVariant.price);
         setEndPice(firstVariant.price);
         setSku(firstVariant.sku);
+        // setPriceVat(firstVariant.price_without_vat)
       } else {
         // Если продукт уже в корзине, использовать данные из корзины
-        // setPrice(existingProduct.product.price);
         setEndPice(existingProduct.product.price);
         setSku(existingProduct.sku);
+        // setPriceVat(existingProduct?.price_without_vat)
       }
     }
   }, [product, basket]);
@@ -106,6 +114,14 @@ const ProductImageAndName = () => {
     setFormattedText(replacedText);
   }, [product?.name]);
 
+
+  useEffect(() => {
+    if (product && product.variants && product.variants.length > 0) {
+      const firstVariant = product.variants[0];
+      setPriceVatMain(firstVariant.price_without_vat)
+    }
+  }, [])
+
   return (
     <div className={styles.main}>
       <div className={styles.buttonWrap}>
@@ -121,6 +137,7 @@ const ProductImageAndName = () => {
         <p className={styles.title}>{formattedText}</p>
         <ProdCharackButtons
           setPrice={setEndPice}
+          setPriceVat={setPriceVatMain}
           setSku={setSku}
           variants={product?.variants}
           id={product?.id}
@@ -129,7 +146,7 @@ const ProductImageAndName = () => {
           <p>{endPrice ? endPrice : price} €</p>
           {/* <span>400.00 Kč</span> */}
         </div>
-        <p className={styles.ndcPrice}>Without DPH <span>$32.71</span></p>
+        <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVatMain} €</span></p>
         <button className={styles.basketBtn} onClick={handleAddBasket}>
           {inBasket && <img src={addBasketCheckIcon} alt="" />}
           {t("add_basket")}

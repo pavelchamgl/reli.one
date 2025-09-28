@@ -36,7 +36,6 @@ const Footer = () => {
             </Link>
           </p>
           <p className="cursor-pointer">
-            {' '}
             <Link
               activeClass="active"
               className="test1"
@@ -76,9 +75,9 @@ const Footer = () => {
           <p className="text-xs">(c) Copyright 2025 Reli group</p>
         </div>
         <div className="hidden flex-col justify-between xl:flex">
-          <p className="text-2xl text-[#FFCC00]">Reli Group, s.r.o</p>
+          <p className="text-2xl text-[#FFCC00]">Reli Group s.r.o.</p>
           <p>Number: +420 797 837 856</p>
-          <p>Email: info.reli.one@gmail.com</p>
+          <p>Email: info@reli.one</p>
           <p>
             Adress: Na Lysinách 551/34,
             <br /> Praha 4 - Hodkovičky, PSČ 147 00

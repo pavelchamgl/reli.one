@@ -1,0 +1,55 @@
+.main {
+  padding-block: 70px;
+}
+
+.wrap {
+  background: linear-gradient(170deg, #f9fafb 0%, #fefce8 100%);
+}
+
+.title {
+  font-weight: 700;
+  font-size: clamp(25px, 5vw, 30px);
+  text-align: center;
+  color: #101828;
+}
+
+.desc {
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+  color: #4a5565;
+  margin-top: 14px;
+  margin-bottom: 55px;
+}
+
+.readyToStart {
+  font-weight: 400;
+  font-size: 13px;
+  text-align: center;
+  color: #4a5565;
+  margin-top: 42px;
+  margin-bottom: 21px;
+}
+
+.btnWrap {
+  display: flex;
+  justify-content: center;
+
+  & button {
+    border-radius: 14px;
+    width: 218px;
+    height: 53px;
+    box-shadow:
+      0 4px 6px -4px rgba(0, 0, 0, 0.1),
+      0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: #fdc700;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-weight: 700;
+    font-size: 15px;
+    color: #1e2939;
+  }
+}

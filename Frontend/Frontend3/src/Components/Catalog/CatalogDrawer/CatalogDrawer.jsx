@@ -18,6 +18,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
   const isMobile = useMediaQuery({ maxWidth: 500 });
   const [catalogCategory, setCatalogCategory] = useState("");
 
+
   const navigate = useNavigate();
 
   const { fetchGetCategory } = useActions();
@@ -25,9 +26,9 @@ const CatalogDrawer = ({ open, handleClose }) => {
   const { t } = useTranslation();
 
   useEffect(() => {
-    if (open) {
-      fetchGetCategory();
-    }
+
+    fetchGetCategory();
+
   }, [open]);
 
   const categories = useSelector((state) => state.category.categories);
@@ -44,44 +45,50 @@ const CatalogDrawer = ({ open, handleClose }) => {
     handleClose();
   };
 
+
   return (
-    <div>
+    <div className={isPlanshet ? styles.mainWrap : ""}>
       <Drawer open={open} anchor="top" onClose={handleClose}>
         {isPlanshet && <Header />}
         <div className={styles.main}>
-          <div className={styles.catalogItemWrap}>
-            {categories.map((item) => {
-              if (item?.children) {
-                return (
-                  <CatalogItem
-                    key={item.id}
-                    catalogCategory={catalogCategory}
-                    setCatalogCategory={setCatalogCategory}
-                    data={item}
-                    handleClose={handleClose}
-                  />
-                );
-              } else {
-                return (
-                  <button
-                    key={item.id}
-                    className={styles.catalogItemBtn}
-                    onClick={() => handleCategoryClick(item?.name, item?.id)}
-                  >
+          <div className={styles.catalogItemWrapMain}>
+            <div className={styles.catalogItemWrap}>
+              {categories.map((item) => {
+                if (item?.children) {
+                  return (
                     <CatalogItem
+                      key={item.id}
                       catalogCategory={catalogCategory}
                       setCatalogCategory={setCatalogCategory}
                       data={item}
                       handleClose={handleClose}
                     />
-                  </button>
-                );
-              }
-            })}
+                  );
+                } else {
+                  return (
+                    <button
+                      key={item.id}
+                      className={styles.catalogItemBtn}
+                      onClick={() => handleCategoryClick(item?.name, item?.id)}
+                    >
+                      <CatalogItem
+                        catalogCategory={catalogCategory}
+                        setCatalogCategory={setCatalogCategory}
+                        data={item}
+                        handleClose={handleClose}
+                      />
+                    </button>
+                  );
+                }
+              })}
+            </div>
           </div>
           {!isMobile && (
             <div>
-              <h4 className={styles.catalogTitle}>{category?.name}</h4>
+              {
+                Object.keys(category).length > 0 &&
+                <h4 className={styles.catalogTitle}>{t(`categories.${category.id}`, { defaultValue: category.name })}</h4>
+              }
               <div className={styles.categoryCardWrap}>
                 {categoryItem?.children?.map((item, index) => {
                   if (!item?.children) {
@@ -112,7 +119,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
                                   className={styles.categoryText}
                                   key={child.id}
                                 >
-                                  {child.name}
+                                  {t(`categories.${ child.id }`, { defaultValue: child.name })}
                                 </p>
                               ))}
                             </div>
