@@ -720,5 +720,91 @@
         "terms": "Terms and Conditions",
         "and": "and",
         "privacy": "Privacy Policy (GDPR)"
+    },
+    "_generalProtection": "",
+    "generalProtectionTitle": "General Data Protection Regulations Compliance",
+    "generalProtectionIntro": {
+        "title": "1. Introduction",
+        "desc": "The policy outlines the data protection practices and procedures implemented by Reli Group s.r.o. (“the Marketplace”) to comply with the General Data Protection Regulations (GDPR) and protect the personal data of users, including buyers, sellers, and visitors."
+    },
+    "generalScope": {
+        "title": "2. Scope",
+        "desc": "This policy applies to all personal data processed by the Marketplace, including data collected through the Marketplace’s website, mobile applications, and any other digital platforms."
+    },
+    "generalDataCollection": {
+        "title": "3. Data Collection and Processing",
+        "list": {
+            "text1": "The Marketplace collects and processes personal data only for specified, explicit, and legitimate purposes.",
+            "text2": "Personal data is collected lawfully, fairly, and transparently, with the knowledge and consent of the data subjects",
+            "text3": "Personal data is kept accurate, up-to-date, and relevant for the purposes for which it was collected.",
+            "text4": "Data minimization principles are followed to ensure that only necessary personal data is collected and processed."
+        }
+    },
+    "generalBasis": {
+        "title": "4. Lawful Basis and Processing",
+        "desc": "The Marketplace ensures that there is a lawful basis for processing personal data, such as consent, contractual necessity, legal obligations, vital interests, or legitimate interests."
+    },
+    "generalDataSecurity": {
+        "title": "5. Data Security Measures",
+        "list": {
+            "text1": "The Marketplace implements appropriate technical and organizational measures to ensure the security of personal data, including encryption, access controls, and regular security assessments.",
+            "text2": "Personal data is protected against unauthorized access, disclosure, alteration, and destruction."
+        }
+    },
+    "dataSubject": {
+        "title": "6. Data Subject Rights",
+        "list": {
+            "text1": "Data subjects have the right to access, rectify, erase, and restrict the processing of their personal data.",
+            "text2": "The Marketplace provides mechanisms for data subjects to exercise their rights, including designated contact points for data inquiries and requests."
+        }
+    },
+    "dataBreach": {
+        "title": "7. Data Breach Response",
+        "list": {
+            "text1": "The Marketplace has procedures in place to detect, investigate, and report data breaches in accordance with GDPR requirements. ",
+            "text2": "Data breaches are promptly reported to the relevant supervisory authority and affected individual."
+        }
+    },
+    "internationalDataTransfers": {
+        "title": "8. International Data Transfers",
+        "list": {
+            "text1": "Any transfers of personal data outside the EU/EEA are conducted with GDPR requirements.",
+            "text2": "Appropriate safeguards, such as standard contractual clauses or binding corporate rules, are implemented to protect transferred data."
+        }
+    },
+    "dataProcessingAgreement": {
+        "title": "9. Data Processing Agreement",
+        "list": {
+            "text1": "The Marketplace enters into data processing agreements with third-party service providers that process personal data on its behalf.",
+            "text2": "These agreements include provisions to ensure compliance with GDPR requirements and protect the rights of data subjects."
+        }
+    },
+    "trainingAndAwareness": {
+        "title": "10. Training and Awareness",
+        "list": {
+            "text1": "Employees who handle personal data receive training on GDPR principles and best practices.",
+            "text2": "Awareness-raising activities are conducted to educate staff and users about data protection obligations and procedures."
+        }
+    },
+    "complianceChecksAndAudits": {
+        "title": "11. Compliance Checks and Audits",
+        "list": {
+            "text1": "The Marketplace conducts regular audits and compliance checks to ensure ongoing adherence to GDPR requirements.",
+            "text2": "Policies and procedures are updated as needed to reflect changes in regulations or business practices."
+        }
+    },
+    "policyReview": {
+        "title": "12. Policy Review",
+        "desc": "This GDPR Compliance Policy is reviewed and updated regularly to ensure its effectiveness and alignment with legal requirements and industry standards."
+    },
+    "moreInformation": {
+        "title": "13. Where you will find more information about GDPR",
+        "desc": "You can learn more about GDPR on the following third-party website:",
+        "list": {
+            "text1": {
+                "email": "www.gdpr.eu",
+                "otherText": "GDPR: "
+            }
+        }
     }
 }

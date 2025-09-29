@@ -2,7 +2,7 @@ import { useMediaQuery } from "react-responsive";
 
 const Container = ({ children }) => {
   const isPlanshet = useMediaQuery({ maxWidth: 700 });
-  const isMobile = useMediaQuery({maxWidth:400})
+  const isMobile = useMediaQuery({maxWidth:426})
 
   let style = {
     padding: "0 100px",
