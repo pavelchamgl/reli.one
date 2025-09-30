@@ -323,7 +323,7 @@ class CreateStripePaymentView(APIView):
             .select_related('product__seller__default_warehouse')
             .only(
                 'sku',
-                'price_with_acquiring',
+                'price',
                 'product__seller_id',
                 'product__seller__default_warehouse__country',
             )
@@ -603,7 +603,7 @@ class StripeWebhookView(APIView):
             .select_related("product__seller__default_warehouse")
             .only(
                 "sku",
-                "price_with_acquiring",
+                'price',
                 "product__seller_id",
                 "product__seller__default_warehouse__country",
             )
