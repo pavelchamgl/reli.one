@@ -1,15 +1,42 @@
 .main {
   margin: 80px 0;
-  @media (max-width: 500px) {
+  @media (max-width: 425px) {
     margin: 25px 0;
   }
 }
 
 .title {
   font-weight: 600;
-  font-size: clamp(20px, 2.5vw, 24px);
+  font-size: clamp(20px, 2.5vw, 32px);
+  letter-spacing: -0.01em;
   color: #000;
-  margin-bottom: 30px;
+}
+
+.linkDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 50px 0;
+  .linkItem:nth-child(even) {
+    padding-left: 20px;
+  }
+  @media (max-width: 425px) {
+    margin: 27px 0;
+  }
+}
+.linkDivForBuy {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 50px 0;
+  .linkItem:nth-child(2),
+  .linkItem:nth-child(3),
+  .linkItem:nth-child(4) {
+    padding-left: 20px;
+  }
+  @media (max-width: 425px) {
+    margin: 27px 0;
+  }
 }
 
 .linkItem {
@@ -31,7 +58,7 @@
 
 .textTitle {
   font-weight: 700;
-  font-size: clamp(12px, 2.5vw, 20px);
+  font-size: clamp(12px, 2.5vw, 24px);
   line-height: 140%;
   color: #000;
   margin-bottom: 10px;
@@ -39,17 +66,13 @@
 }
 .textDesc {
   font-weight: 500;
-  font-size: clamp(12px, 2.5vw, 20px);
+  font-size: clamp(12px, 2.5vw, 24px);
   line-height: 140%;
   color: #000;
 
   & span {
     font-weight: 700;
   }
-}
-
-.textWrap {
-  margin-bottom: 20px;
 }
 
 .textDescLight {
@@ -82,6 +105,7 @@
 }
 
 .emailText {
+  padding-left: 5px;
   color: #047857;
   text-decoration: none;
 }
@@ -130,27 +154,17 @@
     margin: 15px 0 15px 20px;
   }
 }
+// ? будет импорт страницы
 
-.list {
-  list-style: disc;
+.textBlock {
+  margin-bottom: 20px;
+}
+
+.textList {
   font-weight: 500;
-  font-size: clamp(12px, 2.5vw, 20px);
+  font-size: clamp(12px, 2.5vw, 24px);
   line-height: 140%;
   color: #000;
-  margin-top: 10px;
+  padding-left: 25px;
 
-  padding-left: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.confDesc {
-  margin-block: 10px;
-}
-
-.descWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
 }

@@ -45,10 +45,10 @@ import EditGoodsPage from "./pages/EditGoodsPage.jsx";
 import SellerEditPreview from "./pages/SellerEditPreview.jsx";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 import TermsPage from "./pages/TermsPage.jsx";
 import DeleteMyDataPage from "./pages/DeleteMyDataPage.jsx";
 import SellerIdPage from "./pages/SellerIdPage.jsx";
+import GeneralDataProtection from "./pages/GeneralDataProtection.jsx";
 
 const router = createBrowserRouter([
   {
@@ -85,7 +85,6 @@ const router = createBrowserRouter([
       { path: "/otp_pass_conf", element: <OtpPassConfirmPage /> },
       { path: "/otp_conf", element: <OtpConfirmPage /> },
       { path: "/create_new_pass", element: <CreateNewPass /> },
-      { path: "/privacy-policy", element: <PrivacyPolicyPage /> },
       { path: "/terms", element: <TermsPage /> },
       { path: "/delete-my-data", element: <DeleteMyDataPage /> },
 
@@ -98,6 +97,9 @@ const router = createBrowserRouter([
       { path: "/mob_resenze_create/:id", element: <MobCreateResenze /> },
       { path: "/mob_profile_nav", element: <MobProfileNavPage /> },
       { path: "/product_category/:id", element: <CategoryPage /> },
+      {
+        path: "/general-protection", element: <GeneralDataProtection />
+      }
     ],
   },
   { path: "/products-seller/:id", element: <SellerIdPage /> },

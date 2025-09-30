@@ -145,7 +145,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
             {t("iAgreeToTerms.agreeToThe")}{" "}
             <a href="#">{t("iAgreeToTerms.terms")}</a>{" "}
             {t("iAgreeToTerms.and")}{" "}
-            <a href="#">{t("iAgreeToTerms.privacy")}</a>
+            <a href="/general-protection">{t("iAgreeToTerms.privacy")}</a>
           </span>
 
         </label>

@@ -893,5 +893,91 @@
         "terms": "Obchodními podmínkami",
         "and": "a",
         "privacy": "Zásadami ochrany osobních údajů (GDPR)"
+    },
+    "_generalProtection": "",
+    "generalProtectionTitle": "Dodržování obecných předpisů o ochraně osobních údajů",
+    "generalProtectionIntro": {
+        "title": "1. Úvod",
+        "desc": "Tyto zásady popisují postupy a postupy ochrany osobních údajů zavedené společností Reli Group s.r.o. (dále jen 'Marketplace') za účelem dodržování Obecného nařízení o ochraně osobních údajů (GDPR) a ochrany osobních údajů uživatelů, včetně kupujících, prodejců a návštěvníků. "
+    },
+    "generalScope": {
+        "title": "2. Rozsah",
+        "desc": "Tyto zásady se vztahují na všechny osobní údaje zpracovávané nástrojem Marketplace, včetně údajů shromážděných prostřednictvím webových stránek nástroje Marketplace, mobilních aplikací a jakýchkoli jiných digitálních platforem."
+    },
+    "generalDataCollection": {
+        "title": "3. Shromažďování a zpracování údajů",
+        "list": {
+            "text1": "Tržiště shromažďuje a zpracovává osobní údaje pouze pro stanovené, výslovně vyjádřené a legitimní účely.",
+            "text2": "Osobní údaje jsou shromažďovány zákonným, spravedlivým a transparentním způsobem, s vědomím a souhlasem subjektů údajů.",
+            "text3": "Osobní údaje jsou uchovávány přesné, aktuální a relevantní pro účely, pro které byly shromážděny.",
+            "text4": " Jsou dodržovány zásady minimalizace údajů, aby bylo zajištěno, že budou shromažďovány a zpracovávány pouze nezbytné osobní údaje."
+        }
+    },
+    "generalBasis": {
+        "title": "4. Právní základ a zpracování",
+        "desc": "Marketplace zajišťuje, že existuje zákonný základ pro zpracování osobních údajů, jako je souhlas, smluvní nezbytnost, zákonné povinnosti, životně důležité zájmy nebo oprávněné zájmy."
+    },
+    "generalDataSecurity": {
+        "title": "5. Opatření pro zabezpečení údajů",
+        "list": {
+            "text1": "Marketplace zavádí vhodná technická a organizační opatření k zajištění bezpečnosti osobních údajů, včetně šifrování, kontroly přístupu a pravidelného hodnocení bezpečnosti.",
+            "text2": "Osobní údaje jsou chráněny před neoprávněným přístupem, zveřejněním, změnou a zničením."
+        }
+    },
+    "dataSubject": {
+        "title": "6. Práva subjektu údajů",
+        "list": {
+            "text1": "Subjekty údajů mají právo na přístup ke svým osobním údajům, na jejich opravu, výmaz a omezení zpracování.",
+            "text2": "Marketplace poskytuje mechanismy pro uplatnění práv subjektů údajů, včetně určených kontaktních míst pro dotazy a žádosti o údaje"
+        }
+    },
+    "dataBreach": {
+        "title": "7. Reakce na porušení zabezpečení údajů",
+        "list": {
+            "text1": "Nástroj Marketplace má zavedeny postupy pro zjišťování, vyšetřování a oznamování případů porušení zabezpečení údajů v souladu s požadavky GDPR. ",
+            "text2": "Porušení zabezpečení údajů je neprodleně nahlášeno příslušnému dozorovému úřadu a dotčené osobě."
+        }
+    },
+    "internationalDataTransfers": {
+        "title": "8. Mezinárodní přenosy dat",
+        "list": {
+            "text1": "Jakékoli předávání osobních údajů mimo EU/EHP se provádí v souladu s požadavky GDPR.",
+            "text2": "K ochraně přenášených údajů jsou implementována vhodná ochranná opatření, jako jsou standardní smluvní doložky nebo závazná podniková pravidla."
+        }
+    },
+    "dataProcessingAgreement": {
+        "title": "9. Smlouva o zpracování osobních údajů",
+        "list": {
+            "text1": "Marketplace uzavírá smlouvy o zpracování osobních údajů s poskytovateli služeb třetích stran, kteří zpracovávají osobní údaje jeho jménem.",
+            "text2": "Tyto smlouvy obsahují ustanovení k zajištění souladu s požadavky GDPR a ochraně práv subjektů údajů."
+        }
+    },
+    "trainingAndAwareness": {
+        "title": "10. Školení a osvěta",
+        "list": {
+            "text1": "Zaměstnanci, kteří nakládají s osobními údaji, absolvují školení o zásadách GDPR a osvědčených postupech.",
+            "text2": "Osvětové aktivity jsou prováděny s cílem vzdělávat zaměstnance a uživatele o povinnostech a postupech v oblasti ochrany údajů."
+        }
+    },
+    "complianceChecksAndAudits": {
+        "title": "11. Kontroly a audity souladu s předpisy",
+        "list": {
+            "text1": "Marketplace provádí pravidelné audity a kontroly dodržování předpisů, aby zajistil trvalé dodržování požadavků GDPR.",
+            "text2": "Zásady a postupy jsou aktualizovány podle potřeby tak, aby odrážely změny v předpisech nebo obchodních postupech."
+        }
+    },
+    "policyReview": {
+        "title": "12. Revize zásad",
+        "desc": "Tyto zásady dodržování GDPR jsou pravidelně revidovány a aktualizovány, aby byla zajištěna jejich účinnost a soulad s právními požadavky a průmyslovými standardy."
+    },
+    "moreInformation": {
+        "title": "13. Kde najdete další informace o GDPR",
+        "desc": "Můžete se dozvědět více o GDPR na následujících webových stránkách třetích stran:",
+        "list": {
+            "text1": {
+                "email": "www.gdpr.eu",
+                "otherText": "GDPR: "
+            }
+        }
     }
 }

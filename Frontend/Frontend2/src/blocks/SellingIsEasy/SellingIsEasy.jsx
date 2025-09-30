@@ -1,3 +1,4 @@
+
 import Container from "../../components/Container/Container"
 import YellowBtn from "../../ui/yellowBtn/YellowBtn"
 import DescText from "../../ui/general/descText/DescText"
@@ -8,6 +9,8 @@ import bigImg from "../../assets/sellingIsEasy/bigImg.svg"
 import styles from "./SellingIsEasy.module.scss"
 
 const SellingIsEasy = () => {
+
+
     return (
         <div className={styles.wrap}>
             <Container>
@@ -21,7 +24,7 @@ const SellingIsEasy = () => {
                                 <YellowBtn text={"Start Selling Today"} />
                                 <YellowBtn text={"Go To Marketplace"} arr={true} style={{
                                     background: "#eef0f2"
-                                }} />
+                                }} url="https://reli.one/" />
 
                             </div>
                         </div>

@@ -29,140 +29,89 @@
     "everythingText": "Politika transparentnosti. Naše podmínky partnerství, včetně struktur poplatků a provizí, jsou jednoduché a spravedlivé ",
     "convenience": "Vaše pohodlí ",
     "convenienceText": "Partnerství s námi je pohodlné, protože můžete svou firmu přenést online, aniž byste museli vytvářet webové stránky a propagovat je",
-    "___for_seller": 0,
-    "for_seller": "Pro prodejce",
-    "who_we_are": "Kdo jsme",
-    "who_we_are_list": "Marketplace Reli, kdo jsme",
-    "why_choose_title": "Proč si vybrat nás?",
-    "why_choose_list_1": "S naší širokou sítí kupujících a prodávajících po celé Evropě a světě nabízí Marketplace Reli bezkonkurenční dosah a viditelnost pro vaše produkty a služby.",
-    "why_choose_list_2": "Vybavujeme prodejce komplexními nástroji, zdroji a specializovanou podporou, která jim pomáhá růst a uspět v dnešní konkurenční digitální tržnici.",
-    "why_choose_list_3": "Náš cenový model je jasný a přímočarý. Platíte pouze za služby, které využíváte - žádné skryté poplatky.",
-    "why_choose_list_4": "Jako prodejce na naší platformě získáte přístup k účinným propagačním nástrojům, jako jsou zvýrazněné výpisy a cílené reklamní kampaně, navržené tak, aby zvýšily viditelnost, přilákaly více zákazníků a zvýšily prodeje.",
-    "why_choose_list_5": "Prodej na Marketplace Reli může být výrazně nákladově efektivnější než tradiční marketingové kanály. Naše platforma za vás zajišťuje velkou část propagace.",
-    "why_choose_list_6": "Prodejci těží z přímé zpětné vazby prostřednictvím hodnocení a recenzí zákazníků, které poskytují cenné poznatky pro zlepšení kvality produktů a spokojenosti zákazníků.",
-    "why_choose_list_7": "Všechny platby zpracované prostřednictvím Marketplace Reli jsou zabezpečené a prováděné přes důvěryhodnou a spolehlivou platební bránu.",
-    "why_choose_list_8": "Náš zkušený tým podpory je zde, aby vám pomohl - od počátečního zaškolení a nastavení až po průběžnou pomoc během vaší prodejní cesty.",
-    "why_choose_list_9": "Prodej na Marketplace Reli vám dává konkurenční výhodu na trhu. Odlište své produkty, nabídněte atraktivní ceny a využijte vznikající trendy, abyste zůstali před konkurencí.",
-    "info_for_seller_title": "Poplatky pro prodejce",
-    "info_for_seller_desc": "Prodej na Marketplace Reli zahrnuje transparentní systém poplatků ovlivněný několika faktory:",
-    "info_for_seller_list_1": "Poplatky se mohou lišit podle produktové kategorie, zejména pokud konkrétní položky vyžadují speciální manipulaci, skladování nebo řešení plnění objednávek.",
-    "info_for_seller_list_2": "Nabízíme vrstvené ceny na základě vašich prodejních výsledků nebo počtu výpisů. Prodejci s vyšším objemem prodeje mohou získat snížené sazby.",
-    "info_for_seller_list_3": "Volitelné prémiové služby, jako je prioritní umístění ve vyhledávání, reklamní balíčky nebo řešení plnění objednávek, jsou k dispozici za příplatek.",
-    "info_for_seller_list_4": "Pravidelně nabízíme propagační kampaně a slevy na poplatky během speciálních akcí nebo sezónních promo akcí.",
-    "cost_by_category": "Provizní sazby podle produktových kategorií:",
-    "table_gadgets": "Spotřebiče / gadgets",
-    "table_baby": "Zboží pro děti, kojence",
-    "table_bags": "Batohy / tašky",
-    "table_beauty": "Krása / zdraví",
-    "table_clothing": "Oblečení",
-    "table_computers": "Počítače",
-    "table_electronics": "Elektronika",
-    "table_furniture": "Nábytek",
-    "table_home": "Domácnost a kuchyně",
-    "table_jewerly": "Šperky",
-    "table_garden": "Zahrada",
-    "table_office": "Kancelářské zboží",
-    "table_pets": "Zboží pro zvířata",
-    "table_sports": "Sportovní vybavení ",
-    "table_toys": "Hračky / hry",
-    "table_watches": "Hodinky",
-    "table_alcohol": "Alkoholické nápoje",
-    "table_art_and_handmade": "Umění a ruční výroba",
-    "table_equipment": "Vybavení",
-    "table_food_and_drinks": "Jídlo a nápoje",
-    "table_price_text_1": "13%, pokud cena položky nepřesahuje",
-    "table_price_text_2": "5%, pokud cena položky přesahuje",
-    "after_table_text": "Reli Group s.r.o. učtuje acquiring poplatek ze všech plateb zpracovaných prostřednictvím naší platební brány. Poplatek zahrnuje bezpečné zpracování plateb a ochranu proti podvodům. Dále je učtována prodejní provize, jejíž výše závisí na kategorii produktu.",
-    "start_selling_title": "Jak začít prodávat na Marketplace Reli",
-    "start_selling_desc": "Onboarding začíná e-mailovou komunikací s naším manažerem. Kontaktní manažer vás provede celým procesem od začátku až do konce. Pomůže vám: pochopit, jak správně zalistovat produkty, zajistit splnění technických a logistických požadavků, zodpovědět vaše otázky během onboardingu. ",
-    "start_selling_list_2": "Všichni prodejci musí souhlasit s našimi podmínkami platformy, prodejními politikami a uživatelskými dohodami. Tyto dokumenty popisují role, práva a povinnosti všech zúčastněných prodejců.",
-    "start_selling_list_3": "Prodejci jsou povinni vytvářet přesné a informativní výpisy produktů. To zahrnuje popisy, obrázky, ceny, dostupnost a další podstatné údaje, které pomohou zákazníkům při rozhodování.",
-    "start_selling_list_4": "Musíte dodržovat naše pokyny týkající se přijatelných výpisů, zakázaných předmětů, práv duševního vlastnictví, dopravy, zákaznického servisu a dalších provozních standardů.",
-    "start_selling_list_5": "Všechny nabízené produkty musí splňovat kvalitativní kritéria Marketplace Reli. To zahrnuje autenticitu produktů, správné balení, přesné označení a vysokou úroveň spokojenosti zákazníků.",
-    "start_selling_list_6": "Prodejci musí akceptovat naši strukturu poplatků, která zahrnuje příslušné poplatky za výpisy, transakční provize a případné poplatky za předplatné.",
-    "start_selling_list_7": "Očekáváme, že prodejci poskytnou rychlý, zdvořilý a profesionální zákaznický servis. To zahrnuje odpovídání na zprávy, řešení problémů zákazníků, vyřizování vrácení a včasné řešení sporů.",
-    "onboarding_preparation_notice": "PŘIPRAVTE SI VEŠKERÉ POŽADOVANÉ INFORMACE O PRODUKTECH PŘED SAMOTNOU EMAILOVOU KOMUNIKACÍ, ABY BYL PROCES CO NEJRYCHLEJŠÍ.",
-    "marketplace_listing_required_info": "Informace o produktech – Co musíte dodat",
-    "product_name_and_desc": {
-        "title": "Povinné údaje o produktech",
-        "text1": "Název produktu",
-        "text2": "SKU (kód produktu) ",
-        "text3": "Kategorie produktu",
-        "text4": "Krátký popis (max. 500 znaků)",
-        "text5": "Plný popis (max. 2000 znaků, zaměřte se na vlastnosti, použití a výhody)"
+    "_dataProtection": "",
+    "protTitle": "ZÁSADY DŮVĚRNOSTI A OCHRANY OSOBNÍCH ÚDAJŮ PRO PRODÁVAJÍCÍ",
+    "prodIntrodaction": {
+        "title": "1. Úvod",
+        "desc": "Tyto Zásady důvěrnosti a ochrany osobních údajů představují náš závazek chránit důvěrnost a soukromí vašich informací jako prodejce na naší platformě Reli Group s.r.o. v souladu s obecným nařízením o ochraně osobních údajů (GDPR) a dalšími příslušnými zákony EU o ochraně osobních údajů. "
     },
-    "language_requirement": {
-        "title": "Jazykové požadavky!",
-        "text1": "Veškeré informace musí být poskytnuty v anglickém jazyce.",
-        "text2": "Poskytnutí stejné informace v češtině je silně doporučeno a urychluje schvalování"
+    "definitions": {
+        "title": "2. Definice",
+        "confInfo": {
+            "title": "Důvěrné informace: ",
+            "desc": "Odkazuje na jakékoli neveřejné informace zveřejněné prodávajícími společnosti Reli Group s.r.o., které mají být považovány za důvěrné. To zahrnuje mimo jiné podrobnosti o produktu, cenové strategie, údaje o prodeji, informace o zákaznících a duševní vlastnictví."
+        },
+        "personalData": {
+            "title": "Osobní údaje: ",
+            "desc": "Odkazuje na jakékoli informace týkající se identifikované nebo identifikovatelné fyzické osoby, jak je definována v GDPR"
+        },
+        "gdpr": {
+            "learn": "Dozvědět se ",
+            "about": "více o GDPR ",
+            "otherText": "se dá na následujících webových stránkách třetích stran: GDPR: ",
+            "link": "www.gdpr.eu"
+        }
     },
-    "images_rules": {
-        "title": "Požadavky na obrázky ",
-        "text1": "Formát: JPG nebo PNG",
-        "text2": "Minimální rozlišení: 708 x 708 px, DOPORUČENO 1024 x 1024 px",
-        "text3": "Bez vodoznaků, log nebo textovýh překryvů",
-        "text4": "Bílé pozadí",
-        "text5": "Minimálně 1 hlavní obrázek produktu, až 5 obrázků celkem)"
+    "confident": {
+        "title": "3. Povinnost mlčenlivosti",
+        "desc": "Jako prodejce na Reli Group s.r.o. souhlasíte s následujícími povinnostmi mlčenlivosti:",
+        "protections": {
+            "title": "a. Ochrana důvěrných informací: ",
+            "desc": "Přijmete vhodná opatření k ochraně všech důvěrných informací poskytnutých společností Reli Group s.r.o. před neoprávněným přístupem, použitím nebo zveřejněním."
+        },
+        "limited": {
+            "title": "b. Omezené použití důvěrných informací: ",
+            "desc": "Důvěrné informace smíte používat pouze pro účely podnikání na Reli Group s.r.o. a nesmíte je sdělovat žádné třetí straně bez předchozího výslovného souhlasu Reli Group s.r.o."
+        },
+        "handling": {
+            "title": "c. Nakládání s osobními údaji: ",
+            "desc": "Pokud zpracováváte osobní údaje v rámci svých aktivit na Reli Group s.r.o., musíte tak činit v souladu s GDPR a dalšími platnými zákony o ochraně osobních údajů. To zahrnuje zavedení vhodných technických a organizačních opatření k zajištění bezpečnosti a důvěrnosti osobních údajů."
+        }
     },
-    "vat_percentage": {
-        "title": "Sazba DPH",
-        "text": "Platná sazba DPH podle vaší legislativy nebo země prodeje. "
+    "dataProcessing": {
+        "title": "4. Zpracování údajů",
+        "agreement": {
+            "title": "a. Smlouva o zpracování údajů: ",
+            "desc": "Používáním služby Reli Group s.r.o. berete na vědomí a souhlasíte s podmínkami naší Smlouvy o zpracování údajů, která upravuje zpracování osobních údajů jménem prodávajících. Tato dohoda vymezuje povinnosti společnosti Reli Group s.r.o. jako zpracovatele údajů a prodejců jako správců údajů podle GDPR."
+        },
+        "purpose": {
+            "title": "b. Účelová omezení: ",
+            "desc": "Osobní údaje budou zpracovávány pouze pro účely uvedené v naší Smlouvě o zpracování údajů nebo jiným způsobem povoleným platnými právními předpisy."
+        },
+        "dataTransfer": {
+            "title": "c. Přenosy údajů: ",
+            "desc": "pokud jsou osobní údaje předávány mimo Evropský hospodářský prostor (EHP), zajistíme, aby byla zavedena vhodná ochranná opatření na ochranu údajů v souladu s GDPR."
+        }
     },
-    "product_dimensions_and_weight": {
-        "title": "Rozměry a hmotnost produktu",
-        "text1": "Uveďte přesné rozměry balení v následujícím formátu:",
-        "list1": "Délka x Šířka X Výška (cm) (D x Š x V – v tomto přesném pořadí)",
-        "list2": "Hmotnost (v kg)",
-        "text2": "NEPŘESNÉ NEBO CHYBĚJÍCÍ ROZMĚRY MOHOU ZPŮSOBIT CHYBY V PŘEPRAVĚ, NESPRÁVNÉ CENY DORUČENÍ A ZPOŽDĚNÍ"
+    "exceptions": {
+        "title": "5. Výjimky",
+        "desc": "Povinnost mlčenlivosti a ochrany údajů se nevztahuje na informace, které:",
+        "list": {
+            "text1": "Je již veřejně dostupný bez zavinění prodávajícího.",
+            "text2": "jsou oprávněně získány od třetí strany bez jakékoli povinnosti mlčenlivosti.",
+            "text3": "Jsou nezávisle vyvinuty prodávajícím bez odkazu na důvěrné informace společnosti Reli Group s.r.o."
+        }
     },
-    "deadline_for_submitting_product_info": {
-        "title": "TERMÍN PRO DODÁNÍ ÚDAJŮ O PRODUKTECH",
-        "text": "Veškeré požadované informce je nutné dodat do 30 kalendářních dnů od počátečního kontaktu v rámci onboardingu."
+    "enforcement": {
+        "title": "6. Prosazování",
+        "desc": "Porušení zásad důvěrnosti a ochrany osobních údajů může mít za následek pozastavení nebo ukončení vašeho prodejního účtu na Reli Group s.r.o., stejně jako právní kroky, pokud to bude považováno za nutné."
     },
-    "step_2_agreement_signing": {
-        "title": "KKROK 2: Podpis smlouvy",
-        "text": "Máte 30 kalendářních dnů na potvrzení a podpis smlouvy o spolupráci. Pokud nebude smlouva podepsána včas, proces onboardingu bude pozastaven. "
+    "governing": {
+        "title": "7. Rozhodné právo a jurisdikce",
+        "desc": "Tyto Zásady důvěrnosti a ochrany osobních údajů se řídí a vykládají v souladu s právem Evropské unie, zejména GDPR, a dalšími platnými zákony o ochraně osobních údajů. Veškeré spory vzniklé na základě těchto Zásad nebo v souvislosti s nimi budou podléhat výhradně soudům České republiky. "
     },
-    "step_3_final_approval_and_listing": {
-        "title": "KROK 3: Schválení a zveřejnění produktů",
-        "text": "Po dodání a schválení veškerých dat o produktech, Reli Group s.r.o. zveřejní produkty na marketplace. Váš manažer vám bude během celého procesu k dispozici."
+    "updates": {
+        "title": "8. Aktualizace zásad",
+        "desc": "Společnost Reli Group s.r.o. si vyhrazuje právo tyto zásady důvěrnosti a ochrany osobních údajů kdykoli aktualizovat nebo upravit. Prodávající budou informováni o všech změnách a pokračování v používání naší platformy představuje přijetí revidovaných podmínek."
     },
-    "if_you_get_the_order": {
-        "title": "KDYŽ MÁTE OBJEDNÁVKU",
-        "step1_title": "1. Potvrzení objednávky",
-        "step1_text": "Každou novou objednávku musíte potvrdit do 24 hodin (pouze pracovní dny).",
-        "step2_title": "2. Balení objednávky",
-        "step2_text": "Za balení objednávky odpovídáte vy, včetně bezpečného balení",
-        "step3_title": "3. Termín dodání ",
-        "step3_text": "Objednávku je nutné odeslat do 3 pracovních dnů po potvrzení.",
-        "step4_title": "4. Způsob dopravy",
-        "step4_text": "Balík musí být předán smluvenému dopravci, jehož zvolí kupující."
+    "contactInfo": {
+        "title": "9. Kontaktní údaje",
+        "desc": "Máte-li jakékoli dotazy nebo obavy týkající se těchto Zásad důvěrnosti a ochrany osobních údajů, kontaktujte nás na adrese ",
+        "email": "support600.reli@gmail.com."
     },
-    "communication_policy": {
-        "title": "Pravidla komunikace",
-        "text1": "Aby se předešlo zpožděním a byla zajištěna jasná komunikace, vezměte prosím na vědomí:",
-        "list1": "Veškerá komunikace probíhá prostřednictvím e-mailu:",
-        "list2": "Pokud máte dotazy, nejprve si prostudujte tento dokument",
-        "list3": "Opakující se nebo zbytečné dotazy zpomalují onboardingový proces."
-    },
-    "mission_statement": {
-        "at": "Na",
-        "marketplace": "Marketplace Reli ",
-        "other_text": "je naším posláním poskytovat bezproblémovou, bezpečnou a efektivní platformu, kde se mohou kupující a prodejci spojit, obchodovat a společně růst. Ať už hledáte jedinečné produkty, nepřekonatelné nabídky nebo prostor pro prezentaci svého sortimentu, jsme tu, abychom vám poskytli výjimečný uživatelský zážitek. Marketplace Reli není jen e-commerce platforma - jsme dynamický tým inovátorů, nadšenců do technologií a profesionálů zaměřených na zákazníka. Naším závazkem je vytvářet důvěryhodné, transparentní a uživatelsky přívětivé prostředí pro všechny zúčastněné."
-    },
-    "european_reach_title": "Evropský dosah, globální dopad",
-    "empower_business_title": "Posilte svůj podnik",
-    "fair_fees_title": "Spravedlivá a transparentní struktura poplatků",
-    "promote_brand_title": "Propagujte svou značku",
-    "reduced_costs_title": "Snížené marketingové náklady",
-    "customer_feedback_title": "Recenze a zpětná vazba zákazníků",
-    "secure_transactions_title": "Zabezpečené transakce",
-    "support_team_title": "Vyhrazený podpůrný tým",
-    "competitive_advantage_title": "Konkurenční výhoda",
-    "info_for_seller": {
-        "product_category": "Kategorie produktu",
-        "sales_volume": "Objem prodeje",
-        "value_added_services": "Služby s přidanou hodnotou",
-        "promotional_discounts": "Propagační slevy"
+    "sendingCommunication": {
+        "title": "10. Zasílání obchodních sdělení",
+        "desc": "Pro zasílání obchodních sdělení je nutný výslovný souhlas příjemce (zásada opt-in), nebo musí jít o vlastního zákazníka, kterému jsou zasílána za splnění podmínek § 7 odst. 3 zákona č. 480/2004 Sb.. Obchodní sdělení musí být jasně označeno, obsahovat identifikaci odesílatele a funkční odkaz pro odhlášení. Porušení těchto pravidel může vést k pokutám od Úřadu pro ochranu osobních údajů.",
+        "endText": "Pokračováním v používání Reli Group s.r.o. potvrzujete, že jste si přečetli a souhlasíte s tím, že budete dodržovat tyto Zásady důvěrnosti a ochrany osobních údajů. "
     }
 }

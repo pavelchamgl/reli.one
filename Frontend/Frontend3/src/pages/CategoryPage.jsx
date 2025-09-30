@@ -3,19 +3,19 @@ import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useLocation, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Pagination } from "@mui/material";
 
-
+import { useActions } from "../hook/useAction";
 import Container from "../ui/Container/Container";
 import ProductCard from "../Components/Product/ProductCard/ProductCard";
 import FilterByPopularity from "../ui/FilterByPopularity/FilterByPopularity";
 import NoContentText from "../ui/NoContentText/NoContentText";
 import FilterByPrice from "../ui/FilterByPrice/FilterByPrice";
 import MobFilter from "../Components/MobFilter/MobFilter";
+import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
+import BannerCube from "../Components/bannerCube/BannerCube";
 
 import styles from "../styles/CategoryPage.module.scss";
-import { useActions } from "../hook/useAction";
-import { Pagination } from "@mui/material";
-import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
 
 const CategoryPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -128,7 +128,9 @@ const CategoryPage = () => {
               <ProductCard key={item.id} data={item} />
             ))
           ) : (
-            <NoContentText />
+            <div>
+              <BannerCube />
+            </div>
           )}
         </div>
         <div className={styles.paginationDiv}>

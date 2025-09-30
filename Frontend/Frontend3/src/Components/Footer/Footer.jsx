@@ -69,7 +69,7 @@ const Footer = () => {
           <Link to={"/for_buy"} className={cls.mobileLink} href="#">
             {t("for_buyers")}
           </Link>
-          <Link to={"/privacy-policy"} className={cls.mobileLink} href="#">
+          <Link to={"/general-protection"} className={cls.mobileLink} href="#">
             Privacy policy
           </Link>
           <Link to={"/terms"} className={cls.mobileLink} href="#">
@@ -123,7 +123,7 @@ const Footer = () => {
             <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
               {t("for_buyers")}
             </Link>
-            <Link to={"/privacy-policy"} className={cls.LinkNavigate} href="#">
+            <Link to={"/general-protection"} className={cls.LinkNavigate} href="#">
               Privacy policy
             </Link>
             <Link to={"/terms"} className={cls.LinkNavigate} href="#">
