@@ -254,8 +254,8 @@ def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Res
                 "groups": [
                     {
                         "seller_id": 2,
-                        "delivery_type": 2,               # HD
-                        "courier_service": 3,             # <- ID GLS (пример)
+                        "delivery_type": 2,
+                        "courier_service": 3,
                         "delivery_address": {
                             "street": "Benkova 373 / 7",
                             "city": "Nitra",
@@ -268,9 +268,9 @@ def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Res
                     },
                     {
                         "seller_id": 1,
-                        "delivery_type": 1,               # PUDO
-                        "courier_service": 2,             # <- ID Packeta (пример)
-                        "pickup_point_id": 292,
+                        "delivery_type": 1,
+                        "courier_service": 2,
+                        "pickup_point_id": "292",
                         "products": [
                             {"sku": "272464947", "quantity": 17}
                         ]
@@ -603,7 +603,7 @@ class StripeWebhookView(APIView):
             .select_related("product__seller__default_warehouse")
             .only(
                 "sku",
-                'price',
+                "price",
                 "product__seller_id",
                 "product__seller__default_warehouse__country",
             )
@@ -641,9 +641,19 @@ class StripeWebhookView(APIView):
             logger.exception(f"[StripeWebhook] Missing OrderStatus: {e}")
             return Response({"error": "Order status misconfigured"}, status=500)
 
-        # 6) Session totals (Decimal + quantize)
+        # 6) Session totals (Decimal + quantize) + sanity-check с нашей расчётной суммой
         amount = (Decimal(session['amount_total']) / Decimal(100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         currency = session['currency'].upper()
+
+        try:
+            expected = Decimal((meta.description_data or {}).get("gross_total", "0") or "0").quantize(Decimal("0.01"))
+        except Exception:
+            expected = Decimal("0.00")
+        if expected and (amount - expected).copy_abs() > Decimal("0.01"):
+            logger.warning(
+                "[StripeWebhook] amount_total mismatch: stripe=%s, expected=%s (session=%s)",
+                amount, expected, session_id
+            )
 
         # Корневой адрес (для PUDO берём отсюда страну)
         root_addr = meta.custom_data.get("delivery_address") or {}
@@ -680,10 +690,7 @@ class StripeWebhookView(APIView):
                 if not cs:
                     logger.warning(f"Group {idx}: CourierService id={courier_service_id} not found; saving order with NULL courier")
 
-                # Адрес:
-                # - HD: используем адрес из группы
-                # - PUDO: создаём «пустой» адрес-носитель с country из корневого адреса (валидация была раньше)
-                delivery_address_obj: Optional[DeliveryAddress] = None
+                # Адрес: HD — из группы, PUDO — пустой носитель с country=root_country
                 if delivery_type_id == 2:
                     gaddr = group.get("delivery_address", {}) or {}
                     delivery_address_obj = DeliveryAddress.objects.create(
@@ -720,12 +727,12 @@ class StripeWebhookView(APIView):
                     delivery_cost=delivery_cost,
                     courier_service=cs,
                     phone_number=meta.custom_data.get("phone"),
-                    total_amount=amount,          # total_amount = сумма по сессии
-                    group_subtotal=group_total,   # «итого по группе» (товары+доставка)
+                    total_amount=amount,        # сумма по сессии
+                    group_subtotal=group_total, # «итого по группе» (товары+доставка)
                     order_status=pending_status,
                 )
 
-                # Позиции заказа
+                # Позиции заказа (используем vmap и seller_profile_id)
                 for product in products:
                     sku = product.get("sku")
                     qty = int(product.get("quantity", 0))
@@ -735,7 +742,9 @@ class StripeWebhookView(APIView):
                         logger.error(f"Group {idx}: ProductVariant not found in vmap (SKU={sku})")
                         continue
 
-                    wh_item = WarehouseItem.objects.filter(product_variant=variant, quantity_in_stock__gte=qty).first()
+                    wh_item = WarehouseItem.objects.filter(
+                        product_variant=variant, quantity_in_stock__gte=qty
+                    ).first()
                     warehouse = wh_item.warehouse if wh_item else Warehouse.objects.first()
 
                     OrderProduct.objects.create(
@@ -743,22 +752,19 @@ class StripeWebhookView(APIView):
                         product=variant,
                         quantity=qty,
                         delivery_cost=Decimal("0.00"),
-                        seller_profile=variant.product.seller,
+                        seller_profile_id=variant.product.seller_id,  # микроопт
                         product_price=variant.price_with_acquiring,
                         warehouse=warehouse,
                         status=ProductStatus.AWAITING_SHIPMENT,
                     )
 
-                # Статусы
+                # Статус «Processing»
                 order.order_status = processing_status
                 order.save(update_fields=["order_status"])
                 order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
 
                 # (опционально) пометить заказ, если нарушено CZ-правило
                 if origin_blocked:
-                    # Например, добавить заметку/статус. Оставлено как хук:
-                    # order.delivery_status = <ваш статус 'Blocked by CZ-origin'>
-                    # order.save(update_fields=["delivery_status"])
                     logger.info("Order %s marked as 'origin_blocked' (no parcel generation will be started).", order.id)
 
                 orders_created.append(order)
@@ -817,15 +823,13 @@ class StripeWebhookView(APIView):
         else:
             logger.warning(f"[StripeWebhook] Skipped client email — invoice not ready for session {session_id}")
 
-        # 9) Генерация посылок/уведомления продавцу
+        # 9) Генерация посылок / уведомления
         if origin_blocked:
             logger.warning(
                 "[StripeWebhook] Parcel generation skipped for session %s due to non-CZ origin (SKUs: %s). "
                 "Notify manager/seller manually if needed.",
                 session_id, ", ".join(not_cz)
             )
-            # здесь можно запланировать отдельную нотификацию менеджеру/продавцу,
-            # если есть утилита вида async_notify_manager(orders, reason=...)
         else:
             order_ids = [o.id for o in orders_created]
             async_parcels_and_seller_email(order_ids, session_id)
