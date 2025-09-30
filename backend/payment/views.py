@@ -137,6 +137,51 @@ class PaymentSessionValidator:
         return None
 
 
+def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Response]:
+    """
+    Лёгкая проверка происхождения: все товары из групп должны иметь продавца,
+    у которого seller.default_warehouse.country == 'CZ'.
+    Возвращает Response(400) с ключом 'origin' — как во вьюхе расчёта — либо None.
+    """
+    skus_in_payload = []
+    for g in groups:
+        for p in g.get("products", []):
+            skus_in_payload.append(str(p["sku"]))
+
+    missing = []
+    not_cz = []
+
+    for sku in skus_in_payload:
+        v = variant_map.get(sku)
+        if not v:
+            missing.append(sku)
+            continue
+        seller = getattr(v.product, "seller", None)
+        dw = getattr(seller, "default_warehouse", None) if seller else None
+        if not (dw and getattr(dw, "country", None) == "CZ"):
+            not_cz.append(sku)
+
+    if missing:
+        # Сообщаем явно про неизвестные SKU — это ранняя, но полезная диагностика
+        return Response({"error": f"Unknown SKU(s): {', '.join(missing)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not_cz:
+        return Response(
+            {
+                "origin": [
+                    (
+                        "Только отправка из Чехии. Продавец(ы) SKU "
+                        f"{', '.join(not_cz)} не имеют чешского склада "
+                        "(default_warehouse.country != 'CZ')."
+                    )
+                ]
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return None
+
+
 @method_decorator(csrf_exempt, name='dispatch')
 @extend_schema(
     summary="Create Stripe Payment Session with Delivery and Seller-Based Grouping (Packeta/GLS)",
@@ -175,7 +220,21 @@ class PaymentSessionValidator:
                     response_only=True
                 )
             ]
-        )
+        ),
+        400: OpenApiResponse(
+            description="Validation error (including CZ-origin check)",
+            examples=[
+                OpenApiExample(
+                    "Origin not CZ",
+                    value={"origin": ["Только отправка из Чехии. Продавец(ы) SKU 240819709 ..."]},
+                ),
+                OpenApiExample(
+                    "Bad ZIP",
+                    value={"error": "Group 1: ZIP code '010011' is invalid for country RO."},
+                ),
+            ],
+        ),
+        500: OpenApiResponse(description="Internal server error"),
     },
     examples=[
         OpenApiExample(
@@ -256,9 +315,26 @@ class CreateStripePaymentView(APIView):
 
         logger.info(f"Validated {len(groups)} groups for user {user.id}. Starting calculation.")
 
+        # Загружаем варианты товара + продавца + default_warehouse (для CZ-проверки)
         all_skus = {product['sku'] for group in groups for product in group['products']}
-        variants_qs = ProductVariant.objects.filter(sku__in=all_skus).select_related('product__seller')
+        variants_qs = (
+            ProductVariant.objects
+            .filter(sku__in=all_skus)
+            .select_related('product__seller__default_warehouse')
+            .only(
+                'sku',
+                'price_with_acquiring',
+                'product__seller_id',
+                'product__seller__default_warehouse__country',
+            )
+        )
         variant_map = {v.sku: v for v in variants_qs}
+
+        # Lite-проверка «только CZ»
+        cz_resp = _check_cz_origin_for_groups(variant_map, groups)
+        if cz_resp is not None:
+            logger.warning("CZ origin check failed during Stripe session creation")
+            return cz_resp
 
         line_items = []
         total_delivery = Decimal('0.00')
@@ -449,7 +525,9 @@ class CreateStripePaymentView(APIView):
         "- Restores saved metadata (customer, groups, delivery info).\n"
         "- Creates one or more orders grouped by seller.\n"
         "- Creates associated order items, delivery addresses, and single Payment per session.\n"
-        "- Generates invoice and sends email (async) when possible.\n\n"
+        "- Generates invoice and sends email (async) when possible.\n"
+        "- 🔒 Re-checks CZ-origin rule: if any SKU seller's default_warehouse is not in CZ, "
+        "orders/payments are created, but parcel generation is **skipped**.\n\n"
         "**Responses:**\n"
         "- 200: Orders and payments created successfully (or already processed).\n"
         "- 400: Invalid payload, signature verification failure, or missing session metadata.\n"
@@ -514,6 +592,47 @@ class StripeWebhookView(APIView):
             logger.error("No groups found in StripeMetadata")
             return Response({"error": "No groups found in metadata"}, status=400)
 
+        # 4.1) Lite-проверка CZ по данным из меты (defensive)
+        all_skus = []
+        for g in groups:
+            for p in g.get("products", []):
+                all_skus.append(str(p.get("sku")))
+        variants = (
+            ProductVariant.objects
+            .filter(sku__in=all_skus)
+            .select_related("product__seller__default_warehouse")
+            .only(
+                "sku",
+                "price_with_acquiring",
+                "product__seller_id",
+                "product__seller__default_warehouse__country",
+            )
+        )
+        vmap = {v.sku: v for v in variants}
+        not_cz = []
+        missing = []
+        for sku in all_skus:
+            v = vmap.get(sku)
+            if not v:
+                missing.append(sku)
+                continue
+            seller = getattr(v.product, "seller", None)
+            dw = getattr(seller, "default_warehouse", None) if seller else None
+            if not (dw and getattr(dw, "country", None) == "CZ"):
+                not_cz.append(sku)
+
+        if missing:
+            logger.warning("[StripeWebhook] Unknown SKU(s) in metadata: %s", ", ".join(missing))
+            # не блокируем — продолжаем, как и прежде (позиции без варианта будут пропущены ниже)
+
+        origin_blocked = bool(not_cz)
+        if origin_blocked:
+            logger.warning(
+                "[StripeWebhook] CZ-origin rule violated, SKUs: %s. "
+                "Orders/payments will be created, but parcel generation will be skipped.",
+                ", ".join(not_cz),
+            )
+
         # 5) Resolve statuses (fail fast if misconfigured)
         try:
             pending_status = OrderStatus.objects.get(name="Pending")
@@ -529,6 +648,8 @@ class StripeWebhookView(APIView):
         # Корневой адрес (для PUDO берём отсюда страну)
         root_addr = meta.custom_data.get("delivery_address") or {}
         root_country = (root_addr.get("country") or "").upper()
+
+        invoice_created = False
 
         # 7) Create orders + payment + invoice atomically
         with transaction.atomic():
@@ -576,7 +697,7 @@ class StripeWebhookView(APIView):
                         country=gaddr.get("country", ""),
                     )
                 else:
-                    # PUDO — сохраняем страну (для последующей генерации ярлыков GLS это достаточно)
+                    # PUDO — сохраняем страну
                     delivery_address_obj = DeliveryAddress.objects.create(
                         user=user,
                         full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
@@ -595,11 +716,11 @@ class StripeWebhookView(APIView):
                     customer_email=meta.custom_data.get("email"),
                     delivery_type=dt,
                     delivery_address=delivery_address_obj,
-                    pickup_point_id=pickup_point_id,  # строковый ID допускается нашей текущей логикой
+                    pickup_point_id=pickup_point_id,  # строковый ID допускается текущей логикой
                     delivery_cost=delivery_cost,
                     courier_service=cs,
                     phone_number=meta.custom_data.get("phone"),
-                    total_amount=amount,          # как договаривались — total_amount = сумма по сессии
+                    total_amount=amount,          # total_amount = сумма по сессии
                     group_subtotal=group_total,   # «итого по группе» (товары+доставка)
                     order_status=pending_status,
                 )
@@ -608,10 +729,10 @@ class StripeWebhookView(APIView):
                 for product in products:
                     sku = product.get("sku")
                     qty = int(product.get("quantity", 0))
-                    try:
-                        variant = ProductVariant.objects.get(sku=sku)
-                    except ProductVariant.DoesNotExist:
-                        logger.error(f"Group {idx}: ProductVariant not found: {sku}")
+
+                    variant = vmap.get(str(sku))
+                    if not variant:
+                        logger.error(f"Group {idx}: ProductVariant not found in vmap (SKU={sku})")
                         continue
 
                     wh_item = WarehouseItem.objects.filter(product_variant=variant, quantity_in_stock__gte=qty).first()
@@ -632,6 +753,13 @@ class StripeWebhookView(APIView):
                 order.order_status = processing_status
                 order.save(update_fields=["order_status"])
                 order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
+
+                # (опционально) пометить заказ, если нарушено CZ-правило
+                if origin_blocked:
+                    # Например, добавить заметку/статус. Оставлено как хук:
+                    # order.delivery_status = <ваш статус 'Blocked by CZ-origin'>
+                    # order.save(update_fields=["delivery_status"])
+                    logger.info("Order %s marked as 'origin_blocked' (no parcel generation will be started).", order.id)
 
                 orders_created.append(order)
                 logger.info(f"[StripeWebhook] Group {idx}: Order {order.id} created successfully with {len(products)} products.")
@@ -657,7 +785,6 @@ class StripeWebhookView(APIView):
                 order.save(update_fields=["payment"])
 
             # Инвойс
-            invoice_created = False
             try:
                 invoice_number = meta.invoice_data.get("invoice_number")
                 if not invoice_number:
@@ -683,16 +810,26 @@ class StripeWebhookView(APIView):
             except Exception as e:
                 logger.exception(f"[INVOICE] Failed to create invoice for Payment {session_id}: {e}")
 
-        # 8) Вне транзакции — письмо клиенту и генерация отправлений/уведомления
+        # 8) Вне транзакции — письмо клиенту
         if invoice_created:
             async_send_client_email(session_id)
             logger.info(f"[StripeWebhook] Planned async client email for session {session_id}")
         else:
             logger.warning(f"[StripeWebhook] Skipped client email — invoice not ready for session {session_id}")
 
-        order_ids = [o.id for o in orders_created]
-        async_parcels_and_seller_email(order_ids, session_id)
-        logger.info(f"[StripeWebhook] Planned async parcels+seller_email+manager for orders {order_ids}")
+        # 9) Генерация посылок/уведомления продавцу
+        if origin_blocked:
+            logger.warning(
+                "[StripeWebhook] Parcel generation skipped for session %s due to non-CZ origin (SKUs: %s). "
+                "Notify manager/seller manually if needed.",
+                session_id, ", ".join(not_cz)
+            )
+            # здесь можно запланировать отдельную нотификацию менеджеру/продавцу,
+            # если есть утилита вида async_notify_manager(orders, reason=...)
+        else:
+            order_ids = [o.id for o in orders_created]
+            async_parcels_and_seller_email(order_ids, session_id)
+            logger.info(f"[StripeWebhook] Planned async parcels+seller_email+manager for orders {order_ids}")
 
         return Response({"status": f"{len(orders_created)} order(s) created successfully"}, status=200)
 
