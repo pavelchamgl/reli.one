@@ -51,6 +51,7 @@ from delivery.validators.validators import validate_phone_matches_country
 from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
 
 conv_cache = caches["conv"]
+CONV_CACHE_TTL = 60 * 60 * 24  # 24h
 
 # Paypal secret fields
 client_id = settings.PAYPAL_CLIENT_ID
@@ -184,6 +185,32 @@ def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Res
         )
 
     return None
+
+
+def _set_conv_cache_after_commit(session_id: str, amount: Decimal, currency: str = "EUR", logger=None):
+    conv_cache = caches["conv"]
+    payload = {
+        "ready": True,
+        "transaction_id": str(session_id),
+        "value": float(amount),
+        "currency": (currency or "EUR").upper(),
+    }
+
+    if logger:
+        logger.info(
+            "[StripeWebhook] Conversion cache planned after-commit for %s: %s %s",
+            session_id, amount, currency
+        )
+
+    def _write():
+        conv_cache.set(f"conv:{session_id}", payload, timeout=CONV_CACHE_TTL)
+        if logger:
+            logger.info(
+                "[StripeWebhook] Conversion cache WRITE done for %s",
+                session_id
+            )
+
+    transaction.on_commit(_write)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -578,8 +605,14 @@ class StripeWebhookView(APIView):
             return Response({"error": "Missing session_key"}, status=400)
 
         # 3) Idempotency: do nothing if already processed
-        if Payment.objects.filter(session_id=session_id).exists():
-            logger.info(f"[StripeWebhook] Payment for session {session_id} already exists — skipping")
+        existing = Payment.objects.filter(session_id=session_id).only("amount_total", "currency").first()
+        if existing:
+            # на случай повтора хука — гарантируем, что кэш заполнен
+            _set_conv_cache_after_commit(session_id, existing.amount_total, existing.currency, logger=logger)
+            logger.info(
+                "[StripeWebhook] Conversion cache refreshed for existing payment %s",
+                session_id
+            )
             return Response(status=200)
 
         # 4) Load metadata
@@ -798,6 +831,12 @@ class StripeWebhookView(APIView):
             for order in orders_created:
                 order.payment = payment
                 order.save(update_fields=["payment"])
+
+            _set_conv_cache_after_commit(session_id, amount, currency, logger=logger)
+            logger.info(
+                "[StripeWebhook] Conversion cache planned after-commit for %s: %s %s",
+                session_id, amount, currency
+            )
 
             # Инвойс
             try:
