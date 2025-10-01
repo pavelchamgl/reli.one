@@ -28,7 +28,13 @@ services:
     container_name: backend
     build:
       context: backend/
-    command: bash -c "python3 manage.py collectstatic --no-input && python3 /app/manage.py migrate --noinput && gunicorn backend.wsgi:application -w 4 -b 0.0.0.0:8081"
+    command: >
+      bash -c "
+        python3 manage.py createcachetable django_cache || true &&
+        python3 manage.py collectstatic --no-input &&
+        python3 /app/manage.py migrate --noinput &&
+        gunicorn backend.wsgi:application -w 4 -b 0.0.0.0:8081
+      "
     volumes:
       - ./backend/:/app
       - static_volume:/app/static

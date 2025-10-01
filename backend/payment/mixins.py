@@ -107,6 +107,21 @@ class PayPalMixin:
         if not access_token:
             raise RuntimeError("Failed to obtain PayPal access token.")
 
+        # 1) Считаем сумму по позициям (item_total) из line_items
+        try:
+            from decimal import Decimal, ROUND_HALF_UP
+            item_total = sum(
+                Decimal(i['unit_amount']['value']) * Decimal(str(i['quantity']))
+                for i in line_items
+            ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        except Exception:
+            # на случай, если где-то quantity строкой — приводим и пробуем снова
+            item_total = total_price  # fallback
+
+        # 2) return_url с нашим session_key в качестве session_id
+        return_url = settings.REDIRECT_DOMAIN.rstrip('/') + f'/payment_end/?session_id={session_key}'
+        cancel_url = settings.REDIRECT_DOMAIN.rstrip('/') + '/basket/'
+
         purchase_units = [{
             "reference_id": session_key,
             "invoice_id": invoice_number,
@@ -117,7 +132,7 @@ class PayPalMixin:
                 "breakdown": {
                     "item_total": {
                         "currency_code": "EUR",
-                        "value": f"{total_price:.2f}"
+                        "value": f"{item_total:.2f}"
                     }
                 }
             },
@@ -131,8 +146,8 @@ class PayPalMixin:
                 "brand_name": "Reli",
                 "landing_page": "BILLING",
                 "user_action": "PAY_NOW",
-                "return_url": settings.REDIRECT_DOMAIN + 'payment_end/',
-                "cancel_url": settings.REDIRECT_DOMAIN + 'basket/',
+                "return_url": return_url,
+                "cancel_url": cancel_url,
             }
         }
 

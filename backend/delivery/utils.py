@@ -1,7 +1,7 @@
 import os
 import logging
 
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from collections import defaultdict
 
 from django.conf import settings
@@ -9,15 +9,14 @@ from django.db import transaction
 from django.core.files.base import ContentFile
 
 from order.models import Order
-from warehouses.models import Warehouse, WarehouseItem
-from delivery.models import DeliveryParcel, DeliveryParcelItem  # CourierService здесь не обязателен
+from warehouses.models import Warehouse
+from delivery.models import DeliveryParcel, DeliveryParcelItem
 from delivery.validators.validators import validate_phone_matches_country
 from delivery.services.packeta import PacketaService
 from delivery.services.local_rates import calculate_shipping_options as packeta_calculate_shipping_options
 from delivery.services.shipping_split import split_items_into_parcels as packeta_split_items
 from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
 
-# GLS: используем ваш стек myGLS + ваш расчёт ставок и сплиттер для консистентности
 from delivery.services.gls_rates import calculate_gls_shipping_options
 from delivery.services.gls_split import split_items_into_parcels_gls
 
@@ -84,6 +83,7 @@ def _attach_file_from_media_url(filefield, url: str) -> None:
         logger.warning("Failed to attach file from %s: %s", abs_path, e)
 
 
+@transaction.atomic
 def generate_parcels_for_order(order_id: int):
     """
     Генерация отправлений по заказу:
@@ -91,6 +91,9 @@ def generate_parcels_for_order(order_id: int):
       - myGLS: PrintLabels (сохранение PDF на диск через сервис) + прикрепление в FileField.
     Сплит на посылки делается по провайдеру: для Packeta — общий сплиттер,
     для GLS — GLS-сплиттер (как в расчётах тарифов).
+
+    🔒 Ограничение «только CZ»: склад для отправки всегда берём из seller.default_warehouse
+    по первой позиции заказа и валидируем, что его country == 'CZ'.
     """
     logger.info("Start generate_parcels_for_order(%s)", order_id)
 
@@ -98,7 +101,7 @@ def generate_parcels_for_order(order_id: int):
         order = (
             Order.objects
             .select_related("delivery_type", "delivery_address", "user", "courier_service")
-            .prefetch_related("order_products__product")
+            .prefetch_related("order_products__product__product__seller__default_warehouse")
             .get(pk=order_id)
         )
     except Order.DoesNotExist:
@@ -109,7 +112,27 @@ def generate_parcels_for_order(order_id: int):
     raw_items = [
         {"sku": op.product.sku, "quantity": op.quantity}
         for op in order.order_products.filter(status="awaiting_shipment")
+        if hasattr(op, "product") and hasattr(op.product, "sku")
     ]
+
+    if order.order_products.values_list("product__product__seller_id", flat=True).distinct().count() != 1:
+        raise RuntimeError("Order contains multiple sellers; expected single-seller order.")
+
+    # Lite-проверка + выбор склада: seller.default_warehouse (должен быть CZ)
+    first_op = order.order_products.select_related("product__product__seller__default_warehouse").first()
+    if not first_op or not getattr(first_op.product, "product", None) or not getattr(first_op.product.product, "seller", None):
+        msg = f"Cannot resolve seller/default_warehouse for order {order_id}"
+        logger.error(msg)
+        raise RuntimeError(msg)
+
+    seller = first_op.product.product.seller
+    dw = getattr(seller, "default_warehouse", None)
+    if not dw:
+        raise RuntimeError("Seller has no default_warehouse set (must be a CZ warehouse).")
+    if getattr(dw, "country", None) != "CZ":
+        raise RuntimeError("Отправка разрешена только из Чехии: default_warehouse.country != 'CZ'.")
+
+    chosen_wh = dw  # используем как origin-склад для любых курьеров
 
     # Определяем страну назначения
     if order.delivery_address and order.delivery_address.country:
@@ -126,279 +149,267 @@ def generate_parcels_for_order(order_id: int):
     channel = "HD" if is_hd else "PUDO"
 
     created = []
-    with transaction.atomic():
-        if courier_code == "gls":
-            # === GLS ветка ===
-            logger.info("Order %s: using myGLS provider", order_id)
 
-            # Разбиваем по GLS-логике
-            parcels = split_items_into_parcels_gls(raw_items)
-            logger.debug("Order %s → %d GLS parcels", order_id, len(parcels))
+    if courier_code == "gls":
+        # === GLS ветка ===
+        logger.info("Order %s: using myGLS provider", order_id)
 
-            # Адрес отправителя (из settings или COMPANY_*)
-            sender_addr = build_pickup_address_from_settings()
+        # Разбиваем по GLS-логике
+        parcels = split_items_into_parcels_gls(raw_items)
+        logger.debug("Order %s → %d GLS parcels", order_id, len(parcels))
 
-            # Адрес получателя (house_number как отдельного поля нет — пустой)
-            if is_hd:
-                # HD: адрес обязателен
-                deliv_addr = build_address(
-                    name=f"{order.first_name} {order.last_name}",
-                    street=order.delivery_address.street if order.delivery_address else "",
-                    house_number="",  # нет отдельного поля — оставляем пустым
-                    city=order.delivery_address.city if order.delivery_address else "",
-                    zip_code=format_zip(order.delivery_address.zip_code, country_code) if order.delivery_address else "",
-                    country_iso=country_code,
-                    contact_name=f"{order.first_name} {order.last_name}",
-                    contact_phone=str(order.phone_number or "") or "",
-                    contact_email=order.customer_email or "",
-                )
-            else:
-                # PUDO: адрес получателя формален, реальный пункт в ServiceList(PSD)
-                deliv_addr = build_address(
-                    name=f"{order.first_name} {order.last_name}",
-                    street=order.delivery_address.street if order.delivery_address else "",
-                    house_number="",
-                    city=order.delivery_address.city if order.delivery_address else "",
-                    zip_code=order.delivery_address.zip_code if order.delivery_address else "",
-                    country_iso=country_code,
-                    contact_name=f"{order.first_name} {order.last_name}",
-                    contact_phone=str(order.phone_number or "") or "",
-                    contact_email=order.customer_email or "",
-                )
+        # Адрес отправителя (из settings)
+        sender_addr = build_pickup_address_from_settings()
 
-            # Инициализация сервиса
-            gls = MyGlsService.from_settings()
-            printer = getattr(settings, "MYGLS_PRINTER_TYPE", "A4_2x2")
-
-            for idx, block in enumerate(parcels, start=1):
-                # Вес посылки
-                sku_to_op = {op.product.sku: op for op in order.order_products.all()}
-                wt = sum(
-                    (sku_to_op[b["sku"]].product.weight_grams or 0) * b["quantity"]
-                    for b in block if b["sku"] in sku_to_op
-                )
-                logger.info("Order %s, GLS parcel #%d weight: %s g", order_id, idx, wt)
-
-                # Стоимость доставки для этой посылки — по GLS ставкам
-                try:
-                    opts = calculate_gls_shipping_options(
-                        country=country_code,
-                        items=block,
-                        currency="EUR",
-                        cod=False,
-                        address_bundle="one",  # одна посылка — бандл 'one'
-                    )
-                except Exception as e:
-                    logger.error("GLS options failed for order %s, parcel #%d: %s", order_id, idx, e)
-                    raise
-
-                channel_opts = [o for o in opts if o.get("channel") == channel]
-                if not channel_opts:
-                    logger.error("No GLS %s options for order %s, parcel #%d", channel, order_id, idx)
-                    raise RuntimeError(f"No GLS {channel} options for order {order_id}, parcel {idx}")
-
-                chosen = channel_opts[0]
-                price_with_vat = (Decimal(chosen["priceWithVat"])
-                                  if isinstance(chosen["priceWithVat"], Decimal)
-                                  else Decimal(str(chosen["priceWithVat"]))).quantize(Decimal("0.01"))
-                logger.info("Order %s, GLS parcel #%d chosen: %s (%.2f EUR)",
-                            order_id, idx, chosen["service"], price_with_vat)
-
-                # Телефон обязателен для HD → валидация (аналогично Packeta)
-                if is_hd:
-                    phone_err = validate_phone_matches_country(str(order.phone_number or ""), country_code)
-                    if phone_err:
-                        logger.error("Phone validation failed for GLS order %s: %s", order_id, phone_err)
-                        raise RuntimeError(f"Invalid phone number for destination country: {phone_err}")
-
-                # Свойства посылки (габариты допускаем минимальные валидные)
-                props = build_parcel_properties(
-                    content=f"Order {order.order_number}",
-                    length_cm=1, width_cm=1, height_cm=1,
-                    weight_kg=max(0.01, (wt or 0) / 1000.0),
-                )
-
-                services = []
-                if not is_hd:
-                    # GLS PUDO → PSD
-                    if not order.pickup_point_id:
-                        raise RuntimeError(f"pickup_point_id is required for GLS PUDO (order {order_id})")
-                    services.append(build_service_psd(str(order.pickup_point_id)))
-
-                parcel_payload = build_parcel(
-                    client_reference=f"{order.order_number}-p{idx}",
-                    client_number=getattr(settings, "MYGLS_CLIENT_NUMBER", None),
-                    pickup_address=sender_addr,
-                    delivery_address=deliv_addr,
-                    properties=props,
-                    services=services or None,
-                )
-
-                # Печать ярлыка и сохранение на диск
-                res = gls.create_print_and_store(
-                    [SimpleShipment(parcel=parcel_payload, type_of_printer=printer)],
-                    store_dir="labels/mygls",
-                    flow="print",
-                    corr_id=f"order-{order.id}-parcel-{idx}",
-                )
-                if res.get("errors"):
-                    raise RuntimeError(f"myGLS errors: {res['errors']}")
-
-                numbers = res.get("parcel_numbers") or []
-                tracking = numbers[0] if numbers else ""
-
-                dp = DeliveryParcel.objects.create(
-                    order=order,
-                    warehouse=Warehouse.objects.filter(pickup_by_courier=False).first() or Warehouse.objects.first(),
-                    service=order.courier_service,
-                    tracking_number=tracking,
-                    parcel_index=idx,
-                    weight_grams=wt or 0,
-                    shipping_price=price_with_vat,
-                )
-
-                # Прикрепляем PDF-файл к FileField из уже сохранённого файла
-                _attach_file_from_media_url(dp.label_file, res.get("url"))
-
-                # Сгруппировать позиции по SKU → DeliveryParcelItem
-                grouped = defaultdict(int)
-                for u in block:
-                    grouped[u["sku"]] += u["quantity"]
-
-                for sku, total_q in grouped.items():
-                    op = sku_to_op.get(sku)
-                    if not op:
-                        logger.error("SKU %s not found in order %s; skip linking to parcel", sku, order_id)
-                        continue
-                    DeliveryParcelItem.objects.create(parcel=dp, order_product=op, quantity=total_q)
-
-                logger.info("Created GLS parcel #%d for order %s: tracking=%s, price=%s",
-                            idx, order_id, tracking, price_with_vat)
-                created.append(dp)
-
+        # Адрес получателя
+        if is_hd:
+            deliv_addr = build_address(
+                name=f"{order.first_name} {order.last_name}",
+                street=order.delivery_address.street if order.delivery_address else "",
+                house_number="",
+                city=order.delivery_address.city if order.delivery_address else "",
+                zip_code=format_zip(getattr(order.delivery_address, "zip_code", ""), country_code) if order.delivery_address else "",
+                country_iso=country_code,
+                contact_name=f"{order.first_name} {order.last_name}",
+                contact_phone=str(order.phone_number or "") or "",
+                contact_email=getattr(order, "customer_email", "") or "",
+            )
         else:
-            # === Packeta (Zásilkovna) ветка (как было, только аккуратнее) ===
-            logger.info("Order %s: using Packeta provider", order_id)
-            svc = PacketaService()
+            deliv_addr = build_address(
+                name=f"{order.first_name} {order.last_name}",
+                street=order.delivery_address.street if order.delivery_address else "",
+                house_number="",
+                city=order.delivery_address.city if order.delivery_address else "",
+                zip_code=getattr(order.delivery_address, "zip_code", "") if order.delivery_address else "",
+                country_iso=country_code,
+                contact_name=f"{order.first_name} {order.last_name}",
+                contact_phone=str(order.phone_number or "") or "",
+                contact_email=getattr(order, "customer_email", "") or "",
+            )
 
-            # Валюта Packeta HD по стране
-            currency = svc.COUNTRY_CURRENCY.get(country_code, "CZK")
+        gls = MyGlsService.from_settings()
+        printer = getattr(settings, "MYGLS_PRINTER_TYPE", "A4_2x2")
 
-            # Разбиваем по общей логике Packeta
-            parcels = packeta_split_items(country=country_code, items=raw_items, cod=False, currency="EUR")
-            logger.debug("Order %s → %d Packeta parcels", order_id, len(parcels))
+        # Быстрый доступ к позициям по SKU
+        sku_to_op = {op.product.sku: op for op in order.order_products.all()}
 
-            # Склад
-            wh = Warehouse.objects.filter(pickup_by_courier=False).first() or Warehouse.objects.first()
-            if not wh:
-                msg = f"No warehouse available for order {order_id}"
-                logger.error(msg)
-                raise RuntimeError(msg)
+        for idx, block in enumerate(parcels, start=1):
+            # Вес посылки
+            wt = sum(
+                (sku_to_op[b["sku"]].product.weight_grams or 0) * b["quantity"]
+                for b in block if b["sku"] in sku_to_op
+            )
+            logger.info("Order %s, GLS parcel #%d weight: %s g", order_id, idx, wt)
 
-            sku_to_op = {op.product.sku: op for op in order.order_products.all()}
-
-            for idx, block in enumerate(parcels, start=1):
-                # Вес
-                wt = sum(
-                    (sku_to_op[u["sku"]].product.weight_grams or 0) * u["quantity"]
-                    for u in block if u["sku"] in sku_to_op
-                )
-                logger.info("Order %s, Packeta parcel #%d weight: %s g", order_id, idx, wt)
-
-                # Тарифы Packeta для этого блока
-                opts = packeta_calculate_shipping_options(
+            # Стоимость доставки по GLS (берём нужный канал)
+            try:
+                opts = calculate_gls_shipping_options(
                     country=country_code,
                     items=block,
-                    cod=False,
                     currency="EUR",
+                    cod=False,
+                    address_bundle="one" if len(parcels) == 1 else "multi",
                 )
-                channel_opts = [o for o in opts if o.get("channel") == channel]
-                if not channel_opts:
-                    logger.error("No Packeta %s options for order %s, parcel #%d", channel, order_id, idx)
-                    raise RuntimeError(f"No shipping options for channel {channel} on order {order_id}, parcel {idx}")
+            except Exception as e:
+                logger.error("GLS options failed for order %s, parcel #%d: %s", order_id, idx, e)
+                raise
 
-                chosen = channel_opts[0]
-                price_with_vat = (Decimal(chosen["priceWithVat"])
-                                  if isinstance(chosen["priceWithVat"], Decimal)
-                                  else Decimal(str(chosen["priceWithVat"]))).quantize(Decimal("0.01"))
-                logger.info("Order %s, Packeta parcel #%d chosen: %s, price %.2f EUR",
-                            order_id, idx, chosen["service"], price_with_vat)
+            channel_opts = [o for o in opts if o.get("channel") == channel]
+            if not channel_opts:
+                raise RuntimeError(f"No GLS {channel} options for order {order_id}, parcel {idx}")
 
-                # Страховка (как у вас было)
-                value_amount = Decimal("1.00")
+            chosen = channel_opts[0]
+            price_with_vat = Decimal(str(chosen["priceWithVat"])).quantize(Decimal("0.01"))
 
-                if is_hd:
-                    # Валидация телефона и нормализация ZIP
-                    phone_error = validate_phone_matches_country(str(order.phone_number or ""), country_code)
-                    if phone_error:
-                        logger.error("Phone validation failed for Packeta order %s: %s", order_id, phone_error)
-                        raise RuntimeError(f"Invalid phone number for destination country: {phone_error}")
+            # Телефон обязателен для HD
+            if is_hd:
+                phone_err = validate_phone_matches_country(str(order.phone_number or ""), country_code)
+                if phone_err:
+                    raise RuntimeError(f"Invalid phone number for destination country: {phone_err}")
 
-                    normalized_zip = format_zip(order.delivery_address.zip_code, country_code)
-                    packet_id = svc.create_home_delivery_shipment(
-                        order_number=order.order_number,
-                        first_name=order.first_name,
-                        surname=order.last_name,
-                        phone=str(order.phone_number or ""),
-                        email=order.customer_email,
-                        street=order.delivery_address.street,
-                        city=order.delivery_address.city,
-                        zip_code=normalized_zip,
-                        country=country_code,
-                        weight_grams=wt or 0,
-                        value_amount=value_amount,
-                        cod_amount=Decimal("0.00"),
-                        currency=currency,
-                    )
-                else:
-                    if not order.pickup_point_id:
-                        raise RuntimeError(f"pickup_point_id is required for Packeta PUDO (order {order_id})")
-                    packet_id = svc.create_pickup_point_shipment(
-                        order_number=order.order_number,
-                        first_name=order.first_name,
-                        surname=order.last_name,
-                        phone=str(order.phone_number or ""),
-                        email=order.customer_email,
-                        pickup_point_id=order.pickup_point_id,
-                        weight_grams=wt or 0,
-                        value_amount=value_amount,
-                        cod_amount=Decimal("0.00"),
-                        currency=currency,
-                    )
+            # Свойства посылки
+            props = build_parcel_properties(
+                content=f"Order {order.order_number}",
+                length_cm=1, width_cm=1, height_cm=1,
+                weight_kg=max(0.01, (wt or 0) / 1000.0),
+            )
 
-                # Создаём DeliveryParcel
-                dp = DeliveryParcel.objects.create(
-                    order=order,
-                    warehouse=wh,
-                    service=order.courier_service,
-                    tracking_number=packet_id or "",
-                    parcel_index=idx,
+            services = []
+            if not is_hd:
+                if not order.pickup_point_id:
+                    raise RuntimeError(f"pickup_point_id is required for GLS PUDO (order {order_id})")
+                services.append(build_service_psd(str(order.pickup_point_id)))
+
+            parcel_payload = build_parcel(
+                client_reference=f"{order.order_number}-p{idx}",
+                client_number=getattr(settings, "MYGLS_CLIENT_NUMBER", None),
+                pickup_address=sender_addr,
+                delivery_address=deliv_addr,
+                properties=props,
+                services=services or None,
+            )
+
+            # Печать ярлыка и сохранение на диск
+            res = gls.create_print_and_store(
+                [SimpleShipment(parcel=parcel_payload, type_of_printer=printer)],
+                store_dir="labels/mygls",
+                flow="print",
+                corr_id=f"order-{order.id}-parcel-{idx}",
+            )
+            if res.get("errors"):
+                raise RuntimeError(f"myGLS errors: {res['errors']}")
+
+            numbers = res.get("parcel_numbers") or []
+            tracking = numbers[0] if numbers else ""
+
+            dp = DeliveryParcel.objects.create(
+                order=order,
+                warehouse=chosen_wh,  # только CZ склад продавца
+                service=order.courier_service,
+                tracking_number=tracking,
+                parcel_index=idx,
+                weight_grams=wt or 0,
+                shipping_price=price_with_vat,
+            )
+
+            # Прикрепляем PDF-файл к FileField из уже сохранённого файла
+            _attach_file_from_media_url(dp.label_file, res.get("url"))
+
+            # Сгруппировать позиции по SKU → DeliveryParcelItem
+            grouped = defaultdict(int)
+            for u in block:
+                grouped[u["sku"]] += u["quantity"]
+
+            for sku, total_q in grouped.items():
+                op = sku_to_op.get(sku)
+                if not op:
+                    logger.error("SKU %s not found in order %s; skip linking to parcel", sku, order_id)
+                    continue
+                DeliveryParcelItem.objects.create(parcel=dp, order_product=op, quantity=total_q)
+
+            logger.info(
+                "Created GLS parcel #%d for order %s: tracking=%s, price=%s",
+                idx, order_id, tracking, price_with_vat
+            )
+            created.append(dp)
+
+    else:
+        # === Packeta (Zásilkovna) ветка ===
+        logger.info("Order %s: using Packeta provider", order_id)
+        svc = PacketaService()
+
+        # Валюта Packeta HD по стране
+        packeta_currency = svc.COUNTRY_CURRENCY.get(country_code, "CZK")
+
+        # Разбиваем по общей логике Packeta
+        parcels = packeta_split_items(country=country_code, items=raw_items, cod=False, currency="EUR")
+        logger.debug("Order %s → %d Packeta parcels", order_id, len(parcels))
+
+        # Склад — только default_warehouse продавца (проверен выше)
+        wh = chosen_wh
+        if not wh:
+            msg = f"No warehouse available for order {order_id}"
+            logger.error(msg)
+            raise RuntimeError(msg)
+
+        sku_to_op = {op.product.sku: op for op in order.order_products.all()}
+
+        for idx, block in enumerate(parcels, start=1):
+            # Вес
+            wt = sum(
+                (sku_to_op[u["sku"]].product.weight_grams or 0) * u["quantity"]
+                for u in block if u["sku"] in sku_to_op
+            )
+            logger.info("Order %s, Packeta parcel #%d weight: %s g", order_id, idx, wt)
+
+            # Тарифы Packeta для этого блока — берём нужный канал
+            opts = packeta_calculate_shipping_options(
+                country=country_code,
+                items=block,
+                cod=False,
+                currency="EUR",
+            )
+            channel_opts = [o for o in opts if o.get("channel") == channel]
+            if not channel_opts:
+                raise RuntimeError(f"No shipping options for channel {channel} on order {order_id}, parcel {idx}")
+
+            chosen = channel_opts[0]
+            price_with_vat = Decimal(str(chosen["priceWithVat"])).quantize(Decimal("0.01"))
+
+            # Формируем отправку
+            if is_hd:
+                # Валидация телефона и нормализация ZIP
+                phone_error = validate_phone_matches_country(str(order.phone_number or ""), country_code)
+                if phone_error:
+                    raise RuntimeError(f"Invalid phone number for destination country: {phone_error}")
+
+                normalized_zip = format_zip(getattr(order.delivery_address, "zip_code", ""), country_code)
+                packet_id = svc.create_home_delivery_shipment(
+                    order_number=order.order_number,
+                    first_name=order.first_name,
+                    surname=order.last_name,
+                    phone=str(order.phone_number or ""),
+                    email=getattr(order, "customer_email", ""),
+                    street=order.delivery_address.street,
+                    city=order.delivery_address.city,
+                    zip_code=normalized_zip,
+                    country=country_code,
                     weight_grams=wt or 0,
-                    shipping_price=price_with_vat,
+                    value_amount=Decimal("1.00"),
+                    cod_amount=Decimal("0.00"),
+                    currency=packeta_currency,
+                )
+            else:
+                if not order.pickup_point_id:
+                    raise RuntimeError(f"pickup_point_id is required for Packeta PUDO (order {order_id})")
+                packet_id = svc.create_pickup_point_shipment(
+                    order_number=order.order_number,
+                    first_name=order.first_name,
+                    surname=order.last_name,
+                    phone=str(order.phone_number or ""),
+                    email=getattr(order, "customer_email", ""),
+                    pickup_point_id=order.pickup_point_id,
+                    weight_grams=wt or 0,
+                    value_amount=Decimal("1.00"),
+                    cod_amount=Decimal("0.00"),
+                    currency=packeta_currency,
                 )
 
-                # Прикрепляем ярлык (PDF из Packeta)
-                try:
-                    label_pdf = svc.get_label_pdf(packet_id)
-                    dp.label_file.save(f"label_{packet_id}.pdf", ContentFile(label_pdf), save=True)
-                except Exception as e:
-                    logger.error("Failed to fetch Packeta label for packet %s: %s", packet_id, e)
+            # Создаём DeliveryParcel
+            dp = DeliveryParcel.objects.create(
+                order=order,
+                warehouse=wh,  # только CZ склад продавца
+                service=order.courier_service,
+                tracking_number=packet_id or "",
+                parcel_index=idx,
+                weight_grams=wt or 0,
+                shipping_price=price_with_vat,
+            )
 
-                # Сгруппировать позиции по SKU
-                grouped = defaultdict(int)
-                for u in block:
-                    grouped[u["sku"]] += u["quantity"]
+            # Прикрепляем ярлык (PDF из Packeta)
+            try:
+                label_pdf = svc.get_label_pdf(packet_id)
+                dp.label_file.save(f"label_{packet_id}.pdf", ContentFile(label_pdf), save=True)
+            except Exception as e:
+                logger.error("Failed to fetch Packeta label for packet %s: %s", packet_id, e)
 
-                for sku, total_q in grouped.items():
-                    op = sku_to_op.get(sku)
-                    if not op:
-                        logger.error("SKU %s not found in order %s; skip linking to parcel", sku, order_id)
-                        continue
-                    DeliveryParcelItem.objects.create(parcel=dp, order_product=op, quantity=total_q)
+            # Сгруппировать позиции по SKU
+            grouped = defaultdict(int)
+            for u in block:
+                grouped[u["sku"]] += u["quantity"]
 
-                logger.info("Created Packeta parcel #%d for order %s: packet_id=%s, price=%s",
-                            idx, order_id, packet_id, price_with_vat)
-                created.append(dp)
+            for sku, total_q in grouped.items():
+                op = sku_to_op.get(sku)
+                if not op:
+                    logger.error("SKU %s not found in order %s; skip linking to parcel", sku, order_id)
+                    continue
+                DeliveryParcelItem.objects.create(parcel=dp, order_product=op, quantity=total_q)
+
+            logger.info(
+                "Created Packeta parcel #%d for order %s: packet_id=%s, price=%s",
+                idx, order_id, packet_id, price_with_vat
+            )
+            created.append(dp)
 
     logger.info("generate_parcels_for_order(%s) done, created %d parcels", order_id, len(created))
     return created
@@ -410,7 +421,7 @@ def fetch_and_store_labels_for_order(order_id: int):
       - Packeta: запрашиваем PDF по packet_id и прикладываем.
       - myGLS: ярлык сохраняется при печати (create_print_and_store); если FileField пуст —
                пробуем подцепить с диска по ранее сохранённому URL (если мы его хранили)
-               или логируем предупреждение (API повторной выдачи ярлыков не трогаем).
+               или логируем предупреждение.
     """
     svc_packeta = PacketaService()
     parcels = DeliveryParcel.objects.filter(order_id=order_id)

@@ -5,6 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiResponse, extend_schema, OpenApiExample
 
+from product.models import ProductVariant
+
 from .serializers import (
     SellerShippingRequestSerializer,
     CombinedShippingOptionsResponseSerializer,
@@ -168,6 +170,37 @@ class SellerShippingOptionsView(APIView):
         items = data["items"]
         currency = "EUR"
         cod = False  # COD disabled; use bool for both calculators
+
+        # Lite-проверка: все товары должны отправляться с CZ-склада продавца
+        try:
+            skus = [str(i["sku"]) for i in items]
+            variants = (
+                ProductVariant.objects
+                .filter(sku__in=skus)
+                .select_related("product__seller__default_warehouse")
+            )
+            vmap = {v.sku: v for v in variants}
+
+            not_cz = []
+            for it in items:
+                v = vmap.get(str(it["sku"]))
+                seller = getattr(getattr(v, "product", None), "seller", None) if v else None
+                dw = getattr(seller, "default_warehouse", None) if seller else None
+                if not (dw and getattr(dw, "country", None) == "CZ"):
+                    not_cz.append(str(it["sku"]))
+
+            if not_cz:
+                return Response(
+                    {
+                        "origin": [
+                            f"Только отправка из Чехии. Продавец(ы) SKU {', '.join(not_cz)} не имеют чешского склада (default_warehouse.country != 'CZ')."
+                        ]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except Exception as e:
+            logger.exception("CZ origin check failed")
+            return Response({"origin": [f"CZ check failed: {e}"]}, status=status.HTTP_400_BAD_REQUEST)
 
         payload = {
             "couriers": {"zasilkovna": {}, "gls": {}},
