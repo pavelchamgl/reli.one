@@ -347,7 +347,13 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "LOCATION": "mygls-local-cache",
         "TIMEOUT": None,
-    }
+    },
+    # Алиас под конверсии (в dev тоже in-memory)
+    "conv": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "conv-local-cache",
+        "TIMEOUT": 60 * 60,  # час, можно None
+    },
 }
 
 

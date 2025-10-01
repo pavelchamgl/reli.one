@@ -17,10 +17,12 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import ValidationError
+from django.core.cache import caches
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import Payment, PayPalMetadata, StripeMetadata
 from .mixins import PayPalMixin
+from .services import get_orders_by_payment_session_id
 from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
 from .services_async import async_send_client_email
 from accounts.models import CustomUser
@@ -47,6 +49,8 @@ from delivery.services.packeta_point_service import resolve_country_from_local_p
 from delivery.validators.zip_validator import ZipCodeValidator
 from delivery.validators.validators import validate_phone_matches_country
 from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
+
+conv_cache = caches["conv"]
 
 # Paypal secret fields
 client_id = settings.PAYPAL_CLIENT_ID
@@ -1292,3 +1296,49 @@ class PayPalWebhookView(PayPalMixin, APIView):
 
         # если список пуст — это идемпотентный повтор
         return Response({"status": f"{len(orders)} order(s) created successfully"}, status=200)
+
+
+class ConversionPayloadView(APIView):
+    """
+    Returns the minimum payload for events on the “Thank you for your payment” page.
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        session_id = request.query_params.get("session_id")
+        if not session_id:
+            return Response({"error": "session_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 1) быстрый путь: читаем из кэша
+        cached = conv_cache.get(f"conv:{session_id}")
+        if cached:
+            # убеждаемся, что структура как надо
+            payload = {
+                "ready": bool(cached.get("ready", True)),
+                "transaction_id": str(cached.get("transaction_id", session_id)),
+                "value": float(cached.get("value")),  # число — удобно фронту/GTM
+                "currency": str(cached.get("currency", "EUR")),
+            }
+            return Response(payload, status=200)
+
+        # 2) фолбэк: собираем «на лету», если вебхук уже успел создать заказы
+        orders = get_orders_by_payment_session_id(session_id)
+        if not orders:
+            # вебхук ещё не записал данные — фронт может повторить запрос через ~1–1.5 сек
+            return Response({"ready": False}, status=200)
+
+        total = sum((o.group_subtotal for o in orders), Decimal("0.00"))
+        value = total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+        payload = {
+            "ready": True,
+            "transaction_id": session_id,  # используем session_id как уникальный ID транзакции
+            "value": float(value),          # возвращаем числом
+            "currency": "EUR",
+        }
+
+        # кладём в кэш, чтобы следующие запросы были O(1)
+        conv_cache.set(f"conv:{session_id}", payload, timeout=60 * 60 * 24)
+
+        return Response(payload, status=200)
