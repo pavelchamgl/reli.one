@@ -33,7 +33,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
   const [ageCheck, setAgeCheck] = useState(false)
   const [check, setCheck] = useState(false)
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const { email, city, street } = useSelector(
     (state) => state.payment.paymentInfo
@@ -143,7 +143,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
           <CheckBox check={check} onChange={() => setCheck(!check)} />
           <span>
             {t("iAgreeToTerms.agreeToThe")}{" "}
-            <a href="#">{t("iAgreeToTerms.terms")}</a>{" "}
+            <a href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">{t("iAgreeToTerms.terms")}</a>{" "}
             {t("iAgreeToTerms.and")}{" "}
             <a href="/general-protection">{t("iAgreeToTerms.privacy")}</a>
           </span>

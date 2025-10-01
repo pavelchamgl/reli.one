@@ -46,7 +46,7 @@ const Footer = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const [open, setOpen] = useState(false);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const token = localStorage.getItem("token");
 
@@ -72,9 +72,9 @@ const Footer = () => {
           <Link to={"/general-protection"} className={cls.mobileLink} href="#">
             Privacy policy
           </Link>
-          <Link to={"/terms"} className={cls.mobileLink} href="#">
+          <a className={cls.mobileLink} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
             Terms
-          </Link>
+          </a>
           <Link to={"/delete-my-data"} className={cls.mobileLink} href="#">
             Delete my data
           </Link>
@@ -126,9 +126,9 @@ const Footer = () => {
             <Link to={"/general-protection"} className={cls.LinkNavigate} href="#">
               Privacy policy
             </Link>
-            <Link to={"/terms"} className={cls.LinkNavigate} href="#">
+            <a className={cls.LinkNavigate} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
               Terms
-            </Link>
+            </a>
             <Link to={"/delete-my-data"} className={cls.LinkNavigate} href="#">
               Delete my data
             </Link>
