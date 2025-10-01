@@ -9,11 +9,11 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import transaction
 from django.utils.decorators import method_decorator
-from rest_framework import status
+from rest_framework import status, serializers
 from django.conf import settings
 from django.utils import timezone
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, OpenApiParameter, inline_serializer
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.exceptions import ValidationError
@@ -207,6 +207,11 @@ def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Res
         "- The root-level `delivery_address` is required and must include `street`, `city`, `zip`, and `country` (ISO 3166-1 alpha-2).\n"
         "- Each group may provide either a `delivery_address` (for `delivery_type=2`) or a `pickup_point_id` (for `delivery_type=1`).\n"
         "- Field `courier_service` is an **integer ID** of the courier service (e.g., GLS or Packeta) and determines which pricing logic is applied."
+        "\n\n**Redirect behavior:**\n"
+        "- After successful payment, Stripe will redirect to "
+        "`<REDIRECT_DOMAIN>/payment_end/?session_id={CHECKOUT_SESSION_ID}`.\n"
+        "- The `session_id` query parameter can be used to call "
+        "`/api/conversion-payload/?session_id=...` and trigger Ads/GA4 events."
     ),
     request=SessionInputSerializer,
     responses={
@@ -494,7 +499,7 @@ class CreateStripePaymentView(APIView):
                 payment_method_types=['card'],
                 line_items=line_items,
                 mode='payment',
-                success_url=settings.REDIRECT_DOMAIN + 'payment_end/',
+                success_url=settings.REDIRECT_DOMAIN + 'payment_end/?session_id={CHECKOUT_SESSION_ID}',
                 cancel_url=settings.REDIRECT_DOMAIN + 'basket/',
                 metadata={
                     'session_key': session_key,
@@ -1298,6 +1303,57 @@ class PayPalWebhookView(PayPalMixin, APIView):
         return Response({"status": f"{len(orders)} order(s) created successfully"}, status=200)
 
 
+@extend_schema(
+    summary="Get conversion payload for thank-you page",
+    description=(
+        "Returns the minimal payload required to fire Google Ads/GA4 purchase events on the client side.\n\n"
+        "**Contract**:\n"
+        "- `transaction_id` — unique ID used for deduplication (we use the payment session id).\n"
+        "- `value` — total order amount in EUR (number).\n"
+        "- `currency` — always `EUR` in our setup.\n"
+        "- If the webhook hasn’t finished yet, the endpoint returns `{ ready: false }` and the client may retry."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="session_id",
+            type=str,
+            location=OpenApiParameter.QUERY,
+            required=True,
+            description="Payment session identifier (Stripe Checkout Session ID or our internal session_key).",
+        )
+    ],
+    responses={
+        200: OpenApiResponse(
+            response=inline_serializer(
+                name="ConversionPayloadResponse",
+                fields={
+                    "ready": serializers.BooleanField(),
+                    "transaction_id": serializers.CharField(required=False),
+                    "value": serializers.FloatField(required=False),
+                    "currency": serializers.CharField(required=False),
+                },
+            ),
+            description="`ready:true` — payload ready; `ready:false` — webhook not finished yet."
+        ),
+        400: OpenApiResponse(
+            description="Missing or invalid `session_id`",
+            examples=[OpenApiExample("Missing session_id", value={"error": "session_id is required"})],
+        ),
+    },
+    examples=[
+        OpenApiExample(
+            name="Ready example",
+            value={"ready": True, "transaction_id": "cs_test_123", "value": 340.94, "currency": "EUR"},
+            response_only=True,
+        ),
+        OpenApiExample(
+            name="Not ready yet",
+            value={"ready": False},
+            response_only=True,
+        ),
+    ],
+    tags=["Payments"],
+)
 class ConversionPayloadView(APIView):
     """
     Returns the minimum payload for events on the “Thank you for your payment” page.
@@ -1326,6 +1382,7 @@ class ConversionPayloadView(APIView):
         orders = get_orders_by_payment_session_id(session_id)
         if not orders:
             # вебхук ещё не записал данные — фронт может повторить запрос через ~1–1.5 сек
+            logger.info("Conversion payload not ready yet", extra={"session_id": session_id})
             return Response({"ready": False}, status=200)
 
         total = sum((o.group_subtotal for o in orders), Decimal("0.00"))
