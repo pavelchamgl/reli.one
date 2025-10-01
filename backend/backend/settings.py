@@ -352,7 +352,7 @@ CACHES = {
     "conv": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "LOCATION": "conv-local-cache",
-        "TIMEOUT": 60 * 60,  # час, можно None
+        "TIMEOUT": 60 * 60 * 24,  # час, можно None
     },
 }
 
