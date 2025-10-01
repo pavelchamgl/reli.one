@@ -2,6 +2,7 @@ import json
 import uuid
 from typing import Optional, Union
 
+import requests
 import stripe
 import logging
 
@@ -899,7 +900,12 @@ class StripeWebhookView(APIView):
         "- Calculates delivery cost per group based on delivery type (`1=PUDO`, `2=HD`) and destination country.\n"
         "- Performs parcel splitting (GLS handled in calculator).\n"
         "- Computes subtotal per group, adds delivery, and aggregates totals.\n"
-        "- Persists session metadata (customer info, groups, pricing, delivery details) for the webhook.\n"
+        "- Persists session metadata (customer info, groups, pricing, delivery details) for the webhook.\n\n"
+        "**Redirect behavior:**\n"
+        "- After successful approval/capture, PayPal will redirect to "
+        "`<REDIRECT_DOMAIN>/payment_end/?session_id=<our_session_key>`.\n"
+        "- The `session_id` on the thank-you page MUST be used to call "
+        "`/api/conversion-payload/?session_id=...` (we use our session_key for PayPal)."
     ),
     request=SessionInputSerializer,
     responses={
@@ -912,7 +918,8 @@ class StripeWebhookView(APIView):
                     value={
                         "approval_url": "https://www.sandbox.paypal.com/checkoutnow?token=3FJ45213AK318393U",
                         "order_id": "3FJ45213AK318393U",
-                        "session_key": "7b73006d-e4a4-4b94-9c13-8f76c81e56a9"
+                        "session_key": "7b73006d-e4a4-4b94-9c13-8f76c81e56a9",
+                        "session_id": "7b73006d-e4a4-4b94-9c13-8f76c81e56a9"  # NOTE: equals to session_key
                     },
                     response_only=True
                 )
@@ -1091,7 +1098,8 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             return Response({
                 'approval_url': approval_url,
                 'order_id': order_id,
-                'session_key': session_key
+                'session_key': session_key,
+                'session_id': session_key,
             }, status=200)
 
         except Exception as e:
@@ -1101,15 +1109,17 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 @extend_schema(
-    summary="Handle PayPal Webhook for Approved Checkout Order",
+    summary="Handle PayPal Webhook for Successful Payment",
     description=(
-        "Processes PayPal 'CHECKOUT.ORDER.APPROVED' events. Restores saved metadata, creates orders/payments/invoice, "
-        "triggers emails and parcel generation."
+        "Processes PayPal payment webhooks. Accepts PAYMENT.CAPTURE.COMPLETED and CHECKOUT.ORDER.COMPLETED.\n"
+        "If CHECKOUT.ORDER.APPROVED is received, captures the order and then proceeds.\n\n"
+        "Creates orders grouped by seller, a single Payment per order, generates invoice, "
+        "sends emails and updates the conversion cache (session_key) after commit."
     ),
     responses={
-        200: OpenApiResponse(description="Orders and payments created successfully"),
+        200: OpenApiResponse(description="Orders and payments created successfully (or already processed)"),
         403: OpenApiResponse(description="Invalid webhook signature"),
-        400: OpenApiResponse(description="Invalid payload or event type"),
+        400: OpenApiResponse(description="Invalid payload or unsupported event type"),
         500: OpenApiResponse(description="Order creation failed"),
     },
     tags=['PayPal']
@@ -1117,34 +1127,55 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 class PayPalWebhookView(PayPalMixin, APIView):
     permission_classes = [AllowAny]
 
-    def create_orders_from_webhook(self, data):
-        resource = data.get("resource", {})
-        pu = (resource.get("purchase_units") or [{}])[0]
-        amount = Decimal(pu["amount"]["value"]).quantize(Decimal("0.01"), ROUND_HALF_UP)
-        currency = pu["amount"]["currency_code"]
-        session_id = resource.get("id")  # PayPal order id
-        session_key = pu.get("reference_id")
+    # --- внутренние утилиты для REST PayPal ---
+    def _paypal_api_get(self, path: str):
+        token = self.get_paypal_access_token()
+        resp = requests.get(
+            f"{PAYPAL_API_URL}{path}",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        return resp.json()
 
-        if not session_key:
-            logger.error("Missing reference_id in webhook payload")
-            return None
+    def _paypal_api_capture(self, order_id: str):
+        token = self.get_paypal_access_token()
+        resp = requests.post(
+            f"{PAYPAL_API_URL}/v2/checkout/orders/{order_id}/capture",
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            json={}, timeout=10
+        )
+        resp.raise_for_status()
+        return resp.json()
 
-        # идемпотентность: если платёж уже есть для этого PayPal order id — выходим
-        if Payment.objects.filter(session_id=session_id, payment_system="paypal").exists():
-            logger.info(f"[PayPalWebhook] Payment for session {session_id} already exists — skipping")
+    # --- основная логика восстановления и создания заказов ---
+    def _create_orders(self, *, order_id: str, session_key: str, amount, currency: str):
+        """
+        Создаёт заказы/Payment/Invoice по сохранённой в PayPalMetadata метаданной.
+        Пишет conversion cache по session_key после коммита.
+        Возвращает список созданных заказов (или пустой список при идемпотентном повторе).
+        """
+        # идемпотентность по самому событию оплаты (order_id)
+        existing = Payment.objects.filter(payment_system="paypal", payment_intent_id=order_id)\
+                                  .only("amount_total", "currency", "session_key").first()
+        if existing:
+            # гарантируем заполнение кэша (на случай повторов)
+            _set_conv_cache_after_commit(existing.session_key or session_key,
+                                         existing.amount_total, existing.currency, logger=logger)
+            logger.info("[PayPalWebhook] Idempotent: payment already exists for order %s — refreshed conv cache", order_id)
             return []
 
         try:
             meta = PayPalMetadata.objects.get(session_key=session_key)
         except PayPalMetadata.DoesNotExist:
-            logger.error(f"PayPalMetadata not found for {session_key}")
+            logger.error("PayPalMetadata not found for session_key=%s", session_key)
             return None
 
         user_id = meta.custom_data.get("user_id")
         try:
             user = CustomUser.objects.get(id=user_id)
         except CustomUser.DoesNotExist:
-            logger.error(f"CustomUser not found: {user_id}")
+            logger.error("CustomUser not found: %s", user_id)
             return None
 
         groups = meta.invoice_data.get("groups", [])
@@ -1152,43 +1183,37 @@ class PayPalWebhookView(PayPalMixin, APIView):
             logger.error("No groups found in metadata")
             return None
 
-        # Статусы
+        # статусы
         try:
             pending_status = OrderStatus.objects.get(name="Pending")
             processing_status = OrderStatus.objects.get(name="Processing")
         except OrderStatus.DoesNotExist as e:
-            logger.exception(f"[PayPalWebhook] Missing OrderStatus: {e}")
+            logger.exception("[PayPalWebhook] Missing OrderStatus: %s", e)
             return None
 
-        # корневой адрес — для PUDO (как в Stripe)
         root_addr = meta.custom_data.get("delivery_address") or {}
         root_country = (root_addr.get("country") or "").upper()
 
         orders_created = []
         with transaction.atomic():
             for idx, group in enumerate(groups, start=1):
-                logger.info(f"Processing group #{idx}")
-
                 delivery_type_id = group.get("delivery_type")
                 courier_service_id = group.get("courier_service")
                 pickup_point_id = group.get("pickup_point_id")
                 products = group.get("products", [])
 
-                # суммы, сохранённые на этапе Checkout
                 delivery_cost = Decimal(group.get("calculated_delivery_cost", "0.00")).quantize(Decimal("0.01"), ROUND_HALF_UP)
-                group_total = Decimal(group.get("calculated_group_total", "0.00")).quantize(Decimal("0.01"), ROUND_HALF_UP)
+                group_total   = Decimal(group.get("calculated_group_total", "0.00")).quantize(Decimal("0.01"), ROUND_HALF_UP)
 
                 dt = DeliveryType.objects.filter(id=delivery_type_id).first()
                 if not dt:
-                    logger.error(f"Group {idx}: DeliveryType with id {delivery_type_id} not found.")
+                    logger.error("Group %s: DeliveryType %s not found", idx, delivery_type_id)
                     return None
 
                 cs = CourierService.objects.filter(id=courier_service_id).first()
                 if not cs:
-                    logger.warning(f"Group {idx}: CourierService id={courier_service_id} not found; saving order with NULL courier")
+                    logger.warning("Group %s: CourierService id=%s not found; saving order with NULL courier", idx, courier_service_id)
 
-                # адрес (HD — из группы; PUDO — пустой, с country из корневого)
-                delivery_address_obj = None
                 if delivery_type_id == 2:
                     gaddr = group.get("delivery_address", {}) or {}
                     delivery_address_obj = DeliveryAddress.objects.create(
@@ -1224,8 +1249,8 @@ class PayPalWebhookView(PayPalMixin, APIView):
                     delivery_cost=delivery_cost,
                     courier_service=cs,
                     phone_number=meta.custom_data.get("phone"),
-                    total_amount=amount,        # как и в Stripe — общая сумма сессии
-                    group_subtotal=group_total, # итого по группе (товары + доставка)
+                    total_amount=amount,        # общая сумма по сессии
+                    group_subtotal=group_total, # итого по группе
                     order_status=pending_status,
                 )
 
@@ -1235,7 +1260,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
                     try:
                         variant = ProductVariant.objects.get(sku=sku)
                     except ProductVariant.DoesNotExist:
-                        logger.error(f"Group {idx}: ProductVariant not found: {sku}")
+                        logger.error("Group %s: ProductVariant not found: %s", idx, sku)
                         continue
 
                     wh_item = WarehouseItem.objects.filter(product_variant=variant, quantity_in_stock__gte=qty).first()
@@ -1246,7 +1271,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
                         product=variant,
                         quantity=qty,
                         delivery_cost=Decimal("0.00"),
-                        seller_profile=variant.product.seller,
+                        seller_profile_id=variant.product.seller_id,  # единообразно со Stripe
                         product_price=variant.price_with_acquiring,
                         warehouse=warehouse,
                         status=ProductStatus.AWAITING_SHIPMENT,
@@ -1255,90 +1280,153 @@ class PayPalWebhookView(PayPalMixin, APIView):
                 order.order_status = processing_status
                 order.save(update_fields=["order_status"])
                 order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
-
                 orders_created.append(order)
-                logger.info(f"[PayPalWebhook] Group {idx}: Order {order.id} created successfully")
 
             if not orders_created:
-                logger.error("[PayPalWebhook] No orders were created; aborting")
+                logger.error("[PayPalWebhook] No orders created")
                 return None
 
-            # единый Payment
+            # Payment ( order_id считаем intent/idempotency ключом )
             payment = Payment.objects.create(
                 payment_system="paypal",
-                session_id=session_id,
-                session_key=session_key,
-                customer_id=user.id,
-                payment_intent_id=session_id,
+                session_id=order_id,         # можно оставить order_id (для отладки)
+                session_key=session_key,     # наш ключ, нужен фронту/конверсиям
+                customer_id=str(user.id),
+                payment_intent_id=order_id,  # идемпотенсия
                 payment_method="paypal",
                 amount_total=amount,
                 currency=currency,
                 customer_email=meta.custom_data.get("email"),
             )
-            for order in orders_created:
-                order.payment = payment
-                order.save(update_fields=["payment"])
+            for o in orders_created:
+                o.payment = payment
+                o.save(update_fields=["payment"])
+
+            # conversion payload — ПО session_key (он уходит на «Спасибо»)
+            _set_conv_cache_after_commit(session_key, amount, currency, logger=logger)
 
             # Инвойс
+            invoice_created = False
             try:
                 invoice_number = meta.invoice_data.get("invoice_number")
                 if not invoice_number:
                     raise ValueError("Missing invoice_number in metadata")
-
-                # variable_symbol с обратной совместимостью
-                variable_symbol = (
-                    (meta.description_data or {}).get("variable_symbol")
-                    or invoice_number
-                )
-
-                invoice_data = prepare_invoice_data(session_id)
+                variable_symbol = (meta.description_data or {}).get("variable_symbol") or invoice_number
+                invoice_data = prepare_invoice_data(order_id)
                 pdf_file = generate_invoice_pdf(invoice_data)
-
                 Invoice.objects.create(
                     payment=payment,
                     invoice_number=invoice_number,
                     variable_symbol=variable_symbol,
                     file=pdf_file,
                 )
-                logger.info(f"[INVOICE] Created Invoice {invoice_number} for Payment {session_id}")
                 invoice_created = True
+                logger.info("[INVOICE] Created Invoice %s for PayPal order %s", invoice_number, order_id)
             except Exception as e:
-                logger.exception(f"[INVOICE] Failed to create invoice for Payment {session_id}: {e}")
-                invoice_created = False
+                logger.exception("[INVOICE] Failed to create invoice for PayPal order %s: %s", order_id, e)
 
-        # вне транзакции: письма + ярлыки
+        # вне транзакции
         if invoice_created:
-            async_send_client_email(session_id)
-            logger.info(f"[PayPalWebhook] Planned async client email for session {session_id}")
-        else:
-            logger.warning(f"[PayPalWebhook] Skipped client email — invoice not ready for session {session_id}")
-
+            async_send_client_email(order_id)
         order_ids = [o.id for o in orders_created]
-        async_parcels_and_seller_email(order_ids, session_id)
-        logger.info(f"[PayPalWebhook] Planned async parcels+seller+manager for orders {order_ids}")
-
+        async_parcels_and_seller_email(order_ids, order_id)
         return orders_created
 
-    @csrf_exempt
+    # --- вход вебхука ---
     def post(self, request):
         body = request.body.decode("utf-8")
+
+        # валидация JSON
         try:
             data = json.loads(body)
         except json.JSONDecodeError:
             return Response({"error": "Invalid JSON"}, status=400)
 
-        if data.get("event_type") != "CHECKOUT.ORDER.APPROVED":
-            logger.info(f"Ignored event: {data.get('event_type')}")
+        event_type = data.get("event_type")
+        if event_type not in {
+            "PAYMENT.CAPTURE.COMPLETED",
+            "CHECKOUT.ORDER.COMPLETED",
+            "CHECKOUT.ORDER.APPROVED"
+        }:
+            logger.info("Ignored PayPal event: %s", event_type)
             return Response({"status": "ignored"}, status=200)
 
+        # подпись
         if not self.verify_webhook(request, body):
             return Response({"error": "Invalid webhook signature"}, status=403)
 
-        orders = self.create_orders_from_webhook(data)
+        resource = data.get("resource", {})
+        order_id = None
+        session_key = None
+        amount = None
+        currency = None
+
+        if event_type == "PAYMENT.CAPTURE.COMPLETED":
+            # Берём order_id из related_ids, подтягиваем сам order, чтобы достать reference_id (session_key)
+            related = (resource.get("supplementary_data") or {}).get("related_ids") or {}
+            order_id = related.get("order_id")
+            if not order_id:
+                logger.error("No order_id in capture.supplementary_data.related_ids")
+                return Response({"error": "No order_id in capture"}, status=400)
+
+            # тянем детали заказа, чтобы получить purchase_units[0].reference_id
+            order = self._paypal_api_get(f"/v2/checkout/orders/{order_id}")
+            pu = (order.get("purchase_units") or [{}])[0]
+            session_key = pu.get("reference_id")
+            if not session_key:
+                logger.error("No reference_id (session_key) in order %s", order_id)
+                return Response({"error": "No reference_id in order"}, status=400)
+
+            amount = Decimal(resource["amount"]["value"]).quantize(Decimal("0.01"), ROUND_HALF_UP)
+            currency = resource["amount"]["currency_code"]
+
+        elif event_type == "CHECKOUT.ORDER.COMPLETED":
+            # Заказ уже завершён — берём данные из самого order
+            order_id = resource.get("id")
+            pu = (resource.get("purchase_units") or [{}])[0]
+            session_key = pu.get("reference_id")
+            if not session_key:
+                logger.error("No reference_id in order.completed")
+                return Response({"error": "No reference_id"}, status=400)
+            amt = pu.get("amount") or {}
+            amount = Decimal(amt.get("value", "0")).quantize(Decimal("0.01"), ROUND_HALF_UP)
+            currency = amt.get("currency_code", "EUR")
+
+        elif event_type == "CHECKOUT.ORDER.APPROVED":
+            # Ещё не оплачено — делаем capture и продолжаем
+            order_id = resource.get("id")
+            try:
+                capture_res = self._paypal_api_capture(order_id)
+                # В capture_res ищем первую capture с COMPLETED
+                purchase_units = capture_res.get("purchase_units") or []
+                if purchase_units:
+                    pu = purchase_units[0]
+                    session_key = pu.get("reference_id")
+                    captures = (((pu.get("payments") or {}).get("captures")) or [])
+                    cap = next((c for c in captures if c.get("status") == "COMPLETED"), None)
+                    if not cap:
+                        logger.error("No COMPLETED capture in capture response for order %s", order_id)
+                        return Response({"error": "Capture not completed"}, status=400)
+                    amount = Decimal(cap["amount"]["value"]).quantize(Decimal("0.01"), ROUND_HALF_UP)
+                    currency = cap["amount"]["currency_code"]
+                else:
+                    logger.error("Unexpected capture response (no purchase_units)")
+                    return Response({"error": "Bad capture response"}, status=400)
+            except Exception as e:
+                logger.exception("Failed to capture PayPal order %s: %s", order_id, e)
+                return Response({"error": "Capture failed"}, status=500)
+
+        # sanity
+        if not all([order_id, session_key, amount, currency]):
+            logger.error("Incomplete PayPal data: order_id=%s, session_key=%s, amount=%s, currency=%s",
+                         order_id, session_key, amount, currency)
+            return Response({"error": "Incomplete data"}, status=400)
+
+        # создаём заказы и Payment (или выходим при идемпотентности)
+        orders = self._create_orders(order_id=order_id, session_key=session_key,
+                                     amount=amount, currency=currency)
         if orders is None:
             return Response({"error": "Order creation failed"}, status=500)
-
-        # если список пуст — это идемпотентный повтор
         return Response({"status": f"{len(orders)} order(s) created successfully"}, status=200)
 
 

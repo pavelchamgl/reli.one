@@ -43,3 +43,4 @@ class PayPalSessionOutputSerializer(serializers.Serializer):
     approval_url = serializers.CharField()
     order_id = serializers.CharField()
     session_key = serializers.CharField()
+    session_id = serializers.CharField()
