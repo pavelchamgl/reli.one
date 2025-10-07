@@ -143,14 +143,19 @@ const CategoryPage = () => {
             </div>
           )}
         </div>
-        <div className={styles.paginationDiv}>
-          <Pagination
-            shape="rounded"
-            count={Math.ceil(count / 35)} // Использование Math.ceil для округления вверх
-            page={page}
-            onChange={handleChange}
-          />
-        </div>
+        {
+          productsData && productsData.length > 0 ?
+            <div className={styles.paginationDiv}>
+              <Pagination
+                shape="rounded"
+                count={Math.ceil(count / 35)} // Использование Math.ceil для округления вверх
+                page={page}
+                onChange={handleChange}
+              />
+            </div>
+            : null
+
+        }
       </Container >
     </>
   );
