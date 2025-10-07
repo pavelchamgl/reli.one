@@ -81,19 +81,15 @@ const PaymentContentBlock = ({ section, setSection }) => {
 
   useEffect(() => {
     if (phone && country) {
-      if (phoneInteracted.current) {
-        const isValid = isValidPhone(phone, country);
-        setPhoneValid(isValid);
-      }
+      const isValid = isValidPhone(phone, country);
+      setPhoneValid(isValid);
     }
   }, [phone, country]);
 
   useEffect(() => {
     if (zip && country) {
-      if (zipInteracted.current) {
-        const isValid = isValidZipCode(country, zip);
-        setZipValid(isValid);
-      }
+      const isValid = isValidZipCode(country, zip);
+      setZipValid(isValid);
     }
   }, [zip, country]);
 

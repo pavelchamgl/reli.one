@@ -33,7 +33,6 @@ const PinInpPassForm = () => {
   }, [time]);
 
   const email = JSON.parse(localStorage.getItem("email"));
-  const passwords = JSON.parse(localStorage.getItem("passwords"));
 
   const handleSubmit = () => {
     emailPassConfirm({

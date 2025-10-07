@@ -716,10 +716,11 @@
     },
     "style": "Style",
     "iAgreeToTerms": {
-        "agreeToThe": "I agree to the",
-        "terms": "Terms and Conditions",
+        "agreeToThe": "I accept the",
+        "terms": "Terms of Service",
         "and": "and",
-        "privacy": "Privacy Policy (GDPR)"
+        "privacy": "Data Protection Policy (GDPR),",
+        "otherText":"and consent to the processing of my personal data as described therein"
     },
     "_generalProtection": "",
     "generalProtectionTitle": "General Data Protection Regulations Compliance",
