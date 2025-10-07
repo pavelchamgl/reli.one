@@ -22,7 +22,7 @@ export function isValidPhone(phone, countryCode) {
 export function isValidZipCode(country, zip) {
 
     
-    const normalized = zip.replace(/\s/g, "");
+    const normalized = zip?.replace(/\s/g, "");
     if (country === "cz") {
         return czZipcodes[country]?.includes(normalized) ?? false;
     }
