@@ -4,20 +4,27 @@ import { useTranslation } from "react-i18next";
 import styles from "../styles/PaymentEnd.module.scss";
 import { useEffect } from "react";
 import { useActions } from "../hook/useAction";
+import { useLocation } from "react-router-dom"
+import { getDataFromSessionId } from "../api/payment";
 
 const PaymentEnd = () => {
   const navigate = useNavigate();
 
   const { t } = useTranslation();
 
+  const { search } = useLocation()
+
+  const params = new URLSearchParams(search);
+  const sessionId = params.get("session_id");
+
   const { paymentEndBasket, clearBasket } = useActions();
 
-  const basket = JSON.parse(localStorage.getItem("basket")) || [];
-  const baskets = JSON.parse(localStorage.getItem("baskets")) || [];
+  const basket = JSON.parse(localStorage.getItem("basket") || "[]");
+  const baskets = JSON.parse(localStorage.getItem("baskets") || "[]");
   const localEmail = localStorage.getItem("email");
 
   const otherBaskets = baskets.filter(
-    (item) => item.email !== JSON.parse(localEmail)
+    (item) => item.email !== localEmail
   );
 
   useEffect(() => {
@@ -28,7 +35,7 @@ const PaymentEnd = () => {
 
     localStorage.removeItem("selectedProducts");
     localStorage.removeItem("basketTotal")
-    localStorage.setItem("basket", JSON.stringify(newBasket));
+    // localStorage.setItem("basket", JSON.stringify(newBasket));
     localStorage.setItem(
       "baskets",
       JSON.stringify([
@@ -42,6 +49,10 @@ const PaymentEnd = () => {
     paymentEndBasket();
     clearBasket()
   }, []);
+
+  useEffect(() => {
+    getDataFromSessionId(sessionId)
+  }, [sessionId])
 
   return (
     <div className={styles.main}>

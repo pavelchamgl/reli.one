@@ -145,7 +145,8 @@ const PaymentPlataBlock = ({ section, setSection }) => {
             {t("iAgreeToTerms.agreeToThe")}{" "}
             <a href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">{t("iAgreeToTerms.terms")}</a>{" "}
             {t("iAgreeToTerms.and")}{" "}
-            <a href="/general-protection">{t("iAgreeToTerms.privacy")}</a>
+            <a href="/general-protection">{t("iAgreeToTerms.privacy")}</a>{" "}
+            {t("iAgreeToTerms.otherText")}
           </span>
 
         </label>

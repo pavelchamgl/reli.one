@@ -890,9 +890,10 @@
     "style": "Oblékání",
     "iAgreeToTerms": {
         "agreeToThe": "Souhlasím s",
-        "terms": "Obchodními podmínkami",
+        "terms": "Podmínkami služby",
         "and": "a",
-        "privacy": "Zásadami ochrany osobních údajů (GDPR)"
+        "privacy": "Zásadami ochrany svých osobních údajů (GDPR)",
+        "otherText": "a dávám souhlas se zpracováním svých osobních údajů"
     },
     "_generalProtection": "",
     "generalProtectionTitle": "Dodržování obecných předpisů o ochraně osobních údajů",

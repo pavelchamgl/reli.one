@@ -33,8 +33,10 @@ const BasketTotalBlock = ({ section = null }) => {
   });
 
   const deliveryPrice = Array.isArray(groups)
-    ? groups.reduce((sum, item) => sum + (item?.deliveryPrice || 0), 0)
+    ? groups.reduce((sum, item) => sum + Number(item?.deliveryPrice || 0), 0)
     : 0;
+
+
 
   const isBasketPage = pathname === "/basket" || pathname === "/mob_basket";
   const isPaymentPage = pathname === "/payment" && section >= 2;
@@ -45,6 +47,10 @@ const BasketTotalBlock = ({ section = null }) => {
 
   const normalizedFinalPrice = Math.abs(finalPrice) < 0.005 ? 0 : finalPrice;
 
+  useEffect(() => {
+    console.log(deliveryPrice);
+
+  }, [deliveryPrice])
 
   useEffect(() => {
     if (isMobile && isPaymentPage) {
@@ -87,14 +93,14 @@ const BasketTotalBlock = ({ section = null }) => {
         <div className={styles.textDiv}>
           <div className={styles.priceDiv}>
             <span>{t("subtotal")}:</span>
-            <p>{totalPrice.toFixed(2)} €</p>
+            <p>{totalPrice?.toFixed(2)} €</p>
           </div>
 
           <div className={styles.calculateDiv}>
             <span>{t("transportation")}</span>
             <span>
               {isPaymentPage
-                ? `${deliveryPrice.toFixed(2)} €`
+                ? `${deliveryPrice ? deliveryPrice?.toFixed(2) : 0} €`
                 : t("transportation_calculate_text")}
             </span>
           </div>
@@ -104,7 +110,7 @@ const BasketTotalBlock = ({ section = null }) => {
           <p>{t("total")}</p>
           <div>
             <span>EUR</span>
-            <strong>{normalizedFinalPrice.toFixed(2)} €</strong>
+            <strong>{normalizedFinalPrice?.toFixed(2)} €</strong>
           </div>
         </div>
 

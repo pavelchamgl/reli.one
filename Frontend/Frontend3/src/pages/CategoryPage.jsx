@@ -86,42 +86,52 @@ const CategoryPage = () => {
 
   return (
     <>
-      <div className={styles.titleDiv}>
-        <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryValue })}</p>
-      </div>
 
       <Container>
-        {isMobile && (
-          <MobFilter
-            setOrderingState={setOrderingState}
-            setOrdering={setOrdering}
-            handleFilter={setFilter}
-            filter={filter}
-            setMax={setMax}
-            setMin={setMin}
-            products={products}
-          />
-        )}
-        <div className={styles.filterDiv}>
-          {!isMobile && (
-            <div style={{ display: "flex", gap: "10px" }}>
-              <FilterByPopularity
-                setOrderingState={setOrderingState}
-                setOrdering={setOrdering}
-              />
-              <FilterByPrice
-                handleFilter={setFilter}
-                filter={filter}
-                setMax={setMax}
-                setMin={setMin}
-                products={products}
-              />
-            </div>
-          )}
-        </div>
-        <div className={styles.breadHide}>
-          <CustomBreadcrumbs />
-        </div>
+        {
+          productsData && productsData.length > 0 ?
+            <>
+              <div className={styles.titleDiv}>
+                <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryValue })}</p>
+              </div>
+              {
+                isMobile && (
+                  <MobFilter
+                    setOrderingState={setOrderingState}
+                    setOrdering={setOrdering}
+                    handleFilter={setFilter}
+                    filter={filter}
+                    setMax={setMax}
+                    setMin={setMin}
+                    products={products}
+                  />
+                )
+              }
+
+              < div className={styles.filterDiv}>
+                {!isMobile && (
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <FilterByPopularity
+                      setOrderingState={setOrderingState}
+                      setOrdering={setOrdering}
+                    />
+                    <FilterByPrice
+                      handleFilter={setFilter}
+                      filter={filter}
+                      setMax={setMax}
+                      setMin={setMin}
+                      products={products}
+                    />
+                  </div>
+                )}
+              </div>
+              <div className={styles.breadHide}>
+                <CustomBreadcrumbs />
+              </div>
+            </>
+            : null
+        }
+
         <div className={styles.likedProdWrap}>
           {productsData && productsData.length > 0 ? (
             productsData.map((item) => (
@@ -141,7 +151,7 @@ const CategoryPage = () => {
             onChange={handleChange}
           />
         </div>
-      </Container>
+      </Container >
     </>
   );
 };

@@ -30,7 +30,7 @@ const PaymentDeliverySuplier = ({ group, index }) => {
             country: country
         }
         postCalculateDelivery(obj)
-    }, [])
+    }, [country])
 
     useEffect(() => {
         if (

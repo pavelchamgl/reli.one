@@ -49,11 +49,28 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
     const obj = {
       deliveryType: selectedValue,
       sellerId,
-      deliveryPrice: selectedValue === "courier" ? DHPrice?.priceWithVat : pointPrice?.priceWithVat
+      deliveryPrice:
+        selectedValue === "courier"
+          ? selectedProviderCourier === "gls"
+            ? glsDHPrice?.priceWithVat
+            : paketaDHPrice?.priceWithVat
+          : selectedProviderPoint === "gls"
+            ? glsPointPrice?.priceWithVat
+            : paketaPointPrice?.priceWithVat
     }
 
     setDeliveryType(obj)
-  }, [selectedValue])
+  }, [
+    selectedValue,
+    sellerId,
+    selectedProviderCourier,
+    selectedProviderPoint,
+    glsDHPrice,
+    paketaDHPrice,
+    glsPointPrice,
+    paketaPointPrice
+  ])
+
 
   useEffect(() => {
     if (!group?.couriers) return;
@@ -84,8 +101,8 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
       console.log(pudo);
 
 
-      if (pudo) setGlsPointPrice(pudo.priceWithVat);
-      if (hd) setGlsDHPrice(hd.priceWithVat);
+      if (pudo) setGlsPointPrice(pudo);
+      if (hd) setGlsDHPrice(hd);
     } else if (gls?.error) {
       console.error("GLS error:", gls.error);
       setGlsPointPrice(null);
@@ -160,7 +177,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     value="delivery_point"
                     control={<Radio color="success"
                       disabled={!paketaPointPrice}
-                    // checked={selectedProviderPoint === "packeta"} 
+                      checked={selectedProviderPoint === "packeta"}
                     />}
                     label={<img src={paketa} alt="Packeta" />}
                   />
@@ -184,7 +201,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   <FormControlLabel
                     value="delivery_point"
                     control={<Radio color="success"
-                    // checked={selectedProviderPoint === "gls"}
+                      checked={selectedProviderPoint === "gls"}
                     />}
                     disabled={!glsPointPrice}
                     label={<img src={gls} alt="GLS" />}
@@ -228,7 +245,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   if (!paketaDHPrice) return
                   setSelectedValue("courier");
                   setSelectedProviderCourier("packeta");
-                  setPaketaOpen(!paketaOpen);
+                  // setPaketaOpen(!paketaOpen);
                   setOpenDH(false)
                 }}
               >
@@ -237,7 +254,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     value="courier"
                     control={<Radio color="success"
                       disabled={!paketaDHPrice}
-                    // checked={selectedProviderCourier === "packeta"} 
+                      checked={selectedProviderCourier === "packeta"}
                     />}
                     label={<img src={paketa} alt="Packeta" />}
                   />
@@ -252,8 +269,8 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   if (!glsDHPrice) return
                   setSelectedValue("courier");
                   setSelectedProviderCourier("gls");
-                  setGlsOpen(true);
-                  if (window.findGlsPs) window.findGlsPs();
+                  // setGlsOpen(true);
+                  // if (window.findGlsPs) window.findGlsPs();
                   setOpenPoint(false);
                 }}
               >
@@ -262,7 +279,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     value="courier"
                     disabled={!glsDHPrice}
                     control={<Radio color="success"
-                    // checked={selectedProviderCourier === "gls"} 
+                      checked={selectedProviderCourier === "gls"}
                     />}
                     label={<img src={gls} alt="GLS" />}
                   />
