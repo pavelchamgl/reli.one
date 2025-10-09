@@ -19,6 +19,7 @@ import CountrySelect from "../CountrySelect/CountrySelect";
 import { useSelector } from "react-redux";
 import { isValidPhone, isValidZipCode } from "../../../code/validation/validationPayment";
 import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
+import PaymentZipAndPhoneInp from "../../../ui/payment/PaymentZipAndPhoneInp/PaymentZipAndPhoneInp";
 
 const PaymentContentBlock = ({ section, setSection }) => {
   const navigate = useNavigate();
@@ -167,7 +168,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
             onBlur={formik.handleBlur}
             err={formik.errors.street}
           />
-          <PaymentInp
+          <PaymentZipAndPhoneInp
             title={isMobile ? t("postal_code") : `${t("postal_code")} ${t("zip_code")}`}
             name="zip"
             value={zip}
@@ -204,7 +205,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
         </div>
 
 
-        <PaymentInp
+        <PaymentZipAndPhoneInp
           title={t("pay_phone")}
           name="phone"
           value={phone}

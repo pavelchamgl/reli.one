@@ -1,0 +1,65 @@
+input,
+textarea {
+  cursor: text;
+  caret-color: black;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 133px;
+  gap: 3px;
+  span {
+    font-weight: 400;
+    font-size: 14px;
+    color: #828b8d;
+  }
+  input {
+    background: #fff;
+    border: 1px solid #ced4d7;
+    height: 46px;
+    outline: none;
+    padding-left: 14px;
+    font-weight: 400;
+    font-size: 14px;
+    color: #787778;
+    cursor: text;
+  }
+}
+
+.main:hover {
+  cursor: text;
+  caret-color: black;
+}
+.mainErr {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  span {
+    font-weight: 400;
+    font-size: 14px;
+    color: #828b8d;
+  }
+  input {
+    background: #fff;
+    border: 1px solid #ff0000;
+    height: 46px;
+    outline: none;
+    padding-left: 14px;
+    font-weight: 400;
+    font-size: 14px;
+    color: #ff0000;
+    cursor: text;
+  }
+}
+.mainErr:hover {
+  cursor: text;
+  caret-color: black;
+}
+
+.errText {
+  font-weight: 300;
+  font-size: 14px;
+  color: #dc2626;
+}
