@@ -63,7 +63,17 @@ const BasketCard = ({ all, section, productData }) => {
 
 
   const handleDelete = () => {
-    dispatch(deleteFromBasket({ sku: productData.sku }));
+    if (section === "payment") {
+      dispatch(
+        selectProduct({
+          sku: productData.sku,
+          selected: false
+        })
+      )
+    } else {
+      dispatch(deleteFromBasket({ sku: productData.sku }));
+    }
+
   };
 
   useEffect(() => {

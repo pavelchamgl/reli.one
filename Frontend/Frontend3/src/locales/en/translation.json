@@ -689,7 +689,28 @@
         "cz": "Czech Republic",
         "sk": "Slovakia",
         "ro": "Romania",
-        "hu": "Hungary"
+        "hu": "Hungary",
+        "pl": "Poland",
+        "at": "Austria",
+        "de": "Germany",
+        "si": "Slovenia",
+        "hr": "Croatia",
+        "be": "Belgium",
+        "dk": "Denmark",
+        "nl": "Netherlands",
+        "lu": "Luxembourg",
+        "ee": "Estonia",
+        "lt": "Lithuania",
+        "lv": "Latvia",
+        "bg": "Bulgaria",
+        "fr": "France",
+        "it": "Italy",
+        "es": "Spain",
+        "fi": "Finland",
+        "se": "Sweden",
+        "gr": "Greece",
+        "pt": "Portugal",
+        "ie": "Ireland"
     },
     "selectCountry": "Please select a country",
     "categories": {
@@ -720,7 +741,7 @@
         "terms": "Terms of Service",
         "and": "and",
         "privacy": "Data Protection Policy (GDPR),",
-        "otherText":"and consent to the processing of my personal data as described therein"
+        "otherText": "and consent to the processing of my personal data as described therein"
     },
     "_generalProtection": "",
     "generalProtectionTitle": "General Data Protection Regulations Compliance",

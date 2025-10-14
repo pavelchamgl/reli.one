@@ -40,6 +40,34 @@
   display: none;
 }
 
+.selectBtnsShow {
+  display: block;
+  height: 200px;
+  overflow-y: scroll;
+
+  /* Делаем скроллбар уже */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #ccc transparent; /* Цвет ползунка и фона */
+}
+
+/* Chrome, Edge, Safari */
+.selectBtnsShow::-webkit-scrollbar {
+  width: 6px; /* ширина скроллбара */
+}
+
+.selectBtnsShow::-webkit-scrollbar-track {
+  background: transparent; /* фон дорожки */
+}
+
+.selectBtnsShow::-webkit-scrollbar-thumb {
+  background-color: #bfbfbf; /* цвет ползунка */
+  border-radius: 6px;
+}
+
+.selectBtnsShow::-webkit-scrollbar-button {
+  display: none; /* скрываем стрелки */
+}
+
 .main {
   display: flex;
   flex-direction: column;

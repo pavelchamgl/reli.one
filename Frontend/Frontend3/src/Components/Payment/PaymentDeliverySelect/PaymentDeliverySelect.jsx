@@ -16,6 +16,7 @@ import { useSelector } from "react-redux";
 import { useActionPayment } from "../../../hook/useActionPayment.js";
 import { t } from "i18next";
 import GlsWidget from "../GplsWidget/GplsWidget.jsx";
+import TestGls from "../GplsWidget/TestGls.jsx";
 
 const PaymentDeliverySelect = ({ sellerId, group }) => {
   const [selectedValue, setSelectedValue] = useState(""); // группа (delivery_point / courier)
@@ -98,7 +99,6 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
       const pudo = gls.options.find(item => item.channel === "PUDO");
       const hd = gls.options.find(item => item.channel === "HD");
 
-      console.log(pudo);
 
 
       if (pudo) setGlsPointPrice(pudo);
@@ -193,8 +193,6 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   setSelectedValue("delivery_point");
                   setSelectedProviderPoint("gls");
                   setGlsOpen(true);
-                  if (window.findGlsPs) window.findGlsPs();
-                  setOpenPoint(false);
                 }}
               >
                 <div className={styles.radioImageDiv}>
@@ -295,10 +293,9 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
           open={glsOpen}
           setOpen={setGlsOpen}
           setIsNotChoose={setIsNotChoosePoint}
-          onSelect={(point) => {
-            console.log(point);
-          }}
+
         />
+        {/* <TestGls /> */}
         <PacketaWidget setIsNotChoose={setIsNotChoosePoint} sellerId={sellerId} open={paketaOpen} setOpen={setPaketaOpen} />
       </div>
     );
