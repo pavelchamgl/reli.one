@@ -4,11 +4,8 @@ import { useSelector } from "react-redux";
 
 const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
     const [selectedPoint, setSelectedPoint] = useState(null);
-
-    const { setPointInfo } = useActionPayment()
-
-    const payment = useSelector(state => state.payment)
-
+    const { setPointInfo } = useActionPayment();
+    const payment = useSelector(state => state.payment);
 
     useEffect(() => {
         // Загружаем скрипт виджета один раз при монтировании
@@ -18,11 +15,20 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
         document.body.appendChild(script);
     }, []);
 
-    const hasChosenPointRef = useRef(false); // вне функции
+    const hasChosenPointRef = useRef(false);
+
+    const allowedCountries = ["cz", "sk", "ro", "hu"]; // ISO коды стран
 
     const handleOpenWidget = () => {
         if (!window?.Packeta?.Widget) {
             console.warn("Виджет ещё не загружен");
+            return;
+        }
+
+        // Проверяем, входит ли выбранная страна в список разрешённых
+        const currentCountry = payment?.country?.toLowerCase();
+        if (!allowedCountries.includes(currentCountry)) {
+            setOpen(false);
             return;
         }
 
@@ -32,8 +38,8 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
             valueFormat: '"Packeta",id,carrierId,carrierPickupPointId,name,city,street',
             view: "modal",
             vendors: [
-                { country: payment?.country },
-                { country: payment?.country, group: "zbox" },
+                { country: currentCountry },
+                { country: currentCountry, group: "zbox" },
             ],
             onClose: () => {
                 if (!hasChosenPointRef.current) {
@@ -68,7 +74,6 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
 
         window.Packeta.Widget.pick(packetaApiKey, showSelectedPickupPoint, packetaOptions);
     };
-    const isFirstRender = useRef(true);
 
     useEffect(() => {
         if (open) {
@@ -78,14 +83,7 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
 
     return (
         <div>
-            {selectedPoint && (
-                <></>
-                // <div className="mt-2 p-4 border rounded">
-                //     <p><strong>{selectedPoint.name}</strong></p>
-                //     <p>{selectedPoint.street}, {selectedPoint.city}</p>
-                //     <p>Код пункта: <strong>{selectedPoint.id}</strong></p>
-                // </div>
-            )}
+            {selectedPoint && <></>}
         </div>
     );
 };

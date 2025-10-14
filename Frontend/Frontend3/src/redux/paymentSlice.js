@@ -16,6 +16,7 @@ export const fetchCreateStripeSession = createAsyncThunk(
 
 
             const newGroups = groups.map((item) => {
+
                 if (item.deliveryType === "delivery_point") {
                     return {
                         seller_id: item.seller_id,
@@ -92,6 +93,8 @@ export const fetchCreatePayPalSession = createAsyncThunk(
             const { email, name, surename, phone, street, city, zip } = paymentInfo;
 
             const newGroups = groups.map((item) => {
+                console.log(item);
+
                 if (item.deliveryType === "delivery_point") {
                     return {
                         seller_id: item.seller_id,

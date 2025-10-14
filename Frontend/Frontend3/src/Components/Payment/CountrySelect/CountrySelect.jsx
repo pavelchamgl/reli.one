@@ -25,7 +25,29 @@ const CountrySelect = () => {
     { text: t("countries.sk"), code: "sk" },
     { text: t("countries.ro"), code: "ro" },
     { text: t("countries.hu"), code: "hu" },
+    { text: t("countries.pl"), code: "pl" },
+    { text: t("countries.at"), code: "at" },
+    { text: t("countries.de"), code: "de" },
+    { text: t("countries.si"), code: "si" },
+    { text: t("countries.hr"), code: "hr" },
+    { text: t("countries.be"), code: "be" },
+    { text: t("countries.dk"), code: "dk" },
+    { text: t("countries.nl"), code: "nl" },
+    { text: t("countries.lu"), code: "lu" },
+    { text: t("countries.ee"), code: "ee" },
+    { text: t("countries.lt"), code: "lt" },
+    { text: t("countries.lv"), code: "lv" },
+    { text: t("countries.bg"), code: "bg" },
+    { text: t("countries.fr"), code: "fr" },
+    { text: t("countries.it"), code: "it" },
+    { text: t("countries.es"), code: "es" },
+    { text: t("countries.fi"), code: "fi" },
+    { text: t("countries.se"), code: "se" },
+    { text: t("countries.gr"), code: "gr" },
+    { text: t("countries.pt"), code: "pt" },
+    { text: t("countries.ie"), code: "ie" }
   ];
+
 
   // Устанавливаем выбранную страну при первом рендере
   useEffect(() => {
@@ -70,7 +92,7 @@ const CountrySelect = () => {
         {selectedCountry && <p>{selectedCountry}</p>}
         <img src={openSelect ? arrBottom : arrRight} alt="" />
       </button>
-      <div className={!openSelect ? styles.selectBtnsHide : ""}>
+      <div className={!openSelect ? styles.selectBtnsHide : styles.selectBtnsShow}>
         {countries.map((item) => (
           <button
             onClick={() => handleClick(item.code)}

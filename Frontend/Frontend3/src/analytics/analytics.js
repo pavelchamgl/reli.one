@@ -1,10 +1,9 @@
-export const trackPurchase = (orderId, value, items) => {
+export const trackPurchase = (orderId, value, currency) => {
     if (typeof window.gtag === "function") {
         window.gtag("event", "purchase", {
             transaction_id: orderId,
             value: value,
-            currency: "EUR",
-            items: items,
+            currency: currency,
         });
     }
 };
