@@ -341,6 +341,37 @@ GLS_TOLL_PER_KG_EXPORT = Decimal("3.00")
 GLS_PUDO_EXPORT_DISCOUNT_CZK = Decimal("27")  # скидка к HD базе
 
 
+# ========= DPD: базовые флаги/URLs =========
+DPD_ENABLED = os.getenv("DPD_ENABLED", "true").lower() == "true"
+DPD_API_BASE = os.getenv("DPD_API_BASE")
+
+# ========= DPD: авторизация/идентификаторы =========
+DPD_TOKEN = os.getenv("DPD_TOKEN", "")
+DPD_CUSTOMER_ID = os.getenv("DPD_CUSTOMER_ID", "")
+DPD_SENDER_ADDRESS_ID = os.getenv("DPD_SENDER_ADDRESS_ID", "")
+DPD_BU_CODE = os.getenv("DPD_BU_CODE", "015")  # CZ
+
+# ========= DPD: печать ярлыков =========
+DPD_PRINT_FORMAT = os.getenv("DPD_PRINT_FORMAT", "PDF")   # "PDF" | "ZPL"
+DPD_LABEL_SIZE = os.getenv("DPD_LABEL_SIZE", "A6")        # "A4" | "A6"
+DPD_LABEL_DIR = os.getenv("DPD_LABEL_DIR", "dpd_labels")  # подпапка в MEDIA_ROOT
+DPD_LABEL_START_POSITION = int(os.getenv("DPD_LABEL_START_POSITION", "1"))  # A4 1..4
+
+# ========= DPD: сеть / ретраи =========
+DPD_TIMEOUT_CONNECT = int(os.getenv("DPD_TIMEOUT_CONNECT", "5"))
+DPD_TIMEOUT_READ = int(os.getenv("DPD_TIMEOUT_READ", "30"))
+DPD_RETRIES = int(os.getenv("DPD_RETRIES", "3"))
+
+# ========= DPD: доп. опции =========
+DPD_SHIP_SAVE_MODE = os.getenv("DPD_SHIP_SAVE_MODE", "draft")
+DPD_PHONE_DEFAULT_PREFIX = os.getenv("DPD_PHONE_DEFAULT_PREFIX", "420")
+DPD_INTERNAL_PICKUP_ADDRESS_ID = os.getenv("DPD_INTERNAL_PICKUP_ADDRESS_ID", "")
+DPD_COD_CURRENCY = os.getenv("DPD_COD_CURRENCY", "EUR")
+
+# Гарантируем наличие папки для ярлыков
+os.makedirs(os.path.join(MEDIA_ROOT, DPD_LABEL_DIR), exist_ok=True)
+
+
 # Простейший in-memory кэш для дев-окружения
 CACHES = {
     "default": {
