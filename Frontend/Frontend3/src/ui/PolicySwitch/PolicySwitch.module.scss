@@ -1,0 +1,44 @@
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 24px;
+
+  input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #bfbfbf; // серый в выключенном состоянии
+    border-radius: 34px;
+    transition: 0.3s;
+
+    &::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      top: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+  }
+
+  input:checked + .slider {
+    background-color: #007a58; // зелёный при включении
+  }
+
+  input:checked + .slider::before {
+    transform: translateX(18px);
+  }
+}

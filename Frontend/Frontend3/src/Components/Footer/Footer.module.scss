@@ -1,3 +1,5 @@
+
+
 .Foooter_Container {
   background-color: black;
   padding: 100px 30px;
@@ -20,6 +22,20 @@
 
 .Navigate_Container {
   padding-top: 10px;
+  display: flex;
+  width: 100%;
+  max-width: 769px;
+  justify-content: space-between;
+  margin-inline: 30px;
+
+  ul,
+  li {
+    list-style: none;
+  }
+
+  li {
+    margin-bottom: 20px;
+  }
 }
 
 .logo_container {
@@ -60,7 +76,6 @@
   line-height: 131%;
   letter-spacing: -0.02em;
   text-decoration: none;
-  padding: 0 30px 30px 30px !important;
   font-weight: 500;
   font-size: 16px;
 }
@@ -72,7 +87,6 @@
   line-height: 131%;
   letter-spacing: -0.02em;
   text-decoration: none;
-  padding: 0 30px 30px 30px !important;
   font-weight: 500;
   font-size: 16px;
   background-color: transparent;
@@ -108,16 +122,18 @@
   color: #b1b1b1;
 }
 
-@media (max-width: 1300px) {
+@media (max-width: 970px) {
   .Inner_Container {
     flex-direction: column;
     align-items: center;
   }
-
   .Navigate_Container {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: none;
     padding: 40px 20px;
     text-align: center;
   }

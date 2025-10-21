@@ -13,6 +13,7 @@ import linkedinIcon from "../../assets/Footer/linkedin.svg"
 import LoginModal from "../LoginModal/LoginModal";
 
 import cls from "./Footer.module.scss";
+import PolicySettingsModal from "../../ui/PolicySettingsModal/PolicySettingsModal";
 
 
 const MessengerBtns = () => {
@@ -45,6 +46,7 @@ const MessengerBtns = () => {
 const Footer = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const [open, setOpen] = useState(false);
+  const [openPolicy, setOpenPolicy] = useState(false)
 
   const { t, i18n } = useTranslation();
 
@@ -69,15 +71,19 @@ const Footer = () => {
           <Link to={"/for_buy"} className={cls.mobileLink} href="#">
             {t("for_buyers")}
           </Link>
+          <button onClick={() => {
+            setOpenPolicy(!openPolicy)
+            console.log(openPolicy);
+
+          }} style={{ backgroundColor: "transparent" }} className={cls.mobileLink} >
+            {t("privacySettings")}
+          </button>
           <Link to={"/general-protection"} className={cls.mobileLink} href="#">
-            Privacy policy
+            {t("privacyPolicy")}
           </Link>
           <a className={cls.mobileLink} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
             Terms
           </a>
-          <Link to={"/delete-my-data"} className={cls.mobileLink} href="#">
-            Delete my data
-          </Link>
           <a className={cls.mobileLink} href="https://info.reli.one">
             {t("about_company")}
           </a>
@@ -93,6 +99,8 @@ const Footer = () => {
         <div className={cls.mobBottomWrap}>
           <p className={cls.mobBottomDesc}>(c) Copyright 2025 Reli Group</p>
         </div>
+        <PolicySettingsModal open={openPolicy} handleClose={() => setOpenPolicy(false)} />
+
       </div>
     );
   } else {
@@ -103,38 +111,68 @@ const Footer = () => {
             <img src={logo} />
           </div>
           <nav className={cls.Navigate_Container}>
-            <button className={cls.btnNavigate} onClick={() => setOpen(!open)}>
-              {t("enter_account")}
-            </button>
-            <Link className={cls.LinkNavigate} to={"/my_orders"}>
-              {t("footer_order")}
-            </Link>
-            <Link className={cls.LinkNavigate} to={"/liked"}>
-              {t("choice")}
-            </Link>
-            {token && (
-              <Link to={"/basket"} className={cls.LinkNavigate}>
-                {t("bin")}
-              </Link>
-            )}
-            <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
-              {t("for_seller")}
-            </Link>
-            <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
-              {t("for_buyers")}
-            </Link>
-            <Link to={"/general-protection"} className={cls.LinkNavigate} href="#">
-              Privacy policy
-            </Link>
-            <a className={cls.LinkNavigate} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
-              Terms
-            </a>
-            <Link to={"/delete-my-data"} className={cls.LinkNavigate} href="#">
-              Delete my data
-            </Link>
-            <Link className={cls.LinkNavigate} to="https://info.reli.one">
-              {t("about_company")}
-            </Link>
+            <ul>
+              <li>
+                <button className={cls.btnNavigate} onClick={() => setOpen(!open)}>
+                  {t("enter_account")}
+                </button>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <Link className={cls.LinkNavigate} to={"/my_orders"}>
+                  {t("footer_order")}
+                </Link>
+              </li>
+              <li>
+                <Link className={cls.LinkNavigate} to={"/liked"}>
+                  {t("choice")}
+                </Link>
+              </li>
+              <li>
+                {token && (
+                  <Link to={"/basket"} className={cls.LinkNavigate}>
+                    {t("bin")}
+                  </Link>
+                )}
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
+                  {t("for_seller")}
+                </Link>
+              </li>
+              <li>
+                <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
+                  {t("for_buyers")}
+                </Link>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <button onClick={() => setOpenPolicy(true)} className={cls.btnNavigate} href="#">
+                  {t("privacySettings")}
+                </button>
+              </li>
+              <li>
+                <Link to={"/general-protection"} className={cls.LinkNavigate} href="#">
+                  {t("privacyPolicy")}
+                </Link>
+              </li>
+              <li>
+                <a className={cls.LinkNavigate} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
+                  Terms
+                </a>
+              </li>
+            </ul>
+            <ul>
+              <li>
+                <Link className={cls.LinkNavigate} to="https://info.reli.one">
+                  {t("about_company")}
+                </Link>
+              </li>
+            </ul>
           </nav>
           <div className={cls.Info_Container}>
             <h1>Reli Group s.r.o.</h1>
@@ -150,6 +188,7 @@ const Footer = () => {
           <p className={cls.bottomDesc}>(c) Copyright 2025 Reli Group</p>
         </div>
         <LoginModal open={open} handleClose={() => setOpen(false)} />
+        <PolicySettingsModal open={openPolicy} handleClose={() => setOpenPolicy(false)} />
       </div>
     );
   }

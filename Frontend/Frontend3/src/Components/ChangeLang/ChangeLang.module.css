@@ -113,6 +113,11 @@
     background-color: #e0e0e0;
 }
 
+.langOption:disabled {
+    background-color: #e0e0e0c0;
+
+}
+
 .langInfo {
     display: flex;
     align-items: center;

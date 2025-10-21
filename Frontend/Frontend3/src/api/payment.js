@@ -57,6 +57,8 @@ axiosRetry(apiRetry, {
     },
 })
 
+const cookieSave = localStorage.getItem("cookieSave")
+
 export const getDataFromSessionId = async (id, retries = 3, delay = 500) => {
     for (let attempt = 0; attempt < retries; attempt++) {
         try {
@@ -65,16 +67,27 @@ export const getDataFromSessionId = async (id, retries = 3, delay = 500) => {
             if (res.data?.ready) {
                 console.log(res.data);
                 const data = res.data
-                trackPurchase(data.transaction_id, data.value, data.currency)
+                if (JSON.parse(cookieSave)) {
+                    trackPurchase(data.transaction_id, data.value, data.currency)
+                }
                 return res.data; // готово — возвращаем
             } else {
                 console.log(`Попытка ${attempt + 1}: данные еще не готовы, ждем ${delay}ms...`);
                 await new Promise(r => setTimeout(r, delay)); // polling delay
             }
         } catch (error) {
-            console.log(error);
-            // axiosRetry автоматически сработает при сетевых или 5xx ошибках
+            if (error.response) {
+                // Сервер ответил, но с ошибкой (4xx, 5xx)
+                console.error(`Ошибка сервера: ${error.response.status}`, error.response.data);
+            } else if (error.request) {
+                // Запрос был отправлен, но ответа не было
+                console.error('Нет ответа от сервера', error.request);
+            } else {
+                // Ошибка при формировании запроса или что-то другое
+                console.error('Ошибка при настройке запроса', error.message);
+            }
         }
+
     }
 
     throw new Error("Данные не стали ready за отведенное количество попыток");

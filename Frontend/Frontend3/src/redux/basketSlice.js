@@ -13,6 +13,8 @@ const initialState = {
     searchTerm: ""
 };
 
+const cookieSave = localStorage.getItem("cookieSave")
+
 const basketSlice = createSlice({
     name: "basket",
     initialState,
@@ -23,7 +25,9 @@ const basketSlice = createSlice({
                 if (state.basket.every((item) => item.sku !== action.payload.sku)) {
                     state.basket.push(action.payload);
                 }
-                trackAddToCart(action.payload?.product)
+                if (JSON.parse(cookieSave)) {
+                    trackAddToCart(action.payload?.product)
+                }
             } else {
                 ErrToast("There should be no more than 55 items in the basket");
             }
