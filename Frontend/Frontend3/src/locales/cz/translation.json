@@ -910,11 +910,11 @@
     },
     "style": "Oblékání",
     "iAgreeToTerms": {
-        "agreeToThe": "Souhlasím s",
-        "terms": "Podmínkami služby",
+        "agreeToThe": "Potvrzuji, že jsem si pečlivě přečetl/a a plně porozuměl/a",
+        "terms": "Podmínkám služby",
         "and": "a",
-        "privacy": "Zásadami ochrany svých osobních údajů (GDPR)",
-        "otherText": "a dávám souhlas se zpracováním svých osobních údajů"
+        "privacy": "Zásadám ochrany osobních údajů (GDPR),",
+        "otherText": "a souhlasím s nimi"
     },
     "_generalProtection": "",
     "generalProtectionTitle": "Dodržování obecných předpisů o ochraně osobních údajů",
@@ -1001,5 +1001,21 @@
                 "otherText": "GDPR: "
             }
         }
-    }
+    },
+    "cookieAndPrivacy": "_________________",
+    "cookiesTitle": "Používáme soubory cookie a podobné technologie",
+    "cookiesDesc": "Náš web používá nezbytné soubory cookie pro umožnění funkce nákupního košíku, registrace a plateb. Můžeme také ukládat vaše předvolby (například zvolený jazyk nebo motiv) a shromažďovat analytické údaje za účelem zlepšení webu a měření jeho výkonnosti.",
+    "privacySettings": "Nastavení ochrany osobních údajů",
+    "privacyPolicy": "Zásady ochrany osobních údajů",
+    "privacySettingsDesc": "Můžete si vybrat, které kategorie souborů cookie a technologií můžeme používat. Svou volbu můžete kdykoli změnit prostřednictvím odkazu „Nastavení ochrany osobních údajů“ v dolní části webu.",
+    "strictlyNecessary": "Nezbytné (vždy povoleno)",
+    "strictlyNecessaryDesc": "Nezbytné pro fungování webu: přihlášení, nákupní košík, zpracování objednávek a zabezpečení. Bez těchto funkcí by web nefungoval správně.",
+    "preferences": "Předvolby",
+    "preferencesDesc": "Pomáhají zapamatovat si vaše nastavení, například jazyk rozhraní, motiv nebo vybrané produkty, aby web vypadal a fungoval podle vašich preferencí.",
+    "analytics": "Analýza a měření výkonnosti",
+    "analyticsDesc": "Umožňují nám pochopit, jak je web používán, které stránky jsou oblíbené, a vyhodnotit účinnost reklamních kampaní prostřednictvím služeb Google.",
+    "rejectAll": "Odmítnout vše",
+    "acceptAll": "Přijmout vše",
+    "saveChoices": "Uložit výběr",
+    "customize": "Přizpůsobit"
 }

@@ -14,6 +14,7 @@ import { deselectAllProducts, syncBasket } from "../redux/basketSlice";
 import { useActionPayment } from "../hook/useActionPayment";
 import { useDispatch, useSelector } from "react-redux";
 import ScrollToTop from "../Components/ScrollToTop/ScrollToTop";
+import CookieModal from "../ui/CookieModal/CookieModal";
 
 const HomePage = () => {
   const isMobile = useMediaQuery({ maxWidth: 950 });
@@ -21,6 +22,9 @@ const HomePage = () => {
   const { pathname } = useLocation();
 
   const [isSeller, setIsSeller] = useState(false);
+  const [openCookie, setOpenCookie] = useState(false)
+
+  const cookieSave = localStorage.getItem("cookieSave")
 
   useEffect(() => {
     if (pathname.includes("seller")) {
@@ -58,6 +62,12 @@ const HomePage = () => {
     }
   }, [location]);
 
+  useEffect(() => {
+    if (!cookieSave) {
+      setOpenCookie(true)
+    }
+  }, [])
+
 
   return (
     <div className={styles.main}>
@@ -69,6 +79,7 @@ const HomePage = () => {
       </div>
       {!isSeller && <Footer />}
       <ToastContainer />
+      <CookieModal open={openCookie} handleClose={() => setOpenCookie(false)} />
     </div>
   );
 };
