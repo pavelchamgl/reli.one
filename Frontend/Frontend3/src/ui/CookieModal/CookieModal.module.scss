@@ -43,7 +43,7 @@
 }
 
 .title {
-  font-weight: 500;
+  font-weight: 600;
   font-size: clamp(20px, 5vw, 26px);
   line-height: 90%;
   color: #333;
@@ -55,7 +55,13 @@
   font-size: clamp(14px, 5vw, 16px);
   line-height: 150%;
   color: #333;
-  margin-bottom: clamp(23px, 5vw, 27px);
+}
+
+.descWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: clamp(20px, 5vw, 27px);
 }
 
 .btnsDiv {

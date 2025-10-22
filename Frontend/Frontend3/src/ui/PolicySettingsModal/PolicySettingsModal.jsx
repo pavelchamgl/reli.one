@@ -16,7 +16,7 @@ const TextBlock = ({ title, desc }) => {
     )
 }
 
-const PolicySettingsModal = ({ open, handleClose }) => {
+const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
     const dialogRef = useRef(null);
 
     const isMobile = useMediaQuery({ maxWidth: 500 })
@@ -46,7 +46,6 @@ const PolicySettingsModal = ({ open, handleClose }) => {
     const handleDialogClick = (e) => {
         // Проверяем, был ли клик на самом элементе <dialog>
         if (e.target === dialogRef.current) {
-            handleClose();
 
         }
     };
@@ -54,9 +53,11 @@ const PolicySettingsModal = ({ open, handleClose }) => {
     const handleAccept = () => {
         localStorage.setItem("preferences", JSON.stringify(true))
         localStorage.setItem("cookieSave", JSON.stringify(true))
+        localStorage.setItem("i18nextLng", "en")
         setSaveAnalytics(true)
         setSavePreferenses(true)
         handleClose()
+        parrentHandleClose()
         setTimeout(() => {
             window.location.reload()
         }, 1000)
@@ -65,9 +66,11 @@ const PolicySettingsModal = ({ open, handleClose }) => {
     const handleReject = () => {
         localStorage.setItem("preferences", JSON.stringify(false))
         localStorage.setItem("cookieSave", JSON.stringify(false))
+        localStorage.removeItem("i18nextLng")
         setSaveAnalytics(false)
         setSavePreferenses(false)
         handleClose()
+        parrentHandleClose()
         setTimeout(() => {
             window.location.reload()
         }, 1000)
@@ -82,11 +85,14 @@ const PolicySettingsModal = ({ open, handleClose }) => {
 
         if (savePreferenses) {
             localStorage.setItem("preferences", JSON.stringify(true))
+            localStorage.setItem("i18nextLng", "en")
         } else {
             localStorage.setItem("preferences", JSON.stringify(false))
+            localStorage.removeItem("i18nextLng")
         }
 
         handleClose()
+        parrentHandleClose()
         setTimeout(() => {
             window.location.reload()
         }, 1000)
@@ -134,13 +140,13 @@ const PolicySettingsModal = ({ open, handleClose }) => {
                             <button onClick={() => handleReject()}>{t("rejectAll")}</button>
                             <button onClick={() => handleAccept()}>{t("acceptAll")}</button>
                         </div>
-                        <button className={styles.customMobile} onClick={() => handleSave()}>Save</button>
+                        <button className={styles.customMobile} onClick={() => handleSave()}>{t("saveChoices")}</button>
                     </div>
                     :
                     <div className={styles.btnsDiv}>
                         <button onClick={() => handleReject()}>{t("rejectAll")}</button>
-                        <button onClick={() => handleSave()}>Save</button>
                         <button onClick={() => handleAccept()}>{t("acceptAll")}</button>
+                        <button onClick={() => handleSave()}>{t("saveChoices")}</button>
                     </div>
                 }
             </div>

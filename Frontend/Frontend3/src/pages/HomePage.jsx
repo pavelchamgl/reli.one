@@ -66,6 +66,7 @@ const HomePage = () => {
     if (!cookieSave) {
       setOpenCookie(true)
     }
+    localStorage.setItem("preferences", JSON.stringify(true))
   }, [])
 
 

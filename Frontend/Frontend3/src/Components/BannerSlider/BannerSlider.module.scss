@@ -14,12 +14,25 @@
 
 .swiper {
   width: calc(100% - 265px) !important;
-  height: 460px !important;
+  height: 460px;
+
+  @media (max-width: 1260px) {
+    height: 400px !important;
+  }
+
+  @media (max-width: 1150px) {
+    height: 350px !important;
+  }
 
   @media (max-width: 955px) {
-    width: 950px !important; // фикс ширина
-    height: 370px !important;
+    width: 780px !important;
+    height: 350px !important;
   }
+
+  // @media (max-width: 955px) {
+  //   width: 950px !important; // фикс ширина
+  //   height: 370px !important;
+  // }
 
   @media (max-width: 500px) {
     width: calc(100% - 20px) !important;
@@ -42,17 +55,71 @@
   width: 100% !important;
 }
 
+.swiperSlide img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100%;
+  object-fit: contain !important;
+
+  @media (max-width: 500px) {
+    width: 100% !important;
+    height: 220px !important;
+    object-fit: cover !important;
+  }
+
+  @media (max-width: 401px) {
+    object-fit: contain !important;
+    height: 300px !important;
+  }
+}
+
+.mobSwiper {
+  width: 100% !important;
+}
+
+// .bannerImg {
+//   width: 100% !important;
+//   height: 400px !important;
+//   object-fit: cover;
+//   aspect-ratio: 1230 / 400; // сохраняем пропорции
+//   @media (max-width: 955px) {
+//     width: 780px !important;
+//     height: 300px !important;
+//   }
+//   @media (max-width: 500px) {
+//     width: 100% !important;
+//     height: 210px !important;
+//   }
+//   @media (max-width: 401px) {
+//     object-fit: contain;
+//     height: 190px !important;
+//   }
+//   @media (max-width: 361px) {
+//     object-fit: contain;
+//     height: 150px !important;
+//   }
+//   @media (min-width: 1550px) {
+//     object-fit: cover;
+//     height: auto !important;
+//     padding-top: 30px;
+//     padding-bottom: 40px;
+//   }
+// }
+
 .bannerImg {
   width: 100% !important;
   height: 400px !important;
-  object-fit: cover;
-  @media (max-width: 955px) {
-    width: 780px !important;
-    height: 300px !important;
-  }
+  aspect-ratio: 1230 / 400 !important; // сохраняем пропорции оригинала
+
+  object-fit: contain; // вся картинка видна, без обрезки
+  object-position: center;
+  display: block;
+
   @media (max-width: 500px) {
     width: 100% !important;
     height: 210px !important;
+    aspect-ratio: auto !important; /* ❌ выключаем аспект */
+    object-fit: cover !important;
   }
   @media (max-width: 401px) {
     object-fit: contain;
@@ -68,28 +135,57 @@
     padding-top: 30px;
     padding-bottom: 40px;
   }
+
+  // // добавим плавную подстройку под разные экраны
+  // @media (max-width: 955px) {
+  //   aspect-ratio: 16 / 9; // более "высокое" соотношение для мобильных
+  // }
+
+  // @media (max-width: 600px) {
+  //   aspect-ratio: 4 / 3;
+  // }
 }
 
 .bannerVideo {
-  width: 100%;
-  height: 400px !important;
-  object-fit: cover;
-  // width: 100% !important;
+  // width: 100%;
   // height: 400px !important;
-  // object-fit: contain;
-  @media (max-width: 955px) {
-    width: 780px !important;
-    height: 300px !important;
-  }
+  // object-fit: cover;
+  // // width: 100% !important;
+  // // height: 400px !important;
+  // // object-fit: contain;
+  // @media (max-width: 955px) {
+  //   width: 780px !important;
+  //   height: 300px !important;
+  // }
+  // @media (max-width: 500px) {
+  //   width: 100% !important;
+  //   height: 210px !important;
+  // }
+  // @media (min-width: 1550px) {
+  //   object-fit: cover;
+  //   height: auto !important;
+  //   padding-top: 30px;
+  //   padding-bottom: 40px;
+  // }
+
+  width: 100% !important;
+  aspect-ratio: 1230 / 400 !important; // сохраняем пропорции оригинала
+
+  object-fit: contain; // вся картинка видна, без обрезки
+  object-position: center;
+  display: block;
+
   @media (max-width: 500px) {
     width: 100% !important;
     height: 210px !important;
-  }
-  @media (min-width: 1550px) {
+    aspect-ratio: auto !important; /* ❌ выключаем аспект */
     object-fit: cover;
-    height: auto !important;
-    padding-top: 30px;
-    padding-bottom: 40px;
+  }
+  @media (max-width: 365px) {
+    width: 100% !important;
+    height: 160px !important;
+    aspect-ratio: auto !important; /* ❌ выключаем аспект */
+    object-fit: cover;
   }
 }
 
@@ -152,6 +248,12 @@
 
 .videoWrapper {
   position: relative;
+  width: 100% !important;
+  aspect-ratio: 1230 / 400 !important; // сохраняем пропорции оригинала
+
+  object-fit: contain; // вся картинка видна, без обрезки
+  object-position: center;
+  display: block;
 
   .bannerVideo {
     width: 100%;
@@ -172,6 +274,7 @@
     }
     @media (max-width: 500px) {
       left: 15px;
+      bottom: 10px;
     }
 
     button {

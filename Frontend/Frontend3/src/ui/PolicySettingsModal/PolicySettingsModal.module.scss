@@ -77,8 +77,9 @@
   }
 
   & button:nth-child(2) {
-    border: 1px solid #64748b;
-    color: #64748b;
+    border: 1px solid #047857;
+
+    color: #047857;
   }
 
   & button:last-child {
@@ -120,8 +121,7 @@
   & button:nth-child(2) {
     min-width: 132px;
     border: 1px solid #047857;
-    color: white;
-    background-color: #047857;
+    color: #047857;
   }
 }
 
@@ -138,9 +138,8 @@
 .customMobile {
   @include button;
   width: 100% !important;
-  border: 1px solid #64748b !important;
-  color: #64748b !important;
-  background-color: transparent !important;
+  color: #ffffff !important;
+  background-color: #047857 !important;
 }
 
 .closeBtn {
