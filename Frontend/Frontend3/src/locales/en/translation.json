@@ -831,7 +831,10 @@
     },
     "cookieAndPrivacy": "_________________",
     "cookiesTitle": "We use cookies and similar technologies",
-    "cookiesDesc": "Our website uses strictly necessary cookies to enable shopping cart, registration, and payment functionality. We may also store your preferences (such as selected language or theme) and collect analytics to improve the website and measure its performance.",
+    "cookiesDesc": {
+        "first": "Our website uses strictly necessary cookies to enable shopping cart, registration, and payment functionality.",
+        "second": "We may also store your preferences (such as selected language or theme) and collect analytics to improve the website and measure its performance."
+    },
     "privacySettings": "Privacy Settings",
     "privacyPolicy": "Privacy Policy",
     "privacySettingsDesc": "You can choose which categories of cookies and technologies we may use. You can change your choice at any time via the “Privacy Settings” link at the bottom of the site.",
@@ -844,5 +847,5 @@
     "rejectAll": "Reject All",
     "acceptAll": "Accept All",
     "saveChoices": "Save Choices",
-    "customize":"Customize"
+    "customize": "Customize"
 }

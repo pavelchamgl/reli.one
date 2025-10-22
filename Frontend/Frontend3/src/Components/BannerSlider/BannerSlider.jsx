@@ -228,7 +228,7 @@ const BannerSlider = () => {
             }}
           >
             {images.map((item, index) => (
-              <SwiperSlide key={index} className={styles.swiperSlide}>
+              <SwiperSlide key={index} className={isMobile ? styles.mobSwiper : styles.swiperSlide}>
                 {isImage(item?.image_url) ? (
                   // ? настроил переход на страницу и отображение другой картинки на мобилке
                   <Link to={`/products-seller/${item?.seller_id}`}>

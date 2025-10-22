@@ -1004,7 +1004,10 @@
     },
     "cookieAndPrivacy": "_________________",
     "cookiesTitle": "Používáme soubory cookie a podobné technologie",
-    "cookiesDesc": "Náš web používá nezbytné soubory cookie pro umožnění funkce nákupního košíku, registrace a plateb. Můžeme také ukládat vaše předvolby (například zvolený jazyk nebo motiv) a shromažďovat analytické údaje za účelem zlepšení webu a měření jeho výkonnosti.",
+    "cookiesDesc": {
+        "first": "Náš web používá nezbytné soubory cookie, které umožňují funkce nákupního košíku, registrace a plateb.",
+        "second": "Můžeme také ukládat vaše předvolby (například zvolený jazyk nebo motiv) a shromažďovat analytická data za účelem zlepšení webu a měření jeho výkonu."
+    },
     "privacySettings": "Nastavení ochrany osobních údajů",
     "privacyPolicy": "Zásady ochrany osobních údajů",
     "privacySettingsDesc": "Můžete si vybrat, které kategorie souborů cookie a technologií můžeme používat. Svou volbu můžete kdykoli změnit prostřednictvím odkazu „Nastavení ochrany osobních údajů“ v dolní části webu.",

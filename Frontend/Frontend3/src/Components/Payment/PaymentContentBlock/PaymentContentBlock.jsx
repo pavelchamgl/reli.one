@@ -20,6 +20,7 @@ import { useSelector } from "react-redux";
 import { isValidPhone, isValidZipCode } from "../../../code/validation/validationPayment";
 import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
 import PaymentZipAndPhoneInp from "../../../ui/payment/PaymentZipAndPhoneInp/PaymentZipAndPhoneInp";
+import PaymentPhoneInp from "../../../ui/payment/PaymentPhoneInp/PaymentPhoneInp";
 
 const PaymentContentBlock = ({ section, setSection }) => {
   const navigate = useNavigate();
@@ -204,8 +205,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
           />
         </div>
 
-
-        <PaymentZipAndPhoneInp
+        <PaymentPhoneInp
           title={t("pay_phone")}
           name="phone"
           value={phone}
@@ -216,6 +216,7 @@ const PaymentContentBlock = ({ section, setSection }) => {
           onBlur={formik.handleBlur}
           err={phoneInteracted.current && !phoneValid ? "Please enter a valid phone number." : formik.errors.phone}
           fontNum={true}
+          formik={formik}
         />
         <label className={styles.checkDiv}>
           <Checkbox />
