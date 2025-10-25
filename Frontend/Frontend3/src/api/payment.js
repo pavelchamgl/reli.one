@@ -67,7 +67,7 @@ export const getDataFromSessionId = async (id, retries = 3, delay = 500) => {
             if (res.data?.ready) {
                 console.log(res.data);
                 const data = res.data
-                if (JSON.parse(cookieSave)) {
+                if (cookieSave && JSON.parse(cookieSave)) {
                     trackPurchase(data.transaction_id, data.value, data.currency)
                 }
                 return res.data; // готово — возвращаем
