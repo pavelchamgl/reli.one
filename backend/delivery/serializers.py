@@ -78,11 +78,12 @@ class CourierBlockSerializer(serializers.Serializer):
 class CouriersSerializer(serializers.Serializer):
     zasilkovna = CourierBlockSerializer()
     gls = CourierBlockSerializer()
+    dpd = CourierBlockSerializer()
 
 
 class CombinedShippingOptionsResponseSerializer(serializers.Serializer):
     """
-    Итоговый ответ: два блока (zasilkovna и gls) + немного метаданных.
+    Итоговый ответ: zasilkovna, gls и dpd + немного метаданных.
     """
     couriers = CouriersSerializer()
     meta = serializers.DictField(help_text="Служебные данные (страна, валюта и т.п.)")
