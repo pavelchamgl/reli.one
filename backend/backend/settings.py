@@ -393,11 +393,11 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
+            'format': '{levelname} {asctime} [{name}] {module} {message}',
             'style': '{',
         },
         'simple': {
-            'format': '{levelname} {message}',
+            'format': '{levelname} [{name}] {message}',
             'style': '{',
         },
     },
@@ -456,6 +456,16 @@ LOGGING = {
             'encoding': 'utf-8',
             'delay': True,
         },
+        'currency_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'currency.log'),
+            'formatter': 'verbose',
+            'maxBytes': int(2.5 * 1024 * 1024),
+            'backupCount': 5,
+            'encoding': 'utf-8',
+            'delay': True,
+        },
     },
     'loggers': {
         'django.db.backends': {
@@ -508,5 +518,16 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
+        'delivery.services.currency_converter': {
+            'handlers': ['currency_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'delivery.services.cnb_service': {
+            'handlers': ['currency_file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+
     },
 }
