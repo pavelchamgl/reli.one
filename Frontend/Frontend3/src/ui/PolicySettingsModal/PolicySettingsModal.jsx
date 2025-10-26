@@ -51,26 +51,38 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
     };
 
     const handleAccept = () => {
+
+        window.reliConsentAccept?.();
+
         localStorage.setItem("preferences", JSON.stringify(true))
         localStorage.setItem("cookieSave", JSON.stringify(true))
+
         localStorage.setItem("i18nextLng", "en")
+
         setSaveAnalytics(true)
         setSavePreferenses(true)
+
         handleClose()
-        parrentHandleClose()
+        parrentHandleClose?.()
         setTimeout(() => {
             window.location.reload()
         }, 1000)
     }
 
     const handleReject = () => {
+        window.reliConsentReject?.();
+
+
         localStorage.setItem("preferences", JSON.stringify(false))
         localStorage.setItem("cookieSave", JSON.stringify(false))
+
+
         localStorage.removeItem("i18nextLng")
+
         setSaveAnalytics(false)
         setSavePreferenses(false)
         handleClose()
-        parrentHandleClose()
+        parrentHandleClose?.()
         setTimeout(() => {
             window.location.reload()
         }, 1000)
@@ -91,8 +103,14 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
             localStorage.removeItem("i18nextLng")
         }
 
+        window.reliConsentCustom?.({
+            analytics: saveAnalytics,            // ← из твоего состояния
+            ads: false,                          // у тебя, видимо, рекламы нет
+            personalization: savePreferenses     // ← из твоего состояния
+        });
+
         handleClose()
-        parrentHandleClose()
+        parrentHandleClose?.()
         setTimeout(() => {
             window.location.reload()
         }, 1000)

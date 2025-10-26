@@ -7,36 +7,132 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reli</title>
 
-  <!-- ? скрипты для аналитики -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D2YFDWVX4X"></script>
+  <!-- =========================================================
+       Consent Mode v2 + хранение выбора (ДОЛЖНО быть ДО GTM)
+       ========================================================= -->
   <script>
+    // --- helpers для 1P-cookie ---
+    function setCookie(name, value, days) {
+      const maxAge = days ? "; max-age=" + (days * 24 * 60 * 60) : "";
+      // SameSite=Lax, path=/; domain не ставим явно, чтобы избежать проблем в dev/поддоменах
+      document.cookie = name + "=" + encodeURIComponent(value) + maxAge + "; path=/; SameSite=Lax";
+    }
+    function getCookie(name) {
+      const m = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+      return m ? decodeURIComponent(m[2]) : null;
+    }
+
+    // --- dataLayer / gtag shim (GTM это поймет) ---
     window.dataLayer = window.dataLayer || [];
     function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-D2YFDWVX4X');
+
+    // --- Consent defaults (до выбора пользователя) ---
+    gtag('consent', 'default', {
+      ad_storage: 'denied',
+      analytics_storage: 'denied',
+      functionality_storage: 'granted',
+      personalization_storage: 'denied',
+      security_storage: 'granted',
+      // v2-поля (рекомендовано указывать явно)
+      ad_user_data: 'denied',
+      ad_personalization: 'denied'
+    });
+
+    // --- Применяем ранее сохранённый выбор до загрузки GTM ---
+    const CONSENT_COOKIE = 'reli_consent_v2';
+    try {
+      const saved = getCookie(CONSENT_COOKIE);
+      if (saved) {
+        const c = JSON.parse(saved);
+        gtag('consent', 'update', {
+          ad_storage: c.ad_storage,
+          analytics_storage: c.analytics_storage,
+          ad_user_data: c.ad_user_data,
+          ad_personalization: c.ad_personalization
+        });
+      }
+    } catch (_) { }
+
+    // --- Функции, которые должен вызывать ваш баннер cookies ---
+    // Принять все категории (реклама + аналитика + v2)
+    window.reliConsentAccept = function () {
+      const state = {
+        ad_storage: 'granted',
+        analytics_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        ts: Date.now(),
+        policy_version: '2025-10-22'
+      };
+      gtag('consent', 'update', {
+        ad_storage: state.ad_storage,
+        analytics_storage: state.analytics_storage,
+        ad_user_data: state.ad_user_data,
+        ad_personalization: state.ad_personalization
+      });
+      setCookie(CONSENT_COOKIE, JSON.stringify(state), 180);
+      try { localStorage.setItem(CONSENT_COOKIE, JSON.stringify(state)); } catch (_) { }
+    };
+
+    // Отклонить рекламные/аналитические категории
+    window.reliConsentReject = function () {
+      const state = {
+        ad_storage: 'denied',
+        analytics_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        ts: Date.now(),
+        policy_version: '2025-10-22'
+      };
+      gtag('consent', 'update', {
+        ad_storage: state.ad_storage,
+        analytics_storage: state.analytics_storage,
+        ad_user_data: state.ad_user_data,
+        ad_personalization: state.ad_personalization
+      });
+      setCookie(CONSENT_COOKIE, JSON.stringify(state), 180);
+      try { localStorage.setItem(CONSENT_COOKIE, JSON.stringify(state)); } catch (_) { }
+    };
+
+    // Частичный выбор (по кнопкам настроек)
+    // opts: { analytics: true/false, ads: true/false, personalization: true/false }
+    window.reliConsentCustom = function (opts) {
+      const state = {
+        ad_storage: opts && opts.ads ? 'granted' : 'denied',
+        analytics_storage: opts && opts.analytics ? 'granted' : 'denied',
+        ad_user_data: opts && opts.ads ? 'granted' : 'denied',
+        ad_personalization: opts && opts.personalization ? 'granted' : 'denied',
+        ts: Date.now(),
+        policy_version: '2025-10-22'
+      };
+      gtag('consent', 'update', {
+        ad_storage: state.ad_storage,
+        analytics_storage: state.analytics_storage,
+        ad_user_data: state.ad_user_data,
+        ad_personalization: state.ad_personalization
+      });
+      setCookie(CONSENT_COOKIE, JSON.stringify(state), 180);
+      try { localStorage.setItem(CONSENT_COOKIE, JSON.stringify(state)); } catch (_) { }
+    };
   </script>
 
-  <!-- Google Tag Manager -->
-  <script>(function (w, d, s, l, i) {
-      w[l] = w[l] || []; w[l].push({
-        'gtm.start':
-          new Date().getTime(), event: 'gtm.js'
-      }); var f = d.getElementsByTagName(s)[0],
-        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-    })(window, document, 'script', 'dataLayer', 'GTM-NNZ77M58');</script>
-
-  <!-- Google Ads Global Tag -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17579423844"></script>
+  <!-- ===========================================
+       Google Tag Manager — ЕДИНСТВЕННОЕ подключение
+       (GA4/Ads настраиваются внутри GTM)
+       =========================================== -->
   <script>
-    gtag('config', 'AW-17579423844');
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+      var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+      j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-NNZ77M58');
   </script>
 
-  <!-- ? мои скрипты -->
-
-
+  <!-- Прочие ваши внешние скрипты -->
   <script src="https://widget.packeta.com/v6/www/js/library.js"></script>
-
 </head>
 
 <body>

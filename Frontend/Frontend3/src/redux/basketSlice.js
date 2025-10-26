@@ -25,7 +25,7 @@ const basketSlice = createSlice({
                 if (state.basket.every((item) => item.sku !== action.payload.sku)) {
                     state.basket.push(action.payload);
                 }
-                if (JSON.parse(cookieSave)) {
+                if (cookieSave && JSON.parse(cookieSave)) {
                     trackAddToCart(action.payload?.product)
                 }
             } else {
