@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive"
+import { Dialog } from "@mui/material";
 
 import xIcon from "../../assets/loginModal/loginModalX.svg"
 
@@ -17,7 +18,6 @@ const TextBlock = ({ title, desc }) => {
 }
 
 const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
-    const dialogRef = useRef(null);
 
     const isMobile = useMediaQuery({ maxWidth: 500 })
 
@@ -32,23 +32,6 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
         preferences ? JSON.parse(preferences) : false
     )
 
-
-
-
-    useEffect(() => {
-        if (open) {
-            dialogRef.current?.showModal();
-        } else {
-            dialogRef.current?.close();
-        }
-    }, [open]);
-
-    const handleDialogClick = (e) => {
-        // Проверяем, был ли клик на самом элементе <dialog>
-        if (e.target === dialogRef.current) {
-
-        }
-    };
 
     const handleAccept = () => {
 
@@ -119,10 +102,22 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
 
 
     return (
-        <dialog
-            ref={dialogRef}
-            className={styles.modal}
-            onClick={handleDialogClick}
+        <Dialog
+            open={open}
+            onClose={(event, reason) => {
+                handleClose();
+            }}
+            maxWidth={"xl"}
+
+            PaperProps={{
+                sx: {
+                    width: "100%",
+                    maxWidth: { xs: "93%", sm: "500px" }, // ← адаптивная ширина
+                    margin: "0 auto",
+                },
+            }}
+
+
         >
             <div className={styles.content}>
                 <button onClick={handleClose} className={styles.closeBtn}>
@@ -168,7 +163,7 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
                     </div>
                 }
             </div>
-        </dialog >
+        </Dialog >
     );
 };
 

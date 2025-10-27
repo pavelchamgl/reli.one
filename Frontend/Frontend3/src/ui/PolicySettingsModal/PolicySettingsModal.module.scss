@@ -33,7 +33,7 @@
   position: relative;
   height: 100%;
 
-  padding-inline: 55px;
+  padding-inline: 35px;
   padding-block: 60px;
 
   @media (max-width: 426px) {
@@ -63,8 +63,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
+  // flex-wrap: wrap;
+  gap: 10px;
   width: 100%;
 
   & button {
@@ -157,12 +157,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 30px;
+  gap: 10px;
 
   & p {
     text-align: justify;
-    max-width: 464px;
-    // width: 100%;
+    // max-width: 464px;
+    width: calc(100% - 62px);
   }
   @media (max-width: 700px) {
     gap: 10px;
