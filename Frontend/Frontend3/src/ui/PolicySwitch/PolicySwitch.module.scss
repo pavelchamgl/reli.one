@@ -1,7 +1,7 @@
 .switch {
   position: relative;
-  display: inline-block;
-  width: 42px;
+  display: block;
+  width: 42px !important;
   height: 24px;
 
   input {
