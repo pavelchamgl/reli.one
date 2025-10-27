@@ -18,41 +18,37 @@ from .services.shipping_split import (
 from .services.local_rates import calculate_shipping_options as calc_packeta
 from .services.gls_split import split_items_into_parcels_gls as split_gls
 from .services.gls_rates import calculate_gls_shipping_options as calc_gls
+from .services.dpd_rates import (
+    calculate_order_shipping_dpd as calc_dpd_wrap,  # DPD wrapper: split + aggregate
+)
 
 logger = logging.getLogger(__name__)
 
 
 @extend_schema(
-    summary="Seller shipping estimate: Zásilkovna + GLS (PUDO/HD)",
+    summary="Seller shipping estimate: Zásilkovna + DPD + GLS (PUDO/HD)",
     description=(
-        "Computes preliminary shipping prices **for both couriers at once**: "
-        "**Zásilkovna** and **GLS**.\n\n"
+        "Returns a preliminary shipping estimate **across all couriers at once**: "
+        "**Zásilkovna**, **DPD**, and **GLS**.\n\n"
         "**What it does**\n"
-        "- Validates the request and verifies SKUs belong to the seller.\n"
-        "- Splits items into parcels via courier-specific logic.\n"
-        "- For each courier, calculates parcel prices (PUDO/HD) and returns "
-        "**aggregated** totals per channel across all parcels.\n\n"
+        "- Validates request and ensures all SKUs belong to the seller and ship from CZ.\n"
+        "- Splits items into parcels using courier-specific rules.\n"
+        "- For each courier, computes PUDO/HD prices and returns **aggregated totals per channel**.\n\n"
         "**Assumptions**\n"
-        "- Currency: **EUR**.\n"
-        "- COD: **disabled**.\n"
-        "- Same option shape for both couriers.\n"
-        "- If a courier fails (no rates/out of limits), its block contains an `error`.\n\n"
-        "**Response shape**\n"
-        "```\n"
-        "{\n"
-        "  \"couriers\": {\n"
-        "    \"zasilkovna\": { \"total_parcels\": N, \"options\": [ ... ] } | { \"error\": \"...\" },\n"
-        "    \"gls\":        { \"total_parcels\": N, \"options\": [ ... ] } | { \"error\": \"...\" }\n"
-        "  },\n"
-        "  \"meta\": { \"country\": \"RO\", \"currency\": \"EUR\" }\n"
-        "}\n"
-        "```"
+        "- Response currency: **EUR** (conversion from CZK is handled internally where needed).\n"
+        "- COD is **disabled** for this endpoint.\n"
+        "- Options follow the **same shape** for all couriers: `service`, `channel`, `price`, `priceWithVat`, `currency`, `estimate`, `courier`.\n"
+        "- If a courier cannot price (no rates / over the limits), its block contains `{ \"error\": \"...\" }`.\n\n"
+        "**DPD specifics**\n"
+        "- DPD uses its own weight/size limits (PUDO ≤ 20 kg; HD ≤ 31.5 kg) and volumetric weight via `SHIPMENT_VOLUME_FACTOR`.\n"
+        "- DPD calculation uses a wrapper that **splits and aggregates internally** for both channels and returns a summary including parcel counts.\n"
+        "- To keep the contract consistent with other couriers (single integer), DPD `total_parcels` is returned as `max(HD_count, PUDO_count)`."
     ),
     request=SellerShippingRequestSerializer,
     responses={
         200: OpenApiResponse(
             response=CombinedShippingOptionsResponseSerializer,
-            description="Aggregated PUDO/HD options for Zásilkovna and GLS",
+            description="Aggregated PUDO/HD options for Zásilkovna, DPD and GLS",
         ),
         400: OpenApiResponse(description="Validation error"),
         500: OpenApiResponse(description="Internal server error"),
@@ -60,8 +56,8 @@ logger = logging.getLogger(__name__)
     tags=["Delivery Calculation"],
     examples=[
         OpenApiExample(
-            name="Success (both couriers)",
-            summary="Both Zásilkovna and GLS returned aggregated PUDO/HD options",
+            name="Success (all couriers)",
+            summary="Zásilkovna, DPD, and GLS returned aggregated PUDO/HD options",
             value={
                 "couriers": {
                     "zasilkovna": {
@@ -84,6 +80,29 @@ logger = logging.getLogger(__name__)
                                 "currency": "EUR",
                                 "estimate": "",
                                 "courier": "Zásilkovna",
+                            },
+                        ],
+                    },
+                    "dpd": {
+                        "total_parcels": 1,  # max(PUDO, HD)
+                        "options": [
+                            {
+                                "service": "Pick-up point",
+                                "channel": "PUDO",
+                                "price": 3.70,
+                                "priceWithVat": 4.48,
+                                "currency": "EUR",
+                                "estimate": "",
+                                "courier": "DPD",
+                            },
+                            {
+                                "service": "Home Delivery",
+                                "channel": "HD",
+                                "price": 4.77,
+                                "priceWithVat": 5.77,
+                                "currency": "EUR",
+                                "estimate": "",
+                                "courier": "DPD",
                             },
                         ],
                     },
@@ -115,8 +134,8 @@ logger = logging.getLogger(__name__)
             },
         ),
         OpenApiExample(
-            name="Partial success (GLS error)",
-            summary="Zásilkovna priced, GLS failed (e.g., no rate for limits)",
+            name="Partial success (GLS failed)",
+            summary="Zásilkovna and DPD priced; GLS failed (e.g., no rate for limits)",
             value={
                 "couriers": {
                     "zasilkovna": {
@@ -142,6 +161,29 @@ logger = logging.getLogger(__name__)
                             },
                         ],
                     },
+                    "dpd": {
+                        "total_parcels": 1,
+                        "options": [
+                            {
+                                "service": "Pick-up point",
+                                "channel": "PUDO",
+                                "price": 3.70,
+                                "priceWithVat": 4.48,
+                                "currency": "EUR",
+                                "estimate": "",
+                                "courier": "DPD",
+                            },
+                            {
+                                "service": "Home Delivery",
+                                "channel": "HD",
+                                "price": 4.77,
+                                "priceWithVat": 5.77,
+                                "currency": "EUR",
+                                "estimate": "",
+                                "courier": "DPD",
+                            },
+                        ],
+                    },
                     "gls": {"error": "GLS: no rates found for given parameters"},
                 },
                 "meta": {"country": "RO", "currency": "EUR"},
@@ -153,25 +195,30 @@ class SellerShippingOptionsView(APIView):
     """
     POST /api/shipping-options/seller/
 
-    Returns two courier blocks under `couriers`: `zasilkovna` and `gls`.
-    Each block aggregates PUDO/HD prices across all auto-split parcels and
-    uses the same option structure so the frontend can render them uniformly.
+    Returns three blocks under `couriers`: `zasilkovna`, `dpd`, `gls`.
+    Each block uses the same shape: `total_parcels` (int) + `options` (PUDO/HD list).
     """
 
     def post(self, request):
-        # 1) Validate input (incl. that SKUs belong to the seller)
+        # 1) Validate input
         serializer = SellerShippingRequestSerializer(data=request.data)
         if not serializer.is_valid():
             logger.warning("Validation failed: %s", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
-        country = data["destination_country"]
+        country = data["destination_country"].upper()  # (1) country to UPPER once
         items = data["items"]
         currency = "EUR"
-        cod = False  # COD disabled; use bool for both calculators
+        cod = False  # can be turned on later via a flag if needed
+        seller_id = data.get("seller_id")  # (3) add seller_id to logs
 
-        # Lite-проверка: все товары должны отправляться с CZ-склада продавца
+        logger.info(
+            "SellerShippingOptions start seller_id=%s country=%s items=%s",
+            seller_id, country, items
+        )
+
+        # 2) Origin check: all items must ship from the seller's CZ default warehouse
         try:
             skus = [str(i["sku"]) for i in items]
             variants = (
@@ -180,6 +227,14 @@ class SellerShippingOptionsView(APIView):
                 .select_related("product__seller__default_warehouse")
             )
             vmap = {v.sku: v for v in variants}
+
+            # (4) explicit missing SKUs report
+            missing = [str(it["sku"]) for it in items if str(it["sku"]) not in vmap]
+            if missing:
+                return Response(
+                    {"items": [f"Unknown SKUs: {', '.join(missing)}"]},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
             not_cz = []
             for it in items:
@@ -193,7 +248,8 @@ class SellerShippingOptionsView(APIView):
                 return Response(
                     {
                         "origin": [
-                            f"Только отправка из Чехии. Продавец(ы) SKU {', '.join(not_cz)} не имеют чешского склада (default_warehouse.country != 'CZ')."
+                            "CZ origin only. These SKUs do not have a seller default CZ warehouse: "
+                            + ", ".join(not_cz)
                         ]
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -203,27 +259,47 @@ class SellerShippingOptionsView(APIView):
             return Response({"origin": [f"CZ check failed: {e}"]}, status=status.HTTP_400_BAD_REQUEST)
 
         payload = {
-            "couriers": {"zasilkovna": {}, "gls": {}},
+            "couriers": {"zasilkovna": {}, "dpd": {}, "gls": {}},
             "meta": {"country": country, "currency": currency},
         }
 
-        # 2) Zásilkovna: split -> per-parcel price -> aggregate per channel
+        # 3) Zásilkovna: split -> per-parcel -> aggregate
         try:
             packeta_parcels = split_packeta(country=country, items=items, cod=cod, currency=currency)
             packeta_per_parcel = [
-                calc_packeta(country=country, items=p, cod=cod, currency=currency) for p in packeta_parcels
+                calc_packeta(country=country, items=p, cod=cod, currency=currency)
+                for p in packeta_parcels
             ]
             payload["couriers"]["zasilkovna"] = combine_parcel_options(packeta_per_parcel)
         except Exception as e:
             logger.exception("Zásilkovna calculation failed: country=%s", country)
             payload["couriers"]["zasilkovna"] = {"error": str(e)}
 
-        # 3) GLS: split -> address_bundle -> per-parcel price -> aggregate
+        # 4) DPD: wrapper handles split & aggregation internally (PUDO + HD)
+        try:
+            dpd_summary = calc_dpd_wrap(
+                country=country, items=items, cod=cod, currency=currency, variant_map=vmap
+            )
+            totals = dpd_summary.get("total_parcels") or {}
+            total_parcels_unified = max(totals.values()) if totals else 0  # single int for UI
+            payload["couriers"]["dpd"] = {
+                "total_parcels": total_parcels_unified,
+                "options": dpd_summary.get("options", []),
+            }
+        except Exception as e:
+            logger.exception("DPD calculation failed: country=%s", country)
+            payload["couriers"]["dpd"] = {"error": str(e)}
+
+        # 5) GLS: split -> address_bundle -> per-parcel -> aggregate
         try:
             gls_parcels = split_gls(items)
             address_bundle = "multi" if len(gls_parcels) >= 2 else "one"
             gls_per_parcel = [
-                calc_gls(country=country, items=p, currency=currency, cod=False, address_bundle=address_bundle)
+                calc_gls(
+                    country=country, items=p, currency=currency,
+                    cod=cod,  # (2) pass cod through
+                    address_bundle=address_bundle
+                )
                 for p in gls_parcels
             ]
             payload["couriers"]["gls"] = combine_parcel_options(gls_per_parcel)
