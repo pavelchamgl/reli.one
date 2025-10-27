@@ -26,23 +26,23 @@ logger = logging.getLogger(__name__)
 
 
 @extend_schema(
-    summary="Seller shipping estimate: Zásilkovna + DPD + GLS (PUDO/HD)",
+    operation_id="seller_shipping_options",
+    summary="Seller shipping estimate (Zásilkovna, DPD, GLS)",
     description=(
-        "Returns a preliminary shipping estimate **across all couriers at once**: "
-        "**Zásilkovna**, **DPD**, and **GLS**.\n\n"
-        "**What it does**\n"
-        "- Validates request and ensures all SKUs belong to the seller and ship from CZ.\n"
-        "- Splits items into parcels using courier-specific rules.\n"
-        "- For each courier, computes PUDO/HD prices and returns **aggregated totals per channel**.\n\n"
-        "**Assumptions**\n"
-        "- Response currency: **EUR** (conversion from CZK is handled internally where needed).\n"
-        "- COD is **disabled** for this endpoint.\n"
-        "- Options follow the **same shape** for all couriers: `service`, `channel`, `price`, `priceWithVat`, `currency`, `estimate`, `courier`.\n"
-        "- If a courier cannot price (no rates / over the limits), its block contains `{ \"error\": \"...\" }`.\n\n"
-        "**DPD specifics**\n"
-        "- DPD uses its own weight/size limits (PUDO ≤ 20 kg; HD ≤ 31.5 kg) and volumetric weight via `SHIPMENT_VOLUME_FACTOR`.\n"
-        "- DPD calculation uses a wrapper that **splits and aggregates internally** for both channels and returns a summary including parcel counts.\n"
-        "- To keep the contract consistent with other couriers (single integer), DPD `total_parcels` is returned as `max(HD_count, PUDO_count)`."
+        "Returns a preliminary shipping estimate across Zásilkovna, DPD, and GLS.\n\n"
+        "What it does:\n"
+        "• Validates input and ensures all SKUs ship from the seller's CZ warehouse.\n"
+        "• Splits items into parcels with courier-specific rules.\n"
+        "• Computes PUDO/HD prices and returns aggregated totals per channel.\n\n"
+        "Assumptions:\n"
+        "• Currency: EUR (CZK→EUR conversion happens internally).\n"
+        "• COD is disabled.\n"
+        "• Each courier block contains: service, channel, price, priceWithVat, currency, estimate, courier.\n"
+        "• If pricing fails for a courier, that block has an 'error' field.\n\n"
+        "DPD specifics:\n"
+        "• Limits: PUDO ≤ 20 kg, HD ≤ 31.5 kg; volumetric weight uses SHIPMENT_VOLUME_FACTOR.\n"
+        "• DPD wrapper splits & aggregates internally and returns parcel counts per channel.\n"
+        "• To keep contract consistent (single integer), total_parcels is max of PUDO/HD counts."
     ),
     request=SellerShippingRequestSerializer,
     responses={
@@ -55,139 +55,74 @@ logger = logging.getLogger(__name__)
     },
     tags=["Delivery Calculation"],
     examples=[
+        # ---- Request example (ONLY request) ----
         OpenApiExample(
-            name="Success (all couriers)",
+            name="Request: simple",
+            summary="Minimal request payload",
+            value={
+                "seller_id": 7,
+                "destination_country": "CZ",
+                "items": [{"sku": "240819709", "quantity": 1}]
+            },
+            request_only=True,
+        ),
+
+        # ---- Response examples (ONLY responses) ----
+        OpenApiExample(
+            name="Response: all couriers OK",
             summary="Zásilkovna, DPD, and GLS returned aggregated PUDO/HD options",
             value={
                 "couriers": {
                     "zasilkovna": {
                         "total_parcels": 1,
                         "options": [
-                            {
-                                "service": "Pick-up point",
-                                "channel": "PUDO",
-                                "price": 4.31,
-                                "priceWithVat": 5.21,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "Zásilkovna",
-                            },
-                            {
-                                "service": "Home Delivery",
-                                "channel": "HD",
-                                "price": 5.90,
-                                "priceWithVat": 7.14,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "Zásilkovna",
-                            },
+                            {"service": "Pick-up point","channel": "PUDO","price": 4.31,"priceWithVat": 5.21,"currency": "EUR","estimate": "","courier": "Zásilkovna"},
+                            {"service": "Home Delivery","channel": "HD","price": 5.90,"priceWithVat": 7.14,"currency": "EUR","estimate": "","courier": "Zásilkovna"},
                         ],
                     },
                     "dpd": {
-                        "total_parcels": 1,  # max(PUDO, HD)
+                        "total_parcels": 1,
                         "options": [
-                            {
-                                "service": "Pick-up point",
-                                "channel": "PUDO",
-                                "price": 3.70,
-                                "priceWithVat": 4.48,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "DPD",
-                            },
-                            {
-                                "service": "Home Delivery",
-                                "channel": "HD",
-                                "price": 4.77,
-                                "priceWithVat": 5.77,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "DPD",
-                            },
+                            {"service": "Pick-up point","channel": "PUDO","price": 3.70,"priceWithVat": 4.48,"currency": "EUR","estimate": "","courier": "DPD"},
+                            {"service": "Home Delivery","channel": "HD","price": 4.77,"priceWithVat": 5.77,"currency": "EUR","estimate": "","courier": "DPD"},
                         ],
                     },
                     "gls": {
                         "total_parcels": 1,
                         "options": [
-                            {
-                                "service": "Pick-up point",
-                                "channel": "PUDO",
-                                "price": 5.35,
-                                "priceWithVat": 6.47,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "GLS",
-                            },
-                            {
-                                "service": "Home Delivery",
-                                "channel": "HD",
-                                "price": 6.46,
-                                "priceWithVat": 7.82,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "GLS",
-                            },
+                            {"service": "Pick-up point","channel": "PUDO","price": 5.35,"priceWithVat": 6.47,"currency": "EUR","estimate": "","courier": "GLS"},
+                            {"service": "Home Delivery","channel": "HD","price": 6.46,"priceWithVat": 7.82,"currency": "EUR","estimate": "","courier": "GLS"},
                         ],
                     },
                 },
-                "meta": {"country": "RO", "currency": "EUR"},
+                "meta": {"country": "CZ", "currency": "EUR"},
             },
+            response_only=True,
         ),
         OpenApiExample(
-            name="Partial success (GLS failed)",
-            summary="Zásilkovna and DPD priced; GLS failed (e.g., no rate for limits)",
+            name="Response: partial (GLS failed)",
+            summary="Zásilkovna and DPD priced; GLS failed (no rate for limits)",
             value={
                 "couriers": {
                     "zasilkovna": {
                         "total_parcels": 1,
                         "options": [
-                            {
-                                "service": "Pick-up point",
-                                "channel": "PUDO",
-                                "price": 4.31,
-                                "priceWithVat": 5.21,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "Zásilkovna",
-                            },
-                            {
-                                "service": "Home Delivery",
-                                "channel": "HD",
-                                "price": 5.90,
-                                "priceWithVat": 7.14,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "Zásilkovna",
-                            },
+                            {"service": "Pick-up point","channel": "PUDO","price": 4.31,"priceWithVat": 5.21,"currency": "EUR","estimate": "","courier": "Zásilkovna"},
+                            {"service": "Home Delivery","channel": "HD","price": 5.90,"priceWithVat": 7.14,"currency": "EUR","estimate": "","courier": "Zásilkovna"},
                         ],
                     },
                     "dpd": {
                         "total_parcels": 1,
                         "options": [
-                            {
-                                "service": "Pick-up point",
-                                "channel": "PUDO",
-                                "price": 3.70,
-                                "priceWithVat": 4.48,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "DPD",
-                            },
-                            {
-                                "service": "Home Delivery",
-                                "channel": "HD",
-                                "price": 4.77,
-                                "priceWithVat": 5.77,
-                                "currency": "EUR",
-                                "estimate": "",
-                                "courier": "DPD",
-                            },
+                            {"service": "Pick-up point","channel": "PUDO","price": 3.70,"priceWithVat": 4.48,"currency": "EUR","estimate": "","courier": "DPD"},
+                            {"service": "Home Delivery","channel": "HD","price": 4.77,"priceWithVat": 5.77,"currency": "EUR","estimate": "","courier": "DPD"},
                         ],
                     },
                     "gls": {"error": "GLS: no rates found for given parameters"},
                 },
-                "meta": {"country": "RO", "currency": "EUR"},
+                "meta": {"country": "CZ", "currency": "EUR"},
             },
+            response_only=True,
         ),
     ],
 )
