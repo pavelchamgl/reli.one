@@ -65,6 +65,7 @@ class ShippingRate(models.Model):
     WEIGHT_LIMITS = (
         ("1", "up to 1 kg"),
         ("2", "up to 2 kg"),
+        ("3", "up to 3 kg"),
         ("5", "up to 5 kg"),
         ("10", "up to 10 kg"),
         ("15", "up to 15 kg"),
