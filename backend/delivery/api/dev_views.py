@@ -255,11 +255,12 @@ class DevMyGLSAuthCheck(APIView):
 class DevShipDPD(APIView):
     """
     DEV endpoint:
-      - создаёт отправление (saveMode берётся из settings.DPD_SHIP_SAVE_MODE)
+      - создаёт отправление (saveMode из settings.DPD_SHIP_SAVE_MODE)
       - печатает ярлык (если printed) и сохраняет PDF в MEDIA_ROOT/DPD_LABEL_DIR
       - для draft возвращает shipment_id (для допечатки позже)
     """
     permission_classes = [AllowAny]
+    authentication_classes: List = []
 
     class Input(serializers.Serializer):
         # получатель
@@ -274,6 +275,8 @@ class DevShipDPD(APIView):
         zip = serializers.CharField(max_length=16)
         city = serializers.CharField(max_length=80)
         country = serializers.CharField(max_length=2)
+        house_no = serializers.CharField(required=False, allow_blank=True)
+
         # PUDO — обязателен для SHOP2SHOP
         pudo_id = serializers.CharField(required=False, allow_blank=True)
 
@@ -302,17 +305,28 @@ class DevShipDPD(APIView):
         inp.is_valid(raise_exception=True)
         d = inp.validated_data
 
-        # сервисные коды: main vs additional (важно для SHOP2SHOP / SHOP2HOME)
-        if d["service"] == "CLASSIC":
-            service_codes_main = ["001"]        # базовый продукт
-            service_codes_add  = []
-        elif d["service"] == "SHOP2HOME":
-            service_codes_main = ["001"]
-            service_codes_add  = ["013"]        # Private delivery (доп.-услуга)
-        else:  # SHOP2SHOP
-            service_codes_main = ["001"]
-            service_codes_add  = ["013", "200"] # Private + пункт выдачи (доп.-услуги)
+        # --- Главный продукт ВСЕГДА один: CLASSIC = "001"
+        main_codes = ["001"]
 
+        # --- additional_service согласно документации:
+        predicts: List[Dict[str, str]] = []
+        if d.get("email"):
+            predicts.append({"destination": d["email"], "type": "EMAIL"})
+        if d.get("phone"):
+            predicts.append({"destination": str(d["phone"]), "type": "SMS"})
+
+        additional_service: Optional[Dict[str, Any]] = None
+        if d["service"] == "CLASSIC":
+            main_codes = ["001"]
+            additional_service = None
+        elif d["service"] == "SHOP2HOME":
+            main_codes = ["001", "013", "610"]
+            additional_service = {"predicts": predicts}
+        else:  # SHOP2SHOP
+            main_codes = ["001", "013", "200", "610"]
+            additional_service = {"pudoId": d["pudo_id"], "predicts": predicts}
+
+        # --- адрес получателя (валидатор в билдере уберёт пустые контактные поля)
         receiver = build_receiver(
             name=d["name"],
             email=d.get("email"),
@@ -322,12 +336,13 @@ class DevShipDPD(APIView):
             city=d["city"],
             country_iso=d["country"],
             phone_prefix=d.get("phone_prefix"),
-            pudo_id=d.get("pudo_id"),
+            house_no=d.get("house_no"),
         )
 
-        parcel: dict = {"weight": float(d["weight_kg"])}
-        parcels: List[dict] = [parcel]
+        # --- одна посылка (минимальный кейс) ---
+        parcels: List[Dict[str, Any]] = [{"weight": float(d["weight_kg"])}]
 
+        # --- коллбэк сохранения PDF ---
         saved_path_fs: Optional[str] = None
         saved_url: Optional[str] = None
 
@@ -339,7 +354,7 @@ class DevShipDPD(APIView):
 
             out_dir = os.path.join(settings.MEDIA_ROOT, settings.DPD_LABEL_DIR)
             os.makedirs(out_dir, exist_ok=True)
-            # если номера нет (draft/печать по shipmentId) — используем generic имя
+
             fname = f"dpd_{(numbers or ['label'])[0]}.pdf"
             path_fs = os.path.join(out_dir, fname)
             with open(path_fs, "wb") as f:
@@ -349,39 +364,72 @@ class DevShipDPD(APIView):
             saved_path_fs = path_fs
             saved_url = (settings.MEDIA_URL.rstrip("/") + "/" + rel.lstrip("/")).replace("//", "/")
 
+        # --- вызов сервиса ---
         try:
             svc = DpdService()
             numbers = svc.create_and_print(
                 receiver=receiver,
                 parcels=parcels,
-                main_codes=service_codes_main,
-                additional_codes=service_codes_add,          # << важно
+                main_codes=main_codes,
+                additional_service=additional_service,
                 save_pdf_cb=save_pdf_cb,
                 fmt=d.get("label_size") or getattr(settings, "DPD_LABEL_SIZE", "A6"),
-                num_order=1,  # DPD ограничение 1..99
+                num_order=1,
             )
 
-            # вытащим shipment_id из сырого ответа (полезно для draft)
+            # shipment_id (правильное извлечение из nested "shipment")
             api_res = svc._last_raw or {}
             shipment_id = None
             try:
-                shipment_id = (api_res.get("shipmentResults") or [{}])[0].get("shipmentId")
+                sr0 = (api_res.get("shipmentResults") or [{}])[0]
+                shipment_id = sr0.get("shipmentId") or (sr0.get("shipment") or {}).get("shipmentId")
             except Exception:
-                pass
+                shipment_id = None
 
         except Exception as e:
-            log.exception("DPD create_and_print failed")
+            logger.exception("DPD create_and_print failed")
             return Response({"ok": False, "error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
 
+        # --- DEBUG SNIPPET ---
+        debug_blob = None
+        if getattr(settings, "DEBUG", False) or getattr(settings, "DPD_DEBUG_RETURN", False):
+            try:
+                sr0 = (svc._last_raw.get("shipmentResults") or [None])[0] if svc._last_raw else None
+                if sr0:
+                    # parcelNumbers: сначала parcelResults, затем fallback на shipment.parcels
+                    parcel_numbers = []
+                    for p in (sr0.get("parcelResults") or []):
+                        pn = p.get("parcelNumber")
+                        if pn:
+                            parcel_numbers.append(pn)
+                    if not parcel_numbers:
+                        for p in ((sr0.get("shipment") or {}).get("parcels") or []):
+                            pn = p.get("parcelNumber")
+                            if pn:
+                                parcel_numbers.append(pn)
+
+                    debug_blob = {
+                        "shipmentId": sr0.get("shipmentId") or (sr0.get("shipment") or {}).get("shipmentId"),
+                        "errors": sr0.get("errors"),
+                        "hasLabelFile": bool(sr0.get("labelFile")),
+                        "parcelResults": [{"parcelNumber": pn} for pn in parcel_numbers],
+                    }
+                else:
+                    debug_blob = {"raw": str(svc._last_raw)[:800]}
+            except Exception:
+                debug_blob = {"raw": str(svc._last_raw)[:800]}
+
+        # --- финальный ответ ---
         return Response(
             {
                 "ok": True,
                 "service": d["service"],
-                "parcel_numbers": numbers,   # в draft обычно []
-                "shipment_id": shipment_id,  # важно для допечатки
-                "label_path": saved_path_fs, # путь на FS (для дебага)
-                "label_url": saved_url,      # готовый URL из MEDIA_URL
+                "parcel_numbers": numbers,
+                "shipment_id": shipment_id,
+                "label_path": saved_path_fs,
+                "label_url": saved_url,
                 "save_mode": getattr(settings, "DPD_SHIP_SAVE_MODE", "printed"),
+                "debug": debug_blob,
             },
             status=status.HTTP_201_CREATED,
         )
