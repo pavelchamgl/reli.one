@@ -15,6 +15,7 @@ import { useActionPayment } from "../hook/useActionPayment";
 import { useDispatch, useSelector } from "react-redux";
 import ScrollToTop from "../Components/ScrollToTop/ScrollToTop";
 import CookieModal from "../ui/CookieModal/CookieModal";
+import { COOKIE_VERSION } from "../configs/cookieConfig";
 
 const HomePage = () => {
   const isMobile = useMediaQuery({ maxWidth: 950 });
@@ -67,6 +68,18 @@ const HomePage = () => {
       setOpenCookie(true)
     }
     localStorage.setItem("preferences", JSON.stringify(true))
+  }, [])
+
+  useEffect(() => {
+    const cookieVersion = localStorage.getItem("COOKIE_VERSION")
+
+    if (COOKIE_VERSION !== cookieVersion) {
+
+      localStorage.setItem("COOKIE_VERSION", COOKIE_VERSION)
+      localStorage.removeItem("cookieSave")
+      localStorage.setItem("preferences", JSON.stringify(true))
+    }
+
   }, [])
 
 

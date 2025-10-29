@@ -36,6 +36,7 @@ function App() {
     }
   }, [location]);
 
+
   return <></>;
 }
 
