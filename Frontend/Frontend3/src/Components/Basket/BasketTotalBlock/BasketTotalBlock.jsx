@@ -52,6 +52,12 @@ const BasketTotalBlock = ({ section = null }) => {
 
   }, [deliveryPrice])
 
+  useEffect(()=>{
+    console.log(normalizedFinalPrice);
+    
+    localStorage.setItem("totalPrice", normalizedFinalPrice)
+  },[finalPrice])
+
   useEffect(() => {
     if (isMobile && isPaymentPage) {
       setStyle({

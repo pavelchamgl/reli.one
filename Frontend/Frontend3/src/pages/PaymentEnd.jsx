@@ -7,6 +7,8 @@ import { useActions } from "../hook/useAction";
 import { useLocation } from "react-router-dom"
 import { getDataFromSessionId } from "../api/payment";
 
+import { trackPurchase } from "../analytics/analytics";
+
 const PaymentEnd = () => {
   const navigate = useNavigate();
 
@@ -26,6 +28,16 @@ const PaymentEnd = () => {
   const otherBaskets = baskets.filter(
     (item) => item.email !== localEmail
   );
+
+  let basketTotalFromLS = 0;
+  try {
+    const raw = localStorage.getItem("totalPrice");
+    if (raw) {
+      basketTotalFromLS = Number(raw);
+    }
+  } catch (e) {
+    // ignore	
+  }
 
   useEffect(() => {
     let newBasket;
@@ -51,7 +63,36 @@ const PaymentEnd = () => {
   }, []);
 
   useEffect(() => {
-    getDataFromSessionId(sessionId)
+    if (!sessionId) return;
+    getDataFromSessionId(sessionId).then((res) => {
+      // пробуем вытащить сумму и валюту из ответа бэка	
+      const data = res?.data || res;
+      const totalFromApi =
+        data?.total ||
+        data?.amount ||
+        data?.price ||
+        0;
+      const currencyFromApi = data?.currency || "EUR";
+      // если бэк не прислал сумму — берём ту, что считали из localStorage	
+      const finalTotal =
+        Number(totalFromApi) > 0 ? Number(totalFromApi) : basketTotalFromLS;
+      // отправляем событие в GTM	
+      trackPurchase(
+        sessionId, // transaction_id	
+        finalTotal, // value	
+        currencyFromApi, // currency	
+        [] // items можно будет добавить позже	
+      );
+    })
+      .catch(() => {
+        // если запрос к бэку не удался — всёравно шлём событие с тем, что есть	
+        trackPurchase(
+          sessionId || "order_without_session",
+          basketTotalFromLS,
+          "EUR",
+          []
+        );
+      });
   }, [sessionId])
 
   return (

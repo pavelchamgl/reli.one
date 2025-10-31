@@ -51,8 +51,9 @@ const CookieModal = ({ open, handleClose }) => {
       PaperProps={{
         sx: {
           width: "100%",
-          maxWidth: { xs: "93%", sm: "500px" }, // ← адаптивная ширина
+          maxWidth: { xs: "93%", sm: "648px" }, // ← адаптивная ширина
           margin: "0 auto",
+          padding: "0"
         },
       }}
 
