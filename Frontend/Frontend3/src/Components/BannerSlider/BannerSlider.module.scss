@@ -71,6 +71,11 @@
     object-fit: contain !important;
     height: 300px !important;
   }
+
+  @media (min-width: 1550px) {
+    height: calc(100% + 50px) !important;
+    object-fit: cover !important;
+  }
 }
 
 .mobSwiper {
@@ -130,6 +135,8 @@
     height: 150px !important;
   }
   @media (min-width: 1550px) {
+    aspect-ratio: auto;
+    width: 100% !important;
     object-fit: cover;
     height: auto !important;
     padding-top: 30px;

@@ -67,10 +67,7 @@ export const getDataFromSessionId = async (id, retries = 3, delay = 500) => {
             if (res.data?.ready) {
                 console.log(res.data);
                 const data = res.data
-                if (cookieSave && JSON.parse(cookieSave)) {
-                    trackPurchase(data.transaction_id, data.value, data.currency)
-                }
-                return res.data; // готово — возвращаем
+                return res // готово — возвращаем
             } else {
                 console.log(`Попытка ${attempt + 1}: данные еще не готовы, ждем ${delay}ms...`);
                 await new Promise(r => setTimeout(r, delay)); // polling delay
