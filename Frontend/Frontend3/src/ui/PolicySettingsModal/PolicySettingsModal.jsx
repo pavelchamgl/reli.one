@@ -7,12 +7,13 @@ import xIcon from "../../assets/loginModal/loginModalX.svg"
 import styles from "./PolicySettingsModal.module.scss";
 import PolicySwitch from "../PolicySwitch/PolicySwitch";
 import { t } from "i18next";
+import CookiLangToogle from "../cookie/CookieLangToggle/CookiLangToogle";
 
 const TextBlock = ({ title, desc }) => {
     return (
-        <div>
-            <h3 className={styles.title}>{title}</h3>
-            <p className={styles.desc}>{desc}</p>
+        <div className={styles.introBlock}>
+            <h3 >{title}</h3>
+            <p >{desc}</p>
         </div >
     )
 }
@@ -23,6 +24,7 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
 
     const saveCookie = localStorage.getItem("cookieSave")
     const preferences = localStorage.getItem("preferences")
+    const marketing = localStorage.getItem("marketing")
 
     const [saveAnalytics, setSaveAnalytics] = useState(
         saveCookie ? JSON.parse(saveCookie) : false
@@ -32,73 +34,37 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
         preferences ? JSON.parse(preferences) : false
     )
 
-
-    const handleAccept = () => {
-
-        window.reliConsentAccept?.();
-
-        localStorage.setItem("preferences", JSON.stringify(true))
-        localStorage.setItem("cookieSave", JSON.stringify(true))
-
-        localStorage.setItem("i18nextLng", "en")
-
-        setSaveAnalytics(true)
-        setSavePreferenses(true)
-
-        handleClose()
-        parrentHandleClose?.()
-        setTimeout(() => {
-            window.location.reload()
-        }, 1000)
-    }
-
-    const handleReject = () => {
-        window.reliConsentReject?.();
+    const [saveMarketing, setSaveMarketing] = useState(
+        marketing ? JSON.parse(marketing) : false
+    )
 
 
-        localStorage.setItem("preferences", JSON.stringify(false))
-        localStorage.setItem("cookieSave", JSON.stringify(false))
 
 
-        localStorage.removeItem("i18nextLng")
 
-        setSaveAnalytics(false)
-        setSavePreferenses(false)
-        handleClose()
-        parrentHandleClose?.()
-        setTimeout(() => {
-            window.location.reload()
-        }, 1000)
-    }
 
     const handleSave = () => {
-        if (saveAnalytics) {
-            localStorage.setItem("cookieSave", JSON.stringify(true))
-        } else {
-            localStorage.setItem("cookieSave", JSON.stringify(false))
-        }
+        localStorage.setItem("cookieSave", JSON.stringify(saveAnalytics));
+        localStorage.setItem("preferences", JSON.stringify(savePreferenses));
+        localStorage.setItem("marketing", JSON.stringify(saveMarketing));
 
-        if (savePreferenses) {
-            localStorage.setItem("preferences", JSON.stringify(true))
-            localStorage.setItem("i18nextLng", "en")
-        } else {
-            localStorage.setItem("preferences", JSON.stringify(false))
-            localStorage.removeItem("i18nextLng")
+        // Если пользователь запретил preferences — сбрасываем язык в дефолтный (например, cs)
+        if (!savePreferenses) {
+            localStorage.setItem("i18nextLng", "en");
         }
 
         window.reliConsentCustom?.({
-            analytics: saveAnalytics,            // ← из твоего состояния
-            ads: false,                          // у тебя, видимо, рекламы нет
-            personalization: savePreferenses     // ← из твоего состояния
+            analytics: saveAnalytics,
+            ads: saveMarketing,
+            personalization: savePreferenses,
         });
 
-        handleClose()
-        parrentHandleClose?.()
+        handleClose();
+        parrentHandleClose?.();
         setTimeout(() => {
-            window.location.reload()
-        }, 1000)
-    }
-
+            window.location.reload();
+        }, 800);
+    };
 
 
     return (
@@ -120,48 +86,57 @@ const PolicySettingsModal = ({ open, handleClose, parrentHandleClose }) => {
 
         >
             <div className={styles.content}>
-                <button onClick={handleClose} className={styles.closeBtn}>
-                    <img src={xIcon} alt="" />
-                </button>
+
+                <div className={styles.closeBtnWrap}>
+                    <CookiLangToogle />
+                    <button onClick={handleClose} >
+                        <img src={xIcon} alt="" />
+                    </button>
+                </div>
+
                 <div className={styles.textBlocksWrap}>
-                    <TextBlock title={t("privacySettings")}
+                    <TextBlock title={t("cookiePrefTitle")}
                         desc={t("privacySettingsDesc")} />
-                    <TextBlock title={t("strictlyNecessary")}
-                        desc={t("strictlyNecessaryDesc")} />
 
                     <div>
-                        <h3 className={styles.title}>{t("preferences")}</h3>
+                        <h3 className={styles.title}>{t("esential.title")}</h3>
                         <div className={styles.blockWithSwitch}>
-                            <p className={styles.desc}>{t("preferencesDesc")}</p>
+                            <p className={styles.desc}>{t("esential.desc")}</p>
+                            <PolicySwitch checked={true} setChecked={() => { }} />
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className={styles.title}>{t("analytics.title")}</h3>
+                        <div className={styles.blockWithSwitch}>
+                            <p className={styles.desc}>{t("analytics.desc")}</p>
+                            <PolicySwitch checked={saveAnalytics} setChecked={setSaveAnalytics} />
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 className={styles.title}>{t("functional.title")}</h3>
+                        <div className={styles.blockWithSwitch}>
+                            <p className={styles.desc}>{t("functional.desc")}</p>
                             <PolicySwitch checked={savePreferenses} setChecked={setSavePreferenses} />
                         </div>
                     </div>
 
                     <div>
-                        <h3 className={styles.title}>{t("analytics")}</h3>
+                        <h3 className={styles.title}>{t("marketing.title")}</h3>
                         <div className={styles.blockWithSwitch}>
-                            <p className={styles.desc}>{t("analyticsDesc")}</p>
-                            <PolicySwitch checked={saveAnalytics} setChecked={setSaveAnalytics} />
+                            <p className={styles.desc}>{t("marketing.desc")}</p>
+                            <PolicySwitch checked={saveMarketing} setChecked={setSaveMarketing} />
                         </div>
                     </div>
-
                 </div>
 
-                {isMobile ?
-                    <div className={styles.mMainWrapBtn}>
-                        <div className={styles.mobileBtnWrap}>
-                            <button onClick={() => handleReject()}>{t("rejectAll")}</button>
-                            <button onClick={() => handleAccept()}>{t("acceptAll")}</button>
-                        </div>
-                        <button className={styles.customMobile} onClick={() => handleSave()}>{t("saveChoices")}</button>
-                    </div>
-                    :
-                    <div className={styles.btnsDiv}>
-                        <button onClick={() => handleReject()}>{t("rejectAll")}</button>
-                        <button onClick={() => handleAccept()}>{t("acceptAll")}</button>
-                        <button onClick={() => handleSave()}>{t("saveChoices")}</button>
-                    </div>
-                }
+
+                <div className={styles.btnsDiv}>
+                    <button onClick={() => handleClose()}>{t("cancel")}</button>
+                    <button onClick={() => handleSave()}>{t("confirm_choice")}</button>
+                </div>
+
             </div>
         </Dialog >
     );

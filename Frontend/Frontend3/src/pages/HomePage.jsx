@@ -64,11 +64,10 @@ const HomePage = () => {
   }, [location]);
 
   useEffect(() => {
-    if (!cookieSave) {
+    if (!cookieSave && pathname !== "/general-protection") {
       setOpenCookie(true)
     }
-    localStorage.setItem("preferences", JSON.stringify(true))
-  }, [])
+  }, [pathname])
 
   useEffect(() => {
     const cookieVersion = localStorage.getItem("COOKIE_VERSION")

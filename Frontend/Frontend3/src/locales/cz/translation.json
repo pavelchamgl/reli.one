@@ -1005,20 +1005,38 @@
     "cookieAndPrivacy": "_________________",
     "cookiesTitle": "Používáme soubory cookie a podobné technologie",
     "cookiesDesc": {
-        "first": "Náš web používá nezbytné soubory cookie, které umožňují funkce nákupního košíku, registrace a plateb.",
-        "second": "Můžeme také ukládat vaše předvolby (například zvolený jazyk nebo motiv) a shromažďovat analytická data za účelem zlepšení webu a měření jeho výkonu."
+        "first": "Reli Group s.r.o. (platforma reli.one) používá cookies pro zlepšení vašeho zážitku.",
+        "second": "Používáme nezbytné cookies, které zajišťují správné fungování webu, a volitelné cookies pro analýzu používání, personalizaci obsahu a marketingové účely.",
+        "third": "Můžete přijmout všechny cookies, odmítnout nepodstatné cookies nebo upravit své preference.",
+        "fourth": "Kliknutím na „Přijmout vše“ souhlasíte s použitím všech cookies. Svůj souhlas můžete kdykoli změnit nebo odvolat v nastavení cookies."
     },
-    "privacySettings": "Nastavení ochrany osobních údajů",
-    "privacyPolicy": "Zásady ochrany osobních údajů",
-    "privacySettingsDesc": "Můžete si vybrat, které kategorie souborů cookie a technologií můžeme používat. Svou volbu můžete kdykoli změnit prostřednictvím odkazu „Nastavení ochrany osobních údajů“ v dolní části webu.",
+    "policyLinkText": "Přečtěte si Zásady používání cookies",
+    "privacySettings": "Nastavení cookies",
+    "privacyPolicy": "Cookie Policy",
+    "cookiePrefTitle": "Nastavení cookies",
+    "privacySettingsDesc": "Společnost Reli Group s.r.o. (platforma reli.one) respektuje vaše soukromí. Vyberte, které typy cookies chcete povolit. Svůj výběr můžete kdykoli změnit.",
     "strictlyNecessary": "Nezbytné (vždy povoleno)",
     "strictlyNecessaryDesc": "Nezbytné pro fungování webu: přihlášení, nákupní košík, zpracování objednávek a zabezpečení. Bez těchto funkcí by web nefungoval správně.",
-    "preferences": "Předvolby",
-    "preferencesDesc": "Pomáhají zapamatovat si vaše nastavení, například jazyk rozhraní, motiv nebo vybrané produkty, aby web vypadal a fungoval podle vašich preferencí.",
-    "analytics": "Analýza a měření výkonnosti",
-    "analyticsDesc": "Umožňují nám pochopit, jak je web používán, které stránky jsou oblíbené, a vyhodnotit účinnost reklamních kampaní prostřednictvím služeb Google.",
-    "rejectAll": "Odmítnout vše",
+    "rejectAll": "Odmítnout nepodstatné cookies",
     "acceptAll": "Přijmout vše",
     "saveChoices": "Uložit výběr",
-    "customize": "Přizpůsobit"
+    "customize": "Upravit preference",
+    "esential": {
+        "title": "Nezbytné cookies (vždy aktivní)",
+        "desc": " Potřebné pro základní fungování webu – přihlášení, košík, platby a zabezpečení."
+    },
+    "analytics": {
+        "title": "Analytické cookies",
+        "desc": "Pomáhají nám pochopit, jak návštěvníci používají web, a zlepšovat jeho funkce."
+    },
+    "functional": {
+        "title": "Funkční cookies",
+        "desc": "Umožňují zapamatování vašich voleb, jako je jazyk, region a nastavení."
+    },
+    "marketing": {
+        "title": "Marketingové cookies",
+        "desc": "Slouží k zobrazování relevantních reklam a nabídek podle vašich zájmů."
+    },
+    "cancel": "Zrušit",
+    "confirm_choice": "Potvrdit výběr"
 }
