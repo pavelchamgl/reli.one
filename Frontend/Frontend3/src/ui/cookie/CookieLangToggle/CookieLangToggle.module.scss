@@ -1,0 +1,54 @@
+.languageToggle {
+  width: 67px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 500px) {
+    width: 55px;
+    height: 27px;
+  }
+}
+
+.toggleTrack {
+  width: 100%;
+  height: 100%;
+  background-color: #ebebeb;
+  border-radius: 50px;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.toggleThumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: left 0.3s ease, background-image 0.3s ease;
+
+  @media (max-width: 500px) {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+.thumbEnglish {
+  left: 3px;
+  background-image: url("../../../assets/lang/en.svg");
+}
+
+.thumbCzech {
+  left: calc(100% - 33px);
+  background-image: url("../../../assets/lang/cs.svg");
+
+  @media (max-width: 500px) {
+    left: calc(100% - 25px);
+  }
+}

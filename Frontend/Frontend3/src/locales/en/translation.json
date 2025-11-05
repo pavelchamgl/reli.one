@@ -832,20 +832,41 @@
     "cookieAndPrivacy": "_________________",
     "cookiesTitle": "We use cookies and similar technologies",
     "cookiesDesc": {
-        "first": "Our website uses strictly necessary cookies to enable shopping cart, registration, and payment functionality.",
-        "second": "We may also store your preferences (such as selected language or theme) and collect analytics to improve the website and measure its performance."
+        "first": "Reli Group s.r.o. (platform reli.one) uses cookies to enhance your experience.",
+        "second": "We use essential cookies to ensure our website works properly, and optional cookies to analyze usage, personalize content, and support marketing activities.",
+        "third": "You can accept all cookies, reject non-essential cookies, or customize your preferences.",
+        "fourth": "By clicking “Accept All”, you agree to the use of all cookies. You can change or withdraw your consent at any time in the cookie settings."
     },
-    "privacySettings": "Privacy Settings",
-    "privacyPolicy": "Privacy Policy",
-    "privacySettingsDesc": "You can choose which categories of cookies and technologies we may use. You can change your choice at any time via the “Privacy Settings” link at the bottom of the site.",
+    "policyLinkText": "Read our Cookie Policy",
+    "privacySettings": "Cookie Settings",
+    "privacyPolicy": "Cookie Policy",
+    "cookiePrefTitle": "Cookie Preferences",
+    "privacySettingsDesc": "Reli Group s.r.o. (platform reli.one) values your privacy. Choose which types of cookies you wish to allow. You can change your preferences at any time.",
     "strictlyNecessary": "Strictly Necessary (always enabled)",
     "strictlyNecessaryDesc": "Required for the website to function: login, shopping cart, order processing, and security. Without these, the website cannot work properly.",
     "preferences": "Preferences",
     "preferencesDesc": "Help remember your settings, such as interface language, theme, or selected products, so the website looks and behaves the way you prefer.",
-    "analytics": "Analytics and Performance Measurement",
     "analyticsDesc": "Allow us to understand how the website is used, which pages are popular, and to evaluate the effectiveness of advertising campaigns through Google services.",
-    "rejectAll": "Reject All",
+    "rejectAll": "Reject Non-Essential Cookies",
     "acceptAll": "Accept All",
     "saveChoices": "Save Choices",
-    "customize": "Customize"
+    "customize": "Customize Preferences",
+    "esential": {
+        "title": "Essential cookies (always active)",
+        "desc": "Required for the basic operation of the website — login, shopping cart, payments, and security."
+    },
+    "analytics": {
+        "title": "Analytics cookies",
+        "desc": "Help us understand how visitors use our site and improve its functionality."
+    },
+    "functional": {
+        "title": "Functional cookies",
+        "desc": "Remember your preferences such as language, region, and settings."
+    },
+     "marketing": {
+        "title": "Marketing cookies",
+        "desc": " Used to deliver relevant ads and offers based on your interests."
+    },
+    "cancel":"Cancel",
+    "confirm_choice":"Confirm choice"
 }
