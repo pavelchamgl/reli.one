@@ -76,7 +76,6 @@ const HomePage = () => {
 
       localStorage.setItem("COOKIE_VERSION", COOKIE_VERSION)
       localStorage.removeItem("cookieSave")
-      localStorage.setItem("preferences", JSON.stringify(true))
     }
 
   }, [])
