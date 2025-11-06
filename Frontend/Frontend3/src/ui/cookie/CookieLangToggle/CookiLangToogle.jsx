@@ -13,14 +13,11 @@ const CookieLangToggle = () => {
     const { i18n } = useTranslation()
 
     const handleToggle = () => {
-        const preferences = JSON.parse(localStorage.getItem("preferences") || "false");
 
-        if (preferences) {
-            const newLang = isEnglish ? "cs" : "en"; // 🧩 правильный код языка для чешского — "cs"
-            setIsEnglish(!isEnglish);
-            i18n.changeLanguage(newLang);
-            localStorage.setItem("i18nextLng", newLang);
-        }
+        const newLang = isEnglish ? "cz" : "en"; // 🧩 правильный код языка для чешского — "cs"
+        setIsEnglish(!isEnglish);
+        i18n.changeLanguage(newLang);
+        localStorage.setItem("i18nextLng", newLang);
     };
 
 

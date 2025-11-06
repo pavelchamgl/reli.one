@@ -11,15 +11,9 @@ import closeIcon from "../../assets/lang/closeIcon.svg";
 import styles from "./ChangeLang.module.css";
 
 const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
-    const { t, i18n } = useTranslation()
+    const { t } = useTranslation()
 
-    const preferences = localStorage.getItem("preferences")
-
-    useEffect(() => {
-        if (JSON.parse(preferences) === false) {
-            i18n.changeLanguage("en")
-        }
-    }, [preferences])
+    
 
 
     return (
@@ -39,7 +33,6 @@ const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
 
                 <button
                     onClick={() => handleChangeLang('cz')}
-                    disabled={preferences !== null && JSON.parse(preferences) === false}
                     className={`${styles.langOption} ${lang === "cz" ? styles.active : ""}`}
                 >
                     <div className={styles.langInfo}>
