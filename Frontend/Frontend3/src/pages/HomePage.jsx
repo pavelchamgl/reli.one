@@ -66,6 +66,7 @@ const HomePage = () => {
   useEffect(() => {
     if (!cookieSave && pathname !== "/general-protection") {
       setOpenCookie(true)
+      localStorage.setItem("i18nextLng", "en")
     }
   }, [pathname])
 
