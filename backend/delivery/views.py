@@ -10,7 +10,10 @@ from product.models import ProductVariant
 from .serializers import (
     SellerShippingRequestSerializer,
     CombinedShippingOptionsResponseSerializer,
+    AddressValidationRequestSerializer,
 )
+from .validators.zip_utils import uppercase_zip
+from .validators.zip_validator import ZipCodeValidator
 from .services.shipping_split import (
     split_items_into_parcels as split_packeta,
     combine_parcel_options,
@@ -243,3 +246,61 @@ class SellerShippingOptionsView(APIView):
             payload["couriers"]["gls"] = {"error": str(e)}
 
         return Response(payload, status=status.HTTP_200_OK)
+
+
+class ValidateAddressView(APIView):
+    """
+    Validate ZIP/postal code and optionally resolve city.
+    """
+
+    @extend_schema(
+        operation_id="validate_address",
+        tags=["Delivery"],
+        summary="Validate postal code (ZIP) and resolve city",
+        description=(
+            "Validates a postal code for the specified country.\n\n"
+            "1) Converts ZIP to canonical uppercase form.\n"
+            "2) Validates via local GeoNames datasets if available.\n"
+            "3) Optionally checks via **DPD GeoRouting API**.\n"
+            "4) Attempts to resolve city from best available source.\n\n"
+            "Returns normalized ZIP always in uppercase."
+        ),
+        request=AddressValidationRequestSerializer,
+        responses={
+            200: OpenApiResponse(description="Validation result")
+        }
+    )
+    def post(self, request):
+        serializer = AddressValidationRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            logger.debug(f"[ADDRESS] Invalid request data: {serializer.errors}")
+            return Response({"error": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        country = serializer.validated_data["country"].upper().strip()
+        zip_raw = serializer.validated_data["zip"].strip()
+        city_user = serializer.validated_data.get("city", "").strip()
+
+        zip_upper = uppercase_zip(zip_raw)
+        logger.debug(f"[ADDRESS] Validating ZIP={zip_upper} country={country}")
+
+        result = ZipCodeValidator.validate_and_resolve(zip_upper, country, prefer_remote=True)
+
+        if not result.valid:
+            logger.debug(f"[ADDRESS] Invalid postcode: {zip_raw} ({country})")
+            return Response({"valid": False, "error": "Invalid postcode"}, status=200)
+
+        # если DPD привёл ZIP к канону — используем его
+        normalized_zip = uppercase_zip(result.normalized_postcode) if result.normalized_postcode else zip_upper
+        final_city = result.city or city_user or None
+
+        logger.debug(
+            f"[ADDRESS] Validation success → ZIP={normalized_zip}, city={final_city}, source={result.source}"
+        )
+
+        return Response({
+            "valid": True,
+            "normalized_zip": normalized_zip,
+            "country": country,
+            "city": final_city,
+            "source": result.source,
+        }, status=200)

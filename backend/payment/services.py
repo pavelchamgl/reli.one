@@ -19,11 +19,12 @@ logger = logging.getLogger(__name__)
 
 LOGO_URL = 'https://res.cloudinary.com/daffwdfvn/image/upload/v1748957272/Reli/logo_reli_ouhtmo.png'
 
-# ссылки на поддержку курьеров (используются только в письме продавцу) ---
+# ссылки на поддержку курьеров (используются только в письме продавцу)
 COURIER_SUPPORT = {
     "gls": "https://gls-group.com/CZ/en/senders/client-zone",
     "zasilkovna": "https://www.zasilkovna.cz/en/contacts",  # Packeta/Zásilkovna
     "packeta": "https://www.packeta.com/contact",
+    "dpd": "https://www.dpd.com/cz/en/contact",              # ← добавлено
 }
 
 
@@ -44,6 +45,8 @@ def _courier_meta(name: str):
     key = _normalize_courier_name(name)
     if "gls" in key:
         return "GLS", COURIER_SUPPORT["gls"]
+    if "dpd" in key:  # ← добавлено
+        return "DPD", COURIER_SUPPORT["dpd"]
     if "zasil" in key or "packeta" in key:
         # считаем Zásilkovna == Packeta (бренд)
         return "Zásilkovna", COURIER_SUPPORT["zasilkovna"]
@@ -58,7 +61,6 @@ def get_orders_by_payment_session_id(session_id: str):
     orders = Order.objects.filter(payment__session_id=session_id)
     logger.debug(f"[MAIL] Найдено заказов: {orders.count()}")
     return list(orders)
-
 
 
 def prepare_merged_customer_email_context(orders):
@@ -253,8 +255,8 @@ def send_seller_emails_by_session(session_id: str):
             "order_number":      None,
             "delivery_type":     "",
             "courier_service":   "",
-            "courier_short":     "",         # ← ДОБАВЛЕНО
-            "courier_support_url": None,     # ← ДОБАВЛЕНО
+            "courier_short":     "",         # ← ДОБАВЛЕНО (но только в тексте, поведение не меняем)
+            "courier_support_url": None,     # ← ДОБАВЛЕНО (только для шаблона)
             "delivery_address":  None,
             "pickup_point_info": None,
             "products":          [],
@@ -332,6 +334,7 @@ def send_seller_emails_by_session(session_id: str):
                 "sku":           dpi.order_product.product.sku,
                 "quantity":      dpi.quantity,
             })
+            # прикладываем файлы ТОЛЬКО продавцу (как в исходнике)
             if dpi.parcel.label_file and os.path.isfile(dpi.parcel.label_file.path):
                 parcel_files.add(dpi.parcel.label_file.path)
 
@@ -344,7 +347,7 @@ def send_seller_emails_by_session(session_id: str):
         ctx = prepare_merged_customer_email_context(orders)
         ctx.update({
             "groups":  list(seller_groups.values()),
-            "parcels": parcels,  # в шаблоне рядом с треком будет {{ parcel.courier_short }} —
+            "parcels": parcels,  # в шаблоне рядом с треком будет {{ parcel.courier_short }}
         })
 
         # Рендерим и отправляем HTML-письмо
@@ -357,7 +360,7 @@ def send_seller_emails_by_session(session_id: str):
         )
         email.attach_alternative(html_inline, "text/html")
 
-        # Прикрепляем PDF-ярлыки
+        # Прикрепляем PDF-ярлыки (как было — через path)
         for fpath in parcel_files:
             email.attach_file(fpath)
 

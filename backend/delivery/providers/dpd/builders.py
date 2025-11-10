@@ -4,6 +4,7 @@ import re
 from typing import Any, Dict, List, Literal, Optional
 from django.conf import settings
 
+
 # --- DPD service codes ---
 DPD_MAIN_CLASSIC = "001"
 DPD_PREDICT = "013"
@@ -11,6 +12,19 @@ DPD_PUDO_DELIVERY = "200"
 DPD_HANDIN = "610"
 
 Service = Literal["CLASSIC", "SHOP2HOME", "SHOP2SHOP"]
+
+# Небольшая карта наиболее используемых направлений.
+# Если страны нет в карте — логика всё равно корректно разберёт телефон из E.164/00.
+COUNTRY_DIAL_PREFIX: Dict[str, str] = {
+    "CZ": "+420",
+    "SK": "+421",
+    "PL": "+48",
+    "RO": "+40",
+    "HU": "+36",
+    "DE": "+49",
+    "AT": "+43",
+}
+
 
 # ----------------- helpers -----------------
 
@@ -25,20 +39,18 @@ def _service_codes(service: Service) -> List[str]:
         return [DPD_MAIN_CLASSIC, DPD_PREDICT, DPD_PUDO_DELIVERY, DPD_HANDIN]
     raise ValueError(f"Unsupported service: {service}")
 
-def _predicts(phone: str | None, email: Optional[str]) -> List[Dict[str, str]]:
-    preds: List[Dict[str, str]] = []
-    if phone:
-        preds.append({"destination": str(phone), "type": "SMS"})
-    if email:
-        preds.append({"destination": email, "type": "EMAIL"})
-    return preds
+
+def _only_digits(s: Optional[str]) -> str:
+    return "".join(ch for ch in (s or "") if ch.isdigit())
+
 
 def _sanitize_prefix_digits(prefix: Optional[str]) -> str:
     """Разрешаем только цифры, максимум 4 (как и раньше)."""
     if not prefix:
         return ""
-    digits = "".join(ch for ch in str(prefix) if ch.isdigit())
+    digits = _only_digits(prefix)
     return digits[:4]
+
 
 def _normalize_phone_prefix(prefix: Optional[str]) -> str:
     """
@@ -48,16 +60,82 @@ def _normalize_phone_prefix(prefix: Optional[str]) -> str:
     digits = _sanitize_prefix_digits(prefix)
     return f"+{digits}" if digits else ""
 
+
+def _expected_prefix_by_country(country_iso: Optional[str]) -> str:
+    return COUNTRY_DIAL_PREFIX.get((country_iso or "").upper(), "")
+
+
+def _split_phone_for_dpd(
+    phone: Optional[str],
+    *,
+    country_iso: Optional[str] = None,
+    explicit_prefix: Optional[str] = None,
+) -> tuple[Optional[str], Optional[str]]:
+    """
+    Возвращает (contactPhonePrefix, contactPhone) для DPD.
+    Поддерживает форматы:
+      - '+40712345678' / '+420777123456'
+      - '0048200123456'
+      - '777123456' (+ 'phone_prefix' или по стране)
+    Префикс — с '+', local — только цифры без префикса.
+    """
+    p = (phone or "").strip()
+    if not p:
+        return None, None
+
+    # Явно переданный префикс — главный (если есть)
+    norm_explicit = _normalize_phone_prefix(explicit_prefix)
+
+    # Ветвь E.164 / 00…:
+    if p.startswith("+") or _only_digits(p).startswith("00"):
+        digits = _only_digits(p)
+        # убрать leading '00'
+        if digits.startswith("00"):
+            digits = digits[2:]
+
+        # найти известный код из справочника (самый длинный матч)
+        known = [v.lstrip("+") for v in COUNTRY_DIAL_PREFIX.values()]
+        known.sort(key=len, reverse=True)
+        matched = None
+        for pref in known:
+            if digits.startswith(pref):
+                matched = pref
+                break
+
+        if matched:
+            prefix = f"+{matched}"
+            local = digits[len(matched):]
+        else:
+            # безопасный фолбэк: 2-значный код страны
+            prefix = f"+{digits[:2]}" if len(digits) >= 2 else None
+            local = digits[2:] if len(digits) >= 2 else None
+
+        # если был явный префикс — перезапишем им
+        if norm_explicit:
+            prefix = norm_explicit
+
+        return prefix, (local or None)
+
+    # Ветвь локального номера: используем prefix из аргумента или по стране
+    local = _only_digits(p)
+    prefix = norm_explicit or _expected_prefix_by_country(country_iso)
+    prefix = prefix or None
+    return prefix, (local or None)
+
+
 def _normalize_label_size(label_size: Optional[str]) -> str:
     size = (label_size or getattr(settings, "DPD_LABEL_SIZE", "A6")).upper()
     return "A6" if size not in {"A6", "A4"} else size
+
 
 def _resolve_print_format(print_format: Optional[str]) -> str:
     # API принимает pdf|zpl (регистр не критичен, но приведём к нижнему)
     fmt = (print_format or getattr(settings, "DPD_PRINT_FORMAT", "pdf")).lower()
     return "pdf" if fmt not in {"pdf", "zpl"} else fmt
 
+
 _STREET_RE = re.compile(r"^(?P<street>.*?)[,\s]+(?P<house>\d+[^\s,/]*)\s*$")
+
 
 def _split_street_house_no(street: str, house_no: Optional[str]) -> tuple[str, Optional[str]]:
     """
@@ -79,6 +157,7 @@ def _split_street_house_no(street: str, house_no: Optional[str]) -> tuple[str, O
     h = (m.group("house") or "").strip()
     return (s or street), (h or None)
 
+
 # ----------------- builders -----------------
 
 def build_receiver(
@@ -98,9 +177,17 @@ def build_receiver(
     - street без номера
     - houseNo отдельным полем
     - contactPhonePrefix в виде '+420'
-    - contactPhone как строка без префикса
+    - contactPhone как строка БЕЗ префикса (только цифры)
     """
     norm_street, norm_house = _split_street_house_no(street, house_no)
+
+    # Корректно разложим E.164/00/локальный номер.
+    pref, local = _split_phone_for_dpd(
+        phone,
+        country_iso=country_iso,
+        explicit_prefix=phone_prefix,
+    )
+
     r: Dict[str, Any] = {
         "name": name,
         "countryCode": (country_iso or "").upper(),
@@ -112,12 +199,28 @@ def build_receiver(
         r["houseNo"] = norm_house
     if email:
         r["contactEmail"] = email
-    if phone:
-        r["contactPhone"] = str(phone)
-    pref = _normalize_phone_prefix(phone_prefix)
+    if local:
+        r["contactPhone"] = local
     if pref:
         r["contactPhonePrefix"] = pref
     return r
+
+
+def _predicts(phone: Optional[str], email: Optional[str], *, country_iso: Optional[str], phone_prefix: Optional[str]) -> List[Dict[str, str]]:
+    """
+    Для Predict-сообщений DPD:
+    - SMS: локальная часть (без '+', как в ваших рабочих примерах/логах)
+    - EMAIL: из аргумента
+    """
+    preds: List[Dict[str, str]] = []
+    if phone:
+        _, local = _split_phone_for_dpd(phone, country_iso=country_iso, explicit_prefix=phone_prefix)
+        if local:
+            preds.append({"destination": local, "type": "SMS"})
+    if email:
+        preds.append({"destination": email, "type": "EMAIL"})
+    return preds
+
 
 def build_single_shipment(
     *,
@@ -125,7 +228,7 @@ def build_single_shipment(
     sender_address_id: int | str,
     name: str,
     email: Optional[str],
-    phone: Optional[str],                 # БЕЗ префикса
+    phone: Optional[str],                 # может быть E.164/00/локальный
     phone_prefix: Optional[str],
     street: str,
     zip_code: str,
@@ -166,7 +269,7 @@ def build_single_shipment(
     service_obj: Dict[str, Any] = {"mainServiceElementCodes": _service_codes(service)}
 
     if service in ("SHOP2HOME", "SHOP2SHOP"):
-        preds = _predicts(phone, email)
+        preds = _predicts(phone, email, country_iso=country, phone_prefix=phone_prefix)
         if preds:
             service_obj["additionalService"] = {"predicts": preds}
 
@@ -191,6 +294,7 @@ def build_single_shipment(
     }
     return shipment
 
+
 def build_shipments_payload(shipments: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Помощник для пакетной отправки (если понадобится)."""
     return {
@@ -198,6 +302,7 @@ def build_shipments_payload(shipments: List[Dict[str, Any]]) -> Dict[str, Any]:
         "customerId": settings.DPD_CUSTOMER_ID,
         "shipments": shipments,
     }
+
 
 def build_shipment(
     *,

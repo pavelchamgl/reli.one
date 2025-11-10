@@ -6,13 +6,26 @@ from order.models import Order, OrderProduct, CourierService
 from warehouses.models import Warehouse
 
 
+def parcel_label_upload_to(instance, filename: str) -> str:
+    """
+    Куда класть PDF-ярлык: <courier_code>_labels/<filename>.
+    Например: dpd_labels/label_13815107745669.pdf
+    """
+    code = ""
+    try:
+        code = (getattr(instance.service, "code", "") or "").strip().lower()
+    except Exception:
+        pass
+    code = code or "labels"
+    return f"{code}_labels/{filename}"
+
+
 class DeliveryParcel(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     service = models.ForeignKey(CourierService, on_delete=models.PROTECT)
     tracking_number = models.CharField(max_length=100, blank=True, null=True)
-    # TODO: при переходе GLS — можно сделать upload_to='labels/'
-    label_file = models.FileField(upload_to='packeta_labels/', null=True, blank=True)
+    label_file = models.FileField(upload_to=parcel_label_upload_to, null=True, blank=True)
     weight_grams = models.PositiveIntegerField()
     parcel_index = models.PositiveIntegerField(
         default=0,
