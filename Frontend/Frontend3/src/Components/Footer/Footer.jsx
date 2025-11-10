@@ -84,9 +84,9 @@ const Footer = () => {
           <a className={cls.mobileLink} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
             {t("terms")}
           </a>
-          <a className={cls.mobileLink}>
+          <Link to={"/privacy-policy"} className={cls.mobileLink}>
             {t("privacyPolicyFooter")}
-          </a>
+          </Link>
 
           <a className={cls.mobileLink} href="https://info.reli.one">
             {t("about_company")}
@@ -170,9 +170,9 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a className={cls.LinkNavigate} target="_blank">
+                <Link to={"/privacy-policy"} className={cls.LinkNavigate}>
                   {t("privacyPolicyFooter")}
-                </a>
+                </Link>
               </li>
             </ul>
             <ul>
