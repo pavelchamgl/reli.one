@@ -20,6 +20,8 @@
     "footer_order": "Objednávky",
     "home": "Domů",
     "category": "Kategorie",
+    "terms": "Podmínky",
+    "privacyPolicyFooter": "Ochrana osobních údajů",
     "_main": "_main",
     "recommend": "Doporučujeme",
     "_loginModal": "loginModal",
@@ -1010,7 +1012,7 @@
         "third": "Můžete přijmout všechny cookies, odmítnout nepodstatné cookies nebo upravit své preference.",
         "fourth": "Kliknutím na „Přijmout vše“ souhlasíte s použitím všech cookies. Svůj souhlas můžete kdykoli změnit nebo odvolat v nastavení cookies."
     },
-    "policyLinkText": "Přečtěte si Zásady používání cookies",
+    "policyLinkText": "Přečtěte si naše zásady používání souborů cookie a zásady ochrany osobních údajů.",
     "privacySettings": "Nastavení cookies",
     "privacyPolicy": "Cookie Policy",
     "cookiePrefTitle": "Nastavení cookies",

@@ -79,11 +79,15 @@ const Footer = () => {
             {t("privacySettings")}
           </button>
           <Link to={"/general-protection"} className={cls.mobileLink} href="#">
-            {t("privacyPolicy")}
+            GDPR
           </Link>
           <a className={cls.mobileLink} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
-            Terms
+            {t("terms")}
           </a>
+          <a className={cls.mobileLink}>
+            {t("privacyPolicyFooter")}
+          </a>
+
           <a className={cls.mobileLink} href="https://info.reli.one">
             {t("about_company")}
           </a>
@@ -157,12 +161,17 @@ const Footer = () => {
               </li>
               <li>
                 <Link to={"/general-protection"} className={cls.LinkNavigate} href="#">
-                  {t("privacyPolicy")}
+                  GDPR
                 </Link>
               </li>
               <li>
                 <a className={cls.LinkNavigate} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
-                  Terms
+                  {t("terms")}
+                </a>
+              </li>
+              <li>
+                <a className={cls.LinkNavigate} target="_blank">
+                  {t("privacyPolicyFooter")}
                 </a>
               </li>
             </ul>
