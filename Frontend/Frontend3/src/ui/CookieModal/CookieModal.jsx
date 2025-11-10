@@ -75,7 +75,16 @@ const CookieModal = ({ open, handleClose }) => {
           <p className={styles.desc}>{t("cookiesDesc.fourth")}</p>
         </div>
 
-        <Link to={"/general-protection"} onClick={() => handleClose()} className={`${styles.desc} ${styles.policyLink}`}>{t("policyLinkText")}</Link>
+        <p className={`${styles.desc} ${styles.linkText}`} >
+          {t("policyLinkText.read")}{" "}
+          <Link to={"/general-protection"} onClick={() => handleClose()} >
+            {t("policyLinkText.cookiePolicy")}
+          </Link>
+          {t("policyLinkText.and")}
+          <Link to={"/privacy-policy"} onClick={() => handleClose()} >
+            {t("policyLinkText.privacyPolicy")}
+          </Link>
+        </p>
 
         {isMobile ? (
           <div className={styles.mMainWrapBtn}>
