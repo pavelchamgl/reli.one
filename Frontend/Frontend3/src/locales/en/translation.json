@@ -839,7 +839,12 @@
         "third": "You can accept all cookies, reject non-essential cookies, or customize your preferences.",
         "fourth": "By clicking “Accept All”, you agree to the use of all cookies. You can change or withdraw your consent at any time in the cookie settings."
     },
-    "policyLinkText": "Read our Cookie Policy and Privacy Policy",
+    "policyLinkText": {
+        "read": "Read our ",
+        "cookiePolicy": "Cookie Policy",
+        "and": " and ",
+        "privacyPolicy": "Privacy Policy"
+    },
     "privacySettings": "Cookie Settings",
     "privacyPolicy": "Cookie Policy",
     "cookiePrefTitle": "Cookie Preferences",

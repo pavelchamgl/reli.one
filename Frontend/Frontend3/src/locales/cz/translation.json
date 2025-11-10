@@ -1012,7 +1012,12 @@
         "third": "Můžete přijmout všechny cookies, odmítnout nepodstatné cookies nebo upravit své preference.",
         "fourth": "Kliknutím na „Přijmout vše“ souhlasíte s použitím všech cookies. Svůj souhlas můžete kdykoli změnit nebo odvolat v nastavení cookies."
     },
-    "policyLinkText": "Přečtěte si naše zásady používání souborů cookie a zásady ochrany osobních údajů.",
+    "policyLinkText": {
+        "read": "Přečtěte si naše ",
+        "cookiePolicy": "Pravidla cookies",
+        "and": " a ",
+        "privacyPolicy": "Ochrana osobních údajů"
+    },
     "privacySettings": "Nastavení cookies",
     "privacyPolicy": "Cookie Policy",
     "cookiePrefTitle": "Nastavení cookies",
