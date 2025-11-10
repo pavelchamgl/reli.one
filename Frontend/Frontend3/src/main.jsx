@@ -49,6 +49,7 @@ import TermsPage from "./pages/TermsPage.jsx";
 import DeleteMyDataPage from "./pages/DeleteMyDataPage.jsx";
 import SellerIdPage from "./pages/SellerIdPage.jsx";
 import GeneralDataProtection from "./pages/GeneralDataProtection.jsx";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -99,6 +100,9 @@ const router = createBrowserRouter([
       { path: "/product_category/:id", element: <CategoryPage /> },
       {
         path: "/general-protection", element: <GeneralDataProtection />
+      },
+      {
+        path: "/privacy-policy", element: <PrivacyPolicyPage />
       }
     ],
   },

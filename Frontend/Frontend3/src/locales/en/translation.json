@@ -26,6 +26,8 @@
     "footer_order": "Orders",
     "home": "Home",
     "category": "Category",
+    "terms": "Terms",
+    "privacyPolicyFooter": "Privacy Policy",
     "_main": "_main",
     "recommend": "We recommend",
     "_loginModal": "loginModal",
@@ -837,7 +839,7 @@
         "third": "You can accept all cookies, reject non-essential cookies, or customize your preferences.",
         "fourth": "By clicking “Accept All”, you agree to the use of all cookies. You can change or withdraw your consent at any time in the cookie settings."
     },
-    "policyLinkText": "Read our Cookie Policy",
+    "policyLinkText": "Read our Cookie Policy and Privacy Policy",
     "privacySettings": "Cookie Settings",
     "privacyPolicy": "Cookie Policy",
     "cookiePrefTitle": "Cookie Preferences",
@@ -863,10 +865,10 @@
         "title": "Functional cookies",
         "desc": "Remember your preferences such as language, region, and settings."
     },
-     "marketing": {
+    "marketing": {
         "title": "Marketing cookies",
         "desc": " Used to deliver relevant ads and offers based on your interests."
     },
-    "cancel":"Cancel",
-    "confirm_choice":"Confirm choice"
+    "cancel": "Cancel",
+    "confirm_choice": "Confirm choice"
 }
