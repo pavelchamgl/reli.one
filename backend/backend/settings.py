@@ -466,6 +466,16 @@ LOGGING = {
             'encoding': 'utf-8',
             'delay': True,
         },
+        'georouting_file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'georouting.log'),
+            'formatter': 'verbose',
+            'maxBytes': int(2.5 * 1024 * 1024),
+            'backupCount': 5,
+            'encoding': 'utf-8',
+            'delay': True,
+        },
     },
     'loggers': {
         'django.db.backends': {
@@ -528,6 +538,10 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': False,
         },
-
+        'delivery.georouting': {
+            'handlers': ['georouting_file', 'console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
     },
 }
