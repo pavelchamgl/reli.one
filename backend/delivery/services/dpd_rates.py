@@ -169,6 +169,7 @@ def calculate_dpd_shipping_options(
 
     results: List[Dict[str, Any]] = []
     errors: List[str] = []
+    produced_channels: set[str] = set()
 
     def process_channel(delivery_type: str):
         c = country.upper()
@@ -179,6 +180,11 @@ def calculate_dpd_shipping_options(
         try:
             channel = _resolve_channel_for(c, delivery_type)
             logger.info("DPD channel resolved: req=%s -> channel=%s", delivery_type, channel)
+
+            if channel in produced_channels:
+                logger.info("DPD skip %s: resolved channel %s already produced", delivery_type, channel)
+                return
+            produced_channels.add(channel)
 
             parcels = split_items_into_parcels_dpd(items, variant_map, service=delivery_type)
             logger.info("DPD parcels count for %s/%s: %d", c, channel, len(parcels))
