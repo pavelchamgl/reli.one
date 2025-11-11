@@ -32,7 +32,7 @@ GLS_PUDO_EXPORT_DISCOUNT_CZK = Decimal(str(
     getattr(settings, "GLS_PUDO_EXPORT_DISCOUNT_CZK", "27.00")
 ))
 
-# Мýтный сбор: Kč за каждый начатый кг
+# Мытный сбор: Kč за каждый начатый кг
 GLS_TOLL_PER_KG_CZK = Decimal(str(
     getattr(settings, "GLS_TOLL_PER_KG_CZK", "1.47")
 ))
@@ -46,7 +46,7 @@ def _ceil_kg(x: Decimal) -> Decimal:
 
 
 def _toll_surcharge_czk(weight_kg: Decimal) -> Decimal:
-    """Мýтный сбор = ceil(kg) * ставка."""
+    """Мытный сбор = ceil(kg) * ставка."""
     return (_ceil_kg(weight_kg) * GLS_TOLL_PER_KG_CZK).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
@@ -188,26 +188,19 @@ def _pick_rate(
             )
 
 
-# ----- Публичные функции -----
+# ----- Внутренняя генерация опций для ОДНОЙ посылки -----
 
-def calculate_gls_shipping_options(
+def _gls_options_for_single_parcel(
+    *,
     country: str,
     items: List[Dict[str, Any]],
     currency: str,
-    *,
-    cod: bool = False,
-    address_bundle: str = "one",                       # 'one' или 'multi' (для HD)
+    cod: bool,
+    address_bundle: str,
     variant_map: Optional[Dict[str, ProductVariant]] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Возвращает список опций GLS (PUDO, HD), если тарифы доступны.
-
-    Правила:
-    - База берётся по HD (EuroBusinessParcel) из БД.
-    - PUDO Export = base_hd - 27 Kč (не ниже 0), bundle для PUDO всегда 'one'.
-    - Топливо: base_hd * GLS_FUEL_PCT.
-    - Мýтный сбор: ceil(вес) * GLS_TOLL_PER_KG_CZK.
-    - Порядок: CZK (база+сурчаржи+COD) → convert_czk_to_eur → VAT.
+    Возвращает список опций GLS (PUDO, HD) для одной посылки.
     """
     if variant_map is None:
         skus = [it["sku"] for it in items]
@@ -252,7 +245,7 @@ def calculate_gls_shipping_options(
             bundle_used = address_bundle
             service_name = "Home Delivery"
 
-        # CZK нетто (база + COD + топливо + мýто)
+        # CZK нетто (база + COD + топливо + мыто)
         total_czk = (base_service + cod_fee + fuel_czk + toll_czk).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
         # Сначала конвертируем нетто CZK → EUR...
@@ -295,9 +288,43 @@ def calculate_gls_shipping_options(
     return options
 
 
-def calculate_order_shipping_gls(country: str, items: List[Dict[str, Any]], cod: bool, currency: str) -> Dict[str, Any]:
+# ----- Публичные функции с ЕДИНЫМ контрактом -----
+
+def calculate_gls_shipping_options(
+    country: str,
+    items: List[Dict[str, Any]],
+    currency: str,
+    *,
+    cod: bool = False,
+    address_bundle: str = "one",
+    variant_map: Optional[Dict[str, ProductVariant]] = None,
+) -> Dict[str, Any]:
     """
-    Рассчёт по всем посылкам (сплит по GLS), с аккумулированием нетто и брутто по каналам.
+    ВЕРСИЯ ДЛЯ ОДНОЙ ПОСЫЛКИ.
+    Возвращает ЕДИНЫЙ контракт:
+        {"options": [...], "total_parcels": 1}
+    """
+    options = _gls_options_for_single_parcel(
+        country=country,
+        items=items,
+        currency=currency,
+        cod=cod,
+        address_bundle=address_bundle,
+        variant_map=variant_map,
+    )
+    # Логируем как раньше (для наглядности в логах)
+    logger.info("[GLS] Shipping result (single) for %s: %s", country, options)
+    return {"options": options, "total_parcels": 1}
+
+
+def calculate_order_shipping_gls(
+    country: str,
+    items: List[Dict[str, Any]],
+    cod: bool,
+    currency: str,
+) -> Dict[str, Any]:
+    """
+    МУЛЬТИ-ПОСЫЛКА (сплит по GLS).
     Возвращает: {"options": [...], "total_parcels": N}
     """
     parcels = split_items_into_parcels_gls(items)
@@ -305,14 +332,14 @@ def calculate_order_shipping_gls(country: str, items: List[Dict[str, Any]], cod:
 
     per_parcel_opts: List[List[Dict[str, Any]]] = []
     for parcel in parcels:
-        opts = calculate_gls_shipping_options(
+        single = calculate_gls_shipping_options(
             country=country,
             items=parcel,
             currency=currency,
             cod=cod,
             address_bundle=address_bundle,
         )
-        per_parcel_opts.append(opts)
+        per_parcel_opts.append(single["options"])
 
     # аккумулируем по каналу PUDO/HD отдельно нетто и брутто
     sum_net = {"PUDO": Decimal("0.00"), "HD": Decimal("0.00")}
@@ -340,4 +367,6 @@ def calculate_order_shipping_gls(country: str, items: List[Dict[str, Any]], cod:
                 "estimate": base.get("estimate", ""),
             })
 
-    return {"options": result, "total_parcels": len(parcels)}
+    aggregated = {"options": result, "total_parcels": len(parcels)}
+    logger.info("[GLS] Shipping result (aggregated %s parcels) for %s: %s", len(parcels), country, aggregated)
+    return aggregated
