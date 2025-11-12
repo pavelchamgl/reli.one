@@ -106,7 +106,7 @@ def _pick_rate(country: str, channel: str, category: str, weight_kg: Decimal) ->
             )
 
 
-def _format_option(rate_obj: ShippingRate, total_czk: Decimal) -> Dict:
+def _format_option(rate_obj: ShippingRate, total_czk: Decimal, is_oversize: bool = False) -> Dict:
     """
     Приводим стоимость к EUR, затем начисляем VAT (после конвертации).
     """
@@ -117,11 +117,12 @@ def _format_option(rate_obj: ShippingRate, total_czk: Decimal) -> Dict:
     return {
         "courier": rate_obj.courier_service.name or "Zásilkovna",
         "service": "Pick-up point" if rate_obj.channel == "PUDO" else "Home Delivery",
-        "channel": rate_obj.channel,          # "PUDO" | "HD"
-        "price": price_eur,                   # EUR без НДС
-        "priceWithVat": price_eur_vat,        # EUR с НДС
+        "channel": rate_obj.channel,
+        "price": price_eur,
+        "priceWithVat": price_eur_vat,
         "currency": "EUR",
         "estimate": rate_obj.estimate or "",
+        "isOversize": is_oversize,
     }
 
 
@@ -266,7 +267,7 @@ def calculate_shipping_options(
 
             logger.debug("Zásilkovna PUDO: base=%s fuel=%s toll=%s cod=%s total=%s",
                          base, fuel, toll, cod_fee, total_czk)
-            options.append(_format_option(rate, total_czk))
+            options.append(_format_option(rate, total_czk, is_oversize=(chargeable_weight > 5 or sum_sides > 120)))
         except Exception as e:
             logger.info("Zásilkovna PUDO skipped: %s", e)
     else:
@@ -286,7 +287,7 @@ def calculate_shipping_options(
 
             logger.debug("Zásilkovna HD: base=%s fuel=%s toll=%s cod=%s total=%s",
                          base, fuel, toll, cod_fee, total_czk)
-            options.append(_format_option(rate, total_czk))
+            options.append(_format_option(rate, total_czk, is_oversize=(chargeable_weight > 5 or sum_sides > 120)))
         except Exception as e:
             logger.info("Zásilkovna HD skipped: %s", e)
     else:
