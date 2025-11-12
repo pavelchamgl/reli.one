@@ -165,6 +165,10 @@
   font-size: clamp(12px, 2.5vw, 24px);
   line-height: 140%;
   color: #000;
-  padding-left: 25px;
+  padding-left: 35px;
+
+  & li{
+    margin-bottom: 5px;
+  }
 
 }

@@ -1045,5 +1045,219 @@
         "desc": "Slouží k zobrazování relevantních reklam a nabídek podle vašich zájmů."
     },
     "cancel": "Zrušit",
-    "confirm_choice": "Potvrdit výběr"
+    "confirm_choice": "Potvrdit výběr",
+    "cookieModal": "_________",
+    "cookieModalTitle": "Zásady používání souborů cookie pro společnost Reli Group s.r.o. (Reli.one)",
+    "generalProvisionsCookie": {
+        "title": "Obecná ustanovení",
+        "text1": "1.1. Tyto Zásady popisují používání souborů cookies a podobných technologií na platformě Reli.one (webové stránky a mobilní aplikace).",
+        "text2": "1.2. Správce údajů: Reli Group s.r.o., registrovaná v České republice.",
+        "text3": "1.3. Používáním platformy uživatel potvrzuje svůj souhlas s používáním cookies v souladu s těmito Zásadami.",
+        "text4": "1.4. Používání cookies je v souladu s platnými právními předpisy o ochraně osobních údajů, včetně GDPR a příslušné české legislativy."
+    },
+    "whatAreCookies": {
+        "title": "Co jsou soubory cookie?",
+        "desc": "Cookies jsou malé textové soubory, které se ukládají do vašeho počítače nebo mobilního zařízení při návštěvě webové stránky. Soubor cookie je uložen ve vašem webovém prohlížeči a umožňuje webové stránce nebo třetí straně vás rozpoznat a usnadnit vám další návštěvu a webové stránky pro vás užitečnější."
+    },
+    "howUseCookie": {
+        "title": "Jak Reli Group s.r.o. používá soubory cookie",
+        "desc1": "Když používáte webové stránky a přistupujete na ně, můžeme do vašeho webového prohlížeče umístit řadu souborů cookies. Soubory cookie používáme pro následující účely:",
+        "listBold": {
+            "list1": {
+                "title": "Ověřovací soubory cookie:",
+                "desc": " abychom vás rozpoznali, když navštívíte naše webové stránky, a zapamatovali si vaše preference."
+            },
+            "list2": {
+                "title": "Analytické soubory cookie:",
+                "desc": " k analýze toho, jak naši návštěvníci používají webové stránky, a ke sledování výkonu webových stránek. K tomuto účelu můžeme použít službu Google Analytics nebo jiné analytické nástroje."
+            },
+            "list3": {
+                "title": "Reklamní soubory cookie:",
+                "desc": " k zobrazování reklam, které pro vás mohou být relevantní na základě zvyklostí při prohlížení. Tyto soubory cookie nám pomáhají zobrazovat vám relevantní reklamy a měřit efektivitu naší reklamní společnosti"
+            },
+            "list4": {
+                "title": "Preferenční soubory cookie:",
+                "desc": " k zapamatování vašich preferencí a různých nastavení."
+            },
+            "list5": {
+                "title": "Soubory cookie relace:",
+                "desc": " pro provoz našich webových stránek a poskytování základních funkcí a funkcí."
+            }
+        },
+        "desc2": "Osobní údaje uchováváme pouze po dobu nezbytně nutnou k naplnění účelů, pro které byly shromážděny, a v souladu s platnými právními povinnostmi.",
+        "list": {
+            "text1": "Objednávky a faktury: uchovávají se po dobu 7 let pro účely účetnictví a daňové evidence.",
+            "text2": "Údaje o účtu: uchovávají se do doby smazání uživatelského účtu a následně ještě 1 rok pro účely řešení případných sporů, pokud právní předpisy nevyžadují delší dobu uchování.",
+            "text3": "Analytická data: uchovávají se v agregované nebo anonymizované podobě, pokud je to možné; nezpracované záznamy se standardně uchovávají po dobu 12 měsíců.",
+            "text4": "Záznamy o souhlasech: uchovávají se po dobu platnosti souhlasu a následně ještě 2 roky za účelem prokázání souladu s příslušnými předpisy o ochraně osobních údajů."
+        }
+    },
+    "thirdPartyCookies": {
+        "title": "Soubory cookie třetích stran",
+        "desc": "Platforma Reli.one může používat soubory cookies třetích stran, mimo jiné:",
+        "list": {
+            "text1": "Google Analytics (Google Ireland Ltd.) – analytika a statistika;",
+            "text2": "Facebook Pixel (Meta Platforms Ireland Ltd.) – marketing a reklama;",
+            "text3": "Stripe / PayPal – zpracování plateb."
+        }
+    },
+    "whatAreYouChoice": {
+        "title": "Jaké jsou vaše možnosti týkající se souborů cookie",
+        "desc": "Pokud chcete soubory cookie smazat nebo dát pokyn svému webovému prohlížeči k odstranění nebo odmítnutí souborů cookie, navštivte stránky nápovědy vašeho webového prohlížeče. Upozorňujeme však, že pokud soubory cookie odstraníte nebo je odmítnete přijmout, možná nebudete moci používat všechny funkce, které nabízíme, možná nebudete moci uložit své preference a některé z našich stránek se nemusí zobrazovat správně."
+    },
+    "changesCookiesPolicy": {
+        "title": "Změny těchto Zásad používání souborů cookie",
+        "desc": "Tyto zásady používání souborů cookie můžeme aktualizovat tak, aby odrážely změny v našich postupech nebo právních požadavcích. Veškeré aktualizace budou zveřejněny na této stránce, proto se prosím pravidelně vracejte pro nejnovější informace."
+    },
+    "findMoreInfoCookie": {
+        "title": "Kde najdete další informace o souborech cookie",
+        "desc": "Můžete se dozvědět více o souborech cookie na následujících webových stránkách třetích stran:",
+        "list": {
+            "text": "AllAboutCookies: ",
+            "link": "www.allaboutcookies.org"
+        }
+    },
+    "contactUs": {
+        "title": "Kontaktujte nás",
+        "text": "Máte-li jakékoli dotazy týkající se našich zásad používání souborů cookie, kontaktujte nás emailem",
+        "email": "support600.reli@gmail.com"
+    },
+    "privacyPolicyPage": "_________________",
+    "privacyPolicyPageTitle": "Zásady ochrany osobních údajů",
+    "privacyPolicyIntro": {
+        "title": "1. Úvod",
+        "desc": "Tato Zásada ochrany osobních údajů („Zásada“) vysvětluje, jak platforma tržiště („Tržiště“ nebo „Reli.One“) shromažďuje, používá, uchovává a chrání osobní údaje, aby zajistila soulad s Obecným nařízením o ochraně osobních údajů (Nařízení (EU) 2016/679) („GDPR“). Zásada se vztahuje na osobní údaje uživatelů, včetně kupujících, prodejců a návštěvníků.",
+        "list1": {
+            "title": "1.1 Správce údajů",
+            "desc": "Společnost Reli Group s.r.o. („Reli.one“ nebo „Společnost“) je správcem osobních údajů ve smyslu GDPR."
+        },
+        "list2": {
+            "title": "1.2 Kontaktní údaje správce",
+            "text1": "Název společnosti: Reli Group s.r.o.",
+            "text2": "Sídlo: Na Lysinách 551/34, Praha 4 – Hodkovičky, 147 00, Česká republika",
+            "text3": "E-mail: ",
+            "email": "privacy.reli.one@gmail.com"
+        }
+    },
+    "privacyPolicyScope": {
+        "title": "2. Působnost",
+        "desc": "Tato Zásada se vztahuje na veškeré osobní údaje zpracovávané Tržištěm, včetně údajů shromážděných prostřednictvím webových stránek, mobilních aplikací a dalších digitálních platforem provozovaných společností Reli.one."
+    },
+    "privacyPolicyPersonalData": {
+        "title": "3. Kategorie shromažďovaných osobních údajů",
+        "desc": "Reli.one může shromažďovat následující kategorie osobních údajů:",
+        "list": {
+            "text1": "Identifikační údaje: jméno, příjmení, IČO/DIČ (u dodavatelů);",
+            "text2": "Kontaktní údaje: e-mailová adresa, telefonní číslo, poštovní adresa;",
+            "text3": "Platební údaje: informace o transakcích prostřednictvím Stripe / PayPal (Reli.one neukládá úplné údaje o platebních kartách);",
+            "text4": "Údaje o účtu: uživatelské jméno, heslo (hesla jsou ukládána v šifrované podobě);",
+            "text5": "Technické údaje: IP adresa, soubory cookies, informace o prohlížeči a zařízení;",
+            "text6": "Historie objednávek: zvolené služby, dodavatelé, stavy rezervací a související údaje."
+        }
+    },
+    "purposesProcessing": {
+        "title": "4. Účely zpracování",
+        "desc": "Reli.one zpracovává osobní údaje pouze pro konkrétní, výslovně stanovené a oprávněné účely, zejména:",
+        "list": {
+            "text1": "Registrace a správa účtů zákazníků a dodavatelů;",
+            "text2": "Provoz Tržiště a poskytování služeb;",
+            "text3": "Zpracování plateb a vyúčtování;",
+            "text4": "Komunikace mezi zákazníky a dodavateli;",
+            "text5": "Zasílání oznámení a zpráv o objednávkách;",
+            "text6": "Analytika a zlepšování služeb;",
+            "text7": "Plnění právních povinností (např. daňových a účetních)."
+        }
+    },
+    "lawfulBases": {
+        "title": "5. Právní základy zpracování",
+        "desc": "Zpracování osobních údajů je založeno na jednom či více z následujících právních základech podle čl. 6 GDPR:",
+        "list": {
+            "text1": "Čl. 6 odst. 1 písm. b) - plnění smlouvy (poskytování služeb prostřednictvím Tržiště);",
+            "text2": "Čl. 6 odst. 1 písm. c) - splnění právní povinnosti (např. daňové a účetní povinnosti);",
+            "text3": "Čl. 6 odst. 1 písm. f) - oprávněný zájem společnosti Reli.one (např. bezpečnost, prevence podvodů), pokud tyto zájmy nepřevažují nad právy a svobodami subjektu údajů;",
+            "text4": "Čl. 6 odst. 1 písm. a) - souhlas subjektu údajů (např. pro zasílání marketingové komunikace)."
+        }
+    },
+    "dataRetention": {
+        "title": "6. Doba uchovávání osobních údajů",
+        "desc": "Reli.one uchovává osobní údaje pouze po dobu nezbytně nutnou k naplnění stanovených účelů a v souladu s platnými právními předpisy:",
+        "list": {
+            "text1": "Údaje o účtu - do doby, než uživatel svůj účet zruší;",
+            "text2": "Finanční a účetní údaje - po dobu 10 let podle české legislativy;",
+            "text3": "Technické údaje (logy, cookies) - od 30 dnů do 2 let v závislosti na účelu."
+        }
+    },
+    "disclosures": {
+        "title": "7. Předávání osobních údajů třetím stranám",
+        "desc": "Osobní údaje mohou být předávány:",
+        "list": {
+            "text1": "Poskytovatelům platebních služeb (Stripe, PayPal);",
+            "text2": "Poskytovatelům cloudových a analytických služeb (např. Google);",
+            "text3": "Orgánům veřejné moci, pokud tak stanoví právní předpisy;",
+            "text4": "Marketingovým partnerům, pouze na základě výslovného souhlasu uživatele."
+        },
+        "afterDesc": "Všichni externí partneři jsou povinni dodržovat GDPR a uzavírají se společností Reli.one Smlouvu o zpracování osobních údajů (Data Processing Agreement – DPA)."
+    },
+    "internationalTransfers": {
+        "title": " 8. Mezinárodní předávání údajů",
+        "desc": "Jakékoli předávání osobních údajů mimo EU/EHP probíhá v souladu s požadavky GDPR. K ochraně údajů jsou používány odpovídající záruky, například standardní smluvní doložky nebo závazná podniková pravidla."
+    },
+    "securityMeasures": {
+        "title": " 9. Opatření na ochranu osobních údajů",
+        "desc": "Reli.one zavádí vhodná technická a organizační opatření k ochraně osobních údajů před neoprávněným přístupem, zveřejněním, změnou nebo zničením. Mezi tato opatření patří zejména: šifrování dat (SSL/TLS), hashování hesel, řízení přístupu a pravidelné bezpečnostní audity."
+    },
+    "dataSubjectRights": {
+        "title": " 10. Práva subjektů údajů",
+        "desc": "Subjekty údajů mají právo:",
+        "list": {
+            "text1": "Požadovat přístup ke svým osobním údajům;",
+            "text2": "Opravit nepřesné nebo neúplné údaje;",
+            "text3": "Požadovat výmaz údajů („právo být zapomenut“);",
+            "text4": "Omezit zpracování;",
+            "text5": "Vznést námitku proti zpracování (včetně profilování, pokud je prováděno);",
+            "text6": "Požadovat přenositelnost údajů;",
+            "text7": "Kdykoli odvolat souhlas se zpracováním pro marketingové účely (odvolání souhlasu nemá vliv na zákonnost zpracování před jeho odvoláním)."
+        },
+        "emailText": {
+            "first": "Veškeré žádosti lze zasílat na e-mail: ",
+            "email": "privacy.reli.one@gmail.com",
+            "second": ". Reli.one reaguje na žádosti v souladu s platnými právními předpisy."
+        }
+    },
+    "privacyPolicyCookies": {
+        "title": "11. Cookies",
+        "desc": "Tržiště používá soubory cookies a podobné technologie k následujícím účelům:",
+        "list": {
+            "text1": "Nezbytné cookies: nutné pro základní funkce webu (přihlášení, nákupní košík, platby, bezpečnost);",
+            "text2": "Analytické cookies: pomáhají porozumět, jak návštěvníci používají web, a zlepšovat jeho funkčnost;",
+            "text3": "Funkční cookies: uchovávají uživatelské preference (jazyk, region, nastavení);",
+            "text4": "Marketingové cookies: slouží k zobrazování relevantní reklamy a nabídek podle zájmů uživatele."
+        },
+        "afterDesc": "Podrobnější informace o typech cookies a době jejich uchovávání jsou uvedeny v Zásadách používání cookies společnosti Reli.one."
+    },
+    "dataBreachNotification": {
+        "title": "12. Oznámení o porušení zabezpečení osobních údajů",
+        "desc": "Reli.one má zavedené postupy pro detekci, vyšetřování a oznamování případného porušení zabezpečení osobních údajů v souladu s GDPR. V případech vyžadovaných právními předpisy společnost bez zbytečného odkladu informuje příslušný dozorový orgán a dotčené subjekty údajů."
+    },
+    "dataProcessingAgreements": {
+        "title": "13. Smlouvy o zpracování osobních údajů",
+        "desc": "Reli.one uzavírá se svými zpracovateli osobních údajů Smlouvy o zpracování osobních údajů (DPA), které stanovují povinnost zpracovatelů přijmout odpovídající bezpečnostní opatření a zpracovávat osobní údaje výhradně podle pokynů společnosti Reli.one."
+    },
+    "trainingAwareness": {
+        "title": "14. Školení a zvyšování povědomí",
+        "desc": "Zaměstnanci, kteří přicházejí do styku s osobními údaji, absolvují školení o zásadách GDPR a osvědčených postupech ochrany osobních údajů. Reli.one zároveň realizuje aktivity zaměřené na zvyšování povědomí o povinnostech v oblasti ochrany osobních údajů."
+    },
+    "auditsCompliance": {
+        "title": "15. Audity a kontroly souladu",
+        "desc": "Reli.one pravidelně provádí audity a kontroly souladu s GDPR, aby zajistila trvalé dodržování právních požadavků. Vnitřní politiky a postupy jsou průběžně aktualizovány v souladu se změnami právních předpisů a provozní praxe."
+    },
+    "policyPrivacyReview": {
+        "title": "16. Přezkum zásady",
+        "desc": "Tato Zásada je pravidelně přezkoumávána a aktualizována, aby byla zajištěna její účinnost a soulad s právními předpisy a standardy v oblasti ochrany osobních údajů."
+    },
+    "furtherInformation": {
+        "title": "17. Další informace",
+        "text": "Další informace o GDPR jsou k dispozici na oficiálních webových stránkách:",
+        "url":"www.gdpr.eu"
+    }
 }
