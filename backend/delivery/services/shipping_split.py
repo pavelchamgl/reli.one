@@ -234,17 +234,29 @@ def combine_parcel_options(per_parcel_opts: List[List[Dict]]):
 
     result = []
     for ch, data in agg.items():
-        result.append(
-            {
-                "courier": data["courier"],
-                "service": data["service"],
-                "channel": ch,
-                "price": float(Decimal(data["price"]).quantize(Decimal("0.01"))),
-                "priceWithVat": float(Decimal(data["priceWithVat"]).quantize(Decimal("0.01"))),
-                "currency": data["currency"],
-                "estimate": ", ".join(sorted(data["estimates"])),
-            }
-        )
+        # Определяем, является ли хотя бы одна PUDO-посылка oversize
+        is_oversize_pudo = False
+        if ch == "PUDO":
+            # простая эвристика: цена base > 120 CZK или вес > 5 кг в любой посылке
+            # (эти данные можно передавать через opt, если хочешь точнее)
+            if any(opt.get("isOversize") and opt["channel"] == "PUDO" for opts in per_parcel_opts for opt in opts):
+                is_oversize_pudo = True
+
+        option = {
+            "courier": data["courier"],
+            "service": data["service"],
+            "channel": ch,
+            "price": float(Decimal(data["price"]).quantize(Decimal("0.01"))),
+            "priceWithVat": float(Decimal(data["priceWithVat"]).quantize(Decimal("0.01"))),
+            "currency": data["currency"],
+            "estimate": ", ".join(sorted(data["estimates"])),
+        }
+
+        # добавляем флаг только если канал PUDO
+        if ch == "PUDO":
+            option["isOversizePudo"] = is_oversize_pudo
+
+        result.append(option)
 
     return {"total_parcels": len(per_parcel_opts), "options": result}
 
