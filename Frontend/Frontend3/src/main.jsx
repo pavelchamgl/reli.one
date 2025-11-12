@@ -50,6 +50,7 @@ import DeleteMyDataPage from "./pages/DeleteMyDataPage.jsx";
 import SellerIdPage from "./pages/SellerIdPage.jsx";
 import GeneralDataProtection from "./pages/GeneralDataProtection.jsx";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
+import CookiePolicy from "./pages/CookiePolicy.jsx";
 
 const router = createBrowserRouter([
   {
@@ -103,6 +104,9 @@ const router = createBrowserRouter([
       },
       {
         path: "/privacy-policy", element: <PrivacyPolicyPage />
+      },
+      {
+        path: "/cookie-policy", element: <CookiePolicy />
       }
     ],
   },

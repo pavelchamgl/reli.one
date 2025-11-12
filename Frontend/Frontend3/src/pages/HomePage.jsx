@@ -64,7 +64,7 @@ const HomePage = () => {
   }, [location]);
 
   useEffect(() => {
-    if (!cookieSave && pathname !== "/general-protection" && pathname !== "/privacy-policy") {
+    if (!cookieSave && pathname !== "/cookie-policy" && pathname !== "/privacy-policy") {
       setOpenCookie(true)
       localStorage.setItem("i18nextLng", "en")
     }

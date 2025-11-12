@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next'
 import Container from '../ui/Container/Container'
 
 import styles from "../styles/GeneralDataProtection.module.scss"
-import { useEffect } from 'react'
 
 const GeneralDataProtection = () => {
 

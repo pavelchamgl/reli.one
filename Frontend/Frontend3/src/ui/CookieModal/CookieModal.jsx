@@ -77,12 +77,12 @@ const CookieModal = ({ open, handleClose }) => {
 
         <p className={`${styles.desc} ${styles.linkText}`} >
           {t("policyLinkText.read")}{" "}
-          <Link to={"/general-protection"} onClick={() => handleClose()} >
+          <Link to={"/cookie-policy"} onClick={() => handleClose()} >
             {t("policyLinkText.cookiePolicy")}
           </Link>
           {t("policyLinkText.and")}
           <Link to={"/privacy-policy"} onClick={() => handleClose()} >
-            {t("policyLinkText.privacyPolicy")}
+            {t("privacyPolicyPageTitle")}
           </Link>
         </p>
 
