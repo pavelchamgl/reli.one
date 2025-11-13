@@ -88,10 +88,11 @@ def _gls_category_HD(
 
 def _gls_pudo_allowed(weight: Decimal, max_side: Decimal) -> bool:
     """
-    Базовая проверка для PUDO:
+    Базовая проверка для PUDO (ParcelShop/ParcelBox):
       • вес до 20 кг
       • по габаритам используем те же лимиты, что для HD (2 м / 3 м по сумме),
         более жёстких ограничений в прайсе нет.
+      Жёсткие лимиты BOX (55 см) уже учтены в split (service="BOX").
     """
     if weight > Decimal("20"):
         return False
@@ -208,6 +209,9 @@ def _calc_pudo_for_parcel(
       base_PUDO = base_HD - 27 CZK  (но не ниже нуля)
     Для надбавок (fuel/toll) используем тот же принцип, что и для HD.
     COD для PUDO не поддерживаем.
+
+    Эта функция используется и для SHOP, и для BOX, так как тариф один и тот же
+    (скидка -27 CZK от HD).
     """
     weight = parcel.get("weight_kg", Decimal("0"))
     L = parcel.get("length_cm", Decimal("0"))
@@ -261,7 +265,7 @@ def _calc_pudo_for_parcel(
 
     return {
         "courier": hd_rate.courier_service.name or "GLS",
-        "service": "Pick-up point",
+        "service": "Pick-up point",  # на выходе мы можем переименовать в SHOP/BOX
         "channel": "PUDO",
         "price": net_eur,
         "priceWithVat": gross_eur,
@@ -288,21 +292,23 @@ def calculate_gls_shipping_options(
     Возвращает агрегированные опции по GLS:
       {
         "options": [
-          {... PUDO ...},
-          {... HD ...}
+          {... HD ...},
+          {... SHOP ...},
+          {... BOX ...},
         ],
         "total_parcels": {
-          "PUDO": N_pudo,
           "HD":   N_hd,
+          "SHOP": N_shop,
+          "BOX":  N_box,
         }
       }
 
     Логика:
       • сначала делаем split под HD-лимиты (service="HD");
-      • отдельно делаем split под PUDO-лимиты (service="PUDO");
-      • для каждой посылки считаем стоимость по своему каналу;
-      • суммируем NET по каналам и один раз начисляем VAT;
-      • PUDO показываем только если посчитать удалось для КАЖДОЙ PUDO-посылки.
+      • отдельно делаем split под SHOP-лимиты (service="PUDO");
+      • отдельно делаем split под BOX-лимиты (service="BOX");
+      • для каждой посылки считаем стоимость по своему «режиму»;
+      • суммируем NET по каждому режиму и начисляем VAT по сумме.
     """
 
     # Если вариант-мэп не передали — пусть split сам достанет варианты
@@ -312,25 +318,39 @@ def calculate_gls_shipping_options(
     if not parcels_hd:
         raise ValueError("GLS: split(HD) returned no parcels")
 
-    parcels_pudo = []
+    parcels_shop: List[Dict[str, Any]] = []
     try:
-        parcels_pudo = split_items_into_parcels_gls(
+        parcels_shop = split_items_into_parcels_gls(
             items, variant_map=variant_map, service="PUDO", country=country
         )
     except Exception as e:
-        # Теоретически PUDO может не поддерживаться по каким-то причинам,
-        # тогда просто логируем и продолжаем только с HD.
-        logger.info("GLS: PUDO split failed, will use HD only: %s", e)
+        # SHOP может не поддерживаться для конкретного набора товаров/страны
+        logger.info("GLS: SHOP (PUDO) split failed, will skip SHOP: %s", e)
+
+    parcels_box: List[Dict[str, Any]] = []
+    try:
+        parcels_box = split_items_into_parcels_gls(
+            items, variant_map=variant_map, service="BOX", country=country
+        )
+    except Exception as e:
+        # BOX может не поддерживаться (габариты, лимиты автомата и т.п.)
+        logger.info("GLS: BOX split failed, will skip BOX: %s", e)
 
     logger.info(
-        "GLS aggregate: HD parcels=%d, PUDO parcels=%d",
+        "GLS aggregate: HD parcels=%d, SHOP parcels=%d, BOX parcels=%d",
         len(parcels_hd),
-        len(parcels_pudo),
+        len(parcels_shop),
+        len(parcels_box),
     )
 
-    per_channel_net: Dict[str, Decimal] = {"HD": Decimal("0.00"), "PUDO": Decimal("0.00")}
+    # Накапливаем NET по режимам (HD/SHOP/BOX)
+    per_mode_net: Dict[str, Decimal] = {
+        "HD": Decimal("0.00"),
+        "SHOP": Decimal("0.00"),
+        "BOX": Decimal("0.00"),
+    }
     last_meta: Dict[str, Dict[str, Any]] = {}
-    channels_ok: Dict[str, bool] = {"HD": True, "PUDO": True}
+    modes_ok: Dict[str, bool] = {"HD": True, "SHOP": True, "BOX": True}
 
     # --- HD ---
     for p in parcels_hd:
@@ -342,7 +362,7 @@ def calculate_gls_shipping_options(
                 currency=currency,
                 address_bundle=address_bundle,
             )
-            per_channel_net["HD"] += o["price"]
+            per_mode_net["HD"] += o["price"]
             last_meta["HD"] = {
                 "courier": o.get("courier", "GLS"),
                 "service": o.get("service", "Home Delivery"),
@@ -350,12 +370,12 @@ def calculate_gls_shipping_options(
             }
         except Exception as e:
             logger.error("GLS: HD calculation failed for parcel %s: %s", p, e)
-            channels_ok["HD"] = False
+            modes_ok["HD"] = False
             break
 
-    # --- PUDO ---
-    if parcels_pudo:
-        for p in parcels_pudo:
+    # --- SHOP (ParcelShop) ---
+    if parcels_shop:
+        for p in parcels_shop:
             try:
                 o = _calc_pudo_for_parcel(
                     country=country,
@@ -363,28 +383,54 @@ def calculate_gls_shipping_options(
                     currency=currency,
                     address_bundle=address_bundle,
                 )
-                per_channel_net["PUDO"] += o["price"]
-                last_meta["PUDO"] = {
+                per_mode_net["SHOP"] += o["price"]
+                last_meta["SHOP"] = {
                     "courier": o.get("courier", "GLS"),
-                    "service": o.get("service", "Pick-up point"),
+                    # логически это Parcel Shop
+                    "service": "SHOP",
                     "estimate": o.get("estimate", ""),
                 }
             except Exception as e:
-                logger.info("GLS: PUDO calculation failed for parcel %s: %s", p, e)
-                channels_ok["PUDO"] = False
+                logger.info("GLS: SHOP calculation failed for parcel %s: %s", p, e)
+                modes_ok["SHOP"] = False
                 break
     else:
-        channels_ok["PUDO"] = False
+        modes_ok["SHOP"] = False
+
+    # --- BOX (ParcelBox) ---
+    if parcels_box:
+        for p in parcels_box:
+            try:
+                o = _calc_pudo_for_parcel(
+                    country=country,
+                    parcel=p,
+                    currency=currency,
+                    address_bundle=address_bundle,
+                )
+                per_mode_net["BOX"] += o["price"]
+                last_meta["BOX"] = {
+                    "courier": o.get("courier", "GLS"),
+                    # логически это Parcel Box (Locker)
+                    "service": "BOX",
+                    "estimate": o.get("estimate", ""),
+                }
+            except Exception as e:
+                logger.info("GLS: BOX calculation failed for parcel %s: %s", p, e)
+                modes_ok["BOX"] = False
+                break
+    else:
+        modes_ok["BOX"] = False
 
     options: List[Dict[str, Any]] = []
     total_parcels = {
-        "HD": len(parcels_hd) if channels_ok["HD"] else 0,
-        "PUDO": len(parcels_pudo) if (parcels_pudo and channels_ok["PUDO"]) else 0,
+        "HD": len(parcels_hd) if modes_ok["HD"] else 0,
+        "SHOP": len(parcels_shop) if (parcels_shop and modes_ok["SHOP"]) else 0,
+        "BOX": len(parcels_box) if (parcels_box and modes_ok["BOX"]) else 0,
     }
 
     # Собираем HD
-    if channels_ok["HD"] and per_channel_net["HD"] > 0:
-        net = per_channel_net["HD"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    if modes_ok["HD"] and per_mode_net["HD"] > 0:
+        net = per_mode_net["HD"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         gross = (net * (Decimal("1") + VAT_RATE)).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
@@ -401,17 +447,36 @@ def calculate_gls_shipping_options(
             }
         )
 
-    # Собираем PUDO
-    if channels_ok["PUDO"] and per_channel_net["PUDO"] > 0:
-        net = per_channel_net["PUDO"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    # Собираем SHOP (ParcelShop)
+    if modes_ok["SHOP"] and per_mode_net["SHOP"] > 0:
+        net = per_mode_net["SHOP"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         gross = (net * (Decimal("1") + VAT_RATE)).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
-        meta = last_meta.get("PUDO", {})
+        meta = last_meta.get("SHOP", {})
         options.append(
             {
                 "courier": meta.get("courier", "GLS"),
-                "service": meta.get("service", "Pick-up point"),
+                "service": "SHOP",
+                "channel": "PUDO",
+                "price": net,
+                "priceWithVat": gross,
+                "currency": currency,
+                "estimate": meta.get("estimate", ""),
+            }
+        )
+
+    # Собираем BOX (ParcelBox)
+    if modes_ok["BOX"] and per_mode_net["BOX"] > 0:
+        net = per_mode_net["BOX"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        gross = (net * (Decimal("1") + VAT_RATE)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        meta = last_meta.get("BOX", {})
+        options.append(
+            {
+                "courier": meta.get("courier", "GLS"),
+                "service": "BOX",
                 "channel": "PUDO",
                 "price": net,
                 "priceWithVat": gross,

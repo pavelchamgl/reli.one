@@ -23,6 +23,12 @@ GLS_PUDO_MAX_WEIGHT_KG = Decimal("20.0")
 GLS_PUDO_MAX_LENGTH_CM = Decimal("100.0")
 GLS_PUDO_MAX_GIRTH_CM = Decimal("300.0")
 
+# BOX (Parcel Box / LockerDeliveryService)
+# Более жёсткие лимиты по длине (входное отверстие автомата)
+GLS_BOX_MAX_WEIGHT_KG = Decimal("20.0")
+GLS_BOX_MAX_LENGTH_CM = Decimal("55.0")
+GLS_BOX_MAX_GIRTH_CM = Decimal("300.0")
+
 
 @dataclass(frozen=True)
 class GlsLimits:
@@ -41,6 +47,11 @@ LIMITS_BY_SERVICE_GLS: Dict[str, GlsLimits] = {
         max_weight_kg=GLS_PUDO_MAX_WEIGHT_KG,
         max_length_cm=GLS_PUDO_MAX_LENGTH_CM,
         max_girth_cm=GLS_PUDO_MAX_GIRTH_CM,
+    ),
+    "BOX": GlsLimits(
+        max_weight_kg=GLS_BOX_MAX_WEIGHT_KG,
+        max_length_cm=GLS_BOX_MAX_LENGTH_CM,
+        max_girth_cm=GLS_BOX_MAX_GIRTH_CM,
     ),
 }
 
@@ -88,6 +99,14 @@ GLS_PUDO_CARTONS_CM: List[Tuple[Decimal, Decimal, Decimal]] = [
     (Decimal("100"), Decimal("50"), Decimal("40")),  # 280 (максимум по длине)
 ]
 
+# BOX-коробки (ParcelBox: длина до 55 см, вес до 20 кг)
+# Отдельный набор под ограничения автомата (входной проём).
+GLS_BOX_CARTONS_CM: List[Tuple[Decimal, Decimal, Decimal]] = [
+    (Decimal("55"), Decimal("40"), Decimal("40")),  # girth=215
+    (Decimal("45"), Decimal("35"), Decimal("25")),  # girth=165
+    (Decimal("35"), Decimal("30"), Decimal("20")),  # girth=145
+]
+
 
 def _cartons_for_service_gls(service: str, limits: GlsLimits) -> List[Tuple[Decimal, Decimal, Decimal]]:
     """
@@ -97,7 +116,10 @@ def _cartons_for_service_gls(service: str, limits: GlsLimits) -> List[Tuple[Deci
     svc = service.upper()
     if svc == "PUDO":
         base_cartons = GLS_PUDO_CARTONS_CM
+    elif svc == "BOX":
+        base_cartons = GLS_BOX_CARTONS_CM
     else:
+        # по умолчанию HD
         base_cartons = GLS_HD_CARTONS_CM
 
     cartons_sorted = sorted(base_cartons, key=lambda x: (x[0] * x[1] * x[2]))
@@ -205,6 +227,7 @@ def split_items_into_parcels_gls(
     Параметр service:
       • "HD"   — сплит по лимитам BusinessParcel/EuroBusinessParcel
       • "PUDO" — сплит по лимитам ParcelShop (≤20 кг, L≤100 см)
+      • "BOX"  — сплит по лимитам Parcel Box (≤20 кг, L≤55 см)
     """
     svc = service.upper()
     if svc not in LIMITS_BY_SERVICE_GLS:
