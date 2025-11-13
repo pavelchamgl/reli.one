@@ -18,6 +18,7 @@ class ProductItemSerializer(serializers.Serializer):
 class GroupSerializer(serializers.Serializer):
     seller_id = serializers.IntegerField()
     delivery_type = serializers.IntegerField()
+    delivery_mode = serializers.ChoiceField(choices=["shop", "box"], required=False)
     courier_service = serializers.IntegerField()
     delivery_address = DeliveryAddressSerializer(required=False)
     pickup_point_id = serializers.CharField(required=False)

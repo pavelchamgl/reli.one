@@ -71,6 +71,11 @@ CHANNEL_MAP = {
     1: 'PUDO',       # пункт выдачи
     2: 'HD',         # доставка на дом
 }
+
+# --- GLS-specific delivery modes ---
+# Работает только при courier_service = GLS и delivery_type = 1 (PUDO)
+DELIVERY_MODES_GLS = {"shop", "box"}
+
 logger = logging.getLogger(__name__)
 
 
@@ -121,7 +126,7 @@ def _get_courier_code(val: Optional[Union[int, str]]) -> str:
 
 def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Response]:
     """
-    Оставляем твою «лайт»-проверку CZ, как была:
+    Оставляем «лайт»-проверку CZ, как была:
     — все SKU должны иметь seller.default_warehouse.country == 'CZ'
     — unknown SKU → 400
     — non-CZ → 400 c ключом 'origin'
@@ -235,6 +240,23 @@ class PaymentSessionValidator:
                     {"error": f"Group {idx}: invalid pickup point / address."},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
+
+            # --- GLS-specific mode validation ---
+            # Если GLS + PUDO → требуется delivery_mode = "shop" или "box"
+            delivery_type = group.get("delivery_type")
+            if courier_code == "gls" and delivery_type == 1:
+                mode = str(group.get("delivery_mode", "")).lower().strip()
+                if mode not in DELIVERY_MODES_GLS:
+                    return Response(
+                        {
+                            "error": (
+                                f"Group {idx}: For GLS PUDO delivery, 'delivery_mode' "
+                                f"must be one of: {', '.join(DELIVERY_MODES_GLS)}"
+                            )
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
         return None
 
 
@@ -1300,6 +1322,13 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             seller_id = group['seller_id']
             courier_code = _get_courier_code(group.get("courier_service"))
 
+            # GLS PUDO: поддерживаем SUBMODE (SHOP / BOX)
+            delivery_mode = None
+            if courier_code == "gls" and delivery_type == 1:  # PUDO
+                # На этом этапе PaymentSessionValidator уже гарантирует,
+                # что delivery_mode ∈ {"shop", "box"}
+                delivery_mode = str(group.get("delivery_mode", "")).lower().strip()
+
             # Принадлежность товаров продавцу
             for product in products:
                 sku = product['sku']
@@ -1382,12 +1411,38 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             if channel is None:
                 return Response({"error": f"Group {idx}: Unknown delivery_type {delivery_type}."}, status=400)
 
-            selected_option = next(
-                (opt for opt in shipping_result.get("options", []) if opt["channel"] == channel),
-                None
-            )
+            # --- Для GLS PUDO: определяем нужный режим ---
+            if courier_code == "gls" and delivery_type == 1:
+                desired_service = delivery_mode.upper()  # "SHOP" или "BOX"
+
+                # Находим опцию по service
+                selected_option = next(
+                    (
+                        opt for opt in shipping_result.get("options", [])
+                        if opt.get("service", "").upper() == desired_service
+                    ),
+                    None
+                )
+
+            else:
+                # fallback для любых других курьеров
+                selected_option = next(
+                    (opt for opt in shipping_result.get("options", []) if opt["channel"] == channel),
+                    None
+                )
+
             if not selected_option:
                 available = [o["channel"] for o in shipping_result.get("options", [])]
+
+                if courier_code == "gls" and delivery_type == 1:
+                    return Response(
+                        {
+                            "error": (
+                                f"Group {idx}: GLS does not support '{delivery_mode.upper()}' "
+                                f"for this parcel set. Available: {', '.join(available)}"
+                            )
+                        },
+                        status=400,)
                 return Response(
                     {
                         "error": f"Group {idx}: No option for channel {channel}. Available: {', '.join(available) or 'none'}."},
