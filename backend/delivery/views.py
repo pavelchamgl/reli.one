@@ -20,7 +20,7 @@ from .services.shipping_split import (
 )
 from .services.local_rates import calculate_shipping_options as calc_packeta
 from .services.gls_split import split_items_into_parcels_gls as split_gls
-from .services.gls_rates import calculate_order_shipping_gls
+from .services.gls_rates import calculate_gls_shipping_options
 from .services.dpd_rates import (
     calculate_order_shipping_dpd as calc_dpd_wrap,  # DPD wrapper: split + aggregate
 )
@@ -230,20 +230,17 @@ class SellerShippingOptionsView(APIView):
 
         # 5) GLS: split -> address_bundle -> per-parcel -> aggregate
         try:
-            gls_parcels = split_gls(items)
-            address_bundle = "multi" if len(gls_parcels) >= 2 else "one"
-            gls_result = [
-                calculate_order_shipping_gls(
-                    country=country, items=p, currency=currency,
-                    cod=cod,  # (2) pass cod through
-                )
-                for p in gls_parcels
-            ]
-            payload["couriers"]["gls"] = gls_result
+            gls_summary = calculate_gls_shipping_options(
+                country=country,
+                items=items,
+                currency=currency,
+                cod=cod,
+                variant_map=vmap
+            )
+            payload["couriers"]["gls"] = gls_summary
         except Exception as e:
             logger.exception("GLS calculation failed: country=%s", country)
             payload["couriers"]["gls"] = {"error": str(e)}
-
         return Response(payload, status=status.HTTP_200_OK)
 
 

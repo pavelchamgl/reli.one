@@ -183,14 +183,33 @@ def generate_parcels_for_order(order_id: int):
         sku_to_op = {op.product.sku: op for op in order.order_products.all()}
 
         for idx, block in enumerate(parcels, start=1):
+            """
+            block может быть:
+              - списком юнитов: [{'sku': '...', 'quantity': ...}, ...]
+              - либо (в старых вариантах) dict с ключом "items": {"items": [...], ...}
+
+            Мы приводим это к единому виду items_block = list[dict].
+            """
+            if isinstance(block, dict):
+                items_block = block.get("items")
+                if items_block is None:
+                    # fallback: если пришёл «голый» dict без items, считаем его одним юнитом
+                    items_block = [block]
+            else:
+                # ожидаемый случай для нового split_items_into_parcels_gls: list[dict]
+                items_block = list(block)
+
+            # вес посылки
             wt = sum(
-                (sku_to_op[b["sku"]].product.weight_grams or 0) * b["quantity"]
-                for b in block if b["sku"] in sku_to_op
+                (sku_to_op[u["sku"]].product.weight_grams or 0) * u["quantity"]
+                for u in items_block
+                if u.get("sku") in sku_to_op
             )
 
+            # расчёт стоимости именно для этого блока
             opts_raw = calculate_gls_shipping_options(
                 country=country_code,
-                items=block,
+                items=items_block,
                 currency="EUR",
                 cod=False,
                 address_bundle="one" if len(parcels) == 1 else "multi",
@@ -221,7 +240,9 @@ def generate_parcels_for_order(order_id: int):
 
             props = build_parcel_properties(
                 content=f"Order {order.order_number}",
-                length_cm=1, width_cm=1, height_cm=1,
+                length_cm=1,
+                width_cm=1,
+                height_cm=1,
                 weight_kg=max(0.01, (wt or 0) / 1000.0),
             )
 
@@ -263,10 +284,16 @@ def generate_parcels_for_order(order_id: int):
             )
             _attach_file_from_media_url(dp.label_file, res.get("url"))
 
-            for u in block:
+            # Привязка товаров именно из items_block
+            for u in items_block:
                 op = sku_to_op.get(u["sku"])
                 if op:
-                    DeliveryParcelItem.objects.create(parcel=dp, order_product=op, quantity=u["quantity"])
+                    DeliveryParcelItem.objects.create(
+                        parcel=dp,
+                        order_product=op,
+                        quantity=u["quantity"],
+                    )
+
             created.append(dp)
 
     # ----------------------------------------------- DPD -----------------------------------------------
