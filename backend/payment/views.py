@@ -262,113 +262,170 @@ class PaymentSessionValidator:
 
 @method_decorator(csrf_exempt, name='dispatch')
 @extend_schema(
-    summary="Create Stripe Payment Session (Packeta / DPD / GLS)",
+    summary="Create Stripe Payment Session (Packeta / GLS / DPD — HD + PUDO + GLS SHOP/BOX)",
     description=(
-            "Creates a Stripe Checkout Session by validating customer data and seller-grouped products, "
-            "normalizing ZIP codes, and calculating delivery prices using Packeta (Zásilkovna), DPD, or GLS.\n\n"
+            "Creates a Stripe Checkout Session based on customer data, grouped products, and the selected delivery method.\n\n"
 
-            "**Processing Flow:**\n"
-            "1) Validates required input fields and ensures a valid customer delivery address.\n"
-            "2) Converts all ZIP codes to **uppercase** and performs postal validation:\n"
-            "   • Local ZIP dataset checks (per-country rules)\n"
-            "   • DPD GeoRouting checks for supported countries\n"
-            "   • If DPD returns a normalized ZIP, it is written back to the group data.\n"
-            "3) Enforces the **CZ-origin rule**: all products must originate from sellers whose default warehouse "
-            "is located in the Czech Republic.\n"
-            "4) Confirms seller ownership of each SKU in every group.\n"
-            "5) Resolves group-level destination country from either pickup point or delivery address.\n"
-            "6) Courier logic by `courier_service` value:\n"
-            "   • `2` = Packeta (Zásilkovna) — aggregator pricing\n"
-            "   • `3` = GLS — GLS parcel-split + address-bundle based pricing\n"
-            "   • `4` = DPD — volumetric weight, per-country price tables, strict parcel dimension limits\n\n"
+            "=== 1) Input Validation ===\n"
+            "- Validates email, first_name, last_name, phone, delivery_address, and product groups.\n"
+            "- Ensures each group contains valid products, seller_id, delivery type, and courier.\n\n"
 
-            "**DPD-specific checks:**\n"
-            "- All product variants used in a DPD group must have defined: `weight_grams`, `length_mm`, `width_mm`, `height_mm`.\n"
-            "- Parcel limits are enforced (≤31.5kg, ≤120cm longest side, ≤300cm combined dimensions).\n\n"
+            "=== 2) ZIP Code Validation ===\n"
+            "- Local ZIP validation is applied for all ZIP codes.\n"
+            "- DPD GeoRouting is used only for HD shipments and may return a normalized ZIP.\n"
+            "- For all PUDO shipments (Packeta, GLS, DPD), ZIP is validated but never overwritten.\n"
+            "- In DPD PUDO groups, both pickup_point_id and delivery_address are expected; only ZIP/country are validated.\n\n"
 
-            "**Delivery Cost Selection:**\n"
-            "- `delivery_type` determines channel:\n"
-            "   `1` → PUDO (Pickup Point)\n"
-            "   `2` → HD (Home Delivery)\n"
-            "- The matching rate is selected from courier pricing results.\n"
-            "- If multiple parcel counts appear (e.g., GLS/DPD splits), `total_parcels` is normalized to a single integer.\n\n"
+            "=== 3) Destination Country Resolution ===\n"
+            "- HD groups use `delivery_address.country`.\n"
+            "- All PUDO groups use country resolved from `pickup_point_id`.\n\n"
 
-            "**Stripe Session Construction:**\n"
-            "- Product costs and delivery costs are added to `line_items`.\n"
-            "- Computed group-level shipping data is written into `StripeMetadata`, "
-            "to be restored by the webhook upon successful payment.\n"
-            "- COD is **always disabled** for Stripe payments.\n"
-            "- Currency is **EUR** throughout the calculation.\n\n"
+            "=== 4) Business Logic Rules per Group ===\n"
+            "- All SKUs must belong to the specified seller_id.\n"
+            "- All products must originate from sellers whose default warehouse is located in the Czech Republic (CZ-origin rule).\n"
+            "- `delivery_address` is required for HD groups.\n"
+            "- `pickup_point_id` is required for all PUDO groups (Packeta / GLS / DPD).\n"
+            "- GLS PUDO requires `delivery_mode` = 'shop' or 'box'.\n"
+            "- DPD groups require weight_grams, length_mm, width_mm, height_mm for each product variant.\n\n"
 
-            "**Post-Payment Workflow:**\n"
-            "- Stripe webhook reads stored metadata, creates 1..N orders (one per seller-group), "
-            "generates invoice(s), and sends emails to:\n"
-            "   • Customer\n"
-            "   • Seller(s)\n"
-            "   • Managers\n\n"
+            "=== 5) Courier Pricing Logic ===\n"
+            "*Packeta (Zásilkovna)*\n"
+            "- Unified aggregator-based pricing.\n"
+            "- Supports both PUDO and HD.\n\n"
 
-            "**Redirect Behavior:**\n"
-            "- Success: `REDIRECT_DOMAIN/payment_end/?session_id={CHECKOUT_SESSION_ID}`\n"
-            "- Cancel:  `REDIRECT_DOMAIN/basket/`"
+            "*GLS*\n"
+            "- Supports HD, SHOP (PUDO), and BOX (PUDO).\n"
+            "- For GLS PUDO, `delivery_mode` determines SHOP or BOX.\n"
+            "- Applies parcel splitting and address_bundle rules.\n\n"
+
+            "*DPD*\n"
+            "- Strict dimension and weight limits.\n"
+            "- Requires full dimensions for each product variant.\n"
+            "- For DPD PUDO, ZIP is validated but never mutated.\n\n"
+
+            "=== 6) Delivery Option Selection ===\n"
+            "- `delivery_type = 1` → PUDO.\n"
+            "- `delivery_type = 2` → HD.\n"
+            "- For GLS PUDO, the selected option corresponds to SHOP or BOX.\n\n"
+
+            "=== 7) Stripe Checkout Construction ===\n"
+            "- Each SKU becomes an individual Stripe line item.\n"
+            "- Delivery price is added as one aggregated line.\n"
+            "- All prices are in EUR.\n"
+            "- COD is disabled for Stripe payments.\n\n"
+
+            "=== 8) Metadata Persistence ===\n"
+            "- Customer details.\n"
+            "- Delivery address.\n"
+            "- Per-group parcel counts.\n"
+            "- Delivery totals and group totals.\n"
+            "- Invoice number and variable symbol.\n"
+            "- Everything is stored in StripeMetadata and restored by the webhook.\n\n"
+
+            "=== 9) After Successful Payment ===\n"
+            "- Stripe webhook restores metadata.\n"
+            "- Creates 1 order per seller group.\n"
+            "- Generates invoice PDFs.\n"
+            "- Sends notification emails to customer, sellers, and managers.\n"
     ),
     request=SessionInputSerializer,
     responses={
         200: OpenApiResponse(
             response=StripeSessionOutputSerializer,
-            description="Stripe session created successfully",
+            description="Stripe Checkout Session successfully created",
             examples=[
                 OpenApiExample(
                     name="Success",
+                    summary="Successful Stripe session creation",
                     value={
                         "checkout_url": "https://checkout.stripe.com/c/pay/cs_test_123...",
-                        "session_id": "cs_test_123...",
+                        "session_id": "cs_test_123",
                         "session_key": "d7f1a2f8-3e3f-4a2c-9c8e-7f9a1b234567"
-                    },
-                    response_only=True
+                    }
                 )
             ]
         ),
+
         400: OpenApiResponse(
             description="Validation error",
             examples=[
                 OpenApiExample(
-                    "Missing Root Address Field",
-                    value={"error": "Missing 'zip' in delivery_address"}
+                    name="Missing Field",
+                    value={"error": "Missing required field: email"}
                 ),
                 OpenApiExample(
-                    "CZ-Origin Rule",
-                    value={"origin": ["Только отправка из Чехии. Продавец(ы) SKU 240819709 ..."]}
+                    name="Invalid ZIP",
+                    value={"error": "Group 1: Invalid ZIP '00999' for country RO."}
                 ),
                 OpenApiExample(
-                    "Invalid ZIP",
-                    value={"error": "Group 1: ZIP code '010011' is invalid for country RO."}
+                    name="CZ Origin",
+                    value={"origin": ["Только отправка из Чехии. Продавец(ы) SKU 123..."]}
                 ),
                 OpenApiExample(
-                    "No Option For Channel",
-                    value={"error": "Group 2: No option for channel PUDO. Available: HD"}
+                    name="No option for channel",
+                    value={"error": "Group 1: No option for channel HD. Available: PUDO"}
                 ),
                 OpenApiExample(
-                    "Missing Dimensions For DPD",
-                    value={"error": "Missing weight/dimensions for SKU(s): 123456, 654321"}
+                    name="Missing GLS delivery_mode",
+                    value={"error": "Group 1: GLS PUDO requires delivery_mode ['shop'/'box']."}
+                ),
+                OpenApiExample(
+                    name="DPD Missing Dimensions",
+                    value={"error": "Missing weight/dimensions for SKU(s): 240819709"}
                 ),
             ]
         ),
+
         500: OpenApiResponse(
-            description="Internal server error",
+            description="Internal error / Stripe failure",
             examples=[
-                OpenApiExample("Stripe Failure", value={"error": "Stripe session creation failed: <reason>"}),
+                OpenApiExample(
+                    name="Stripe Error",
+                    value={"error": "Stripe session creation failed: <message>"}
+                )
             ]
         ),
     },
+
     examples=[
         OpenApiExample(
-            name="Request: GLS (HD) + DPD (PUDO)",
-            summary="Two groups: one shipped by GLS (HD), one by DPD (PUDO)",
+            name="Request Example: GLS BOX",
+            summary="GLS PUDO with BOX mode",
             request_only=True,
             value={
-                "email": "user@example.com",
+                "email": "user123@example.com",
                 "first_name": "Pavel",
                 "last_name": "Ivanov",
+                "phone": "+40711122334",
+                "delivery_address": {
+                    "street": "Strada Exemplu 23",
+                    "city": "București",
+                    "zip": "030026",
+                    "country": "RO"
+                },
+                "groups": [
+                    {
+                        "seller_id": 7,
+                        "delivery_type": 1,        # PUDO
+                        "delivery_mode": "box",    # REQUIRED for GLS PUDO
+                        "courier_service": 3,      # GLS
+                        "pickup_point_id": "RO032534-PLOCKER001",
+                        "products": [
+                            {"sku": "240819709", "quantity": 4}
+                        ]
+                    }
+                ]
+            }
+        ),
+
+        OpenApiExample(
+            name="Request Example: Packeta + DPD",
+            summary="Two groups with mixed couriers",
+            request_only=True,
+            value={
+                "email": "client@example.com",
+                "first_name": "Anna",
+                "last_name": "Novak",
                 "phone": "+420777111222",
                 "delivery_address": {
                     "street": "Na Lysinách 551/34",
@@ -379,32 +436,28 @@ class PaymentSessionValidator:
                 "groups": [
                     {
                         "seller_id": 2,
-                        "delivery_type": 2,         # HD
-                        "courier_service": 3,       # GLS
+                        "delivery_type": 1,      # PUDO
+                        "courier_service": 4,    # DPD
+                        "pickup_point_id": "35862",
                         "delivery_address": {
-                            "street": "Na Lysinách 551/34",
-                            "city": "Praha",
-                            "zip": "14700",
+                            "street": "Bílá 158",
+                            "city": "Bílá",
+                            "zip": "73915",
                             "country": "CZ"
                         },
-                        "products": [
-                            {"sku": "240819709", "quantity": 2}
-                        ]
+                        "products": [{"sku": "240819709", "quantity": 2}]
                     },
                     {
                         "seller_id": 1,
-                        "delivery_type": 1,         # PUDO
-                        "courier_service": 4,       # DPD
+                        "delivery_type": 2,      # HD
+                        "courier_service": 2,    # Packeta
                         "delivery_address": {
                             "street": "Na Lysinách 551/34",
                             "city": "Praha",
                             "zip": "14700",
                             "country": "CZ"
                         },
-                        "pickup_point_id": "35862",
-                        "products": [
-                            {"sku": "272464947", "quantity": 3}
-                        ]
+                        "products": [{"sku": "272464947", "quantity": 1}]
                     }
                 ]
             }
@@ -421,7 +474,7 @@ class CreateStripePaymentView(APIView):
 
         logger.info("Stripe session creation request received", extra={"data": data})
 
-        # --- базовые поля---
+        # --- базовые поля ---
         required_fields = ["email", "first_name", "last_name", "phone", "delivery_address", "groups"]
         for field in required_fields:
             if field not in data:
@@ -432,30 +485,35 @@ class CreateStripePaymentView(APIView):
         last_name = data["last_name"]
         phone = data["phone"]
         delivery_address = data["delivery_address"]
+
+        # ZIP root level normalize
         if "zip" in delivery_address and delivery_address["zip"] is not None:
             delivery_address["zip"] = uppercase_zip(delivery_address["zip"])
 
         groups = data["groups"]
+
+        # ZIP normalize inside groups
         for g in groups:
             gaddr = g.get("delivery_address")
             if gaddr and ("zip" in gaddr) and (gaddr["zip"] is not None):
                 gaddr["zip"] = uppercase_zip(gaddr["zip"])
+
         root_country = (delivery_address.get("country") or "").upper()
 
-        # проверка адреса (как было)
+        # Проверка адреса
         required_subfields = ["street", "city", "zip", "country"]
         for field in required_subfields:
             if field not in delivery_address:
                 return Response({"error": f"Missing '{field}' in delivery_address"}, status=400)
 
-        # проверка групп (как было)
+        # Проверка групп (resolve_country_code_from_group)
         validation_response = PaymentSessionValidator.validate_groups(groups, root_country=root_country)
         if validation_response:
             return validation_response
 
         logger.info(f"Validated {len(groups)} groups for user {user.id}. Starting calculation.")
 
-        # подгружаем варианты по всем SKU
+        # Подгружаем варианты
         all_skus = {p["sku"] for g in groups for p in g["products"]}
         variants_qs = (
             ProductVariant.objects
@@ -471,7 +529,7 @@ class CreateStripePaymentView(APIView):
         )
         variant_map = {v.sku: v for v in variants_qs}
 
-        # --- проверка габаритов для DPD (как у тебя) ---
+        # DPD check of required weight/dimensions
         dpd_skus = {
             p["sku"]
             for g in groups
@@ -502,12 +560,48 @@ class CreateStripePaymentView(APIView):
         line_items = []
         total_delivery = Decimal("0.00")
 
+        # MAIN GROUP LOOP
         for idx, group in enumerate(groups, start=1):
             delivery_type = group["delivery_type"]  # 1=PUDO, 2=HD
             products = group["products"]
             seller_id = group["seller_id"]
             courier_code = _get_courier_code(group.get("courier_service"))
 
+            # --- GLS SHOP / BOX ---
+            delivery_mode = None
+            if courier_code == "gls" and delivery_type == 1:
+                raw_mode = group.get("delivery_mode")
+                if raw_mode:
+                    delivery_mode = str(raw_mode).lower().strip()
+                else:
+                    delivery_mode = "shop"   # fallback
+
+            # --- DPD PUDO: additional ZIP validation for pickup point ---
+            if courier_code == "dpd" and group.get("delivery_type") == 1:
+                pickup_zip = group.get("delivery_address", {}).get("zip")
+                pickup_country = group.get("delivery_address", {}).get("country")
+
+                if not pickup_zip or not pickup_country:
+                    return Response(
+                        {"error": f"Group {idx}: DPD PUDO requires pickup point ZIP and country in delivery_address."},
+                        status=400,
+                    )
+
+                # Валидируем ZIP пункта через уже существующий валидатор
+                resolved_zip = ZipCodeValidator.validate_and_resolve(
+                    pickup_zip,
+                    pickup_country,
+                    prefer_remote=True
+                )
+
+                if not resolved_zip.valid:
+                    return Response(
+                        {
+                            "error": f"Group {idx}: Invalid ZIP '{pickup_zip}' for pickup point in country {pickup_country}."},
+                        status=400,
+                    )
+
+            # --- resolve country ---
             country_code = resolve_country_code_from_group(
                 group,
                 idx,
@@ -521,7 +615,7 @@ class CreateStripePaymentView(APIView):
                     status=400,
                 )
 
-            # принадлежность товаров продавцу
+            # Принадлежность товаров продавцу
             for product in products:
                 sku = product["sku"]
                 variant = variant_map.get(sku)
@@ -533,7 +627,7 @@ class CreateStripePaymentView(APIView):
                         status=400,
                     )
 
-            # доп. проверки для HD — оставляем твои
+            # HD: ZIP & phone validate
             if delivery_type == 2:
                 gaddr = group.get("delivery_address", {}) or {}
                 zip_code = gaddr.get("zip")
@@ -556,7 +650,7 @@ class CreateStripePaymentView(APIView):
                 if phone_error:
                     return Response({"error": f"Group {idx}: {phone_error}"}, status=400)
 
-            # --- расчёт доставки по курьеру ---
+            # --- расчёт доставки ---
             items_for_calc = [{"sku": p["sku"], "quantity": p["quantity"]} for p in products]
             cod = Decimal("0.00")
 
@@ -595,14 +689,33 @@ class CreateStripePaymentView(APIView):
             if channel is None:
                 return Response({"error": f"Group {idx}: Unknown delivery_type {delivery_type}."}, status=400)
 
-            selected_option = next(
-                (opt for opt in shipping_result.get("options", []) if opt["channel"] == channel),
-                None
-            )
+            # --- Выбор опции доставки ---
+            if courier_code == "gls" and delivery_type == 1:
+                desired = delivery_mode.upper()  # SHOP / BOX
+                selected_option = next(
+                    (opt for opt in shipping_result.get("options", []) if opt["service"] == desired),
+                    None,
+                )
+            else:
+                selected_option = next(
+                    (opt for opt in shipping_result.get("options", []) if opt["channel"] == channel),
+                    None,
+                )
+
             if not selected_option:
-                available = [o["channel"] for o in shipping_result.get("options", [])]
+                available = [f"{o['service']} ({o['channel']})" for o in shipping_result.get("options", [])]
+
+                if courier_code == "gls" and delivery_type == 1:
+                    return Response(
+                        {"error": (
+                            f"Group {idx}: GLS does not support '{delivery_mode.upper()}' "
+                            f"for this parcel set. Available: {', '.join(available)}"
+                        )},
+                        status=400,
+                    )
+
                 return Response(
-                    {"error": f"Group {idx}: No option for channel {channel}. Available: {', '.join(available) or 'none'}."},
+                    {"error": f"Group {idx}: No option for channel {channel}. Available: {', '.join(available)}"},
                     status=400,
                 )
 
@@ -643,7 +756,7 @@ class CreateStripePaymentView(APIView):
             group_total += delivery_cost
             group["calculated_group_total"] = str(group_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
-        # единая позиция «Delivery»
+        # Delivery line
         if total_delivery > 0:
             line_items.append(
                 {
@@ -668,7 +781,7 @@ class CreateStripePaymentView(APIView):
         session_key = str(uuid.uuid4())
         invoice_number, variable_symbol = next_invoice_identifiers()
 
-        # сохраняем мету — как у тебя
+        # сохраняем StripeMetadata
         StripeMetadata.objects.create(
             session_key=session_key,
             custom_data={
