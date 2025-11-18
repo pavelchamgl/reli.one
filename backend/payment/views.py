@@ -1345,52 +1345,57 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 
         logger.info("PayPal session creation request received", extra={"data": data})
 
-        # базовые поля
-        required_fields = ['email', 'first_name', 'last_name', 'phone', 'delivery_address', 'groups']
+        # ---------------------------------------------------------------------
+        # 1) REQUIRED ROOT FIELDS
+        # ---------------------------------------------------------------------
+        required_fields = ["email", "first_name", "last_name", "phone", "delivery_address", "groups"]
         for field in required_fields:
             if field not in data:
                 return Response({"error": f"Missing required field: {field}"}, status=400)
 
-        email = data['email']
-        first_name = data['first_name']
-        last_name = data['last_name']
-        phone = data['phone']
-        delivery_address = data['delivery_address']
-        groups = data['groups']
+        email = data["email"]
+        first_name = data["first_name"]
+        last_name = data["last_name"]
+        phone = data["phone"]
+        delivery_address = data["delivery_address"]
+        groups = data["groups"]
 
-        # Нормализуем корневой ZIP в верхний регистр
-        if "zip" in delivery_address and delivery_address["zip"] is not None:
+        # Корневой ZIP в нормализованный вид
+        if "zip" in delivery_address and delivery_address["zip"]:
             delivery_address["zip"] = uppercase_zip(delivery_address["zip"])
 
-        # Нормализуем ZIP в адресах групп
+        # Нормализуем ZIP в группах
         for g in groups:
             gaddr = g.get("delivery_address")
-            if gaddr and ("zip" in gaddr) and (gaddr["zip"] is not None):
+            if gaddr and gaddr.get("zip"):
                 gaddr["zip"] = uppercase_zip(gaddr["zip"])
 
-        root_country = (delivery_address.get('country') or '').upper()
-
-        # корневой адрес обязателен и должен содержать все поля
-        for f in ['street', 'city', 'zip', 'country']:
+        # Корневой адрес должен содержать обязательные поля
+        for f in ["street", "city", "zip", "country"]:
             if f not in delivery_address:
                 return Response({"error": f"Missing '{f}' in delivery_address"}, status=400)
 
-        # Базовая валидация групп: resolve_country_code_from_group и т.п.
+        root_country = (delivery_address.get("country") or "").upper()
+
+        # ---------------------------------------------------------------------
+        # 2) VALIDATE GROUPS (единая логика со Stripe)
+        # ---------------------------------------------------------------------
         validation_response = PaymentSessionValidator.validate_groups(groups, root_country=root_country)
         if validation_response:
             return validation_response
 
         logger.info(f"Validated {len(groups)} groups for user {user.id}. Starting calculation.")
 
-        # Подгружаем варианты по всем SKU
-        all_skus = {p['sku'] for g in groups for p in g['products']}
+        # ---------------------------------------------------------------------
+        # 3) LOAD VARIANTS FOR ALL SKUs (одним запросом)
+        # ---------------------------------------------------------------------
+        all_skus = {p["sku"] for g in groups for p in g["products"]}
         variants_qs = (
             ProductVariant.objects
             .filter(sku__in=all_skus)
             .select_related("product__seller__default_warehouse")
             .only(
-                "sku",
-                "price",
+                "sku", "price",
                 "product__seller_id",
                 "product__seller__default_warehouse__country",
                 "weight_grams", "length_mm", "width_mm", "height_mm",
@@ -1398,7 +1403,9 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
         )
         variant_map = {v.sku: v for v in variants_qs}
 
-        # DPD: проверка габаритов/веса
+        # ---------------------------------------------------------------------
+        # 4) DPD: DIMENSIONS CHECK (аналог Stripe)
+        # ---------------------------------------------------------------------
         dpd_skus = {
             p["sku"]
             for g in groups
@@ -1414,56 +1421,79 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 req = [v.weight_grams, v.length_mm, v.width_mm, v.height_mm]
                 if any(x is None or x == 0 for x in req):
                     missing_dims.append(sku)
+
             if missing_dims:
                 return Response(
                     {"error": f"Missing weight/dimensions for SKU(s): {', '.join(missing_dims)}"},
                     status=400,
                 )
 
-        # CZ-origin правило
+        # ---------------------------------------------------------------------
+        # 5) CZ-ORIGIN RULE
+        # ---------------------------------------------------------------------
         cz_resp = _check_cz_origin_for_groups(variant_map, groups)
         if cz_resp is not None:
             logger.warning("CZ origin check failed during PayPal session creation")
             return cz_resp
 
-        total_delivery = Decimal('0.00')
+        total_delivery = Decimal("0.00")
         line_items = []
 
+        # ---------------------------------------------------------------------
+        # 6) PROCESS EACH GROUP
+        # ---------------------------------------------------------------------
         for idx, group in enumerate(groups, start=1):
-            delivery_type = group['delivery_type']  # 1=PUDO, 2=HD
-            products = group['products']
-            seller_id = group['seller_id']
+            delivery_type = group["delivery_type"]   # 1=PUDO, 2=HD
+            products = group["products"]
+            seller_id = group["seller_id"]
             courier_code = _get_courier_code(group.get("courier_service"))
 
-            # GLS PUDO: поддерживаем SUBMODE (SHOP / BOX)
+            # GLS PUDO: delivery_mode уже провалидирован
             delivery_mode = None
-            if courier_code == "gls" and delivery_type == 1:  # PUDO
-                # На этом этапе PaymentSessionValidator уже гарантирует,
-                # что delivery_mode ∈ {"shop", "box"}
+            if courier_code == "gls" and delivery_type == 1:
                 delivery_mode = str(group.get("delivery_mode", "")).lower().strip()
 
-            # Принадлежность товаров продавцу
+            # -----------------------------------------------------------------
+            # 6.1 CHECK PRODUCT OWNERSHIP
+            # -----------------------------------------------------------------
             for product in products:
-                sku = product['sku']
+                sku = product["sku"]
                 variant = variant_map.get(sku)
                 if not variant:
                     return Response({"error": f"Group {idx}: ProductVariant not found: {sku}"}, status=400)
                 if variant.product.seller.id != seller_id:
                     return Response(
                         {"error": f"Group {idx}: Product {sku} does not belong to seller {seller_id}."},
-                        status=400
+                        status=400,
                     )
 
-            # Страна назначения (учитываем courier_code и root_country)
+            # -----------------------------------------------------------------
+            # 6.2 RESOLVE COUNTRY FOR THIS GROUP
+            # -----------------------------------------------------------------
             country_code = resolve_country_code_from_group(
-                group, idx, logger=logger, root_country=root_country, courier_code=courier_code
+                group,
+                idx,
+                logger=logger,
+                root_country=root_country,
+                courier_code=courier_code
             )
             if not country_code:
-                return Response({"error": f"Group {idx}: Invalid delivery address or pickup point."}, status=400)
+                return Response(
+                    {"error": f"Group {idx}: Invalid delivery address or pickup point."},
+                    status=400,
+                )
 
-            # Доп. проверки для HD: ZIP validate_and_resolve + нормализация + телефон
+            # -----------------------------------------------------------------
+            # 6.3 ZIP VALIDATION
+            #
+            # HD — ZIP обязателен (все курьеры)
+            # DPD PUDO — ZIP обязателен (адрес пункта)
+            # GLS/Packeta PUDO — ZIP игнорируется
+            # -----------------------------------------------------------------
+
+            # --- HOME DELIVERY (HD) ZIP CHECK ---
             if delivery_type == 2:
-                gaddr = group.get("delivery_address", {}) or {}
+                gaddr = group.get("delivery_address") or {}
                 zip_code = gaddr.get("zip")
                 if not zip_code:
                     return Response({"error": f"Group {idx}: ZIP code is missing."}, status=400)
@@ -1474,6 +1504,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                         {"error": f"Group {idx}: Invalid ZIP '{zip_code}' for country {country_code}."},
                         status=400,
                     )
+
                 if resolved_zip.normalized_postcode:
                     gaddr["zip"] = uppercase_zip(resolved_zip.normalized_postcode)
 
@@ -1481,25 +1512,52 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 if phone_error:
                     return Response({"error": f"Group {idx}: {phone_error}"}, status=400)
 
-            # Расчёт доставки по курьеру
-            items_for_calc = [{"sku": p['sku'], "quantity": p['quantity']} for p in products]
-            cod = Decimal("0.00")  # COD всегда off для онлайн-оплаты
+            # --- DPD PUDO ZIP CHECK ---
+            if courier_code == "dpd" and delivery_type == 1:
+                gaddr = group.get("delivery_address")
+                if not gaddr:
+                    return Response(
+                        {"error": f"Group {idx}: DPD PUDO requires delivery_address with ZIP."},
+                        status=400,
+                    )
+
+                pickup_zip = gaddr.get("zip")
+                if not pickup_zip:
+                    return Response({"error": f"Group {idx}: ZIP code is required for DPD PUDO."}, status=400)
+
+                zip_check = ZipCodeValidator.validate_and_resolve(pickup_zip, country_code, prefer_remote=True)
+                if not zip_check.valid:
+                    return Response(
+                        {"error": f"Group {idx}: Invalid pickup ZIP '{pickup_zip}' for country {country_code}."},
+                        status=400,
+                    )
+
+            # --- GLS / PACKETA PUDO — delivery_address не нужен ---
+            if delivery_type == 1 and courier_code in ("gls", "packeta"):
+                group["delivery_address"] = None
+
+            # -----------------------------------------------------------------
+            # 6.4 CALCULATE SHIPPING
+            # -----------------------------------------------------------------
+            items_for_calc = [{"sku": p["sku"], "quantity": p["quantity"]} for p in products]
+            cod = Decimal("0.00")
 
             if courier_code == "gls":
-                # GLS: address_bundle зависит от сплита
                 gls_blocks = split_items_into_parcels_gls(items_for_calc)
+                logger.info(f"[GLS] Parcel blocks for group {idx}: {gls_blocks}")
+
                 address_bundle = "one" if len(gls_blocks) == 1 else "multi"
+
                 shipping_result = calculate_gls_shipping_options(
                     country=country_code,
                     items=items_for_calc,
                     cod=cod,
-                    currency='EUR',
+                    currency="EUR",
                     address_bundle=address_bundle,
                 )
                 logger.info(f"[GLS] Shipping result for group {idx}: {shipping_result}")
 
             elif courier_code == "dpd":
-                # DPD: используем ваш калькулятор с variant_map
                 shipping_result = calculate_order_shipping_dpd(
                     country=country_code,
                     items=items_for_calc,
@@ -1510,138 +1568,136 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 logger.info(f"[DPD] Shipping result for group {idx}: {shipping_result}")
 
             else:
-                # Packeta (Zásilkovna) по умолчанию
                 shipping_result = calculate_order_shipping(
                     country=country_code,
                     items=items_for_calc,
                     cod=cod,
-                    currency='EUR',
+                    currency="EUR",
                 )
                 logger.info(f"[Packeta] Shipping result for group {idx}: {shipping_result}")
 
-            # Выбираем канал по delivery_type
+            # -----------------------------------------------------------------
+            # 6.5 SELECT SHIPPING OPTION / CHANNEL
+            # -----------------------------------------------------------------
             channel = CHANNEL_MAP.get(delivery_type)
-            if channel is None:
+            if not channel:
                 return Response({"error": f"Group {idx}: Unknown delivery_type {delivery_type}."}, status=400)
 
-            # --- Для GLS PUDO: определяем нужный режим ---
+            # GLS PUDO: выбираем SHOP/BOX по service
             if courier_code == "gls" and delivery_type == 1:
-                desired_service = delivery_mode.upper()  # "SHOP" или "BOX"
-
-                # Находим опцию по service
+                desired_service = delivery_mode.upper()
                 selected_option = next(
-                    (
-                        opt for opt in shipping_result.get("options", [])
-                        if opt.get("service", "").upper() == desired_service
-                    ),
-                    None
+                    (o for o in shipping_result.get("options", [])
+                     if o.get("service", "").upper() == desired_service),
+                    None,
                 )
-
             else:
-                # fallback для любых других курьеров
                 selected_option = next(
-                    (opt for opt in shipping_result.get("options", []) if opt["channel"] == channel),
-                    None
+                    (o for o in shipping_result.get("options", []) if o["channel"] == channel),
+                    None,
                 )
 
             if not selected_option:
-                available = [o["channel"] for o in shipping_result.get("options", [])]
-
-                if courier_code == "gls" and delivery_type == 1:
-                    return Response(
-                        {
-                            "error": (
-                                f"Group {idx}: GLS does not support '{delivery_mode.upper()}' "
-                                f"for this parcel set. Available: {', '.join(available)}"
-                            )
-                        },
-                        status=400,)
+                available = [o.get("service") or o["channel"] for o in shipping_result.get("options", [])]
                 return Response(
-                    {
-                        "error": f"Group {idx}: No option for channel {channel}. Available: {', '.join(available) or 'none'}."},
+                    {"error": f"Group {idx}: No matching delivery option. Available: {', '.join(available)}"},
                     status=400,
                 )
 
-            # Нормализуем количество посылок
+            # -----------------------------------------------------------------
+            # 6.6 DELIVERY COST + PARCEL COUNT
+            # -----------------------------------------------------------------
             raw_total_parcels = shipping_result.get("total_parcels", 1)
             if isinstance(raw_total_parcels, dict):
-                num_parcels = max(raw_total_parcels.values()) if raw_total_parcels else 1
+                num_parcels = max(raw_total_parcels.values())
             else:
                 num_parcels = int(raw_total_parcels or 1)
 
-            # Цена доставки
-            delivery_cost = _D(selected_option["priceWithVat"]).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            delivery_cost = _D(selected_option["priceWithVat"]).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
             total_delivery += delivery_cost
 
-            # Сохраняем вычисленные поля — вебхук будет их читать
             group["calculated_delivery_cost"] = str(delivery_cost)
             group["calculated_total_parcels"] = num_parcels
 
-            # Товарные позиции и стоимость группы
-            group_total = Decimal('0.00')
+            # -----------------------------------------------------------------
+            # 6.7 GROUP TOTAL + LINE ITEMS (PayPal)
+            # -----------------------------------------------------------------
+            group_total = Decimal("0.00")
+
             for product in products:
-                variant = variant_map[product['sku']]
+                variant = variant_map[product["sku"]]
                 unit_price = variant.price_with_acquiring.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-                quantity = int(product['quantity'])
+                quantity = int(product["quantity"])
+
                 group_total += unit_price * quantity
 
                 line_items.append({
-                    'name': product['sku'],
-                    'sku': product['sku'],
-                    'unit_amount': {'currency_code': 'EUR', 'value': str(unit_price)},
-                    'quantity': str(quantity),
+                    "name": product["sku"],
+                    "sku": product["sku"],
+                    "unit_amount": {"currency_code": "EUR", "value": str(unit_price)},
+                    "quantity": str(quantity),
                 })
 
             group_total += delivery_cost
-            group["calculated_group_total"] = str(group_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+            group["calculated_group_total"] = str(
+                group_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            )
 
-        # Итог по всем группам
-        gross_total = sum(Decimal(g["calculated_group_total"]) for g in groups).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-        logger.info(
-            f"[PayPal] Gross total for all groups: {gross_total} EUR (including total delivery: {total_delivery} EUR)"
-        )
+        # ---------------------------------------------------------------------
+        # 7) TOTAL FOR ALL GROUPS
+        # ---------------------------------------------------------------------
+        gross_total = sum(
+            Decimal(g["calculated_group_total"]) for g in groups
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
-        # Отдельная линия «Delivery» — суммарной стоимостью
+        logger.info(f"[PayPal] Gross total: {gross_total} EUR (delivery: {total_delivery} EUR)")
+
+        # Добавляем общую строку доставки
         if total_delivery > 0:
             line_items.append({
-                'name': 'Delivery',
-                'sku': 'delivery',
-                'unit_amount': {'currency_code': 'EUR',
-                                'value': str(total_delivery.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))},
-                'quantity': '1',
+                "name": "Delivery",
+                "sku": "delivery",
+                "unit_amount": {
+                    "currency_code": "EUR",
+                    "value": str(total_delivery.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+                },
+                "quantity": "1",
             })
 
-        # Генерируем session_key и номера для инвойса
+        # ---------------------------------------------------------------------
+        # 8) SAVE METADATA
+        # ---------------------------------------------------------------------
         session_key = str(uuid.uuid4())
         invoice_number, variable_symbol = next_invoice_identifiers()
 
-        # Сохраняем PayPal метаданные
         PayPalMetadata.objects.create(
             session_key=session_key,
             custom_data={
-                'user_id': str(user.id),
-                'email': email,
-                'first_name': first_name,
-                'last_name': last_name,
-                'phone': phone,
-                'delivery_address': delivery_address,
+                "user_id": str(user.id),
+                "email": email,
+                "first_name": first_name,
+                "last_name": last_name,
+                "phone": phone,
+                "delivery_address": delivery_address,
             },
             invoice_data={
-                'groups': groups,
-                'invoice_number': invoice_number,
+                "groups": groups,
+                "invoice_number": invoice_number,
             },
             description_data={
-                'gross_total': str(gross_total),
-                'delivery_total': str(total_delivery.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
-                'variable_symbol': variable_symbol,
+                "gross_total": str(gross_total),
+                "delivery_total": str(total_delivery),
+                "variable_symbol": variable_symbol,
             },
         )
 
-        logger.info(f"[PayPal] metadata saved with session_key: {session_key}")
+        logger.info(f"[PayPal] Metadata saved, session_key={session_key}")
 
-        # Создаём PayPal order
+        # ---------------------------------------------------------------------
+        # 9) CREATE PAYPAL ORDER
+        # ---------------------------------------------------------------------
         try:
             approval_url, order_id = self.create_paypal_order(
                 line_items=line_items,
@@ -1649,13 +1705,14 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 session_key=session_key,
                 invoice_number=invoice_number,
             )
-            logger.info(f"[PayPal] order created successfully: order_id={order_id}, session_key={session_key}")
+            logger.info(f"[PayPal] Order created: order_id={order_id}")
+
             return Response({
-                'approval_url': approval_url,
-                'order_id': order_id,
-                'session_key': session_key,
-                'session_id': session_key,
-            }, status=200)
+                "approval_url": approval_url,
+                "order_id": order_id,
+                "session_key": session_key,
+                "session_id": session_key,
+            })
 
         except Exception as e:
             logger.exception("PayPal session creation failed")
@@ -1805,7 +1862,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
 
                 gaddr = group.get("delivery_address") or {}
 
-                # --- адрес 1:1 со Stripe ---
+                # --- адрес ---
                 if delivery_type_id == 2:
                     delivery_address_obj = DeliveryAddress.objects.create(
                         user=user,
