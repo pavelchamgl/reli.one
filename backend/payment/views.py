@@ -24,7 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import Payment, PayPalMetadata, StripeMetadata
 from .mixins import PayPalMixin
 from .services import get_orders_by_payment_session_id
-from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
+from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer, GroupSerializer
 from .services_async import async_send_client_email
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
@@ -570,6 +570,11 @@ class CreateStripePaymentView(APIView):
             # --- GLS SHOP / BOX ---
             delivery_mode = None
             if courier_code == "gls" and delivery_type == 1:
+                g_serializer = GroupSerializer(
+                    data=group,
+                    context={"root_country": root_country},
+                )
+                g_serializer.is_valid(raise_exception=True)
                 raw_mode = group.get("delivery_mode")
                 if raw_mode:
                     delivery_mode = str(raw_mode).lower().strip()
@@ -1448,9 +1453,15 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             seller_id = group["seller_id"]
             courier_code = _get_courier_code(group.get("courier_service"))
 
-            # GLS PUDO: delivery_mode уже провалидирован
+            # GLS PUDO: delivery_mode validation
             delivery_mode = None
             if courier_code == "gls" and delivery_type == 1:
+                g_serializer = GroupSerializer(
+                    data=group,
+                    context={"root_country": root_country},
+                )
+                g_serializer.is_valid(raise_exception=True)
+
                 delivery_mode = str(group.get("delivery_mode", "")).lower().strip()
 
             # -----------------------------------------------------------------

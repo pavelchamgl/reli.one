@@ -1,4 +1,14 @@
+import logging
+
 from rest_framework import serializers
+
+from delivery.helpers import (
+    validate_gls_pickup_point_type,
+    DELIVERY_TYPE_PUDO,
+    DELIVERY_TYPE_HD,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class DeliveryAddressSerializer(serializers.Serializer):
@@ -56,22 +66,66 @@ class GroupSerializer(serializers.Serializer):
         delivery_type = data.get("delivery_type")
         delivery_mode = data.get("delivery_mode")
 
-        # GLS = courier_service == 3
+        # normalize courier_code for downstream services/helpers
+        if courier == 3:
+            data["courier_code"] = "gls"
+        elif courier == 2:
+            data["courier_code"] = "packeta"
+        elif courier == 4:
+            data["courier_code"] = "dpd"
+
         is_gls = (courier == 3)
 
-        # --- GLS HD ---
-        if is_gls and delivery_type == 2:  # HD
+        # -----------------------------------------------------
+        # GLS HD — delivery_mode запрещён
+        # -----------------------------------------------------
+        if is_gls and delivery_type == DELIVERY_TYPE_HD:
             if delivery_mode:
                 raise serializers.ValidationError(
                     "delivery_mode must not be provided for GLS Home Delivery."
                 )
 
-        # --- GLS PUDO (SHOP/BOX) ---
-        if is_gls and delivery_type == 1:  # PUDO
+        # -----------------------------------------------------
+        # GLS PUDO — delivery_mode обязателен + SHOP/BOX check
+        # -----------------------------------------------------
+        if is_gls and delivery_type == DELIVERY_TYPE_PUDO:
+            logger.info(f"[VALIDATION] GLS PUDO validation triggered for mode={delivery_mode}")
+
+            # No mode provided
             if not delivery_mode:
                 raise serializers.ValidationError(
                     "For GLS PUDO, delivery_mode must be 'shop' or 'box'."
                 )
+
+            # Determine root_country:
+            root_country = self.context.get("root_country")
+
+            # If not present, derive from top-level serializer
+            if not root_country:
+                try:
+                    session = self.parent.parent  # SessionInputSerializer
+                    root_country = session.initial_data["delivery_address"]["country"]
+                except Exception:
+                    root_country = None
+
+            if not root_country:
+                raise serializers.ValidationError(
+                    "Cannot determine root_country for GLS PUDO validation."
+                )
+
+            # Determine index of this group (for error messages)
+            try:
+                idx = self.parent.initial_data.index(self.initial_data)
+            except Exception:
+                idx = 0
+
+            # Perform actual GLS shop/box validation
+            validate_gls_pickup_point_type(
+                group=data,
+                idx=idx,
+                delivery_mode=delivery_mode,
+                root_country=root_country,
+            )
 
         return data
 

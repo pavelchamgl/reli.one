@@ -1,8 +1,13 @@
 from __future__ import annotations
+import logging
 from typing import Optional
 
+from rest_framework import serializers
+
 from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
-from delivery.providers.mygls.parcelshops import get_parcelshop
+from delivery.providers.mygls.parcelshops import get_parcelshop, get_point_type
+
+logger = logging.getLogger(__name__)
 
 DELIVERY_TYPE_PUDO = 1
 DELIVERY_TYPE_HD = 2
@@ -93,3 +98,44 @@ def resolve_country_code_from_group(
     if logger:
         logger.error(f"Group {idx}: Unknown delivery_type {delivery_type}")
     return None
+
+
+def validate_gls_pickup_point_type(
+    *,
+    group: dict,
+    idx: int,
+    delivery_mode: str,   # "box" или "shop"
+    root_country: str,
+) -> None:
+    logger.info(
+        f"[VALIDATION] Checking pickup point {group.get('pickup_point_id')} for mode={delivery_mode}, root_country={root_country}")
+
+    if group.get("delivery_type") != DELIVERY_TYPE_PUDO:
+        return
+
+    courier = (group.get("courier_code") or "").lower()
+    if courier != "gls":
+        return
+
+    pid = (group.get("pickup_point_id") or "").strip()
+    if not pid:
+        raise serializers.ValidationError(f"Group {idx}: Missing pickup_point_id for GLS PUDO.")
+
+    if not root_country:
+        raise serializers.ValidationError(f"Group {idx}: Missing root_country for GLS PUDO.")
+
+    point_type = get_point_type(pid, root_country)
+    if point_type is None:
+        raise serializers.ValidationError(
+            f"Group {idx}: GLS pickup point '{pid}' not found in country {root_country}."
+        )
+
+    if delivery_mode == "box" and point_type != "box":
+        raise serializers.ValidationError(
+            f"Group {idx}: GLS pickup point '{pid}' is not a Parcel Box."
+        )
+
+    if delivery_mode == "shop" and point_type != "shop":
+        raise serializers.ValidationError(
+            f"Group {idx}: GLS pickup point '{pid}' is a Parcel Box, not a Parcel Shop."
+        )
