@@ -78,11 +78,19 @@ class CourierBlockSerializer(serializers.Serializer):
 class CouriersSerializer(serializers.Serializer):
     zasilkovna = CourierBlockSerializer()
     gls = CourierBlockSerializer()
+    dpd = CourierBlockSerializer()
 
 
 class CombinedShippingOptionsResponseSerializer(serializers.Serializer):
     """
-    Итоговый ответ: два блока (zasilkovna и gls) + немного метаданных.
+    Итоговый ответ: zasilkovna, gls и dpd + немного метаданных.
     """
     couriers = CouriersSerializer()
     meta = serializers.DictField(help_text="Служебные данные (страна, валюта и т.п.)")
+
+
+class AddressValidationRequestSerializer(serializers.Serializer):
+    country = serializers.CharField(required=True, max_length=2)
+    zip = serializers.CharField(required=True, max_length=32)
+    city = serializers.CharField(required=False, allow_blank=True)
+    street = serializers.CharField(required=False, allow_blank=True)

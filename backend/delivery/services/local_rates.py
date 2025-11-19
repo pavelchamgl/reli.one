@@ -1,273 +1,302 @@
 import logging
-
-from py3dbp import Packer, Bin, Item
 from decimal import Decimal, ROUND_HALF_UP
+from typing import List, Dict, Optional, Tuple
+
 from django.conf import settings
 
 from product.models import ProductVariant
 from delivery.models import ShippingRate
 from delivery.services.currency_converter import convert_czk_to_eur
 
-# Коэффициент для перевода объёма в кг (см³ → кг)
-VOLUME_FACTOR = getattr(settings, "SHIPMENT_VOLUME_FACTOR", 7000)
-# Ставка НДС
-VAT_RATE = getattr(settings, "VAT_RATE", Decimal("0.21"))
+logger = logging.getLogger(__name__)
+
+# === Конфигурация (используем Decimal для точности финансов и веса) ===
+
+# Объёмный коэффициент (см³ -> кг) для расчёта объёмного веса
+VOLUME_FACTOR = Decimal(str(getattr(settings, "SHIPMENT_VOLUME_FACTOR", 7000)))
+# НДС (накладывается ПОСЛЕ конвертации CZK -> EUR)
+VAT_RATE = Decimal(str(getattr(settings, "VAT_RATE", Decimal("0.21"))))
 
 COURIER_CODE_ZASILKOVNA = "zasilkovna"
 
-logger = logging.getLogger(__name__)
+
+# === Вспомогательные функции ===
+
+def _to_cm(mm: Optional[int]) -> Decimal:
+    return (Decimal(mm or 0) / Decimal("10")).quantize(Decimal("0.01"))
 
 
-def get_toll_surcharge(weight_kg: Decimal) -> Decimal:
-    """
-    Возвращает надбавку за проезд (toll surcharge) по весу.
-    """
-    if weight_kg <= 5:
-        return Decimal("2.10")
-    elif weight_kg <= 30:
-        return Decimal("4.80")
-    else:
-        return Decimal("4.80")  # запасной вариант
+def _to_kg(grams: Optional[int]) -> Decimal:
+    return (Decimal(grams or 0) / Decimal("1000")).quantize(Decimal("0.001"))
 
 
-def get_weight_limit_tag(channel: str, weight_kg: Decimal) -> str:
+def _round2(x: Decimal) -> Decimal:
+    return x.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def _toll_surcharge(weight_kg: Decimal) -> Decimal:
     """
-    Возвращает тег weight_limit в зависимости от канала:
-    - PUDO: 5 / 10 / 15
-    - HD:   1 / 2 / 5 / 10 / 15 / 30
+    Packeta toll surcharge (CZ sheet):
+    ≤5 кг -> 2.10 CZK ;  >5 кг -> 4.80 CZK
     """
+    return Decimal("2.10") if weight_kg <= Decimal("5") else Decimal("4.80")
+
+
+def _weight_tag(channel: str, weight_kg: Decimal) -> str:
+    """
+    Весовые коридоры для поиска ShippingRate.weight_limit:
+
+    PUDO (Z-Point/Box):
+      - 5 / 10 / 15
+
+    HD (Home):
+      - 1 / 2 / 5 / 10 / 15 / 30
+    """
+    w = weight_kg
     if channel == "PUDO":
-        if weight_kg <= 5:
+        if w <= Decimal("5"):
             return "5"
-        elif weight_kg <= 10:
+        if w <= Decimal("10"):
             return "10"
-        elif weight_kg <= 15:
+        if w <= Decimal("15"):
             return "15"
-        else:
-            return "over_limit"
-    # HD
-    if weight_kg <= 1:
-        return "1"
-    elif weight_kg <= 2:
-        return "2"
-    elif weight_kg <= 5:
-        return "5"
-    elif weight_kg <= 10:
-        return "10"
-    elif weight_kg <= 15:
-        return "15"
-    elif weight_kg <= 30:
-        return "30"
-    else:
         return "over_limit"
 
+    # HD
+    if w <= Decimal("1"):
+        return "1"
+    if w <= Decimal("2"):
+        return "2"
+    if w <= Decimal("5"):
+        return "5"
+    if w <= Decimal("10"):
+        return "10"
+    if w <= Decimal("15"):
+        return "15"
+    if w <= Decimal("30"):
+        return "30"
+    return "over_limit"
 
-def calculate_shipping_options(country, items, cod, currency, variant_map=None):
+
+def _pick_rate(country: str, channel: str, category: str, weight_kg: Decimal) -> ShippingRate:
     """
-    Returns available shipping options for Zásilkovna (PUDO & HD) in EUR.
-
-    Weight tags we use:
-      - PUDO: 5 / 10 / 15
-      - HD  : 1 / 2 / 5 / 10 / 15 / 30
-
-    Category rules (close to Packeta sheet):
-      - PUDO standard  : ≤5 kg  & max_side ≤70  & sum_sides ≤120
-      - PUDO oversized : ≤15 kg & max_side ≤120 & sum_sides ≤150
-      - HD   standard  : ≤5 kg  & max_side ≤70  & sum_sides ≤120
-      - HD   oversized : ≤30 kg & max_side ≤120 & sum_sides ≤999
-
-    Surcharges:
-      - PUDO: toll by weight (get_toll_surcharge), fuel = 5% of base
-      - HD  : toll by weight (get_toll_surcharge), fuel = 5% of base
+    Достаём ставку из БД по (courier, country, channel, category, weight_tag).
+    Если точного коридора нет — пробуем 'over_limit' в рамках того же channel/category.
     """
+    tag = _weight_tag(channel, weight_kg)
+    base_qs = (
+        ShippingRate.objects
+        .select_related("courier_service")
+        .filter(
+            courier_service__code__iexact=COURIER_CODE_ZASILKOVNA,
+            country=country.upper(),
+            channel=channel,
+            category=category,
+        )
+    )
+
+    try:
+        return base_qs.get(weight_limit=tag)
+    except ShippingRate.DoesNotExist:
+        try:
+            return base_qs.get(weight_limit="over_limit")
+        except ShippingRate.DoesNotExist:
+            raise ValueError(
+                f"No Zásilkovna rate for {country}/{channel}/{category} with weight_tag={tag}"
+            )
+
+
+def _format_option(rate_obj: ShippingRate, total_czk: Decimal, is_oversize: bool = False) -> Dict:
+    """
+    Приводим стоимость к EUR, затем начисляем VAT (после конвертации).
+    """
+    total_czk = _round2(total_czk)
+    price_eur = _round2(convert_czk_to_eur(total_czk))
+    price_eur_vat = _round2(price_eur * (Decimal("1") + VAT_RATE))
+
+    return {
+        "courier": rate_obj.courier_service.name or "Zásilkovna",
+        "service": "Pick-up point" if rate_obj.channel == "PUDO" else "Home Delivery",
+        "channel": rate_obj.channel,
+        "price": price_eur,
+        "priceWithVat": price_eur_vat,
+        "currency": "EUR",
+        "estimate": rate_obj.estimate or "",
+        "isOversize": is_oversize,
+    }
+
+
+# === Габариты посылки: СИНХРОНИЗАЦИЯ СО СПЛИТОМ ===
+
+def _stack_dims_by_height(
+    items: List[Dict],
+    variant_map: Dict[str, ProductVariant],
+) -> Tuple[Decimal, Decimal, Decimal]:
+    """
+    Ровно та же эвристика, что использует сплит Packeta:
+      L = max(length_i)
+      W = max(width_i)
+      H = sum(height_i)  (укладка «по высоте»)
+    """
+    max_L = Decimal("0")
+    max_W = Decimal("0")
+    sum_H = Decimal("0")
+
+    for it in items:
+        v = variant_map[str(it["sku"])]
+        l = _to_cm(v.length_mm)
+        w = _to_cm(v.width_mm)
+        h = _to_cm(v.height_mm)
+        qty = int(it["quantity"])
+
+        if l > max_L:
+            max_L = l
+        if w > max_W:
+            max_W = w
+        # высота суммируется по количеству
+        sum_H += (h * qty)
+
+    # Округлим до сотых, чтобы избежать «лежака» 120.0000001
+    return (
+        max_L.quantize(Decimal("0.01")),
+        max_W.quantize(Decimal("0.01")),
+        sum_H.quantize(Decimal("0.01")),
+    )
+
+
+# === Основная функция расчёта ДЛЯ ОДНОЙ «МАЛОЙ» ПОСЫЛКИ ===
+# (Эту функцию вызывает твой shipping_split.py для каждой разбиённой посылки.)
+
+def calculate_shipping_options(
+    country: str,
+    items: List[Dict],
+    cod: bool,
+    currency: str,
+    variant_map: Optional[Dict[str, ProductVariant]] = None,
+) -> List[Dict]:
+    """
+    Расчёт опций Zásilkovna (PUDO + HD) для одной посылки (после сплита).
+
+    Габаритно-весовые правила (по прайсу):
+      PUDO:
+        - standard : вес ≤ 5 кг,   max_side ≤ 70 см,  sum_sides ≤ 120 см
+        - oversized: вес ≤ 15 кг,  max_side ≤ 120 см, sum_sides ≤ 150 см
+      HD:
+        - standard : вес ≤ 5 кг,   max_side ≤ 70 см,  sum_sides ≤ 120 см
+        - oversized: вес ≤ 15 кг,  max_side ≤ 120 см, sum_sides ≤ 150 см
+        - extended : вес ≤ 30 кг,  max_side ≤ 120 см, sum_sides ≤ 999 см
+
+    Надбавки:
+      - fuel: 5% от базовой ставки в CZK
+      - toll: 2.10 CZK если вес ≤5 кг, иначе 4.80 CZK
+      - COD: берём из ShippingRate.cod_fee (если cod=True), иначе 0
+    Порядок:
+      (base + fuel + toll + cod) [CZK] -> convert_czk_to_eur -> VAT
+    """
+
+    # 1) Загружаем варианты
     if variant_map is None:
         skus = [it["sku"] for it in items]
         variant_map = {v.sku: v for v in ProductVariant.objects.filter(sku__in=skus)}
 
-    # aggregate physicals
-    total_weight_kg = Decimal("0")
-    total_volume_cm3 = Decimal("0")
+    # 2) Масса и объём
+    total_weight_kg = Decimal("0.000")
+    total_volume_cm3 = Decimal("0.00")
+
     for it in items:
-        v = variant_map.get(it["sku"])
+        v = variant_map.get(str(it["sku"]))
         if not v:
             raise ValueError(f"ProductVariant with sku={it['sku']} not found")
-        qty = it["quantity"]
-        w_kg = Decimal(v.weight_grams or 0) / Decimal("1000")
-        vol = (Decimal(v.length_mm or 0) / 10) * (Decimal(v.width_mm or 0) / 10) * (Decimal(v.height_mm or 0) / 10)
-        total_weight_kg += w_kg * qty
-        total_volume_cm3 += vol * qty
 
-    volumetric_weight = (total_volume_cm3 / VOLUME_FACTOR).quantize(Decimal("0.01"))
+        qty = int(it["quantity"])
+        lw = _to_cm(v.length_mm)
+        ww = _to_cm(v.width_mm)
+        hh = _to_cm(v.height_mm)
+        wg = _to_kg(v.weight_grams)
+
+        total_weight_kg += (wg * qty)
+        total_volume_cm3 += (lw * ww * hh) * qty
+
+    volumetric_weight = _round2(total_volume_cm3 / VOLUME_FACTOR)
     chargeable_weight = max(total_weight_kg, volumetric_weight)
+
     logger.info(
-        "Zasilkovna weights %s: total=%s kg volumetric=%s kg chargeable=%s kg",
+        "Zásilkovna weights %s: total=%s kg volumetric=%s kg chargeable=%s kg",
         country, total_weight_kg, volumetric_weight, chargeable_weight
     )
 
-    # crude packing to estimate L/W/H
-    packer = Packer()
-    packer.add_bin(Bin("master-box", 1000, 1000, 1000, float(chargeable_weight)))
-    for it in items:
-        v = variant_map[it["sku"]]
-        for _ in range(it["quantity"]):
-            packer.add_item(Item(
-                it["sku"],
-                float(Decimal(v.length_mm or 0) / 10),
-                float(Decimal(v.width_mm  or 0) / 10),
-                float(Decimal(v.height_mm or 0) / 10),
-                float(Decimal(v.weight_grams or 0) / 1000),
-            ))
-    packer.pack(bigger_first=True, number_of_decimals=2)
-    used_bin = packer.bins[0]
-    max_x = max((x.position[0] + x.width for x in used_bin.items), default=0)
-    max_y = max((x.position[1] + x.height for x in used_bin.items), default=0)
-    max_z = max((x.position[2] + x.depth for x in used_bin.items), default=0)
-    L, W, H = Decimal(max_x), Decimal(max_y), Decimal(max_z)
+    # 3) Габариты посылки — ТА ЖЕ ЛОГИКА, ЧТО В СПЛИТЕ (без py3dbp)
+    L, W, H = _stack_dims_by_height(items, variant_map)
     sum_sides = L + W + H
     max_side = max(L, W, H)
-    logger.info("Zasilkovna dims %s: L=%s W=%s H=%s sum=%s max_side=%s", country, L, W, H, sum_sides, max_side)
 
-    # channel-specific categories
-    def _category_pudo(weight_kg: Decimal, max_side: Decimal, sum_sides: Decimal):
-        if weight_kg <= 5 and max_side <= 70 and sum_sides <= 120:
+    logger.info(
+        "Zásilkovna dims %s: L=%s W=%s H=%s sum=%s max=%s",
+        country, L, W, H, sum_sides, max_side
+    )
+
+    # 4) Категории (по прайсу)
+    def cat_pudo(w: Decimal, mx: Decimal, sm: Decimal) -> Optional[str]:
+        if w <= Decimal("5") and mx <= Decimal("70") and sm <= Decimal("120"):
             return "standard"
-        if weight_kg <= 15 and max_side <= 120 and sum_sides <= 150:
+        if w <= Decimal("15") and mx <= Decimal("120") and sm <= Decimal("150"):
             return "oversized"
         return None
 
-    def _category_hd(weight_kg: Decimal, max_side: Decimal, sum_sides: Decimal):
-        if weight_kg <= 5 and max_side <= 70 and sum_sides <= 120:
+    def cat_hd(w: Decimal, mx: Decimal, sm: Decimal) -> Optional[str]:
+        if w <= Decimal("5") and mx <= Decimal("70") and sm <= Decimal("120"):
             return "standard"
-        if weight_kg <= 30 and max_side <= 120 and sum_sides <= 999:
+        if w <= Decimal("15") and mx <= Decimal("120") and sm <= Decimal("150"):
             return "oversized"
+        if w <= Decimal("30") and mx <= Decimal("120") and sm <= Decimal("999"):
+            return "extended"
         return None
 
-    def _pick_rate(channel: str, category: str, weight_kg: Decimal) -> ShippingRate:
-        tag = get_weight_limit_tag(channel, weight_kg)
+    options: List[Dict] = []
+
+    # 5) PUDO
+    pudo_cat = cat_pudo(chargeable_weight, max_side, sum_sides)
+    if pudo_cat:
         try:
-            return (ShippingRate.objects
-                .select_related("courier_service")
-                .get(
-                    courier_service__code__iexact=COURIER_CODE_ZASILKOVNA,
-                    country=country.upper(),
-                    channel=channel,
-                    category=category,
-                    weight_limit=tag,
-                ))
-        except ShippingRate.DoesNotExist:
-            # fallback to over_limit within the same channel/category
-            try:
-                return (ShippingRate.objects
-                    .select_related("courier_service")
-                    .get(
-                        courier_service__code__iexact=COURIER_CODE_ZASILKOVNA,
-                        country=country.upper(),
-                        channel=channel,
-                        category=category,
-                        weight_limit="over_limit",
-                    ))
-            except ShippingRate.DoesNotExist:
-                raise ValueError(
-                    f"No shipping rate for {channel} {country.upper()} {category} "
-                    f"Zásilkovna with weight {weight_kg} kg"
-                )
+            rate = _pick_rate(country, "PUDO", pudo_cat, chargeable_weight)
+            base = Decimal(rate.price)  # CZK
+            cod_fee = Decimal(rate.cod_fee or 0) if cod else Decimal("0.00")
+            fuel = _round2(base * Decimal("0.05"))
+            toll = _toll_surcharge(chargeable_weight)
+            total_czk = base + fuel + toll + cod_fee
 
-    def _format(rate_obj: ShippingRate, total_czk: Decimal):
-        total_czk_vat = (total_czk * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
-        price_eur = convert_czk_to_eur(total_czk).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        price_eur_vat = convert_czk_to_eur(total_czk_vat).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        return {
-            "courier": rate_obj.courier_service.name,
-            "service": "Pick-up point" if rate_obj.channel == "PUDO" else "Home Delivery",
-            "channel": rate_obj.channel,
-            "price": price_eur,
-            "priceWithVat": price_eur_vat,
-            "currency": "EUR",
-            "estimate": rate_obj.estimate or "",
-        }
-
-    options = []
-
-    # --- PUDO
-    pudo_category = _category_pudo(chargeable_weight, max_side, sum_sides)
-    if pudo_category:
-        try:
-            rate = _pick_rate("PUDO", pudo_category, chargeable_weight)
-            base = rate.price
-            cod_fee = rate.cod_fee if cod else Decimal("0.00")
-            toll = get_toll_surcharge(chargeable_weight)  # 2.10 / 4.80 CZK
-            fuel = (base * Decimal("0.05")).quantize(Decimal("0.01"))  # 5% от базы
-            total = (base + cod_fee + toll + fuel).quantize(Decimal("0.01"))
-            logger.debug(
-                "Zasilkovna PUDO: base=%s cod=%s toll=%s fuel=%s total=%s",
-                base, cod_fee, toll, fuel, total
-            )
-            options.append(_format(rate, total))
+            logger.debug("Zásilkovna PUDO: base=%s fuel=%s toll=%s cod=%s total=%s",
+                         base, fuel, toll, cod_fee, total_czk)
+            options.append(_format_option(rate, total_czk, is_oversize=(chargeable_weight > 5 or sum_sides > 120)))
         except Exception as e:
             logger.info("Zásilkovna PUDO skipped: %s", e)
     else:
-        logger.info("Zásilkovna PUDO not available for %s (w=%s; sum=%s; max=%s)",
-                    country, chargeable_weight, sum_sides, max_side)
+        logger.info("Zásilkovna PUDO not available (w=%s sum=%s max=%s)",
+                    chargeable_weight, sum_sides, max_side)
 
-    # --- HD
-    hd_category = _category_hd(chargeable_weight, max_side, sum_sides)
-    if hd_category:
+    # 6) HD
+    hd_cat = cat_hd(chargeable_weight, max_side, sum_sides)
+    if hd_cat:
         try:
-            rate = _pick_rate("HD", hd_category, chargeable_weight)
-            base = rate.price
-            cod_fee = rate.cod_fee if cod else Decimal("0.00")
-            toll = get_toll_surcharge(chargeable_weight)
-            fuel = (base * Decimal("0.05")).quantize(Decimal("0.01"))
-            total = (base + cod_fee + toll + fuel).quantize(Decimal("0.01"))
-            logger.debug("Zasilkovna HD: base=%s cod=%s toll=%s fuel=%s total=%s",
-                         base, cod_fee, toll, fuel, total)
-            options.append(_format(rate, total))
+            rate = _pick_rate(country, "HD", hd_cat, chargeable_weight)
+            base = Decimal(rate.price)  # CZK
+            cod_fee = Decimal(rate.cod_fee or 0) if cod else Decimal("0.00")
+            fuel = _round2(base * Decimal("0.05"))
+            toll = _toll_surcharge(chargeable_weight)
+            total_czk = base + fuel + toll + cod_fee
+
+            logger.debug("Zásilkovna HD: base=%s fuel=%s toll=%s cod=%s total=%s",
+                         base, fuel, toll, cod_fee, total_czk)
+            options.append(_format_option(rate, total_czk, is_oversize=(chargeable_weight > 5 or sum_sides > 120)))
         except Exception as e:
             logger.info("Zásilkovna HD skipped: %s", e)
     else:
-        logger.info("Zásilkovna HD not available for %s (w=%s; sum=%s; max=%s)",
-                    country, chargeable_weight, sum_sides, max_side)
+        logger.info("Zásilkovna HD not available (w=%s sum=%s max=%s)",
+                    chargeable_weight, sum_sides, max_side)
 
     if not options:
-        raise ValueError("Zásilkovna: no available options for given items/limits")
-    
-    # keep PUDO first
+        raise ValueError("Zásilkovna: no available options for given parcel/limits")
+
+    # PUDO выводим первой
     options.sort(key=lambda o: 0 if o["channel"] == "PUDO" else 1)
     return options
-
-
-
-# def calculate_shipping_for_group(group, cod=Decimal("0.00"), currency="EUR"):
-#     country_code = group.get("delivery_address", {}).get("country") if group.get("delivery_type") == 2 \
-#         else resolve_country_from_local_pickup_point(group.get("pickup_point_id"))
-#
-#     if not country_code:
-#         raise ValueError("Country code could not be determined.")
-#
-#     items = [{'sku': p['sku'], 'quantity': p['quantity']} for p in group['products']]
-#
-#     parcels = split_items_into_parcels(
-#         country=country_code,
-#         items=items,
-#         cod=cod,
-#         currency=currency
-#     )
-#
-#     delivery_cost = Decimal("0.00")
-#
-#     for parcel in parcels:
-#         options = calculate_shipping_options(country=country_code, items=parcel, cod=cod, currency=currency)
-#         channel = {1: 'PUDO', 2: 'HD'}.get(group['delivery_type'])
-#         selected_option = next(o for o in options if o['channel'] == channel)
-#         delivery_cost += Decimal(str(selected_option['priceWithVat']))
-#
-#     return delivery_cost.quantize(Decimal('0.01'))
-#
-#
-# def calculate_shipping_for_groups(groups):
-#     results = []
-#     for idx, group in enumerate(groups, start=1):
-#         cost = calculate_shipping_for_group(group)
-#         group['calculated_delivery_cost'] = str(cost)
-#         results.append(group)
-#     return results

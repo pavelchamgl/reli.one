@@ -40,3 +40,25 @@ def get_parcelshop(ps_id: str, ctrcode: str) -> Optional[Dict]:
     except Exception:
         return None
     return feed.get(ps_id)
+
+
+def is_parcel_locker(ps_id: str, ctrcode: str) -> Optional[bool]:
+    """
+    True  – если пункт является ParcelLocker (Box),
+    False – если это обычный ParcelShop,
+    None  – если пункт не найден или фид недоступен.
+    """
+    ps = get_parcelshop(ps_id, ctrcode)
+    if not ps:
+        return None
+    return bool(ps.get("is_parcel_locker"))
+
+
+def get_point_type(ps_id: str, ctrcode: str) -> Optional[str]:
+    """
+    Возвращает "box" / "shop" или None, если пункт не найден.
+    """
+    flag = is_parcel_locker(ps_id, ctrcode)
+    if flag is None:
+        return None
+    return "box" if flag else "shop"

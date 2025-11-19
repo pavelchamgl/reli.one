@@ -1,3 +1,5 @@
+import os
+import base64
 import logging
 
 from uuid import uuid4
@@ -9,9 +11,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 
+from delivery.providers.mygls import builders
 from delivery.providers.mygls.client import MyGlsClient
 from delivery.providers.mygls.service import MyGlsService, SimpleShipment
-from delivery.providers.mygls import builders
+from delivery.providers.dpd import endpoints as ep
+from delivery.providers.dpd.client import DpdClient
+from delivery.providers.dpd.service import DpdService
+from delivery.providers.dpd.builders import build_receiver
+
 
 logger = logging.getLogger(__name__)
 
@@ -243,3 +250,232 @@ class DevMyGLSAuthCheck(APIView):
             },
         }
         return Response({"status": r.status_code, "payload": payload, "debug": debug})
+
+
+class DevShipDPD(APIView):
+    """
+    DEV endpoint:
+      - создаёт отправление (saveMode из settings.DPD_SHIP_SAVE_MODE)
+      - печатает ярлык (если printed) и сохраняет PDF в MEDIA_ROOT/DPD_LABEL_DIR
+      - для draft возвращает shipment_id (для допечатки позже)
+    """
+    permission_classes = [AllowAny]
+    authentication_classes: List = []
+
+    class Input(serializers.Serializer):
+        # получатель
+        name = serializers.CharField(max_length=80)
+        email = serializers.EmailField(required=False, allow_blank=True)
+        phone = serializers.CharField(required=False, allow_blank=True)
+        phone_prefix = serializers.CharField(
+            required=False, allow_blank=True,
+            default=getattr(settings, "DPD_PHONE_DEFAULT_PREFIX", "420"),
+        )
+        street = serializers.CharField(max_length=80)
+        zip = serializers.CharField(max_length=16)
+        city = serializers.CharField(max_length=80)
+        country = serializers.CharField(max_length=2)
+        house_no = serializers.CharField(required=False, allow_blank=True)
+
+        # PUDO — обязателен для SHOP2SHOP
+        pudo_id = serializers.CharField(required=False, allow_blank=True)
+
+        # посылка
+        weight_kg = serializers.FloatField(min_value=0.01)
+        length_cm = serializers.FloatField(required=False, min_value=0.0)
+        width_cm = serializers.FloatField(required=False, min_value=0.0)
+        height_cm = serializers.FloatField(required=False, min_value=0.0)
+
+        # сервис
+        service = serializers.ChoiceField(choices=("CLASSIC", "SHOP2HOME", "SHOP2SHOP"))
+
+        # печать
+        label_size = serializers.ChoiceField(
+            choices=("A4", "A6"), required=False,
+            default=getattr(settings, "DPD_LABEL_SIZE", "A6"),
+        )
+
+        def validate(self, data):
+            if data["service"] == "SHOP2SHOP" and not data.get("pudo_id"):
+                raise serializers.ValidationError({"pudo_id": "pudo_id is required for SHOP2SHOP"})
+            return data
+
+    def post(self, request):
+        inp = self.Input(data=request.data)
+        inp.is_valid(raise_exception=True)
+        d = inp.validated_data
+
+        # --- Главный продукт ВСЕГДА один: CLASSIC = "001"
+        main_codes = ["001"]
+
+        # --- additional_service согласно документации:
+        predicts: List[Dict[str, str]] = []
+        if d.get("email"):
+            predicts.append({"destination": d["email"], "type": "EMAIL"})
+        if d.get("phone"):
+            predicts.append({"destination": str(d["phone"]), "type": "SMS"})
+
+        additional_service: Optional[Dict[str, Any]] = None
+        if d["service"] == "CLASSIC":
+            main_codes = ["001"]
+            additional_service = None
+        elif d["service"] == "SHOP2HOME":
+            main_codes = ["001", "013", "610"]
+            additional_service = {"predicts": predicts}
+        else:  # SHOP2SHOP
+            main_codes = ["001", "013", "200", "610"]
+            additional_service = {"pudoId": d["pudo_id"], "predicts": predicts}
+
+        # --- адрес получателя (валидатор в билдере уберёт пустые контактные поля)
+        receiver = build_receiver(
+            name=d["name"],
+            email=d.get("email"),
+            phone=d.get("phone"),
+            street=d["street"],
+            zip_code=d["zip"],
+            city=d["city"],
+            country_iso=d["country"],
+            phone_prefix=d.get("phone_prefix"),
+            house_no=d.get("house_no"),
+        )
+
+        # --- одна посылка (минимальный кейс) ---
+        parcels: List[Dict[str, Any]] = [{"weight": float(d["weight_kg"])}]
+
+        # --- коллбэк сохранения PDF ---
+        saved_path_fs: Optional[str] = None
+        saved_url: Optional[str] = None
+
+        def save_pdf_cb(pdf_b64: str, numbers: List[str]) -> None:
+            nonlocal saved_path_fs, saved_url
+            if pdf_b64.startswith("data:"):
+                pdf_b64 = pdf_b64.split(",", 1)[1]
+            pdf_bytes = base64.b64decode(pdf_b64)
+
+            out_dir = os.path.join(settings.MEDIA_ROOT, settings.DPD_LABEL_DIR)
+            os.makedirs(out_dir, exist_ok=True)
+
+            fname = f"dpd_{(numbers or ['label'])[0]}.pdf"
+            path_fs = os.path.join(out_dir, fname)
+            with open(path_fs, "wb") as f:
+                f.write(pdf_bytes)
+
+            rel = os.path.relpath(path_fs, settings.MEDIA_ROOT).replace("\\", "/")
+            saved_path_fs = path_fs
+            saved_url = (settings.MEDIA_URL.rstrip("/") + "/" + rel.lstrip("/")).replace("//", "/")
+
+        # --- вызов сервиса ---
+        try:
+            svc = DpdService()
+            numbers = svc.create_and_print(
+                receiver=receiver,
+                parcels=parcels,
+                main_codes=main_codes,
+                additional_service=additional_service,
+                save_pdf_cb=save_pdf_cb,
+                fmt=d.get("label_size") or getattr(settings, "DPD_LABEL_SIZE", "A6"),
+                num_order=1,
+            )
+
+            # shipment_id (правильное извлечение из nested "shipment")
+            api_res = svc._last_raw or {}
+            shipment_id = None
+            try:
+                sr0 = (api_res.get("shipmentResults") or [{}])[0]
+                shipment_id = sr0.get("shipmentId") or (sr0.get("shipment") or {}).get("shipmentId")
+            except Exception:
+                shipment_id = None
+
+        except Exception as e:
+            logger.exception("DPD create_and_print failed")
+            return Response({"ok": False, "error": str(e)}, status=status.HTTP_502_BAD_GATEWAY)
+
+        # --- DEBUG SNIPPET ---
+        debug_blob = None
+        if getattr(settings, "DEBUG", False) or getattr(settings, "DPD_DEBUG_RETURN", False):
+            try:
+                sr0 = (svc._last_raw.get("shipmentResults") or [None])[0] if svc._last_raw else None
+                if sr0:
+                    # parcelNumbers: сначала parcelResults, затем fallback на shipment.parcels
+                    parcel_numbers = []
+                    for p in (sr0.get("parcelResults") or []):
+                        pn = p.get("parcelNumber")
+                        if pn:
+                            parcel_numbers.append(pn)
+                    if not parcel_numbers:
+                        for p in ((sr0.get("shipment") or {}).get("parcels") or []):
+                            pn = p.get("parcelNumber")
+                            if pn:
+                                parcel_numbers.append(pn)
+
+                    debug_blob = {
+                        "shipmentId": sr0.get("shipmentId") or (sr0.get("shipment") or {}).get("shipmentId"),
+                        "errors": sr0.get("errors"),
+                        "hasLabelFile": bool(sr0.get("labelFile")),
+                        "parcelResults": [{"parcelNumber": pn} for pn in parcel_numbers],
+                    }
+                else:
+                    debug_blob = {"raw": str(svc._last_raw)[:800]}
+            except Exception:
+                debug_blob = {"raw": str(svc._last_raw)[:800]}
+
+        # --- финальный ответ ---
+        return Response(
+            {
+                "ok": True,
+                "service": d["service"],
+                "parcel_numbers": numbers,
+                "shipment_id": shipment_id,
+                "label_path": saved_path_fs,
+                "label_url": saved_url,
+                "save_mode": getattr(settings, "DPD_SHIP_SAVE_MODE", "printed"),
+                "debug": debug_blob,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class DevDpdPrintByShipment(APIView):
+    """
+    DEV endpoint: печать ярлыка по shipmentId (удобно для draft).
+    """
+    permission_classes = [AllowAny]
+
+    class Input(serializers.Serializer):
+        shipment_id = serializers.IntegerField()
+        label_size = serializers.ChoiceField(
+            choices=("A4", "A6"), required=False,
+            default=getattr(settings, "DPD_LABEL_SIZE", "A6"),
+        )
+
+    def post(self, request):
+        inp = self.Input(data=request.data)
+        inp.is_valid(raise_exception=True)
+        d = inp.validated_data
+
+        cli = DpdClient()
+        lab = ep.labels_by_shipment_ids(
+            cli,
+            [d["shipment_id"]],
+            fmt=d["label_size"],
+            start_pos=getattr(settings, "DPD_LABEL_START_POSITION", 1),
+            print_format=settings.DPD_PRINT_FORMAT,
+        )
+
+        pdf_b64 = lab.get("pdfFile") or ""
+        if pdf_b64.startswith("data:"):
+            pdf_b64 = pdf_b64.split(",", 1)[1]
+        if not pdf_b64:
+            return Response({"ok": False, "error": "empty pdfFile"}, status=status.HTTP_502_BAD_GATEWAY)
+
+        out_dir = os.path.join(settings.MEDIA_ROOT, settings.DPD_LABEL_DIR)
+        os.makedirs(out_dir, exist_ok=True)
+        fname = f"dpd_sh_{d['shipment_id']}.pdf"
+        path_fs = os.path.join(out_dir, fname)
+        with open(path_fs, "wb") as f:
+            f.write(base64.b64decode(pdf_b64))
+
+        rel = os.path.relpath(path_fs, settings.MEDIA_ROOT).replace("\\", "/")
+        url = (settings.MEDIA_URL.rstrip("/") + "/" + rel).replace("//", "/")
+
+        return Response({"ok": True, "shipment_id": d["shipment_id"], "label_url": url}, status=status.HTTP_201_CREATED)

@@ -1,3 +1,4 @@
+# delivery/services/gls_rates.py
 from __future__ import annotations
 
 import logging
@@ -5,55 +6,47 @@ from decimal import Decimal, ROUND_UP, ROUND_HALF_UP
 from typing import Any, Dict, List, Optional
 
 from django.conf import settings
-from py3dbp import Packer, Bin, Item
 
-from .gls_split import split_items_into_parcels_gls
 from product.models import ProductVariant
 from delivery.models import ShippingRate
 from delivery.services.currency_converter import convert_czk_to_eur
+from delivery.services.gls_split import split_items_into_parcels_gls
 
 logger = logging.getLogger(__name__)
 
 COURIER_CODE_GLS = "gls"
-
-# --- конфигурируемые ставки и лимиты (значения по прайсу/нашим договорённостям) ---
-VOLUME_FACTOR = getattr(settings, "SHIPMENT_VOLUME_FACTOR", 7000)               # см³ → кг
 VAT_RATE = getattr(settings, "VAT_RATE", Decimal("0.21"))
 
-GLS_MAX_WEIGHT_KG = Decimal(str(getattr(settings, "GLS_MAX_WEIGHT_KG", "31.5")))
-GLS_MAX_SIDE_CM = Decimal(str(getattr(settings, "GLS_MAX_SIDE_CM", "120")))
-GLS_MAX_SUM_SIDES_CM = Decimal(str(getattr(settings, "GLS_MAX_SUM_SIDES_CM", "300")))
+# Лимиты GLS (логика категорий, не влияет на split — он уже соблюдает лимиты per-service)
+GLS_MAX_WEIGHT_CZ_KG = Decimal("40.0")
+GLS_MAX_WEIGHT_EU_KG = Decimal("31.5")
+GLS_MAX_SIDE_CM = Decimal("200.0")
+GLS_MAX_SUM_SIDES_CM = Decimal("300.0")
 
-# Palivový příplatek (текущая ставка 1,10% из прайса)
-GLS_FUEL_PCT = Decimal(str(getattr(settings, "GLS_FUEL_PCT", "0.011")))         # 1.10%
+# Скидка для PUDO / Locker относительно HD (BP / EuroBusinessParcel)
+GLS_PUDO_DISCOUNT_CZK = Decimal("27.00")
 
-# PUDO Export: скидка к EuroBusinessParcel (HD)
-GLS_PUDO_EXPORT_DISCOUNT_CZK = Decimal(str(
-    getattr(settings, "GLS_PUDO_EXPORT_DISCOUNT_CZK", "27.00")
-))  # -27 Kč
+# Надбавки
+GLS_FUEL_PCT = Decimal(str(getattr(settings, "GLS_FUEL_PCT", "0.011")))
+GLS_TOLL_PER_KG_CZK = Decimal(str(getattr(settings, "GLS_TOLL_PER_KG_CZK", "1.47")))
 
-# Mýtný příplatek: Kč за каждый начатый кг
-GLS_TOLL_PER_KG_CZK = Decimal(str(
-    getattr(settings, "GLS_TOLL_PER_KG_CZK", "1.47")
-))  # 1.47 Kč / kg
-
-
-# ---------- helpers ----------
 
 def _ceil_kg(x: Decimal) -> Decimal:
-    """Округление вверх до целых килограммов."""
     return x.to_integral_value(rounding=ROUND_UP)
 
 
 def _toll_surcharge_czk(weight_kg: Decimal) -> Decimal:
-    """Mýtný příplatek = ceil(kg) * ставка."""
-    return (_ceil_kg(weight_kg) * GLS_TOLL_PER_KG_CZK).quantize(Decimal("0.01"))
+    """
+    Платная дорога: ceil(kg) * 1.47 CZK, с округлением до копеек.
+    """
+    return (_ceil_kg(weight_kg) * GLS_TOLL_PER_KG_CZK).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
 
 def _weight_tag_gls(weight_kg: Decimal) -> str:
     """
-    GLS has tiers: 5, 10, 20, 31.5 kg (stored as '31_5').
-    Map any weight to the smallest tier >= weight.
+    Тэг веса, как в таблице тарифов GLS.
     """
     if weight_kg <= Decimal("5"):
         return "5"
@@ -66,252 +59,434 @@ def _weight_tag_gls(weight_kg: Decimal) -> str:
     return "over_limit"
 
 
-def _calc_dims_and_weights(items: List[Dict[str, Any]], variant_map: Dict[str, ProductVariant]) -> Dict[str, Decimal]:
-    total_weight_kg = Decimal("0")
-    total_volume_cm3 = Decimal("0")
+def _gls_category_HD(
+    country: str,
+    weight: Decimal,
+    max_side: Decimal,
+    sum_sides: Decimal,
+) -> str:
+    """
+    Категория для HD (BusinessParcel / EuroBusinessParcel):
+      • CZ: до 40 кг
+      • EU: до 31.5 кг
+      • L <= 200, L+W+H <= 300
+      • standard: до 15 кг и sum<=150
+      • oversized: всё остальное в рамках лимитов
+    """
+    max_weight = GLS_MAX_WEIGHT_CZ_KG if country.upper() == "CZ" else GLS_MAX_WEIGHT_EU_KG
 
-    for it in items:
-        v = variant_map.get(it["sku"])
-        if not v:
-            raise ValueError(f"ProductVariant with sku={it['sku']} not found")
-        qty = int(it["quantity"])
-        weight_kg = Decimal(v.weight_grams or 0) / Decimal("1000")
-        volume_cm3 = (
-            Decimal(v.length_mm or 0) / 10 *
-            Decimal(v.width_mm or 0) / 10 *
-            Decimal(v.height_mm or 0) / 10
+    if weight > max_weight or max_side > GLS_MAX_SIDE_CM or sum_sides > GLS_MAX_SUM_SIDES_CM:
+        raise ValueError(
+            f"GLS HD: package exceeds allowed dimensions/weight "
+            f"(w={weight}, max_side={max_side}, sum={sum_sides})"
         )
-        total_weight_kg += weight_kg * qty
-        total_volume_cm3 += volume_cm3 * qty
 
-    volumetric_weight = (total_volume_cm3 / VOLUME_FACTOR).quantize(Decimal("0.01"))
-    chargeable = max(total_weight_kg, volumetric_weight)
-
-    return {
-        "total_weight_kg": total_weight_kg,
-        "total_volume_cm3": total_volume_cm3,
-        "volumetric_weight": volumetric_weight,
-        "chargeable_weight": chargeable,
-    }
-
-
-def _pack_dims(items: List[Dict[str, Any]], variant_map: Dict[str, ProductVariant], chargeable_weight: Decimal):
-    """
-    Грубая укладка (как в логике Zásilkovna) через py3dbp, чтобы получить габариты.
-    Возвращает (L, W, H, sum_sides, max_side) в сантиметрах.
-    """
-    packer = Packer()
-    packer.add_bin(Bin("master-box", 1000, 1000, 1000, float(chargeable_weight)))
-
-    for it in items:
-        v = variant_map[it["sku"]]
-        for _ in range(int(it["quantity"])):
-            packer.add_item(Item(
-                it["sku"],
-                float(Decimal(v.length_mm or 0) / 10),
-                float(Decimal(v.width_mm or 0) / 10),
-                float(Decimal(v.height_mm or 0) / 10),
-                float(Decimal(v.weight_grams or 0) / 1000),
-            ))
-
-    packer.pack(bigger_first=True, number_of_decimals=2)
-    used_bin = packer.bins[0]
-
-    max_x = max((it.position[0] + it.width for it in used_bin.items), default=0)
-    max_y = max((it.position[1] + it.height for it in used_bin.items), default=0)
-    max_z = max((it.position[2] + it.depth for it in used_bin.items), default=0)
-
-    L, W, H = Decimal(max_x), Decimal(max_y), Decimal(max_z)
-    return L, W, H, (L + W + H), max(L, W, H)
-
-
-def _gls_category(chargeable_weight: Decimal, max_side: Decimal, sum_sides: Decimal) -> str:
-    """
-    Простое сопоставление к нашим двум категориям.
-    При необходимости поправим пороги под точные ограничения.
-    """
-    # "standard" — до 15 кг и умеренные габариты
-    if chargeable_weight <= Decimal("15") and max_side <= GLS_MAX_SIDE_CM and sum_sides <= Decimal("150"):
+    if weight <= Decimal("15") and sum_sides <= Decimal("150"):
         return "standard"
-    # "oversized" — до предельных лимитов GLS
-    if chargeable_weight <= GLS_MAX_WEIGHT_KG and max_side <= GLS_MAX_SIDE_CM and sum_sides <= GLS_MAX_SUM_SIDES_CM:
-        return "oversized"
-    raise ValueError("GLS: package exceeds allowed dimensions or weight")
+    return "oversized"
 
 
-def _pick_rate(country: str, channel: str, category: str, tag: str, address_bundle: str) -> ShippingRate:
+def _gls_pudo_allowed(weight: Decimal, max_side: Decimal) -> bool:
     """
-    Достаёт тариф GLS из БД. Для PUDO address_bundle = 'one'.
+    Базовая проверка для PUDO (ParcelShop/ParcelBox):
+      • вес до 20 кг
+      • по габаритам используем те же лимиты, что для HD (2 м / 3 м по сумме),
+        более жёстких ограничений в прайсе нет.
+      Жёсткие лимиты BOX (55 см) уже учтены в split (service="BOX").
+    """
+    if weight > Decimal("20"):
+        return False
+    if max_side > GLS_MAX_SIDE_CM:
+        return False
+    return True
+
+
+def _pick_rate_HD(
+    country: str,
+    category: str,
+    weight_tag: str,
+    address_bundle: str,
+) -> ShippingRate:
+    """
+    Берём тариф HD из БД (BusinessParcel / EuroBusinessParcel).
     """
     try:
         return (
-            ShippingRate.objects
-            .select_related("courier_service")
+            ShippingRate.objects.select_related("courier_service")
             .get(
                 courier_service__code__iexact=COURIER_CODE_GLS,
                 country=country.upper(),
-                channel=channel,
+                channel="HD",
                 category=category,
-                weight_limit=tag,
+                weight_limit=weight_tag,
                 address_bundle=address_bundle,
             )
         )
-    except ShippingRate.DoesNotExist:
-        # Фолбэк на over_limit в той же категории/канале/бандле
-        try:
-            return (
-                ShippingRate.objects
-                .select_related("courier_service")
-                .get(
-                    courier_service__code__iexact=COURIER_CODE_GLS,
-                    country=country.upper(),
-                    channel=channel,
-                    category=category,
-                    weight_limit="over_limit",
-                    address_bundle=address_bundle,
-                )
-            )
-        except ShippingRate.DoesNotExist:
-            raise ValueError(
-                f"No GLS rate for {channel} {country.upper()} {category} tag={tag} bundle={address_bundle}"
-            )
+    except ShippingRate.DoesNotExist as e:
+        raise ValueError(
+            f"No GLS HD rate for {country.upper()} cat={category} "
+            f"tag={weight_tag} bundle={address_bundle}"
+        ) from e
 
 
-# ---------- публичная функция расчёта ----------
+# --------------------------------------------------------------------------
+# Вспомогательные расчёты для одной посылки
+# --------------------------------------------------------------------------
+def _calc_hd_for_parcel(
+    *,
+    country: str,
+    parcel: Dict[str, Any],
+    cod: bool,
+    currency: str,
+    address_bundle: str,
+) -> Dict[str, Any]:
+    """
+    Возвращает dict с NET/GROSS по HD для одной посылки.
+    """
+    weight = parcel.get("weight_kg", Decimal("0"))
+    L = parcel.get("length_cm", Decimal("0"))
+    W = parcel.get("width_cm", Decimal("0"))
+    H = parcel.get("height_cm", Decimal("0"))
+    sum_sides = parcel.get("sum_sides", L + W + H)
+    max_side = max(L, W, H)
 
+    tag = _weight_tag_gls(weight)
+    category = _gls_category_HD(country, weight, max_side, sum_sides)
+    rate = _pick_rate_HD(country, category, tag, address_bundle)
+
+    base_czk = rate.price
+    cod_fee = rate.cod_fee if cod else Decimal("0")
+    fuel_czk = (base_czk * GLS_FUEL_PCT).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    toll_czk = _toll_surcharge_czk(weight)
+
+    total_czk = base_czk + cod_fee + fuel_czk + toll_czk
+
+    net_eur = convert_czk_to_eur(total_czk).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    gross_eur = (net_eur * (Decimal("1") + VAT_RATE)).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+
+    logger.info(
+        "GLS HD parcel: weight=%s kg, size=%sx%sx%s cm, sum=%s -> "
+        "base=%s CZK, fuel=%s, toll=%s, cod=%s, total=%s CZK (%.2f EUR net)",
+        weight,
+        L,
+        W,
+        H,
+        sum_sides,
+        base_czk,
+        fuel_czk,
+        toll_czk,
+        cod_fee,
+        total_czk,
+        net_eur,
+    )
+
+    return {
+        "courier": rate.courier_service.name or "GLS",
+        "service": "Home Delivery",
+        "channel": "HD",
+        "price": net_eur,
+        "priceWithVat": gross_eur,
+        "currency": currency,
+        "estimate": rate.estimate or "",
+        "base_czk": base_czk,
+        "total_czk": total_czk,
+    }
+
+
+def _calc_pudo_for_parcel(
+    *,
+    country: str,
+    parcel: Dict[str, Any],
+    currency: str,
+    address_bundle: str,
+) -> Dict[str, Any]:
+    """
+    PUDO считаем «налёту» по формуле:
+      base_PUDO = base_HD - 27 CZK  (но не ниже нуля)
+    Для надбавок (fuel/toll) используем тот же принцип, что и для HD.
+    COD для PUDO не поддерживаем.
+
+    Эта функция используется и для SHOP, и для BOX, так как тариф один и тот же
+    (скидка -27 CZK от HD).
+    """
+    weight = parcel.get("weight_kg", Decimal("0"))
+    L = parcel.get("length_cm", Decimal("0"))
+    W = parcel.get("width_cm", Decimal("0"))
+    H = parcel.get("height_cm", Decimal("0"))
+    sum_sides = parcel.get("sum_sides", L + W + H)
+    max_side = max(L, W, H)
+
+    if not _gls_pudo_allowed(weight, max_side):
+        raise ValueError(
+            f"GLS PUDO: package exceeds PUDO limits (weight={weight}, max_side={max_side})"
+        )
+
+    tag = _weight_tag_gls(weight)
+    # Категория берётся как у HD — скидка применяется к тому же базовому тарифу
+    category = _gls_category_HD(country, weight, max_side, sum_sides)
+    hd_rate = _pick_rate_HD(country, category, tag, address_bundle)
+
+    base_czk = hd_rate.price - GLS_PUDO_DISCOUNT_CZK
+    if base_czk < 0:
+        base_czk = Decimal("0")
+
+    fuel_czk = (base_czk * GLS_FUEL_PCT).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    toll_czk = _toll_surcharge_czk(weight)
+    cod_fee = Decimal("0")  # COD для PUDO не допускаем
+
+    total_czk = base_czk + fuel_czk + toll_czk + cod_fee
+
+    net_eur = convert_czk_to_eur(total_czk).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    gross_eur = (net_eur * (Decimal("1") + VAT_RATE)).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+
+    logger.info(
+        "GLS PUDO parcel: weight=%s kg, size=%sx%sx%s cm, sum=%s -> "
+        "base=%s CZK (HD-%s), fuel=%s, toll=%s, total=%s CZK (%.2f EUR net)",
+        weight,
+        L,
+        W,
+        H,
+        sum_sides,
+        base_czk,
+        GLS_PUDO_DISCOUNT_CZK,
+        fuel_czk,
+        toll_czk,
+        total_czk,
+        net_eur,
+    )
+
+    return {
+        "courier": hd_rate.courier_service.name or "GLS",
+        "service": "Pick-up point",  # на выходе мы можем переименовать в SHOP/BOX
+        "channel": "PUDO",
+        "price": net_eur,
+        "priceWithVat": gross_eur,
+        "currency": currency,
+        "estimate": "",  # в прайсе GLS для PSD/Locker отдельного estimate нет
+        "base_czk": base_czk,
+        "total_czk": total_czk,
+    }
+
+
+# --------------------------------------------------------------------------
+# Публичная функция: полный расчёт по заказу
+# --------------------------------------------------------------------------
 def calculate_gls_shipping_options(
+    *,
     country: str,
     items: List[Dict[str, Any]],
     currency: str,
-    *,
     cod: bool = False,
-    address_bundle: str = "one",                       # 'one' или 'multi' (для HD)
     variant_map: Optional[Dict[str, ProductVariant]] = None,
-) -> List[Dict[str, Any]]:
+    address_bundle: str = "one",
+) -> Dict[str, Any]:
     """
-    Возвращает список опций (PUDO, HD), если тарифы доступны.
-    Логика прайса:
-    - Fuel 1.10% — от базы HD (EuroBusinessParcel).
-    - PUDO Export = HD base - 27 Kč (минимум 0).
-    - Mýtný příplatek = ceil(вес) * 1.47 Kč (применяем к обоим каналам).
-    """
-    if variant_map is None:
-        skus = [it["sku"] for it in items]
-        variant_map = {v.sku: v for v in ProductVariant.objects.filter(sku__in=skus)}
+    Возвращает агрегированные опции по GLS:
+      {
+        "options": [
+          {... HD ...},
+          {... SHOP ...},
+          {... BOX ...},
+        ],
+        "total_parcels": {
+          "HD":   N_hd,
+          "SHOP": N_shop,
+          "BOX":  N_box,
+        }
+      }
 
-    w = _calc_dims_and_weights(items, variant_map)
-    chargeable = w["chargeable_weight"]
+    Логика:
+      • сначала делаем split под HD-лимиты (service="HD");
+      • отдельно делаем split под SHOP-лимиты (service="PUDO");
+      • отдельно делаем split под BOX-лимиты (service="BOX");
+      • для каждой посылки считаем стоимость по своему «режиму»;
+      • суммируем NET по каждому режиму и начисляем VAT по сумме.
+    """
+
+    # Если вариант-мэп не передали — пусть split сам достанет варианты
+    parcels_hd = split_items_into_parcels_gls(
+        items, variant_map=variant_map, service="HD", country=country
+    )
+    if not parcels_hd:
+        raise ValueError("GLS: split(HD) returned no parcels")
+
+    parcels_shop: List[Dict[str, Any]] = []
+    try:
+        parcels_shop = split_items_into_parcels_gls(
+            items, variant_map=variant_map, service="PUDO", country=country
+        )
+    except Exception as e:
+        # SHOP может не поддерживаться для конкретного набора товаров/страны
+        logger.info("GLS: SHOP (PUDO) split failed, will skip SHOP: %s", e)
+
+    parcels_box: List[Dict[str, Any]] = []
+    try:
+        parcels_box = split_items_into_parcels_gls(
+            items, variant_map=variant_map, service="BOX", country=country
+        )
+    except Exception as e:
+        # BOX может не поддерживаться (габариты, лимиты автомата и т.п.)
+        logger.info("GLS: BOX split failed, will skip BOX: %s", e)
 
     logger.info(
-        "GLS weights %s: total=%.3fkg volumetric=%.3fkg chargeable=%.3fkg",
-        country, w["total_weight_kg"], w["volumetric_weight"], chargeable
+        "GLS aggregate: HD parcels=%d, SHOP parcels=%d, BOX parcels=%d",
+        len(parcels_hd),
+        len(parcels_shop),
+        len(parcels_box),
     )
 
-    if chargeable > GLS_MAX_WEIGHT_KG:
-        raise ValueError(f"GLS: weight exceeds {GLS_MAX_WEIGHT_KG} kg")
+    # Накапливаем NET по режимам (HD/SHOP/BOX)
+    per_mode_net: Dict[str, Decimal] = {
+        "HD": Decimal("0.00"),
+        "SHOP": Decimal("0.00"),
+        "BOX": Decimal("0.00"),
+    }
+    last_meta: Dict[str, Dict[str, Any]] = {}
+    modes_ok: Dict[str, bool] = {"HD": True, "SHOP": True, "BOX": True}
 
-    L, W, H, sum_sides, max_side = _pack_dims(items, variant_map, chargeable)
-    logger.info("GLS dims %s: L=%s W=%s H=%s sum=%s max_side=%s", country, L, W, H, sum_sides, max_side)
+    # --- HD ---
+    for p in parcels_hd:
+        try:
+            o = _calc_hd_for_parcel(
+                country=country,
+                parcel=p,
+                cod=cod,
+                currency=currency,
+                address_bundle=address_bundle,
+            )
+            per_mode_net["HD"] += o["price"]
+            last_meta["HD"] = {
+                "courier": o.get("courier", "GLS"),
+                "service": o.get("service", "Home Delivery"),
+                "estimate": o.get("estimate", ""),
+            }
+        except Exception as e:
+            logger.error("GLS: HD calculation failed for parcel %s: %s", p, e)
+            modes_ok["HD"] = False
+            break
 
-    category = _gls_category(chargeable, max_side, sum_sides)
-    tag = _weight_tag_gls(chargeable)
+    # --- SHOP (ParcelShop) ---
+    if parcels_shop:
+        for p in parcels_shop:
+            try:
+                o = _calc_pudo_for_parcel(
+                    country=country,
+                    parcel=p,
+                    currency=currency,
+                    address_bundle=address_bundle,
+                )
+                per_mode_net["SHOP"] += o["price"]
+                last_meta["SHOP"] = {
+                    "courier": o.get("courier", "GLS"),
+                    # логически это Parcel Shop
+                    "service": "SHOP",
+                    "estimate": o.get("estimate", ""),
+                }
+            except Exception as e:
+                logger.info("GLS: SHOP calculation failed for parcel %s: %s", p, e)
+                modes_ok["SHOP"] = False
+                break
+    else:
+        modes_ok["SHOP"] = False
 
-    # База HD всегда нужна (от неё считаем fuel и скидку для PUDO)
-    hd_rate = _pick_rate(country, "HD", category, tag, address_bundle)
-    base_hd = hd_rate.price
-    cod_fee = hd_rate.cod_fee if cod else Decimal("0.00")
-
-    fuel_czk = (base_hd * GLS_FUEL_PCT).quantize(Decimal("0.01"))
-    toll_czk = _toll_surcharge_czk(chargeable)
-
-    def make_option(channel: str):
-        if channel == "PUDO":
-            # PUDO export = EuroBusinessParcel (HD base) - 27 Kč, bundle для PUDO не влияет
-            base_service = (base_hd - GLS_PUDO_EXPORT_DISCOUNT_CZK)
-            if base_service < 0:
-                base_service = Decimal("0.00")
-            bundle_used = "one"
-        else:
-            base_service = base_hd
-            bundle_used = address_bundle
-
-        total_czk = (base_service + cod_fee + fuel_czk + toll_czk).quantize(Decimal("0.01"))
-        total_czk_vat = (total_czk * (Decimal("1") + VAT_RATE)).quantize(Decimal("0.01"))
-
-        price_eur = convert_czk_to_eur(total_czk).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        price_eur_vat = convert_czk_to_eur(total_czk_vat).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
-        logger.debug(
-            "GLS %s: base_hd=%s base_service=%s fuel=%s toll=%s cod=%s tag=%s bundle=%s total=%s",
-            channel, base_hd, base_service, fuel_czk, toll_czk, cod_fee, tag, bundle_used, total_czk
-        )
-
-        return {
-            "courier": hd_rate.courier_service.name,
-            "service": "Pick-up point" if channel == "PUDO" else "Home Delivery",
-            "channel": channel,
-            "price": price_eur,
-            "priceWithVat": price_eur_vat,
-            "currency": "EUR",
-            "estimate": hd_rate.estimate or "",
-        }
+    # --- BOX (ParcelBox) ---
+    if parcels_box:
+        for p in parcels_box:
+            try:
+                o = _calc_pudo_for_parcel(
+                    country=country,
+                    parcel=p,
+                    currency=currency,
+                    address_bundle=address_bundle,
+                )
+                per_mode_net["BOX"] += o["price"]
+                last_meta["BOX"] = {
+                    "courier": o.get("courier", "GLS"),
+                    # логически это Parcel Box (Locker)
+                    "service": "BOX",
+                    "estimate": o.get("estimate", ""),
+                }
+            except Exception as e:
+                logger.info("GLS: BOX calculation failed for parcel %s: %s", p, e)
+                modes_ok["BOX"] = False
+                break
+    else:
+        modes_ok["BOX"] = False
 
     options: List[Dict[str, Any]] = []
+    total_parcels = {
+        "HD": len(parcels_hd) if modes_ok["HD"] else 0,
+        "SHOP": len(parcels_shop) if (parcels_shop and modes_ok["SHOP"]) else 0,
+        "BOX": len(parcels_box) if (parcels_box and modes_ok["BOX"]) else 0,
+    }
 
-    # PUDO (если тарифы/база HD доступны, рассчитываем on-the-fly)
-    try:
-        options.append(make_option("PUDO"))
-    except Exception as e:
-        logger.info("GLS PUDO not available for %s %s: %s", country, category, e)
+    # Собираем HD
+    if modes_ok["HD"] and per_mode_net["HD"] > 0:
+        net = per_mode_net["HD"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        gross = (net * (Decimal("1") + VAT_RATE)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        meta = last_meta.get("HD", {})
+        options.append(
+            {
+                "courier": meta.get("courier", "GLS"),
+                "service": meta.get("service", "Home Delivery"),
+                "channel": "HD",
+                "price": net,
+                "priceWithVat": gross,
+                "currency": currency,
+                "estimate": meta.get("estimate", ""),
+            }
+        )
 
-    # HD
-    try:
-        options.append(make_option("HD"))
-    except Exception as e:
-        logger.info("GLS HD not available for %s %s: %s", country, category, e)
+    # Собираем SHOP (ParcelShop)
+    if modes_ok["SHOP"] and per_mode_net["SHOP"] > 0:
+        net = per_mode_net["SHOP"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        gross = (net * (Decimal("1") + VAT_RATE)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        meta = last_meta.get("SHOP", {})
+        options.append(
+            {
+                "courier": meta.get("courier", "GLS"),
+                "service": "SHOP",
+                "channel": "PUDO",
+                "price": net,
+                "priceWithVat": gross,
+                "currency": currency,
+                "estimate": meta.get("estimate", ""),
+            }
+        )
+
+    # Собираем BOX (ParcelBox)
+    if modes_ok["BOX"] and per_mode_net["BOX"] > 0:
+        net = per_mode_net["BOX"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        gross = (net * (Decimal("1") + VAT_RATE)).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        meta = last_meta.get("BOX", {})
+        options.append(
+            {
+                "courier": meta.get("courier", "GLS"),
+                "service": "BOX",
+                "channel": "PUDO",
+                "price": net,
+                "priceWithVat": gross,
+                "currency": currency,
+                "estimate": meta.get("estimate", ""),
+            }
+        )
 
     if not options:
-        raise ValueError("GLS: no rates found for given parameters")
+        raise ValueError("GLS: no available options in aggregate")
 
-    return options
-
-
-def calculate_order_shipping_gls(country: str, items: list[dict], cod: bool, currency: str):
-    parcels = split_items_into_parcels_gls(items)
-    address_bundle = "multi" if len(parcels) >= 2 else "one"
-
-    per_parcel_opts = []
-    for parcel in parcels:
-        opts = calculate_gls_shipping_options(
-            country=country,
-            items=parcel,
-            currency=currency,
-            cod=cod,
-            address_bundle=address_bundle,
-        )
-        per_parcel_opts.append(opts)
-
-    # аккумулируем по каналу (PUDO/HD), как в combine_parcel_options
-    agg = {"PUDO": Decimal("0.00"), "HD": Decimal("0.00")}
-    opt_by_channel = {"PUDO": None, "HD": None}
-    for opts in per_parcel_opts:
-        for opt in opts:
-            ch = opt["channel"]
-            agg[ch] += opt["priceWithVat"]
-            opt_by_channel[ch] = opt  # держим последний для estimate/названия
-
-    result = []
-    for ch in ["PUDO", "HD"]:
-        base = opt_by_channel[ch]
-        if base:
-            result.append({
-                "courier": "GLS",
-                "service": base["service"],
-                "channel": ch,
-                "price": agg[ch].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
-                "priceWithVat": agg[ch].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
-                "currency": "EUR",
-                "estimate": base.get("estimate", ""),
-            })
-
-    return {"options": result, "total_parcels": len(parcels)}
+    logger.info("GLS aggregate done: options=%s, totals=%s", options, total_parcels)
+    return {"options": options, "total_parcels": total_parcels}
