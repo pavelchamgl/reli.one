@@ -37,6 +37,20 @@ export const calculateDelivery = async (obj) => {
 
 
 
+export const getIsValidZipCode = async (obj) => {
+    try {
+        const res = await mainInstance.post("/delivery/validate-address/", obj)
+        console.log(res.data);
+
+        return res.data
+
+    } catch (error) {
+        throw error
+
+    }
+}
+
+
 // ? ретраи для получения id сессии
 
 

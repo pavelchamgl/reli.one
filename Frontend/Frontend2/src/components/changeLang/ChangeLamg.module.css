@@ -58,3 +58,123 @@
     top: var(--pos);
     right: var(--pos);
 }
+
+{
+
+  id: 'CZ32159',
+
+  note: null,
+
+  type: 'locker',
+
+  name: 'AlzaBox Ml. Vožice -Obr. Míru(Flop)',
+
+  depot: '0152367',
+
+  lockerProvider: 'AlzaBox',
+
+  partnerReference: null,
+
+  openingHours: {
+
+    monday: [ { open: '00:00', close: '23:59' } ],
+
+    tuesday: [ { open: '00:00', close: '23:59' } ],
+
+    wednesday: [ { open: '00:00', close: '23:59' } ],
+
+    thursday: [ { open: '00:00', close: '23:59' } ],
+
+    friday: [ { open: '00:00', close: '23:59' } ],
+
+    saturday: [ { open: '00:00', close: '23:59' } ],
+
+    sunday: [ { open: '00:00', close: '23:59' } ]
+
+  },
+
+  location: {
+
+    address: {
+
+      city: 'Mladá Vožice',
+
+      country: 'CZ',
+
+      street: 'Obránců míru  337',
+
+      zip: '39143',
+
+      floorSpecification: null,
+
+      department: null,
+
+      note: null,
+
+      propertyNumber: '337'
+
+    },
+
+    coordinates: { latitude: 49.527679, longitude: 14.808572 }
+
+  },
+
+  contactInfo: {
+
+    name: 'AlzaBox Ml. Vožice -Obr. Míru(Flop)',
+
+    phone: '225373373',
+
+    email: 'info@dpd.cz',
+
+    web: 'www.dpd.cz'
+
+  },
+
+  paymentOptions: {
+
+    prepaidAllowed: false,
+
+    cardPaymentAllowed: false,
+
+    codAllowed: true,
+
+    onlineCodAllowed: true,
+
+    cashPaymentAllowed: false
+
+  },
+
+  enabled: true,
+
+  dropOffAllowed: true,
+
+  dropOffWithLabel: true,
+
+  dropOffWithoutLabel: false,
+
+  features: {
+
+    openInLateAfternoon: true,
+
+    openOnWeekends: true,
+
+    expressAllowed: false,
+
+    returnAllowed: true,
+
+    pickupAllowed: true
+
+  },
+
+  photos: [],
+
+  partner: 'Vinted',
+
+  unavailability: null,
+
+  occupancy: 57,
+
+  pickupPointResult: 'CZ32159, Obránců míru  337, 39143 Mladá Vožice CZ'
+
+}

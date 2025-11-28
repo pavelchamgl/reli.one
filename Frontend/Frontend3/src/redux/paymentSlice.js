@@ -6,6 +6,14 @@ const initialPaymentInfo = JSON.parse(localStorage.getItem("payment")) || {};
 
 const delivery = JSON.parse(localStorage.getItem("delivery")) || []
 
+const deliveryTypes = {
+    dpd: 4,
+    packeta: 2,
+    gls: 3,
+    glsShop: 3,
+    glsBox: 3
+}
+
 export const fetchCreateStripeSession = createAsyncThunk(
     "payment/fetchCreateStripeSession",
     async (_, { rejectWithValue, getState }) => {
@@ -16,48 +24,49 @@ export const fetchCreateStripeSession = createAsyncThunk(
 
 
             const newGroups = groups.map((item) => {
+                const base = {
+                    seller_id: item.seller_id,
+                    delivery_type: item.deliveryType === "delivery_point" ? 1 : 2,
+                    courier_service: deliveryTypes[paymentInfo?.deliveryMethodPoint] || deliveryTypes[paymentInfo?.deliveryMethodDH],
+                    ...(
+                        item.deliveryType !== "delivery_point" ?
+                            {
+                                delivery_address: {
+                                    street,
+                                    city,
+                                    zip,
+                                    country: country?.toUpperCase(),
+                                }
+                            }
+                            :
+                            {}
+                    )
+                    ,
+                    products: item.items.map((product) => ({
+                        sku: product.sku,
+                        quantity: product.count,
+                    })),
+                };
 
                 if (item.deliveryType === "delivery_point") {
                     return {
-                        seller_id: item.seller_id,
-                        delivery_type: 1,
-                        courier_service: 2,
-                        delivery_address: {
-                            street: street,
-                            city: city,
-                            zip: zip,
-                            country: country?.toUpperCase()
-                        },
+                        ...base,
                         pickup_point_id: String(item?.pickup_point_id),
-                        products: item?.items?.map((product) => {
-                            return {
-                                sku: product.sku,
-                                quantity: product.count
+                        ...((item?.deliveryMode != null && (paymentInfo?.deliveryMethodPoint === "glsShop" || paymentInfo?.deliveryMethodPoint === "glsBox")) ? { delivery_mode: item.deliveryMode } : {}),
+                        ...(paymentInfo?.deliveryMethodPoint === "dpd" && {
+                            delivery_address: {
+                                street: pointInfo?.street,
+                                city: pointInfo?.city,
+                                zip: pointInfo?.zip,
+                                country: pointInfo?.country,
                             }
                         })
-                    }
-                } else {
-                    return {
-                        seller_id: item.seller_id,
-                        delivery_type: 2,
-                        courier_service: 2,
-                        delivery_address: {
-                            street: street,
-                            city: city,
-                            zip: zip,
-                            country: country?.toUpperCase()
-                        },
-                        products: item?.items?.map((product) => {
-                            return {
-                                sku: product.sku,
-                                quantity: product.count
-                            }
-                        })
-
-                    }
-
+                    };
                 }
-            })
+
+                return base;
+            });
+
 
 
             const res = await createStripeSession({
@@ -70,7 +79,8 @@ export const fetchCreateStripeSession = createAsyncThunk(
                     city: city,
                     zip: zip,
                     country: country?.toUpperCase()
-                },
+                }
+                ,
                 groups: newGroups
             });
 
@@ -93,53 +103,52 @@ export const fetchCreatePayPalSession = createAsyncThunk(
             const { email, name, surename, phone, street, city, zip } = paymentInfo;
 
             const newGroups = groups.map((item) => {
-                console.log(item);
+                const base = {
+                    seller_id: item.seller_id,
+                    delivery_type: item.deliveryType === "delivery_point" ? 1 : 2,
+                    courier_service: deliveryTypes[paymentInfo?.deliveryMethodPoint] || deliveryTypes[paymentInfo?.deliveryMethodDH],
+                    ...(
+                        item.deliveryType !== "delivery_point" ?
+                            {
+                                delivery_address: {
+                                    street,
+                                    city,
+                                    zip,
+                                    country: country?.toUpperCase(),
+                                }
+                            }
+                            :
+                            {}
+                    )
+                    ,
+                    products: item.items.map((product) => ({
+                        sku: product.sku,
+                        quantity: product.count,
+                    })),
+                };
 
                 if (item.deliveryType === "delivery_point") {
                     return {
-                        seller_id: item.seller_id,
-                        delivery_type: 1,
-                        courier_service: 2,
+                        ...base,
                         pickup_point_id: String(item?.pickup_point_id),
-                        delivery_address: {
-                            street: street,
-                            city: city,
-                            zip: zip,
-                            country: country?.toUpperCase()
-                        },
-                        products: item?.items?.map((product) => {
-                            return {
-                                sku: product.sku,
-                                quantity: product.count
+                        ...((item?.deliveryMode != null && (paymentInfo?.deliveryMethodPoint === "glsShop" || paymentInfo?.deliveryMethodPoint === "glsBox")) ? { delivery_mode: item.deliveryMode } : {}),
+                        ...(paymentInfo?.deliveryMethodPoint === "dpd" && {
+                            delivery_address: {
+                                street: pointInfo?.street,
+                                city: pointInfo?.city,
+                                zip: pointInfo?.zip,
+                                country: pointInfo?.country,
                             }
                         })
-
-                    }
-                } else {
-                    return {
-                        seller_id: item.seller_id,
-                        delivery_type: 2,
-                        courier_service: 2,
-                        delivery_address: {
-                            street: street,
-                            city: city,
-                            zip: zip,
-                            country: country?.toUpperCase()
-                        },
-                        products: item?.items?.map((product) => {
-                            return {
-                                sku: product.sku,
-                                quantity: product.count
-                            }
-                        })
-
-                    }
-
+                    };
                 }
-            })
+
+                return base;
+            });
 
 
-            const res = await createPayPalSession({
+
+            const res = await createStripeSession({
                 email: email,
                 first_name: name,
                 last_name: surename,
@@ -149,7 +158,8 @@ export const fetchCreatePayPalSession = createAsyncThunk(
                     city: city,
                     zip: zip,
                     country: country?.toUpperCase()
-                },
+                }
+                ,
                 groups: newGroups
             });
 
@@ -220,7 +230,10 @@ const paymentSlice = createSlice({
             state.country = action.payload.country
         },
         setPointInfo: (state, action) => {
+
             state.pointInfo = action.payload
+
+
 
             state.groups = state.groups?.map((item) => {
                 if (item.seller_id === action.payload.sellerId) {

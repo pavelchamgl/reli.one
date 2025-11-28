@@ -68,6 +68,9 @@ const PacketaWidget = ({ open, setOpen, sellerId, setIsNotChoose }) => {
                     zip: point.zip,
                     sellerId
                 });
+
+
+                
                 setIsNotChoose(false);
             }
         };

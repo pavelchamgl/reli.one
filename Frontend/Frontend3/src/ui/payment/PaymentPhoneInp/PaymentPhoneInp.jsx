@@ -53,13 +53,18 @@ const PaymentPhoneInp = ({ title, err = null, fontNum, formik, ...props }) => {
         } else {
             setError(err)
         }
+
+        console.log(props.value);
+
+
     }, [props.value, country, err]);
 
-    useEffect(() => {
-        if (country) {
-            formik.setFieldValue("phone", ""); // очищаем номер при смене страны
-        }
-    }, [country]);
+    // useEffect(() => {
+    //     if (country && formik.values.phone) {
+    //         formik.setFieldValue("phone", "");
+    //     }
+    // }, [country]);
+
 
     return (
         <label className={styles.main}>
@@ -73,6 +78,7 @@ const PaymentPhoneInp = ({ title, err = null, fontNum, formik, ...props }) => {
                 alwaysShowMask={false}
             >
                 {(inpProp) => <input
+                    value={inpProp?.value}
                     {...inpProp}
                     style={
                         fontNum
@@ -84,6 +90,7 @@ const PaymentPhoneInp = ({ title, err = null, fontNum, formik, ...props }) => {
             {error && <p className={styles.errText}>{error}</p>}
         </label>
     )
+
 }
 
 export default PaymentPhoneInp
