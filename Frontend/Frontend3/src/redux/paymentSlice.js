@@ -148,7 +148,7 @@ export const fetchCreatePayPalSession = createAsyncThunk(
 
 
 
-            const res = await createStripeSession({
+            const res = await createPayPalSession({
                 email: email,
                 first_name: name,
                 last_name: surename,
