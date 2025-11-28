@@ -21,6 +21,7 @@ import { isValidPhone, isValidZipCode } from "../../../code/validation/validatio
 import PayAndCartBread from "../../../ui/PaymentAndBasketBreadcrumbs/PayAndCartBread";
 import PaymentZipAndPhoneInp from "../../../ui/payment/PaymentZipAndPhoneInp/PaymentZipAndPhoneInp";
 import PaymentPhoneInp from "../../../ui/payment/PaymentPhoneInp/PaymentPhoneInp";
+import { getIsValidZipCode } from "../../../api/payment";
 
 const PaymentContentBlock = ({ section, setSection }) => {
   const navigate = useNavigate();
@@ -81,12 +82,12 @@ const PaymentContentBlock = ({ section, setSection }) => {
   }, []);
   const { email, city, name, phone, surename, apartment, build, street, zip } = formik.values;
 
-  useEffect(() => {
-    if (phone && country) {
-      const isValid = isValidPhone(phone, country);
-      setPhoneValid(isValid);
-    }
-  }, [phone, country]);
+  // useEffect(() => {
+  //   if (phone && country) {
+  //     const isValid = isValidPhone(phone, country);
+  //     setPhoneValid(isValid);
+  //   }
+  // }, [phone, country]);
 
   useEffect(() => {
     if (zip && country) {
@@ -179,7 +180,24 @@ const PaymentContentBlock = ({ section, setSection }) => {
                 formik.handleChange(e)
               }
             }
-            onBlur={formik.handleBlur}
+            onBlur={
+              (e) => {
+                const { zip, city, street } = formik.values;
+                formik.handleBlur(e)
+                console.log(e.target.value);
+                console.log(zip, city, street);
+
+                getIsValidZipCode({
+                  country: country,
+                  zip: zip,
+                  city: city,
+                  street: street
+                }).then((res) => {
+                  console.log(res);
+                  setZipValid(res.valid)
+                })
+              }
+            }
             err={zipInteracted.current && !zipValid ? "Please enter a valid zip code." : formik.errors.zip}
             fontNum={true}
           />

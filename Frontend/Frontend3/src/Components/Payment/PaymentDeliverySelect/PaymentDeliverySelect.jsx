@@ -5,41 +5,44 @@ import {
   Radio,
   RadioGroup,
 } from "@mui/material";
+import { t } from "i18next";
+import { useSelector } from "react-redux";
+import { useActionPayment } from "../../../hook/useActionPayment.js";
 
 import arrRight from "../../../assets/Payment/arrRight.svg";
 import arrBottom from "../../../assets/Payment/arrBottom.svg";
 import paketa from "../../../assets/Payment/PaketaImage.svg";
 import gls from "../../../assets/Payment/gls.png";
-import styles from "./PaymentDeliverySelect.module.scss";
+import dpd from "../../../assets/Payment/dpdIc.svg";
+
 import PacketaWidget from "../PaketaWidget/PaketaWidget.jsx";
-import { useSelector } from "react-redux";
-import { useActionPayment } from "../../../hook/useActionPayment.js";
-import { t } from "i18next";
 import GlsWidget from "../GplsWidget/GplsWidget.jsx";
-import TestGls from "../GplsWidget/TestGls.jsx";
+import DpdPickupWidget from "../DpdPickupWidget/DpdPickupWidget.jsx";
+
+import styles from "./PaymentDeliverySelect.module.scss";
 
 const PaymentDeliverySelect = ({ sellerId, group }) => {
   const [selectedValue, setSelectedValue] = useState(""); // группа (delivery_point / courier)
-  const [selectedProviderPoint, setSelectedProviderPoint] = useState(""); // для delivery_point
+  const [selectedProviderPoint, setSelectedProviderPoint] = useState(null); // для delivery_point
   const [selectedProviderCourier, setSelectedProviderCourier] = useState(""); // для courier  
   const [openPoint, setOpenPoint] = useState(false);
   const [openDH, setOpenDH] = useState(false);
   const [paketaOpen, setPaketaOpen] = useState(false);
   const [glsOpen, setGlsOpen] = useState(false);
+  const [dpdOpen, setDpdOpen] = useState(false);
 
   const [paketaPointPrice, setPacketaPointPrice] = useState(null)
   const [paketaDHPrice, setPacketaDHPrice] = useState(null)
-  const [glsPointPrice, setGlsPointPrice] = useState(null)
+  const [glsShopPointPrice, setGlsShopPointPrice] = useState(null)
+  const [glsBoxPointPrice, setGlsBoxPointPrice] = useState(null)
   const [glsDHPrice, setGlsDHPrice] = useState(null)
-
+  const [dpdPointPrice, setDpdPointPrice] = useState(null)
+  const [dpdDHPrice, setDpdDHPrice] = useState(null)
 
   const [isNotChoosePoint, setIsNotChoosePoint] = useState(false)
 
-  const [pointPrice, setPointPrice] = useState(null)
-  const [DHPrice, setDHPrice] = useState(null)
-
   const { deliveryCost, country, pointInfo } = useSelector(state => state.payment)
-  const { setDeliveryType } = useActionPayment()
+  const { setDeliveryType, editValue } = useActionPayment()
 
   const handleChange = (event) => {
     setSelectedValue(event.target.value);
@@ -47,20 +50,47 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
   };
 
   useEffect(() => {
+    const price = (() => {
+      if (selectedValue === "courier") {
+        if (selectedProviderCourier === "gls") return glsDHPrice?.priceWithVat;
+        if (selectedProviderCourier === "packeta") return paketaDHPrice?.priceWithVat;
+        if (selectedProviderCourier === "dpd") return dpdDHPrice?.priceWithVat;
+      } else {
+        if (selectedProviderPoint === "glsBox") return glsBoxPointPrice?.priceWithVat;
+        if (selectedProviderPoint === "glsShop") return glsShopPointPrice?.priceWithVat;
+        if (selectedProviderPoint === "packeta") return paketaPointPrice?.priceWithVat;
+        if (selectedProviderPoint === "dpd") return dpdPointPrice?.priceWithVat;
+      }
+      return null;
+    })();
+
+    let deliveryMode = null;
+
+    if (selectedValue === "delivery_point") {
+      const map = {
+        glsShop: "shop",
+        glsBox: "box",
+      };
+
+      deliveryMode = map[selectedProviderPoint] ?? null;
+    }
+
+    editValue({
+      deliveryMethodPoint: selectedProviderPoint,
+      deliveryMethodDH: selectedProviderCourier,
+    })
+
+
     const obj = {
       deliveryType: selectedValue,
       sellerId,
-      deliveryPrice:
-        selectedValue === "courier"
-          ? selectedProviderCourier === "gls"
-            ? glsDHPrice?.priceWithVat
-            : paketaDHPrice?.priceWithVat
-          : selectedProviderPoint === "gls"
-            ? glsPointPrice?.priceWithVat
-            : paketaPointPrice?.priceWithVat
-    }
+      deliveryPrice: price,
 
-    setDeliveryType(obj)
+      deliveryMode
+
+    };
+
+    setDeliveryType(obj);
   }, [
     selectedValue,
     sellerId,
@@ -68,13 +98,23 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
     selectedProviderPoint,
     glsDHPrice,
     paketaDHPrice,
-    glsPointPrice,
-    paketaPointPrice
-  ])
+    glsBoxPointPrice,
+    glsShopPointPrice,
+    paketaPointPrice,
+    dpdPointPrice,
+    dpdDHPrice
+  ]);
+
 
 
   useEffect(() => {
     if (!group?.couriers) return;
+
+    console.log(group?.couriers);
+
+
+    console.log(group);
+
 
     // --- Zásilkovna ---
     const zasilkovna = group.couriers.zasilkovna;
@@ -96,25 +136,34 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
     // --- GLS ---
     const gls = group.couriers.gls;
     if (gls?.options?.length) {
-      const pudo = gls.options.find(item => item.channel === "PUDO");
+      const box = gls.options.find(item => item.service === "BOX");
+      const shop = gls.options.find(item => item.service === "SHOP");
       const hd = gls.options.find(item => item.channel === "HD");
-
-
-
-      if (pudo) setGlsPointPrice(pudo);
+      if (box) setGlsBoxPointPrice(box);
+      if (shop) setGlsShopPointPrice(shop);
       if (hd) setGlsDHPrice(hd);
     } else if (gls?.error) {
       console.error("GLS error:", gls.error);
-      setGlsPointPrice(null);
+      setGlsBoxPointPrice(null);
+      setGlsShopPointPrice(null);
       setGlsDHPrice(null);
+    }
+
+
+    const dpd = group.couriers.dpd;
+    if (dpd?.options?.length) {
+      const pudo = dpd.options.find(item => item.channel === "PUDO");
+      const hd = dpd.options.find(item => item.channel === "HD");
+
+      if (pudo) setDpdPointPrice(pudo);
+      if (hd) setDpdDHPrice(hd);
+    } else if (dpd?.error) {
+      console.error("DPD error:", dpd.error);
+      setDpdPointPrice(null);
+      setDpdDHPrice(null);
     }
   }, [group]);
 
-
-  useEffect(() => {
-    console.log(pointPrice, DHPrice);
-
-  }, [pointPrice, DHPrice])
 
   useEffect(() => {
     if (isNotChoosePoint) {
@@ -127,7 +176,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
 
 
 
-  if (paketaPointPrice || paketaDHPrice || glsDHPrice || glsPointPrice) {
+  if (paketaPointPrice || paketaDHPrice || glsDHPrice || glsBoxPointPrice || glsShopPointPrice || dpdDHPrice || dpdPointPrice) {
     return (
       <div>
         <FormControl fullWidth>
@@ -152,7 +201,19 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   ? (
                     <span>
                       {selectedProviderPoint === "packeta" && <img src={paketa} alt="Packeta" />}
-                      {selectedProviderPoint === "gls" && <img src={gls} alt="GLS" />}
+                      {selectedProviderPoint === "glsBox" && (
+                        <div className={styles.glsPointLabelWrap}>
+                          <img src={gls} alt="GLS" />
+                          <p>Box</p>
+                        </div>
+                      )}
+                      {selectedProviderPoint === "glsShop" && (
+                        <div className={styles.glsPointLabelWrap}>
+                          <img src={gls} alt="GLS" />
+                          <p>Shop</p>
+                        </div>
+                      )}
+                      {selectedProviderPoint === "dpd" && <img src={dpd} alt="DPD" />}
                     </span>
                   )
                   : <p className={styles.labelText}>{t("payment_page.delivery_point")}</p>}
@@ -182,31 +243,98 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
-                <p className={styles.price}>{paketaPointPrice ? paketaPointPrice?.priceWithVat : "Delivery not available"} €</p>
+                <p className={styles.price}>{paketaPointPrice ? `${paketaPointPrice?.priceWithVat} €` : "Delivery not available"}</p>
               </div>
 
               {/* GLS */}
               <div
                 className={styles.selectBlock}
                 onClick={() => {
-                  if (!glsPointPrice) return
+                  if (!glsBoxPointPrice) return
                   setSelectedValue("delivery_point");
-                  setSelectedProviderPoint("gls");
-                  setGlsOpen(true);
+                  setSelectedProviderPoint("glsBox");
+                  // if (selectedProviderPoint === "glsBox") {
+                  //   setGlsOpen(true);
+                  // }
                 }}
               >
                 <div className={styles.radioImageDiv}>
                   <FormControlLabel
                     value="delivery_point"
                     control={<Radio color="success"
-                      checked={selectedProviderPoint === "gls"}
+                      checked={selectedProviderPoint === "glsBox"}
                     />}
-                    disabled={!glsPointPrice}
-                    label={<img src={gls} alt="GLS" />}
+                    disabled={!glsBoxPointPrice}
+                    label={
+                      <div className={styles.glsPointLabelWrap}>
+                        <img src={gls} alt="GLS" />
+                        <p>Box</p>
+                      </div>
+                    }
                   />
                 </div>
-                <p className={styles.price}>{glsPointPrice ? glsPointPrice?.priceWithVat : "Delivery not available"} €</p>
+                <p className={styles.price}>{glsBoxPointPrice ? `${glsBoxPointPrice?.priceWithVat} €` : "Delivery not available"}</p>
               </div>
+
+              <div
+                className={styles.selectBlock}
+                onClick={() => {
+                  if (!glsShopPointPrice) return
+                  setSelectedValue("delivery_point");
+                  setSelectedProviderPoint("glsShop");
+                  // if (selectedProviderPoint) {
+                  //   setGlsOpen(true);
+                  // }
+                }}
+              >
+                <div className={styles.radioImageDiv}>
+                  <FormControlLabel
+                    value="delivery_point"
+                    control={<Radio color="success"
+                      checked={selectedProviderPoint === "glsShop"}
+                    />}
+                    disabled={!glsShopPointPrice}
+                    label={
+                      <div className={styles.glsPointLabelWrap}>
+                        <img src={gls} alt="GLS" />
+                        <p>Shop</p>
+                      </div>
+                    }
+                  />
+                </div>
+                <p className={styles.price}>{glsShopPointPrice ? `${glsShopPointPrice?.priceWithVat} €` : "Delivery not available"}</p>
+              </div>
+
+              {/* DPD */}
+
+              <div
+                className={styles.selectBlock}
+                onClick={() => {
+                  if (!["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase())) return
+                  setSelectedValue("delivery_point");
+                  setSelectedProviderPoint("dpd");
+                  setDpdOpen(true)
+                  setOpenPoint(false);
+                }}
+              >
+                <div className={styles.radioImageDiv}>
+                  <FormControlLabel
+                    value="delivery_point"
+                    control={<Radio color="success"
+                      disabled={
+                        !["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase()) ||
+                        !dpdPointPrice
+                      }
+                      checked={selectedProviderPoint === "dpd"}
+                    />}
+                    label={<img src={dpd} alt="Packeta" />}
+                  />
+                </div>
+                <p className={styles.price}>
+                  {dpdPointPrice ? `${dpdPointPrice?.priceWithVat} €` : "Delivery not available"}
+                </p>
+              </div>
+
             </div>
 
             {/* Courier Delivery Group */}
@@ -227,6 +355,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     <span>
                       {selectedProviderCourier === "packeta" && <img src={paketa} alt="Packeta" />}
                       {selectedProviderCourier === "gls" && <img src={gls} alt="GLS" />}
+                      {selectedProviderCourier === "dpd" && <img src={dpd} alt="DPD" />}
                     </span>
                   )
                   : <p className={styles.labelText}>{t("payment_page.courier_delivery")}</p>}
@@ -257,7 +386,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     label={<img src={paketa} alt="Packeta" />}
                   />
                 </div>
-                <p className={styles.price}>{paketaDHPrice ? paketaDHPrice?.priceWithVat : "Delivery not available"} €</p>
+                <p className={styles.price}>{paketaDHPrice ? `${paketaDHPrice?.priceWithVat} €` : "Delivery not available"} </p>
               </div>
 
               {/* GLS */}
@@ -282,17 +411,54 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     label={<img src={gls} alt="GLS" />}
                   />
                 </div>
-                <p className={styles.price}>{glsDHPrice ? glsDHPrice?.priceWithVat : "Delivery not available"} €</p>
+                <p className={styles.price}>{glsDHPrice ? `${glsDHPrice?.priceWithVat} €` : "Delivery not available"} </p>
+              </div>
+
+              {/* dpd */}
+              <div
+                className={styles.selectBlock}
+                onClick={() => {
+                  if (!["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase())) return
+                  setSelectedValue("courier");
+                  setSelectedProviderCourier("dpd");
+                  // setPaketaOpen(!paketaOpen);
+                  setOpenDH(false)
+                }}
+              >
+                <div className={styles.radioImageDiv}>
+                  <FormControlLabel
+                    value="courier"
+                    control={<Radio color="success"
+                      disabled={
+                        !["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase()) ||
+                        !dpdDHPrice
+                      }
+                      checked={selectedProviderCourier === "dpd"}
+                    />}
+                    label={<img src={dpd} alt="Packeta" />}
+                  />
+                </div>
+                <p className={styles.price}>
+                  {dpdDHPrice ? `${dpdDHPrice?.priceWithVat} €` : "Delivery not available"}
+                </p>
               </div>
             </div>
           </RadioGroup>
         </FormControl>
+
+        <DpdPickupWidget
+          sellerId={sellerId}
+          open={dpdOpen}
+          setOpen={setDpdOpen}
+          setIsNotChoose={setIsNotChoosePoint}
+        />
 
         <GlsWidget
           sellerId={sellerId}
           open={glsOpen}
           setOpen={setGlsOpen}
           setIsNotChoose={setIsNotChoosePoint}
+          selectedProviderPoint={selectedProviderPoint}
 
         />
         {/* <TestGls /> */}

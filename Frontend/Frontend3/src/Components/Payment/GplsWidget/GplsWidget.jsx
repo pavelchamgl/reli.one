@@ -3,45 +3,72 @@ import { useSelector } from "react-redux";
 import { useActionPayment } from "../../../hook/useActionPayment";
 
 import styles from "./TestGls.module.scss";
+import { ErrToast } from "../../../ui/Toastify";
+import { ToastContainer } from "react-toastify";
 
-const GlsWidget = ({ open, setOpen, onSelect, setIsNotChoose, sellerId }) => {
+const GlsWidget = ({ open, setOpen, setIsNotChoose, sellerId, selectedProviderPoint }) => {
 
   const { setPointInfo } = useActionPayment()
 
   const payment = useSelector(state => state.payment)
 
-  const { country } = useSelector(state => state.payment)
+  const { country, paymentInfo } = useSelector(state => state.payment)
+
+
+  const savePointInfo = (ps) => {
+    setPointInfo({
+      pickup_point_id: ps.pclshopid,
+      country: ps.ctrcode,
+      street: ps.address,
+      city: ps.city,
+      zip: ps.zipcode,
+      sellerId
+    });
+  };
+
+  useEffect(() => {
+    if (!selectedProviderPoint) return; // защита от ""
+
+    if (["glsShop", "glsBox"].includes(selectedProviderPoint)) {
+      setOpen(true);
+    }
+  }, [selectedProviderPoint]);
 
 
   useEffect(() => {
     const handleMessage = (event) => {
       if (event.data && event.data.parcelshop) {
         const ps = event.data.parcelshop.detail;
-        setPointInfo(
-          {
-            pickup_point_id: ps.pclshopid,
-            country: ps.ctrcode,
-            street: ps.address,
-            city: ps.city,
-            zip: ps.zipcode,
-            sellerId
-          }
-        )
-        // setParcelShop({
-        //   id: ps.pclshopid,
-        //   name: ps.name,
-        //   address: ps.address,
-        //   zipcode: ps.zipcode,
-        //   city: ps.city,
-        //   country: ps.ctrcode,
-        // });
-        setOpen(false); // закрыть модалку после выбора
+        const isLocker = ps?.isparcellocker === "1" || ps?.isparcellocker === "t";
+
+        console.log(ps?.isparcellocker, selectedProviderPoint);
+
+
+
+        if (!isLocker && selectedProviderPoint === "glsShop") {
+          savePointInfo(ps)
+          setOpen(false); // закрыть модалку после выбора
+        }
+        else if (isLocker && selectedProviderPoint === "glsBox") {
+          savePointInfo(ps)
+          setOpen(false)
+        }
+        else {
+
+          ErrToast(isLocker ? "This point is not a GLS Shop" : "This point is not a GLS Box");
+          setIsNotChoose(true)
+        }
+      } else {
+        setIsNotChoose(false)
       }
     };
 
-    window.addEventListener("message", handleMessage);
+    if (["glsShop", "glsBox"].includes(selectedProviderPoint)) {
+      window.addEventListener("message", handleMessage);
+    }
+
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [selectedProviderPoint]);
 
   // закрытие при клике вне модалки
   const handleOverlayClick = (e) => {
@@ -53,7 +80,7 @@ const GlsWidget = ({ open, setOpen, onSelect, setIsNotChoose, sellerId }) => {
   return (
     <div className={styles.wrapper}>
 
-      {open && (
+      {(open && selectedProviderPoint) && (
         <div className={styles.modalOverlay} onClick={handleOverlayClick}>
           <div className={styles.modalContent}>
             <button
@@ -70,6 +97,7 @@ const GlsWidget = ({ open, setOpen, onSelect, setIsNotChoose, sellerId }) => {
           </div>
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 };
