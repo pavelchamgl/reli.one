@@ -8,7 +8,7 @@ import csIcon from "../../assets/lang/cs.svg";
 import checkMark from "../../assets/lang/checkMark.svg";
 import closeIcon from "../../assets/lang/closeIcon.svg";
 
-import styles from "./ChangeLamg.module.css"
+import styles from "./ChangeLang.module.css"
 
 
 const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {

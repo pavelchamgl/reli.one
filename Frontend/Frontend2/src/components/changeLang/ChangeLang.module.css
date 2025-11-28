@@ -1,0 +1,60 @@
+/* flex items-center gap-1 absolute top-4 right-10 lg:right-0  */
+.langBtn {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 16px;
+  right: 40px;
+}
+
+/* w-72 h-40 bg-white rounded-2xl absolute top-4 right-10 shadow-lg py-4 px-5 flex flex-col gap-3 sm:right-auto sm:left-10 md:left-10   */
+
+.modal {
+  width: 289px;
+  height: 159px;
+  border-radius: 20px;
+  background: #fff;
+  padding: 16px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+
+  position: absolute;
+  top: 16px;
+  right: 40px;
+  z-index: 100;
+}
+
+
+
+@media (max-width:641px) {
+  .langBtn {
+    top: 12px;
+    right: 18px;
+  }
+
+  .modal {
+    width: 250px;
+  }
+}
+
+.drawerWrap {
+  width: 100%;
+  padding: 27px 15px 20px;
+  border-radius: 25px;
+
+
+}
+
+.drawerRadius {
+  border-radius: 25px;
+}
+
+.closeBtn {
+  position: absolute;
+  --pos: 18px;
+  top: var(--pos);
+  right: var(--pos);
+}
