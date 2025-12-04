@@ -12,7 +12,7 @@ const Block = ({ item }) => {
                 <h5>{item?.title}</h5>
                 <p>{item?.desc}</p>
             </div>
-            {item?.link && <a href="#">{item?.link} <img src={linkArr} alt="" /></a>}
+            {item?.link ? (item?.url ? <a href={item?.url}>{item?.link} <img src={linkArr} alt="" /></a> : <a>{item?.link} <img src={linkArr} alt="" /></a>) : null}
         </div>
     )
 }

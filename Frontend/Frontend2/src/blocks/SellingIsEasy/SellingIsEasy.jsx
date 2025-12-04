@@ -21,7 +21,7 @@ const SellingIsEasy = () => {
                             <DescText style={{ fontSize: "clamp(16px, 5vw, 20px)" }} text={"Just send us your product detail - we upload and promote them for you. "} />
                             <Steps />
                             <div className={styles.btnWrap}>
-                                <YellowBtn text={"Start Selling Today"} />
+                                <YellowBtn text={"Start Selling Today"} url={"#get-in-touch"} />
                                 <YellowBtn text={"Go To Marketplace"} arr={true} style={{
                                     background: "#eef0f2"
                                 }} url="https://reli.one/" />

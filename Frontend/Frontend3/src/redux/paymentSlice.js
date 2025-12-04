@@ -187,6 +187,9 @@ export const postCalculateDelivery = createAsyncThunk(
                 items: obj.items,
             });
 
+            console.log(res);
+
+
             return {
                 ...res,
                 seller_id: obj.seller_id,

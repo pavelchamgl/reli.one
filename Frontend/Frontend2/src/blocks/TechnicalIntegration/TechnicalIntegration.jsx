@@ -57,7 +57,7 @@ const TechnicalIntegration = () => {
             <section className={styles.main}>
                 <SupportBlocks title={title} desc={desc} blocks={blocks} />
                 <p className={styles.needHelp}>Need help with integration? Our technical team is here to assist.</p>
-                <a href="#" className={styles.contactInfo}>Contact Information</a>
+                <a href="#get-in-touch" className={styles.contactInfo}>Contact Information</a>
             </section>
         </Container>
     )

@@ -17,6 +17,10 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 /* кастомизация точек пагинации Swiper */
 .swiper-pagination {
   position: relative;

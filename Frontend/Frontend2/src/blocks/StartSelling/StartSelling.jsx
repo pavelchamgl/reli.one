@@ -43,11 +43,11 @@ const StartSelling = () => {
                             <p>Join now and let us do the hard work – you focus on your products</p>
                         </div>
 
-                        <button className={styles.contactManagere}>
+                        <a href="#get-in-touch" className={styles.contactManagere}>
                             <img src={graph} alt="" />
                             <p>Contact manager</p>
                             <img src={arrRight} alt="" />
-                        </button>
+                        </a>
 
                         <div className={styles.riskBlock}>
                             <p>️ 100% Risk-Free Guarantee</p>

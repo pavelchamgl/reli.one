@@ -39,6 +39,7 @@ const SellerSupport = () => {
             title: "Tips From Our Team",
             desc: "Best practices for pricing, positioning, and growing sales on Reli",
             link: "Contact",
+            url: "#get-in-touch",
             style: style,
             textStyle: textStyle
         },

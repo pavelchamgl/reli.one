@@ -37,7 +37,7 @@ const FocusOnBuss = () => {
                         </div>
                         <CTA image={graph} text={"Join our growing seller community"} color={"#3f7f6d"} bgColor={"#dcfce7"} style={{ marginTop: "25px", marginBottom: "15px" }} />
                         <p className={styles.desc}>With our hands-on support, <span>free promotion</span>, and <span>one-year fee-free start</span>, Reli is your partner for growth.</p>
-                        <YellowBtn text={"Contact Manager  "} />
+                        <YellowBtn text={"Contact Manager  "} url={"#get-in-touch"} />
                         <div className={styles.benefitsWrap}>
                             {benefits.map((item) => (
                                 <Benefits img={item.img} text={item.text} />
