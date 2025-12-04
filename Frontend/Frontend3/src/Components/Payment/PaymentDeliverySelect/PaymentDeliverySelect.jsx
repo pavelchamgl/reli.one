@@ -90,6 +90,18 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
 
     };
 
+
+    console.log(
+      paketaPointPrice,
+      paketaDHPrice,
+      glsDHPrice,
+      glsBoxPointPrice,
+      glsShopPointPrice,
+      dpdDHPrice,
+      dpdPointPrice
+    );
+
+
     setDeliveryType(obj);
   }, [
     selectedValue,
@@ -105,6 +117,11 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
     dpdDHPrice
   ]);
 
+
+  useEffect(() => {
+    console.log(group);
+
+  }, [])
 
 
   useEffect(() => {
@@ -174,9 +191,19 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
   }, [setIsNotChoosePoint])
 
 
+  const prices = [
+    paketaPointPrice,
+    paketaDHPrice,
+    glsDHPrice,
+    glsBoxPointPrice,
+    glsShopPointPrice,
+    dpdDHPrice,
+    dpdPointPrice
+  ];
 
 
-  if (paketaPointPrice || paketaDHPrice || glsDHPrice || glsBoxPointPrice || glsShopPointPrice || dpdDHPrice || dpdPointPrice) {
+
+  if (prices.some(price => price != null)) {
     return (
       <div>
         <FormControl fullWidth>

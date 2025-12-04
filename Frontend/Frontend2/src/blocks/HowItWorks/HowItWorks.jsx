@@ -13,7 +13,7 @@ const HowItWorks = () => {
                     <Steps />
                     <p className={styles.readyToStart}>Ready to get started?</p>
                     <div className={styles.btnWrap}>
-                        <button>Contact Our Manager</button>
+                        <a href="#get-in-touch">Contact Our Manager</a>
                     </div>
 
                 </section>

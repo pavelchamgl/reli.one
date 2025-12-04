@@ -40,7 +40,7 @@ const AskedQuestions = () => {
                 </div>
 
                 <p className={styles.haveQues}>Still have questions?</p>
-                <a href="#" className={styles.readMore}>Read more</a>
+                <a  className={styles.readMore}>Read more</a>
 
             </section>
         </Container>

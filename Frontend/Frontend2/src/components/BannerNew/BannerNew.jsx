@@ -29,17 +29,17 @@ const Slide = ({ title, desc, img }) => {
                 </div>
             }
             <div className={styles.contentWrap}>
-                <div className={styles.btnWrap}>
+                {/* <div className={styles.btnWrap}>
                     <button>
                         <img src={light} alt="" />
                     </button>
                     <button>Update</button>
-                </div>
+                </div> */}
                 <div className={styles.textWrap}>
                     <h2>{title}</h2>
                     <p>{desc}</p>
                 </div>
-                <button className={styles.btn}>Start Selling</button>
+                <a href="#get-in-touch" className={styles.btn}>Start Selling</a>
             </div>
             <img
                 className={styles.img}

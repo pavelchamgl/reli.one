@@ -10,10 +10,10 @@ const StartSelling = () => {
             <h5 className={styles.title}>Ready to start selling?</h5>
             <p className={styles.desc}>Join successful sellers who have already discovered the power of Reli.one. No commitments,
                 no risks, just results.</p>
-            <button className={styles.btn}>
+            <a href="#get-in-touch" className={styles.btn}>
                 <p>Create Your Free Account</p>
                 <img src={arrRight} alt="" />
-            </button>
+            </a>
         </div>
     )
 }
