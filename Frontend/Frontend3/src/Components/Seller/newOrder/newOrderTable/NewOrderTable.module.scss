@@ -1,0 +1,34 @@
+.titleText {
+  font-weight: 400;
+  font-size: 14px;
+  color: #4a5565;
+  white-space: normal;
+}
+
+.titleTextWrap {
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f9fafb;
+  height: 64px;
+  border-bottom: 1.2px solid #e5e7eb;
+  padding: 0 14px;
+}
+
+.tableWrap {
+  border: 1.2px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  width: 100%;
+  height: auto;
+}
+
+.lineBreak {
+  width: 103px;
+}

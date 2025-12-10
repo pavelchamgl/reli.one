@@ -1,0 +1,75 @@
+.block {
+  border-radius: 10px;
+  padding: 0px 24px;
+  width: 499px;
+  height: 74px;
+  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: #3f7f6d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  position: fixed;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  @media (max-width: 500px) {
+    bottom: 50px;
+    width: 300px;
+    height: 94px;
+  }
+}
+
+.downloadAndExportBtn {
+  background: #fff;
+  border-radius: 10px;
+  height: 40px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #3f7f6d;
+  padding: 0 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+    height: 73px;
+    justify-content: center;
+  }
+}
+
+.countText {
+  font-weight: 400;
+  font-size: 16px;
+  color: #fff;
+
+  @media (max-width: 500px) {
+    width: 40px;
+  }
+}
+
+.devidor {
+  background: rgba(255, 255, 255, 0.2);
+  display: block;
+  width: 1px;
+  height: 24px;
+}
+
+.closeBtn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+
+}
+
+.btnsWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

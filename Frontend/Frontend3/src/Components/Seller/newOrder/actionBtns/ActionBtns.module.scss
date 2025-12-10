@@ -1,0 +1,29 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 152px;
+
+  & button {
+    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  & button:first-child {
+    border: 1px solid #3f7f6d;
+    background-color: white;
+  }
+
+  & button:nth-child(2) {
+    background-color: #3f7f6d;
+  }
+
+  & button:last-child {
+    border: 1px solid #ffc9c9;
+    background: #fef2f2;
+  }
+}

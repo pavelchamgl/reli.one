@@ -31,9 +31,9 @@ const SellerTab = () => {
       </button>
       <button
         className={
-          pathname === "/seller/seller-orders" ? styles.tabBtnAcc : styles.tabBtn
+          pathname === "/seller/seller-order" ? styles.tabBtnAcc : styles.tabBtn
         }
-        onClick={() => navigate("/seller/seller-orders")}
+        onClick={() => navigate("/seller/seller-order")}
       >
         Orders
       </button>

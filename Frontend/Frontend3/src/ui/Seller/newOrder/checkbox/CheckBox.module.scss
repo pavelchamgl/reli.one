@@ -1,0 +1,41 @@
+.selectLabel {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  & p {
+    font-weight: 400;
+    font-size: 18px;
+  }
+}
+
+.selectInp {
+  display: none;
+}
+
+.selectInp + span {
+  display: block;
+  width: 19px;
+  height: 19px;
+  border: 1px solid black;
+}
+
+
+
+.selectInp:checked + span {
+  display: block;
+  background-color: #047857;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.selectInp:checked + span::before {
+  content: "";
+  display: block;
+  width: 19px;
+  height: 19px;
+  background-image: url("../../../../assets/Basket/marker.svg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  margin-top: 4px; /* регулируй значение под нужный отступ */
+}
