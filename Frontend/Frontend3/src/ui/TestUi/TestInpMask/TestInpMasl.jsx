@@ -3,20 +3,17 @@ import InputMask from "react-input-mask"
 
 const TestInpMasl = () => {
 
-    const masks = {
-        cz: "+420 9999999",
-        kg: "+996 000 000000"
-    }
+    const masks = "99.99.9999"
 
     const [value, setValue] = useState("")
 
     return (
         <div>
             <InputMask
-                mask={masks["cz"]}
+                mask={masks}
                 maskChar=""
                 alwaysShowMask={false}
-                placeholder="your number"
+                placeholder="dd.mm.yyyy"
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
             >

@@ -1,0 +1,11 @@
+.status {
+  padding: 0 12px;
+  width: min-content;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: aquamarine;
+  font-size: clamp(14px, 2.5vw, 16px);
+}

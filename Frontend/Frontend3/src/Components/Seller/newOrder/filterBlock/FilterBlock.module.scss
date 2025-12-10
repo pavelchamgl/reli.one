@@ -1,0 +1,48 @@
+.filterBlock {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 25px;
+}
+
+.filterWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filterWrap > * {
+  flex: 1 1 calc(50% - 16px);
+}
+
+.btnsWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+
+  & button {
+    padding: 10px 15px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+
+    font-weight: 500;
+    font-size: 14px;
+    text-align: center;
+  }
+
+  & button:first-child {
+    background: #3f7f6d;
+    color: white;
+  }
+
+  & button:last-child {
+    border: 1px solid #d1d5dc;
+    background-color: white;
+    color: #364153;
+  }
+}

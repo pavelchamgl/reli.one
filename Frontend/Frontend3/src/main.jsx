@@ -51,6 +51,7 @@ import SellerIdPage from "./pages/SellerIdPage.jsx";
 import GeneralDataProtection from "./pages/GeneralDataProtection.jsx";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 import CookiePolicy from "./pages/CookiePolicy.jsx";
+import NewSellerOrder from "./sellerPages/NewSellerOrder/NewSellerOrder.jsx";
 
 const router = createBrowserRouter([
   {
@@ -146,6 +147,10 @@ const router = createBrowserRouter([
       {
         path: "seller-orders",
         element: <SellerOrdersPage />,
+      },
+      {
+        path: "seller-order",
+        element: <NewSellerOrder />
       },
       {
         path: "seller-create",

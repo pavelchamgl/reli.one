@@ -1,0 +1,39 @@
+.title {
+  font-weight: 500;
+  font-size: 32px;
+  //   color: #101828;
+}
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  padding: 24px 0 140px;
+}
+
+.orderCardWrap {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  gap: 14px;
+}
+
+.orderCardWrap > .orderCard {
+  flex: 1 1 calc(33.333% - 14px); /* 3 в ряд */
+  max-width: calc(33.333% - 14px);
+}
+
+@media (max-width: 1024px) {
+  .orderCardWrap > .orderCard {
+    flex: 1 1 calc(50% - 14px); /* 2 в ряд */
+    max-width: calc(50% - 14px);
+  }
+}
+
+@media (max-width: 600px) {
+  .orderCardWrap > .orderCard {
+    flex: 1 1 100%; /* 1 в ряд */
+    max-width: 100%;
+  }
+}
