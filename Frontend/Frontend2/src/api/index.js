@@ -18,7 +18,7 @@ export const createContactMessage = async (obj) => {
         console.log(res);
 
     } catch (error) {
-        console.log(error);
+        throw error
 
     }
 }
