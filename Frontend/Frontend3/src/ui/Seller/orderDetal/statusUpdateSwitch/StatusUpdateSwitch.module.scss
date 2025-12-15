@@ -1,0 +1,51 @@
+.wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  transition: transform 0.45s ease;
+}
+
+.block {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.step {
+  padding: 9px 23px;
+  height: 38px;
+  border-radius: 4px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+.arrow {
+  width: 100%; // можно менять
+  height: 2px;
+  background: #9ca3af;
+  margin: 0 20px;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left: 10px solid #9ca3af;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+  }
+}

@@ -2,7 +2,7 @@ import { useMediaQuery } from "react-responsive"
 
 import styles from "./StatusText.module.scss"
 
-const StatusText = ({ status }) => {
+const StatusText = ({ status, big }) => {
 
     const statuses = [
         {
@@ -44,10 +44,11 @@ const StatusText = ({ status }) => {
 
     return (
         <div className={styles.status} style={{
-            color: fStatus.color,
-            backgroundColor: fStatus.bg,
-            border: `1.2px solid ${fStatus.border}`,
-            minWidth: isMobile ? "auto" : "129px"
+            color: fStatus.color ? fStatus.color : "#101828",
+            backgroundColor: fStatus.bg ? fStatus.bg : "white",
+            border: `1.2px solid ${fStatus.border ? fStatus.border : "#d1d5dc"}`,
+            minWidth: isMobile ? "auto" : "129px",
+            height: big ? "38px" : "30px"
         }}>
             {fStatus.text}
         </div>

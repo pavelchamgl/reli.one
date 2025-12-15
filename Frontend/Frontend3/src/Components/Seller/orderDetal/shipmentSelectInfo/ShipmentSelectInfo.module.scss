@@ -1,0 +1,127 @@
+.selectBtn {
+  background: #f9fafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+  width: 100%;
+  height: 71px;
+  border-bottom: 1.2px solid #e5e7eb;
+  border-radius: 10px 10px 0 0;
+}
+
+.arrow {
+  transform: rotate(-90deg);
+  transition: 0.5s ease;
+}
+
+.arrActive {
+  transform: rotate(0deg);
+}
+
+.shipmentTitleWrap {
+  display: flex;
+  gap: 10px;
+
+  & div:first-child {
+    border: 1px solid #3f7f6d;
+    border-radius: 10px;
+    width: 39px;
+    height: 39px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & img {
+      width: 20px;
+    }
+  }
+
+  & div:last-child {
+    text-align: left;
+    & p {
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 143%;
+      color: #101828;
+    }
+
+    & p:last-child {
+      color: #4a5565;
+    }
+  }
+}
+
+.mainWrap {
+  border: 1.2px solid #e5e7eb;
+  border-radius: 10px;
+  width: 100%;
+  margin-top: 25px;
+}
+
+.shipContentWrap {
+  padding: 16px;
+}
+
+.dateAndBtnsWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  & div {
+    & p {
+      font-weight: 500;
+      font-size: 13px;
+      color: #4a5565;
+      margin-bottom: 6px;
+    }
+    & p:last-child {
+      font-weight: 400;
+      font-size: 14px;
+      color: #101828;
+    }
+  }
+
+  & div:last-child {
+    display: flex;
+    gap: 8px;
+    & button {
+      padding: 10px 16px;
+      background-color: #3f7f6d;
+      border-radius: 10px;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+
+      color: white;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    & button:last-child {
+      color: #3f7f6d;
+      background-color: white;
+      border: 1px solid #3f7f6d;
+    }
+  }
+}
+
+.itemsParcelsTitle {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 150%;
+  color: #101828;
+  margin-top: 24px;
+}
+
+.itemsParcelWrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 11px;
+}

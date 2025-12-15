@@ -1,0 +1,54 @@
+.main {
+  border: 1.2px solid #d1d5dc;
+  border-radius: 10px;
+  padding: 33px;
+  width: 100%;
+
+  @media (max-width:600px) {
+    height: 400px;
+  }
+}
+
+.title {
+  font-weight: 600;
+  font-size: 18px;
+  color: #101828;
+}
+
+.currentText {
+  font-weight: 500;
+  font-size: 13px;
+  text-align: center;
+  color: #4a5565;
+  margin-bottom: 10px;
+}
+
+.statusDecorateText {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 34px;
+  margin-top: 23px;
+  & span {
+    width: 63px;
+    height: 1px;
+    display: block;
+    background-color: #d1d5dc;
+  }
+
+  & p {
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 143%;
+    color: #99a1af;
+    text-align: center;
+  }
+}
+
+.statusContentWrap {
+  margin-top: 23px;
+  width: 100%;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+}

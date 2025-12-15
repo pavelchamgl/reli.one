@@ -1,0 +1,74 @@
+/* ====== ОБЩЕЕ ====== */
+.wrapper {
+  width: 100%;
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* ====== КНОПКИ ====== */
+.step {
+  padding: 9px 23px;
+  height: 38px;
+  border-radius: 4px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  font-size: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* ====== СТРЕЛКА (DESKTOP) ====== */
+.arrow {
+  flex: 1; // 🔥 растягивается на всё пространство
+  height: 2px;
+  background: #9ca3af;
+  margin: 0 20px;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    border-left: 8px solid #9ca3af;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+  }
+}
+
+/* ====== МОБИЛКА ====== */
+@media (max-width: 640px) {
+  .track {
+    flex-direction: column;
+    align-items: stretch;
+    height: 220px;
+  }
+
+  .step {
+    width: 100%;
+    text-align: center;
+  }
+
+  .arrow {
+    width: 2px;
+    height: 24px;
+    margin: 10px auto;
+    background: #9ca3af;
+
+    &::after {
+      right: 50%;
+      top: auto;
+      bottom: -6px;
+      transform: translateX(50%);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 8px solid #9ca3af;
+      border-bottom: none;
+    }
+  }
+}

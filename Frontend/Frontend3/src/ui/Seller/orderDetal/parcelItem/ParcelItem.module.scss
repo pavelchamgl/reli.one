@@ -1,0 +1,32 @@
+@mixin text($size, $color, $weight) {
+  font-weight: 400;
+  font-size: 14px;
+  color: #101828;
+}
+
+.main {
+  width: 100%;
+  padding: 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nameAndImg {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.name {
+  @include text(14px, #101828, 400);
+  margin-bottom: 5px;
+}
+
+.variant {
+  @include text(14px, #4a5565, 400);
+}
+
+.quant {
+  @include text(16px, #4a5565, 400);
+}

@@ -1,0 +1,56 @@
+.main {
+  border: 1.2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 25px;
+  width: 100%;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #101828;
+  margin-bottom: 23px;
+}
+
+.titleTableBlock,
+.titleItemBlock {
+  display: grid;
+  grid-template-columns:
+    1fr /* Product */
+    1fr /* SKU */
+    1fr /* Variant */
+    60px /* Qty */
+    103px /* Unit Price */
+    87px; /* Total */
+
+  align-items: center;
+  height: 44px;
+
+  & p {
+    padding-left: 15px;
+    font-weight: 400;
+    font-size: 14px;
+  }
+}
+
+.titleTableBlock {
+  border-bottom: 1.2px solid #e5e7eb;
+}
+
+.titleItemBlockWrap {
+  & div {
+    border-bottom: 1.2px solid #f3f4f6;
+  }
+
+  & div:last-child {
+    border-bottom: none;
+  }
+}
+
+
+.mobileCardsWrap{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
