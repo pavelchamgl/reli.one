@@ -16,9 +16,7 @@ export const createContactMessage = async (obj) => {
     try {
         const res = await mainInstance.post("/contact/message/", obj)
         console.log(res);
-
     } catch (error) {
         throw error
-
     }
 }

@@ -1,3 +1,4 @@
+import { useMediaQuery } from 'react-responsive'
 import SellerBread from '../../Components/Seller/all/sellerBread/SellerBread'
 import DownLabelsBlock from '../../Components/Seller/newOrder/downLabelsBlock/DownLabelsBlock'
 import FilterBlock from '../../Components/Seller/newOrder/filterBlock/FilterBlock'
@@ -7,6 +8,8 @@ import NewOrderTable from '../../Components/Seller/newOrder/newOrderTable/NewOrd
 import styles from "./NewSellerOrder.module.scss"
 
 const NewSellerOrder = () => {
+
+    const isDesktop = useMediaQuery({ maxWidth: 1400 })
 
     const linkArr = [
         {
@@ -24,17 +27,21 @@ const NewSellerOrder = () => {
             <SellerBread arr={linkArr} />
             <h2 className={styles.title}>Orders</h2>
             <FilterBlock />
-            <div className={styles.orderCardWrap}>
-                <MobileOrderCard />
-                <MobileOrderCard />
-                <MobileOrderCard />
-                <MobileOrderCard />
-                <MobileOrderCard />
-                <MobileOrderCard />
-                <MobileOrderCard />
-                <MobileOrderCard />
-            </div>
-            {/* <NewOrderTable /> */}
+            {
+                isDesktop ?
+                    <div className={styles.orderCardWrap}>
+                        <MobileOrderCard />
+                        <MobileOrderCard />
+                        <MobileOrderCard />
+                        <MobileOrderCard />
+                        <MobileOrderCard />
+                        <MobileOrderCard />
+                        <MobileOrderCard />
+                        <MobileOrderCard />
+                    </div>
+                    :
+                    <NewOrderTable />
+            }
             <DownLabelsBlock />
         </div>
     )
