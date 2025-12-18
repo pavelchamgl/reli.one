@@ -83,3 +83,9 @@ class OTP(models.Model):
     title = models.CharField(max_length=128)
     value = models.IntegerField(blank=True, null=True)
     expired_date = models.DateTimeField(blank=True, null=True)
+    attempts_count = models.PositiveSmallIntegerField(default=0)
+    locked_until = models.DateTimeField(blank=True, null=True)
+    sent_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"OTP({self.pk}) {self.title} for {self.user.email}"
