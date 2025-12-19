@@ -19,6 +19,7 @@ import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
 import Header from "../Components/Header/Header";
 import Footer from "../Components/Footer/Footer";
 import BannerCube from "../Components/bannerCube/BannerCube";
+import TelegramMeneger from "../Components/TelegramMenedgerBtn/TelegramMeneger";
 
 const SellerIdPage = () => {
     const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -70,6 +71,7 @@ const SellerIdPage = () => {
                 <Header />
 
                 <BannerCube />
+                <TelegramMeneger />
 
                 <Footer />
             </>
@@ -130,6 +132,7 @@ const SellerIdPage = () => {
                         />
                     </div>
                 </Container>
+                <TelegramMeneger />
                 <Footer />
             </>
         );

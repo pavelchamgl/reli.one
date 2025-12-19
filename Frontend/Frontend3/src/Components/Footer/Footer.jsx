@@ -21,23 +21,22 @@ const MessengerBtns = () => {
     <div className={cls.messBtns}>
       <a target="_blank" href="https://www.instagram.com/reli_just_one?igsh=MXU5b3RjcjhraXR0cQ%3D%3D&utm_source=qr">
         <img src={instaIcon} alt="" />
-        <p>instagram</p>
+        {/* <p>instagram</p> */}
       </a>
       <a target="_blank" href="https://www.facebook.com/share/1H2tBL8yDB/?mibextid=wwXIfr">
         <img src={faceIcon} alt="" />
-        <p>facebook</p>
+        {/* <p>facebook</p> */}
       </a>
       {/* <a target="_blank" href="https://t.me/reli_marketplace">
         <img src={telegaIcon} alt="" />
-        <p>telegram</p>
       </a> */}
       <a target="_blank" href="https://www.tiktok.com/@reli.one_new_one?_t=ZN-8xVXbMFsNQk&_r=1">
         <img src={tiktokIcon} alt="" />
-        <p>tiktok</p>
+        {/* <p>tiktok</p> */}
       </a>
       <a target="_blank" href="https://www.linkedin.com/company/reli-group/">
         <img src={linkedinIcon} alt="" />
-        <p>linkedin</p>
+        {/* <p>linkedin</p> */}
       </a>
     </div>
   )
@@ -57,6 +56,14 @@ const Footer = () => {
   if (isMobile) {
     return (
       <div className={cls.mobileMain}>
+        <img className={cls.mobLogo} src={logo} alt="" />
+        <div className={cls.mobInfoContainer}>
+          <p>{t("phone")}: +420 797 837 856</p>
+          <p>{t("email")}: info@reli.one</p>
+          <p>
+            {t("address")}: {t("reli_address")}
+          </p>
+        </div>
         <MessengerBtns />
         <div className={cls.mobLinkMain}>
           <Link className={cls.mobileLink} to={"/mob_login"}>
@@ -92,14 +99,17 @@ const Footer = () => {
             {t("about_company")}
           </a>
         </div>
-        <img className={cls.mobLogo} src={logo} alt="" />
-        <div className={cls.mobInfoContainer}>
-          <p>{t("phone")}: +420 797 837 856</p>
-          <p>{t("email")}: info@reli.one</p>
-          <p>
-            {t("address")}: {t("reli_address")}
-          </p>
+
+        <div className={cls.bankDetailWrap}>
+          <p>Bank detail:</p>
+          <p>DIČ: CZ28003896</p>
+          <p>Bank: Raiffeisen Bank</p>
+          <p>SWIFT (BIC): RZBCCZPP</p>
+          <p>Account number/bank code: 8115228001/5500</p>
+          <p>Company Identification Number: 28003896</p>
+          <p>IBAN: CZ9455000000005003011074</p>
         </div>
+
         <div className={cls.mobBottomWrap}>
           <p className={cls.mobBottomDesc}>(c) Copyright 2025 Reli Group</p>
         </div>
@@ -112,7 +122,18 @@ const Footer = () => {
       <div className={cls.Foooter_Container}>
         <div className={cls.Inner_Container}>
           <div className={cls.logo_container}>
-            <img src={logo} />
+            <img className={cls.logo} src={logo} />
+            <div className={cls.Info_Container}>
+              {/* <h1>Reli Group s.r.o.</h1> */}
+              <p>{t("phone")}: +420 797 837 856</p>
+              <p>{t("email")}: info@reli.one</p>
+              <p>
+                {t("address")}: {t("reli_address")}
+              </p>
+            </div>
+
+            <MessengerBtns />
+
           </div>
           <nav className={cls.Navigate_Container}>
             <ul>
@@ -131,6 +152,11 @@ const Footer = () => {
               <li>
                 <Link className={cls.LinkNavigate} to={"/liked"}>
                   {t("choice")}
+                </Link>
+              </li>
+              <li>
+                <Link className={cls.LinkNavigate} to={"/basket"}>
+                  {t("bin")}
                 </Link>
               </li>
               <li>
@@ -183,18 +209,19 @@ const Footer = () => {
               </li>
             </ul>
           </nav>
-          <div className={cls.Info_Container}>
-            <h1>Reli Group s.r.o.</h1>
-            <p>{t("phone")}: +420 797 837 856</p>
-            <p>{t("email")}: info@reli.one</p>
-            <p>
-              {t("address")}: {t("reli_address")}
-            </p>
+          <div className={cls.bankDetailWrap}>
+            <p>Bank detail:</p>
+            <p>DIČ: CZ28003896</p>
+            <p>Bank: Raiffeisen Bank</p>
+            <p>SWIFT (BIC): RZBCCZPP</p>
+            <p>Account number/bank code: 8115228001/5500</p>
+            <p>Company Identification Number: 28003896</p>
+            <p>IBAN: CZ9455000000005003011074</p>
           </div>
-        </div>
-        <div className={cls.bottomElem}>
-          <MessengerBtns />
-          <p className={cls.bottomDesc}>(c) Copyright 2025 Reli Group</p>
+
+          <div className={cls.bottomElem}>
+            <p className={cls.bottomDesc}>(c) Copyright 2025 Reli Group</p>
+          </div>
         </div>
         <LoginModal open={open} handleClose={() => setOpen(false)} />
         <PolicySettingsModal open={openPolicy} handleClose={() => setOpenPolicy(false)} />

@@ -6,6 +6,7 @@ import BasketTotalBlock from "../Components/Basket/BasketTotalBlock/BasketTotalB
 import styles from "../styles/BasketPage.module.scss";
 import { useEffect } from "react";
 import { useActionPayment } from "../hook/useActionPayment";
+import TelegramMeneger from "../Components/TelegramMenedgerBtn/TelegramMeneger";
 
 const BasketPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -23,6 +24,7 @@ const BasketPage = () => {
         <BasketCardBlock />
         <BasketTotalBlock />
       </div>
+      <TelegramMeneger />
       {/* {isMobile && <Footer />} */}
     </>
   );

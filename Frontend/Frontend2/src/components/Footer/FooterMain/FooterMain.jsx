@@ -1,5 +1,6 @@
 import Container from "../../Container/Container"
 import FooterLinks from "../footerLinks/FooterLinks"
+import FooterPaymentMethods from "../footerPaymentMethods/FooterPaymentMethods"
 import StayUpdated from "../StayUpdated/StayUpdated"
 
 import styles from "./FooterMain.module.scss"
@@ -10,6 +11,7 @@ const FooterMain = () => {
       <Container>
         <footer className={styles.main}>
           <FooterLinks />
+          <FooterPaymentMethods />
           <StayUpdated />
         </footer>
 

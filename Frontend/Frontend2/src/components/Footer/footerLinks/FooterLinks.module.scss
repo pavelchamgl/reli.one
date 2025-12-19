@@ -1,12 +1,12 @@
-.main{
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 21px;
+.main {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 21px;
 
-    @media (max-width:500px) {
-      flex-direction: column;
-    }
+  @media (max-width: 500px) {
+    flex-direction: column;
+  }
 }
 
 .linksWrap {
@@ -42,4 +42,41 @@
   font-weight: 400;
   font-size: 11px;
   color: #99a1af;
+}
+
+.bankDetailWrap {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  border-left: 1px solid #1e2939;
+  padding-left: 25px;
+  & p {
+    font-weight: 400;
+    font-size: 11px;
+    color: #99a1af;
+  }
+
+  & p:first-child {
+    font-weight: 700;
+    font-size: 13px;
+    color: #99a1af;
+
+    @media (max-width: 500px) {
+      color: white;
+    }
+  }
+
+  @media (max-width: 1220px) {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  @media (max-width: 500px) {
+    width: 100%;
+    padding-top: 29px;
+    border-top: 1px solid #1e2939;
+    margin-block: 29px;
+  }
 }

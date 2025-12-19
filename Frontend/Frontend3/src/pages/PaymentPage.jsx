@@ -16,6 +16,7 @@ import PaymentPlataBlock from "../Components/Payment/PaymentPlataBlock/PaymentPl
 import Footer from "../Components/Footer/Footer";
 import { useActionPayment } from "../hook/useActionPayment";
 import { useSelector } from "react-redux";
+import TelegramMeneger from "../Components/TelegramMenedgerBtn/TelegramMeneger";
 
 
 const PaymentPage = () => {
@@ -41,6 +42,7 @@ const PaymentPage = () => {
       {section === 3 && <PaymentPlataBlock section={section} setSection={setSection} />}
 
       {!isMobile && <BasketTotalBlock section={section} />}
+      <TelegramMeneger />
     </div>
   );
 };

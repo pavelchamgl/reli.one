@@ -26,6 +26,7 @@ import GetInTouch from './blocks/GetInTouch/GetInTouch';
 import FooterMain from './components/Footer/FooterMain/FooterMain';
 import BannerNew from './components/BannerNew/BannerNew';
 import ScrollToTop from './components/ScrollToTop/ScrollToTop';
+import WhatsappMeneger from './components/WhatsAppManager/WhatsAppManager';
 
 const App = () => {
 
@@ -74,6 +75,7 @@ const App = () => {
       <Security />
       <FooterMain />
       <ScrollToTop />
+      <WhatsappMeneger />
 
       {/* <Domu />
       <Proc_Zrovna_Me />
