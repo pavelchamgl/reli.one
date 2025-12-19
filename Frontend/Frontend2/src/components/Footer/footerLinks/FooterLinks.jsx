@@ -79,7 +79,7 @@ const FooterLinks = () => {
                 <p>DIČ: CZ28003896</p>
                 <p>Bank: Raiffeisen Bank</p>
                 <p>SWIFT (BIC): RZBCCZPP</p>
-                <p>Account number/bank code: 8115228001/5500</p>
+                <p>Account number/bank code: 5003011074/5500</p>
                 <p>Company Identification Number: 28003896</p>
                 <p>IBAN: CZ9455000000005003011074</p>
             </div>
