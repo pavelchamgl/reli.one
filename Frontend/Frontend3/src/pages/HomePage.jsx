@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from "react-redux";
 import ScrollToTop from "../Components/ScrollToTop/ScrollToTop";
 import CookieModal from "../ui/CookieModal/CookieModal";
 import { COOKIE_VERSION } from "../configs/cookieConfig";
+import TelegramMeneger from "../Components/TelegramMenedgerBtn/TelegramMeneger";
 
 const HomePage = () => {
   const isMobile = useMediaQuery({ maxWidth: 950 });
@@ -91,6 +92,7 @@ const HomePage = () => {
         {isMobile && <MobNav />}
       </div>
       {!isSeller && <Footer />}
+      <TelegramMeneger />
       <ToastContainer />
       <CookieModal open={openCookie} handleClose={() => setOpenCookie(false)} />
     </div>

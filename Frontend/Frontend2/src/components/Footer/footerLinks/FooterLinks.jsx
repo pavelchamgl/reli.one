@@ -11,10 +11,10 @@ import styles from "./FooterLinks.module.scss"
 
 const FooterLinks = () => {
 
-    const links1 = ["Getting Started", "Seller Dashboard", "Commission Structure", "Payment Methods", "Seller Support"]
-    const links2 = ["About Us", "Careers", "Press ", "Contact ", "Blog "]
-    const links3 = ["API Documentation", "Integration Guides", "Video Tutorials", "Best Practices", "Community Forum"]
-    const links4 = ["Terms of Service", "Privacy Policy", "GDPR Compliance", "Cookie Policy", "Legal Notice"]
+    const links1 = ["Getting Started", "Seller Dashboard", "Commission Structure", "Seller Support"]
+    // const links2 = ["About Us", "Careers", "Press ", "Contact ", "Blog "]
+    const links2 = ["Terms and Conditions", "Complaint", "Return of Goods", "Terms of Service", "Privacy Policy", "GDPR Compliance", "Cookie Policy"]
+    const links3 = ["About Us"]
 
 
     return (
@@ -25,6 +25,8 @@ const FooterLinks = () => {
                     online. Join thousands of
                     successful sellers and grow
                     your business with us.</p>
+                <p className={styles.footerDesc}>
+                    Address: Na Lysinách 551/34, Prague 4 - Hodkovičky, zip code 147 00, Czech Republic</p>
 
                 <div className={styles.linksWrap}>
                     <a href="#">
@@ -43,6 +45,7 @@ const FooterLinks = () => {
                         <img src={tiktok} alt="" />
                     </a>
                 </div>
+
             </div>
             <ul>
                 {/* <li>
@@ -57,7 +60,7 @@ const FooterLinks = () => {
             </ul>
             <ul>
                 <li>
-                    <h3 className={styles.listTitle}>Company</h3>
+                    <h3 className={styles.listTitle}>Legal</h3>
                 </li>
                 {links2.map((item) => (
                     <li><a className={styles.listItem} href="#">{item}</a></li>
@@ -65,20 +68,29 @@ const FooterLinks = () => {
             </ul>
             <ul>
                 <li>
-                    <h3 className={styles.listTitle}>Resources</h3>
+                    <h3 className={styles.listTitle}>Company</h3>
                 </li>
                 {links3.map((item) => (
                     <li><a className={styles.listItem} href="#">{item}</a></li>
                 ))}
             </ul>
-            <ul>
+            <div className={styles.bankDetailWrap}>
+                <p>Banking details:</p>
+                <p>DIČ: CZ28003896</p>
+                <p>Bank: Raiffeisen Bank</p>
+                <p>SWIFT (BIC): RZBCCZPP</p>
+                <p>Account number/bank code: 8115228001/5500</p>
+                <p>Company Identification Number: 28003896</p>
+                <p>IBAN: CZ9455000000005003011074</p>
+            </div>
+            {/* <ul>
                 <li>
                     <h3 className={styles.listTitle}>Legal</h3>
                 </li>
                 {links4.map((item) => (
                     <li><a className={styles.listItem} href="#">{item}</a></li>
                 ))}
-            </ul>
+            </ul> */}
 
         </div>
     )
