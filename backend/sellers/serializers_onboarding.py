@@ -26,11 +26,78 @@ class OnboardingStateSerializer(serializers.ModelSerializer):
         fields = ["id", "seller_type", "status", "current_step", "submitted_at", "reviewed_at", "rejected_reason"]
 
 
-class SellerDocumentUploadSerializer(serializers.ModelSerializer):
+class SellerDocumentCreateSerializer(serializers.ModelSerializer):
+    """
+    Сериалайзер для загрузки документов KYC/KYB.
+
+    ВАЖНО:
+    - НЕ валидирует количество сторон (front/back)
+    - допускает:
+        * passport → side=None или side="front"
+        * ID / residence → side="front"/"back"
+    - полнота документа проверяется в compute_completeness
+    """
+
     class Meta:
         model = SellerDocument
-        fields = ["id", "doc_type", "scope", "side", "file", "uploaded_at"]
-        read_only_fields = ["id", "uploaded_at"]
+        fields = [
+            "doc_type",
+            "scope",
+            "side",
+            "file",
+        ]
+
+    def validate_side(self, value):
+        """
+        side — опциональное поле:
+        - None → односторонний документ
+        - "front" / "back" → двусторонний
+        """
+        if value is None:
+            return value
+
+        value = value.lower()
+        if value not in {"front", "back"}:
+            raise serializers.ValidationError(
+                "Invalid side value. Allowed values: 'front', 'back' or null."
+            )
+        return value
+
+    def validate(self, attrs):
+        doc_type = attrs.get("doc_type")
+        side = attrs.get("side")
+
+        # Односторонние документы — back запрещён
+        if doc_type in {"proof_of_address", "registration_certificate"}:
+            if side == "back":
+                raise serializers.ValidationError(
+                    {
+                        "side": f"{doc_type} is a single-sided document. "
+                                "Side 'back' is not allowed."
+                    }
+                )
+
+        # identity_document:
+        # допускаем:
+        # - None (passport)
+        # - front / back (ID, residence)
+        # НИЧЕГО больше не проверяем здесь
+
+        return attrs
+
+
+class SellerDocumentReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SellerDocument
+        fields = [
+            "id",
+            "doc_type",
+            "scope",
+            "side",
+            "file",
+            "uploaded_at",
+        ]
+        read_only_fields = fields
 
 
 # ----- Block serializers -----

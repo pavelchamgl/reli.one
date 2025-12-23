@@ -33,7 +33,7 @@ class SellerProfile(models.Model):
         blank=True,
     )
 
-    # Склад по умолчанию (если у тебя есть app warehouses)
+    # Склад по умолчанию
     default_warehouse = models.ForeignKey(
         "warehouses.Warehouse",
         on_delete=models.SET_NULL,
