@@ -28,15 +28,40 @@ class OnboardingStateSerializer(serializers.ModelSerializer):
 
 class SellerDocumentCreateSerializer(serializers.ModelSerializer):
     """
-    Сериалайзер для загрузки документов KYC/KYB.
+    Финальный сериалайзер для загрузки KYC/KYB документов.
 
-    ВАЖНО:
-    - НЕ валидирует количество сторон (front/back)
-    - допускает:
-        * passport → side=None или side="front"
-        * ID / residence → side="front"/"back"
-    - полнота документа проверяется в compute_completeness
+    Поведение:
+    - side="" -> None (важно для multipart/form-data)
+    - passport:
+        side=None или side="front"
+    - ID / residence:
+        side="front" или "back"
+    - proof_of_address, registration_certificate:
+        только односторонние (side=None / front)
+    - корректность количества сторон проверяется в compute_completeness
     """
+
+    # Разрешённые scope для каждого типа документа
+    ALLOWED_SCOPES = {
+        "identity_document": {
+            "self_employed_personal",
+            "company_representative",
+        },
+        "proof_of_address": {
+            "self_employed_address",
+            "company_address",
+            "warehouse_address",
+            "return_address",
+        },
+        "registration_certificate": {
+            "company_info",
+        },
+    }
+
+    SINGLE_SIDED_DOCS = {
+        "proof_of_address",
+        "registration_certificate",
+    }
 
     class Meta:
         model = SellerDocument
@@ -49,12 +74,11 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
 
     def validate_side(self, value):
         """
-        side — опциональное поле:
-        - None → односторонний документ
-        - "front" / "back" → двусторонний
+        Postman multipart:
+        - пустое поле приходит как ""
         """
-        if value is None:
-            return value
+        if value in ("", None):
+            return None
 
         value = value.lower()
         if value not in {"front", "back"}:
@@ -65,26 +89,38 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         doc_type = attrs.get("doc_type")
+        scope = attrs.get("scope")
         side = attrs.get("side")
 
-        # Односторонние документы — back запрещён
-        if doc_type in {"proof_of_address", "registration_certificate"}:
-            if side == "back":
-                raise serializers.ValidationError(
-                    {
-                        "side": f"{doc_type} is a single-sided document. "
-                                "Side 'back' is not allowed."
-                    }
-                )
+        # --- doc_type -> scope ---
+        allowed_scopes = self.ALLOWED_SCOPES.get(doc_type)
+        if not allowed_scopes:
+            raise serializers.ValidationError(
+                {"doc_type": "Unsupported document type."}
+            )
 
-        # identity_document:
-        # допускаем:
-        # - None (passport)
-        # - front / back (ID, residence)
-        # НИЧЕГО больше не проверяем здесь
+        if scope not in allowed_scopes:
+            raise serializers.ValidationError(
+                {
+                    "scope": (
+                        f"Invalid scope '{scope}' for document type '{doc_type}'. "
+                        f"Allowed scopes: {sorted(allowed_scopes)}"
+                    )
+                }
+            )
+
+        # --- односторонние документы ---
+        if doc_type in self.SINGLE_SIDED_DOCS and side == "back":
+            raise serializers.ValidationError(
+                {
+                    "side": (
+                        f"{doc_type} is a single-sided document. "
+                        "Side 'back' is not allowed."
+                    )
+                }
+            )
 
         return attrs
-
 
 class SellerDocumentReadSerializer(serializers.ModelSerializer):
     class Meta:

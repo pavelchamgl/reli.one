@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from django.db import transaction
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -227,56 +228,64 @@ class SellerReturnAddressAPIView(APIView):
 class SellerDocumentUploadAPIView(APIView):
     permission_classes = [IsSeller]
 
+    @transaction.atomic
     def post(self, request):
-        app = get_or_create_application_for_user(request.user)
-
-        if not request.content_type.startswith("multipart/form-data"):
+        if not request.content_type or not request.content_type.startswith("multipart/form-data"):
             raise ValidationError("Content-Type must be multipart/form-data")
+
+        app = get_or_create_application_for_user(request.user)
 
         if "documents" in request.data:
             return self._handle_batch_upload(request, app)
 
         return self._handle_single_upload(request, app)
 
-    # SINGLE FILE UPLOAD (WITH REPLACE)
+    # SINGLE FILE UPLOAD
     def _handle_single_upload(self, request, app):
         serializer = SellerDocumentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        file = serializer.validated_data["file"]
+        file = serializer.validated_data.get("file")
         self._validate_file(file)
 
         self._replace_existing_document(app, serializer.validated_data)
 
-        doc = SellerDocument.objects.create(
+        document = SellerDocument.objects.create(
             application=app,
             **serializer.validated_data,
         )
 
         return Response(
-            SellerDocumentReadSerializer(doc).data,
+            SellerDocumentReadSerializer(document).data,
             status=status.HTTP_201_CREATED,
         )
 
-    # BATCH FILE UPLOAD (WITH REPLACE)
+    # BATCH FILE UPLOAD
     def _handle_batch_upload(self, request, app):
         try:
             documents_meta = json.loads(request.data.get("documents", "[]"))
         except json.JSONDecodeError:
             raise ValidationError("Invalid JSON in 'documents' field")
 
-        files = request.FILES.getlist("files")
-
         if not documents_meta:
             raise ValidationError("Documents metadata list is empty")
 
+        files = request.FILES.getlist("files")
+
+        if not files:
+            raise ValidationError("No files provided")
+
         if len(documents_meta) != len(files):
-            raise ValidationError("Documents metadata count does not match files count")
+            raise ValidationError(
+                "Documents metadata count does not match files count"
+            )
 
         if len(files) > MAX_FILES_PER_REQUEST:
-            raise ValidationError(f"Maximum {MAX_FILES_PER_REQUEST} files allowed per request")
+            raise ValidationError(
+                f"Maximum {MAX_FILES_PER_REQUEST} files allowed per request"
+            )
 
-        created_docs = []
+        created_documents = []
 
         for meta, file in zip(documents_meta, files):
             self._validate_file(file)
@@ -288,14 +297,15 @@ class SellerDocumentUploadAPIView(APIView):
 
             self._replace_existing_document(app, serializer.validated_data)
 
-            doc = SellerDocument.objects.create(
+            document = SellerDocument.objects.create(
                 application=app,
                 **serializer.validated_data,
             )
-            created_docs.append(doc)
+
+            created_documents.append(document)
 
         return Response(
-            SellerDocumentReadSerializer(created_docs, many=True).data,
+            SellerDocumentReadSerializer(created_documents, many=True).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -315,20 +325,25 @@ class SellerDocumentUploadAPIView(APIView):
                 f"File size exceeds {MAX_FILE_SIZE_MB} MB limit"
             )
 
-    # REPLACE EXISTING DOCUMENT (CORE KYC LOGIC)
+    # REPLACE EXISTING DOCUMENT (KYC CORE LOGIC)
     def _replace_existing_document(self, app, data):
-        qs = SellerDocument.objects.filter(
+        """
+        KYC/KYB rule:
+        One actual document per:
+        (application, doc_type, scope, side)
+        """
+
+        existing_docs = SellerDocument.objects.filter(
             application=app,
             doc_type=data.get("doc_type"),
             scope=data.get("scope"),
             side=data.get("side"),
         )
 
-        for old_doc in qs:
+        for old_doc in existing_docs:
             if old_doc.file:
                 default_storage.delete(old_doc.file.name)
             old_doc.delete()
-
 
 class SellerOnboardingReviewAPIView(APIView):
     permission_classes = [IsSeller]
