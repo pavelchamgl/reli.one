@@ -154,8 +154,6 @@ class SellerOnboardingApplication(models.Model):
         default=OnboardingStatus.DRAFT,
     )
 
-    current_step = models.PositiveSmallIntegerField(default=1)
-
     submitted_at = models.DateTimeField(null=True, blank=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
@@ -199,6 +197,14 @@ class SellerDocument(models.Model):
 
     file = models.FileField(upload_to="seller_onboarding_documents/")
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["application", "doc_type", "scope", "side"],
+                name="unique_document_per_scope_side",
+            )
+        ]
 
     def __str__(self) -> str:
         return f"SellerDocument({self.pk}) {self.doc_type}/{self.scope}"

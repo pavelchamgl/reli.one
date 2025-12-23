@@ -23,7 +23,7 @@ class SellerTypeSerializer(serializers.Serializer):
 class OnboardingStateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerOnboardingApplication
-        fields = ["id", "seller_type", "status", "current_step", "submitted_at", "reviewed_at", "rejected_reason"]
+        fields = ["id", "seller_type", "status", "submitted_at", "reviewed_at", "rejected_reason"]
 
 
 class SellerDocumentCreateSerializer(serializers.ModelSerializer):

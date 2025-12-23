@@ -15,6 +15,7 @@ from rest_framework.exceptions import ValidationError
 from django.core.files.storage import default_storage
 
 from .models import (
+    OnboardingStatus,
     SellerOnboardingApplication,
     SellerSelfEmployedPersonalDetails,
     SellerSelfEmployedTaxInfo,
@@ -87,7 +88,6 @@ class SellerOnboardingStateAPIView(APIView):
                             "id": 12,
                             "seller_type": "self_employed",
                             "status": "draft",
-                            "current_step": 4,
                             "submitted_at": None,
                             "reviewed_at": None,
                             "rejected_reason": None,
@@ -111,7 +111,6 @@ class SellerOnboardingStateAPIView(APIView):
                             "id": 12,
                             "seller_type": "company",
                             "status": "draft",
-                            "current_step": 6,
                             "submitted_at": None,
                             "reviewed_at": None,
                             "rejected_reason": None,
@@ -182,7 +181,6 @@ class SellerSetSellerTypeAPIView(APIView):
                             "id": 12,
                             "seller_type": "self_employed",
                             "status": "draft",
-                            "current_step": 1,
                             "submitted_at": None,
                             "reviewed_at": None,
                             "rejected_reason": None,
@@ -195,7 +193,6 @@ class SellerSetSellerTypeAPIView(APIView):
                             "id": 12,
                             "seller_type": "company",
                             "status": "draft",
-                            "current_step": 1,
                             "submitted_at": None,
                             "reviewed_at": None,
                             "rejected_reason": None,
@@ -223,7 +220,7 @@ class SellerSetSellerTypeAPIView(APIView):
     )
     def post(self, request):
         app = get_or_create_application_for_user(request.user)
-        if app.status != "draft":
+        if app.status != OnboardingStatus.DRAFT:
             return Response(
                 {"detail": "Seller type can only be set in draft status."},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -233,8 +230,7 @@ class SellerSetSellerTypeAPIView(APIView):
         ser.is_valid(raise_exception=True)
 
         app.seller_type = ser.validated_data["seller_type"]
-        app.current_step = max(app.current_step, 1)
-        app.save(update_fields=["seller_type", "current_step", "updated_at"])
+        app.save(update_fields=["seller_type", "updated_at"])
 
         return Response(
             OnboardingStateSerializer(app).data,
@@ -297,8 +293,7 @@ class SellerSelfEmployedPersonalAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -352,8 +347,7 @@ class SellerSelfEmployedTaxAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -408,8 +402,7 @@ class SellerSelfEmployedAddressAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -472,8 +465,7 @@ class SellerCompanyInfoAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -531,8 +523,7 @@ class SellerCompanyRepresentativeAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -588,8 +579,7 @@ class SellerCompanyAddressAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -647,8 +637,7 @@ class SellerBankAccountAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -705,8 +694,7 @@ class SellerWarehouseAddressAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -778,8 +766,7 @@ class SellerReturnAddressAPIView(APIView):
         ser.is_valid(raise_exception=True)
         ser.save()
 
-        app.current_step = max(app.current_step, 4)
-        app.save(update_fields=["current_step", "updated_at"])
+        app.save(update_fields=["updated_at"])
 
         return Response(ser.data, status=status.HTTP_200_OK)
 
@@ -910,7 +897,7 @@ class SellerDocumentUploadAPIView(APIView):
 
         app = get_or_create_application_for_user(request.user)
 
-        if "documents" in request.data:
+        if request.data.get("documents"):
             return self._handle_batch_upload(request, app)
 
         return self._handle_single_upload(request, app)
@@ -1046,7 +1033,6 @@ class SellerOnboardingReviewAPIView(APIView):
                                 "id": 12,
                                 "seller_type": "company",
                                 "status": "draft",
-                                "current_step": 4,
                                 "submitted_at": None,
                                 "reviewed_at": None,
                                 "rejected_reason": None,
@@ -1117,7 +1103,6 @@ class SellerOnboardingSubmitAPIView(APIView):
                             "id": 12,
                             "seller_type": "company",
                             "status": "pending_verification",
-                            "current_step": 4,
                             "submitted_at": "2025-12-23T10:15:30Z",
                             "reviewed_at": None,
                             "rejected_reason": None,
