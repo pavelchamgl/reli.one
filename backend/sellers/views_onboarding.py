@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
+
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from django.core.files.storage import default_storage
 
 from .models import (
     SellerOnboardingApplication,
@@ -21,7 +25,8 @@ from .permissions_onboarding import IsSeller
 from .serializers_onboarding import (
     SellerTypeSerializer,
     OnboardingStateSerializer,
-    SellerDocumentUploadSerializer,
+    SellerDocumentCreateSerializer,
+    SellerDocumentReadSerializer,
     SelfEmployedPersonalSerializer,
     SelfEmployedTaxSerializer,
     SelfEmployedAddressSerializer,
@@ -37,6 +42,16 @@ from .services_onboarding import (
     compute_completeness,
     submit_application,
 )
+
+
+ALLOWED_MIME_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "application/pdf",
+}
+
+MAX_FILE_SIZE_MB = 10
+MAX_FILES_PER_REQUEST = 5
 
 
 class SellerOnboardingStateAPIView(APIView):
@@ -214,10 +229,105 @@ class SellerDocumentUploadAPIView(APIView):
 
     def post(self, request):
         app = get_or_create_application_for_user(request.user)
-        ser = SellerDocumentUploadSerializer(data=request.data)
-        ser.is_valid(raise_exception=True)
-        doc = SellerDocument.objects.create(application=app, **ser.validated_data)
-        return Response(SellerDocumentUploadSerializer(doc).data, status=status.HTTP_201_CREATED)
+
+        if not request.content_type.startswith("multipart/form-data"):
+            raise ValidationError("Content-Type must be multipart/form-data")
+
+        if "documents" in request.data:
+            return self._handle_batch_upload(request, app)
+
+        return self._handle_single_upload(request, app)
+
+    # SINGLE FILE UPLOAD (WITH REPLACE)
+    def _handle_single_upload(self, request, app):
+        serializer = SellerDocumentCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        file = serializer.validated_data["file"]
+        self._validate_file(file)
+
+        self._replace_existing_document(app, serializer.validated_data)
+
+        doc = SellerDocument.objects.create(
+            application=app,
+            **serializer.validated_data,
+        )
+
+        return Response(
+            SellerDocumentReadSerializer(doc).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    # BATCH FILE UPLOAD (WITH REPLACE)
+    def _handle_batch_upload(self, request, app):
+        try:
+            documents_meta = json.loads(request.data.get("documents", "[]"))
+        except json.JSONDecodeError:
+            raise ValidationError("Invalid JSON in 'documents' field")
+
+        files = request.FILES.getlist("files")
+
+        if not documents_meta:
+            raise ValidationError("Documents metadata list is empty")
+
+        if len(documents_meta) != len(files):
+            raise ValidationError("Documents metadata count does not match files count")
+
+        if len(files) > MAX_FILES_PER_REQUEST:
+            raise ValidationError(f"Maximum {MAX_FILES_PER_REQUEST} files allowed per request")
+
+        created_docs = []
+
+        for meta, file in zip(documents_meta, files):
+            self._validate_file(file)
+
+            serializer = SellerDocumentCreateSerializer(
+                data={**meta, "file": file}
+            )
+            serializer.is_valid(raise_exception=True)
+
+            self._replace_existing_document(app, serializer.validated_data)
+
+            doc = SellerDocument.objects.create(
+                application=app,
+                **serializer.validated_data,
+            )
+            created_docs.append(doc)
+
+        return Response(
+            SellerDocumentReadSerializer(created_docs, many=True).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    # FILE VALIDATION
+    def _validate_file(self, file):
+        if not file:
+            raise ValidationError("File is required")
+
+        if file.content_type not in ALLOWED_MIME_TYPES:
+            raise ValidationError(
+                f"Unsupported file type: {file.content_type}"
+            )
+
+        max_size_bytes = MAX_FILE_SIZE_MB * 1024 * 1024
+        if file.size > max_size_bytes:
+            raise ValidationError(
+                f"File size exceeds {MAX_FILE_SIZE_MB} MB limit"
+            )
+
+    # REPLACE EXISTING DOCUMENT (CORE KYC LOGIC)
+    def _replace_existing_document(self, app, data):
+        qs = SellerDocument.objects.filter(
+            application=app,
+            doc_type=data.get("doc_type"),
+            scope=data.get("scope"),
+            side=data.get("side"),
+        )
+
+        for old_doc in qs:
+            if old_doc.file:
+                default_storage.delete(old_doc.file.name)
+            old_doc.delete()
 
 
 class SellerOnboardingReviewAPIView(APIView):
