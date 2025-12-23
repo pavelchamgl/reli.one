@@ -60,68 +60,147 @@ class Completeness:
 
 def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
     """
-    Упрощённая completeness: наличие ключевых полей.
-    Более строгую валидацию делаем в validate_before_submit.
+    Финальная completeness-логика onboarding.
+    Поддерживает:
+    - passport (1 сторона)
+    - ID / residence (2 стороны)
     """
-    seller_type_selected = not _is_blank(app.seller_type)
 
-    personal_complete = tax_complete = address_complete = True
+    # SELLER TYPE
+    seller_type_selected = bool(app.seller_type)
+
+    if not seller_type_selected:
+        return Completeness(
+            seller_type_selected=False,
+            personal_complete=False,
+            tax_complete=False,
+            address_complete=False,
+            bank_complete=False,
+            warehouse_complete=False,
+            return_complete=False,
+            documents_complete=False,
+        )
+
+    # DATA BLOCKS
+    personal_complete = tax_complete = address_complete = False
 
     if app.seller_type == SellerType.SELF_EMPLOYED:
         p = getattr(app, "self_employed_personal", None)
-        personal_complete = bool(p and p.date_of_birth and p.nationality)
+        personal_complete = bool(
+            p and p.date_of_birth and p.nationality
+        )
 
         t = getattr(app, "self_employed_tax", None)
-        tax_complete = bool(t and t.tax_country and t.tin)
+        tax_complete = bool(
+            t and t.tax_country and t.tin
+        )
 
         a = getattr(app, "self_employed_address", None)
-        address_complete = bool(a and a.street and a.city and a.zip_code and a.country)
+        address_complete = bool(
+            a and a.street and a.city and a.zip_code and a.country
+        )
 
-    if app.seller_type == SellerType.COMPANY:
+    elif app.seller_type == SellerType.COMPANY:
         ci = getattr(app, "company_info", None)
-        personal_complete = bool(ci and ci.company_name and ci.legal_form and ci.country_of_registration and ci.tin and ci.company_phone)
+        personal_complete = bool(
+            ci and
+            ci.company_name and
+            ci.legal_form and
+            ci.country_of_registration and
+            ci.tin and
+            ci.company_phone
+        )
 
         rep = getattr(app, "company_representative", None)
-        tax_complete = bool(rep and rep.first_name and rep.last_name and rep.role and rep.date_of_birth and rep.nationality)
+        tax_complete = bool(
+            rep and
+            rep.first_name and
+            rep.last_name and
+            rep.role and
+            rep.date_of_birth and
+            rep.nationality
+        )
 
         ca = getattr(app, "company_address", None)
-        address_complete = bool(ca and ca.street and ca.city and ca.zip_code and ca.country)
+        address_complete = bool(
+            ca and ca.street and ca.city and ca.zip_code and ca.country
+        )
 
+    # BANK
     bank = getattr(app, "bank_account", None)
-    bank_complete = bool(bank and bank.iban and bank.swift_bic and bank.account_holder)
+    bank_complete = bool(
+        bank and bank.iban and bank.swift_bic and bank.account_holder
+    )
 
+    # WAREHOUSE
     wh = getattr(app, "warehouse_address", None)
-    warehouse_complete = bool(wh and wh.street and wh.city and wh.zip_code and wh.country and wh.contact_phone)
+    warehouse_complete = bool(
+        wh and wh.street and wh.city and wh.zip_code and wh.country and wh.contact_phone
+    )
 
+    # RETURN ADDRESS
     ra = getattr(app, "return_address", None)
     if not ra:
         return_complete = False
+    elif ra.same_as_warehouse:
+        return_complete = warehouse_complete
     else:
-        if ra.same_as_warehouse:
-            return_complete = True
-        else:
-            return_complete = bool(ra.street and ra.city and ra.zip_code and ra.country and ra.contact_phone)
+        return_complete = bool(
+            ra.street and ra.city and ra.zip_code and ra.country and ra.contact_phone
+        )
 
-    # Документы минимально:
-    # self-employed: identity + proof_of_address (address)
-    # company: registration_certificate + identity(rep) + proof_of_address(company address)
-    docs = list(app.documents.all())
-    docs_types_scopes = {(d.doc_type, d.scope) for d in docs}
+    # DOCUMENTS
+    docs: Set[Tuple[str, str, str | None]] = {
+        (d.doc_type, d.scope, d.side)
+        for d in app.documents.all()
+    }
+
+    def has_single_sided(doc_type: str, scope: str) -> bool:
+        """
+        Проверка одностороннего документа (passport, proof_of_address).
+        """
+        return (
+            (doc_type, scope, None) in docs or
+            (doc_type, scope, "front") in docs
+        )
+
+    def has_double_sided(doc_type: str, scope: str) -> bool:
+        """
+        Проверка двустороннего документа (ID / residence).
+        """
+        return (
+            (doc_type, scope, "front") in docs and
+            (doc_type, scope, "back") in docs
+        )
+
+    def has_identity_document(scope: str) -> bool:
+        """
+        Identity document может быть:
+        - passport (1 сторона)
+        - ID / residence (2 стороны)
+        """
+        return (
+            has_single_sided("identity_document", scope) or
+            has_double_sided("identity_document", scope)
+        )
 
     if app.seller_type == SellerType.SELF_EMPLOYED:
         documents_complete = (
-            ("identity_document", "self_employed_personal") in docs_types_scopes and
-            ("proof_of_address", "self_employed_address") in docs_types_scopes
+            has_identity_document("self_employed_personal") and
+            has_single_sided("proof_of_address", "self_employed_address")
         )
+
     elif app.seller_type == SellerType.COMPANY:
         documents_complete = (
-            ("registration_certificate", "company_info") in docs_types_scopes and
-            ("identity_document", "company_representative") in docs_types_scopes and
-            ("proof_of_address", "company_address") in docs_types_scopes
+            has_single_sided("registration_certificate", "company_info") and
+            has_identity_document("company_representative") and
+            has_single_sided("proof_of_address", "company_address")
         )
+
     else:
         documents_complete = False
 
+    # RESULT
     return Completeness(
         seller_type_selected=seller_type_selected,
         personal_complete=personal_complete,
