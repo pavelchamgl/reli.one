@@ -16,7 +16,7 @@ def prepare_invoice_data(session_id):
     COMPANY_ADDRESS = "Na lysinách 551/34, Hodkovičky, 14700 Praha 4, Czech Republic"
     TAX_ID = "28003896"
     IBAN = "CZ9455000000005003011074"
-    ACCOUNT_NUMBER = "8115228001/5500"
+    ACCOUNT_NUMBER = "5003011074/5500"
     SWIFT = "RZBCCZPP"
 
     # Получаем Payment

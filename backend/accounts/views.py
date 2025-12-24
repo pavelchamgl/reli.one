@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
@@ -247,22 +249,28 @@ class SendOTPForEmailVerificationAPIView(APIView):
     )
     def post(self, request):
         serializer = EmailSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            try:
-                user = CustomUser.objects.get(email=email)
-            except CustomUser.DoesNotExist:
-                return Response(
-                    {'message': 'User with the specified email address not found.'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            create_and_send_otp(user, "EmailConfirmation")
+        email = serializer.validated_data["email"]
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({"message": "User with the specified email address not found."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        now = timezone.now()
+        otp = OTP.objects.filter(user=user, title="EmailConfirmation").first()
+        if otp and otp.sent_at and (now - otp.sent_at) < timedelta(seconds=30):
+            remaining = 30 - int((now - otp.sent_at).total_seconds())
             return Response(
-                {'message': 'OTP sent to the specified email address for verification.'},
-                status=status.HTTP_200_OK
+                {"message": "Please wait before requesting a new code.", "retry_after_seconds": max(1, remaining)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        create_and_send_otp(user, "EmailConfirmation")
+        return Response({"message": "OTP sent to the specified email address for verification."},
+                        status=status.HTTP_200_OK)
 
 
 class EmailConfirmationAPIView(APIView):
@@ -323,46 +331,60 @@ class EmailConfirmationAPIView(APIView):
     )
     def post(self, request):
         serializer = EmailConfirmationSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data.get('email')
-            otp_value = serializer.validated_data.get('otp')
-
-            try:
-                user = CustomUser.objects.get(email=email)
-            except CustomUser.DoesNotExist:
-                return Response(
-                    {'error': 'User with the specified email address not found'},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-            try:
-                otp = OTP.objects.get(user=user, title="EmailConfirmation", value=otp_value)
-                if otp.expired_date < timezone.now() and otp_value.isdigit():
-                    return Response(
-                        {'error': 'The specified OTP has expired or is invalid'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-            except OTP.DoesNotExist:
-                return Response(
-                    {'error': 'The specified OTP is invalid or does not match the specified email'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            user.email_confirmed = True
-            user.save()
-            refresh = RefreshToken.for_user(user)
-
-            return Response({
-                'message': 'Email successfully verified',
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            },
-                status=status.HTTP_200_OK
-            )
-        else:
+        if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data.get("email")
+        otp_value = serializer.validated_data.get("otp")
+
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            return Response({"error": "User with the specified email address not found"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            otp = OTP.objects.get(user=user, title="EmailConfirmation")
+        except OTP.DoesNotExist:
+            return Response({"error": "OTP not found. Please request a new code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        now = timezone.now()
+
+        if otp.locked_until and otp.locked_until > now:
+            return Response({"error": "Too many attempts. Try again later."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not otp.expired_date or otp.expired_date <= now:
+            return Response({"error": "The specified OTP has expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # сравнение
+        try:
+            otp_int = int(otp_value)
+        except (TypeError, ValueError):
+            otp_int = None
+
+        if otp_int is None or otp.value != otp_int:
+            otp.attempts_count = (otp.attempts_count or 0) + 1
+            # лимит попыток
+            if otp.attempts_count >= 5:
+                otp.locked_until = now + timedelta(minutes=10)
+            otp.save(update_fields=["attempts_count", "locked_until"])
+            return Response({"error": "The specified OTP is invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # успех
+        user.email_confirmed = True
+        user.save(update_fields=["email_confirmed"])
+
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {
+                "message": "Email successfully verified",
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -524,7 +546,7 @@ class SendOTPForPasswordResetAPIView(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            create_and_send_otp(user, otp_title="PasswordReset")
+            create_and_send_otp(user, title="PasswordReset")
             return Response(
                 {'message': 'OTP for password reset successfully sent'},
                 status=status.HTTP_200_OK

@@ -20,7 +20,7 @@ def send_email_confirmation_otp(sender, instance, created, **kwargs):
     if created and not instance.email_confirmed:
         try:
             from .utils import create_and_send_otp
-            create_and_send_otp(instance, otp_title="EmailConfirmation")
+            create_and_send_otp(instance, title="EmailConfirmation")
             logger.info(f"OTP for email confirmation sent to user {instance.email}.")
         except Exception as e:
             logger.error(f"Error sending OTP for email confirmation to user {instance.email}: {e}")
