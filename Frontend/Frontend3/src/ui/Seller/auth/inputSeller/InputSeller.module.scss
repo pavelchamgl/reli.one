@@ -1,0 +1,45 @@
+.inpTitle {
+  font-weight: 500;
+  font-size: 13px;
+  color: #364153;
+  margin-bottom: 8px;
+}
+
+.inpWrap {
+  width: 100%;
+  height: 46px;
+  border: 1.47px solid #d1d5dc;
+  border-radius: 10px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background-color: white;
+
+  & input {
+    width: 100%;
+    height: 44px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #101828;
+    outline: none;
+    border: none;
+  }
+
+  & button {
+    background-color: transparent;
+    outline: none;
+    border: none;
+    height: 44px;
+    width: 30px;
+  }
+}
+
+.inpWrap:has(input:focus) {
+  border: 1.47px solid #3f7f6d;
+}
+
+.inpWrap:has(button:active) {
+  border: 1.47px solid #3f7f6d;
+}

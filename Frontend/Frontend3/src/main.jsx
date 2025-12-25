@@ -53,6 +53,9 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 import CookiePolicy from "./pages/CookiePolicy.jsx";
 import NewSellerOrder from "./sellerPages/NewSellerOrder/NewSellerOrder.jsx";
 import NewSellerOrderDetal from "./sellerPages/NewSellerOrderDetal/NewSellerOrderDetal.jsx";
+import SellerLogin from "./sellerPages/SellerLogin/SellerLogin.jsx";
+import SellerReset from "./sellerPages/SellerReset/SellerReset.jsx";
+import SellerSuccessfullyReset from "./sellerPages/SellerSuccessfullyReset/SellerSuccessfullyReset.jsx";
 
 const router = createBrowserRouter([
   {
@@ -172,6 +175,18 @@ const router = createBrowserRouter([
       {
         path: "edit-preview/:id",
         element: <SellerEditPreview />
+      },
+      {
+        path: "login",
+        element: <SellerLogin />
+      },
+      {
+        path: "reset",
+        element: <SellerReset />
+      },
+      {
+        path: "successfully-reset",
+        element: <SellerSuccessfullyReset />
       }
     ],
   },

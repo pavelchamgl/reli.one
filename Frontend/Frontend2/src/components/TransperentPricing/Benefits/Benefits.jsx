@@ -23,7 +23,7 @@ const Benefits = () => {
         {
             img: dollar,
             title: "Low Commission per Sale",
-            desc: "Commission up to 13% only",
+            desc: "Commission up to 8% only",
             style: {
                 background: "#f0fdf4",
                 border: "1px solid #b9f8cf"

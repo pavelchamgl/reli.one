@@ -12,17 +12,17 @@ const HowItWorks = () => {
 
                 <div className={styles.distribution}>
                     <div>
-                        <h4 style={{ color: "#00a63e" }}>$87</h4>
+                        <h4 style={{ color: "#00a63e" }}>$92</h4>
                         <p>You Keep</p>
                     </div>
                     <div>
-                        <h4 style={{ color: "#99a1af" }}>$13</h4>
+                        <h4 style={{ color: "#99a1af" }}>$8</h4>
                         <p>Platform Fee</p>
                     </div>
                 </div>
 
                 <div className={styles.everySaleBlock}>
-                    <h5>87% of every sale goes to you!</h5>
+                    <h5>92% of every sale goes to you!</h5>
                     <p>No setup fees, no monthly costs</p>
                 </div>
 

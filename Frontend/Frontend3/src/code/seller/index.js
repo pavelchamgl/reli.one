@@ -1,0 +1,1 @@
+export const sellerPathnames = ["/seller/login", "/seller/reset","/seller/successfully-reset"]
