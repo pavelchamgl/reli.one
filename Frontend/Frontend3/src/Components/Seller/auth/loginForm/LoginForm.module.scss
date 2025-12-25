@@ -1,0 +1,40 @@
+.main {
+  max-width: 448px;
+  width: 100%;
+
+  @media (max-width: 500px) {
+    margin-top: 50px;
+  }
+}
+
+.form {
+  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: #fff;
+
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  margin-block: 32px;
+}
+
+.bottomLinkWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  & p {
+    font-weight: 400;
+    font-size: 14px;
+    color: #4a5565;
+  }
+
+  @media (max-width: 500px) {
+    margin-bottom: 80px;
+  }
+}

@@ -1,0 +1,51 @@
+.main {
+  max-width: 448px;
+  width: 100%;
+
+  @media (max-width: 500px) {
+    margin-top: 50px;
+  }
+}
+
+.form {
+  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: #fff;
+
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  margin-block: 32px;
+}
+
+.mark {
+  width: 51px;
+}
+
+.tip {
+  background: #eff6ff;
+  border: 1.47px solid #bedbff;
+  border-radius: 10px;
+  padding: 17px;
+
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 143%;
+  color: #193cb8;
+
+  & span {
+    font-weight: 700;
+    font-size: 14px;
+    color: #193cb8;
+    margin-right: 3px;
+  }
+
+  @media (max-width:500px) {
+    margin-bottom: 80px;
+  }
+}
