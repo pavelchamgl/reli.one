@@ -38,6 +38,7 @@ from order.models import (
     OrderStatus,
     ProductStatus,
     Invoice,
+    OrderEvent,
 )
 from warehouses.models import Warehouse, WarehouseItem
 from delivery.helpers import resolve_country_code_from_group
@@ -217,6 +218,14 @@ def _set_conv_cache_after_commit(
         )
 
     transaction.on_commit(_write)
+
+
+def create_order_event(*, order, event_type, meta=None):
+    OrderEvent.objects.create(
+        order=order,
+        type=event_type,
+        meta=meta or {},
+    )
 
 
 class PaymentSessionValidator:
@@ -897,15 +906,21 @@ class StripeWebhookView(APIView):
             logger.error("Missing session_key in Stripe webhook metadata.")
             return Response({"error": "Missing session_key"}, status=400)
 
-        # идемпотентность
+        # 2. идемпотентность
         existing = Payment.objects.filter(session_id=session_id).only("amount_total", "currency").first()
         if existing:
             # на случай повтора хука — гарантируем, что кэш заполнен
-            _set_conv_cache_after_commit(session_id, existing.amount_total, existing.currency, logger=logger, source="StripeWebhook")
+            _set_conv_cache_after_commit(
+                session_id,
+                existing.amount_total,
+                existing.currency,
+                logger=logger,
+                source="StripeWebhook",
+            )
             logger.info("[StripeWebhook] Conversion cache refreshed for existing payment %s", session_id)
             return Response(status=200)
 
-        # поднимаем мету
+        # 3. поднимаем мету
         try:
             meta = StripeMetadata.objects.get(session_key=session_key)
         except StripeMetadata.DoesNotExist:
@@ -924,11 +939,12 @@ class StripeWebhookView(APIView):
             logger.error("No groups found in StripeMetadata")
             return Response({"error": "No groups found in metadata"}, status=400)
 
-        # lite-проверка CZ (как у тебя)
+        # 4. lite-проверка CZ
         all_skus = []
         for g in groups:
             for p in g.get("products", []):
                 all_skus.append(str(p.get("sku")))
+
         variants = (
             ProductVariant.objects
             .filter(sku__in=all_skus)
@@ -936,6 +952,7 @@ class StripeWebhookView(APIView):
             .only("sku", "product__seller_id", "product__seller__default_warehouse__country")
         )
         vmap = {v.sku: v for v in variants}
+
         not_cz = []
         missing = []
         for sku in all_skus:
@@ -958,15 +975,17 @@ class StripeWebhookView(APIView):
                 ", ".join(not_cz),
             )
 
-        # статусы
+        # 5. статусы: нужен только Pending
         try:
             pending_status = OrderStatus.objects.get(name="Pending")
-            processing_status = OrderStatus.objects.get(name="Processing")
         except OrderStatus.DoesNotExist as e:
             logger.exception(f"[StripeWebhook] Missing OrderStatus: {e}")
             return Response({"error": "Order status misconfigured"}, status=500)
 
-        amount = (Decimal(session["amount_total"]) / Decimal(100)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        amount = (Decimal(session["amount_total"]) / Decimal(100)).quantize(
+            Decimal("0.01"),
+            rounding=ROUND_HALF_UP
+        )
         currency = session["currency"].upper()
 
         try:
@@ -985,52 +1004,40 @@ class StripeWebhookView(APIView):
         root_country = (root_addr.get("country") or "").upper()
 
         invoice_created = False
+        orders_created = []
 
-        with transaction.atomic():
-            orders_created = []
+        # 6. атомарная часть: либо всё, либо ничего
+        try:
+            with transaction.atomic():
+                # создаём Orders по группам
+                for idx, group in enumerate(groups, start=1):
+                    delivery_type_id = group.get("delivery_type")
+                    courier_service_id = group.get("courier_service")
+                    pickup_point_id = group.get("pickup_point_id")
+                    products = group.get("products", [])
 
-            for idx, group in enumerate(groups, start=1):
-                delivery_type_id = group.get("delivery_type")
-                courier_service_id = group.get("courier_service")
-                pickup_point_id = group.get("pickup_point_id")
-                products = group.get("products", [])
-
-                # суммы, которые мы посчитали и сохранили при создании сессии
-                delivery_cost = Decimal(group.get("calculated_delivery_cost", "0.00")).quantize(
-                    Decimal("0.01"), rounding=ROUND_HALF_UP
-                )
-                group_total = Decimal(group.get("calculated_group_total", "0.00")).quantize(
-                    Decimal("0.01"), rounding=ROUND_HALF_UP
-                )
-
-                # справочники
-                dt = DeliveryType.objects.filter(id=delivery_type_id).first()
-                if not dt:
-                    return Response({"error": f"DeliveryType {delivery_type_id} not found"}, status=400)
-
-                cs = CourierService.objects.filter(id=courier_service_id).first()
-                courier_code = (cs.code or "").lower() if cs and cs.code else ""
-
-                # ВАЖНО: достаём адрес из группы один раз
-                gaddr = group.get("delivery_address") or {}
-
-                # --- создаём DeliveryAddress ---
-                if delivery_type_id == 2:
-                    # HD — всегда берём адрес из группы, с фолбеком на root_country
-                    delivery_address_obj = DeliveryAddress.objects.create(
-                        user=user,
-                        full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
-                        phone=meta.custom_data.get("phone"),
-                        email=meta.custom_data.get("email"),
-                        street=gaddr.get("street", ""),
-                        city=gaddr.get("city", ""),
-                        zip_code=gaddr.get("zip", ""),
-                        country=gaddr.get("country", root_country),
+                    # суммы, которые мы посчитали и сохранили при создании сессии
+                    delivery_cost = Decimal(group.get("calculated_delivery_cost", "0.00")).quantize(
+                        Decimal("0.01"), rounding=ROUND_HALF_UP
                     )
-                else:
-                    # PUDO
-                    if courier_code == "dpd" and gaddr:
-                        # именно этот кейс у тебя упал в логах
+                    group_total = Decimal(group.get("calculated_group_total", "0.00")).quantize(
+                        Decimal("0.01"), rounding=ROUND_HALF_UP
+                    )
+
+                    # справочники
+                    dt = DeliveryType.objects.filter(id=delivery_type_id).first()
+                    if not dt:
+                        raise ValidationError(f"DeliveryType {delivery_type_id} not found")
+
+                    cs = CourierService.objects.filter(id=courier_service_id).first()
+                    courier_code = (cs.code or "").lower() if cs and cs.code else ""
+
+                    # ВАЖНО: достаём адрес из группы один раз
+                    gaddr = group.get("delivery_address") or {}
+
+                    # --- создаём DeliveryAddress ---
+                    if delivery_type_id == 2:
+                        # HD — всегда берём адрес из группы, с фолбеком на root_country
                         delivery_address_obj = DeliveryAddress.objects.create(
                             user=user,
                             full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
@@ -1042,131 +1049,163 @@ class StripeWebhookView(APIView):
                             country=gaddr.get("country", root_country),
                         )
                     else:
-                        # Packeta / GLS / прочие PUDO
-                        delivery_address_obj = DeliveryAddress.objects.create(
-                            user=user,
-                            full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
-                            phone=meta.custom_data.get("phone"),
-                            email=meta.custom_data.get("email"),
-                            street="",
-                            city="",
-                            zip_code="",
-                            country=root_country,
+                        # PUDO
+                        if courier_code == "dpd" and gaddr:
+                            delivery_address_obj = DeliveryAddress.objects.create(
+                                user=user,
+                                full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
+                                phone=meta.custom_data.get("phone"),
+                                email=meta.custom_data.get("email"),
+                                street=gaddr.get("street", ""),
+                                city=gaddr.get("city", ""),
+                                zip_code=gaddr.get("zip", ""),
+                                country=gaddr.get("country", root_country),
+                            )
+                        else:
+                            # Packeta / GLS / прочие PUDO
+                            delivery_address_obj = DeliveryAddress.objects.create(
+                                user=user,
+                                full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
+                                phone=meta.custom_data.get("phone"),
+                                email=meta.custom_data.get("email"),
+                                street="",
+                                city="",
+                                zip_code="",
+                                country=root_country,
+                            )
+
+                    # --- создаём Order ---
+                    order = Order.objects.create(
+                        user=user,
+                        first_name=meta.custom_data.get("first_name", ""),
+                        last_name=meta.custom_data.get("last_name", ""),
+                        customer_email=meta.custom_data.get("email"),
+                        delivery_type=dt,
+                        delivery_address=delivery_address_obj,
+                        pickup_point_id=pickup_point_id,
+                        delivery_cost=delivery_cost,
+                        courier_service=cs,
+                        phone_number=meta.custom_data.get("phone"),
+                        total_amount=amount, # сумма по всей сессии
+                        group_subtotal=group_total, # сумма только по этой группе
+                        order_status=pending_status,
+                    )
+
+                    # Timeline: Order created
+                    OrderEvent.objects.create(
+                        order=order,
+                        type=OrderEvent.Type.ORDER_CREATED,
+                    )
+
+                    # --- позиции заказа ---
+                    for product in products:
+                        sku = product.get("sku")
+                        qty = int(product.get("quantity", 0))
+
+                        variant = vmap.get(str(sku))
+                        if not variant:
+                            raise ValidationError(f"Group {idx}: ProductVariant not found in vmap (SKU={sku})")
+
+                        wh_item = WarehouseItem.objects.filter(
+                            product_variant=variant, quantity_in_stock__gte=qty
+                        ).first()
+                        warehouse = wh_item.warehouse if wh_item else Warehouse.objects.first()
+
+                        OrderProduct.objects.create(
+                            order=order,
+                            product=variant,
+                            quantity=qty,
+                            delivery_cost=Decimal("0.00"),
+                            seller_profile_id=variant.product.seller_id,
+                            product_price=variant.price_with_acquiring,
+                            warehouse=warehouse,
+                            status=ProductStatus.AWAITING_SHIPMENT,
                         )
 
-                # --- создаём Order ---
-                order = Order.objects.create(
-                    user=user,
-                    first_name=meta.custom_data.get("first_name", ""),
-                    last_name=meta.custom_data.get("last_name", ""),
-                    customer_email=meta.custom_data.get("email"),
-                    delivery_type=dt,
-                    delivery_address=delivery_address_obj,
-                    pickup_point_id=pickup_point_id,
-                    delivery_cost=delivery_cost,
-                    courier_service=cs,
-                    phone_number=meta.custom_data.get("phone"),
-                    total_amount=amount,  # сумма по всей сессии
-                    group_subtotal=group_total,  # сумма только по этой группе
-                    order_status=pending_status,
-                )
+                    if origin_blocked:
+                        logger.info(
+                            "Order %s marked as 'origin_blocked' (no parcel generation will be started).",
+                            order.id,
+                        )
 
-                # --- позиции заказа ---
-                for product in products:
-                    sku = product.get("sku")
-                    qty = int(product.get("quantity", 0))
-
-                    variant = vmap.get(str(sku))
-                    if not variant:
-                        logger.error(f"Group {idx}: ProductVariant not found in vmap (SKU={sku})")
-                        continue
-
-                    wh_item = WarehouseItem.objects.filter(
-                        product_variant=variant, quantity_in_stock__gte=qty
-                    ).first()
-                    warehouse = wh_item.warehouse if wh_item else Warehouse.objects.first()
-
-                    OrderProduct.objects.create(
-                        order=order,
-                        product=variant,
-                        quantity=qty,
-                        delivery_cost=Decimal("0.00"),
-                        seller_profile_id=variant.product.seller_id,
-                        product_price=variant.price_with_acquiring,
-                        warehouse=warehouse,
-                        status=ProductStatus.AWAITING_SHIPMENT,
-                    )
-
-                # статус → Processing
-                order.order_status = processing_status
-                order.save(update_fields=["order_status"])
-                order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
-
-                if origin_blocked:
+                    orders_created.append(order)
                     logger.info(
-                        "Order %s marked as 'origin_blocked' (no parcel generation will be started).",
-                        order.id,
+                        "[StripeWebhook] Group %s: Order %s created successfully with %s products.",
+                        idx, order.id, len(products)
                     )
 
-                orders_created.append(order)
-                logger.info(f"[StripeWebhook] Group {idx}: Order {order.id} created successfully with {len(products)} products.")
+                if not orders_created:
+                    raise ValidationError("Order creation failed")
 
-            if not orders_created:
-                return Response({"error": "Order creation failed"}, status=500)
-
-            # Единый Payment на сессию
-            payment = Payment.objects.create(
-                payment_system="stripe",
-                session_id=session_id,
-                session_key=session_key,
-                customer_id=session.get("customer"),
-                payment_intent_id=session.get("payment_intent"),
-                payment_method="stripe",
-                amount_total=amount,
-                currency=currency,
-                customer_email=meta.custom_data.get("email"),
-            )
-            for order in orders_created:
-                order.payment = payment
-                order.save(update_fields=["payment"])
-
-            # конверсия в кэш — важно для фронта и Ads
-            _set_conv_cache_after_commit(session_id, amount, currency, logger=logger, source="StripeWebhook")
-            logger.info(
-                "[StripeWebhook] Conversion cache planned after-commit for %s: %s %s",
-                session_id, amount, currency
-            )
-
-            # Инвойс
-            try:
-                invoice_number = meta.invoice_data.get("invoice_number")
-                if not invoice_number:
-                    raise ValueError("Missing invoice_number in metadata")
-
-                variable_symbol = (meta.description_data or {}).get("variable_symbol") or invoice_number
-
-                invoice_data = prepare_invoice_data(session_id)
-                pdf_file = generate_invoice_pdf(invoice_data)
-
-                Invoice.objects.create(
-                    payment=payment,
-                    invoice_number=invoice_number,
-                    variable_symbol=variable_symbol,
-                    file=pdf_file,
+                # Единый Payment на сессию
+                payment = Payment.objects.create(
+                    payment_system="stripe",
+                    session_id=session_id,
+                    session_key=session_key,
+                    customer_id=session.get("customer"),
+                    payment_intent_id=session.get("payment_intent"),
+                    payment_method="stripe",
+                    amount_total=amount,
+                    currency=currency,
+                    customer_email=meta.custom_data.get("email"),
                 )
-                logger.info(f"[INVOICE] Created Invoice {invoice_number} for Payment {session_id}")
-                invoice_created = True
-            except Exception as e:
-                logger.exception(f"[INVOICE] Failed to create invoice for Payment {session_id}: {e}")
 
-        # 8) Вне транзакции — письмо клиенту
+                # привязка payment + Timeline: payment confirmed для КАЖДОГО order
+                for order in orders_created:
+                    order.payment = payment
+                    order.save(update_fields=["payment"])
+
+                    OrderEvent.objects.create(
+                        order=order,
+                        type=OrderEvent.Type.PAYMENT_CONFIRMED,
+                        meta={"stripe_session_id": session_id, "payment_id": payment.id},
+                    )
+
+                # конверсия в кэш — важно для фронта и Ads
+                _set_conv_cache_after_commit(session_id, amount, currency, logger=logger, source="StripeWebhook")
+                logger.info(
+                    "[StripeWebhook] Conversion cache planned after-commit for %s: %s %s",
+                    session_id, amount, currency
+                )
+
+                # Инвойс
+                try:
+                    invoice_number = meta.invoice_data.get("invoice_number")
+                    if not invoice_number:
+                        raise ValueError("Missing invoice_number in metadata")
+
+                    variable_symbol = (meta.description_data or {}).get("variable_symbol") or invoice_number
+
+                    invoice_data = prepare_invoice_data(session_id)
+                    pdf_file = generate_invoice_pdf(invoice_data)
+
+                    Invoice.objects.create(
+                        payment=payment,
+                        invoice_number=invoice_number,
+                        variable_symbol=variable_symbol,
+                        file=pdf_file,
+                    )
+                    logger.info(f"[INVOICE] Created Invoice {invoice_number} for Payment {session_id}")
+                    invoice_created = True
+                except Exception as e:
+                    logger.exception(f"[INVOICE] Failed to create invoice for Payment {session_id}: {e}")
+
+        except ValidationError as e:
+            # транзакция откатится полностью
+            logger.warning("[StripeWebhook] Validation error: %s", str(e))
+            return Response({"error": str(e)}, status=400)
+        except Exception as e:
+            logger.exception("[StripeWebhook] Unexpected error: %s", str(e))
+            return Response({"error": "Internal server error"}, status=500)
+
+        # 7. Вне транзакции — письмо клиенту
         if invoice_created:
             async_send_client_email(session_id)
             logger.info(f"[StripeWebhook] Planned async client email for session {session_id}")
         else:
             logger.warning(f"[StripeWebhook] Skipped client email — invoice not ready for session {session_id}")
 
-        # 9) Генерация посылок / уведомления
+        # 8. Генерация посылок / уведомления
         if origin_blocked:
             logger.warning(
                 "[StripeWebhook] Parcel generation skipped for session %s due to non-CZ origin (SKUs: %s).",
@@ -1782,112 +1821,79 @@ class PayPalWebhookView(PayPalMixin, APIView):
           - одинаковая запись conversion payload
         """
         # idempotency по intent/order_id
-        existing = Payment.objects.filter(payment_system="paypal", payment_intent_id=order_id) \
-            .only("amount_total", "currency", "session_key").first()
+        existing = Payment.objects.filter(
+            payment_system="paypal",
+            payment_intent_id=order_id
+        ).only("amount_total", "currency", "session_key").first()
         if existing:
-            _set_conv_cache_after_commit(existing.session_key or session_key,
-                                         existing.amount_total,
-                                         existing.currency,
-                                         logger=logger,
-                                         source="PayPalWebhook")
+            _set_conv_cache_after_commit(
+                existing.session_key or session_key,
+                existing.amount_total,
+                existing.currency,
+                logger=logger,
+                source="PayPalWebhook",
+            )
             return []
 
         try:
             meta = PayPalMetadata.objects.get(session_key=session_key)
-        except PayPalMetadata.DoesNotExist:
-            logger.error("PayPalMetadata not found for session_key=%s", session_key)
-            return None
-
-        user_id = meta.custom_data.get("user_id")
-        try:
-            user = CustomUser.objects.get(id=user_id)
-        except CustomUser.DoesNotExist:
-            logger.error("CustomUser not found: %s", user_id)
+            user = CustomUser.objects.get(id=meta.custom_data.get("user_id"))
+        except (PayPalMetadata.DoesNotExist, CustomUser.DoesNotExist):
+            logger.error("[PayPalWebhook] Metadata or user not found")
             return None
 
         groups = meta.invoice_data.get("groups", [])
         if not groups:
-            logger.error("No groups found in metadata")
+            logger.error("[PayPalWebhook] No groups found in metadata")
             return None
 
-        # --- CZ-origin check (1:1 как в StripeWebhook) ---
-        all_skus = []
-        for g in groups:
-            for p in g.get("products", []):
-                all_skus.append(str(p.get("sku")))
-        variants = (
-            ProductVariant.objects
-            .filter(sku__in=all_skus)
+        # CZ-origin check
+        all_skus = [str(p.get("sku")) for g in groups for p in g.get("products", [])]
+        variants = ProductVariant.objects.filter(sku__in=all_skus) \
             .select_related("product__seller__default_warehouse")
-            .only("sku", "product__seller_id", "product__seller__default_warehouse__country")
-        )
         vmap = {v.sku: v for v in variants}
+
         not_cz = []
-        missing = []
         for sku in all_skus:
             v = vmap.get(sku)
             if not v:
-                missing.append(sku)
                 continue
             seller = getattr(v.product, "seller", None)
             dw = getattr(seller, "default_warehouse", None) if seller else None
-            if not (dw and getattr(dw, "country", None) == "CZ"):
+            if not (dw and dw.country == "CZ"):
                 not_cz.append(sku)
 
         origin_blocked = bool(not_cz)
-        if missing:
-            logger.warning("[PayPalWebhook] Unknown SKU(s) in metadata: %s", ", ".join(missing))
-        if origin_blocked:
-            logger.warning(
-                "[PayPalWebhook] CZ-origin violated, skipping parcel creation. SKUs: %s",
-                ", ".join(not_cz),
-            )
 
-        # statuses
         try:
             pending_status = OrderStatus.objects.get(name="Pending")
-            processing_status = OrderStatus.objects.get(name="Processing")
-        except OrderStatus.DoesNotExist as e:
-            logger.exception("[PayPalWebhook] Missing OrderStatus: %s", e)
+        except OrderStatus.DoesNotExist:
+            logger.error("[PayPalWebhook] Pending status missing")
             return None
 
         root_addr = meta.custom_data.get("delivery_address") or {}
         root_country = (root_addr.get("country") or "").upper()
 
         orders_created = []
-        with transaction.atomic():
-            for idx, group in enumerate(groups, start=1):
-                delivery_type_id = group.get("delivery_type")
-                courier_service_id = group.get("courier_service")
-                pickup_point_id = group.get("pickup_point_id")
-                products = group.get("products", [])
+        invoice_created = False
 
-                delivery_cost = Decimal(group.get("calculated_delivery_cost", "0.00")).quantize(Decimal("0.01"),
-                                                                                                ROUND_HALF_UP)
-                group_total = Decimal(group.get("calculated_group_total", "0.00")).quantize(Decimal("0.01"),
-                                                                                            ROUND_HALF_UP)
+        try:
+            with transaction.atomic():
+                for idx, group in enumerate(groups, start=1):
+                    dt = DeliveryType.objects.filter(id=group.get("delivery_type")).first()
+                    if not dt:
+                        raise ValidationError(f"DeliveryType {group.get('delivery_type')} not found")
 
-                dt = DeliveryType.objects.filter(id=delivery_type_id).first()
-                cs = CourierService.objects.filter(id=courier_service_id).first()
-                courier_code = (cs.code or "").lower() if cs and cs.code else ""
+                    cs = CourierService.objects.filter(id=group.get("courier_service")).first()
+                    courier_code = (cs.code or "").lower() if cs and cs.code else ""
 
-                gaddr = group.get("delivery_address") or {}
+                    delivery_cost = Decimal(group.get("calculated_delivery_cost", "0.00")).quantize(Decimal("0.01"))
+                    group_total = Decimal(group.get("calculated_group_total", "0.00")).quantize(Decimal("0.01"))
+                    gaddr = group.get("delivery_address") or {}
 
-                # --- адрес ---
-                if delivery_type_id == 2:
-                    delivery_address_obj = DeliveryAddress.objects.create(
-                        user=user,
-                        full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
-                        phone=meta.custom_data.get("phone"),
-                        email=meta.custom_data.get("email"),
-                        street=gaddr.get("street", ""),
-                        city=gaddr.get("city", ""),
-                        zip_code=gaddr.get("zip", ""),
-                        country=gaddr.get("country", root_country),
-                    )
-                else:
-                    if courier_code == "dpd" and gaddr:
-                        delivery_address_obj = DeliveryAddress.objects.create(
+                    # Address
+                    if group.get("delivery_type") == 2:
+                        delivery_address = DeliveryAddress.objects.create(
                             user=user,
                             full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
                             phone=meta.custom_data.get("phone"),
@@ -1898,109 +1904,130 @@ class PayPalWebhookView(PayPalMixin, APIView):
                             country=gaddr.get("country", root_country),
                         )
                     else:
-                        delivery_address_obj = DeliveryAddress.objects.create(
-                            user=user,
-                            full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
-                            phone=meta.custom_data.get("phone"),
-                            email=meta.custom_data.get("email"),
-                            street="",
-                            city="",
-                            zip_code="",
-                            country=root_country,
-                        )
+                        if courier_code == "dpd" and gaddr:
+                            delivery_address = DeliveryAddress.objects.create(
+                                user=user,
+                                full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
+                                phone=meta.custom_data.get("phone"),
+                                email=meta.custom_data.get("email"),
+                                street=gaddr.get("street", ""),
+                                city=gaddr.get("city", ""),
+                                zip_code=gaddr.get("zip", ""),
+                                country=gaddr.get("country", root_country),
+                            )
+                        else:
+                            delivery_address = DeliveryAddress.objects.create(
+                                user=user,
+                                full_name=f"{meta.custom_data.get('first_name', '')} {meta.custom_data.get('last_name', '')}".strip(),
+                                phone=meta.custom_data.get("phone"),
+                                email=meta.custom_data.get("email"),
+                                street="",
+                                city="",
+                                zip_code="",
+                                country=root_country,
+                            )
 
-                # --- Order ---
-                order = Order.objects.create(
-                    user=user,
-                    first_name=meta.custom_data.get("first_name", ""),
-                    last_name=meta.custom_data.get("last_name", ""),
-                    customer_email=meta.custom_data.get("email"),
-                    delivery_type=dt,
-                    delivery_address=delivery_address_obj,
-                    pickup_point_id=pickup_point_id,
-                    delivery_cost=delivery_cost,
-                    courier_service=cs,
-                    phone_number=meta.custom_data.get("phone"),
-                    total_amount=amount,
-                    group_subtotal=group_total,
-                    order_status=pending_status,
-                )
-
-                # items
-                for product in products:
-                    sku = product.get("sku")
-                    qty = int(product.get("quantity", 0))
-
-                    variant = vmap.get(str(sku))
-                    if not variant:
-                        logger.error(f"Group {idx}: SKU {sku} missing in vmap")
-                        continue
-
-                    wh_item = WarehouseItem.objects.filter(product_variant=variant, quantity_in_stock__gte=qty).first()
-                    warehouse = wh_item.warehouse if wh_item else Warehouse.objects.first()
-
-                    OrderProduct.objects.create(
-                        order=order,
-                        product=variant,
-                        quantity=qty,
-                        delivery_cost=Decimal("0.00"),
-                        seller_profile_id=variant.product.seller_id,
-                        product_price=variant.price_with_acquiring,
-                        warehouse=warehouse,
-                        status=ProductStatus.AWAITING_SHIPMENT,
+                    order = Order.objects.create(
+                        user=user,
+                        first_name=meta.custom_data.get("first_name", ""),
+                        last_name=meta.custom_data.get("last_name", ""),
+                        customer_email=meta.custom_data.get("email"),
+                        delivery_type=dt,
+                        delivery_address=delivery_address,
+                        pickup_point_id=group.get("pickup_point_id"),
+                        delivery_cost=delivery_cost,
+                        courier_service=cs,
+                        phone_number=meta.custom_data.get("phone"),
+                        total_amount=amount,
+                        group_subtotal=group_total,
+                        order_status=pending_status,
                     )
 
-                order.order_status = processing_status
-                order.save(update_fields=["order_status"])
-                order.order_products.update(status=ProductStatus.AWAITING_SHIPMENT)
-                orders_created.append(order)
+                    OrderEvent.objects.create(
+                        order=order,
+                        type=OrderEvent.Type.ORDER_CREATED,
+                    )
 
-            if not orders_created:
-                return None
+                    for p in group.get("products", []):
+                        sku = str(p.get("sku"))
+                        qty = int(p.get("quantity", 0))
+                        variant = vmap.get(sku)
+                        if not variant:
+                            raise ValidationError(f"Group {idx}: SKU {sku} not found")
 
-            payment = Payment.objects.create(
-                payment_system="paypal",
-                session_id=order_id,
-                session_key=session_key,
-                customer_id=str(user.id),
-                payment_intent_id=order_id,
-                payment_method="paypal",
-                amount_total=amount,
-                currency=currency,
-                customer_email=meta.custom_data.get("email"),
-            )
-            for o in orders_created:
-                o.payment = payment
-                o.save(update_fields=["payment"])
+                        wh_item = WarehouseItem.objects.filter(
+                            product_variant=variant, quantity_in_stock__gte=qty
+                        ).first()
+                        warehouse = wh_item.warehouse if wh_item else Warehouse.objects.first()
 
-            _set_conv_cache_after_commit(session_key, amount, currency, logger=logger, source="PayPalWebhook")
+                        OrderProduct.objects.create(
+                            order=order,
+                            product=variant,
+                            quantity=qty,
+                            product_price=variant.price_with_acquiring,
+                            delivery_cost=Decimal("0.00"),
+                            seller_profile_id=variant.product.seller_id,
+                            warehouse=warehouse,
+                            status=ProductStatus.AWAITING_SHIPMENT,
+                        )
 
-            # invoice
-            invoice_number = meta.invoice_data.get("invoice_number")
-            variable_symbol = (meta.description_data or {}).get("variable_symbol") or invoice_number
-            try:
-                invoice_data = prepare_invoice_data(order_id)
-                pdf_file = generate_invoice_pdf(invoice_data)
-                Invoice.objects.create(
-                    payment=payment,
-                    invoice_number=invoice_number,
-                    variable_symbol=variable_symbol,
-                    file=pdf_file,
+                    orders_created.append(order)
+
+                if not orders_created:
+                    raise ValidationError("Order creation failed")
+
+                payment = Payment.objects.create(
+                    payment_system="paypal",
+                    session_id=order_id,
+                    session_key=session_key,
+                    customer_id=str(user.id),
+                    payment_intent_id=order_id,
+                    payment_method="paypal",
+                    amount_total=amount,
+                    currency=currency,
+                    customer_email=meta.custom_data.get("email"),
                 )
-                invoice_created = True
-            except Exception as e:
-                logger.exception("[INVOICE] Failed: %s", e)
-                invoice_created = False
 
-        # вне транзакции
+                for o in orders_created:
+                    o.payment = payment
+                    o.save(update_fields=["payment"])
+                    OrderEvent.objects.create(
+                        order=o,
+                        type=OrderEvent.Type.PAYMENT_CONFIRMED,
+                        meta={"payment_id": payment.id, "paypal_order_id": order_id},
+                    )
+
+                _set_conv_cache_after_commit(session_key, amount, currency, logger=logger, source="PayPalWebhook")
+
+                # invoice
+                try:
+                    invoice_number = meta.invoice_data.get("invoice_number")
+                    variable_symbol = (meta.description_data or {}).get("variable_symbol") or invoice_number
+                    invoice_data = prepare_invoice_data(order_id)
+                    pdf_file = generate_invoice_pdf(invoice_data)
+                    Invoice.objects.create(
+                        payment=payment,
+                        invoice_number=invoice_number,
+                        variable_symbol=variable_symbol,
+                        file=pdf_file,
+                    )
+                    invoice_created = True
+                except Exception as e:
+                    logger.exception("[PayPalWebhook] Invoice failed: %s", e)
+
+        except ValidationError as e:
+            logger.warning("[PayPalWebhook] Validation error: %s", e)
+            return None
+        except Exception as e:
+            logger.exception("[PayPalWebhook] Unexpected error: %s", e)
+            return None
+
+        # post-commit
         if invoice_created:
             async_send_client_email(order_id)
 
-        if origin_blocked:
-            logger.warning("[PayPalWebhook] Parcels skipped due to origin violation")
-        else:
-            order_ids = [o.id for o in orders_created]
-            async_parcels_and_seller_email(order_ids, order_id)
+        if not origin_blocked:
+            async_parcels_and_seller_email([o.id for o in orders_created], order_id)
 
         return orders_created
 

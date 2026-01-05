@@ -209,3 +209,22 @@ class InvoiceSequence(models.Model):
 
     def __str__(self):
         return f"{self.series}:{self.last_number}"
+
+class OrderEvent(models.Model):
+    class Type(models.TextChoices):
+        ORDER_CREATED = "order_created"
+        PAYMENT_CONFIRMED = "payment_confirmed"
+        ORDER_ACKNOWLEDGED = "order_acknowledged"
+        SHIPMENT_CREATED = "shipment_created"
+        TRACKING_UPLOADED = "tracking_uploaded"
+        DELIVERED = "delivered"
+        CANCELLED = "cancelled"
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    type = models.CharField(max_length=50, choices=Type.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    meta = models.JSONField(blank=True, null=True)
