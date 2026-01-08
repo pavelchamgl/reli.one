@@ -7,6 +7,8 @@ import aboutEn from "./en/aboutEn.json"
 import aboutCz from "./cz/aboutCz.json"
 import pricingCz from "./cz/pricingCz.json"
 import pricingEn from "./en/pricingEn.json"
+import contactEn from "./en/contactEn.json"
+import contactCz from "./cz/contactCz.json"
 
 
 

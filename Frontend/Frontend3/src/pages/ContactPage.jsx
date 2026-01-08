@@ -43,7 +43,7 @@ const ContactPage = () => {
         },
         {
             title: "Account Number",
-            desc: "8115228001/5500",
+            desc: "5003011074/5500",
             num: true
         },
         {
