@@ -23,7 +23,7 @@ const StayUpdated = () => {
                 </div>
             </div>
             <div className={styles.mainTwo}>
-                <p>© 2026 Reli Group. All rights reserved.</p>
+                <p>© 2026 Reli Group s.r.o. All rights reserved.</p>
                 <p>Made with ❤ for sellers worldwide</p>
             </div>
         </div>

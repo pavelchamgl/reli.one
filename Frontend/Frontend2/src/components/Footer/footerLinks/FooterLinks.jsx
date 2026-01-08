@@ -11,10 +11,26 @@ import styles from "./FooterLinks.module.scss"
 
 const FooterLinks = () => {
 
-    const links1 = ["Getting Started", "Seller Dashboard", "Commission Structure", "Seller Support"]
+    const links1 = [
+        {
+            title: "Getting Started",
+            url: "#"
+        },
+        {
+            title: "Seller Dashboard",
+            url: "#"
+        },
+        {
+            title: "Commission Structure",
+            url: "/pricing-commission"
+        },
+        {
+            title: "Seller Support",
+            url: "#"
+        }
+    ]
     // const links2 = ["About Us", "Careers", "Press ", "Contact ", "Blog "]
     const links2 = ["Terms and Conditions", "Complaint", "Return of Goods", "Terms of Service", "Privacy Policy", "GDPR Compliance", "Cookie Policy"]
-    const links3 = ["About Us"]
 
 
     return (
@@ -61,7 +77,7 @@ const FooterLinks = () => {
                     <Link className={styles.listTitle} to={"/for-sell"}>For Sellers</Link>
                 </li>
                 {links1.map((item) => (
-                    <li><a className={styles.listItem} href="#">{item}</a></li>
+                    <li><Link className={styles.listItem} to={item.url}>{item.title}</Link></li>
                 ))}
             </ul>
             <ul>
@@ -76,9 +92,9 @@ const FooterLinks = () => {
                 <li>
                     <h3 className={styles.listTitle}>Company</h3>
                 </li>
-                {links3.map((item) => (
-                    <li><a className={styles.listItem} href="#">{item}</a></li>
-                ))}
+                <li>
+                    <Link className={styles.listItem} to={"/about"}>About Us</Link>
+                </li>
                 <li>
                     <Link className={styles.listItem} to={"/contact"}>Contact</Link>
                 </li>
