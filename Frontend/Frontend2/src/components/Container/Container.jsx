@@ -1,8 +1,8 @@
 import styles from "./Container.module.scss"
 
-const Container = ({children}) => {
+const Container = ({ children, style }) => {
   return (
-    <div className={styles.main}>{children}</div>
+    <div style={style} className={styles.main}>{children}</div>
   )
 }
 

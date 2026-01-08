@@ -1,0 +1,131 @@
+@mixin desc() {
+  font-weight: 400;
+  font-size: 16px;
+  color: #4a5565;
+}
+
+.mainTitleWrap {
+  background: linear-gradient(180deg, #f9fafb 0%, #eff6ff 100%);
+  width: 100%;
+  padding-block: 96px;
+
+  & h2 {
+    font-weight: 400;
+    font-size: clamp(36px, 5vw, 48px);
+    line-height: 100%;
+    text-align: center;
+    color: #101828;
+    margin-bottom: 8px;
+  }
+
+  & p {
+    font-weight: 400;
+    font-size: 18px;
+    text-align: center;
+    color: #4a5565;
+  }
+
+  @media (max-width: 500px) {
+    padding-inline: 14px;
+  }
+}
+
+.policy {
+  counter-reset: section;
+}
+
+/* Заголовки с 1. 2. */
+.title {
+  counter-increment: section;
+  counter-reset: subsection;
+  font-weight: 400;
+  font-size: clamp(24px, 5vw, 30px);
+  color: #101828;
+  margin-bottom: 24px;
+}
+
+.title::before {
+  content: counter(section) '. ';
+  margin-right: 6px;
+}
+
+/* Основной нумерованный список */
+.list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0 0 46px;
+  counter-reset: subsection;
+}
+
+.list > li {
+  counter-increment: subsection;
+  position: relative;
+  padding-left: 42px;
+  margin-bottom: 12px;
+  @include desc();
+
+  @media (max-width: 500px) {
+    padding-left: 0;
+    margin-left: 0;
+    list-style-position: inside;
+  }
+}
+
+.list > li::before {
+  content: counter(section) '.' counter(subsection);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Желтые маркеры */
+.yellowList {
+  list-style: disc;
+  padding-left: 23px;
+  margin-bottom: 16px;
+
+  & li {
+    @include desc();
+  }
+}
+
+.yellowList li::marker {
+  color: #fcbf09; /* жёлтый */
+}
+
+.contactBlock {
+  background: linear-gradient(
+    180deg,
+    rgba(254, 252, 232, 0.6) 0%,
+    rgba(255, 247, 237, 0.6) 50%,
+    rgba(250, 245, 255, 0.6) 100%
+  );
+
+  padding: 25px;
+
+  & h2 {
+    font-weight: 400;
+    font-size: 24px;
+    color: #101828;
+  }
+
+  & p {
+    @include desc();
+    margin-top: 15px;
+    margin-bottom: 9px;
+  }
+
+  & a {
+    font-weight: 400;
+    font-size: 16px;
+    color: #101828;
+    text-decoration: none;
+  }
+}
+
+.ratesDesc {
+  @include desc();
+  margin-bottom: 25px;
+}

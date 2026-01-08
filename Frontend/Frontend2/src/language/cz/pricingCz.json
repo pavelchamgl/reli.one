@@ -1,0 +1,84 @@
+{
+    "mainTitle": "Cenová a provizní politika",
+    "mainDesc": "Tržiště Reli.one",
+    "purposeBlock": {
+        "title": "Účel a rozsah",
+        "list": {
+            "list1": "Tato Cenová a provizní politika (dále jen „Politika“) stanovuje zásady, strukturu a platné sazby provizí pro prodejce nabízející produkty prostřednictvím tržiště Reli.one (dále jen „Platforma“).",
+            "list2": "Politika se vztahuje na všechny prodejce registrované na Platformě, pokud není v individuální písemné smlouvě výslovně dohodnuto jinak.",
+            "list3": "Cílem této Politiky je zajistit transparentnost, předvídatelnost a spravedlnost při výpočtu provizí tržiště."
+        }
+    },
+    "principlesBlock": {
+        "title": "Obecné zásady",
+        "list": {
+            "list1": "Reli.one uplatňuje pevnou sazbu provize pro každou hlavní produktovou kategorii.",
+            "list2": "Sazby provizí:",
+            "list3": "Podkategorie se používají výhradně pro:"
+        },
+        "afterText": "a nemají vliv na výši platné sazby provize.",
+        "yList1": {
+            "list1": "jsou jednotné v rámci každé hlavní kategorie,",
+            "list2": "nezávisí na podkategoriích, typu produktu, značce ani cenových úrovních,",
+            "list3": "jsou účtovány pouze po úspěšném dokončení transakce."
+        },
+        "yList2": {
+            "list1": "navigaci,",
+            "list2": "funkce vyhledávání,",
+            "list3": "klasifikaci produktů,",
+            "list4": "analytické účely,"
+        }
+    },
+    "conditionsBlock": {
+        "title": "Limity a zvláštní podmínky",
+        "list": {
+            "list1": "Reli.one může u vybraných kategorií nebo transakcí uplatnit maximální limit provize na objednávku. Pokud je takový limit použitelný, bude transparentně uveden v Prodejním panelu nebo v individuálních smlouvách.",
+            "list2": "Jakékoli zvýhodněné sazby, propagační slevy nebo individuální obchodní podmínky se uplatňují pouze tehdy, jsou-li výslovně písemně dohodnuty, a nemění tuto Politiku pro ostatní prodejce."
+        }
+    },
+    "changesBlock": {
+        "title": "Změny Politiky",
+        "list": {
+            "list1": "Reli.one si vyhrazuje právo tuto Politiku změnit za účelem:",
+            "list2": "Veškeré změny budou zveřejněny na Platformě a nabudou účinnosti ke dni v nich uvedenému."
+        },
+        "yList": {
+            "list1": "zohlednění změn v obchodních činnostech,",
+            "list2": "zavedení nových kategorií,",
+            "list3": "reakce na regulatorní nebo tržní vývoj."
+        }
+    },
+    "transparencyBlock": {
+        "title": "Transparentnost a férové jednání",
+        "list": {
+            "list1": "Reli.one se zavazuje udržovat jednoduchou a transparentní strukturu poplatků.",
+            "list2": "Na rozdíl od tržišť, která uplatňují složité stupňovité nebo na podkategoriích založené oceňování, Reli.one zajišťuje, že prodejci mohou svou sazbu provize jednoznačně určit předem, bez skrytých podmínek."
+        }
+    },
+    "contactBlock": {
+        "title": "Kontakt",
+        "desc": "V případě dotazů týkajících se této Politiky mohou prodejci kontaktovat:"
+    },
+    "arts": "Umění a ruční práce",
+    "beauty": "Krása a zdraví",
+    "car_parts": "Autodíly",
+    "children": "Dětské zboží",
+    "clothes": "Oblečení a obuv",
+    "construction": "Stavba a opravy",
+    "electronics": "Elektronika",
+    "equipment": "Vybavení",
+    "food": "Jídlo a nápoje",
+    "furniture": "Nábytek",
+    "hiking": "Turistika, rybaření, lov",
+    "hobbies": "Koníčky a kreativita",
+    "house": "Dům a zahrada",
+    "jewelry": "Šperky",
+    "luggage": "Zavazadla",
+    "medical": "Lékařské potřeby a lékárna",
+    "office": "Kancelář",
+    "pets": "Produkty pro mazlíčky",
+    "photovoltaics": "Fotovoltaika",
+    "sport": "Sport a relaxace",
+    "toys": "Hračky a hry",
+    "watches": "Hodinky"
+}

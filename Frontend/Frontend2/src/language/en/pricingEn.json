@@ -1,0 +1,84 @@
+{
+    "mainTitle": "Pricing and Commission Policy",
+    "mainDesc": "Reli.one Marketplace",
+    "purposeBlock": {
+        "title": "Purpose and Scope",
+        "list": {
+            "list1": "This Pricing and Commission Policy (the „Policy“) defines the principles, structure, and applicable commission rates for sellers offering products through the Reli.one marketplace (the „Platform“).",
+            "list2": "The Policy applies to all sellers registered on the Platform, unless explicitly agreed otherwise in an individual written agreement.",
+            "list3": "The purpose of this Policy is to ensure transparency, predictability, and fairness in the calculation of marketplace commissions."
+        }
+    },
+    "principlesBlock": {
+        "title": "General Principles",
+        "list": {
+            "list1": "Reli.one applies a fixed commission rate per main product category.",
+            "list2": "Commission rates:",
+            "list3": "Subcategories are used exclusively for:"
+        },
+        "afterText": "and do not affect the applicable commission rate.",
+        "yList1": {
+            "list1": "are flat within each main category,",
+            "list2": "do not depend on subcategories, product type, brand, or price tiers,",
+            "list3": "are charged only upon successful completion of a transaction."
+        },
+        "yList2": {
+            "list1": "navigation,",
+            "list2": "search functionality,",
+            "list3": "product classification,",
+            "list4": "analytical purposes,"
+        }
+    },
+    "conditionsBlock": {
+        "title": "Caps and Special Conditions",
+        "list": {
+            "list1": "Reli.one may apply a maximum commission cap per order for selected categories or transactions. Where applicable, such caps will be communicated transparently in the Seller Panel or individual agreements.",
+            "list2": "Any preferential rates, promotional discounts, or individual commercial terms apply only if expressly agreed in writing and do not amend this Policy for other sellers."
+        }
+    },
+    "changesBlock": {
+        "title": "Changes to the Policy",
+        "list": {
+            "list1": "Reli.one reserves the right to amend this Policy in order to:",
+            "list2": "Any changes will be published on the Platform and shall become effective on the date indicated therein."
+        },
+        "yList": {
+            "list1": "reflect changes in business operations,",
+            "list2": "introduce new categories,",
+            "list3": "respond to regulatory or market developments."
+        }
+    },
+    "transparencyBlock": {
+        "title": "Transparency and Fair Dealing",
+        "list": {
+            "list1": "Reli.one is committed to maintaining a simple and transparent fee structure.",
+            "list2": "Unlike marketplaces that apply complex tiered or subcategory-based pricing, Reli.one ensures that sellers are able to clearly determine their commission rate in advance, without hidden conditions."
+        }
+    },
+    "contactBlock": {
+        "title": "Contact",
+        "desc": "For questions regarding this Policy, sellers may contact:"
+    },
+    "arts": "Arts and handmade",
+    "beauty": "Beauty and health",
+    "car_parts": "Car parts",
+    "children": "Children's goods",
+    "clothes": "Clothes and shoes",
+    "construction": "Construction and repairs",
+    "electronics": "Electronics",
+    "equipment": "Equipment",
+    "food": "Food and Drinks",
+    "furniture": "Furniture",
+    "hiking": "Hiking, fishing, hunting",
+    "hobbies": "Hobbies and creativity",
+    "house": "House and garden",
+    "jewelry": "Jewelry",
+    "luggage": "Luggage",
+    "medical": "Medical supplies and pharmacy",
+    "office": "Office",
+    "pets": "Pet products",
+    "photovoltaics": "Photovoltaics",
+    "sport": "Sport and relaxation",
+    "toys": "Toys/games",
+    "watches": "Watches"
+}

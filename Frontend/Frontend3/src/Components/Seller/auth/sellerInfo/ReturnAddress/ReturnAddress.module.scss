@@ -1,0 +1,15 @@
+@import url("../PersonalDetails/PersonalDetails.module.scss");
+
+.checkWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  & p {
+    font-weight: 500;
+    font-size: 13px;
+    color: #364153;
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,28 @@
+@import url("../resetForm/ResetForm.module.scss");
+
+.validationBlock {
+  p {
+    font-weight: 400;
+    font-size: 14px;
+    color: #364153;
+    margin-bottom: 16px;
+  }
+
+  & ul {
+    list-style: none;
+    
+    & li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 400;
+      font-size: 14px;
+      color: #6a7282;
+      margin-bottom: 5px;
+    }
+  }
+}
+
+.form{
+    gap: 25px;
+}

@@ -3,14 +3,24 @@ import { initReactI18next } from "react-i18next"
 
 import translationEn from "./en/translations.json"
 import translationCz from "./cz/translations.json"
+import aboutEn from "./en/aboutEn.json"
+import aboutCz from "./cz/aboutCz.json"
+import pricingCz from "./cz/pricingCz.json"
+import pricingEn from "./en/pricingEn.json"
+
+
 
 
 const resources = {
     en: {
-        translation: translationEn
+        translation: translationEn,
+        about: aboutEn,
+        pricing: pricingEn
     },
     cz: {
-        translation: translationCz
+        translation: translationCz,
+        about: aboutCz,
+        pricing: pricingCz
     }
 };
 

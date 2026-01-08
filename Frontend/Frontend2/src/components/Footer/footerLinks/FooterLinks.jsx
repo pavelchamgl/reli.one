@@ -25,6 +25,12 @@ const FooterLinks = () => {
                     online. Join thousands of
                     successful sellers and grow
                     your business with us.</p>
+                <div className={styles.companyInfoWrap}>
+                    <p>Company ID: 28003896</p>
+                    <p>VAT: CZ28003896</p>
+                    <p>Number: +420 797 837 856 </p>
+                    <p>Email: info@reli.one</p>
+                </div>
                 <p className={styles.footerDesc}>
                     Address: Na Lysinách 551/34, Prague 4 - Hodkovičky, zip code 147 00, Czech Republic</p>
 
@@ -73,8 +79,11 @@ const FooterLinks = () => {
                 {links3.map((item) => (
                     <li><a className={styles.listItem} href="#">{item}</a></li>
                 ))}
+                <li>
+                    <Link className={styles.listItem} to={"/contact"}>Contact</Link>
+                </li>
             </ul>
-            <div className={styles.bankDetailWrap}>
+            {/* <div className={styles.bankDetailWrap}>
                 <p>Banking details:</p>
                 <p>DIČ: CZ28003896</p>
                 <p>Bank: Raiffeisen Bank</p>
@@ -82,7 +91,7 @@ const FooterLinks = () => {
                 <p>Account number/bank code: 5003011074/5500</p>
                 <p>Company Identification Number: 28003896</p>
                 <p>IBAN: CZ9455000000005003011074</p>
-            </div>
+            </div> */}
             {/* <ul>
                 <li>
                     <h3 className={styles.listTitle}>Legal</h3>
