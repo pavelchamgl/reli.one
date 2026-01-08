@@ -7,6 +7,7 @@ import FooterMain from "../../components/Footer/FooterMain/FooterMain";
 import ScrollToTop from "../../components/ScrollToTop/ScrollToTop";
 
 import styles from "./ForSeller.module.scss";
+import WhatsappMeneger from "../../components/WhatsAppManager/WhatsAppManager";
 
 const ForrSeller = () => {
 
@@ -135,6 +136,8 @@ const ForrSeller = () => {
 
             <FooterMain />
             <ScrollToTop />
+            <WhatsappMeneger />
+
 
         </>
     );

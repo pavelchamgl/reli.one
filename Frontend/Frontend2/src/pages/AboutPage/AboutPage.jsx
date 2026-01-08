@@ -6,6 +6,7 @@ import ScrollToTop from '../../components/ScrollToTop/ScrollToTop'
 
 import styles from "./AboutPage.module.scss"
 import { useTranslation } from 'react-i18next'
+import WhatsappMeneger from '../../components/WhatsAppManager/WhatsAppManager'
 
 const AboutPage = () => {
 
@@ -123,6 +124,8 @@ const AboutPage = () => {
             </Container>
             <FooterMain />
             <ScrollToTop />
+            <WhatsappMeneger />
+
         </>
     )
 }

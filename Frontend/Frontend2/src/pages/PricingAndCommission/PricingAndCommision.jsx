@@ -8,6 +8,7 @@ import styles from "./PricingAndCommision.module.scss"
 import ScrollToTop from "../../components/ScrollToTop/ScrollToTop"
 import { useMediaQuery } from "react-responsive"
 import CategoryAndRateTable from "../../components/CategoryAndRateTable/CategoryAndRateTable"
+import WhatsappMeneger from "../../components/WhatsAppManager/WhatsAppManager"
 
 const PricingAndCommision = () => {
 
@@ -171,6 +172,8 @@ const PricingAndCommision = () => {
             </Container>
             <FooterMain />
             <ScrollToTop />
+            <WhatsappMeneger />
+
         </>
     )
 }

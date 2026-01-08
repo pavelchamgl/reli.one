@@ -1,6 +1,7 @@
 import FooterMain from "../../components/Footer/FooterMain/FooterMain"
 import Header from "../../components/Header/Header"
 import ScrollToTop from "../../components/ScrollToTop/ScrollToTop"
+import WhatsappMeneger from "../../components/WhatsAppManager/WhatsAppManager"
 import styles from "./ContactPage.module.scss"
 
 const ContactPage = () => {
@@ -147,6 +148,8 @@ const ContactPage = () => {
 
             <FooterMain />
             <ScrollToTop />
+            <WhatsappMeneger />
+
         </>
     )
 }
