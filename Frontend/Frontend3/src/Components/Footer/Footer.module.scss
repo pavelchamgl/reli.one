@@ -19,12 +19,11 @@
 }
 
 .Navigate_Container {
-  padding-top: 10px;
   display: flex;
   width: 100%;
-  max-width: 709px;
+  margin-left: 70px;
   justify-content: space-between;
-  margin-inline: 30px;
+  // margin-inline: 30px;
 
   ul,
   li {
@@ -32,7 +31,14 @@
   }
 
   li {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
+  }
+
+  & h3 {
+    font-weight: 500;
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 24px;
   }
 }
 
@@ -64,25 +70,17 @@
 }
 
 .LinkNavigate {
-  color: white !important;
   font-weight: 500;
-  font-size: 16px;
-  line-height: 131%;
-  letter-spacing: -0.02em;
+  font-size: 14px;
+  color: #b5b5b5 !important;
   text-decoration: none;
-  font-weight: 500;
-  font-size: 16px;
 }
 
 .btnNavigate {
-  color: white !important;
   font-weight: 500;
-  font-size: 16px;
-  line-height: 131%;
-  letter-spacing: -0.02em;
+  font-size: 14px;
+  color: #b5b5b5;
   text-decoration: none;
-  font-weight: 500;
-  font-size: 16px;
   background-color: transparent;
 }
 
@@ -97,7 +95,7 @@
   display: flex;
   flex-direction: column;
   width: 300px;
-  gap: 35px;
+  gap: 6px;
 
   h1 {
     margin: 0;
@@ -105,6 +103,19 @@
     font-weight: 400;
     font-size: 20px;
     line-height: 105%;
+  }
+
+  & p {
+    font-weight: 400;
+    font-size: 12px;
+    color: #fff;
+  }
+
+  & span {
+    font-family: var(--ft);
+    font-weight: 300;
+    font-size: 11px;
+    color: #b5b5b5;
   }
 }
 
@@ -125,11 +136,13 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     width: 100%;
+    gap: 40px;
     max-width: none;
-    padding: 40px 20px;
-    text-align: center;
+    // padding: 40px 20px;
+    text-align: start;
+    margin-left: 0;
   }
 
   .Info_Container {
@@ -139,7 +152,7 @@
 
 .mobileMain {
   background-color: black;
-  padding: 44px 15px 40px;
+  padding: 44px 15px 70px;
   // text-align: center;
   position: relative;
   margin-bottom: 40px;
@@ -260,8 +273,32 @@
     color: #b5b5b5;
   }
 
-  @media (max-width:500px) {
+  @media (max-width: 500px) {
     margin-top: 48px;
     margin-bottom: 50px;
+  }
+}
+
+.payMethodWrap {
+  border-block: 1px solid #333;
+  padding-block: 40px;
+  margin-top: 40px;
+
+  & h2 {
+    margin-bottom: 17px;
+    font-weight: 500;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  & div {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 500px) {
+    padding-block: 30px;
   }
 }

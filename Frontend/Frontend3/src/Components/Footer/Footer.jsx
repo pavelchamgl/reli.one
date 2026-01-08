@@ -9,6 +9,14 @@ import faceIcon from "../../assets/Footer/facebook.svg";
 import telegaIcon from "../../assets/Footer/tel.svg"
 import tiktokIcon from "../../assets/Footer/tiktok.svg"
 import linkedinIcon from "../../assets/Footer/linkedin.svg"
+import stripe from "../../assets/Footer/stripe.svg"
+import paypal from "../../assets/Footer/paypal.svg"
+import applePay from "../../assets/Footer/applepay.svg"
+import googlePay from "../../assets/Footer/googlePay.svg"
+import visa from "../../assets/Footer/visa.svg"
+import mastercard from "../../assets/Footer/mastercard.svg"
+import maestro from "../../assets/Footer/maestro.svg"
+
 
 import LoginModal from "../LoginModal/LoginModal";
 
@@ -53,6 +61,16 @@ const Footer = () => {
 
   const navigate = useNavigate();
 
+  const paymentImages = [
+    stripe,
+    paypal,
+    applePay,
+    googlePay,
+    visa,
+    mastercard,
+    maestro
+  ]
+
   if (isMobile) {
     return (
       <div className={cls.mobileMain}>
@@ -65,53 +83,86 @@ const Footer = () => {
           </p>
         </div>
         <MessengerBtns />
-        <div className={cls.mobLinkMain}>
-          <Link className={cls.mobileLink} to={"/mob_login"}>
-            {t("enter_account")}
-          </Link>
-          <Link className={cls.mobileLink} to={"/my_orders"}>
-            {t("footer_order")}
-          </Link>
-          <Link to={"/for_sell"} className={cls.mobileLink} href="#">
-            {t("for_seller")}
-          </Link>
-          <Link to={"/for_buy"} className={cls.mobileLink} href="#">
-            {t("for_buyers")}
-          </Link>
-          <button onClick={() => {
-            setOpenPolicy(!openPolicy)
-            console.log(openPolicy);
+        <nav className={cls.Navigate_Container}>
+          <ul>
+            <h3>For Clients</h3>
+            <li>
+              <button className={cls.btnNavigate} onClick={() => setOpen(!open)}>
+                {t("enter_account")}
+              </button>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate} to={"/my_orders"}>
+                {t("footer_order")}
+              </Link>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate} to={"/liked"}>
+                {t("choice")}
+              </Link>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate} to={"/basket"}>
+                {t("bin")}
+              </Link>
+            </li>
+          </ul>
 
-          }} style={{ backgroundColor: "transparent" }} className={cls.mobileLink} >
-            {t("privacySettings")}
-          </button>
-          <Link to={"/general-protection"} className={cls.mobileLink} href="#">
-            GDPR
-          </Link>
-          <a className={cls.mobileLink} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
-            {t("terms")}
-          </a>
-          <Link to={"/privacy-policy"} className={cls.mobileLink}>
-            {t("privacyPolicyFooter")}
-          </Link>
+          <ul>
+            <h3>For Providers</h3>
 
-          <a className={cls.mobileLink} href="https://info.reli.one">
-            {t("about_company")}
-          </a>
-        </div>
+            <li>
+              <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
+                {t("for_seller")}
+              </Link>
+            </li>
+            <li>
+              <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
+                {t("for_buyers")}
+              </Link>
+            </li>
 
-        <div className={cls.bankDetailWrap}>
-          <p>Bank detail:</p>
-          <p>DIČ: CZ28003896</p>
-          <p>Bank: Raiffeisen Bank</p>
-          <p>SWIFT (BIC): RZBCCZPP</p>
-          <p>Account number/bank code: 5003011074/5500</p>
-          <p>Company Identification Number: 28003896</p>
-          <p>IBAN: CZ9455000000005003011074</p>
-        </div>
+            <li>
+              <button onClick={() => setOpenPolicy(true)} className={cls.btnNavigate} href="#">
+                {t("privacySettings")}
+              </button>
+            </li>
+          </ul>
+          <ul>
+            <h3>Company</h3>
+            <li>
+              <Link className={cls.LinkNavigate} to="/contact">
+                Contact
+              </Link>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate} to="https://info.reli.one">
+                {t("about_company")}
+              </Link>
+            </li>
+          </ul>
+
+          <ul>
+
+          </ul>
+        </nav>
+
+
+
 
         <div className={cls.mobBottomWrap}>
-          <p className={cls.mobBottomDesc}>(c) Copyright 2025 Reli Group</p>
+          <p className={cls.mobBottomDesc}>(c) Copyright 2026 Reli Group</p>
+        </div>
+
+        <div className={cls.payMethodWrap}>
+          <h2>Payment Methods</h2>
+          <div>
+            {
+              paymentImages.map((img) => (
+                <img src={img} alt="" />
+              ))
+            }
+          </div>
         </div>
         <PolicySettingsModal open={openPolicy} handleClose={() => setOpenPolicy(false)} />
 
@@ -125,10 +176,12 @@ const Footer = () => {
             <img className={cls.logo} src={logo} />
             <div className={cls.Info_Container}>
               {/* <h1>Reli Group s.r.o.</h1> */}
-              <p>{t("phone")}: +420 797 837 856</p>
+              <p>Company ID: <span >28003896</span></p>
+              <p>VAT: <span >CZ28003896</span></p>
+              <p>Number: <span>+420 797 837 856</span></p>
               <p>{t("email")}: info@reli.one</p>
               <p>
-                {t("address")}: {t("reli_address")}
+                {t("address")}: <span>{t("reli_address")}</span>
               </p>
             </div>
 
@@ -137,13 +190,12 @@ const Footer = () => {
           </div>
           <nav className={cls.Navigate_Container}>
             <ul>
+              <h3>For Clients</h3>
               <li>
                 <button className={cls.btnNavigate} onClick={() => setOpen(!open)}>
                   {t("enter_account")}
                 </button>
               </li>
-            </ul>
-            <ul>
               <li>
                 <Link className={cls.LinkNavigate} to={"/my_orders"}>
                   {t("footer_order")}
@@ -159,15 +211,11 @@ const Footer = () => {
                   {t("bin")}
                 </Link>
               </li>
-              <li>
-                {token && (
-                  <Link to={"/basket"} className={cls.LinkNavigate}>
-                    {t("bin")}
-                  </Link>
-                )}
-              </li>
             </ul>
+
             <ul>
+              <h3>For Providers</h3>
+
               <li>
                 <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
                   {t("for_seller")}
@@ -178,49 +226,46 @@ const Footer = () => {
                   {t("for_buyers")}
                 </Link>
               </li>
-            </ul>
-            <ul>
+
               <li>
                 <button onClick={() => setOpenPolicy(true)} className={cls.btnNavigate} href="#">
                   {t("privacySettings")}
                 </button>
               </li>
-              <li>
-                <Link to={"/general-protection"} className={cls.LinkNavigate} href="#">
-                  GDPR
-                </Link>
-              </li>
-              <li>
-                <a className={cls.LinkNavigate} href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">
-                  {t("terms")}
-                </a>
-              </li>
-              <li>
-                <Link to={"/privacy-policy"} className={cls.LinkNavigate}>
-                  {t("privacyPolicyFooter")}
-                </Link>
-              </li>
             </ul>
             <ul>
+              <h3>Company</h3>
+              <li>
+                <Link className={cls.LinkNavigate} to="/contact">
+                  Contact
+                </Link>
+              </li>
               <li>
                 <Link className={cls.LinkNavigate} to="https://info.reli.one">
                   {t("about_company")}
                 </Link>
               </li>
             </ul>
+
+            <ul>
+
+            </ul>
           </nav>
-          <div className={cls.bankDetailWrap}>
-            <p>Bank detail:</p>
-            <p>DIČ: CZ28003896</p>
-            <p>Bank: Raiffeisen Bank</p>
-            <p>SWIFT (BIC): RZBCCZPP</p>
-            <p>Account number/bank code: 5003011074/5500</p>
-            <p>Company Identification Number: 28003896</p>
-            <p>IBAN: CZ9455000000005003011074</p>
-          </div>
+
+
 
           <div className={cls.bottomElem}>
-            <p className={cls.bottomDesc}>(c) Copyright 2025 Reli Group</p>
+            <p className={cls.bottomDesc}>(c) Copyright 2026 Reli Group</p>
+          </div>
+        </div>
+        <div className={cls.payMethodWrap}>
+          <h2>Payment Methods</h2>
+          <div>
+            {
+              paymentImages.map((img) => (
+                <img src={img} alt="" />
+              ))
+            }
           </div>
         </div>
         <LoginModal open={open} handleClose={() => setOpen(false)} />

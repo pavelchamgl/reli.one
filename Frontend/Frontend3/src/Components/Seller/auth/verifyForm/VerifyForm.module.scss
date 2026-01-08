@@ -1,0 +1,50 @@
+@import url("../resetForm/ResetForm.module.scss");
+.emailText {
+  font-weight: 400;
+  font-size: 14px;
+  text-align: center;
+  color: #101828;
+  margin-top: 7px;
+}
+
+.verifyInpWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+
+  & p {
+    font-weight: 500;
+    font-size: 13px;
+    text-align: center;
+    color: #364153;
+  }
+}
+
+.resendBtn {
+  font-weight: 500;
+  font-size: 14px;
+  color: #3f7f6d;
+
+  background-color: transparent;
+}
+
+.resentText {
+  font-weight: 500;
+  font-size: 14px;
+  color: #99a1af;
+  text-align: center;
+}
+
+.timerDiv {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.form {
+  @media (max-width: 500px) {
+    padding: 20px 15px;
+  }
+}

@@ -1,9 +1,9 @@
 import styles from "./AuthBtnSeller.module.scss"
 
-const AuthBtnSeller = ({ text }) => {
+const AuthBtnSeller = ({ text, style, disabled, handleClick }) => {
     return (
         <>
-            <button type="submit" className={styles.btn}>
+            <button style={style} type="submit" className={styles.btn} disabled={disabled} onClick={handleClick}>
                 {text}
             </button>
         </>

@@ -6,26 +6,26 @@ import eyeClIc from "../../../../assets/Seller/auth/eyeCl.svg"
 import styles from "./InputSeller.module.scss"
 import { useState } from "react"
 
-const InputSeller = ({ type, title }) => {
+const InputSeller = ({ type, title, img, circle, required, afterText }) => {
 
     const [inpType, setInpType] = useState(type)
 
-    if (type !== "password") {
+    if (type === "email") {
         return (
-            <label>
-                <h5 className={styles.inpTitle}>{title}</h5>
-                <div className={styles.inpWrap}>
+            <label className={styles.labelWrap}>
+                <h5 className={required ? styles.titleRequired : styles.inpTitle}>{title}</h5>
+                <div className={styles.inpWrap} style={{ borderRadius: circle ? "16px" : "" }}>
                     <img src={emailIc} alt="" />
                     <input type={type} name="" id="" />
                 </div>
             </label>
         )
     }
-    else {
+    else if (type === "password") {
         return (
-            <label>
-                <h5 className={styles.inpTitle}>{title}</h5>
-                <div className={styles.inpWrap}>
+            <label className={styles.labelWrap}>
+                <h5 className={required ? styles.titleRequired : styles.inpTitle}>{title}</h5>
+                <div className={styles.inpWrap} style={{ borderRadius: circle ? "16px" : "" }}>
                     <img src={passIc} alt="" />
                     <input type={inpType} name="" id="" />
                     <button type="button" onClick={() => {
@@ -38,6 +38,21 @@ const InputSeller = ({ type, title }) => {
                         <img src={inpType === "password" ? eyeClIc : eyeOpIc} alt="" />
                     </button>
                 </div>
+            </label>
+        )
+    } else {
+        return (
+            <label className={styles.labelWrap}>
+                <h5 className={required ? styles.titleRequired : styles.inpTitle}>{title}</h5>
+                <div className={styles.inpWrap} style={{ borderRadius: circle ? "16px" : "" }}>
+                    {
+                        img ?
+                            <img src={img} alt="" /> :
+                            null
+                    }
+                    <input type={type} name="" id="" />
+                </div>
+                {afterText && <p className={styles.afterText}>{afterText}</p>}
             </label>
         )
     }

@@ -1,0 +1,199 @@
+$back: linear-gradient(
+  161deg,
+  rgba(250, 254, 254, 0.68) 0%,
+  rgba(244, 255, 250, 0.68) 50%,
+  rgba(250, 245, 255, 0.68) 100%
+);
+
+@mixin desc() {
+  font-weight: 400;
+  font-size: 16px;
+  color: #4a5565;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 70px;
+
+  @media (max-width: 500px) {
+    padding-block: 10px;
+    padding-bottom: 60px;
+  }
+}
+
+.titleWrap {
+  width: 100%;
+  background: $back;
+  padding: 96px 0;
+
+  & h1 {
+    font-weight: 400;
+    font-size: clamp(36px, 5vw, 48px);
+    text-align: center;
+    color: #101828;
+    margin-bottom: 23px;
+  }
+
+  & p {
+    font-weight: 400;
+    font-size: clamp(18px, 5vw, 20px);
+    text-align: center;
+    color: #4a5565;
+  }
+}
+
+.contactBlockBorder {
+  background: #fff;
+  box-shadow:
+    0 1px 2px -1px rgba(0, 0, 0, 0.1),
+    0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  border: 1.2px solid #f3f4f6;
+  padding: 33px;
+  width: 400px;
+
+  & ul {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    list-style: none;
+
+    & p {
+      font-weight: 400;
+      font-size: 14px;
+      color: #101828;
+      margin-bottom: 4px;
+    }
+
+    & span {
+      @include desc();
+      display: block;
+    }
+  }
+
+  & h2 {
+    font-weight: 400;
+    font-size: clamp(24px, 5vw, 30px);
+    color: #101828;
+    margin-bottom: 22px;
+  }
+
+  @media (max-width: 500px) {
+    border: none;
+    box-shadow:
+      0 1px 2px -1px rgba(0, 0, 0, 0.1),
+      0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    background: #fff;
+    width: 100%;
+  }
+}
+
+.bigBlock {
+  height: 550px;
+  @media (max-width: 500px) {
+    height: auto;
+  }
+}
+
+.hoursDesc {
+  @include desc();
+  margin-bottom: 20px;
+}
+
+.hoursItems {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  & span {
+    font-family: var(--ft);
+    font-weight: 300;
+    font-size: 15px;
+    color: #101828;
+  }
+}
+
+.blocksBordWrap {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  margin-top: 70px;
+  margin-bottom: 32px;
+
+  @media (max-width: 900px) {
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 500px) {
+    padding: 0 10px;
+  }
+}
+
+.blocksBordWrapFirst {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.bankBlock {
+  box-shadow:
+    0 1px 2px -1px rgba(0, 0, 0, 0.1),
+    0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background: $back;
+  border-radius: 14px;
+  padding: 33px;
+  max-width: 831px;
+  width: 100%;
+
+  & h2 {
+    font-weight: 400;
+    font-size: clamp(24px, 5vw, 30px);
+    color: #101828;
+    margin-bottom: 23px;
+  }
+
+  & ul {
+    width: 100%;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 23px;
+
+    @media (max-width: 500px) {
+      flex-direction: column;
+    }
+
+    & li {
+      width: calc(50% - 23px);
+      @media (max-width: 500px) {
+        width: 100%;
+      }
+    }
+  }
+
+  & p {
+    font-weight: 400;
+    font-size: 14px;
+    color: #101828;
+    margin-bottom: 2px;
+  }
+
+  & span {
+    font-weight: 400;
+    font-size: 16px;
+    color: #4a5565;
+  }
+}
+
+.bankBlockWrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  @media (max-width: 500px) {
+    padding: 0 10px;
+  }
+}

@@ -1,0 +1,74 @@
+{
+    "mainTitle": "O společnosti Reli Group s.r.o.",
+    "mainDesc": "Společnost s průmyslovými kořeny - Marketplace postavený na operační excelenci.",
+    "corporateBlock": {
+        "title": "Firemní background",
+        "text1": "Společnost Reli Group s.r.o. se sídlem v České republice.",
+        "text2": "Byla původně založena jako distributor fotovoltaických panelů a souvisejících energetických řešení.",
+        "text3": "V rámci tohoto působení si podnik vybudoval významné kompetence v oblasti:",
+        "list": {
+            "list1": "provozní efektivita,",
+            "list2": "spolehlivost v řízení dodavatelského řetězce,",
+            "list3": "transparentní partnerské vztahy,",
+            "list4": "dodržování předpisů a kontrola kvality,",
+            "list5": "dlouhodobá udržitelnost podnikání."
+        },
+        "text4": "Díky konzistentnímu výkonu a dodržování technických i obchodních norem si společnost vybudovala pozici důvěryhodného a stabilního partnera v rámci evropského sektoru obnovitelných zdrojů."
+    },
+    "strategicBlock": {
+        "title": "Strategická transformace",
+        "text1": "V reakci na rychle se vyvíjející digitální ekonomiku zahájila společnost Reli Group s.r.o. strategickou transformaci:",
+        "text2": "z úzce specializované distribuční společnosti na moderní digitální obchodní platformu.",
+        "text3": "Tato změna vycházela z jasných poznatků trhu:",
+        "text4": "Díky našim provozním zkušenostem, investicím do technologií a praxi v řízení rozsáhlých partnerských sítí jsme vyvinuli Marketplace Reli (www.reli.one), tržiště nové generace navržené na podporu podniků všech velikostí.",
+        "list": {
+            "list1": "podniky vyžadují efektivní a důvěryhodné online prodejní kanály;",
+            "list2": "moderní tržiště často postrádají transparentnost vůči svým prodejcům;",
+            "list3": "společnosti potřebují platformy fungující s disciplínou B2C/B2B podniku."
+        }
+    },
+    "valueBlock": {
+        "title": "Hodnota pro prodejce",
+        "text1": "Prodejci, kteří se připojí k Reli.one, získají:",
+        "text2": "Naším cílem je vytvořit ekosystém tržiště, ve kterém mohou prodejci fungovat efektivně, udržitelně růst a soustředit se na to, co umí nejlépe – rozvoj svého podnikání.",
+        "list": {
+            "list1": "rozšířený dosah na trhu v rámci regionu EU;",
+            "list2": "profesionálně řízenou platformu s důrazem na kvalitu a spolehlivost;",
+            "list3": "nástroje podporující růst: přehledy produktů, analýzu prodeje a propagační funkce;",
+            "list4": "bezpečné a transparentní finanční procesy;"
+        }
+    },
+    "visionBlock": {
+        "title": "Naše vize",
+        "text1": "Společnost Reli Group s.r.o. se zavazuje vybudovat Reli.one jako přední evropské digitální tržiště založené na důvěře, provozní dokonalosti a obchodní integritě.",
+        "text2": "Naším cílem je propojit podniky, značky a tvůrce se zákazníky prostřednictvím platformy, která odráží profesionální standardy a dlouhodobé strategické myšlení."
+    },
+    "reslexpBlock": {
+        "title": "Reli.one – tržiště vybudované společností se skutečnými zkušenostmi",
+        "text1": "Naše historie v oblasti solární energetiky nás naučila hodnotě preciznosti, dodržování předpisů a spolehlivosti.",
+        "text2": "Tyto hodnoty dnes definují naše tržiště.",
+        "text3": "Prodejci, kteří spolupracují s Reli.one, získávají přístup k platformě vybudované nikoli na spekulacích, ale na zkušenostech, struktuře a korporátní disciplíně."
+    },
+    "adavantageBlock": {
+        "title": "Tržiště Reli.one",
+        "text1": "Reli.one je vícekategoriové online tržiště vybudované na principech, které odrážejí naše korporátní dědictví:",
+        "blocks": {
+            "block1": {
+                "title": "Provozní spolehlivost",
+                "desc": "Robustní platforma navržená se stejnou mírou preciznosti a procesní orientace, jaká se uplatňuje v průmyslové distribuci."
+            },
+            "block2": {
+                "title": "Transparentní podnikatelské prostředí",
+                "desc": "Jasné podmínky, předvídatelné poplatky a žádné neočekávané změny. Prodejci fungují s jistotou a dlouhodobou přehledností."
+            },
+            "block3": {
+                "title": "Škálovatelná digitální infrastruktura",
+                "desc": "Bezpečné platby, automatizované systémy, detailní analytika a integrované obchodní nástroje – vše navrženo pro profesionální využití."
+            },
+            "block4": {
+                "title": "Přístup založený na partnerství",
+                "desc": "Budujeme dlouhodobé vztahy s prodejci, podporujeme jejich růst a vnímáme je jako strategické partnery, nikoli pouze účastníky platformy."
+            }
+        }
+    }
+}

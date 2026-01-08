@@ -56,6 +56,15 @@ import NewSellerOrderDetal from "./sellerPages/NewSellerOrderDetal/NewSellerOrde
 import SellerLogin from "./sellerPages/SellerLogin/SellerLogin.jsx";
 import SellerReset from "./sellerPages/SellerReset/SellerReset.jsx";
 import SellerSuccessfullyReset from "./sellerPages/SellerSuccessfullyReset/SellerSuccessfullyReset.jsx";
+import SellerVerifyEmail from "./sellerPages/SellerVerifyEmail/SellerVerifyEmail.jsx";
+import SellerCreateNewPass from "./sellerPages/SellerCreateNewPass/SellerCreateNewPass.jsx";
+import SellerType from "./sellerPages/SellerTypePage/SellerType.jsx";
+import SellerCreateAccount from "./sellerPages/SellerCreateAccount/SellerCreateAccount.jsx";
+import CreateVerifyEmail from "./sellerPages/CreateVerifyEmail/CreateVerifyEmail.jsx";
+import ApplicationSubmited from "./sellerPages/ApplicationSubmited/ApplicationSubmited.jsx";
+import SellerInformation from "./sellerPages/SellerInformation/SellerInformation.jsx";
+import ReviewInfoPage from "./sellerPages/ReviewInfoPage/ReviewInfoPage.jsx";
+import ContactPage from "./pages/ContactPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -83,6 +92,9 @@ const router = createBrowserRouter([
       { path: "/my_orders", element: <MyOrdersPage /> },
       { path: "/product/:id", element: <ProductPage /> },
       { path: "/payment_end", element: <PaymentEnd /> },
+      {
+        path: "/contact", element: <ContactPage />
+      },
 
 
       { path: "/change_pass", element: <ChangePassPage /> },
@@ -187,6 +199,38 @@ const router = createBrowserRouter([
       {
         path: "successfully-reset",
         element: <SellerSuccessfullyReset />
+      },
+      {
+        path: "verify-email",
+        element: <SellerVerifyEmail />
+      },
+      {
+        path: "create-password",
+        element: <SellerCreateNewPass />
+      },
+      {
+        path: "seller-type",
+        element: <SellerType />
+      },
+      {
+        path: "create-account",
+        element: <SellerCreateAccount />
+      },
+      {
+        path: "create-verify",
+        element: <CreateVerifyEmail />
+      },
+      {
+        path: "application-sub",
+        element: <ApplicationSubmited />
+      },
+      {
+        path: "seller-info",
+        element: <SellerInformation />
+      },
+      {
+        path: "seller-review",
+        element: <ReviewInfoPage />
       }
     ],
   },

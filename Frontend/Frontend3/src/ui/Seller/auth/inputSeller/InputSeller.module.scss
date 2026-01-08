@@ -43,3 +43,30 @@
 .inpWrap:has(button:active) {
   border: 1.47px solid #3f7f6d;
 }
+
+.labelWrap {
+  width: 100%;
+}
+
+.titleRequired {
+  font-weight: 500;
+  font-size: 13px;
+  color: #364153;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.titleRequired::after {
+  content: "*";
+  display: block;
+  margin-left: 3px;
+  color: red;
+}
+
+.afterText {
+  font-weight: 400;
+  font-size: 12px;
+  color: #6a7282;
+  margin-top: 8px;
+}

@@ -6,6 +6,9 @@ import { I18nextProvider } from "react-i18next"
 import i18n from './language/i18next.js';
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import ForSeller from './pages/ForSeller/ForSeller.jsx';
+import AboutPage from './pages/AboutPage/AboutPage.jsx';
+import ContactPage from './pages/ContactPage/ContactPage.jsx';
+import PricingAndCommision from './pages/PricingAndCommission/PricingAndCommision.jsx';
 
 
 const router = createBrowserRouter([
@@ -16,6 +19,18 @@ const router = createBrowserRouter([
   {
     path: "/for-sell",
     element: <ForSeller />
+  },
+  {
+    path: "/about",
+    element: <AboutPage />
+  },
+  {
+    path: "/contact",
+    element: <ContactPage />
+  },
+  {
+    path: "/pricing-commission",
+    element: <PricingAndCommision />
   }
 ])
 

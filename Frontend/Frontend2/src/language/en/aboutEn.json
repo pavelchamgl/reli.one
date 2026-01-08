@@ -1,0 +1,74 @@
+{
+    "mainTitle": "About Reli Group s.r.o.",
+    "mainDesc": "A Company with Industrial Roots - A Marketplace Built on Operational Excellence.",
+    "corporateBlock": {
+        "title": "Corporate Overview",
+        "text1": "Reli Group s.r.o. is a European company headquartered in the Czech Republic.",
+        "text2": "Originally established as a distributor of solar panel solutions, we built our foundation in the highly regulated and competitive energy sector.",
+        "text3": "Through our experience operating in a technical, logistics-heavy industry, we developed a strong focus on:",
+        "list": {
+            "list1": "operational efficiency,",
+            "list2": "reliability in supply chain management,",
+            "list3": "transparent partner relationships,",
+            "list4": "compliance and quality control,",
+            "list5": "long-term business sustainability."
+        },
+        "text4": "These values have positioned Reli Group s.r.o. as a trusted and stable partner for businesses across several markets."
+    },
+    "strategicBlock": {
+        "title": "Strategic Transformation",
+        "text1": "In response to the fast-evolving digital economy, Reli Group s.r.o. initiated a strategic transformation:",
+        "text2": "from a specialized distribution company to a modern digital commerce platform.",
+        "text3": "The shift followed clear market insights:",
+        "text4": "Leveraging our operational expertise, technology investments, and experience managing large partner networks, we developed Marketplace Reli (www.reli.one), a next-generation marketplace designed to support businesses of all sizes.",
+        "list": {
+            "list1": "businesses require efficient and credible online sales channels;",
+            "list2": "modern marketplaces often lack transparency toward their sellers;",
+            "list3": "companies need platforms that operate with the discipline of a B2C/B2B enterprise."
+        }
+    },
+    "valueBlock": {
+        "title": "Value for Sellers",
+        "text1": "Sellers joining Reli.one benefit from:",
+        "text2": "Our goal is to create a marketplace ecosystem where sellers can operate efficiently, scale sustainably, and focus on what they do best - building their business.",
+        "list": {
+            "list1": "expanded market reach across the EU region;",
+            "list2": "a professionally managed platform, prioritizing quality and reliability;",
+            "list3": "growth-enabling tools: product insights, sales analytics, and promotional features;",
+            "list4": "secure and transparent financial processes;"
+        }
+    },
+    "visionBlock": {
+        "title": "Our Vision",
+        "text1": "Reli Group s.r.o. is committed to establishing Reli.one as a leading European digital marketplace built on trust, operational excellence, and business integrity.",
+        "text2": "We aim to connect businesses, brands, and creators with customers through a platform that reflects professional standards and long-term strategic thinking."
+    },
+    "reslexpBlock": {
+        "title": "Reli.one - A Marketplace Built by a Business with Real Experience",
+        "text1": "Our history in the solar energy sector taught us the value of precision, compliance, and reliability.",
+        "text2": "These values now define our marketplace.",
+        "text3": "Sellers who partner with Reli.one gain access to a platform built not on speculation, but on experience, structure, and corporate discipline."
+    },
+    "adavantageBlock": {
+        "title": "Reli.one Marketplace",
+        "text1": "Reli.one is a multi-category online marketplace built on principles that reflect our corporate heritage:",
+        "blocks": {
+            "block1": {
+                "title": "Operational Reliability",
+                "desc": "A robust platform designed with the same precision and process orientation used in industrial distribution."
+            },
+            "block2": {
+                "title": "Transparent Business Environment",
+                "desc": "Clear conditions, predictable fees, and no unexpected changes. Sellers operate with confidence and long-term visibility."
+            },
+            "block3": {
+                "title": "Scalable Digital Infrastructure",
+                "desc": "Secure payments, automated systems, detailed analytics, and integrated business tools - all designed for professional use."
+            },
+            "block4": {
+                "title": "Partnership-Driven Approach",
+                "desc": "We build long-term relationships with sellers, supporting their growth and treating them as strategic partners, not just platform participants."
+            }
+        }
+    }
+}
