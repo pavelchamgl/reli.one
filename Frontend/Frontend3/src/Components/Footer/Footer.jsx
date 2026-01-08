@@ -151,7 +151,7 @@ const Footer = () => {
 
 
         <div className={cls.mobBottomWrap}>
-          <p className={cls.mobBottomDesc}>(c) Copyright 2026 Reli Group s.r.o</p>
+          <p className={cls.mobBottomDesc}>(c) Copyright 2026 Reli Group s.r.o.</p>
         </div>
 
         <div className={cls.payMethodWrap}>
@@ -255,7 +255,7 @@ const Footer = () => {
 
 
           <div className={cls.bottomElem}>
-            <p className={cls.bottomDesc}>(c) Copyright 2026 Reli Group s.r.o</p>
+            <p className={cls.bottomDesc}>(c) Copyright 2026 Reli Group s.r.o.</p>
           </div>
         </div>
         <div className={cls.payMethodWrap}>
