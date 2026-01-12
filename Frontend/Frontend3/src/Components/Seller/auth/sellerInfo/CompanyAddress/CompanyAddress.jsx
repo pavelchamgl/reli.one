@@ -1,12 +1,12 @@
-
 import { useState } from "react"
-import warehouseIc from "../../../../../assets/Seller/register/warehouseIc.svg"
+
+import companyAddressIc from "../../../../../assets/Seller/register/companyAddress.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 
-import styles from "./WareHouseAddress.module.scss"
+import styles from "./CompanyAddress.module.scss"
 
-const WhareHouseAddress = ({ formik }) => {
+const CompanyAddress = ({ formik }) => {
 
     const [country, setCountry] = useState(null)
 
@@ -22,8 +22,8 @@ const WhareHouseAddress = ({ formik }) => {
         <div className={styles.main}>
 
             <div className={styles.titleWrap}>
-                <img src={warehouseIc} alt="" />
-                <h2>Warehouse Address</h2>
+                <img src={companyAddressIc} alt="" />
+                <h2>Company Address</h2>
             </div>
 
             <div className={styles.inpWrapMain}>
@@ -45,4 +45,4 @@ const WhareHouseAddress = ({ formik }) => {
     )
 }
 
-export default WhareHouseAddress
+export default CompanyAddress
