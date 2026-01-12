@@ -65,6 +65,7 @@ import ApplicationSubmited from "./sellerPages/ApplicationSubmited/ApplicationSu
 import SellerInformation from "./sellerPages/SellerInformation/SellerInformation.jsx";
 import ReviewInfoPage from "./sellerPages/ReviewInfoPage/ReviewInfoPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
+import SellerCompanyInfo from "./sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx";
 
 const router = createBrowserRouter([
   {
@@ -231,6 +232,10 @@ const router = createBrowserRouter([
       {
         path: "seller-review",
         element: <ReviewInfoPage />
+      },
+      {
+        path: "seller-company",
+        element: <SellerCompanyInfo />
       }
     ],
   },

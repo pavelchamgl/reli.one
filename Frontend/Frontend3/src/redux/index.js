@@ -17,6 +17,7 @@ import { reducer as editGoodsSlice } from "./editGoodsSlice"
 import { reducer as warehouseSlice } from "./warehouseSlice"
 import { reducer as sellerStaticsSlice } from "./sellerStaticsSlice"
 import { reducer as sellerGoodsListSlice } from "./sellerGoodsListSlice"
+import { reducer as selfEmploedSlice } from "./selfEmployed"
 
 
 // Импорт
@@ -24,7 +25,7 @@ import { reducer as sellerGoodsListSlice } from "./sellerGoodsListSlice"
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['basket', 'payment'], // только эти слайсы сохраняются
+    whitelist: ['basket', 'payment', "selfEmploed"], // только эти слайсы сохраняются
 }
 
 const rootReducer = combineReducers({
@@ -40,7 +41,8 @@ const rootReducer = combineReducers({
     edit_goods: editGoodsSlice,
     warehouse: warehouseSlice,
     seller_statics: sellerStaticsSlice,
-    seller_goods: sellerGoodsListSlice
+    seller_goods: sellerGoodsListSlice,
+    selfEmploed: selfEmploedSlice
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

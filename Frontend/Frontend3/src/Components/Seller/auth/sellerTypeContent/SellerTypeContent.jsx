@@ -3,12 +3,12 @@ import TitleAndDesc from '../../../../ui/Seller/auth/titleAndDesc/TitleAndDesc'
 import AuthBtnSeller from '../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller'
 
 import solfIc from "../../../../assets/Seller/register/solfIc.svg"
-import companyIc from "../../../../assets/Seller/register/companyIc.svg"
+import companyIc from "../../../../assets/Seller/register/companyBigIc.svg"
 import sellerTypeMark from "../../../../assets/Seller/register/sellerTypeMark.svg"
 
 import styles from "./SellerTypeContent.module.scss"
 import StepWrap from '../../../../ui/Seller/register/stepWrap/StepWrap'
-import { postSellerType } from '../../../../api/seller/onboarding'
+import { getOnboardingStatus, postSellerType } from '../../../../api/seller/onboarding'
 import { ErrToast } from '../../../../ui/Toastify'
 
 const SellerTypeContent = () => {
@@ -16,9 +16,10 @@ const SellerTypeContent = () => {
 
 
     const [company, setCompany] = useState(null)
+    const [status, setStatus] = useState(null)
 
     useEffect(() => {
-
+        getOnboardingStatus()
     }, [])
     // ? для дальнейшей обработки и проверки статуса
 

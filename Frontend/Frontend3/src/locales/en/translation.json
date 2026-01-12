@@ -1086,8 +1086,12 @@
         "desc": "This Policy is reviewed and updated regularly to ensure it remains effective and aligned with legal and industry standards."
     },
     "furtherInformation": {
-        "title":"17. Further information",
-        "text":"For general information about the GDPR, please refer to:",
-        "url":"www.gdpr.eu"
+        "title": "17. Further information",
+        "text": "For general information about the GDPR, please refer to:",
+        "url": "www.gdpr.eu"
+    },
+    "tgMessage": {
+        "text": "Buyer support.",
+        "text1": "Questions about products, orders, or using Reli."
     }
 }

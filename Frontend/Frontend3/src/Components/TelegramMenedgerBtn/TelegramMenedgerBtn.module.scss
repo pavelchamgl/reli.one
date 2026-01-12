@@ -32,10 +32,11 @@
   box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.1),
     0 10px 15px -3px rgba(0, 0, 0, 0.1);
   background: #101828;
+  width: 246px;
   font-weight: 500;
   font-size: 14px;
   color: #fff;
-  white-space: nowrap;
+  // white-space: nowrap;
 
   opacity: 0;
   transform: translateX(20px);

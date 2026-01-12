@@ -37,3 +37,37 @@ export const postSellerType = async (type) => {
         };
     }
 };
+
+
+
+export const getOnboardingStatus = async () => {
+    try {
+        const res = await mainInstance.get("/sellers/onboarding/state/")
+        console.log(res);
+        // ! выдает 403, как только исправят добью доконца
+
+    } catch (error) {
+        console.log(error);
+
+    }
+}
+
+export const putOnboardingData = async (obj) => {
+    try {
+        const res = await mainInstance.put("/sellers/onboarding/bank/", obj)
+        console.log(res);
+
+    } catch (error) {
+
+    }
+}
+
+export const putPersonalData = async (obj) => {
+    try {
+        const res = await mainInstance.put("/sellers/onboarding/self-employed/personal/", obj)
+        console.log(res);
+
+    } catch (error) {
+
+    }
+}
