@@ -36,7 +36,7 @@
   font-weight: 500;
   font-size: 14px;
   color: #fff;
-  white-space: nowrap;
+  width: 332px;
 
   opacity: 0;
   transform: translateX(20px);
@@ -58,6 +58,10 @@
     border-top: 15px solid transparent;
     border-bottom: 15px solid transparent;
     border-left: 17px solid #101828;
+  }
+
+  @media (max-width: 500px) {
+    width: 200px;
   }
 }
 

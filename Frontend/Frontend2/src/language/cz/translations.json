@@ -113,5 +113,9 @@
         "title": "10. Zasílání obchodních sdělení",
         "desc": "Pro zasílání obchodních sdělení je nutný výslovný souhlas příjemce (zásada opt-in), nebo musí jít o vlastního zákazníka, kterému jsou zasílána za splnění podmínek § 7 odst. 3 zákona č. 480/2004 Sb.. Obchodní sdělení musí být jasně označeno, obsahovat identifikaci odesílatele a funkční odkaz pro odhlášení. Porušení těchto pravidel může vést k pokutám od Úřadu pro ochranu osobních údajů.",
         "endText": "Pokračováním v používání Reli Group s.r.o. potvrzujete, že jste si přečetli a souhlasíte s tím, že budete dodržovat tyto Zásady důvěrnosti a ochrany osobních údajů. "
+    },
+    "whatsappText": {
+        "text1": "Pouze pro dotazy prodejců.",
+        "text2": "V případě zájmu o prodej na platformě Reli nás prosím kontaktujte zde."
     }
 }

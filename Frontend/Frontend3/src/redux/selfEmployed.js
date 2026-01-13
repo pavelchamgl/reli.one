@@ -6,12 +6,22 @@ const selfEmploedSlice = createSlice({
     initialState: {
         selfData: {
 
+        },
+        companyData: {
+
         }
     },
     reducers: {
         safeData: (state, action) => {
             state.selfData = {
                 ...state.selfData, ...action.payload
+            }
+        },
+        safeCompanyData: (state, action) => {
+            console.log(action.payload);
+            
+            state.companyData = {
+                ...state.companyData, ...action.payload
             }
         }
     },
@@ -20,5 +30,5 @@ const selfEmploedSlice = createSlice({
     }
 })
 
-export const { safeData } = selfEmploedSlice.actions
+export const { safeData, safeCompanyData } = selfEmploedSlice.actions
 export const { reducer } = selfEmploedSlice

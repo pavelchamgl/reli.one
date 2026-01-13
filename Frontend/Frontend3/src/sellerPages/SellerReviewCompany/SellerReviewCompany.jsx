@@ -1,23 +1,22 @@
-import { useEffect } from "react"
 import { useSelector } from "react-redux"
 
-import AccountInfo from "../../Components/Seller/auth/review/accountInfo/AccountInfo"
+import WarehouseAndReturn from "../../Components/Seller/auth/review/WarehouseAndReturn/WarehouseAndReturn"
 import FormWrap from "../../ui/Seller/auth/formWrap/FormWrap"
 import TitleAndDesc from "../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
 import StepWrap from "../../ui/Seller/register/stepWrap/StepWrap"
-import PersonalDetails from "../../Components/Seller/auth/review/personalDetails/PersonalDetails"
-import BusinessAddress from "../../Components/Seller/auth/review/businessAddress/BusinessAddress"
-import BankAccount from "../../Components/Seller/auth/review/bankAccount/BankAccount"
-import WarehouseAndReturn from "../../Components/Seller/auth/review/WarehouseAndReturn/WarehouseAndReturn"
 import SubBtn from "../../ui/Seller/review/subBtn/SubBtn"
+
+import styles from "./SellerReviewCompany.module.scss"
+import BankAccount from "../../Components/Seller/auth/review/bankAccount/BankAccount"
+import AccountInfo from "../../Components/Seller/auth/review/accountInfo/AccountInfo"
+import BusinessAddress from "../../Components/Seller/auth/review/businessAddress/BusinessAddress"
+import CompanyInfo from "../../Components/Seller/auth/review/companyInfo/CompanyInfo"
 import { getReviewOnboarding, postSubmitOnboarding } from "../../api/seller/onboarding"
+import { useEffect } from "react"
 
-import styles from "./ReviewInfoPage.module.scss"
+const SellerReviewCompany = () => {
 
-const ReviewInfoPage = () => {
-
-    const { selfData } = useSelector(state => state.selfEmploed)
-
+    const { companyData } = useSelector(state => state.selfEmploed)
 
     useEffect(() => {
         getReviewOnboarding()
@@ -33,7 +32,6 @@ const ReviewInfoPage = () => {
         }
     }
 
-
     return (
         <FormWrap style={{ height: "100%" }}>
             <div className={styles.main}>
@@ -45,15 +43,14 @@ const ReviewInfoPage = () => {
 
                 </div>
 
-                <AccountInfo data={selfData} />
+                <AccountInfo data={companyData} />
+                <CompanyInfo data={companyData} />
 
-                <PersonalDetails data={selfData} />
+                <BusinessAddress data={companyData} />
 
-                <BusinessAddress data={selfData} />
+                <BankAccount data={companyData} />
 
-                <BankAccount data={selfData} />
-
-                <WarehouseAndReturn data={selfData} />
+                <WarehouseAndReturn data={companyData} />
 
                 <SubBtn onClick={handleSubmit} />
 
@@ -62,4 +59,4 @@ const ReviewInfoPage = () => {
     )
 }
 
-export default ReviewInfoPage
+export default SellerReviewCompany

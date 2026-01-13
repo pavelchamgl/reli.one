@@ -4,10 +4,14 @@ import arrBottom from "../../../../../assets/Seller/register/arrowBottom.svg"
 import styles from "./SellerInfoSelect.module.scss"
 
 
+
 const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required }) => {
 
     const [open, setOpen] = useState(false)
 
+
+
+    const selectText = arr?.find((item) => item?.value === value)
 
 
     return (
@@ -17,7 +21,7 @@ const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required
 
             <div className={styles.main}>
                 <button onClick={() => setOpen(!open)} className={styles.selectBtn}>
-                    <p>{value ? value : titleSellect}</p>
+                    <p>{value ? selectText?.text : titleSellect}</p>
                     <img className={!open ? styles.activeArrow : ""} src={arrBottom} alt="" />
                 </button>
 
@@ -25,9 +29,9 @@ const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required
                     <div>
                         {arr.map((item) => (
                             <button onClick={() => {
-                                setValue(item)
+                                setValue(item?.value)
                                 setOpen(false)
-                            }} className={styles.selectItem}>{item}</button>
+                            }} className={styles.selectItem}>{item?.text}</button>
                         ))}
                     </div>
                 }
