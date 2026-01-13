@@ -1,0 +1,18 @@
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 16.4C0 7.34253 7.34253 0 16.4 0H23.6C32.6575 0 40 7.34253 40 16.4V23.6C40 32.6575 32.6575 40 23.6 40H16.4C7.34253 40 0 32.6575 0 23.6V16.4Z" fill="url(#paint0_linear_6149_5927)"/>
+<g clip-path="url(#clip0_6149_5927)">
+<path d="M25 27.5V18.3333C25 18.1123 24.9122 17.9004 24.7559 17.7441C24.5996 17.5878 24.3877 17.5 24.1667 17.5H15.8333C15.6123 17.5 15.4004 17.5878 15.2441 17.7441C15.0878 17.9004 15 18.1123 15 18.3333V27.5" stroke="white" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.3337 25.833C28.3337 26.275 28.1581 26.699 27.8455 27.0115C27.5329 27.3241 27.109 27.4997 26.667 27.4997H13.3337C12.8916 27.4997 12.4677 27.3241 12.1551 27.0115C11.8426 26.699 11.667 26.275 11.667 25.833V16.6663C11.6668 16.3525 11.7552 16.045 11.9221 15.7791C12.089 15.5133 12.3276 15.3001 12.6103 15.1638L19.2353 11.8522C19.4719 11.7299 19.7344 11.666 20.0007 11.666C20.2671 11.666 20.5296 11.7299 20.7662 11.8522L27.3895 15.1638C27.6724 15.2999 27.9111 15.5132 28.0782 15.779C28.2452 16.0448 28.3338 16.3524 28.3337 16.6663V25.833Z" stroke="white" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15 20.833H25" stroke="white" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15 24.167H25" stroke="white" stroke-width="1.66667" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_6149_5927" x1="20" y1="0" x2="20" y2="40" gradientUnits="userSpaceOnUse">
+<stop stop-color="#4DA7F0"/>
+<stop offset="1" stop-color="#3F7F6D"/>
+</linearGradient>
+<clipPath id="clip0_6149_5927">
+<rect width="20" height="20" fill="white" transform="translate(10 10)"/>
+</clipPath>
+</defs>
+</svg>

@@ -1,0 +1,21 @@
+@import url("../accountInfo/AccountInfo.module.scss");
+
+.title {
+  font-weight: 500;
+  font-size: 14px;
+  color: #4a5565;
+  margin-bottom: 4px;
+}
+
+.desc {
+  font-weight: 400;
+  font-size: 14px;
+  color: #101828;
+}
+
+.firstBlock {
+  padding-bottom: 32px;
+  border-bottom: 1.28px solid #e5e7eb;
+  margin-bottom: 17px;
+  margin-top: 24px;
+}

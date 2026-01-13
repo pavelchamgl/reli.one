@@ -1,5 +1,7 @@
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import representativeIc from "../../../../../assets/Seller/register/representativeIc.svg"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
@@ -11,28 +13,44 @@ import SellerDateInp from "../dateInp/DateInp"
 
 const Representative = ({ formik }) => {
 
-    const [role, setRole] = useState(null)
-    const [nationality, setNationality] = useState(null)
+    const { companyData } = useSelector(state => state.selfEmploed)
+
+    const { safeCompanyData } = useActionSafeEmploed()
+
+    const [role, setRole] = useState(companyData?.role ?? null)
+    const [nationality, setNationality] = useState(companyData?.nationality ?? null)
 
 
 
 
 
     const roleArr = [
-        "Owner",
-        "Director",
-        "Managing Director",
-        "CEO",
-        "Authorized Signatory",
-    ]
+        { text: "Owner", value: "Owner" },
+        { text: "Director", value: "Director" },
+        { text: "Managing Director", value: "Managing Director" },
+        { text: "CEO", value: "CEO" },
+        { text: "Authorized Signatory", value: "Authorized Signatory" },
+    ];
 
     const nationalArr = [
-        "Czech Republic",
-        "Germany",
-        "France",
-        "Poland",
-        "United Kingdom",
-    ]
+        { text: "Czech Republic", value: "cz" },
+        { text: "Germany", value: "de" },
+        { text: "France", value: "fr" },
+        { text: "Poland", value: "pl" },
+        { text: "United Kingdom", value: "gb" }
+    ];
+
+    useEffect(() => {
+        if (role !== null) {
+            safeCompanyData({ role: role })
+        }
+    }, [role])
+
+    useEffect(() => {
+        if (nationality !== null) {
+            safeCompanyData({ nationality: nationality })
+        }
+    }, [nationality])
 
     return (
         <div className={styles.main}>
@@ -48,16 +66,16 @@ const Representative = ({ formik }) => {
 
                 <div className={styles.twoInpWrap}>
                     <InputSeller title={"First name"} type={"text"} circle={true} required={true} placeholder={"Jane"}
-                    // name="first_name"
-                    // value={formik.values.first_name}
-                    // onChange={formik.handleChange}
-                    // onBlur={formik.handleBlur}
+                        name="first_name"
+                        value={formik.values.first_name}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                     />
                     <InputSeller title={"Last name"} type={"text"} circle={true} required={true} placeholder={"Smith"}
-                    // name="first_name"
-                    // value={formik.values.first_name}
-                    // onChange={formik.handleChange}
-                    // onBlur={formik.handleBlur}
+                        name="last_name"
+                        value={formik.values.last_name}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
                     />
                 </div>
 

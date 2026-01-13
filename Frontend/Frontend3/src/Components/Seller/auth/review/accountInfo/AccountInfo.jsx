@@ -1,9 +1,15 @@
+
+
 import accountInfo from "../../../../../assets/Seller/register/accountInfoIc.svg"
-import editIc from "../../../../../assets/Seller/register/editIc.svg"
+import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from "./AccountInfo.module.scss"
 
-const AccountInfo = () => {
+const AccountInfo = ({ data, type }) => {
+
+
+
+
     return (
         <div className={styles.main}>
             <div className={styles.titleWrap}>
@@ -12,16 +18,13 @@ const AccountInfo = () => {
                     <h3>Account Information</h3>
                 </div>
 
-                <button>
-                    <img src={editIc} alt="" />
-                    Edit
-                </button>
+                <EditBtn />
             </div>
 
             <ul className={styles.infoList}>
                 <li>
                     <p>Name</p>
-                    <span>John Doe</span>
+                    <span>{`${data?.first_name} ${data?.last_name}`}</span>
                 </li>
                 <li>
                     <p>Email</p>
@@ -29,11 +32,11 @@ const AccountInfo = () => {
                 </li>
                 <li>
                     <p>Phone</p>
-                    <span>1234</span>
+                    <span>{data?.personal_phone||data?.company_phone}</span>
                 </li>
                 <li>
                     <p>Seller Type</p>
-                    <span>Self-employed / Sole proprietor</span>
+                    <span>{type === "company"?"Company / Legal entity":"Self-employed / Sole proprietor"}</span>
                 </li>
             </ul>
 

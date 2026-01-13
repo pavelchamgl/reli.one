@@ -1,24 +1,35 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
 
 import InputSeller from '../../../../../ui/Seller/auth/inputSeller/InputSeller'
 import SellerDateInp from '../dateInp/DateInp'
 import SellerInfoSellect from '../sellerinfoSellect/SellerInfoSellect'
 
 import taxInfo from "../../../../../assets/Seller/register/taxInfo.svg"
+import { useActionSafeEmploed } from '../../../../../hook/useActionSafeEmploed'
 
 import styles from './TaxInfo.module.scss'
 
 const TaxInfo = ({ formik }) => {
 
-    const [country, setCountry] = useState(null)
+    const { selfData } = useSelector(state => state.selfEmploed)
+
+    const [country, setCountry] = useState(selfData.tax_country)
+
 
     const countryArr = [
-        "Czech Republic",
-        "Germany",
-        "France",
-        "Poland",
-        "United Kingdom",
-    ]
+        { text: "Czech Republic", value: "cz" },
+        { text: "Germany", value: "de" },
+        { text: "France", value: "fr" },
+        { text: "Poland", value: "pl" },
+        { text: "United Kingdom", value: "gb" },  // или "uk"
+    ];
+
+    const { safeData } = useActionSafeEmploed()
+
+    useEffect(() => {
+        safeData({ tax_country: country })
+    }, [country])
 
     return (
         <div className={styles.main}>

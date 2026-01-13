@@ -1,0 +1,19 @@
+.subBtn {
+  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.1),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(180deg, #3f7f6d 0%, #2d5f52 100%), #3f7f6d;
+  border-radius: 16px;
+  width: 272px;
+  height: 56px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.subBtn:hover {
+  background-color: #346c5c;
+}

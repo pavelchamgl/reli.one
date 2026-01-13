@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  z-index: 2000;
+  z-index: 1199;
 
   &:hover .label {
     opacity: 1;
@@ -32,7 +32,7 @@
   box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.1),
     0 10px 15px -3px rgba(0, 0, 0, 0.1);
   background: #101828;
-  width: 246px;
+  width: 332px;
   font-weight: 500;
   font-size: 14px;
   color: #fff;
@@ -56,6 +56,10 @@
     border-top: 15px solid transparent;
     border-bottom: 15px solid transparent;
     border-left: 17px solid #101828;
+  }
+
+  @media (max-width:500px) {
+    width: 200px;
   }
 }
 

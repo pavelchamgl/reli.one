@@ -1,24 +1,36 @@
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
 
 import addressIc from "../../../../../assets/Seller/register/addressIc.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./Address.module.scss"
 
 const AddressBlock = ({ formik }) => {
 
-    const [country, setCountry] = useState(null)
+    const { selfData } = useSelector(state => state.selfEmploed)
+
+
+    const [country, setCountry] = useState(selfData.address_country)
 
     const countryArr = [
-        "Czech Republic",
-        "Germany",
-        "France",
-        "Poland",
-        "United Kingdom",
+        { text: "Czech Republic", value: "cz" },
+        { text: "Germany", value: "de" },
+        { text: "France", value: "fr" },
+        { text: "Poland", value: "pl" },
+        { text: "United Kingdom", value: "gb" }
     ]
+
+    const { safeData } = useActionSafeEmploed()
+
+    useEffect(() => {
+        safeData({ address_country: country })
+    }, [country])
+
 
     return (
         <div className={styles.main}>

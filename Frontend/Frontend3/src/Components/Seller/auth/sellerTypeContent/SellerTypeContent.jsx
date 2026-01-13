@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from "react-router-dom"
 import TitleAndDesc from '../../../../ui/Seller/auth/titleAndDesc/TitleAndDesc'
 import AuthBtnSeller from '../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller'
 
@@ -13,22 +14,40 @@ import { ErrToast } from '../../../../ui/Toastify'
 
 const SellerTypeContent = () => {
 
+    const navigate = useNavigate()
+
 
 
     const [company, setCompany] = useState(null)
     const [status, setStatus] = useState(null)
 
     useEffect(() => {
-        getOnboardingStatus()
+        getOnboardingStatus().then((res) => {
+            console.log(res);
+            setStatus(res.status)
+        }).catch((err) => {
+            ErrToast(err.message)
+
+        })
+
     }, [])
     // ? для дальнейшей обработки и проверки статуса
 
     const handleChooseSellerType = async () => {
         if (!company) return;
+        if (status !== "draft") return
 
         try {
             const res = await postSellerType(company);
             console.log("Успех:", res);
+
+            if (res.status === 200) {
+                if (company === "company") {
+                    navigate("/seller/seller-company")
+                } else {
+                    navigate("/seller/seller-info")
+                }
+            }
 
         } catch (err) {
             console.log("Ошибка:", err);

@@ -1,24 +1,36 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 import personalIc from "../../../../../assets/Seller/register/personalDetailIc.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller";
 import SellerDateInp from "../dateInp/DateInp";
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect";
 import UploadInp from "../uploadInp/UploadInp";
+
 import styles from './PersonalDetails.module.scss';
+import { useSelector } from "react-redux";
 
 const PersonalDetails = ({ formik }) => {
 
-  const [nationality, setNationality] = useState(null)
+  const { selfData } = useSelector(state => state.selfEmploed)
+
+  const [nationality, setNationality] = useState(selfData.nationality)
 
 
   const nationalArr = [
-    "Czech Republic",
-    "Germany",
-    "France",
-    "Poland",
-    "United Kingdom",
-  ]
+    { text: "Czech Republic", value: "cz" },
+    { text: "Germany", value: "de" },
+    { text: "France", value: "fr" },
+    { text: "Poland", value: "pl" },
+    { text: "United Kingdom", value: "gb" }
+  ];
+
+  const { safeData } = useActionSafeEmploed()
+
+  useEffect(() => {
+    safeData({ nationality: nationality })
+  }, [nationality])
 
 
   return (

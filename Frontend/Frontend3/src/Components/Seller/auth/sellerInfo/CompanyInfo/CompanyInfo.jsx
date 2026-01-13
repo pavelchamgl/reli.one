@@ -1,6 +1,8 @@
 
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
+import { useSelector } from "react-redux"
 
 import companyIc from "../../../../../assets/Seller/register/companyIcon.svg"
 
@@ -12,24 +14,42 @@ import styles from "./CompanyInfo.module.scss"
 
 const CompanyInfo = ({ formik }) => {
 
-    const [country, setCountry] = useState(null)
-    const [legal, setLegal] = useState(null)
+    const { companyData } = useSelector(state => state.selfEmploed)
+
+    const { safeCompanyData } = useActionSafeEmploed()
+
+
+    const [country, setCountry] = useState(companyData?.country_of_registration ?? null)
+    const [legal, setLegal] = useState(companyData?.legal_form ?? null)
 
 
     const countryArr = [
-        "Czech Republic",
-        "Germany",
-        "France",
-        "Poland",
-        "United Kingdom",
-    ]
+        { text: "Czech Republic", value: "cz" },
+        { text: "Germany", value: "de" },
+        { text: "France", value: "fr" },
+        { text: "Poland", value: "pl" },
+        { text: "United Kingdom", value: "gb" }
+    ];
 
     const legalArr = [
-        "GmbH (Germany)",
-        "Ltd (United Kingdom)",
-        "S.A.R.L. (France)",
-        "s.r.o. (Czech Republic/Slovakia)"
-    ]
+        { value: "GmbH (Germany)", text: "GmbH (Germany)" },
+        { value: "Ltd (United Kingdom)", text: "Ltd (United Kingdom)" },
+        { value: "S.A.R.L. (France)", text: "S.A.R.L. (France)" },
+        { value: "s.r.o. (Czech Republic / Slovakia)", text: "s.r.o. (Czech Republic / Slovakia)" },
+    ];
+
+    useEffect(() => {
+        if (legal !== null) {
+            safeCompanyData({ legal_form: legal })
+        }
+    }, [legal])
+
+    useEffect(() => {
+        if (country !== null) {
+            safeCompanyData({ country_of_registration: country })
+        }
+    }, [country])
+
 
 
     return (
@@ -42,10 +62,10 @@ const CompanyInfo = ({ formik }) => {
 
             <div className={styles.inpWrapMain}>
                 <InputSeller title={"Company name"} type={"text"} circle={true} required={true} placeholder={"Official registered company name"}
-                // name="first_name"
-                // value={formik.values.first_name}
-                // onChange={formik.handleChange}
-                // onBlur={formik.handleBlur}
+                    name="company_name"
+                    value={formik.values.company_name}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                 />
 
 
@@ -55,36 +75,40 @@ const CompanyInfo = ({ formik }) => {
                 </div>
 
                 <InputSeller title={"Business ID"} type={"text"} circle={true} required={true} placeholder={"Trade register number"}
-                // name="first_name"
-                // value={formik.values.first_name}
-                // onChange={formik.handleChange}
-                // onBlur={formik.handleBlur}
+                    name="business_id"
+                    value={formik.values.business_id}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                 />
 
                 <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} placeholder={"987654321"}
-                // name="first_name"
-                // value={formik.values.first_name}
-                // onChange={formik.handleChange}
-                // onBlur={formik.handleBlur}
+                    name="tin"
+                    value={formik.values.tin}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                 />
 
-                <InputSeller title={"EORI"} type={"text"} circle={true}  placeholder={"If importing into EU"}
-                // name="first_name"
-                // value={formik.values.first_name}
-                // onChange={formik.handleChange}
-                // onBlur={formik.handleBlur}
+                <InputSeller title={"EORI"} type={"text"} circle={true} placeholder={"If importing into EU"}
+                    name="eori_number"
+                    value={formik.values.eori_number}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                 />
 
-                 <InputSeller title={"VAT ID"} type={"text"} circle={true}  placeholder={"If registered"}
-                // name="first_name"
-                // value={formik.values.first_name}
-                // onChange={formik.handleChange}
-                // onBlur={formik.handleBlur}
+                <InputSeller title={"VAT ID"} type={"text"} circle={true} placeholder={"If registered"}
+                    name="vat_id"
+                    value={formik.values.vat_id}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
                 />
 
-                <UploadInp  />
+                <UploadInp />
 
-                    <InputSeller title={"Company phone"} type={"tel"} circle={true} required={true} num={true} placeholder={"Personal phone"} name="personal_phone" value={formik.values.personal_phone} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                <InputSeller title={"Company phone"} type={"tel"} circle={true} required={true} num={true} placeholder={"Personal phone"}
+                    name="company_phone"
+                    value={formik.values.company_phone}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur} />
 
 
             </div>

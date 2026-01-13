@@ -16,18 +16,7 @@
     }
   }
 
-  & button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background-color: transparent;
-
-    font-weight: 500;
-    font-size: 14px;
-    line-height: 143%;
-    text-align: center;
-    color: #3f7f6d;
-  }
+ 
 }
 
 .main {
@@ -60,6 +49,7 @@
       font-weight: 500;
       font-size: 14px;
       color: #4a5565;
+      margin-bottom: 4px;
     }
 
     & span {
@@ -67,5 +57,9 @@
       font-size: 14px;
       color: #4a5565;
     }
+  }
+
+  @media (max-width:500px) {
+    flex-direction: column;
   }
 }

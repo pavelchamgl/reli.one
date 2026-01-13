@@ -2,10 +2,11 @@ import { bindActionCreators } from "@reduxjs/toolkit"
 import { useDispatch } from "react-redux"
 import { useMemo } from "react"
 
-import { safeData } from "../redux/selfEmployed"
+import { safeCompanyData, safeData } from "../redux/selfEmployed"
 
 const rootActions = {
-    safeData
+    safeData,
+    safeCompanyData
 }
 
 

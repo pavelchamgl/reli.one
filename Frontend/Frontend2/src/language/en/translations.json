@@ -113,5 +113,9 @@
         "title":"10. Sending commercial communications",
         "desc":"The recipient's explicit consent is required for the sending of commercial communications (optin principle), or it must be the recipient's own customer, to whom they are sent under the conditions of Section 7 (1) of the Act. 3 of Act No. 480/2004 Coll.. The commercial communication must be clearly marked, contain the sender's identification and a working unsubscribe link. Violation of these rules may lead to fines from the Office for Personal Data Protection.",
         "endText":"By continuing to use Reli Group s.r.o., you acknowledge that you have read understood, and agree to abide by this Confidentiality and Data Protection Policy. "
+    },
+    "whatsappText":{
+        "text1":"Seller inquiries only.",
+        "text2":"Interested in selling on Reli? Contact us here."
     }
 }
