@@ -13,6 +13,7 @@ from .models import (
     CourierService,
     Invoice,
     InvoiceSequence,
+    OrderEvent,
 )
 
 
@@ -146,6 +147,13 @@ class InvoiceAdmin(admin.ModelAdmin):
 class InvoiceSequenceAdmin(admin.ModelAdmin):
     list_display = ("series", "last_number", "updated_at")
     search_fields = ("series",)
+
+
+@admin.register(OrderEvent)
+class OrderEventAdmin(admin.ModelAdmin):
+    list_display = ("id", "order", "type", "created_at")
+    list_filter = ("type",)
+    search_fields = ("order__id", "order__order_number")
 
 
 # ------------------------ Register Other Models -------------------------
