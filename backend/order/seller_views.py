@@ -1,5 +1,6 @@
 from django.db.models import QuerySet
-from rest_framework.generics import ListAPIView
+from rest_framework.response import Response
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
@@ -11,11 +12,12 @@ from drf_spectacular.utils import (
 )
 
 from .models import Order
-from .seller_serializers import SellerOrderListSerializer
+from .seller_serializers import SellerOrderListSerializer, SellerOrderDetailSerializer
 from .seller_filters import SellerOrderFilter
 from .seller_pagination import SellerOrdersPagination
 from .permissions_seller import IsSeller, get_seller_profile_for_user
 from .services.seller_orders import SellerOrderQueryService
+from .services.seller_order_detail import SellerOrderDetailService
 
 
 @extend_schema(
@@ -231,3 +233,187 @@ class SellerOrderListView(ListAPIView):
             or getattr(user, "is_superuser", False)
         )
         return ctx
+
+
+from drf_spectacular.utils import OpenApiExample
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Seller order detail",
+    description=(
+        "Returns seller-scoped order data for the order detail page.\n\n"
+        "The response includes:\n"
+        "- order summary (status, customer, delivery details, totals)\n"
+        "- ordered items with product and variant details\n"
+        "- shipment(s) with tracking, labels and grouped items\n"
+        "- order timeline (events)\n"
+        "- available seller actions\n\n"
+        "All items, shipments and monetary values are filtered by the current seller."
+    ),
+    responses={
+        200: OpenApiResponse(
+            response=SellerOrderDetailSerializer,
+            description="Seller order detail payload",
+            examples=[
+                OpenApiExample(
+                    name="Order detail example",
+                    summary="Typical seller order detail response",
+                    value={
+                        "summary": {
+                            "id": 170,
+                            "order_number": "191125140830-d9773a",
+                            "order_date": "19.11.2025 14:08",
+                            "status": "Processing",
+                            "customer": {
+                                "first_name": "Pavel",
+                                "last_name": "Ivanov",
+                                "email": "user666@example.com",
+                                "phone": "+40712345678"
+                            },
+                            "delivery": {
+                                "delivery_type": {
+                                    "id": 1,
+                                    "name": "PUDO"
+                                },
+                                "courier_service": {
+                                    "id": 2,
+                                    "name": "Zásilkovna",
+                                    "code": "zasilkovna"
+                                },
+                                "pickup_point_id": "22991",
+                                "delivery_address": {
+                                    "full_name": "Pavel Ivanov",
+                                    "email": "user666@example.com",
+                                    "phone": "+40712345678",
+                                    "street": "",
+                                    "city": "",
+                                    "zip_code": "",
+                                    "country": "RO"
+                                }
+                            },
+                            "branch": {
+                                "id": 1,
+                                "name": "Reli warehouse"
+                            },
+                            "totals": {
+                                "purchase_excl_vat": "240.33",
+                                "sales_incl_vat": "290.80",
+                                "total_incl_vat_plus_delivery": "295.89",
+                                "delivery_cost": "5.09",
+                                "currency": "EUR"
+                            }
+                        },
+                        "items": [
+                            {
+                                "id": 175,
+                                "sku": "240819709",
+                                "name": "Wooden Puzzle Unidragon – Lovely Tiger",
+                                "variant_name": "Size 30×28cm",
+                                "quantity": 4,
+                                "unit_price_gross": "72.70",
+                                "vat_rate": "21.00",
+                                "line_total_gross": "290.80",
+                                "line_total_net": "240.33",
+                                "warehouse": {
+                                    "id": 1,
+                                    "name": "Reli warehouse"
+                                }
+                            }
+                        ],
+                        "shipments": [
+                            {
+                                "id": 149,
+                                "carrier": {
+                                    "id": 2,
+                                    "name": "Zásilkovna"
+                                },
+                                "tracking_number": "4754431376",
+                                "has_tracking": True,
+                                "has_label": True,
+                                "label_url": "/media/zasilkovna_labels/label_4754431376.pdf",
+                                "created_at": "19.11.2025 14:08",
+                                "warehouse": {
+                                    "id": 1,
+                                    "name": "Reli warehouse"
+                                },
+                                "items": [
+                                    {
+                                        "order_product_id": 175,
+                                        "sku": "240819709",
+                                        "name": "Wooden Puzzle Unidragon – Lovely Tiger Size 30×28cm",
+                                        "quantity": 4
+                                    }
+                                ]
+                            }
+                        ],
+                        "timeline": [
+                            {
+                                "type": "order_created",
+                                "label": "Order created",
+                                "created_at": "14.01.2026 10:49",
+                                "meta": {}
+                            },
+                            {
+                                "type": "payment_confirmed",
+                                "label": "Payment confirmed",
+                                "created_at": "14.01.2026 10:49",
+                                "meta": {}
+                            },
+                            {
+                                "type": "order_acknowledged",
+                                "label": "Order acknowledged",
+                                "created_at": "14.01.2026 10:49",
+                                "meta": {}
+                            },
+                            {
+                                "type": "shipment_created",
+                                "label": "Shipment created",
+                                "created_at": "14.01.2026 10:49",
+                                "meta": {}
+                            },
+                            {
+                                "type": "tracking_uploaded",
+                                "label": "Tracking uploaded",
+                                "created_at": "14.01.2026 10:49",
+                                "meta": {}
+                            },
+                            {
+                                "type": "delivered",
+                                "label": "Delivered",
+                                "created_at": "14.01.2026 10:50",
+                                "meta": {}
+                            }
+                        ],
+                        "actions": {
+                            "can_confirm": False,
+                            "can_mark_shipped": True,
+                            "can_download_label": True,
+                            "can_cancel": False,
+                            "next_action": "Mark as shipped"
+                        }
+                    },
+                )
+            ],
+        ),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="User is not a seller"),
+        404: OpenApiResponse(description="Order not found (or not accessible to this seller)"),
+    },
+)
+class SellerOrderDetailView(RetrieveAPIView):
+    permission_classes = [IsSeller]
+    serializer_class = SellerOrderDetailSerializer
+
+    def get(self, request, *args, **kwargs):
+        order_id = int(kwargs["pk"])
+        order, seller_profile_id = SellerOrderDetailService.get_order_for_seller(
+            order_id=order_id,
+            user=request.user,
+        )
+        payload = SellerOrderDetailService.build_payload(
+            order=order,
+            seller_profile_id=seller_profile_id,
+            user=request.user,
+        )
+        serializer = self.get_serializer(payload)
+        return Response(serializer.data)
