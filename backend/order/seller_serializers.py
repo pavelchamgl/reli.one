@@ -131,10 +131,9 @@ class SellerShipmentCarrierSerializer(serializers.Serializer):
 
 
 class SellerShipmentItemSerializer(serializers.Serializer):
-    # aggregated one row per order_product_id
     order_product_id = serializers.IntegerField()
-    sku = serializers.CharField(allow_null=True)   # <-- NEW
-    name = serializers.CharField(allow_null=True)  # <-- NEW
+    sku = serializers.CharField(allow_null=True)
+    name = serializers.CharField(allow_null=True)
     quantity = serializers.IntegerField()
 
 
@@ -144,10 +143,37 @@ class SellerShipmentSerializer(serializers.Serializer):
     tracking_number = serializers.CharField(allow_null=True)
     has_tracking = serializers.BooleanField()
     has_label = serializers.BooleanField()
-    label_url = serializers.CharField(allow_null=True)
+    label_url = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(allow_null=True)
     warehouse = SellerOrderBranchSerializer(allow_null=True)
     items = SellerShipmentItemSerializer(many=True)
+
+    def get_label_url(self, obj):
+        """
+        Works with dict payload produced by the service.
+        If request exists -> returns absolute URL.
+        """
+        # obj is expected to be dict
+        raw = None
+        if isinstance(obj, dict):
+            raw = obj.get("label_url")
+        else:
+            # fallback if someday obj becomes a model instance
+            lf = getattr(obj, "label_file", None)
+            raw = lf.url if lf and hasattr(lf, "url") else None
+
+        if not raw:
+            return None
+
+        request = self.context.get("request")
+        if not request:
+            return raw
+
+        # if already absolute -> return as is
+        if raw.startswith("http://") or raw.startswith("https://"):
+            return raw
+
+        return request.build_absolute_uri(raw)
 
 
 class SellerOrderEventSerializer(serializers.Serializer):
