@@ -42,6 +42,21 @@
   border: 1.28px solid #3f7f6d;
 }
 
+.error {
+  border-color: #d55b5b;
+}
+
+.error:focus-within {
+  border-color: #d55b5b; // ошибка при фокусе
+}
+
+.errorText {
+  font-weight: 400;
+  font-size: 14px;
+  color: #d55b5b;
+  margin-top: 8px;
+}
+
 .dateWrap {
   width: 100%;
 }

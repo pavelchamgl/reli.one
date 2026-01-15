@@ -1,187 +1,234 @@
 import mainInstance from "..";
 
-
-
-
-export const postSellerType = async (type) => {
-    try {
-        const res = await mainInstance.post(
-            "/sellers/onboarding/seller-type/",
-            { seller_type: type }
-        );
-
-        return res;
-    } catch (error) {
-        if (error.response) {
-            // Ответ от сервера (401, 403, 400, 500)
-            const { status, data } = error.response;
-
-            throw {
-                status,
-                message: data?.message || "Ошибка сервера",
-            };
-        }
-
-        if (error.request) {
-            // Запрос ушёл, но ответа нет
-            throw {
-                status: null,
-                message: "Сервер недоступен",
-            };
-        }
-
-        // Любая другая ошибка
+// =================================================
+// ✅ General error handler
+// =================================================
+const handleError = (error, defaultMsg = "Unknown error") => {
+    if (error.response) {
+        const { status, data } = error.response;
+        throw {
+            status,
+            message: data?.message || defaultMsg,
+        };
+    }
+    if (error.request) {
         throw {
             status: null,
-            message: error.message || "Неизвестная ошибка",
+            message: "Server unavailable",
         };
+    }
+    throw {
+        status: null,
+        message: error.message || defaultMsg,
+    };
+};
+
+// =================================================
+// ✅ Seller Type
+// =================================================
+export const postSellerType = async (type) => {
+    try {
+        const res = await mainInstance.post("/sellers/onboarding/seller-type/", { seller_type: type });
+        return res;
+    } catch (error) {
+        handleError(error, "Failed to select seller type");
     }
 };
 
-
-
+// =================================================
+// ✅ Onboarding Status
+// =================================================
 export const getOnboardingStatus = async () => {
     try {
-        const res = await mainInstance.get("/sellers/onboarding/state/")
-        console.log(res);
-        // ! выдает 403, как только исправят добью доконца
-
-        return res.data
-
+        const res = await mainInstance.get("/sellers/onboarding/state/");
+        return res.data;
     } catch (error) {
-        console.log(error);
-
-        if (error.response) {
-            // Ответ от сервера (401, 403, 400, 500)
-            const { status, data } = error.response;
-
-            throw {
-                status,
-                message: data?.message || "Ошибка сервера",
-            };
-        }
-
-        if (error.request) {
-            // Запрос ушёл, но ответа нет
-            throw {
-                status: null,
-                message: "Сервер недоступен",
-            };
-        }
-
-        // Любая другая ошибка
-        throw {
-            status: null,
-            message: error.message || "Неизвестная ошибка",
-        };
-
-
+        handleError(error, "Failed to fetch onboarding status");
     }
-}
+};
 
-export const putOnboardingBank = async (obj) => {
-    try {
-        const res = await mainInstance.put("/sellers/onboarding/bank/", obj)
-        console.log(res);
-
-
-
-    } catch (error) {
-        console.log(error);
-
-    }
-}
-
+// =================================================
+// ✅ Personal Data
+// =================================================
 export const putPersonalData = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/self-employed/personal/", obj)
-        console.log(res);
-
+        const res = await mainInstance.put("/sellers/onboarding/self-employed/personal/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save personal data");
     }
-}
+};
 
+// =================================================
+// ✅ Tax
+// =================================================
 export const putTax = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/self-employed/tax/", obj)
-        return res
+        const res = await mainInstance.put("/sellers/onboarding/self-employed/tax/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save tax information");
     }
-}
+};
 
+// =================================================
+// ✅ Self Address
+// =================================================
 export const putSelfAddress = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/self-employed/address/", obj)
-        return res
+        const res = await mainInstance.put("/sellers/onboarding/self-employed/address/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save address");
     }
-}
+};
 
+// =================================================
+// ✅ Bank
+// =================================================
+export const putOnboardingBank = async (obj) => {
+    try {
+        const res = await mainInstance.put("/sellers/onboarding/bank/", obj);
+        return res.data;
+    } catch (error) {
+        handleError(error, "Failed to save bank information");
+    }
+};
+
+// =================================================
+// ✅ Warehouse
+// =================================================
 export const putWarehouse = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/warehouse/", obj)
-        return res
+        const res = await mainInstance.put("/sellers/onboarding/warehouse/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save warehouse address");
     }
-}
+};
 
+// =================================================
+// ✅ Return Address
+// =================================================
 export const putReturnAddress = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/return/", obj)
-        return res
+        const res = await mainInstance.put("/sellers/onboarding/return/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save return address");
     }
-}
+};
 
-
+// =================================================
+// ✅ Review Onboarding
+// =================================================
 export const getReviewOnboarding = async () => {
     try {
-        const res = await mainInstance.get("/sellers/onboarding/review/")
-        console.log(res);
-
+        const res = await mainInstance.get("/sellers/onboarding/review/");
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to fetch review onboarding data");
     }
-}
+};
 
+// =================================================
+// ✅ Submit Onboarding
+// =================================================
 export const postSubmitOnboarding = async () => {
     try {
-        const res = await mainInstance.post("/sellers/onboarding/submit/")
-        return res
+        const res = await mainInstance.post("/sellers/onboarding/submit/");
+        return res.data;
     } catch (error) {
-
+        throw (error)
+        handleError(error, "Failed to submit onboarding data");
     }
-}
+};
 
-
+// =================================================
+// ✅ Company Info
+// =================================================
 export const putCompanyInfo = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/company/info/", obj)
-        return res
+        const res = await mainInstance.put("/sellers/onboarding/company/info/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save company info");
     }
-}
+};
 
+// =================================================
+// ✅ Representative
+// =================================================
 export const putRepresentative = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/company/representative/", obj)
-        return res
+        const res = await mainInstance.put("/sellers/onboarding/company/representative/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save company representative data");
     }
-}
+};
 
+// =================================================
+// ✅ Company Address
+// =================================================
 export const putCompanyAddress = async (obj) => {
     try {
-        const res = await mainInstance.put("/sellers/onboarding/company/address/", obj)
-        return res
+        const res = await mainInstance.put("/sellers/onboarding/company/address/", obj);
+        return res.data;
     } catch (error) {
-
+        handleError(error, "Failed to save company address");
     }
-}
+};
+
+// =================================================
+// ✅ Single Upload
+// =================================================
+export const uploadSingleDocument = async (doc) => {
+    try {
+        const { doc_type, scope, side, file } = doc;
+
+        const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
+        if (!allowedTypes.includes(file.type)) {
+            throw { status: null, message: "Invalid file type. Only PDF, JPG, PNG are allowed" };
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            throw { status: null, message: "File must not exceed 10MB" };
+        }
+
+        const formData = new FormData();
+        formData.append("doc_type", doc_type);
+        formData.append("scope", scope);
+        if (side) {
+            formData.append("side", side);
+        }
+        formData.append("file", file);
+
+        const res = await mainInstance.post("/sellers/onboarding/documents/", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        return res.data;
+    } catch (error) {
+        handleError(error, "Failed to upload document");
+    }
+};
+
+// =================================================
+// ✅ Batch Upload
+// =================================================
+export const uploadBatchDocuments = async (docs) => {
+    try {
+        const formData = new FormData();
+        const documentsMeta = docs.map(({ doc_type, scope, side }) => ({ doc_type, scope, side }));
+        formData.append("documents", JSON.stringify(documentsMeta));
+        docs.forEach((doc) => formData.append("files", doc.file));
+
+        const res = await mainInstance.post("/sellers/onboarding/documents/", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        return res.data;
+    } catch (error) {
+        handleError(error, "Failed to upload documents batch");
+    }
+};

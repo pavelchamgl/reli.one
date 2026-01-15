@@ -10,6 +10,7 @@ import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 
 import styles from "./Representative.module.scss"
 import SellerDateInp from "../dateInp/DateInp"
+import { uploadSingleDocument } from "../../../../../api/seller/onboarding"
 
 const Representative = ({ formik }) => {
 
@@ -43,14 +44,37 @@ const Representative = ({ formik }) => {
     useEffect(() => {
         if (role !== null) {
             safeCompanyData({ role: role })
+            formik.setFieldValue("role", role)
         }
     }, [role])
 
     useEffect(() => {
         if (nationality !== null) {
             safeCompanyData({ nationality: nationality })
+            formik.setFieldValue("nationality", nationality)
         }
     }, [nationality])
+
+
+    const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
+        uploadSingleDocument({ file, doc_type, scope, side })
+            .then(res => {
+                console.log("Документ загружен", res);
+
+                if (side === "front") {
+                    formik.setFieldValue("uploadFront", res.uploaded_at)
+
+                }
+                if (side === "back") {
+                    formik.setFieldValue("uploadBack", res.uploaded_at)
+
+                }
+            })
+            .catch(err => {
+                ErrToast(err.message)
+                console.log("Ошибка загрузки", err);
+            });
+    };
 
     return (
         <div className={styles.main}>
@@ -70,25 +94,59 @@ const Representative = ({ formik }) => {
                         value={formik.values.first_name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
+                        error={formik.errors.first_name}
                     />
                     <InputSeller title={"Last name"} type={"text"} circle={true} required={true} placeholder={"Smith"}
                         name="last_name"
                         value={formik.values.last_name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
+                        error={formik.errors.last_name}
                     />
                 </div>
 
-                <SellerInfoSellect arr={roleArr} title={"Role"} titleSellect={"Select role"} value={role} setValue={setRole} />
+                <SellerInfoSellect arr={roleArr} title={"Role"}
+                    titleSellect={"Select role"}
+                    value={role} setValue={setRole}
+                    errText={"Role is required"}
+                />
 
                 <div className={styles.twoInpWrap}>
                     <SellerDateInp formik={formik} />
-                    <SellerInfoSellect arr={nationalArr} title={"Nationality"} titleSellect={"Select nationality"} value={nationality} setValue={setNationality} />
+                    <SellerInfoSellect arr={nationalArr} title={"Nationality"}
+                        titleSellect={"Select nationality"}
+                        value={nationality} setValue={setNationality}
+                        errText={"Nationality is required"}
+                    />
                 </div>
 
 
+                <div>
+                    <UploadInp
+                        title={"Identity document"}
+                        description={"Passport or National ID"}
+                        scope={"company_representative"}
+                        docType={"identity_document"}
+                        side={"front"}
+                        onChange={handleSingleFrontUpload}
+                        inpText={"Upload front side"}
+                    />
+                    <UploadInp
+                        scope={"company_representative"}
+                        docType={"identity_document"}
+                        side={"back"}
+                        onChange={handleSingleFrontUpload}
+                        inpText={"Upload back side"}
+                    />
+                    {
+                        (formik.errors.uploadFront || formik.errors.uploadBack) && (
+                            <p className={styles.errorText}>
+                                {formik.errors.uploadFront || formik.errors.uploadBack}
+                            </p>
+                        )}
 
-                <UploadInp second={true} />
+                </div>
+
 
 
 

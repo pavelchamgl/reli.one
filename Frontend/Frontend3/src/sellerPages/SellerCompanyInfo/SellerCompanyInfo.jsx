@@ -1,5 +1,7 @@
 import { useFormik } from 'formik'
 import { useSelector } from 'react-redux';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import TitleAndDesc from '../../ui/Seller/auth/titleAndDesc/TitleAndDesc';
 import StepWrap from '../../ui/Seller/register/stepWrap/StepWrap';
@@ -13,9 +15,11 @@ import CompanyInfo from '../../Components/Seller/auth/sellerInfo/CompanyInfo/Com
 import Representative from '../../Components/Seller/auth/sellerInfo/Representative/Representative';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
 import { putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from '../../api/seller/onboarding';
+import { companyValidationSchema } from '../../code/seller/validation';
+import { ErrToast } from '../../ui/Toastify';
+import { toISODate } from '../../code/seller';
 
 import styles from "./SellerCompanyInfo.module.scss"
-import { useNavigate } from 'react-router-dom';
 
 const SellerCompanyInfo = () => {
 
@@ -40,7 +44,7 @@ const SellerCompanyInfo = () => {
             eori_number: companyData?.eori_number ?? "",     // Только если реально есть (CZ + IČО обычно)
             company_phone: companyData?.company_phone ?? "",
             imports_to_eu: true,
-            certificate_issue_date: "2026-01-13",   // ← выглядит нормально, если это дата выдачи сертификата
+            certificate_issue_date: companyData?.certificate_issue_date ?? "",   // ← выглядит нормально, если это дата выдачи сертификата
 
             // representative
             first_name: companyData?.first_name ?? "",
@@ -48,13 +52,16 @@ const SellerCompanyInfo = () => {
             role: companyData?.role ?? "",
             date_of_birth: companyData?.date_of_birth ?? "",
             nationality: companyData?.nationality ?? "",
+            uploadFront: companyData?.uploadFront ?? "",
+            uploadBack: companyData?.uploadBack ?? "",
+
 
             // company address
             street: companyData?.street ?? "",
             city: companyData?.city ?? "",
             zip_code: companyData?.zip_code ?? "",
             country: companyData?.country ?? "",
-            proof_document_issue_date: "2026-01-13",
+            proof_document_issue_date: companyData?.proof_document_issue_date ?? "",
 
 
             // bank
@@ -81,74 +88,101 @@ const SellerCompanyInfo = () => {
             rProof_document_issue_date: companyData?.rProof_document_issue_date ?? ""
 
         },
+        validationSchema: companyValidationSchema,
         enableReinitialize: true,
-        onSubmit: (values) => {
+        onSubmit: async (values) => {
             console.log(values);
-            safeCompanyData(values)
+            safeCompanyData({
+                ...values
+            });
 
-            putCompanyInfo({
-                company_name: values.company_name,
-                legal_form: companyData?.legal_form,
-                country_of_registration: companyData?.country_of_registration,
-                business_id: values?.business_id,
-                ico: "string",
-                tin: values?.tin,
-                vat_id: values?.vat_id,
-                imports_to_eu: true,
-                eori_number: values?.eori_number,
-                company_phone: values?.company_phone,
-                certificate_issue_date: "2026-01-13"
-            })
+            try {
+                // Создаем массив промисов для всех запросов
+                const requests = [
+                    putCompanyInfo({
+                        company_name: values.company_name,
+                        legal_form: companyData?.legal_form,
+                        country_of_registration: companyData?.country_of_registration,
+                        business_id: values?.business_id,
+                        ico: "string",
+                        tin: values?.tin,
+                        vat_id: values?.vat_id,
+                        imports_to_eu: true,
+                        eori_number: values?.eori_number,
+                        company_phone: values?.company_phone,
+                        certificate_issue_date: toISODate(values.certificate_issue_date),
+                    }),
+                    putRepresentative({
+                        first_name: values?.first_name,
+                        last_name: values?.last_name,
+                        role: companyData?.role,
+                        date_of_birth: values?.date_of_birth?.split(".")?.reverse()?.join("-"),
+                        nationality: companyData?.nationality,
+                    }),
+                    putCompanyAddress({
+                        street: values.street,
+                        city: values.city,
+                        zip_code: values.zip_code,
+                        country: companyData?.country,
+                        proof_document_issue_date: toISODate(values.proof_document_issue_date),
+                    }),
+                    putOnboardingBank({
+                        iban: values.iban,
+                        swift_bic: values.swift_bic,
+                        account_holder: values.account_holder,
+                        bank_code: values.bank_code,
+                        local_account_number: values.local_account_number,
+                    }),
+                    putWarehouse({
+                        street: values.wStreet,
+                        city: values.wCity,
+                        zip_code: values.wZip_code,
+                        country: companyData.wCountry,
+                        contact_phone: values.contact_phone,
+                        proof_document_issue_date: toISODate(values.wProof_document_issue_date),
+                    }),
+                    putReturnAddress({
+                        same_as_warehouse: companyData.same_as_warehouse,
+                        street: values.rStreet,
+                        city: values.rCity,
+                        zip_code: values.rZip_code,
+                        country: companyData.rCountry,
+                        contact_phone: values.rContact_phone,
+                        proof_document_issue_date: "2026-01-13",
+                    }),
+                ];
 
-            putRepresentative({
-                first_name: values?.first_name,
-                last_name: values?.last_name,
-                role: companyData?.role,
-                date_of_birth: values?.date_of_birth?.split(".")?.reverse()?.join("-"),
-                nationality: companyData?.nationality
-            })
+                // Отправляем все запросы параллельно
+                const results = await Promise.allSettled(requests);
 
-            putCompanyAddress({
-                street: values.street,
-                city: values.city,
-                zip_code: values.zip_code,
-                country: companyData?.country,
-                proof_document_issue_date: "2026-01-13"
-            })
+                // Обработка ошибок
+                const errors = results
+                    .filter((r) => r.status === "rejected")
+                    .map((r) => r.reason?.message || "Unknown error");
 
+                if (errors.length > 0) {
+                    // Можно показать тоаст или alert
+                    console.error("Some requests failed:", errors);
+                    ErrToast("Some requests failed:\n" + errors.join("\n"));
+                    return; // прерываем навигацию
+                }
 
-
-            putOnboardingBank({
-                iban: values.iban,
-                swift_bic: values.swift_bic,
-                account_holder: values.account_holder,
-                bank_code: values.bank_code,
-                local_account_number: values.local_account_number
-            })
-
-            putWarehouse({
-                street: values.wStreet,
-                city: values.wCity,
-                zip_code: values.wZip_code,
-                country: companyData.wCountry,
-                contact_phone: values.contact_phone,
-                proof_document_issue_date: "2026-01-13"
-            })
-
-            putReturnAddress({
-                same_as_warehouse: companyData.same_as_warehouse,
-                street: values.rStreet,
-                city: values.rCity,
-                zip_code: values.rZip_code,
-                country: companyData.rCountry,
-                contact_phone: values.rContact_phone,
-                proof_document_issue_date: "2026-01-13"
-            })
-
-            navigate("/seller/seller-review-company")
-
+                // Если все прошло успешно
+                navigate("/seller/seller-review-company");
+            } catch (err) {
+                console.error("Unexpected error:", err);
+                ErrToast("Unexpected error occurred. Please try again.");
+            }
         }
+
     })
+
+
+    useEffect(() => {
+        console.log(formik.errors);
+        console.log(formik.values);
+
+    }, [formik.errors, formik.values])
 
     return (
         <FormWrap style={{ height: "100%" }}>
@@ -173,7 +207,12 @@ const SellerCompanyInfo = () => {
 
                 <ReturnAddress formik={formik} />
 
-                <AuthBtnSeller text={"Continue to Review"} style={{ borderRadius: "16px", width: "222px" }} handleClick={formik.handleSubmit} />
+                <AuthBtnSeller
+                    text={"Continue to Review"}
+                    style={{ borderRadius: "16px", width: "222px" }}
+                    handleClick={formik.handleSubmit}
+                    disabled={!formik.isValid}
+                />
 
             </div>
 

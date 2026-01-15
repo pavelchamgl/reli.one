@@ -44,9 +44,12 @@ const ReturnAddress = ({ formik }) => {
     useEffect(() => {
         if (pathname === companyPathname) {
             safeCompanyData({ rCountry: country })
+            formik.setFieldValue("rCountry", country)
+
 
         } else {
             safeData({ rCountry: country })
+            formik.setFieldValue("rCountry", country)
 
         }
     }, [country])
@@ -99,14 +102,41 @@ const ReturnAddress = ({ formik }) => {
             </label>
 
             <div className={styles.inpWrapMain}>
-                <InputSeller title={"Street"} type={"text"} circle={true} required={true} placeholder={"Industrial Street 456"} name="rStreet" value={formik.values.rStreet} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                <InputSeller title={"Street"} type={"text"} circle={true} required={true}
+                    placeholder={"Industrial Street 456"}
+                    name="rStreet" value={formik.values.rStreet}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.errors.rStreet}
+                />
 
                 <div className={styles.twoInpWrap}>
-                    <InputSeller title={"City"} type={"text"} circle={true} required={true} placeholder={"Brno"} name="rCity" value={formik.values.rCity} onChange={formik.handleChange} onBlur={formik.handleBlur} />
-                    <InputSeller title={"ZIP"} type={"text"} circle={true} required={true} placeholder={"602 00"} name="rZip_code" value={formik.values.rZip_code} onChange={formik.handleChange} onBlur={formik.handleBlur} />
-                    <SellerInfoSellect arr={countryArr} value={country} setValue={setCountry} title={"Country"} titleSellect={"Select"} />
+                    <InputSeller title={"City"} type={"text"} circle={true} required={true}
+                        placeholder={"Brno"}
+                        name="rCity" value={formik.values.rCity}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.rCity}
+                    />
+                    <InputSeller title={"ZIP"} type={"text"} circle={true} required={true}
+                        placeholder={"602 00"}
+                        name="rZip_code" value={formik.values.rZip_code}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.rZip_code}
+                    />
+                    <SellerInfoSellect arr={countryArr} value={country} setValue={setCountry}
+                        title={"Country"} titleSellect={"Select"}
+                        errText={"Country is required"}
+                    />
                 </div>
-                <InputSeller title={"Contact phone"} type={"tel"} circle={true} required={true} placeholder={"+420 987 654 321"} name="rContact_phone" value={formik.values.rContact_phone} onChange={formik.handleChange} onBlur={formik.handleBlur} />
+                <InputSeller title={"Contact phone"} type={"tel"} circle={true} required={true}
+                    placeholder={"+420 987 654 321"}
+                    name="rContact_phone" value={formik.values.rContact_phone}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.errors.rContact_phone}
+                />
 
 
 

@@ -44,6 +44,14 @@
   border: 1.47px solid #3f7f6d;
 }
 
+.error {
+  border-color: #d55b5b;
+}
+
+.error:focus-within {
+  border-color: #d55b5b; // ошибка при фокусе
+}
+
 .labelWrap {
   width: 100%;
 }
@@ -69,4 +77,11 @@
   font-size: 12px;
   color: #6a7282;
   margin-top: 8px;
+}
+
+.errorText {
+  font-weight: 400;
+  font-size: 14px;
+  margin-top: 7px;
+  color: #d55b5b;
 }
