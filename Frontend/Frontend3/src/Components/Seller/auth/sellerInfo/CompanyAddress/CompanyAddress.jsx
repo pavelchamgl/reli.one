@@ -8,6 +8,7 @@ import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 
 import styles from "./CompanyAddress.module.scss"
+import { uploadSingleDocument } from "../../../../../api/seller/onboarding"
 
 const CompanyAddress = ({ formik }) => {
 
@@ -29,8 +30,23 @@ const CompanyAddress = ({ formik }) => {
     useEffect(() => {
         if (country !== null) {
             safeCompanyData({ country: country })
+            formik.setFieldValue("country", country)
         }
     }, [country])
+
+    const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
+        uploadSingleDocument({ file, doc_type, scope, side })
+            .then(res => {
+                console.log("Документ загружен", res);
+
+                formik.setFieldValue("proof_document_issue_date", res.uploaded_at)
+
+            })
+            .catch(err => {
+                ErrToast(err.message)
+                console.log("Ошибка загрузки", err);
+            });
+    };
 
     return (
         <div className={styles.main}>
@@ -45,29 +61,47 @@ const CompanyAddress = ({ formik }) => {
                     name="street"
                     value={formik.values.street}
                     onChange={formik.handleChange}
-                    onBlur={formik.handleBlur} />
+                    onBlur={formik.handleBlur}
+                    error={formik.errors.street}
+                />
 
                 <div className={styles.twoInpWrap}>
                     <InputSeller title={"City"} type={"text"} circle={true} required={true} placeholder={"Brno"}
                         name="city"
                         value={formik.values.city}
                         onChange={formik.handleChange}
-                        onBlur={formik.handleBlur} />
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.city}
+                    />
+
 
                     <InputSeller title={"ZIP"} type={"text"} circle={true} required={true} placeholder={"602 00"}
                         name="zip_code"
                         value={formik.values.zip_code}
                         onChange={formik.handleChange}
-                        onBlur={formik.handleBlur} />
-                    <SellerInfoSellect arr={countryArr} value={country} setValue={setCountry} title={"Country"} titleSellect={"Select"} />
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.zip_code}
+                    />
+                    <SellerInfoSellect arr={countryArr}
+                        value={country} setValue={setCountry}
+                        title={"Country"} titleSellect={"Select"}
+                        errText={"Country is required"}
+                    />
                 </div>
-                <UploadInp />
-
-
-
+                <div>
+                    <UploadInp
+                        title={"Proof of address"}
+                        description={"Not older than 3 months"}
+                        scope={"company_address"}
+                        docType={"proof_of_address"}
+                        side={null}
+                        onChange={handleSingleFrontUpload}
+                        inpText={"Upload document"}
+                    />
+                    {formik.errors.proof_document_issue_date &&
+                        <p className={styles.errorText}>{formik.errors.proof_document_issue_date}</p>}
+                </div>
             </div>
-
-
         </div>
     )
 }

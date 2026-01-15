@@ -25,6 +25,9 @@ const SellerTypeContent = () => {
         getOnboardingStatus().then((res) => {
             console.log(res);
             setStatus(res.status)
+            if (res?.status !== "draft") {
+                ErrToast("You have already selected a seller type.")
+            }
         }).catch((err) => {
             ErrToast(err.message)
 

@@ -13,6 +13,7 @@ import SubBtn from "../../ui/Seller/review/subBtn/SubBtn"
 import { getReviewOnboarding, postSubmitOnboarding } from "../../api/seller/onboarding"
 
 import styles from "./ReviewInfoPage.module.scss"
+import { ErrToast } from "../../ui/Toastify"
 
 const ReviewInfoPage = () => {
 
@@ -23,15 +24,43 @@ const ReviewInfoPage = () => {
         getReviewOnboarding()
     }, [])
 
+    const parseApiErrors = (data) => {
+        if (!data) return ["Unknown error"];
+
+        // detail / message
+        if (typeof data === "string") return [data];
+        if (data.detail) return [data.detail];
+        if (data.message) return [data.message];
+
+        // field errors
+        if (typeof data === "object") {
+            return Object.values(data).flatMap((value) => {
+                if (Array.isArray(value)) return value;
+                if (typeof value === "string") return [value];
+                return [];
+            });
+        }
+
+        return ["Unexpected error"];
+    };
+
+
     const handleSubmit = async () => {
         try {
-            const res = await postSubmitOnboarding()
+            const res = await postSubmitOnboarding();
             console.log(res);
 
-        } catch (error) {
+            navigate("/seller/application-sub")
 
+        } catch (error) {
+            const responseData = error?.response?.data;
+
+            const messages = parseApiErrors(responseData);
+
+            messages.forEach((msg) => ErrToast(msg));
         }
-    }
+    };
+
 
 
     return (

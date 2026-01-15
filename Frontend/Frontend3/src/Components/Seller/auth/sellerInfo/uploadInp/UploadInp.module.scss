@@ -17,6 +17,7 @@
   font-weight: 400;
   font-size: 14px;
   color: #6a7282;
+  display: block;
   margin-block: 8px;
 }
 
@@ -30,6 +31,7 @@
   align-items: center;
   gap: 8px;
   padding: 0 12px;
+  margin-top: 8px;
 
   & p {
     font-weight: 500;
@@ -42,6 +44,10 @@
     font-size: 12px;
     color: #99a1af;
   }
+}
+
+.fileLabel {
+  margin-top: 8px;
 }
 
 .fileInpsWrap {

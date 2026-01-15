@@ -13,7 +13,7 @@ const SellerDateInp = ({ formik }) => {
     return (
         <div className={styles.dateWrap}>
             <p className={styles.dateTitle}>Date of birth</p>
-            <div className={styles.inpWrap}>
+            <div className={`${styles.inpWrap} ${formik.errors.date_of_birth ? styles.error : ""}`}>
 
                 <img src={dateIc} alt="" />
                 <InputMask
@@ -25,10 +25,13 @@ const SellerDateInp = ({ formik }) => {
                     name="date_of_birth"
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+
+
                 >
                     {(inputProps) => <input className={styles.input} {...inputProps} type="tel" />}
                 </InputMask>
             </div>
+                {formik.errors.date_of_birth ? <p className={styles.errorText}>{formik.errors.date_of_birth}</p> : null}
         </div>
     )
 }

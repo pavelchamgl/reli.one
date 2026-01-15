@@ -11,6 +11,7 @@ import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 
 import styles from "./CompanyInfo.module.scss"
+import { uploadSingleDocument } from "../../../../../api/seller/onboarding"
 
 const CompanyInfo = ({ formik }) => {
 
@@ -38,17 +39,34 @@ const CompanyInfo = ({ formik }) => {
         { value: "s.r.o. (Czech Republic / Slovakia)", text: "s.r.o. (Czech Republic / Slovakia)" },
     ];
 
+
+
     useEffect(() => {
         if (legal !== null) {
             safeCompanyData({ legal_form: legal })
+            formik.setFieldValue("legal_form", legal)
         }
     }, [legal])
 
     useEffect(() => {
         if (country !== null) {
             safeCompanyData({ country_of_registration: country })
+            formik.setFieldValue("country_of_registration", country)
         }
     }, [country])
+
+
+    const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
+        uploadSingleDocument({ file, doc_type, scope, side })
+            .then(res => {
+                formik.setFieldValue("certificate_issue_date", res.uploaded_at)
+                console.log("Документ загружен", res);
+            })
+            .catch(err => {
+                ErrToast(err.message)
+                console.log("Ошибка загрузки", err);
+            });
+    };
 
 
 
@@ -66,12 +84,22 @@ const CompanyInfo = ({ formik }) => {
                     value={formik.values.company_name}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    error={formik.errors.company_name}
                 />
 
 
                 <div className={styles.twoInpWrap}>
-                    <SellerInfoSellect arr={legalArr} title={"Legal form"} titleSellect={"Select legal form"} value={legal} setValue={setLegal} />
-                    <SellerInfoSellect arr={countryArr} title={"Country of registration"} titleSellect={"Select country"} value={country} setValue={setCountry} />
+                    <SellerInfoSellect arr={legalArr} title={"Legal form"}
+                        titleSellect={"Select legal form"}
+                        value={legal} setValue={setLegal}
+                        errText={"Legal form is required"}
+                    />
+
+                    <SellerInfoSellect arr={countryArr} title={"Country of registration"}
+                        titleSellect={"Select country"}
+                        value={country} setValue={setCountry}
+                        errText={"Country of registration is required"}
+                    />
                 </div>
 
                 <InputSeller title={"Business ID"} type={"text"} circle={true} required={true} placeholder={"Trade register number"}
@@ -79,6 +107,7 @@ const CompanyInfo = ({ formik }) => {
                     value={formik.values.business_id}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    error={formik.errors.business_id}
                 />
 
                 <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} placeholder={"987654321"}
@@ -86,6 +115,7 @@ const CompanyInfo = ({ formik }) => {
                     value={formik.values.tin}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    error={formik.errors.tin}
                 />
 
                 <InputSeller title={"EORI"} type={"text"} circle={true} placeholder={"If importing into EU"}
@@ -93,6 +123,7 @@ const CompanyInfo = ({ formik }) => {
                     value={formik.values.eori_number}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    error={formik.errors.eori_number}
                 />
 
                 <InputSeller title={"VAT ID"} type={"text"} circle={true} placeholder={"If registered"}
@@ -100,15 +131,29 @@ const CompanyInfo = ({ formik }) => {
                     value={formik.values.vat_id}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
+                    error={formik.errors.vat_id}
                 />
 
-                <UploadInp />
+                <div>
+                    <UploadInp
+                        title={"Registration certificate document"}
+                        description={"Extract from trade register, not older than 3 months"}
+                        scope={"company_info"}
+                        docType={"registration_certificate"}
+                        side={null}
+                        onChange={handleSingleFrontUpload}
+                        inpText={"Upload document"}
+                    />
+                    {formik.errors.certificate_issue_date && <p className={styles.errorText}>{formik.errors.certificate_issue_date}</p>}
+                </div>
 
                 <InputSeller title={"Company phone"} type={"tel"} circle={true} required={true} num={true} placeholder={"Personal phone"}
                     name="company_phone"
                     value={formik.values.company_phone}
                     onChange={formik.handleChange}
-                    onBlur={formik.handleBlur} />
+                    onBlur={formik.handleBlur}
+                    error={formik.errors.company_phone}
+                />
 
 
             </div>
