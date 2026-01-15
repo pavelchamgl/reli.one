@@ -1,4 +1,5 @@
 from django.db.models import QuerySet
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.filters import OrderingFilter
@@ -18,6 +19,7 @@ from .seller_pagination import SellerOrdersPagination
 from .permissions_seller import IsSeller, get_seller_profile_for_user
 from .services.seller_orders import SellerOrderQueryService
 from .services.seller_order_detail import SellerOrderDetailService
+from .services.seller_order_actions import SellerOrderActionsService
 
 
 @extend_schema(
@@ -417,3 +419,104 @@ class SellerOrderDetailView(RetrieveAPIView):
         )
         serializer = self.get_serializer(payload)
         return Response(serializer.data)
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Confirm order",
+    description=(
+        "Seller action.\n\n"
+        "Transition: **Pending → Processing**\n\n"
+        "Side effects:\n"
+        "- Creates OrderEvent.ORDER_ACKNOWLEDGED\n"
+        "- Updates available actions"
+    ),
+    request=None,
+    responses={
+        200: OpenApiResponse(
+            response=SellerOrderDetailSerializer,
+            description="Updated seller order detail payload",
+        ),
+        400: OpenApiResponse(description="Invalid status transition"),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Forbidden"),
+        404: OpenApiResponse(description="Order not found"),
+    },
+)
+class SellerOrderConfirmView(APIView):
+    permission_classes = [IsSeller]
+
+    def post(self, request, pk: int):
+        payload = SellerOrderActionsService.confirm_order(
+            order_id=int(pk),
+            user=request.user,
+        )
+        serializer = SellerOrderDetailSerializer(payload, context={"request": request})
+        return Response(serializer.data, status=200)
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Mark order as shipped",
+    description=(
+        "Seller action.\n\n"
+        "Transition: **Processing → Shipped**\n\n"
+        "Side effects:\n"
+        "- Creates OrderEvent.SHIPMENT_CREATED\n"
+        "- Creates OrderEvent.TRACKING_UPLOADED if tracking number exists\n"
+        "- Updates available actions"
+    ),
+    request=None,
+    responses={
+        200: OpenApiResponse(
+            response=SellerOrderDetailSerializer,
+            description="Updated seller order detail payload",
+        ),
+        400: OpenApiResponse(description="Invalid status transition"),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Forbidden"),
+        404: OpenApiResponse(description="Order not found"),
+    },
+)
+class SellerOrderMarkShippedView(APIView):
+    permission_classes = [IsSeller]
+
+    def post(self, request, pk: int):
+        payload = SellerOrderActionsService.mark_as_shipped(
+            order_id=int(pk),
+            user=request.user,
+        )
+        serializer = SellerOrderDetailSerializer(payload, context={"request": request})
+        return Response(serializer.data, status=200)
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Cancel order",
+    description=(
+        "Admin-only action.\n\n"
+        "Transition: any → Cancelled\n\n"
+        "Side effects:\n"
+        "- Updates order status to Cancelled\n"
+        "- Cancels all order products\n"
+        "- Creates OrderEvent.CANCELLED"
+    ),
+    request=None,
+    responses={
+        200: OpenApiResponse(
+            response=SellerOrderDetailSerializer,
+            description="Updated order detail payload",
+        ),
+        400: OpenApiResponse(description="Invalid status transition"),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Only admin can cancel orders"),
+        404: OpenApiResponse(description="Order not found"),
+    },
+)
+class SellerOrderCancelView(APIView):
+    def post(self, request, pk: int):
+        payload = SellerOrderActionsService.cancel_order(
+            order_id=int(pk),
+            user=request.user,
+        )
+        return Response(payload, status=200)
