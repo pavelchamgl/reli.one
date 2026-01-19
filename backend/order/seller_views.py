@@ -559,14 +559,6 @@ class SellerShipmentLabelView(APIView):
     tags=["Seller Orders"],
     summary="Download shipment label",
     description="Downloads PDF shipping label for a specific shipment.",
-    parameters=[
-        OpenApiParameter(
-            name="shipment_id",
-            type=OpenApiTypes.INT,
-            location=OpenApiParameter.PATH,
-            description="Shipment ID",
-        ),
-    ],
     responses={
         200: OpenApiResponse(
             description="PDF shipping label",

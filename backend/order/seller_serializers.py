@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.urls import reverse
 
 from .models import Order
 
@@ -22,8 +23,7 @@ class SellerOrderListSerializer(serializers.ModelSerializer):
     can_download_label = serializers.BooleanField(read_only=True)
     can_cancel = serializers.SerializerMethodField()
 
-    def get_can_cancel(self, obj):
-        return bool(self.context.get("can_cancel", False))
+    download_labels_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -37,6 +37,7 @@ class SellerOrderListSerializer(serializers.ModelSerializer):
             "total_incl_vat_plus_delivery",
             "status",
             "branch",
+            "download_labels_url",
             "dispatch_before",
             "has_tracking",
             "has_label",
@@ -51,6 +52,23 @@ class SellerOrderListSerializer(serializers.ModelSerializer):
             return None
         return {"id": branch_id, "name": branch_name}
 
+    def get_can_cancel(self, obj):
+        return bool(self.context.get("can_cancel", False))
+
+    def get_download_labels_url(self, obj):
+        """
+        Absolute URL to download ZIP with all labels for this order.
+        """
+        request = self.context.get("request")
+        if not request:
+            return None
+
+        return request.build_absolute_uri(
+            reverse(
+                "seller-order-labels",
+                kwargs={"order_id": obj.id},
+            )
+        )
 
 class SellerOrderBranchSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -143,37 +161,28 @@ class SellerShipmentSerializer(serializers.Serializer):
     tracking_number = serializers.CharField(allow_null=True)
     has_tracking = serializers.BooleanField()
     has_label = serializers.BooleanField()
-    label_url = serializers.SerializerMethodField()
+    download_label_url = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(allow_null=True)
     warehouse = SellerOrderBranchSerializer(allow_null=True)
     items = SellerShipmentItemSerializer(many=True)
 
-    def get_label_url(self, obj):
+    def get_download_label_url(self, obj):
         """
-        Works with dict payload produced by the service.
-        If request exists -> returns absolute URL.
+        API endpoint to download shipment label (PDF).
         """
-        # obj is expected to be dict
-        raw = None
-        if isinstance(obj, dict):
-            raw = obj.get("label_url")
-        else:
-            # fallback if someday obj becomes a model instance
-            lf = getattr(obj, "label_file", None)
-            raw = lf.url if lf and hasattr(lf, "url") else None
-
-        if not raw:
+        if not obj.get("has_label"):
             return None
 
         request = self.context.get("request")
         if not request:
-            return raw
+            return None
 
-        # if already absolute -> return as is
-        if raw.startswith("http://") or raw.startswith("https://"):
-            return raw
-
-        return request.build_absolute_uri(raw)
+        return request.build_absolute_uri(
+            reverse(
+                "seller-shipment-label",
+                kwargs={"shipment_id": obj["id"]},
+            )
+        )
 
 
 class SellerOrderEventSerializer(serializers.Serializer):
@@ -195,8 +204,26 @@ class SellerOrderDetailSerializer(serializers.Serializer):
     summary = SellerOrderSummarySerializer()
     items = SellerOrderItemSerializer(many=True)
     shipments = SellerShipmentSerializer(many=True)
+    download_labels_url = serializers.SerializerMethodField()
     timeline = SellerOrderEventSerializer(many=True)
     actions = SellerOrderActionsSerializer()
+
+    def get_download_labels_url(self, obj):
+        """
+        Absolute URL to download ZIP with all labels for this order.
+        """
+        request = self.context.get("request")
+        order = obj.get("summary")
+
+        if not request or not order:
+            return None
+
+        return request.build_absolute_uri(
+            reverse(
+                "seller-order-labels",
+                kwargs={"order_id": order["id"]},
+            )
+        )
 
 
 class SellerBulkLabelsSerializer(serializers.Serializer):
