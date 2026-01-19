@@ -13,12 +13,13 @@ from drf_spectacular.utils import (
 )
 
 from .models import Order
-from .seller_serializers import SellerOrderListSerializer, SellerOrderDetailSerializer
+from .seller_serializers import SellerOrderListSerializer, SellerOrderDetailSerializer, SellerBulkLabelsSerializer
 from .seller_filters import SellerOrderFilter
 from .seller_pagination import SellerOrdersPagination
 from .permissions_seller import IsSeller, get_seller_profile_for_user
 from .services.seller_orders import SellerOrderQueryService
 from .services.seller_order_detail import SellerOrderDetailService
+from .services.seller_order_labels import SellerOrderLabelsService
 from .services.seller_order_actions import SellerOrderActionsService
 
 
@@ -520,3 +521,99 @@ class SellerOrderCancelView(APIView):
             user=request.user,
         )
         return Response(payload, status=200)
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Download shipment label",
+    description="Downloads PDF shipping label for a specific shipment.",
+    parameters=[
+        OpenApiParameter(
+            name="shipment_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description="Shipment ID",
+        ),
+    ],
+    responses={
+        200: OpenApiResponse(
+            description="PDF shipping label",
+            response=OpenApiTypes.BINARY,
+        ),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Forbidden"),
+        404: OpenApiResponse(description="Shipment not found"),
+    },
+)
+class SellerShipmentLabelView(APIView):
+    permission_classes = [IsSeller]
+
+    def get(self, request, shipment_id: int):
+        return SellerOrderLabelsService.get_shipment_label(
+            shipment_id=shipment_id,
+            user=request.user,
+        )
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Download shipment label",
+    description="Downloads PDF shipping label for a specific shipment.",
+    parameters=[
+        OpenApiParameter(
+            name="shipment_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description="Shipment ID",
+        ),
+    ],
+    responses={
+        200: OpenApiResponse(
+            description="PDF shipping label",
+            response=OpenApiTypes.BINARY,
+        ),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Forbidden"),
+        404: OpenApiResponse(description="Shipment not found"),
+    },
+)
+class SellerOrderLabelsView(APIView):
+    permission_classes = [IsSeller]
+
+    def get(self, request, order_id: int):
+        return SellerOrderLabelsService.get_order_labels_zip(
+            order_id=order_id,
+            user=request.user,
+        )
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Download labels for multiple orders",
+    description=(
+        "Downloads ZIP archive containing shipment labels for multiple orders. "
+        "Each order is placed into a separate folder named by order number."
+    ),
+    request=SellerBulkLabelsSerializer,
+    responses={
+        200: OpenApiResponse(
+            description="ZIP archive with labels grouped by order",
+            response=OpenApiTypes.BINARY,
+        ),
+        400: OpenApiResponse(description="Invalid input"),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Forbidden"),
+        404: OpenApiResponse(description="One or more orders not found"),
+    },
+)
+class SellerBulkOrderLabelsView(APIView):
+    permission_classes = [IsSeller]
+
+    def post(self, request):
+        serializer = SellerBulkLabelsSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        return SellerOrderLabelsService.get_bulk_orders_labels_zip(
+            order_ids=serializer.validated_data["order_ids"],
+            user=request.user,
+        )

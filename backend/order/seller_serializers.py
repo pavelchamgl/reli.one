@@ -197,3 +197,10 @@ class SellerOrderDetailSerializer(serializers.Serializer):
     shipments = SellerShipmentSerializer(many=True)
     timeline = SellerOrderEventSerializer(many=True)
     actions = SellerOrderActionsSerializer()
+
+
+class SellerBulkLabelsSerializer(serializers.Serializer):
+    order_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+    )
