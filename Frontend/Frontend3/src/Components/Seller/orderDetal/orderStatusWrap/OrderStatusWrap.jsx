@@ -4,7 +4,7 @@ import StatusText from '../../all/statusText/StatusText';
 import StatusUpdateSwitch from '../../../../ui/Seller/orderDetal/statusUpdateSwitch/StatusUpdateSwitch';
 import StatusUpdateSecond from '../../../../ui/Seller/orderDetal/statusUpdateSecond/StatusUpdateSecond';
 
-const OrderStatusWrap = ({ status }) => {
+const OrderStatusWrap = ({ summary }) => {
 
     const [canUpdate, setCanUpdate] = useState(false)
 
@@ -18,9 +18,19 @@ const OrderStatusWrap = ({ status }) => {
             <h3 className={styles.title}>Order Status</h3>
             <div className={styles.statusContentWrap}>
                 <p className={styles.currentText}>Current Status</p>
-                {/* <StatusUpdateSwitch /> */}
-                <StatusUpdateSecond />
-                {/* <StatusText status={"Shipped"} big={true} /> */}
+                {
+                    (summary?.status !== "Shipped" && summary?.status !== "Cancelled") &&
+                    <StatusUpdateSwitch status={summary?.status} id={summary?.id} />
+                }
+                {/* <StatusUpdateSecond /> */}
+                {
+                    summary?.status === "Shipped" &&
+                    <StatusText status={"Shipped"} big={true} />
+                }
+                {
+                    summary?.status === "Cancelled" &&
+                    <StatusText status={"Cancelled"} big={true} />
+                }
                 <div className={styles.statusDecorateText}>
                     <span></span>
                     <p>Status cannot be updated</p>

@@ -1,42 +1,42 @@
+import { useEffect, useState } from "react";
 import checkMark from "../../../../assets/Seller/orderDetal/checkMark.svg"
 import clockIc from "../../../../assets/Seller/orderDetal/clock.svg"
 
 import styles from "./TimelineBlock.module.scss"
 
-const TimeLineBlock = ({ steps }) => {
+const TimeLineBlock = ({ timeline }) => {
 
-    const timelineSteps = [
-        {
-            label: "Order created",
-            date: "2025-11-26 16:45",
-            completed: true,
-        },
-        {
-            label: "Payment confirmed",
-            date: "2025-11-26 16:47",
-            completed: true,
-        },
-        {
-            label: "Order acknowledged (Processing)",
-            date: "2025-11-26 17:15",
-            completed: true,
-        },
-        {
-            label: "Shipment created",
-            date: "2025-11-27 09:30",
-            completed: true,
-        },
-        {
-            label: "Tracking uploaded",
-            date: "2025-11-27 09:32",
-            completed: false,
-        },
-        {
-            label: "Delivered",
-            date: null,
-            completed: false,
-        },
+    const DEFAULT_STEPS = [
+        { type: "order_created", label: "Order created" },
+        { type: "payment_confirmed", label: "Payment confirmed" },
+        { type: "order_acknowledged", label: "Order acknowledged (Processing)" },
+        { type: "shipment_created", label: "Shipment created" },
+        { type: "tracking_uploaded", label: "Tracking uploaded" },
+        { type: "delivered", label: "Delivered" },
     ];
+
+    const [timelineSteps, setTimelineSteps] = useState([]);
+
+
+
+    useEffect(() => {
+        if (!timeline || !Array.isArray(timeline)) return;
+
+        const steps = DEFAULT_STEPS.map((step) => {
+            const serverStep = timeline.find(
+                (item) => item.type === step.type
+            );
+
+            return {
+                label: step.label,
+                date: serverStep?.created_at ?? null,
+                completed: Boolean(serverStep),
+            };
+        });
+
+        setTimelineSteps(steps);
+    }, [timeline]);
+
 
     return (
         <div className={styles.timeline}>

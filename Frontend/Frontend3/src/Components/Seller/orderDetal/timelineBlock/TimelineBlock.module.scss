@@ -34,7 +34,6 @@
   background: #dcdfe3;
 }
 
-
 .completed::before {
   background: #3f7f6d;
 }
@@ -66,4 +65,5 @@
 .date {
   font-size: 14px;
   color: #7a7a7a;
+  font-family: var(--ft);
 }

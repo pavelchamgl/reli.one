@@ -9,24 +9,35 @@ import styles from "./OrderSummary.module.scss"
 
 
 
-const OrderSummary = () => {
+const OrderSummary = ({ data }) => {
+
+    const { summary, items, shipments, timeline, actions } = data || {}
+    const { delivery, totals } = summary || {}
+
+    console.log(data);
+
+
 
     const textElements = [
         {
             title: "Order ID",
-            desc: "ORD-2025-003"
+            desc: summary?.order_number,
+            num: true
         },
         {
             title: "Purchase excl. VAT",
-            desc: "$220.00"
+            desc: `${totals?.purchase_excl_vat} €`,
+            num: true
         },
         {
             title: "Created",
-            desc: "2025-11-26 16:45"
+            desc: summary?.order_date,
+            num: true
         },
         {
             title: "Sales incl. VAT",
-            desc: "$330.00"
+            desc: `${totals?.sales_incl_vat} €`,
+            num: true
         },
         {
             title: "Payment Method",
@@ -35,11 +46,12 @@ const OrderSummary = () => {
         },
         {
             title: "Total incl. Delivery",
-            desc: "$340.00",
+            desc: `${totals?.total_incl_vat_plus_delivery} €`,
+            num: true
         },
         {
             title: "Delivery Method",
-            desc: "Express Delivery",
+            desc: delivery?.delivery_type?.name,
             url: truckGr
         },
     ]
@@ -58,7 +70,7 @@ const OrderSummary = () => {
                                 item?.url &&
                                 <img src={item?.url} alt="" />
                             }
-                            <p>{item.desc}</p>
+                            <p style={{ fontFamily: item?.num ? "var(--ft)" : "" }}>{item.desc}</p>
                         </div>
                     </div>
                 ))}

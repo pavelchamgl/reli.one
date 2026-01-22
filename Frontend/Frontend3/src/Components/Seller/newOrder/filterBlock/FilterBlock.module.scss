@@ -39,6 +39,9 @@
     background: #3f7f6d;
     color: white;
   }
+  & button:first-child:hover {
+    background: #346c5c;
+  }
 
   & button:last-child {
     border: 1px solid #d1d5dc;

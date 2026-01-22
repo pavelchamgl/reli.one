@@ -39,18 +39,18 @@ const StatusText = ({ status, big }) => {
 
     const fStatus = statuses.find(st => st.text === status)
 
-    const isMobile = useMediaQuery({ maxWidth: 500 })
+    const isMobile = useMediaQuery({ maxWidth: 830 })
 
 
     return (
         <div className={styles.status} style={{
-            color: fStatus.color ? fStatus.color : "#101828",
-            backgroundColor: fStatus.bg ? fStatus.bg : "white",
-            border: `1.2px solid ${fStatus.border ? fStatus.border : "#d1d5dc"}`,
-            minWidth: isMobile ? "auto" : "129px",
+            color: fStatus?.color ? fStatus?.color : "#101828",
+            backgroundColor: fStatus?.bg ? fStatus?.bg : "white",
+            border: `1.2px solid ${fStatus?.border ? fStatus?.border : "#d1d5dc"}`,
+            minWidth: isMobile ? "100px" : "129px",
             height: big ? "38px" : "30px"
         }}>
-            {fStatus.text}
+            {fStatus?.text}
         </div>
     )
 }

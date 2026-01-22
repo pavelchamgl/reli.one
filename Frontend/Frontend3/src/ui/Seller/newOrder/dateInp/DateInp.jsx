@@ -4,11 +4,16 @@ import InputMask from "react-input-mask"
 import dateIc from "../../../../assets/Seller/newOrder/dateIc.svg"
 
 import styles from "./DateInp.module.scss"
+import { useSelector } from "react-redux"
+import { useActionNewOrder } from "../../../../hook/useActionNewOrder"
 
 const DateInp = ({ title }) => {
     const masks = "99.99.9999"
 
-    const [value, setValue] = useState("")
+    const { date_from, date_to } = useSelector(state => state.newOrder)
+
+    const { setDate } = useActionNewOrder()
+
 
     return (
         <div className={styles.dateWrap}>
@@ -21,8 +26,20 @@ const DateInp = ({ title }) => {
                     maskChar=""
                     alwaysShowMask={false}
                     placeholder="dd.mm.yyyy"
-                    value={value}
-                    onChange={(e) => setValue(e.target.value)}
+                    value={title === "Date From" ? date_from : date_to}
+                    onChange={(e) => {
+                        if (title === "Date From") {
+                            setDate({
+                                type: "from",
+                                text: e.target.value
+                            })
+                        } else {
+                            setDate({
+                                type: "to",
+                                text: e.target.value
+                            })
+                        }
+                    }}
                 >
                     {(inputProps) => <input className={styles.input} {...inputProps} type="tel" />}
                 </InputMask>

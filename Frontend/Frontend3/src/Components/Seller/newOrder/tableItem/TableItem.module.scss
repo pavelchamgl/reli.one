@@ -8,6 +8,7 @@
   color: #3f7f6d;
   text-decoration: none;
   min-width: 128px;
+  font-family: var(--ft);
   @include pad;
 }
 
@@ -28,6 +29,7 @@
   font-size: 14px;
   @include pad;
   min-width: 89px;
+  font-family: var(--ft);
 }
 
 .tableWrap {
@@ -41,6 +43,7 @@
 .date {
   @include pad;
   min-width: 138px;
+  font-family: var(--ft);
 }
 
 .price {
@@ -48,4 +51,5 @@
   display: flex;
   justify-content: flex-end;
   @include pad;
+  font-family: var(--ft);
 }

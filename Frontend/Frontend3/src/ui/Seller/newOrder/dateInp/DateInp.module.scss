@@ -38,6 +38,7 @@
   height: 100%;
   outline: none;
   border: none;
+  font-family: var(--ft);
 }
 
 .inpWrap:has(.input:focus) {

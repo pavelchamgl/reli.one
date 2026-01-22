@@ -13,10 +13,14 @@ import TimeLineBlock from '../../Components/Seller/orderDetal/timelineBlock/Time
 import ShipmentDetail from '../../Components/Seller/orderDetal/shipmentDetail/ShipmentDetail'
 import OrderStatusWrap from '../../Components/Seller/orderDetal/orderStatusWrap/OrderStatusWrap'
 import { useMediaQuery } from 'react-responsive'
+import { useEffect, useState } from 'react'
+import { getOrderDetails } from '../../api/seller/orders'
 
 const NewSellerOrderDetal = () => {
 
     const { id } = useParams()
+
+    const [data, setData] = useState(null)
 
     const isPlanshet = useMediaQuery({ maxWidth: 800 })
     const isMobile = useMediaQuery({ maxWidth: 500 })
@@ -38,9 +42,20 @@ const NewSellerOrderDetal = () => {
 
 
     ]
+
+    useEffect(() => {
+        getOrderDetails(id).then((res) => {
+            console.log(res);
+            setData(res.data)
+        })
+    }, [id])
+
+    const { summary, items, shipments, timeline, actions } = data || {}
+    // const { delivery, totals } = summary || {}
+
     return (
         <div>
-            <Link className={styles.backLink}>
+            <Link to={-1} className={styles.backLink}>
                 <img src={arrBack} alt="" />
                 Back to Orders
             </Link>
@@ -51,25 +66,25 @@ const NewSellerOrderDetal = () => {
 
                         <div>
                             <h3>Order</h3>
-                            <h3>ORD-2025-003</h3>
+                            <h3>{summary?.order_number}</h3>
                         </div>
                         :
-                        <h3>Order ORD-2025-003</h3>
+                        <h3>Order {summary?.order_number}</h3>
                 }
-                <StatusText status={"Pending"} />
+                <StatusText status={summary?.status ? summary?.status : "Canceled"} />
             </div>
 
             <div className={styles.sectionsWrapMain} style={{ flexWrap: isPlanshet ? "wrap" : "nowrap" }}>
                 <div className={styles.sectionsWrapFirst}>
-                    <OrderStatusWrap />
-                    <OrderSummary />
-                    <ProductsTable />
-                    <ShipmentDetail />
+                    <OrderStatusWrap summary={summary} />
+                    <OrderSummary data={data} />
+                    <ProductsTable data={data} />
+                    <ShipmentDetail shipment={shipments} />
                 </div>
 
                 <div className={styles.sectionsWrapSecond}>
-                    <ActionsBlock />
-                    <TimeLineBlock />
+                    <ActionsBlock data={data} />
+                    <TimeLineBlock timeline={timeline} />
                 </div>
 
             </div>

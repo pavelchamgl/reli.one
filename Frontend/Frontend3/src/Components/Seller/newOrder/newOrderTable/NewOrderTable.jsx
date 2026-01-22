@@ -3,13 +3,15 @@ import React from 'react'
 import styles from "./NewOrderTable.module.scss"
 import Checkbox from '../../../../ui/Seller/newOrder/checkbox/Checkbox'
 import TableItem from '../tableItem/TableItem'
+import { useSelector } from 'react-redux'
+import { useActionNewOrder } from '../../../../hook/useActionNewOrder'
 
-const NewOrderTable = () => {
+const NewOrderTable = ({ data }) => {
 
     const tableTitleTexts = [
         {
             text: "Order ID",
-            width: 128
+            width: 168
         },
         {
             text: "Created",
@@ -57,10 +59,34 @@ const NewOrderTable = () => {
 
     ]
 
+    console.log(data);
+
+    const { selectedIds } = useSelector(state => state.newOrder);
+    const { clearAll, selectAll } = useActionNewOrder()
+
+
+    const allSelected = data.length > 0 && selectedIds.length === data.length;
+    const partiallySelected =
+        selectedIds.length > 0 && selectedIds.length < data.length;
+
+
+
+    const handleMainCheckbox = () => {
+        if (allSelected) {
+            clearAll();
+        } else {
+            selectAll();
+        }
+    };
+
     return (
         <div className={styles.tableWrap}>
             <div className={styles.titleWrap}>
-                <Checkbox />
+                <Checkbox
+                    checked={allSelected}
+                    indeterminate={partiallySelected}
+                    onChange={handleMainCheckbox}
+                />
                 {
                     tableTitleTexts.map((textObj) => (
                         <div className={styles.titleTextWrap} style={{ minWidth: `${textObj.width}px`, textAlign: textObj.textAlign, justifyContent: textObj.justify }}>
@@ -71,6 +97,12 @@ const NewOrderTable = () => {
                     ))
                 }
             </div>
+            {
+                data.map((item) => (
+                    <TableItem data={item} />
+                ))
+            }
+            {/* <TableItem />
             <TableItem />
             <TableItem />
             <TableItem />
@@ -79,9 +111,7 @@ const NewOrderTable = () => {
             <TableItem />
             <TableItem />
             <TableItem />
-            <TableItem />
-            <TableItem />
-            <TableItem />
+            <TableItem /> */}
         </div>
     )
 }
