@@ -9,3 +9,20 @@ export const toISODate = (dateTime) => {
 
   return `${year}-${month}-${day}`;
 };
+
+
+export const downloadBlob = (blob, fileName = "file.zip") => {
+  // Создаем временный URL из blob
+  const url = URL.createObjectURL(blob);
+
+  // Создаем ссылку и симулируем клик
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+
+  // Убираем ссылку из DOM и освобождаем память
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};

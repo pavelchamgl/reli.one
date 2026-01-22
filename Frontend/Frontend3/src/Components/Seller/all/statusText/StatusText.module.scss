@@ -8,4 +8,8 @@
   justify-content: center;
   background-color: aquamarine;
   font-size: clamp(14px, 2.5vw, 16px);
+
+  @media (max-width: 830px) {
+    padding: 0;
+  }
 }

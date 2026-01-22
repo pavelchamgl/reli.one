@@ -1,18 +1,18 @@
 import prodIc from "../../../../assets/Seller/newOrder/productIc.svg"
 import styles from './ParcelItem.module.scss';
 
-const ParcelItem = () => {
+const ParcelItem = ({ item }) => {
     return (
         <div className={styles.main}>
             <div className={styles.nameAndImg}>
                 <img src={prodIc} alt="" />
                 <div>
-                    <p className={styles.name}>Premium Cotton T-Shirt</p>
-                    <p className={styles.variant}>TS-BLK-M-001</p>
+                    <p className={styles.name}>{item?.name}</p>
+                    <p className={styles.variant}>{item?.sku}</p>
                 </div>
 
             </div>
-            <p className={styles.quant}>Qty: 2</p>
+            <p className={styles.quant}>Qty: {item?.quantity}</p>
         </div>
     )
 }

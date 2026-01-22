@@ -12,7 +12,9 @@
 }
 
 .main {
-  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 1px 2px -1px rgba(0, 0, 0, 0.1),
+    0 1px 3px 0 rgba(0, 0, 0, 0.1);
   background: #fff;
   border: 1.28px solid #e5e7eb;
   border-radius: 16px;
@@ -44,12 +46,14 @@
 
     & p {
       @include text(#4a5565, 14px, 400);
+      font-family: var(--ft);
     }
   }
 }
 
 .price {
   @include text(#101828, 18px, 400);
+  font-family: var(--ft);
 }
 
 .topSection {
@@ -90,5 +94,6 @@
 
   & p:last-child {
     @include text(#101828, 16px, 400);
+    font-family: var(--ft);
   }
 }

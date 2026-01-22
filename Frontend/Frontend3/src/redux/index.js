@@ -18,6 +18,7 @@ import { reducer as warehouseSlice } from "./warehouseSlice"
 import { reducer as sellerStaticsSlice } from "./sellerStaticsSlice"
 import { reducer as sellerGoodsListSlice } from "./sellerGoodsListSlice"
 import { reducer as selfEmploedSlice } from "./selfEmployed"
+import { reducer as newOrderSlice } from "./newOrderSlice"
 
 
 // Импорт
@@ -42,7 +43,8 @@ const rootReducer = combineReducers({
     warehouse: warehouseSlice,
     seller_statics: sellerStaticsSlice,
     seller_goods: sellerGoodsListSlice,
-    selfEmploed: selfEmploedSlice
+    selfEmploed: selfEmploedSlice,
+    newOrder: newOrderSlice
 })
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

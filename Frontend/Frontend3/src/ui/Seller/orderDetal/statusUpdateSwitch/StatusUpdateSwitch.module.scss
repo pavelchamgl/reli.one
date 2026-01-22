@@ -1,18 +1,32 @@
 .wrapper {
   width: 100%;
   overflow: hidden;
+  @media (max-width: 500px) {
+    height: 100%;
+  }
 }
 
 .track {
   display: flex;
   align-items: center;
   transition: transform 0.45s ease;
+
+  @media (max-width: 500px) {
+    height: 100%;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 .block {
   display: flex;
   align-items: center;
   width: 100%;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+  }
 }
 
 .step {
@@ -47,5 +61,26 @@
     border-left: 10px solid #9ca3af;
     border-top: 6px solid transparent;
     border-bottom: 6px solid transparent;
+  }
+}
+
+@media (max-width: 500px) {
+  .arrow {
+    width: 2px;
+    height: 24px;
+    margin: 12px auto;
+    background: #9ca3af;
+
+    &::after {
+      top: auto;
+      bottom: -6px;
+      right: 50%;
+      transform: translateX(50%);
+
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 10px solid #9ca3af;
+      border-bottom: 0;
+    }
   }
 }

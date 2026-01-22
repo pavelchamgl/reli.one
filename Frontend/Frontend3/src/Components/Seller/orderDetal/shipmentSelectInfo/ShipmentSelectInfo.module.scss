@@ -48,6 +48,7 @@
 
     & p:last-child {
       color: #4a5565;
+      font-family: var(--ft);
     }
   }
 }
@@ -81,13 +82,15 @@
       font-weight: 400;
       font-size: 14px;
       color: #101828;
+      font-family: var(--ft);
     }
   }
 
   & div:last-child {
     display: flex;
     gap: 8px;
-    & button {
+    & button,
+    a {
       padding: 10px 16px;
       background-color: #3f7f6d;
       border-radius: 10px;
@@ -102,10 +105,11 @@
       font-size: 14px;
     }
 
-    & button:last-child {
+    & a {
       color: #3f7f6d;
       background-color: white;
       border: 1px solid #3f7f6d;
+      text-decoration: none;
     }
   }
 }

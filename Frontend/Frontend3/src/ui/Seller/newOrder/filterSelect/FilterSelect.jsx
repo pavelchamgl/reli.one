@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import selectArr from "../../../../assets/Seller/all/selectArr.svg"
 
 import styles from './FilterSelect.module.scss';
 import { useMediaQuery } from "react-responsive";
+import { useActionNewOrder } from "../../../../hook/useActionNewOrder";
 
 
 
@@ -11,7 +12,25 @@ const FilterSelect = ({ openSelect, setOpenSelect, value, setValue, itemsArr, ti
 
 
     const isMobile = useMediaQuery({ maxWidth: 500 })
-   
+
+    const { setCouriers, setStatus, setDeliveryType } = useActionNewOrder()
+
+
+    useEffect(() => {
+        if (title === "Couriers") {
+            console.log("weiowiueuiewh");
+            const courier = itemsArr.find(item => item.text === value)
+            setCouriers({ value: courier?.value ? courier.value : "" })
+        }
+        if (title === "Status") {
+            setStatus({ value: value })
+        }
+        if (title === "Delivery Method") {
+            const method = itemsArr.find(item => item.text === value)
+            setDeliveryType({ value: method?.value ? method.value : "" })
+        }
+    }, [value])
+
 
     return (
         <div className={styles.mainWrap}>
@@ -31,10 +50,10 @@ const FilterSelect = ({ openSelect, setOpenSelect, value, setValue, itemsArr, ti
                 openSelect &&
                 <div className={styles.selectItemsWrap}>
                     {itemsArr?.map((item) => (
-                        <button className={`${styles.selectItems} ${value === item ? styles.btnAct : ""}`} onClick={() => {
-                            setValue(item)
+                        <button className={`${styles.selectItems} ${value === item.text ? styles.btnAct : ""}`} onClick={() => {
+                            setValue(item.text)
                             setOpenSelect(!openSelect)
-                        }}>{item}</button>
+                        }}>{item.text}</button>
                     ))}
                 </div>
             }

@@ -20,20 +20,21 @@
 }
 
 .orderCardWrap > .orderCard {
-  flex: 1 1 calc(33.333% - 14px); /* 3 в ряд */
+  flex: 1 1 calc(33.333% - 14px);
   max-width: calc(33.333% - 14px);
 }
 
 @media (max-width: 1024px) {
   .orderCardWrap > .orderCard {
-    flex: 1 1 calc(50% - 14px); /* 2 в ряд */
+    flex: 1 1 calc(50% - 14px);
     max-width: calc(50% - 14px);
   }
 }
 
-@media (max-width: 600px) {
+/* Самое важное — вот так должно быть для 1 в ряд */
+@media (max-width: 819px) {
   .orderCardWrap > .orderCard {
-    flex: 1 1 100%; /* 1 в ряд */
-    max-width: 100%;
+    flex: 1 1 100vw; /* ← только так надёжно */
+    width: 100vw;
   }
 }
