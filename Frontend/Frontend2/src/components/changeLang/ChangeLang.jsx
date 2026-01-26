@@ -12,13 +12,16 @@ import styles from "./ChangeLang.module.css"
 
 
 const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
+
+    const { t } = useTranslation("header")
+
     return (
         <>
-            <h4 className='font-semibold text-xl'>Choose a language</h4>
+            <h4 className='font-semibold text-xl'>{t("lang.title")}</h4>
             <button onClick={() => handleChangeLang('en')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
                 <div className="flex items-center gap-2">
                     <img className="w-5" src={enIcon} alt="English" />
-                    <span>English</span>
+                    <span>{t("lang.en")}</span>
                 </div>
                 {
                     lang === "en" && <img src={checkMark} alt="" />
@@ -27,7 +30,7 @@ const ModalAndDrawerContent = ({ lang, handleChangeLang }) => {
             <button onClick={() => handleChangeLang('cz')} className="w-[100%] flex items-center justify-between gap-2 h-10 px-2 rounded-full bg-white transition hover:bg-gray-300">
                 <div className='flex items-center gap-2'>
                     <img className="w-5" src={csIcon} alt="Czech" />
-                    <span>Czech</span>
+                    <span>{t("lang.cz")}</span>
                 </div>
                 {
                     lang === "cz" && <img src={checkMark} alt="" />

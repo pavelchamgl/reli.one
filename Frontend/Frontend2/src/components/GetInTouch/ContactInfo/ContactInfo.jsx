@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import phone from "../../../assets/getInTouch/phone.svg"
 import mail from "../../../assets/getInTouch/mail.svg"
 import message from "../../../assets/getInTouch/message.svg"
@@ -19,32 +21,35 @@ const ContactBlock = ({ item }) => {
 
 const ContactInfo = () => {
 
+    const { t } = useTranslation("blocks")
+
+
     const contacts = [
         {
             img: phone,
-            title: "Phone Support",
-            desc: "+420 797 837 856"
+            title: t("contact_section.contact_info.phone.label"),
+            desc: t("contact_section.contact_info.phone.value")
         },
         {
             img: mail,
-            title: "Email Support",
-            desc: "office@reli.one"
+            title: t("contact_section.contact_info.email.label"),
+            desc: t("contact_section.contact_info.email.value")
         },
         {
             img: message,
-            title: "Live Chat",
-            desc: "Available 24/7 in your dashboard"
+            title: t("contact_section.contact_info.live_chat.label"),
+            desc: t("contact_section.contact_info.live_chat.value")
         },
         {
             img: time,
-            title: "Support Hours",
-            desc: "Monday - Sunday, 24/7"
+            title: t("contact_section.contact_info.support_hours.label"),
+            desc: t("contact_section.contact_info.support_hours.value")
         },
     ]
 
     return (
         <div>
-            <h4 className={styles.title}>Contact Information</h4>
+            <h4 className={styles.title}>{t("contact_section.contact_info.title")}</h4>
             <div className={styles.blocks}>
                 {contacts.map((item) => (
                     <ContactBlock item={item} />

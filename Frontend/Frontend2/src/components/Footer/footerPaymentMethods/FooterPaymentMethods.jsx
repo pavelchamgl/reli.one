@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import stripe from "../../../assets/paymentMethods/stripe.svg"
 import paypal from "../../../assets/paymentMethods/paypal.svg"
 import apple from "../../../assets/paymentMethods/applePay.svg"
@@ -9,6 +11,9 @@ import maestro from "../../../assets/paymentMethods/maestro.svg"
 import styles from "./FooterPaymentMethods.module.scss"
 
 const FooterPaymentMethods = () => {
+
+    const { t } = useTranslation("footer")
+
 
     const images = [
         {
@@ -36,7 +41,7 @@ const FooterPaymentMethods = () => {
 
     return (
         <div className={styles.wrap}>
-            <h5 className={styles.title}>Payment Methods</h5>
+            <h5 className={styles.title}>{t("footer.payment_methods_title")}</h5>
 
             <div className={styles.imagesWrap}>
                 {

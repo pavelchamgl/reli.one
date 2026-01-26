@@ -6,6 +6,18 @@
     "de": "German",
     "catalog": "Catalogue",
     "_headerAndFooter": "headerAndFooter",
+    "footer_additional": {
+        "company": "Company",
+        "for_providers": "For Providers",
+        "for_clients": "For Clients",
+        "payment_methods": "Payment Methods",
+        "copyright": "(c) Copyright 2026 Reli Group s.r.o.",
+        "contact": "Contact",
+        "number": "Number",
+        "phone": "Phone",
+        "company_id": "Company ID",
+        "vat": "VAT"
+    },
     "for_seller": "For sellers",
     "for_buyers": "For buyers",
     "about_company": "About company",

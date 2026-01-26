@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import Container from '../../components/Container/Container'
 import star from "../../assets/ourSellers/star.svg"
 import milano from "../../assets/ourSellers/milano.svg"
@@ -38,27 +40,29 @@ const Comment = ({ img, quote, name, companyTask }) => {
 
 const OurSellersSay = () => {
 
+    const { t } = useTranslation("blocks")
+
+
     const comments = [
         {
             img: nutristar,
-            quotes: '"Reli.one made it incredibly easy to start selling online. The setup was quick, and I saw my first sale within hours. The support team is amazing!"',
-            name: "Nutristar",
-            companyTasks: "Balanced vitamin complexes"
+            quotes: t("testimonials_section.testimonials.comment1.quote"),
+            name: t("testimonials_section.testimonials.comment1.author"),
+            companyTasks: t("testimonials_section.testimonials.comment1.category")
         },
         {
             img: milano,
-            quotes: '"The analytics tools help me understand my customers better. Sales have increased by 300% since joining Reli.one. Best decision for my business."',
-            name: "Milano Cosmetics",
-            companyTasks: "Cosmetics"
+            quotes: t("testimonials_section.testimonials.comment2.quote"),
+            name: t("testimonials_section.testimonials.comment2.author"),
+            companyTasks: t("testimonials_section.testimonials.comment2.category")
         }
     ]
 
     return (
         <Container>
             <section className={styles.main}>
-                <h3 className={styles.title}>What Our Sellers Say</h3>
-                <p className={styles.desc}>Join thousands of successful sellers who have grown their business with
-                    Reli.one.</p>
+                <h3 className={styles.title}>{t("testimonials_section.title_small")}</h3>
+                <p className={styles.desc}>{t("testimonials_section.subtitle")}</p>
                 <div className={styles.comments}>
                     {comments.map((item) => (
                         <Comment img={item.img} companyTask={item.companyTasks} name={item.name} quote={item.quotes} />

@@ -12,6 +12,16 @@ export const mainInstance = axios.create({
   },
 });
 
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    error ? prom.reject(error) : prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
 
 
 // Добавление интерцептора запроса
@@ -26,54 +36,54 @@ mainInstance.interceptors.request.use(config => {
 });
 
 
-mainInstance.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    if (axios.isAxiosError(err)) {
-      const originalRequest = err.config;
+// mainInstance.interceptors.response.use(
+//   (res) => res,
+//   async (err) => {
+//     if (axios.isAxiosError(err)) {
+//       const originalRequest = err.config;
 
-      if (err.response && err.response.status === 401) {
-        const tokenData = localStorage.getItem("token");
+//       if (err.response && err.response.status === 401) {
+//         const tokenData = localStorage.getItem("token");
 
-        if (tokenData) {
-          try {
-            const parsedToken = JSON.parse(tokenData);
-            const { data } = await axios.post(
-              "https://reli.one/api/accounts/token/refresh/",
-              {
-                refresh: parsedToken.refresh,
-              }
-            );
+//         if (tokenData) {
+//           try {
+//             const parsedToken = JSON.parse(tokenData);
+//             const { data } = await axios.post(
+//               "https://reli.one/api/accounts/token/refresh/",
+//               {
+//                 refresh: parsedToken.refresh,
+//               }
+//             );
 
-            const newToken = { ...parsedToken, access: data.access };
-            localStorage.setItem("token", JSON.stringify(newToken));
+//             const newToken = { ...parsedToken, access: data.access };
+//             localStorage.setItem("token", JSON.stringify(newToken));
 
-            originalRequest.headers['Authorization'] = `Bearer ${newToken.access}`;
+//             originalRequest.headers['Authorization'] = `Bearer ${newToken.access}`;
 
-            // Повторный запрос с новым токеном
-            return axios(originalRequest);
-          } catch (error) {
-            // Обработка ошибки обновления токена
-            ErrToast("Network Error")
-            localStorage.removeItem("token")
-            console.log('Error refreshing token:', error);
-            // Опционально: перенаправление пользователя на страницу входа
-            // window.location.href = '/login';
-          }
-        }
-      }
+//             // Повторный запрос с новым токеном
+//             return axios(originalRequest);
+//           } catch (error) {
+//             // Обработка ошибки обновления токена
+//             // ErrToast("Network Error")
+//             localStorage.removeItem("token")
+//             console.log('Error refreshing token:', error);
+//             // Опционально: перенаправление пользователя на страницу входа
+//             // window.location.href = '/login';
+//           }
+//         }
+//       }
 
-      if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
-        // Обработка ошибок сети
-        ErrToast("Network error - please check your internet connection")
-        console.log('Network error - please check your internet connection.');
-        // Здесь вы можете показать пользователю уведомление о проблемах с сетью
-      }
-    }
+//       if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
+//         // Обработка ошибок сети
+//         // ErrToast("Network error - please check your internet connection")
+//         console.log('Network error - please check your internet connection.');
+//         // Здесь вы можете показать пользователю уведомление о проблемах с сетью
+//       }
+//     }
 
-    return Promise.reject(err);
-  }
-);
+//     return Promise.reject(err);
+//   }
+// );
 
 
 // mainInstance.interceptors.response.use(
@@ -141,54 +151,54 @@ formDataInstance.interceptors.request.use(config => {
 });
 
 
-formDataInstance.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    if (axios.isAxiosError(err)) {
-      const originalRequest = err.config;
+// formDataInstance.interceptors.response.use(
+//   (res) => res,
+//   async (err) => {
+//     if (axios.isAxiosError(err)) {
+//       const originalRequest = err.config;
 
-      if (err.response && err.response.status === 401) {
-        const tokenData = localStorage.getItem("token");
+//       if (err.response && err.response.status === 401) {
+//         const tokenData = localStorage.getItem("token");
 
-        if (tokenData) {
-          try {
-            const parsedToken = JSON.parse(tokenData);
-            const { data } = await axios.post(
-              "https://reli.one/api/accounts/token/refresh/",
-              {
-                refresh: parsedToken.refresh,
-              }
-            );
+//         if (tokenData) {
+//           try {
+//             const parsedToken = JSON.parse(tokenData);
+//             const { data } = await axios.post(
+//               "https://reli.one/api/accounts/token/refresh/",
+//               {
+//                 refresh: parsedToken.refresh,
+//               }
+//             );
 
-            const newToken = { ...parsedToken, access: data.access };
-            localStorage.setItem("token", JSON.stringify(newToken));
+//             const newToken = { ...parsedToken, access: data.access };
+//             localStorage.setItem("token", JSON.stringify(newToken));
 
-            originalRequest.headers['Authorization'] = `Bearer ${newToken.access}`;
+//             originalRequest.headers['Authorization'] = `Bearer ${newToken.access}`;
 
-            // Повторный запрос с новым токеном
-            return axios(originalRequest);
-          } catch (error) {
-            // Обработка ошибки обновления токена
-            ErrToast("Network Error")
-            localStorage.removeItem("token")
-            console.log('Error refreshing token:', error);
-            // Опционально: перенаправление пользователя на страницу входа
-            // window.location.href = '/login';
-          }
-        }
-      }
+//             // Повторный запрос с новым токеном
+//             return axios(originalRequest);
+//           } catch (error) {
+//             // Обработка ошибки обновления токена
+//             ErrToast("Network Error")
+//             localStorage.removeItem("token")
+//             console.log('Error refreshing token:', error);
+//             // Опционально: перенаправление пользователя на страницу входа
+//             // window.location.href = '/login';
+//           }
+//         }
+//       }
 
-      if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
-        // Обработка ошибок сети
-        ErrToast("Network error - please check your internet connection")
-        console.log('Network error - please check your internet connection.');
-        // Здесь вы можете показать пользователю уведомление о проблемах с сетью
-      }
-    }
+//       if (err.code === 'ECONNABORTED' || err.message === 'Network Error') {
+//         // Обработка ошибок сети
+//         ErrToast("Network error - please check your internet connection")
+//         console.log('Network error - please check your internet connection.');
+//         // Здесь вы можете показать пользователю уведомление о проблемах с сетью
+//       }
+//     }
 
-    return Promise.reject(err);
-  }
-);
+//     return Promise.reject(err);
+//   }
+// );
 
 
 // mainInstance.interceptors.response.use(
@@ -277,3 +287,88 @@ export const deleteApi = async (url) => {
     throw error
   }
 }
+
+
+const responseInterceptor = async (err) => {
+  if (!axios.isAxiosError(err)) {
+    return Promise.reject(err);
+  }
+
+  const originalRequest = err.config;
+
+  // 🔁 401
+  if (err.response?.status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true;
+
+    const tokenData = localStorage.getItem("token");
+    if (!tokenData) {
+      return Promise.reject(err);
+    }
+
+    // ⏳ если refresh уже идёт — ждём
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve: (token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(axios(originalRequest));
+          },
+          reject,
+        });
+      });
+    }
+
+    isRefreshing = true;
+
+    try {
+      const parsedToken = JSON.parse(tokenData);
+
+      const { data } = await axios.post(
+        "https://reli.one/api/accounts/token/refresh/",
+        { refresh: parsedToken.refresh }
+      );
+
+      const newToken = { ...parsedToken, access: data.access };
+      localStorage.setItem("token", JSON.stringify(newToken));
+
+      processQueue(null, data.access);
+
+      originalRequest.headers.Authorization = `Bearer ${data.access}`;
+      return axios(originalRequest);
+
+    } catch (refreshError) {
+      processQueue(refreshError);
+
+      // ❗️ТОСТ ТОЛЬКО ЗДЕСЬ И ОДИН
+      ErrToast("Сессия истекла. Пожалуйста, войдите заново");
+
+      localStorage.removeItem("token");
+      // window.location.href = "/login";
+
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
+  }
+
+  // 🌐 Network error — НЕ для refresh
+  if (
+    (err.code === "ECONNABORTED" || err.message === "Network Error") &&
+    !originalRequest?.url?.includes("token/refresh")
+  ) {
+    ErrToast("Network error. Check your internet connection");
+  }
+
+  return Promise.reject(err);
+};
+
+mainInstance.interceptors.response.use(
+  res => res,
+  responseInterceptor
+);
+
+formDataInstance.interceptors.response.use(
+  res => res,
+  responseInterceptor
+);
+

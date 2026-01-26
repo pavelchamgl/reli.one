@@ -1,0 +1,274 @@
+{
+    "hero": {
+        "title": {
+            "text1": "We Handle the sales,",
+            "text2": "You Focus on Your Business!"
+        },
+        "subtitle": {
+            "text1": "With our hands-on support",
+            "text2": " free promotion",
+            "text3": ", and",
+            "text4": " one-year fee-free start",
+            "text5": ", Reli is your partner for growth."
+        },
+        "join_button": "Join our growing seller community",
+        "contact_button": "Contact Manager",
+        "benefits": {
+            "text1": "Free registration",
+            "text2": "No setup costs",
+            "text3": "24/7 support"
+        }
+    },
+    "selling": {
+        "title": "Selling with Reli is easy",
+        "description": "Just send us your product details - we upload and promote them for you.",
+        "steps": {
+            "step1": "Send product",
+            "step2": "We upload",
+            "step3": "You sell"
+        },
+        "button_start": "Start Selling Today",
+        "button_goto": "Go To Marketplace"
+    },
+    "why_choose_reli": {
+        "title_small": "Trusted support from day one",
+        "main_title": "Why Choose RELI?",
+        "description": "Everything you need to succeed as an online seller, all in one powerful platform designed to maximize your sales and minimize your effort.",
+        "features": {
+            "block1": {
+                "label": "Easy Conditions",
+                "title": "Zero Effort for Manufacturers",
+                "text": "No need to upload or manage products. Our team lists and optimizes everything for you."
+            },
+            "block2": {
+                "label": "24/7 Available",
+                "title": "Personal Manager Support",
+                "text": "Every seller has a dedicated manager who knows your business."
+            },
+            "block3": {
+                "label": "100% Risk-Free",
+                "title": "Lowest Fees in the Market",
+                "text": "Keep more of your profits with our ultra-competitive commission rates."
+            },
+            "block4": {
+                "label": "Guaranteed",
+                "title": "No Risk",
+                "text": "No setup fees, no hidden charges. You only pay when you sell."
+            },
+            "block5": {
+                "label": "100% Free",
+                "title": "Free Promotion",
+                "text": "Your products can be featured in banners, promotions, and campaigns at no commission."
+            },
+            "block6": {
+                "label": "High-Quality Products",
+                "title": "High-Quality Marketplace",
+                "text": "We carefully select sellers and products to keep standards high."
+            }
+        }
+    },
+    "ready_to_start": {
+        "title": "Ready to start selling?",
+        "subtitle": "Join successful sellers who have already discovered the power of Reli. No commitments, no risks, just results.",
+        "button_create": "Create Your Free Account"
+    },
+    "how_it_works": {
+        "title_small": "How it Works",
+        "main_title": "We keep it simple. You focus on production - we handle the sales setup",
+        "steps": {
+            "step1": {
+                "label": "Contact Our Manager",
+                "text": "Send us an email and share your business details."
+            },
+            "step2": {
+                "label": "Sign Agreement",
+                "text": "Simple, transparent terms."
+            },
+            "step3": {
+                "label": "Send Product Info",
+                "text": "Share your product catalog, photos, and prices. Our moderators upload and optimize your listings."
+            },
+            "step4": {
+                "label": "Start Selling and Get Paid",
+                "text": "Your products go live, and you receive payouts."
+            }
+        },
+        "final_text": "Ready to get started?",
+        "button_contact": "Contact Our Manager"
+    },
+    "testimonials_section": {
+        "title_small": "What Our Sellers Say",
+        "subtitle": "Join thousands of successful sellers who have grown their business with Reli.one.",
+        "testimonials": {
+            "comment1": {
+                "quote": "\"Reli.one made it incredibly easy to start selling online. The setup was quick, and I saw my first sale within hours. The support team is amazing!\"",
+                "author": "Nutristar",
+                "category": "Balanced vitamin complexes"
+            },
+            "comment2": {
+                "quote": "\"The analytics tools help me understand my customers better. Sales have increased by 300% since joining Reli.one. Best decision for my business.\"",
+                "author": "Milano Cosmetics",
+                "category": "Cosmetics"
+            }
+        }
+    },
+    "pricing_section": {
+        "title_small": "Transparent Pricing & Terms",
+        "main_title": "Simple. Fair. Competitive.",
+        "subtitle": "What you see is what you pay",
+        "commission_structure": {
+            "title": "Commission Structure",
+            "block1": {
+                "title": "Low Commission per Sale",
+                "text": "Commission up to 8% only"
+            },
+            "block2": {
+                "title": "No setup Fees",
+                "text": "What you see is what you pay"
+            },
+            "block3": {
+                "title": "Monthly Payouts",
+                "text": "Get paid every month, guaranteed"
+            }
+        },
+        "how_it_works": {
+            "title": "How It Works",
+            "example_sale_label": "Product Sale Price",
+            "you_keep_label": "You Keep",
+            "platform_fee_label": "Platform Fee",
+            "highlight": "92% of every sale goes to you!",
+            "highlight_sub": "No setup fees, no monthly costs"
+        }
+    },
+    "faq_section": {
+        "main_title": "Frequently Asked Questions",
+        "subtitle": "Get answers to common questions about selling on Reli.one.",
+        "description": "Get answers to common questions about selling on Reli.one.",
+        "questions": {
+            "ques1": "Do I need to upload products myself?",
+            "ques2": "How much does it cost to start?",
+            "ques3": "Can I sell if I already have a shop or distributor?",
+            "ques4": "Can I promote my products?",
+            "ques5": "What product categories do you accept?"
+        },
+        "bottom_text": "Still have questions?",
+        "bottom_link": "Read more"
+    },
+    "seller_support": {
+        "title_small": "Seller Support and Resources",
+        "main_title": "We help you succeed from day one.",
+        "resources": {
+            "block1": {
+                "title": "Onboarding Guide",
+                "description": "Step-by-step instructions on how to start selling with zero technical skills.",
+                "button": "Browse Guides"
+            },
+            "block2": {
+                "title": "Tips From Our Team",
+                "description": "Best practices for pricing, positioning, and growing sales on Reli.",
+                "button": "Contact"
+            },
+            "block3": {
+                "title": "Promotion Opportunities",
+                "description": "Discover how we promote your products for free on banners and the main page.",
+                "button": "Read More"
+            }
+        }
+    },
+    "final_cta": {
+        "title": {
+            "text1": "Don't wait — ",
+            "text2": "start selling today!"
+        },
+        "subtitle": "Reli makes it easy for manufacturers to sell online without technical headaches.",
+        "benefits": {
+            "text1": "1 year free – no fees, no risks",
+            "text2": "Products uploaded by our managers",
+            "text3": "Free promotion in banners and homepage",
+            "text4": "Competitive fees after the first year"
+        },
+        "highlight": "Join now and let us do the hard work – you focus on your products",
+        "button": "Contact manager",
+        "guarantee_title": "100% Risk-Free Guarantee",
+        "guarantee_text": "No credit card required • Cancel anytime • Full support included • Money-back guarantee"
+    },
+    "technical_support": {
+        "title_small": "Technical integration & Support",
+        "main_title": "Connect with your existing tools and platforms for a smooth selling experience.",
+        "integrations": {
+            "block1": {
+                "title": "Payment integrations",
+                "description": "Accept payments easily via Stripe and PayPal"
+            },
+            "block2": {
+                "title": "Easy Setup",
+                "description": "Start selling in minutes with our simple onboarding process"
+            },
+            "block3": {
+                "title": "Delivery integrations",
+                "description": "Ship with trusted partners like Packeta and GLS"
+            }
+        },
+        "help_text": "Need help with integration? Our technical team is here to assist.",
+        "contact_link": "Contact Information"
+    },
+    "security_section": {
+        "title_small": "Security & Reliability",
+        "main_title": "Your business, Protected. We guarantee safe transactions and data security",
+        "security_features": {
+            "block1": {
+                "title": "SSL Encryption",
+                "description": "All transactions are protected with industry-standard SSL"
+            },
+            "block2": {
+                "title": "GDPR Compliant",
+                "description": "Your business and customer data stay secure under EU regulations"
+            },
+            "block3": {
+                "title": "Secure Payments",
+                "description": "Stripe and PayPal with PCI DSS compliance ensure safe transactions"
+            }
+        }
+    },
+    "contact_section": {
+        "title_small": "Get in Touch",
+        "main_title": "Have questions? Our team is here to help you succeed on Reli.one.",
+        "contact_info": {
+            "title": "Contact Information",
+            "phone": {
+                "label": "Phone Support",
+                "value": "+420 797 837 856"
+            },
+            "email": {
+                "label": "Email Support",
+                "value": "office@reli.one"
+            },
+            "live_chat": {
+                "label": "Live Chat",
+                "value": "Available 24/7 in your dashboard"
+            },
+            "support_hours": {
+                "label": "Support Hours",
+                "value": "Monday - Sunday, 24/7"
+            }
+        },
+        "form": {
+            "title": "Send us a Message",
+            "fields": {
+                "first_name": "First Name",
+                "last_name": "Last Name",
+                "email": "Email Address",
+                "business_type": "Business Type",
+                "message": "Message"
+            },
+            "placeholders": {
+                "first_name": "Your first name",
+                "last_name": "Your last name",
+                "email": "your.email@example.com",
+                "business_type": "e.g., Electronics, Fashion, Home & Garden",
+                "message": "Tell us about your business and how we can help..."
+            },
+            "button": "Send Message"
+        }
+    }
+}

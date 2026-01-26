@@ -76,7 +76,9 @@ const Footer = () => {
       <div className={cls.mobileMain}>
         <img className={cls.mobLogo} src={logo} alt="" />
         <div className={cls.mobInfoContainer}>
-          <p>{t("phone")}: +420 797 837 856</p>
+          <p>{t("footer_additional.company_id")}: <span >28003896</span></p>
+          <p>{t("footer_additional.vat")}: <span >CZ28003896</span></p>
+          <p>{t("footer_additional.number")}: <span>+420 797 837 856</span></p>
           <p>{t("email")}: info@reli.one</p>
           <p>
             {t("address")}: {t("reli_address")}
@@ -85,7 +87,7 @@ const Footer = () => {
         <MessengerBtns />
         <nav className={cls.Navigate_Container}>
           <ul>
-            <h3>For Clients</h3>
+            <h3>{t("footer_additional.for_clients")}</h3>
             <li>
               <button className={cls.btnNavigate} onClick={() => setOpen(!open)}>
                 {t("enter_account")}
@@ -109,7 +111,7 @@ const Footer = () => {
           </ul>
 
           <ul>
-            <h3>For Providers</h3>
+            <h3>{t("footer_additional.for_providers")}</h3>
 
             <li>
               <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
@@ -129,10 +131,10 @@ const Footer = () => {
             </li>
           </ul>
           <ul>
-            <h3>Company</h3>
+            <h3>{t("footer_additional.company")}</h3>
             <li>
               <Link className={cls.LinkNavigate} to="/contact">
-                Contact
+                {t("footer_additional.contact")}
               </Link>
             </li>
             <li>
@@ -151,11 +153,11 @@ const Footer = () => {
 
 
         <div className={cls.mobBottomWrap}>
-          <p className={cls.mobBottomDesc}>(c) Copyright 2026 Reli Group s.r.o.</p>
+          <p className={cls.mobBottomDesc}>{t("footer_additional.copyright")}</p>
         </div>
 
         <div className={cls.payMethodWrap}>
-          <h2>Payment Methods</h2>
+          <h2>{t("footer_additional.payment_methods")}</h2>
           <div>
             {
               paymentImages.map((img) => (
@@ -176,9 +178,9 @@ const Footer = () => {
             <img className={cls.logo} src={logo} />
             <div className={cls.Info_Container}>
               {/* <h1>Reli Group s.r.o.</h1> */}
-              <p>Company ID: <span >28003896</span></p>
-              <p>VAT: <span >CZ28003896</span></p>
-              <p>Number: <span>+420 797 837 856</span></p>
+              <p>{t("footer_additional.company_id")}: <span >28003896</span></p>
+              <p>{t("footer_additional.vat")}: <span >CZ28003896</span></p>
+              <p>{t("footer_additional.number")}: <span>+420 797 837 856</span></p>
               <p>{t("email")}: info@reli.one</p>
               <p>
                 {t("address")}: <span>{t("reli_address")}</span>
@@ -190,7 +192,7 @@ const Footer = () => {
           </div>
           <nav className={cls.Navigate_Container}>
             <ul>
-              <h3>For Clients</h3>
+              <h3>{t("footer_additional.for_clients")}</h3>
               <li>
                 <button className={cls.btnNavigate} onClick={() => setOpen(!open)}>
                   {t("enter_account")}
@@ -214,7 +216,7 @@ const Footer = () => {
             </ul>
 
             <ul>
-              <h3>For Providers</h3>
+              <h3>{t("footer_additional.for_providers")}</h3>
 
               <li>
                 <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
@@ -234,10 +236,10 @@ const Footer = () => {
               </li>
             </ul>
             <ul>
-              <h3>Company</h3>
+              <h3>{t("footer_additional.company")}</h3>
               <li>
                 <Link className={cls.LinkNavigate} to="/contact">
-                  Contact
+                  {t("footer_additional.contact")}
                 </Link>
               </li>
               <li>
@@ -255,11 +257,11 @@ const Footer = () => {
 
 
           <div className={cls.bottomElem}>
-            <p className={cls.bottomDesc}>(c) Copyright 2026 Reli Group s.r.o.</p>
+            <p className={cls.bottomDesc}>{t("footer_additional.copyright")}</p>
           </div>
         </div>
         <div className={cls.payMethodWrap}>
-          <h2>Payment Methods</h2>
+          <h2>{t("footer_additional.payment_methods")}</h2>
           <div>
             {
               paymentImages.map((img) => (

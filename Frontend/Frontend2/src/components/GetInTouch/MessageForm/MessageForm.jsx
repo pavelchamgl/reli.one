@@ -1,8 +1,9 @@
 import { useFormik } from "formik"
 import * as Yup from "yup";
-
+import { useTranslation } from "react-i18next";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
 import { createContactMessage } from "../../../api";
 
 import styles from "./MessageForm.module.scss"
@@ -11,6 +12,8 @@ import styles from "./MessageForm.module.scss"
 
 
 const MessageForm = () => {
+    const { t } = useTranslation("blocks")
+
 
     const validationSchema = Yup.object({
         first_name: Yup.string().required("First name is required"),
@@ -48,33 +51,33 @@ const MessageForm = () => {
 
     return (
         <form className={styles.form}>
-            <h5 className={styles.title}>Send us a Message</h5>
+            <h5 className={styles.title}>{t("contact_section.form.title")}</h5>
 
             <div className={styles.formContent}>
                 <div className={styles.nameAndLast}>
                     <label className={styles.inpLabel}>
-                        <p>First Name</p>
+                        <p>{t("contact_section.form.fields.first_name")}</p>
                         <input
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             value={formik.values.first_name}
                             name="first_name"
                             type="text"
-                            placeholder="Your first name" />
+                            placeholder={t("contact_section.form.placeholders.first_name")} />
                         {formik.touched.first_name && formik.errors.first_name && (
                             <span className={styles.error}>{formik.errors.first_name}</span>
                         )}
                     </label>
 
                     <label className={styles.inpLabel}>
-                        <p>Last Name</p>
+                        <p>{t("contact_section.form.fields.last_name")}</p>
                         <input
                             name="last_name"
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
                             value={formik.values.last_name}
                             type="text"
-                            placeholder="Your last name" />
+                            placeholder={t("contact_section.form.placeholders.last_name")} />
                         {formik.touched.last_name && formik.errors.last_name && (
                             <span className={styles.error}>{formik.errors.last_name}</span>
                         )}
@@ -82,41 +85,41 @@ const MessageForm = () => {
 
                 </div>
                 <label className={styles.inpLabel}>
-                    <p>Email Address</p>
+                    <p>{t("contact_section.form.fields.email")}</p>
                     <input
                         name="email"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.email}
                         type="email"
-                        placeholder="your.email@example.com" />
+                        placeholder={t("contact_section.form.placeholders.email")} />
                     {formik.touched.email && formik.errors.email && (
                         <span className={styles.error}>{formik.errors.email}</span>
                     )}
                 </label>
 
                 <label className={styles.inpLabel}>
-                    <p>Business Type</p>
+                    <p>{t("contact_section.form.fields.business_type")}</p>
                     <input
                         name="business_type"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.business_type}
                         type="text"
-                        placeholder="e.g., Electronics, Fashion, Home & Garden" />
+                        placeholder={t("contact_section.form.placeholders.business_type")} />
                     {formik.touched.business_type && formik.errors.business_type && (
                         <span className={styles.error}>{formik.errors.business_type}</span>
                     )}
                 </label>
 
                 <label className={styles.inpLabel}>
-                    <p>Message</p>
+                    <p>{t("contact_section.form.fields.message")}</p>
                     <textarea
                         name="message"
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         value={formik.values.message}
-                        placeholder="Tell us about your business and how we can help..."></textarea>
+                        placeholder={t("contact_section.form.placeholders.message")}></textarea>
                     {formik.touched.message && formik.errors.message && (
                         <span className={styles.error}>{formik.errors.message}</span>
                     )}
@@ -125,7 +128,7 @@ const MessageForm = () => {
                 <button onClick={formik.handleSubmit} className={styles.subBtn}
                     disabled={!formik.dirty || !formik.isValid || formik.isSubmitting}
                 >
-                    Send Message
+                    {t("contact_section.form.button")}
                 </button>
 
             </div>

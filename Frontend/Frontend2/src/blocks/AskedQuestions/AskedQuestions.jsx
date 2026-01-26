@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import Accordion from "../../components/AskedQuestions/Accordion/Accordion"
 import Container from "../../components/Container/Container"
 
@@ -5,33 +7,36 @@ import styles from "./AskedQuestions.module.scss"
 
 const AskedQuestions = () => {
 
+    const { t } = useTranslation("blocks")
+
+
     const accArr = [
         {
-            title: "Do I need to upload products myself?",
+            title: t("faq_section.questions.ques1"),
             desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
         },
         {
-            title: "How much does it cost to start?",
+            title: t("faq_section.questions.ques2"),
             desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
         },
         {
-            title: "Can I sell if I already have a shop or distributor?",
+            title: t("faq_section.questions.ques3"),
             desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
         },
         {
-            title: "Can I promote my products?",
+            title: t("faq_section.questions.ques4"),
             desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
         },
         {
-            title: "What product categories do you accept?",
+            title: t("faq_section.questions.ques5"),
             desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
         },
     ]
     return (
         <Container>
             <section className={styles.main}>
-                <h3 className={styles.title}>Frequently Asked Questions</h3>
-                <p className={styles.desc}>Get answers to common questions about selling on Reli.one.</p>
+                <h3 className={styles.title}>{t("faq_section.main_title")}</h3>
+                <p className={styles.desc}>{t("faq_section.subtitle")}</p>
 
                 <div className={styles.accWrap}>
                     {accArr.map((item) => (
@@ -39,8 +44,8 @@ const AskedQuestions = () => {
                     ))}
                 </div>
 
-                <p className={styles.haveQues}>Still have questions?</p>
-                <a  className={styles.readMore}>Read more</a>
+                <p className={styles.haveQues}>{t("faq_section.bottom_text")}</p>
+                <a className={styles.readMore}>{t("faq_section.bottom_link")}</a>
 
             </section>
         </Container>

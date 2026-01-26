@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import Container from "../../components/Container/Container"
 import SupportBlocks from "../../components/SupportBlocks/SupportBlocks"
 
@@ -8,6 +10,9 @@ import net from "../../assets/tehnicalIntegration/net.svg"
 import styles from "./TechnicalIntegration.module.scss"
 
 const TechnicalIntegration = () => {
+
+    const { t } = useTranslation("blocks")
+
 
     const style = {
         borderRadius: "13px",
@@ -28,36 +33,36 @@ const TechnicalIntegration = () => {
     const blocks = [
         {
             img: camera,
-            title: "Payment integrations",
-            desc: "Accept payments easily via Stripe and PayPal",
+            title: t("technical_support.integrations.block1.title"),
+            desc: t("technical_support.integrations.block1.description"),
             style: style,
             textStyle: textStyle
         },
         {
             img: moln,
-            title: "Easy Setup",
-            desc: "Start selling in minutes with our simple onboarding process",
+            title: t("technical_support.integrations.block2.title"),
+            desc: t("technical_support.integrations.block2.description"),
             style: style,
             textStyle: textStyle
         },
         {
             img: net,
-            title: "Delivery integrations",
-            desc: "Ship with trusted partners like Packeta and GLS",
+            title: t("technical_support.integrations.block3.title"),
+            desc: t("technical_support.integrations.block3.description"),
             style: style,
             textStyle: textStyle
         }
     ]
 
-    const title = "Technical integration & Support"
-    const desc = "Connect with your existing tools and platforms for a smooth selling experience."
+    const title = t("technical_support.title_small")
+    const desc = t("technical_support.main_title")
 
     return (
         <Container>
             <section className={styles.main}>
                 <SupportBlocks title={title} desc={desc} blocks={blocks} />
-                <p className={styles.needHelp}>Need help with integration? Our technical team is here to assist.</p>
-                <a href="#get-in-touch" className={styles.contactInfo}>Contact Information</a>
+                <p className={styles.needHelp}>{t("technical_support.help_text")}</p>
+                <a href="#get-in-touch" className={styles.contactInfo}>{t("technical_support.contact_link")}</a>
             </section>
         </Container>
     )

@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import Container from "../../components/Container/Container"
 import SupportBlocks from "../../components/SupportBlocks/SupportBlocks"
 
@@ -8,6 +10,9 @@ import lock from "../../assets/security/lock.svg"
 import styles from "./Security.module.scss"
 
 const Security = () => {
+
+    const { t } = useTranslation("blocks")
+
 
     const style = {
         background: "linear-gradient(160deg, #f9fafb 0%, #f0fdf4 100%)",
@@ -27,29 +32,29 @@ const Security = () => {
     const blocks = [
         {
             img: shield,
-            title: "SSL Encryption",
-            desc: "All transactions are protected with industry-standard SSL",
+            title: t("security_section.security_features.block1.title"),
+            desc: t("security_section.security_features.block1.description"),
             style: style,
             textStyle: textStyle
         },
         {
             img: document,
-            title: "GDPR Compliant",
-            desc: "Your business and customer data stay secure under EU regulations",
+            title: t("security_section.security_features.block2.title"),
+            desc: t("security_section.security_features.block2.description"),
             style: style,
             textStyle: textStyle
         },
         {
             img: lock,
-            title: "Secure Payments",
-            desc: "Stripe and PayPal with PCI DSS compliance ensure safe transactions",
+            title: t("security_section.security_features.block3.title"),
+            desc: t("security_section.security_features.block3.description"),
             style: style,
             textStyle: textStyle
         }
     ]
 
-    const title = "Security & Reliability"
-    const desc = "Your business, Protected. We guarantee safe transactions and data security"
+    const title = t("security_section.title_small")
+    const desc = t("security_section.main_title")
 
     return (
         <Container >

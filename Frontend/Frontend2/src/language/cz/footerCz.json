@@ -1,0 +1,51 @@
+{
+    "footer": {
+        "logo_text": "Nejjednodušší způsob, jak začít prodávat online. Přidejte se k tisícům úspěšných prodejců a rozvíjejte svůj byznys s námi.",
+        "company_info": {
+            "company_id": "IČO: 28003896",
+            "vat": "DIČ: CZ28003896",
+            "phone": "Telefon: +420 797 837 856",
+            "email": "E-mail: info@reli.one",
+            "address": "Adresa: Na Lysinách 551/34, Praha 4 - Hodkovičky, PSČ 147 00, Česká republika"
+        },
+        "columns": {
+            "for_sellers": {
+                "title": "Pro prodejce",
+                "links": {
+                    "link1": "Začínáme",
+                    "link2": "Prodejní dashboard",
+                    "link3": "Struktura provizí",
+                    "link4": "Podpora pro prodejce"
+                }
+            },
+            "legal": {
+                "title": "Právní informace",
+                "links": {
+                    "link1": "Obchodní podmínky",
+                    "link2": "Reklamace",
+                    "link3": "Vrácení zboží",
+                    "link4": "Podmínky služby",
+                    "link5": "Zásady ochrany osobních údajů",
+                    "link6": "Soulad s GDPR",
+                    "link7": "Zásady používání cookies"
+                }
+            },
+            "company": {
+                "title": "Společnost",
+                "links": {
+                    "link1": "O nás",
+                    "link2": "Kontakt"
+                }
+            }
+        },
+        "payment_methods_title": "Platební metody",
+        "newsletter": {
+            "title": "Zůstaňte v obraze",
+            "description": "Dostávejte nejnovější tipy pro prodejce, aktualizace platformy a příběhy úspěchu přímo do schránky.",
+            "placeholder": "Zadejte váš e-mail",
+            "button": "Odebírat"
+        },
+        "copyright": "© 2026 Reli Group s.r.o. Všechna práva vyhrazena.",
+        "made_with": "Vyrobeno s ♥ pro prodejce po celém světě"
+    }
+}

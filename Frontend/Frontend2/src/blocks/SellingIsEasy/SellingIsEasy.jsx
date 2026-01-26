@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next"
 
 import Container from "../../components/Container/Container"
 import YellowBtn from "../../ui/yellowBtn/YellowBtn"
@@ -10,6 +11,7 @@ import styles from "./SellingIsEasy.module.scss"
 
 const SellingIsEasy = () => {
 
+    const { t } = useTranslation("blocks")
 
     return (
         <div className={styles.wrap}>
@@ -17,12 +19,12 @@ const SellingIsEasy = () => {
                 <section className={styles.main}>
                     <div className={styles.content}>
                         <div className={styles.textContent}>
-                            <h1 className={styles.title}>Selling with Reli is easy</h1>
-                            <DescText style={{ fontSize: "clamp(16px, 5vw, 20px)" }} text={"Just send us your product detail - we upload and promote them for you. "} />
+                            <h1 className={styles.title}>{t("selling.title")}</h1>
+                            <DescText style={{ fontSize: "clamp(16px, 5vw, 20px)" }} text={t("selling.description")} />
                             <Steps />
                             <div className={styles.btnWrap}>
-                                <YellowBtn text={"Start Selling Today"} url={"#get-in-touch"} />
-                                <YellowBtn text={"Go To Marketplace"} arr={true} style={{
+                                <YellowBtn text={t("selling.button_start")} url={"#get-in-touch"} />
+                                <YellowBtn text={t("selling.button_goto")} arr={true} style={{
                                     background: "#eef0f2"
                                 }} url="https://reli.one/" />
 

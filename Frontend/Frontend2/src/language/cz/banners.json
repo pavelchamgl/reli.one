@@ -1,0 +1,24 @@
+{
+    "banner1": {
+        "title": "Objednávky jednoduše",
+        "desc": "Informujeme vás o každém prodeji a pomáháme hladce zvládnout vyřízení objednávek."
+    },
+    "banner2": {
+        "title": "Jednoduché a transparentní výplaty",
+        "desc": "Dostávejte své výdělky každý měsíc bez zpoždění"
+    },
+    "banner3": {
+        "title": "Zvyšte svou viditelnost",
+        "desc": "První prodejci získají zdarma bannery a zvýrazněná místa na Reli."
+    },
+    "banner4": {
+        "title": "Jsme tu pro vás",
+        "desc": "Osobní manažer + podpora 24/7, kdykoli ji budete potřebovat."
+    },
+    "banner5": {
+        "title": "Rostěte s námi od prvního dne",
+        "desc": "Buďte mezi prvními prodejci a užijte si maximální expozici."
+    },
+    "startSelling": "Začít prodávat"
+
+}

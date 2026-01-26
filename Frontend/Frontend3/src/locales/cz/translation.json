@@ -6,6 +6,18 @@
     "de": "Němčina",
     "catalog": "Katalog",
     "_headerAndFooter": "headerAndFooter",
+    "footer_additional": {
+        "company": "Společnost",
+        "for_providers": "Pro dodavatele",
+        "for_clients": "Pro zákazníky",
+        "payment_methods": "Platební metody",
+        "copyright": "© 2026 Reli Group s.r.o. Všechna práva vyhrazena.",
+        "contact": "Kontakt",
+        "number": "Číslo",
+        "phone": "Telefon",
+        "company_id": "IČO",
+        "vat": "DIČ"
+    },
     "for_seller": "Pro prodejce",
     "for_buyers": "Pro kupující",
     "about_company": "O společnosti",

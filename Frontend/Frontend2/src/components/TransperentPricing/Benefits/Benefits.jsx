@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import dollar from "../../../assets/transperetnPricing/dollar.svg"
 import shield from "../../../assets/transperetnPricing/shield.svg"
 import time from "../../../assets/transperetnPricing/time.svg"
@@ -19,11 +21,14 @@ const BenefitsBlock = ({ img, title, desc, style }) => {
 
 const Benefits = () => {
 
+    const { t } = useTranslation("blocks")
+
+
     const blocks = [
         {
             img: dollar,
-            title: "Low Commission per Sale",
-            desc: "Commission up to 8% only",
+            title: t("pricing_section.commission_structure.block1.title"),
+            desc: t("pricing_section.commission_structure.block1.text"),
             style: {
                 background: "#f0fdf4",
                 border: "1px solid #b9f8cf"
@@ -31,8 +36,8 @@ const Benefits = () => {
         },
         {
             img: shield,
-            title: "No setup Fees",
-            desc: "What you see is what you pay",
+            title: t("pricing_section.commission_structure.block2.title"),
+            desc: t("pricing_section.commission_structure.block2.text"),
             style: {
                 background: "#fefce8",
                 border: "1px solid #fff085"
@@ -40,8 +45,8 @@ const Benefits = () => {
         },
         {
             img: time,
-            title: "Monthly Payouts",
-            desc: "Get paid every month, guaranteed",
+            title: t("pricing_section.commission_structure.block3.title"),
+            desc: t("pricing_section.commission_structure.block3.text"),
             style: {
                 background: "#eff6ff",
                 border: "1px solid #bedbff"
@@ -51,7 +56,7 @@ const Benefits = () => {
 
     return (
         <div className={styles.main}>
-            <h4 className={styles.title}>Commission Structure</h4>
+            <h4 className={styles.title}>{t("pricing_section.commission_structure.title")}</h4>
             <div className={styles.blocks}>
                 {blocks.map((item) => (
                     <BenefitsBlock img={item.img} title={item.title} desc={item.desc} style={item.style} />

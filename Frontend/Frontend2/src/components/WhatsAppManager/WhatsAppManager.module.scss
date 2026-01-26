@@ -21,7 +21,7 @@
   }
 
   @media (max-width: 500px) {
-    bottom: 70px;
+    bottom: 40px;
   }
 }
 
@@ -84,6 +84,7 @@
     content: '';
     position: absolute;
     inset: -6px;
+    bottom: 20px;
     border-radius: 20px;
     background: linear-gradient(195deg, #25d366 0%, #136d35 100%);
     filter: blur(10px);

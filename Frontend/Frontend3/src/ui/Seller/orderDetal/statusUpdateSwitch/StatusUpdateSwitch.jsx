@@ -14,25 +14,25 @@ const StatusUpdateSwitch = ({ status, id }) => {
     const trackRef = useRef(null);
     const stepRefs = useRef([]);
 
-    const isMobile = useMediaQuery({ maxWidth: 500 })
+    const isMobile = useMediaQuery({ maxWidth: 600 })
 
 
 
     useLayoutEffect(() => {
-        if (!isMobile) {
-            const wrapper = wrapperRef.current;
-            const track = trackRef.current;
-            const activeStep = stepRefs.current[active];
+        if (isMobile) return;
 
-            if (!wrapper || !track || !activeStep) return;
+        const wrapper = wrapperRef.current;
+        const track = trackRef.current;
+        const activeStep = stepRefs.current[active];
 
-            const wrapperCenter = wrapper.offsetWidth / 2;
-            const stepCenter =
-                activeStep.offsetLeft + activeStep.offsetWidth / 2;
+        if (!wrapper || !track || !activeStep) return;
 
-            track.style.transform = `translateX(${wrapperCenter - stepCenter}px)`;
-        }
-    }, [active]);
+        const wrapperCenter = wrapper.offsetWidth / 2;
+        const stepCenter =
+            activeStep.offsetLeft + activeStep.offsetWidth / 2;
+
+        track.style.transform = `translateX(${wrapperCenter - stepCenter}px)`;
+    }, [active, isMobile]);
 
 
     useEffect(() => {

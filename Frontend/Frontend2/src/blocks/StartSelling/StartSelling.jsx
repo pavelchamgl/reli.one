@@ -6,6 +6,7 @@ import graph from "../../assets/startSelling/graph.svg"
 import arrRight from "../../assets/startSelling/arrRight.svg"
 
 import styles from "./StartSelling.module.scss"
+import { useTranslation } from "react-i18next"
 
 const KeyBenefits = ({ text }) => {
     return (
@@ -17,41 +18,44 @@ const KeyBenefits = ({ text }) => {
 }
 
 const StartSelling = () => {
+
+    const { t } = useTranslation("blocks")
+
     return (
         <div className={styles.wrap}>
             <Container>
                 <section className={styles.main}>
                     <p className={styles.title}>
-                        Don't wait —
-                        <span>start selling today!</span>
+                        {t("final_cta.title.text1")}
+                        <span>{t("final_cta.title.text2")}</span>
                     </p>
-                    <p className={styles.desc}>Reli makes it easy for manufacturers to sell online without technical headaches.</p>
+                    <p className={styles.desc}>{t("final_cta.subtitle")}</p>
 
                     <div className={styles.contentWrap}>
                         <div className={styles.keyBenefitsWrap}>
-                            <KeyBenefits text={"1 year free – no fees, no risks"} />
-                            <KeyBenefits text={"Products uploaded by our managers  "} />
+                            <KeyBenefits text={t("final_cta.benefits.text1")} />
+                            <KeyBenefits text={t("final_cta.benefits.text2")} />
                         </div>
 
                         <div className={styles.keyBenefitsWrap}>
-                            <KeyBenefits text={"Free promotion in banners and homepage  "} />
-                            <KeyBenefits text={"Competitive fees after the first year"} />
+                            <KeyBenefits text={t("final_cta.benefits.text3")} />
+                            <KeyBenefits text={t("final_cta.benefits.text4")} />
                         </div>
 
                         <div className={styles.starWrap}>
                             <img src={star} alt="" />
-                            <p>Join now and let us do the hard work – you focus on your products</p>
+                            <p>{t("final_cta.highlight")}</p>
                         </div>
 
                         <a href="#get-in-touch" className={styles.contactManagere}>
                             <img src={graph} alt="" />
-                            <p>Contact manager</p>
+                            <p>{t("final_cta.button")}</p>
                             <img src={arrRight} alt="" />
                         </a>
 
                         <div className={styles.riskBlock}>
-                            <p>️ 100% Risk-Free Guarantee</p>
-                            <p>No credit card required • Cancel anytime • Full support included • Money-back guarantee</p>
+                            <p>️{t("final_cta.guarantee_title")}</p>
+                            <p>{t("final_cta.guarantee_text")}</p>
                         </div>
 
                     </div>
