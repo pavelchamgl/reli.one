@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="content">
+    <h1>Reject onboarding application #{{ application.pk }}</h1>
+
+    <p>
+      Seller: <strong>{{ application.seller_profile.user.email }}</strong><br/>
+      Current status: <strong>{{ application.get_status_display }}</strong>
+    </p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <fieldset class="module aligned">
+        {{ form.as_p }}
+      </fieldset>
+      <div class="submit-row">
+        <input type="submit" value="Reject" class="deletelink">
+        <a class="button cancel-link" href="{% url 'admin:sellers_selleronboardingapplication_change' application.pk %}">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
