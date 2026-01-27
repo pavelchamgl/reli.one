@@ -1,0 +1,12 @@
+{
+    "home": "Home",
+    "about": "About Us",
+    "commission": "Commission Structure",
+    "contact": "Contact",
+    "startSelling": "Start Selling",
+    "lang": {
+        "title": "Choose a language",
+        "en": "English",
+        "cz": "Czech"
+    }
+}

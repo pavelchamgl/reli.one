@@ -3,13 +3,17 @@ import { initReactI18next } from "react-i18next";
 
 import translationEn from "../src/locales/en/translation.json";
 import translationCz from "../src/locales/cz/translation.json";
+import contactEn from "../src/locales/en/contactEn.json";
+import contactCz from "../src/locales/cz/contactCz.json";
 
 const resources = {
   en: {
     translation: translationEn,
+    contact: contactEn
   },
   cz: {
     translation: translationCz,
+    contact: contactCz
   },
 };
 

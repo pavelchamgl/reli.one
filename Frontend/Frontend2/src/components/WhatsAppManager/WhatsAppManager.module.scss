@@ -21,7 +21,7 @@
   }
 
   @media (max-width: 500px) {
-    bottom: 70px;
+    bottom: 40px;
   }
 }
 
@@ -84,6 +84,7 @@
     content: '';
     position: absolute;
     inset: -6px;
+    bottom: 20px;
     border-radius: 20px;
     background: linear-gradient(195deg, #25d366 0%, #136d35 100%);
     filter: blur(10px);
@@ -101,3 +102,34 @@
     }
   }
 }
+
+.closeX {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.telegramWrap:hover .label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.telegramWrap:hover .label,
+.telegramWrap.active .label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.telegramWrap:hover .label,
+.telegramWrap.active .label {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto; // ← ВОТ ЭТО ВАЖНО
+}
+
+.label {
+  pointer-events: none;
+}
+

@@ -21,7 +21,7 @@
   }
 
   @media (max-width: 500px) {
-   bottom: 70px;
+    bottom: 70px;
   }
 }
 
@@ -29,7 +29,8 @@
 .label {
   padding: 12px 18px;
   border-radius: 10px;
-  box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 4px 6px -4px rgba(0, 0, 0, 0.1),
     0 10px 15px -3px rgba(0, 0, 0, 0.1);
   background: #101828;
   width: 332px;
@@ -42,7 +43,9 @@
   transform: translateX(20px);
   pointer-events: none;
 
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 
   &::after {
     content: "";
@@ -58,7 +61,7 @@
     border-left: 17px solid #101828;
   }
 
-  @media (max-width:500px) {
+  @media (max-width: 500px) {
     width: 200px;
   }
 }
@@ -98,4 +101,34 @@
       height: 25px;
     }
   }
+}
+
+.closeX {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+.telegramWrap:hover .label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.telegramWrap:hover .label,
+.telegramWrap.active .label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.telegramWrap:hover .label,
+.telegramWrap.active .label {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto; // ← ВОТ ЭТО ВАЖНО
+}
+
+.label {
+  pointer-events: none;
 }

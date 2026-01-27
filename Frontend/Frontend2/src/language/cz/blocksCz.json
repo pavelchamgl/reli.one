@@ -1,0 +1,283 @@
+{
+    "hero": {
+        "title": {
+            "text1": "My se postaráme o prodeje, ",
+            "text2": "Vy se soustřeďte na svůj byznys!"
+        },
+        "subtitle": {
+            "text1": "S naší praktickou podporou",
+            "text2": " bezplatnou promocí",
+            "text3": " a",
+            "text4": " ročním startem bez poplatků",
+            "text5": " je Reli vaším partnerem pro růst."
+        },
+        "join_button": "Přidejte se k naší rostoucí komunitě prodejců",
+        "contact_button": "Kontaktovat manažera",
+        "benefits": {
+            "text1": "Zdarma registrace",
+            "text2": "Žádné náklady na nastavení",
+            "text3": "Podpora 24/7"
+        }
+    },
+    "selling": {
+        "title": "Prodej na Reli je jednoduchý",
+        "description": "Stačí nám poslat detaily vašich produktů – my je nahrajeme a propagujeme za vás.",
+        "steps": {
+            "step1": "Pošlete produkt",
+            "step2": "My nahrajeme",
+            "step3": "Vy prodáváte",
+            "step4": "Reli"
+        },
+        "button_start": "Začít prodávat dnes",
+        "button_goto": "Přejít na marketplace"
+    },
+    "why_choose_reli": {
+        "title_small": "Důvěryhodná podpora od prvního dne",
+        "main_title": "Proč si vybrat RELI?",
+        "description": "Vše, co potřebujete k úspěchu jako online prodejce, na jedné výkonné platformě navržené tak, aby maximalizovala vaše prodeje a minimalizovala vaši námahu.",
+        "features": {
+            "block1": {
+                "label": "Snadné podmínky",
+                "title": "Nulová námaha pro výrobce",
+                "text": "Nemusíte nahrávat ani spravovat produkty. Náš tým vše zařídí, nahraje a optimalizuje za vás."
+            },
+            "block2": {
+                "label": "Dostupné 24/7",
+                "title": "Osobní manažer",
+                "text": "Každý prodejce má svého dedikovaného manažera, který zná váš byznys."
+            },
+            "block3": {
+                "label": "100% bez rizika",
+                "title": "Nejnižší poplatky na trhu",
+                "text": "Uchováte si více ze svých zisků díky našim extrémně konkurenceschopným provizím."
+            },
+            "block4": {
+                "label": "Garantováno",
+                "title": "Žádné riziko",
+                "text": "Žádné poplatky za založení, žádné skryté náklady. Platíte jen při prodeji."
+            },
+            "block5": {
+                "label": "100% zdarma",
+                "title": "Bezplatná propagace",
+                "text": "Vaše produkty mohou být zobrazeny v bannerech, akcích a kampaních bez provize."
+            },
+            "block6": {
+                "label": "Kvalitní produkty",
+                "title": "Kvalitní tržiště",
+                "text": "Pečlivě vybíráme prodejce i produkty, abychom udrželi vysoké standardy."
+            }
+        }
+    },
+    "ready_to_start": {
+        "title": "Připraveni začít prodávat?",
+        "subtitle": "Přidejte se k úspěšným prodejcům, kteří již objevili sílu Reli. Žádné závazky, žádné riziko, jen výsledky.",
+        "button_create": "Vytvořit bezplatný účet"
+    },
+    "how_it_works": {
+        "title_small": "Jak to funguje",
+        "main_title": "Držíme to jednoduché. Vy se soustřeďte na výrobu – my se postaráme o nastavení prodeje",
+        "steps": {
+            "step1": {
+                "label": "Kontaktujte našeho manažera",
+                "text": "Pošlete nám e-mail a sdílejte detaily vašeho podnikání."
+            },
+            "step2": {
+                "label": "Podepište smlouvu",
+                "text": "Jednoduché a transparentní podmínky."
+            },
+            "step3": {
+                "label": "Pošlete informace o produktech",
+                "text": "Sdílejte katalog produktů, fotky a ceny. Naši moderátoři nahrají a optimalizují vaše nabídky."
+            },
+            "step4": {
+                "label": "Začněte prodávat a dostávejte výplaty",
+                "text": "Vaše produkty jdou do prodeje a vy dostáváte výplaty."
+            }
+        },
+        "final_text": "Připraveni začít?",
+        "button_contact": "Kontaktovat manažera"
+    },
+    "testimonials_section": {
+        "title_small": "Co říkají naši prodejci",
+        "subtitle": "Přidejte se k tisícům úspěšných prodejců, kteří rozvíjejí svůj byznys s Reli.one.",
+        "testimonials": {
+            "comment1": {
+                "quote": "\"Reli.one mi nesmírně usnadnilo začít prodávat online. Nastavení bylo rychlé a první prodej jsem viděl během několika hodin. Podpůrný tým je úžasný!\"",
+                "author": "Nutristar",
+                "category": "Vyvážené vitamínové komplexy",
+                "rating": 5,
+                "logo": "star"
+            },
+            "comment2": {
+                "quote": "\"Analytické nástroje mi pomáhají lépe porozumět zákazníkům. Prodeje se od připojení k Reli.one zvýšily o 300 %. Nejlepší rozhodnutí pro můj byznys.\"",
+                "author": "Milano Cosmetics",
+                "category": "Kosmetika",
+                "rating": 5,
+                "logo": "milano"
+            }
+        }
+    },
+    "pricing_section": {
+        "title_small": "Transparentní ceny a podmínky",
+        "main_title": "Jednoduché. Spravedlivé. Konkurenční.",
+        "subtitle": "Co vidíte, to platíte",
+        "commission_structure": {
+            "title": "Struktura provizí",
+            "block1": {
+                "title": "Nízká provize za prodej",
+                "text": "Provize maximálně 8 %"
+            },
+            "block2": {
+                "title": "Žádné poplatky za založení",
+                "text": "Co vidíte, to platíte"
+            },
+            "block3": {
+                "title": "Měsíční výplaty",
+                "text": "Výplaty každý měsíc, garantováno"
+            }
+        },
+        "how_it_works": {
+            "title": "Jak to funguje",
+            "example_sale": "100 Kč / $100",
+            "example_sale_label": "Cena prodeje produktu",
+            "you_keep": "92 Kč / $92",
+            "you_keep_label": "Vy si necháte",
+            "platform_fee": "8 Kč / $8",
+            "platform_fee_label": "Poplatek platformy",
+            "highlight": "92 % z každého prodeje jde vám!",
+            "highlight_sub": "Žádné poplatky za založení, žádné měsíční náklady"
+        }
+    },
+    "faq_section": {
+        "title_small": "Často kladené otázky",
+        "main_title": "Často kladené otázky",
+        "subtitle": "Získejte odpovědi na běžné otázky ohledně prodeje na Reli.one.",
+        "description": "Získejte odpovědi na běžné otázky ohledně prodeje na Reli.one.",
+        "questions": {
+            "ques1": "Musím produkty nahrávat sám?",
+            "ques2": "Kolik stojí start?",
+            "ques3": "Mohu prodávat, pokud už mám vlastní obchod nebo distributora?",
+            "ques4": "Mohu propagovat své produkty sám?",
+            "ques5": "Jaké kategorie produktů přijímáte?"
+        },
+        "bottom_text": "Máte ještě otázky?",
+        "bottom_link": "Číst více"
+    },
+    "seller_support": {
+        "title_small": "Podpora pro prodejce a zdroje",
+        "main_title": "Pomáháme vám uspět od prvního dne.",
+        "resources": {
+            "block1": {
+                "title": "Průvodce náborem (Onboarding Guide)",
+                "description": "Krok za krokem instrukce, jak začít prodávat bez jakýchkoli technických dovedností.",
+                "button": "Prohlédnout průvodce"
+            },
+            "block2": {
+                "title": "Tipy od našeho týmu",
+                "description": "Nejlepší postupy pro stanovení cen, pozicování a růst prodejů na Reli.",
+                "button": "Kontaktovat"
+            },
+            "block3": {
+                "title": "Možnosti propagace",
+                "description": "Zjistěte, jak zdarma propagujeme vaše produkty v bannerech a na hlavní stránce.",
+                "button": "Číst více"
+            }
+        }
+    },
+    "final_cta": {
+        "title": {
+            "text1": "Nečekejte — ",
+            "text2": "začněte prodávat ještě dnes!"
+        },
+        "subtitle": "Reli usnadňuje výrobcům prodej online bez technických starostí.",
+        "benefits": {
+            "text1": "1 rok zdarma – žádné poplatky, žádné riziko",
+            "text2": "Produkty nahrávají naši manažeři",
+            "text3": "Bezplatná propagace v bannerech a na homepage",
+            "text4": "Konkurenční poplatky po prvním roce"
+        },
+        "highlight": "Přidejte se teď a my se postaráme o těžkou práci – vy se soustřeďte na své produkty",
+        "button": "Kontaktovat manažera",
+        "guarantee_title": "100% záruka bez rizika",
+        "guarantee_text": "Bez nutnosti kreditní karty • Zrušení kdykoli • Plná podpora zahrnuta • Záruka vrácení peněz"
+    },
+    "technical_support": {
+        "title_small": "Technická integrace & Podpora",
+        "main_title": "Připojte se ke svým stávajícím nástrojům a platformám pro hladký prodejní zážitek.",
+        "integrations": {
+            "block1": {
+                "title": "Platební integrace",
+                "description": "Přijímejte platby snadno přes Stripe a PayPal"
+            },
+            "block2": {
+                "title": "Snadné nastavení",
+                "description": "Začněte prodávat během minut díky jednoduchému onboardingu"
+            },
+            "block3": {
+                "title": "Doručovací integrace",
+                "description": "Doručujte s důvěryhodnými partnery jako Packeta a GLS"
+            }
+        },
+        "help_text": "Potřebujete pomoc s integrací? Náš technický tým je tu, aby vám pomohl.",
+        "contact_link": "Kontaktní informace"
+    },
+    "security_section": {
+        "title_small": "Bezpečnost a spolehlivost",
+        "main_title": "Váš byznys je chráněn. Garantujeme bezpečné transakce a zabezpečení dat",
+        "security_features": {
+            "block1": {
+                "title": "SSL šifrování",
+                "description": "Všechny transakce jsou chráněny průmyslovým standardem SSL"
+            },
+            "block2": {
+                "title": "Soulad s GDPR",
+                "description": "Vaše obchodní a zákaznická data zůstávají v bezpečí podle předpisů EU"
+            },
+            "block3": {
+                "title": "Bezpečné platby",
+                "description": "Stripe a PayPal s certifikací PCI DSS zajišťují bezpečné transakce"
+            }
+        }
+    },
+    "contact_section": {
+        "title_small": "Kontaktujte nás",
+        "main_title": "Máte otázky? Náš tým je tu, aby vám pomohl uspět na Reli.one.",
+        "contact_info": {
+            "title": "Kontaktní informace",
+            "phone": {
+                "label": "Telefonní podpora",
+                "value": "+420 797 837 856"
+            },
+            "email": {
+                "label": "E-mailová podpora",
+                "value": "office@reli.one"
+            },
+            "live_chat": {
+                "label": "Live Chat",
+                "value": "Dostupný 24/7 v vašem dashboardu"
+            },
+            "support_hours": {
+                "label": "Hodiny podpory",
+                "value": "Pondělí – Neděle, 24/7"
+            }
+        },
+        "form": {
+            "title": "Pošlete nám zprávu",
+            "fields": {
+                "first_name": "Jméno",
+                "last_name": "Příjmení",
+                "email": "E-mailová adresa",
+                "business_type": "Typ podnikání",
+                "message": "Zpráva"
+            },
+            "placeholders": {
+                "first_name": "Vaše jméno",
+                "last_name": "Vaše příjmení",
+                "email": "vas.email@priklad.cz",
+                "business_type": "např. Elektronika, Móda, Domácnost a zahrada",
+                "message": "Řekněte nám o vašem podnikání a jak vám můžeme pomoci..."
+            },
+            "button": "Odeslat zprávu"
+        }
+    }
+}

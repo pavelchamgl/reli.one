@@ -1,6 +1,7 @@
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import { useMediaQuery } from "react-responsive";
+import { useTranslation } from "react-i18next"
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -18,6 +19,9 @@ import styles from "./BannerNew.module.scss";
 
 const Slide = ({ title, desc, img }) => {
     const isHund = useMediaQuery({ maxWidth: 1000 })
+
+    const { t } = useTranslation("banners")
+
 
     return (
         <div className={styles.bannerWrap}>
@@ -39,7 +43,7 @@ const Slide = ({ title, desc, img }) => {
                     <h2>{title}</h2>
                     <p>{desc}</p>
                 </div>
-                <a href="#get-in-touch" className={styles.btn}>Start Selling</a>
+                <a href="https://reli.one/seller/login" className={styles.btn}>{t("startSelling")}</a>
             </div>
             <img
                 className={styles.img}
@@ -55,30 +59,32 @@ export default function BannerNew() {
 
     const isHund = useMediaQuery({ maxWidth: 1000 })
 
+    const { t } = useTranslation("banners")
+
     const slides = [
         {
-            title: "Orders made simple",
-            desc: "We notify you of every sale and help manage fulfillment smoothly.",
+            title: t("banner1.title"),
+            desc: t("banner1.desc"),
             img: banner1
         },
         {
-            title: "Simple & clear payouts",
-            desc: "Get your earnings every month without delays",
+            title: t("banner2.title"),
+            desc: t("banner2.desc"),
             img: banner2
         },
         {
-            title: "Boost your visibility",
-            desc: "Early sellers get free banners and featured spots on Reli.",
+            title: t("banner3.title"),
+            desc: t("banner3.desc"),
             img: banner3
         },
         {
-            title: "We’re here for you",
-            desc: "Dedicated manager + 24/7 support whenever you need help.",
+            title: t("banner4.title"),
+            desc: t("banner4.desc"),
             img: banner4
         },
         {
-            title: "Grow with us from day one",
-            desc: "Be among the first sellers and enjoy maximum exposure.",
+            title: t("banner5.title"),
+            desc: t("banner5.desc"),
             img: banner5
         }
     ]

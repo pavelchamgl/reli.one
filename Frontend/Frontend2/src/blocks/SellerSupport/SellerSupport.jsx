@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import Container from '../../components/Container/Container'
 import SupportBlocks from '../../components/SupportBlocks/SupportBlocks'
 
@@ -8,6 +10,9 @@ import document from "../../assets/sellerSupport/document.svg"
 import styles from "./SellerSupport.module.scss"
 
 const SellerSupport = () => {
+
+    const { t } = useTranslation("blocks")
+
 
     const style = {
         borderRadius: "14px",
@@ -28,33 +33,33 @@ const SellerSupport = () => {
     const blocks = [
         {
             img: book,
-            title: "Onboarding Guide",
-            desc: "Step – by – step instructions on how to start selling with zero technical skills.",
-            link: "Browse Guides",
+            title: t("seller_support.resources.block1.title"),
+            desc: t("seller_support.resources.block1.description"),
+            link: t("seller_support.resources.block1.button"),
             style: style,
             textStyle: textStyle
         },
         {
             img: mark,
-            title: "Tips From Our Team",
-            desc: "Best practices for pricing, positioning, and growing sales on Reli",
-            link: "Contact",
+            title: t("seller_support.resources.block2.title"),
+            desc: t("seller_support.resources.block2.description"),
+            link: t("seller_support.resources.block2.button"),
             url: "#get-in-touch",
             style: style,
             textStyle: textStyle
         },
         {
             img: document,
-            title: "Promotion Opportunities",
-            desc: "Discover how we promote your products for free on banners and the main page.",
-            link: "Read More",
+            title: t("seller_support.resources.block3.title"),
+            desc: t("seller_support.resources.block3.description"),
+            link: t("seller_support.resources.block3.button"),
             style: style,
             textStyle: textStyle
         }
     ]
 
-    const title = "Seller Support and Resources"
-    const desc = "We help you succeed from day one."
+    const title = t("seller_support.title_small")
+    const desc = t("seller_support.main_title")
 
     return (
         <div className={styles.wrap}>

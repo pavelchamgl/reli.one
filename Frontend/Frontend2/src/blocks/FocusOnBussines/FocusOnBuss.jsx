@@ -8,6 +8,7 @@ import benefitGrapf from "../../assets/focusOnBuss/benefitGrapf.svg"
 
 import styles from "./FocusOnBuss.module.scss"
 import Container from '../../components/Container/Container'
+import { useTranslation } from 'react-i18next'
 
 const Benefits = ({ img, text }) => {
     return (
@@ -20,10 +21,12 @@ const Benefits = ({ img, text }) => {
 
 const FocusOnBuss = () => {
 
+    const { t } = useTranslation("blocks")
+
     const benefits = [
-        { img: sheet, text: "Free registration" },
-        { img: moln, text: "No setup costs" },
-        { img: benefitGrapf, text: "24/7 support" }
+        { img: sheet, text: t("hero.benefits.text1") },
+        { img: moln, text: t("hero.benefits.text2") },
+        { img: benefitGrapf, text: t("hero.benefits.text3") }
     ]
 
     return (
@@ -32,12 +35,18 @@ const FocusOnBuss = () => {
                 <section className={styles.main}>
                     <div className={styles.content}>
                         <div>
-                            <p className={styles.title}>We Handle the sales,</p>
-                            <p className={styles.title}><span>You Focus on Your Business!</span></p>
+                            <p className={styles.title}>{t("hero.title.text1")}</p>
+                            <p className={styles.title}><span>{t("hero.title.text2")}</span></p>
                         </div>
-                        <CTA image={graph} text={"Join our growing seller community"} color={"#3f7f6d"} bgColor={"#dcfce7"} style={{ marginTop: "25px", marginBottom: "15px" }} />
-                        <p className={styles.desc}>With our hands-on support, <span>free promotion</span>, and <span>one-year fee-free start</span>, Reli is your partner for growth.</p>
-                        <YellowBtn text={"Contact Manager  "} url={"#get-in-touch"} />
+                        <CTA image={graph} text={t("hero.join_button")} color={"#3f7f6d"} bgColor={"#dcfce7"} style={{ marginTop: "25px", marginBottom: "15px" }} />
+                        <p className={styles.desc}>
+                            {t("hero.subtitle.text1")}
+                            <span>{t("hero.subtitle.text2")}</span>
+                            {t("hero.subtitle.text3")}
+                            <span>{t("hero.subtitle.text4")}</span>
+                            {t("hero.subtitle.text5")}
+                        </p>
+                        <YellowBtn text={t("hero.contact_button")} url={"#get-in-touch"} />
                         <div className={styles.benefitsWrap}>
                             {benefits.map((item) => (
                                 <Benefits img={item.img} text={item.text} />

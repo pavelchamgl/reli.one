@@ -96,7 +96,10 @@ const FilterBlock = () => {
                     <img src={searchWhite} alt="" />
                     <p>Search</p>
                 </button>
-                <button onClick={() => { setClearFilter() }}>
+                <button onClick={() => {
+                    setClearFilter()
+                    getOrdersByFilters()
+                }}>
                     Clear Filters
                 </button>
             </div>

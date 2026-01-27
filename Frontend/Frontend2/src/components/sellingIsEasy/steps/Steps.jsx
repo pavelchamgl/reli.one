@@ -1,30 +1,34 @@
+import { useTranslation } from "react-i18next"
+
 import send from "../../../assets/sellingIsEasy/send.svg"
 import upload from "../../../assets/sellingIsEasy/upload.svg"
 import sell from "../../../assets/sellingIsEasy/sell.svg"
 import arrRight from "../../../assets/sellingIsEasy/arrRight.svg"
 import logo from "../../../assets/sellingIsEasy/logo.svg"
-
-import styles from "./Steps.module.scss"
 import Step from "../../../ui/general/step/Step"
 
+import styles from "./Steps.module.scss"
+
 const Steps = () => {
+    const { t } = useTranslation("blocks")
+
 
     const images = [
         {
             image: send,
-            text: "Send  product",
+            text: t("selling.steps.step1"),
             num: 1,
             color: "#fdc700"
         },
         {
             image: upload,
-            text: "We upload",
+            text: t("selling.steps.step2"),
             num: 2,
             color: "#05df72"
         },
         {
             image: sell,
-            text: "You sell",
+            text: t("selling.steps.step3"),
             num: 3,
             color: "#51a2ff"
         }

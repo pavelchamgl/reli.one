@@ -1,5 +1,5 @@
 import logo from "@/assets/headerAndFooter/logo.svg"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useMediaQuery } from "react-responsive"
 import { useState, useEffect } from "react"
 
@@ -9,10 +9,15 @@ import burgerIc from "../../assets/headerAndFooter/burger.svg"
 import closeIc from "../../assets/headerAndFooter/close.svg"
 
 import styles from "./Header.module.scss"
+import { useTranslation } from "react-i18next"
 
 const Header = () => {
   const isMobile = useMediaQuery({ maxWidth: 820 })
   const [open, setOpen] = useState(false)
+
+  const navigate = useNavigate()
+
+  const { t } = useTranslation("header")
 
   // блокируем скролл при открытом меню
   useEffect(() => {
@@ -30,10 +35,10 @@ const Header = () => {
 
         <nav className={`${styles.navWrap} ${open ? styles.open : ""}`}>
           <ul>
-            <li><Link to="/" onClick={closeMenu}>Home</Link></li>
-            <li><Link to="/about" onClick={closeMenu}>About Us</Link></li>
-            <li><Link to="/pricing-commission" onClick={closeMenu}>Commission Structure</Link></li>
-            <li><Link to="/contact" onClick={closeMenu}>Contact</Link></li>
+            <li><Link to="/" onClick={closeMenu}>{t("home")}</Link></li>
+            <li><Link to="/about" onClick={closeMenu}>{t("about")}</Link></li>
+            <li><Link to="/pricing-commission" onClick={closeMenu}>{t("commission")}</Link></li>
+            <li><Link to="/contact" onClick={closeMenu}>{t("contact")}</Link></li>
           </ul>
         </nav>
 
@@ -41,8 +46,11 @@ const Header = () => {
           <ChangeLang />
 
           {!isMobile && (
-            <button className={styles.startBtn}>
-              Start Selling
+            <button className={styles.startBtn} onClick={() => {
+              window.location.href = "https://reli.one/seller/login"
+            }
+            }>
+              {t("startSelling")}
             </button>
           )}
 

@@ -1,58 +1,64 @@
+import { useTranslation } from "react-i18next"
+
 import FooterMain from "../../components/Footer/FooterMain/FooterMain"
 import Header from "../../components/Header/Header"
 import ScrollToTop from "../../components/ScrollToTop/ScrollToTop"
 import WhatsappMeneger from "../../components/WhatsAppManager/WhatsAppManager"
+
 import styles from "./ContactPage.module.scss"
 
 const ContactPage = () => {
 
+    const { t } = useTranslation("contact")
+
+
     const companyDetails = [
         {
-            title: "Company Name",
-            desc: "Reli Group s.r.o."
+            title: t("contact_page.company_details.company_name"),
+            desc: t("contact_page.company_details.company_name_text")
         },
         {
-            title: "Company ID",
-            desc: "28003896",
+            title: t("contact_page.company_details.company_id"),
+            desc: t("contact_page.company_details.company_id_text"),
             num: true
         },
         {
-            title: "VAT",
-            desc: "CZ28003896",
+            title: t("contact_page.company_details.vat"),
+            desc: t("contact_page.company_details.vat_text"),
             num: true
         }
     ]
 
     const contactDetails = [
         {
-            title: "Phone",
+            title: t("contact_page.contact_details.phone.label"),
             desc: "+420 797 837 856",
             num: true
         },
         {
-            title: "Email",
+            title: t("contact_page.contact_details.email.label"),
             desc: "info@reli.one"
         }
     ]
 
     const banckDetails = [
         {
-            title: "Bank",
-            desc: "Raiffeisen Bank"
+            title: t("contact_page.banking_details.bank"),
+            desc: t("contact_page.banking_details.bank_desc")
         },
         {
-            title: "IBAN",
-            desc: "CZ9455000000005003011074",
+            title: t("contact_page.banking_details.iban"),
+            desc: t("contact_page.banking_details.iban_desc"),
             num: true
         },
         {
-            title: "Account Number",
-            desc: "5003011074/5500",
+            title: t("contact_page.banking_details.account_number"),
+            desc: t("contact_page.banking_details.account_number_desc"),
             num: true
         },
         {
-            title: "SWIFT (BIC)",
-            desc: "RZBCCZPP"
+            title: t("contact_page.banking_details.swift"),
+            desc: t("contact_page.banking_details.swift_desc")
         },
     ]
 
@@ -61,15 +67,15 @@ const ContactPage = () => {
             <Header />
             <div className={styles.main}>
                 <div className={styles.titleWrap}>
-                    <h1>Contact</h1>
-                    <p>Get in touch with Reli Group s.r.o.</p>
+                    <h1>{t("contact_page.title")}</h1>
+                    <p>{t("contact_page.subtitle")}</p>
                 </div>
 
                 <div className={styles.blocksBordWrap}>
                     <div className={styles.blocksBordWrapFirst}>
 
                         <div className={`${styles.contactBlockBorder}`}>
-                            <h2>Contact Details</h2>
+                            <h2>{t("contact_page.contact_details.title")}</h2>
                             <ul>
                                 {
                                     contactDetails?.map((item) => (
@@ -84,25 +90,25 @@ const ContactPage = () => {
                         </div>
 
                         <div className={`${styles.contactBlockBorder}`}>
-                            <h2>Business Hours</h2>
-                            <p className={styles.hoursDesc}>Our team is available to assist you during business hours.</p>
+                            <h2>{t("contact_page.business_hours.title")}</h2>
+                            <p className={styles.hoursDesc}>{t("contact_page.business_hours.description")}</p>
                             <ul>
 
                                 <li className={styles.hoursItems}>
-                                    <p>Monday - Friday:</p>
-                                    <span>9:00 - 17:00 (CET)</span>
+                                    <p>{t("contact_page.business_hours.monday_friday")}</p>
+                                    <span>{t("contact_page.business_hours.monday_friday_time")}</span>
                                 </li>
 
                                 <li className={styles.hoursItems}>
-                                    <p>Saturday - Sunday:</p>
-                                    <span>Closed</span>
+                                    <p>{t("contact_page.business_hours.saturday_sunday")}</p>
+                                    <span>{t("contact_page.business_hours.saturday_sunday_time")}</span>
                                 </li>
                             </ul>
                         </div>
                     </div>
 
                     <div className={`${styles.contactBlockBorder} ${styles.bigBlock}`}>
-                        <h2>Company Details</h2>
+                        <h2>{t("contact_page.company_details.title")}</h2>
                         <ul>
                             {
                                 companyDetails?.map((item) => (
@@ -114,10 +120,10 @@ const ContactPage = () => {
                                 ))
                             }
                             <li>
-                                <p>Address</p>
-                                <span>Na Lysinách 551/34</span>
-                                <span>Prague 4 – Hodkovičky</span>
-                                <span>147 00, Czech Republic</span>
+                                <p>{t("contact_page.company_details.address.title")}</p>
+                                <span>{t("contact_page.company_details.address.text1")}</span>
+                                <span>{t("contact_page.company_details.address.text2")}</span>
+                                <span>{t("contact_page.company_details.address.text3")}</span>
                             </li>
                         </ul>
                     </div>
@@ -125,7 +131,7 @@ const ContactPage = () => {
 
                 <div className={styles.bankBlockWrap}>
                     <div className={styles.bankBlock}>
-                        <h2>Banking Details</h2>
+                        <h2>{t("contact_page.banking_details.title")}</h2>
 
                         <ul>
                             {

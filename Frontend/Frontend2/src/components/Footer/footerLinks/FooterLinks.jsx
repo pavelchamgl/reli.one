@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import logo from "../../../assets/footerNew/logo.svg"
 import face from "../../../assets/footerNew/face.svg"
@@ -11,44 +12,51 @@ import styles from "./FooterLinks.module.scss"
 
 const FooterLinks = () => {
 
+    const { t } = useTranslation("footer")
+
+
     const links1 = [
         {
-            title: "Getting Started",
-            url: "#"
+            title: t("footer.columns.for_sellers.links.link1"),
+            url: "https://reli.one/seller/seller-type"
         },
         {
-            title: "Seller Dashboard",
-            url: "#"
+            title: t("footer.columns.for_sellers.links.link2"),
+            url: "https://reli.one/seller/login"
         },
         {
-            title: "Commission Structure",
+            title: t("footer.columns.for_sellers.links.link3"),
             url: "/pricing-commission"
         },
         {
-            title: "Seller Support",
+            title: t("footer.columns.for_sellers.links.link4"),
             url: "#"
         }
     ]
     // const links2 = ["About Us", "Careers", "Press ", "Contact ", "Blog "]
-    const links2 = ["Terms and Conditions", "Complaint", "Return of Goods", "Terms of Service", "Privacy Policy", "GDPR Compliance", "Cookie Policy"]
+    const links2 = [
+        t("footer.columns.legal.links.link1"),
+        t("footer.columns.legal.links.link2"),
+        t("footer.columns.legal.links.link3"),
+        t("footer.columns.legal.links.link4"),
+        t("footer.columns.legal.links.link5"),
+        t("footer.columns.legal.links.link6"),
+        t("footer.columns.legal.links.link7"),
+    ]
 
 
     return (
         <div className={styles.main}>
             <div className={styles.logoWrap}>
                 <img src={logo} alt="" />
-                <p className={styles.footerDesc}>The easiest way to start selling
-                    online. Join thousands of
-                    successful sellers and grow
-                    your business with us.</p>
+                <p className={styles.footerDesc}>{t("footer.logo_text")}</p>
                 <div className={styles.companyInfoWrap}>
-                    <p>Company ID: 28003896</p>
-                    <p>VAT: CZ28003896</p>
-                    <p>Number: +420 797 837 856 </p>
-                    <p>Email: info@reli.one</p>
+                    <p>{t("footer.company_info.company_id")}</p>
+                    <p>{t("footer.company_info.vat")}</p>
+                    <p>{t("footer.company_info.phone")}</p>
+                    <p>{t("footer.company_info.email")}</p>
                 </div>
-                <p className={styles.footerDesc}>
-                    Address: Na Lysinách 551/34, Prague 4 - Hodkovičky, zip code 147 00, Czech Republic</p>
+                <p className={styles.footerDesc}>{t("footer.company_info.address")}</p>
 
                 <div className={styles.linksWrap}>
                     <a href="#">
@@ -74,7 +82,7 @@ const FooterLinks = () => {
                     <h3 className={styles.listTitle}>For Sellers</h3>
                 </li> */}
                 <li>
-                    <Link className={styles.listTitle} to={"/for-sell"}>For Sellers</Link>
+                    <Link className={styles.listTitle} to={"/for-sell"}>{t("footer.columns.for_sellers.title")}</Link>
                 </li>
                 {links1.map((item) => (
                     <li><Link className={styles.listItem} to={item.url}>{item.title}</Link></li>
@@ -82,7 +90,7 @@ const FooterLinks = () => {
             </ul>
             <ul>
                 <li>
-                    <h3 className={styles.listTitle}>Legal</h3>
+                    <h3 className={styles.listTitle}>{t("footer.columns.legal.title")}</h3>
                 </li>
                 {links2.map((item) => (
                     <li><a className={styles.listItem} href="#">{item}</a></li>
@@ -90,13 +98,13 @@ const FooterLinks = () => {
             </ul>
             <ul>
                 <li>
-                    <h3 className={styles.listTitle}>Company</h3>
+                    <h3 className={styles.listTitle}>{t("footer.columns.company.title")}</h3>
                 </li>
                 <li>
-                    <Link className={styles.listItem} to={"/about"}>About Us</Link>
+                    <Link className={styles.listItem} to={"/about"}>{t("footer.columns.company.links.link1")}</Link>
                 </li>
                 <li>
-                    <Link className={styles.listItem} to={"/contact"}>Contact</Link>
+                    <Link className={styles.listItem} to={"/contact"}>{t("footer.columns.company.links.link2")}</Link>
                 </li>
             </ul>
             {/* <div className={styles.bankDetailWrap}>

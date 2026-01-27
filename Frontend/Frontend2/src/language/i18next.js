@@ -9,6 +9,14 @@ import pricingCz from "./cz/pricingCz.json"
 import pricingEn from "./en/pricingEn.json"
 import contactEn from "./en/contactEn.json"
 import contactCz from "./cz/contactCz.json"
+import headerEn from "./en/headerEn.json"
+import headerCz from "./cz/headerCz.json"
+import bannersEn from "./en/banners.json"
+import bannersCz from "./cz/banners.json"
+import blocksEn from "./en/blocksEn.json"
+import blocksCz from "./cz/blocksCz.json"
+import footerEn from "./en/footerEn.json"
+import footerCz from "./cz/footerCz.json"
 
 
 
@@ -17,12 +25,22 @@ const resources = {
     en: {
         translation: translationEn,
         about: aboutEn,
-        pricing: pricingEn
+        pricing: pricingEn,
+        header: headerEn,
+        banners: bannersEn,
+        blocks: blocksEn,
+        footer: footerEn,
+        contact: contactEn
     },
     cz: {
         translation: translationCz,
         about: aboutCz,
-        pricing: pricingCz
+        pricing: pricingCz,
+        header: headerCz,
+        banners: bannersCz,
+        blocks: blocksCz,
+        footer: footerCz,
+        contact: contactCz
     }
 };
 

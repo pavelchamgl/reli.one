@@ -107,10 +107,10 @@ const SellerMobNav = () => {
             Goods
           </p>
         </button>
-        <button onClick={() => navigate("/seller/seller-orders")} className={styles.navItem}>
+        <button onClick={() => navigate("/seller/seller-order")} className={styles.navItem}>
           <img
             src={
-              location.pathname === "/seller/seller-orders"
+              location.pathname === "/seller/seller-order"
                 ? ordersAccIcon
                 : ordersIcon
             }
@@ -119,7 +119,7 @@ const SellerMobNav = () => {
           <p
             style={{
               color:
-                location.pathname === "/seller/seller-orders" && !open
+                location.pathname === "/seller/seller-order" && !open
                   ? "#2BAE91"
                   : "#a09e96",
             }}

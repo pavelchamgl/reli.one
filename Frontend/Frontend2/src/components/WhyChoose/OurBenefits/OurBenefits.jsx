@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next"
+
 import moln from "../../../assets/whyChoose/moln.svg"
 import headPhone from "../../../assets/whyChoose/headphone.svg"
 import dollar from "../../../assets/whyChoose/dollar.svg"
@@ -13,12 +15,15 @@ import styles from "./OurBenefits.module.scss"
 
 const OurBenefits = () => {
 
+    const { t } = useTranslation("blocks")
+
+
     const benefits = [
         {
             img: moln,
-            postText: "Easy Сonditions",
-            title: "Zero Effort for Manufacturers",
-            desc: "No need to upload or manage products. Our team lists and optimizes everything for you.",
+            postText: t("why_choose_reli.features.block1.label"),
+            title: t("why_choose_reli.features.block1.title"),
+            desc: t("why_choose_reli.features.block1.text"),
             style: {
                 boxShadow: "0 1px 2px -1px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1)",
                 background: "linear-gradient(90deg, #ffdf20 0%, #ffb86a 100%)"
@@ -26,9 +31,9 @@ const OurBenefits = () => {
         },
         {
             img: headPhone,
-            postText: "24/7 Available",
-            title: "Personal Manager Support",
-            desc: "Every seller has a dedicated manager who knows your business",
+            postText: t("why_choose_reli.features.block2.label"),
+            title: t("why_choose_reli.features.block2.title"),
+            desc: t("why_choose_reli.features.block2.text"),
             style: {
                 boxShadow: "0 1px 2px -1px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1)",
                 background: "linear-gradient(90deg, #ffa2a2 0%, #ff6467 100%)"
@@ -36,9 +41,9 @@ const OurBenefits = () => {
         },
         {
             img: dollar,
-            postText: "100% Risk-Free",
-            title: "Lowest Fees in the Market",
-            desc: "keep more of your profits with our ultra-competitive commission rates",
+            postText: t("why_choose_reli.features.block3.label"),
+            title: t("why_choose_reli.features.block3.title"),
+            desc: t("why_choose_reli.features.block3.text"),
             style: {
                 boxShadow: "0 1px 2px -1px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1)",
                 background: "linear-gradient(90deg, #7bf1a8 0%, #05df72 100%)"
@@ -46,9 +51,9 @@ const OurBenefits = () => {
         },
         {
             img: shield,
-            postText: "Guaranteed",
-            title: "No Risk",
-            desc: "No setup fees, no hidden charges. You only pay when you sell. ",
+            postText: t("why_choose_reli.features.block4.label"),
+            title: t("why_choose_reli.features.block4.title"),
+            desc: t("why_choose_reli.features.block4.text"),
             style: {
                 boxShadow: "0 1px 2px -1px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1)",
                 background: "linear-gradient(90deg, #51a2ff 0%, #2b7fff 100%)"
@@ -56,9 +61,9 @@ const OurBenefits = () => {
         },
         {
             img: graph,
-            postText: "100%  Free",
-            title: "Free Promotion",
-            desc: "Your products can be featured in banners, promotions, and campaigns at no",
+            postText: t("why_choose_reli.features.block5.label"),
+            title: t("why_choose_reli.features.block5.title"),
+            desc: t("why_choose_reli.features.block5.text"),
             style: {
                 boxShadow: "0 1px 2px -1px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1)",
                 background: "linear-gradient(90deg, #6584b9 0%, #325bae 100%)"
@@ -66,9 +71,9 @@ const OurBenefits = () => {
         },
         {
             img: users,
-            postText: "1K+ Products",
-            title: " High-Quality Marketplace",
-            desc: "We carefully select sellers and products to keep standards high.",
+            postText: t("why_choose_reli.features.block6.label"),
+            title: t("why_choose_reli.features.block6.title"),
+            desc: t("why_choose_reli.features.block6.text"),
             style: {
                 boxShadow: "0 1px 2px -1px rgba(0, 0, 0, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1)",
                 background: "linear-gradient(90deg, #ffdf20 0%, #ffb86a 100%)"

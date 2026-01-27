@@ -1,0 +1,51 @@
+{
+    "footer": {
+        "logo_text": "The easiest way to start selling online. Join thousands of successful sellers and grow your business with us.",
+        "company_info": {
+            "company_id": "Company ID: 28003896",
+            "vat": "VAT: CZ28003896",
+            "phone": "Number: +420 797 837 856",
+            "email": "Email: info@reli.one",
+            "address": "Address: Na Lysinách 551/34, Prague 4 - Hodkovičky, zip code 147 00, Czech Republic"
+        },
+        "columns": {
+            "for_sellers": {
+                "title": "For Sellers",
+                "links": {
+                    "link1": "Getting Started",
+                    "link2": "Seller Dashboard",
+                    "link3": "Commission Structure",
+                    "link4": "Seller Support"
+                }
+            },
+            "legal": {
+                "title": "Legal",
+                "links": {
+                    "link1": "Terms and Conditions",
+                    "link2": "Complaint",
+                    "link3": "Return of Goods",
+                    "link4": "Terms of Service",
+                    "link5": "Privacy Policy",
+                    "link6": "GDPR Compliance",
+                    "link7": "Cookie Policy"
+                }
+            },
+            "company": {
+                "title": "Company",
+                "links": {
+                    "link1": "About Us",
+                    "link2": "Contact"
+                }
+            }
+        },
+        "payment_methods_title": "Payment Methods",
+        "newsletter": {
+            "title": "Stay Updated",
+            "description": "Get the latest seller tips, platform updates, and success stories delivered to your inbox.",
+            "placeholder": "Enter your email",
+            "button": "Subscribe"
+        },
+        "copyright": "© 2026 Reli Group s.r.o. All rights reserved.",
+        "made_with": "Made with ♥ for sellers worldwide"
+    }
+}
