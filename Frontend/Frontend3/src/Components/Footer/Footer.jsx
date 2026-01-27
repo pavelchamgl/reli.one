@@ -130,6 +130,37 @@ const Footer = () => {
               </button>
             </li>
           </ul>
+
+          <ul>
+            <h3>{t("footer_additional.section_title")}</h3>
+            <li>
+              <Link className={cls.LinkNavigate}>
+                {t("footer_additional.complaints_procedure")}
+              </Link>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate}>
+                {t("footer_additional.returns_procedure")}
+              </Link>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate}>
+                {t("footer_additional.complaint_form")}
+              </Link>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate}>
+                {t("footer_additional.return_form")}
+              </Link>
+            </li>
+            <li>
+              <Link className={cls.LinkNavigate}>
+                {t("footer_additional.contacts")}
+              </Link>
+            </li>
+
+          </ul>
+
           <ul>
             <h3>{t("footer_additional.company")}</h3>
             <li>
@@ -144,9 +175,6 @@ const Footer = () => {
             </li>
           </ul>
 
-          <ul>
-
-          </ul>
         </nav>
 
 
@@ -235,6 +263,37 @@ const Footer = () => {
                 </button>
               </li>
             </ul>
+
+            <ul>
+              <h3>{t("footer_additional.section_title")}</h3>
+              <li>
+                <Link className={cls.LinkNavigate}>
+                  {t("footer_additional.complaints_procedure")}
+                </Link>
+              </li>
+              <li>
+                <Link className={cls.LinkNavigate}>
+                  {t("footer_additional.returns_procedure")}
+                </Link>
+              </li>
+              <li>
+                <Link className={cls.LinkNavigate}>
+                  {t("footer_additional.complaint_form")}
+                </Link>
+              </li>
+              <li>
+                <Link className={cls.LinkNavigate}>
+                  {t("footer_additional.return_form")}
+                </Link>
+              </li>
+              <li>
+                <Link className={cls.LinkNavigate}>
+                  {t("footer_additional.contacts")}
+                </Link>
+              </li>
+
+            </ul>
+
             <ul>
               <h3>{t("footer_additional.company")}</h3>
               <li>
@@ -249,9 +308,7 @@ const Footer = () => {
               </li>
             </ul>
 
-            <ul>
 
-            </ul>
           </nav>
 
 

@@ -1,5 +1,5 @@
 import logo from "@/assets/headerAndFooter/logo.svg"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useMediaQuery } from "react-responsive"
 import { useState, useEffect } from "react"
 
@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next"
 const Header = () => {
   const isMobile = useMediaQuery({ maxWidth: 820 })
   const [open, setOpen] = useState(false)
+
+  const navigate = useNavigate()
 
   const { t } = useTranslation("header")
 
@@ -44,7 +46,10 @@ const Header = () => {
           <ChangeLang />
 
           {!isMobile && (
-            <button className={styles.startBtn}>
+            <button className={styles.startBtn} onClick={() => {
+              window.location.href = "https://reli.one/seller/login"
+            }
+            }>
               {t("startSelling")}
             </button>
           )}

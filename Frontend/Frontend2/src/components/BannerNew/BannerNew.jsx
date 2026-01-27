@@ -43,7 +43,7 @@ const Slide = ({ title, desc, img }) => {
                     <h2>{title}</h2>
                     <p>{desc}</p>
                 </div>
-                <a href="#get-in-touch" className={styles.btn}>{t("startSelling")}</a>
+                <a href="https://reli.one/seller/login" className={styles.btn}>{t("startSelling")}</a>
             </div>
             <img
                 className={styles.img}

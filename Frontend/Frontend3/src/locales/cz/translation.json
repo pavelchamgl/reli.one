@@ -16,7 +16,13 @@
         "number": "Číslo",
         "phone": "Telefon",
         "company_id": "IČO",
-        "vat": "DIČ"
+        "vat": "DIČ",
+        "section_title": "Reklamace a vrácení zboží",
+        "complaints_procedure": "Postup při reklamacích",
+        "returns_procedure": "Postup při vrácení zboží",
+        "complaint_form": "Reklamační formulář",
+        "return_form": "Formulář pro vrácení zboží",
+        "contacts": "Kontakty pro reklamace a vrácení zboží"
     },
     "for_seller": "Pro prodejce",
     "for_buyers": "Pro kupující",

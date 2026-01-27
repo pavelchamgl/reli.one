@@ -18,11 +18,11 @@ const FooterLinks = () => {
     const links1 = [
         {
             title: t("footer.columns.for_sellers.links.link1"),
-            url: "#"
+            url: "https://reli.one/seller/seller-type"
         },
         {
             title: t("footer.columns.for_sellers.links.link2"),
-            url: "#"
+            url: "https://reli.one/seller/login"
         },
         {
             title: t("footer.columns.for_sellers.links.link3"),

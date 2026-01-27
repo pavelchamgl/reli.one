@@ -23,7 +23,7 @@ const SellingIsEasy = () => {
                             <DescText style={{ fontSize: "clamp(16px, 5vw, 20px)" }} text={t("selling.description")} />
                             <Steps />
                             <div className={styles.btnWrap}>
-                                <YellowBtn text={t("selling.button_start")} url={"#get-in-touch"} />
+                                <YellowBtn text={t("selling.button_start")} url={"https://reli.one/seller/login"} />
                                 <YellowBtn text={t("selling.button_goto")} arr={true} style={{
                                     background: "#eef0f2"
                                 }} url="https://reli.one/" />

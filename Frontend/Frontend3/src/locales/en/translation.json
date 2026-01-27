@@ -16,7 +16,13 @@
         "number": "Number",
         "phone": "Phone",
         "company_id": "Company ID",
-        "vat": "VAT"
+        "vat": "VAT",
+        "section_title": "Complaints and returns",
+        "complaints_procedure": "Complaints procedure",
+        "returns_procedure": "Returns procedure",
+        "complaint_form": "Complaint form",
+        "return_form": "Return form",
+        "contacts": "Contacts for Complaints and Returns"
     },
     "for_seller": "For sellers",
     "for_buyers": "For buyers",

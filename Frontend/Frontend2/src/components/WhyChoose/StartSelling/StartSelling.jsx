@@ -14,7 +14,7 @@ const StartSelling = () => {
         <div className={styles.main}>
             <h5 className={styles.title}>{t("ready_to_start.title")}</h5>
             <p className={styles.desc}>{t("ready_to_start.subtitle")}</p>
-            <a href="#get-in-touch" className={styles.btn}>
+            <a href="https://reli.one/seller/seller-type" className={styles.btn}>
                 <p>{t("ready_to_start.button_create")}</p>
                 <img src={arrRight} alt="" />
             </a>
