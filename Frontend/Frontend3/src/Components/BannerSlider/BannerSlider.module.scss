@@ -1,221 +1,199 @@
+/* ===============================
+   CONTAINER
+================================ */
+
 .swiperContainer {
-  position: relative;
   width: 100%;
-  height: auto; // или auto
+  position: relative;
   background: #ffffff;
 
   @media (max-width: 955px) {
     width: 950px !important; // фикс ширина
   }
+
   @media (max-width: 500px) {
     width: 100% !important;
   }
 }
 
+/* ===============================
+   SWIPER
+================================ */
+
 .swiper {
-  width: calc(100% - 265px) !important;
-  height: 460px;
+  width: calc(100% - 200px);
+  height: 500px;
 
   @media (max-width: 1260px) {
-    height: 400px !important;
-  }
-
-  @media (max-width: 1150px) {
-    height: 350px !important;
+    height: 400px;
   }
 
   @media (max-width: 955px) {
-    width: 780px !important;
-    height: 350px !important;
+    width: 780px;
+    height: 350px;
   }
-
-  // @media (max-width: 955px) {
-  //   width: 950px !important; // фикс ширина
-  //   height: 370px !important;
-  // }
 
   @media (max-width: 500px) {
-    width: calc(100% - 20px) !important;
-
-    height: 270px !important;
+    width: calc(100% - 20px);
+    height: 240px;
   }
 
-  @media (max-width: 361px) {
-    width: calc(100% - 20px) !important;
-
-    height: 220px !important;
+  @media (max-width: 401px) {
+    height: 160px;
   }
 
   @media (min-width: 1550px) {
-    height: calc(100% + 50px) !important;
+    height: 700px;
   }
 }
+
+/* ===============================
+   SLIDES
+================================ */
 
 .swiperSlide {
-  width: 100% !important;
+  width: 100%;
+  height: 100%;
 }
 
-.swiperSlide img {
-  width: 100% !important;
-  height: 100% !important;
-  max-width: 100%;
-  object-fit: contain !important;
-
-  @media (max-width: 500px) {
-    width: 100% !important;
-    height: 220px !important;
-    object-fit: cover !important;
-  }
-
-  @media (max-width: 401px) {
-    object-fit: contain !important;
-    height: 300px !important;
-  }
-
-  @media (min-width: 1550px) {
-    height: calc(100% + 50px) !important;
-    object-fit: cover !important;
-  }
-}
-
-.mobSwiper {
-  width: 100% !important;
-}
-
-// .bannerImg {
-//   width: 100% !important;
-//   height: 400px !important;
-//   object-fit: cover;
-//   aspect-ratio: 1230 / 400; // сохраняем пропорции
-//   @media (max-width: 955px) {
-//     width: 780px !important;
-//     height: 300px !important;
-//   }
-//   @media (max-width: 500px) {
-//     width: 100% !important;
-//     height: 210px !important;
-//   }
-//   @media (max-width: 401px) {
-//     object-fit: contain;
-//     height: 190px !important;
-//   }
-//   @media (max-width: 361px) {
-//     object-fit: contain;
-//     height: 150px !important;
-//   }
-//   @media (min-width: 1550px) {
-//     object-fit: cover;
-//     height: auto !important;
-//     padding-top: 30px;
-//     padding-bottom: 40px;
-//   }
-// }
+/* ===============================
+   IMAGES
+================================ */
 
 .bannerImg {
-  width: 100% !important;
-  height: 400px !important;
-  aspect-ratio: 1230 / 400 !important; // сохраняем пропорции оригинала
-
-  object-fit: contain; // вся картинка видна, без обрезки
-  object-position: center;
+  width: 100%;
+  height: 100%;
   display: block;
+  object-fit: contain;
 
   @media (max-width: 500px) {
-    width: 100% !important;
-    height: 210px !important;
-    aspect-ratio: auto !important; /* ❌ выключаем аспект */
-    object-fit: cover !important;
-  }
-  @media (max-width: 401px) {
-    object-fit: contain;
-    height: 190px !important;
-  }
-  @media (max-width: 361px) {
-    object-fit: contain;
-    height: 150px !important;
-  }
-  @media (min-width: 1550px) {
-    aspect-ratio: auto;
-    width: 100% !important;
+    height: 220px;
     object-fit: cover;
-    height: auto !important;
-    padding-top: 30px;
-    padding-bottom: 40px;
   }
 
-  // // добавим плавную подстройку под разные экраны
-  // @media (max-width: 955px) {
-  //   aspect-ratio: 16 / 9; // более "высокое" соотношение для мобильных
-  // }
+  @media (max-width: 401px) {
+    object-fit: cover;
+    // height: auto;
+    height: 160px;
+  }
+}
 
-  // @media (max-width: 600px) {
-  //   aspect-ratio: 4 / 3;
-  // }
+/* ===============================
+   VIDEO
+================================ */
+
+.videoWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding-top: 30px;
+
+  @media (max-width: 401px) {
+    padding-top: 0;
+  }
 }
 
 .bannerVideo {
-  // width: 100%;
-  // height: 400px !important;
-  // object-fit: cover;
-  // // width: 100% !important;
-  // // height: 400px !important;
-  // // object-fit: contain;
-  // @media (max-width: 955px) {
-  //   width: 780px !important;
-  //   height: 300px !important;
-  // }
-  // @media (max-width: 500px) {
-  //   width: 100% !important;
-  //   height: 210px !important;
-  // }
-  // @media (min-width: 1550px) {
-  //   object-fit: cover;
-  //   height: auto !important;
-  //   padding-top: 30px;
-  //   padding-bottom: 40px;
-  // }
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
-  width: 100% !important;
-  aspect-ratio: 1230 / 400 !important; // сохраняем пропорции оригинала
+/* ===============================
+   VIDEO CONTROLS
+================================ */
 
-  object-fit: contain; // вся картинка видна, без обрезки
-  object-position: center;
-  display: block;
+.videoControls {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  z-index: 10;
+
+  button {
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 6px;
+    padding: 6px;
+    cursor: pointer;
+
+    img {
+      width: 22px;
+      height: 22px;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  input[type="range"] {
+    width: 120px;
+    cursor: pointer;
+    accent-color: #3f7f6d;
+  }
 
   @media (max-width: 500px) {
-    width: 100% !important;
-    height: 210px !important;
-    aspect-ratio: auto !important; /* ❌ выключаем аспект */
-    object-fit: cover;
-  }
-  @media (max-width: 365px) {
-    width: 100% !important;
-    height: 160px !important;
-    aspect-ratio: auto !important; /* ❌ выключаем аспект */
-    object-fit: cover;
+    justify-content: space-between;
+    width: 100%;
+    align-items: flex-end;
+    bottom: 10px;
   }
 }
+
+/* ===============================
+   MOBILE VOLUME CONTROL
+================================ */
+
+.noiseControl {
+  // position: absolute;
+  // width: 100%;
+  // right: 15px;
+  // bottom: 10px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+  align-items: center;
+}
+
+.noiseControl input {
+  -webkit-appearance: slider-vertical;
+  width: 8px;
+  height: 90px;
+  accent-color: #3f7f6d;
+}
+
+.noiseControl button {
+  width: 44px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ===============================
+   NAVIGATION
+================================ */
 
 .swiperButtonPrev,
 .swiperButtonNext {
   position: absolute;
   top: 50%;
+  transform: translateY(-50%);
   z-index: 10;
   width: 44px;
   height: 44px;
-  background-color: rgba(255, 255, 255, 0.5);
-  color: black;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  font-size: 24px;
-  user-select: none;
-  border-radius: 50%;
-  transform: translateY(-50%);
 
-  & img {
-    height: 19px;
+  img {
+    height: 18px;
   }
 
   @media (max-width: 500px) {
@@ -224,155 +202,58 @@
 }
 
 .swiperButtonPrev {
-  left: 40px;
+  left: 30px;
 }
 
 .swiperButtonNext {
-  right: 40px;
-}
-
-.swiperPagination {
-  position: absolute;
-  bottom: 10px;
-  width: 100%;
-  text-align: center;
-  z-index: 10;
-}
-
-.paginationActive {
-  width: 8px; /* Width of the bullet */
-  height: 8px; /* Height of the bullet */
-  background: #000; /* Default bullet color */
-  opacity: 1; /* Ensure bullets are fully opaque */
-  border-radius: 50%; /* Make the bullets round */
-  margin: 0 4px;
-  background: #3f7f6d; /* Active bullet color */
+  right: 30px;
 }
 
 .left {
   transform: rotate(180deg);
 }
 
-.videoWrapper {
-  position: relative;
-  width: 100% !important;
-  aspect-ratio: 1230 / 400 !important; // сохраняем пропорции оригинала
+/* ===============================
+   PAGINATION (BOTTOM)
+================================ */
 
-  object-fit: contain; // вся картинка видна, без обрезки
-  object-position: center;
-  display: block;
-
-  .bannerVideo {
-    width: 100%;
-    height: auto;
-  }
-
-  .videoControls {
-    width: 100%;
-    position: absolute;
-    bottom: 60px;
-    left: 30px;
-    display: flex;
-    gap: 10px;
-    z-index: 10;
-    align-items: center;
-    @media (max-width: 1550px) {
-      bottom: 20px;
-    }
-    @media (max-width: 500px) {
-      left: 15px;
-      bottom: 10px;
-    }
-
-    button {
-      background: rgba(0, 0, 0, 0.5);
-      color: #fff;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-      & img {
-        width: 25px;
-        height: 25px;
-      }
-      &:hover {
-        background: rgba(0, 0, 0, 0.7);
-      }
-    }
-
-    input[type="range"] {
-      width: 120px;
-      cursor: pointer;
-      accent-color: #3f7f6d;
-    }
-  }
+.swiperPagination {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
 }
 
-.videoWrapper {
-  .videoControls {
-    input[type="range"] {
-      width: 100px;
-      cursor: pointer;
-      accent-color: #3f7f6d;
-    }
-  }
+.paginationActive {
+  width: 8px;
+  height: 8px;
+  background: #3f7f6d;
+  border-radius: 50%;
+  opacity: 1;
+  margin: 0 4px;
 }
+
+/* ===============================
+   BUTTON SLIDE
+================================ */
 
 .buttonSlide {
-  width: 100% !important;
-  height: 400px !important;
+  width: 100%;
+  height: 100%;
   background-size: cover;
   background-position: center;
   position: relative;
-  @media (max-width: 500px) {
-    height: 210px !important;
-  }
 
-  & button {
+  button {
     position: absolute;
     bottom: 30px;
     left: 30px;
-    background-color: white;
-    color: #3f7f6d;
-    font-weight: 700;
     width: 150px;
     height: 40px;
-    font-size: 20px;
+    background: #ffffff;
+    color: #3f7f6d;
+    font-weight: 700;
+    font-size: 18px;
     border-radius: 10px;
+    cursor: pointer;
   }
-}
-
-.noiseControl {
-  display: flex;
-  flex-direction: column-reverse;
-  align-items: center;
-  gap: 10px;
-  position: absolute;
-  right: 30px;
-  bottom: 0px;
-  @media (max-width: 500px) {
-    right: 0px;
-  }
-}
-
-.noiseControl input {
-  writing-mode: bt-lr;
-  /* Вертикальное направление */
-  -webkit-appearance: slider-vertical;
-  /* Для Safari */
-  width: 8px;
-  /* толщина */
-  height: 100px;
-  /* высота */
-  accent-color: #3f7f6d;
-}
-
-.noiseControl button {
-  width: 45px;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-  border-radius: 4px;
 }

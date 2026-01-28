@@ -1,28 +1,33 @@
+import { useRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 
 import "swiper/css";
 import "swiper/css/navigation";
 
-import "./ProductCommentSlide.scss";
+import styles from "./ProductCommentSlide.module.scss";
 
 const ProductCommentSlide = () => {
+  const prevRef = useRef(null);
+  const nextRef = useRef(null);
+
   return (
-    <div className="main">
-      <div className="swiper-button-prev"></div>  {/* Кнопка предыдущего слайда */}
+    <div className={styles.main}>
+      <div ref={prevRef} className={styles.prev} />
+
       <Swiper
-        modules={[Navigation]} // Подключаем модуль навигации
-        navigation={{
-          nextEl: '.swiper-button-next', // Селектор для кнопки следующего слайда
-          prevEl: '.swiper-button-prev', // Селектор для кнопки предыдущего слайда
+        modules={[Navigation]}
+        slidesPerView={6}
+        spaceBetween={5}
+        onBeforeInit={(swiper) => {
+          swiper.params.navigation.prevEl = prevRef.current;
+          swiper.params.navigation.nextEl = nextRef.current;
         }}
-        slidesPerView={6} // Количество слайдов, которые видны одновременно
-        spaceBetween={5} // Расстояние между слайдами
-        className="mySwiper"
+        navigation
+        className={styles.swiper}
       >
-        {/* Добавляем слайды */}
         {[...Array(9)].map((_, index) => (
-          <SwiperSlide key={index}>
+          <SwiperSlide key={index} className={styles.slide}>
             <img
               src="https://i.pinimg.com/564x/1d/5d/df/1d5ddfd9de61ee3b8d050681a37c698d.jpg"
               alt=""
@@ -30,7 +35,8 @@ const ProductCommentSlide = () => {
           </SwiperSlide>
         ))}
       </Swiper>
-      <div className="swiper-button-next"></div>  {/* Кнопка следующего слайда */}
+
+      <div ref={nextRef} className={styles.next} />
     </div>
   );
 };

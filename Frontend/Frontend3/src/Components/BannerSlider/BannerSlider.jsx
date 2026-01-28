@@ -134,7 +134,6 @@ const BannerSlider = () => {
         <div ref={nextRef} className={styles.swiperButtonNext}>
           <img src={arrowIcon} className={styles.left} alt="next" />
         </div>
-        <div ref={paginationRef} className={styles.swiperPagination}></div>
 
         {swiperReady && (
           <Swiper
@@ -315,6 +314,9 @@ const BannerSlider = () => {
             ))}
           </Swiper>
         )}
+        
+        <div ref={paginationRef} className={styles.swiperPagination}></div>
+
       </div>
     );
   }
