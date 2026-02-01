@@ -80,7 +80,7 @@ const VerifyForm = () => {
         <div className={styles.main}>
             <BackBtn text={"Back"} />
             <TitleAndDesc title={"Verify your email"} desc={"A 6-digit verification code has been sent to"} />
-            <p className={styles.emailText}>seller@example.com</p>
+            <p className={styles.emailText}>{email ? email : "seller@example.com"}</p>
 
             <form className={styles.form} onSubmit={(e) => {
                 e.preventDefault()

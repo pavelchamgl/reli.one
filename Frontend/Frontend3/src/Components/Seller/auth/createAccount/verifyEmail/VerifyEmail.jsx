@@ -79,9 +79,9 @@ const VeriFyEmail = () => {
             <img className={styles.emailImg} src={emailIc} alt="" />
 
             <TitleAndDesc title={"Verify Your Email"} desc={"A 6-digit verification code was sent to"} />
-            <p className={styles.emailText}>1@gmail.com</p>
+            <p className={styles.emailText}>{email ? email : "1@gmail.com"}</p>
 
-            <StepWrap step={3} />
+            <StepWrap step={2} />
 
             <form className={styles.form}
                 onSubmit={(e) => {
