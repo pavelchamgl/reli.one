@@ -1,18 +1,25 @@
 import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 import AuthBtnSeller from "../../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller"
 import TitleAndDesc from "../../../../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
 import VerifyPinInput from "../../verifyPinInput/VerifyPinInput"
+import { emailConfirm, sendOtp } from "../../../../../api/auth"
+import StepWrap from "../../../../../ui/Seller/register/stepWrap/StepWrap"
 
 import emailIc from "../../../../../assets/Seller/register/emailIc.svg"
 
+
 import styles from "./VerifyEmail.module.scss"
-import StepWrap from "../../../../../ui/Seller/register/stepWrap/StepWrap"
 
 const VeriFyEmail = () => {
 
 
+    const [value, setValue] = useState("")
+    const [regErr, setRegErr] = useState("");
     const [time, setTime] = useState(59);
+
+    const navigate = useNavigate()
 
     let interval;
 
@@ -26,10 +33,44 @@ const VeriFyEmail = () => {
         }
     }, [time]);
 
+    const email = JSON.parse(localStorage.getItem("email"));
+
+    const handleSubmit = async () => {
+        try {
+            const res = await emailConfirm({
+                email: email,
+                otp: value,
+            });
+            setRegErr("");
+            localStorage.setItem("token", JSON.stringify(res.data));
+            navigate("/seller/seller-type")
+
+        } catch (err) {
+
+            if (err.response) {
+                if (err.response.status === 500) {
+                    setRegErr("An error occurred on the server. Please try again later.");
+                } else if (err.response.status === 400) {
+                    setRegErr("The specified OTP has expired or is invalid");
+                } else if (err.response.status === 404) {
+                    setRegErr("User with the specified email address not found");
+                } else {
+                    setRegErr("An unknown error occurred.");
+                }
+            } else {
+                setRegErr("Failed to connect to the server. Check your internet connection.");
+            }
+        }
+    };
+
     const handleSendAgain = () => {
-
-        setTime(59);
-
+        sendOtp(email)
+            .then(() => {
+                setTime(59);
+            })
+            .catch((err) => {
+                setRegErr("Failed to send OTP. Please try again later.");
+            });
     };
 
     return (
@@ -42,9 +83,15 @@ const VeriFyEmail = () => {
 
             <StepWrap step={3} />
 
-            <form className={styles.form}>
-                <VerifyPinInput />
-                <AuthBtnSeller style={{ borderRadius: "16px" }} text={"Confirm"} />
+            <form className={styles.form}
+                onSubmit={(e) => {
+                    e.preventDefault()
+                    handleSubmit()
+                }}
+            >
+                <VerifyPinInput setValue={setValue} value={value} />
+                {regErr && <p className={styles.errorText}>{regErr}</p>}
+                <AuthBtnSeller disabled={value.length === 0 || regErr} style={{ borderRadius: "16px" }} text={"Confirm"} />
 
                 <div className={styles.timerDiv}>
                     {time ? (

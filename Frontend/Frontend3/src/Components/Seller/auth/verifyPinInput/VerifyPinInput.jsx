@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import PinInput from 'react-pin-input';
 
-const VerifyPinInput = () => {
+const VerifyPinInput = ({value, setValue}) => {
 
     const isMobile = useMediaQuery({ maxWidth: 500 })
 
-    const [value, setValue] = useState("")
 
     return (
         <PinInput

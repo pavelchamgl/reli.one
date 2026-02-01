@@ -18,7 +18,7 @@ const FooterLinks = () => {
     const links1 = [
         {
             title: t("footer.columns.for_sellers.links.link1"),
-            url: "https://reli.one/seller/seller-type"
+            url: "https://reli.one/seller/create-account"
         },
         {
             title: t("footer.columns.for_sellers.links.link2"),

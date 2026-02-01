@@ -38,7 +38,7 @@ const SellerTypeContent = () => {
 
     const handleChooseSellerType = async () => {
         if (!company) return;
-        if (status !== "draft") return
+        if (status === "pending_verification") return
 
         try {
             const res = await postSellerType(company);
@@ -77,7 +77,7 @@ const SellerTypeContent = () => {
             <TitleAndDesc title={"Choose Your Seller Type"}
                 desc={"Select the option that best describes your business"} />
 
-            <StepWrap step={1} />
+            <StepWrap step={3} />
 
             <div className={styles.typeBtnWrap}>
                 <button

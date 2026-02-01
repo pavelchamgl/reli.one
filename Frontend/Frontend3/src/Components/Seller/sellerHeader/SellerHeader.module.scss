@@ -6,6 +6,7 @@
   text-wrap: nowrap;
   background-color: transparent;
   text-decoration: none;
+  position: relative;
 
   & img {
     height: 20px;
@@ -29,4 +30,10 @@
 
 .main {
   padding-top: 17px;
+}
+
+.langAndLogin {
+  display: flex;
+  align-items: center;
+  gap: 33px;
 }

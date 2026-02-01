@@ -3,7 +3,10 @@ import FormWrap from '../../ui/Seller/auth/formWrap/FormWrap'
 
 const SellerCreateNewPass = () => {
     return (
-        <FormWrap>
+        <FormWrap style={{
+            height: "100%",
+            padding: "44px 0"
+        }}>
             <CreatePassForm />
         </FormWrap>
     )

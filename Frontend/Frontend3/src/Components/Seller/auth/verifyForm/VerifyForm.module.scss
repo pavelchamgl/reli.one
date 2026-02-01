@@ -14,7 +14,7 @@
   width: 100%;
   gap: 12px;
 
-  & p {
+  & p:first-child {
     font-weight: 500;
     font-size: 13px;
     text-align: center;
@@ -47,4 +47,11 @@
   @media (max-width: 500px) {
     padding: 20px 15px;
   }
+}
+
+.errorText {
+  font-weight: 400;
+  font-size: 14px;
+  text-align: center;
+  color: #e7000b;
 }
