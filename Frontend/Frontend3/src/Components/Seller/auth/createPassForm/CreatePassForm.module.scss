@@ -10,19 +10,36 @@
 
   & ul {
     list-style: none;
-    
-    & li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 400;
-      font-size: 14px;
-      color: #6a7282;
-      margin-bottom: 5px;
-    }
   }
 }
 
-.form{
-    gap: 25px;
+.greyList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 14px;
+  color: #6a7282;
+  margin-bottom: 5px;
+}
+
+.form {
+  gap: 25px;
+}
+
+.greenText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 14px;
+  color: #00a63e;
+  margin-bottom: 5px;
+}
+
+.errorText {
+  font-weight: 400;
+  font-size: 14px;
+  text-align: center;
+  color: #e7000b;
 }

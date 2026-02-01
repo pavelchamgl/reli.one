@@ -4,9 +4,11 @@ import { useMediaQuery } from "react-responsive";
 import SellerLogo from "../../../ui/Seller/sellerLogo/SellerLogo";
 import profileIcon from "../../../assets/Header/profileIcon.svg";
 import { useTranslation } from "react-i18next";
-import styles from "./SellerHeader.module.scss";
-import SellerTab from "../../../ui/Seller/sellerTab/SellerTab";
 import { sellerPathnames } from "../../../code/seller";
+import SellerTab from "../../../ui/Seller/sellerTab/SellerTab";
+
+import styles from "./SellerHeader.module.scss";
+import ChangeLang from "../all/ChangeLang/ChangeLang";
 
 const SellerHeader = () => {
   const { t } = useTranslation();
@@ -15,7 +17,7 @@ const SellerHeader = () => {
 
   const { pathname } = useLocation()
 
-  
+
 
 
 
@@ -25,14 +27,18 @@ const SellerHeader = () => {
       <div className={styles.sellerHeaderTop}>
         <SellerLogo />
 
-        {
-          !mobile
-          &&
-          <Link to={"#"} className={styles.loginItem}>
-            <img src={profileIcon} alt="" />
-            <p>{t("enter_account")}</p>
-          </Link>
-        }
+        <div className={styles.langAndLogin}>
+          {
+            !mobile
+            &&
+            <Link to={"/seller/login"} className={styles.loginItem}>
+              <img src={profileIcon} alt="" />
+              <p>{t("enter_account")}</p>
+            </Link>
+          }
+          <ChangeLang />
+        </div>
+
 
       </div>
       {

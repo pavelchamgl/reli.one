@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom"
+
 import greenMark from "../../../../assets/Seller/auth/greenMark.svg"
 
 import AuthBtnSeller from "../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller"
@@ -6,6 +8,9 @@ import TitleAndDesc from "../../../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
 import styles from "./SellerSuccForm.module.scss"
 
 const SellerSuccForm = () => {
+
+    const navigate = useNavigate()
+
     return (
         <div className={styles.main}>
             <div className={styles.form}>
@@ -13,7 +18,9 @@ const SellerSuccForm = () => {
                 <TitleAndDesc title={"Password Successfully Reset"}
                     desc={"Your password has been successfully reset. You can now log in with your new password."} />
 
-                <AuthBtnSeller text={"Log in"} />
+                <AuthBtnSeller handleClick={()=>{
+                    navigate("/seller/login")
+                }} text={"Log in"} />
             </div>
             <p className={styles.tip}>
                 <span>Security tip:</span>

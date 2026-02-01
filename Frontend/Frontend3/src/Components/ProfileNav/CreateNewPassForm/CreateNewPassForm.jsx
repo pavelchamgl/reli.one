@@ -63,7 +63,7 @@ const CreateNewPassForm = () => {
         .then((res) => {
           localStorage.removeItem("email");
           localStorage.removeItem("otp");
-          navigate("/");
+          // navigate("/");
         })
         .catch((err) => {
           if (err.response) {
