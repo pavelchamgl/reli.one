@@ -5,7 +5,9 @@ from dataclasses import dataclass
 from typing import Any
 
 from django.db import transaction
+from django.conf import settings
 from django.utils import timezone
+from django.core.mail import send_mail
 from rest_framework.exceptions import ValidationError
 
 from accounts.choices import UserRole
@@ -15,7 +17,9 @@ from .models import (
     OnboardingStatus,
     SellerLegalInfo,
     LegalInfoStatus,
+    OnboardingEventType,
 )
+from .services_onboarding_audit import log_onboarding_event
 
 
 IBAN_RE = re.compile(r"^[A-Z0-9]{15,34}$")
@@ -289,6 +293,12 @@ def submit_application(app: SellerOnboardingApplication) -> SellerOnboardingAppl
     app.submitted_at = timezone.now()
     app.rejected_reason = None
     app.save(update_fields=["status", "submitted_at", "rejected_reason", "updated_at"])
+    log_onboarding_event(
+        application=app,
+        event_type=OnboardingEventType.REVIEW_REQUESTED,
+        payload={},
+        actor=app.seller_profile.user,  # seller
+    )
     return app
 
 
@@ -304,6 +314,12 @@ def approve_application(app: SellerOnboardingApplication, reviewer: CustomUser) 
     app.save(update_fields=["status", "reviewed_by", "reviewed_at", "rejected_reason", "updated_at"])
 
     sync_legal_info_from_application(app, reviewer)
+    log_onboarding_event(
+        application=app,
+        event_type=OnboardingEventType.MODERATION_APPROVED,
+        payload={},
+        actor=reviewer,
+    )
     return app
 
 
@@ -319,6 +335,30 @@ def reject_application(app: SellerOnboardingApplication, reviewer: CustomUser, r
     app.reviewed_at = timezone.now()
     app.rejected_reason = reason
     app.save(update_fields=["status", "reviewed_by", "reviewed_at", "rejected_reason", "updated_at"])
+    log_onboarding_event(
+        application=app,
+        event_type=OnboardingEventType.MODERATION_REJECTED,
+        payload={"reason": reason},
+        actor=reviewer,
+    )
+
+    # email to seller
+    seller_email = app.seller_profile.user.email
+    subject = "Your seller onboarding was rejected"
+    message = (
+        "Hello,\n\n"
+        "Your seller onboarding application was rejected.\n\n"
+        f"Reason:\n{reason}\n\n"
+        "Please log in to your account, fix the issues and resubmit.\n\n"
+        "— Support Team\n"
+    )
+    send_mail(
+        subject=subject,
+        message=message,
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", None),
+        recipient_list=[seller_email],
+        fail_silently=True,  # минимальная версия: не ломаем reject из-за почты
+    )
     return app
 
 

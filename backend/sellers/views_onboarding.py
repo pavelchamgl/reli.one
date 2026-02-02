@@ -28,6 +28,7 @@ from .models import (
     SellerReturnAddress,
     SellerDocument,
 )
+from .drf_hooks import AuditAPIView
 from .permissions_onboarding import IsSeller
 from .serializers_onboarding import (
     SellerTypeSerializer,
@@ -61,7 +62,7 @@ MAX_FILE_SIZE_MB = 10
 MAX_FILES_PER_REQUEST = 5
 
 
-class SellerOnboardingStateAPIView(APIView):
+class SellerOnboardingStateAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -153,7 +154,7 @@ class SellerOnboardingStateAPIView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class SellerSetSellerTypeAPIView(APIView):
+class SellerSetSellerTypeAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -245,7 +246,7 @@ def _get_or_create_one_to_one(model_cls, app: SellerOnboardingApplication, relat
     return model_cls.objects.create(application=app)
 
 
-class SellerSelfEmployedPersonalAPIView(APIView):
+class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -298,7 +299,7 @@ class SellerSelfEmployedPersonalAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerSelfEmployedTaxAPIView(APIView):
+class SellerSelfEmployedTaxAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -352,7 +353,7 @@ class SellerSelfEmployedTaxAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerSelfEmployedAddressAPIView(APIView):
+class SellerSelfEmployedAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -407,7 +408,7 @@ class SellerSelfEmployedAddressAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerCompanyInfoAPIView(APIView):
+class SellerCompanyInfoAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -470,7 +471,7 @@ class SellerCompanyInfoAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerCompanyRepresentativeAPIView(APIView):
+class SellerCompanyRepresentativeAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -528,7 +529,7 @@ class SellerCompanyRepresentativeAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerCompanyAddressAPIView(APIView):
+class SellerCompanyAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -584,7 +585,7 @@ class SellerCompanyAddressAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerBankAccountAPIView(APIView):
+class SellerBankAccountAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -642,7 +643,7 @@ class SellerBankAccountAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerWarehouseAddressAPIView(APIView):
+class SellerWarehouseAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -699,7 +700,7 @@ class SellerWarehouseAddressAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerReturnAddressAPIView(APIView):
+class SellerReturnAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -771,7 +772,7 @@ class SellerReturnAddressAPIView(APIView):
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
-class SellerDocumentUploadAPIView(APIView):
+class SellerDocumentUploadAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -1008,7 +1009,7 @@ class SellerDocumentUploadAPIView(APIView):
             old_doc.delete()
 
 
-class SellerOnboardingReviewAPIView(APIView):
+class SellerOnboardingReviewAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(
@@ -1078,7 +1079,7 @@ class SellerOnboardingReviewAPIView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-class SellerOnboardingSubmitAPIView(APIView):
+class SellerOnboardingSubmitAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
     @extend_schema(

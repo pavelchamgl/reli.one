@@ -378,3 +378,69 @@ class SellerReturnAddress(models.Model):
 
     def __str__(self) -> str:
         return f"ReturnAddress({self.pk})"
+
+
+class OnboardingActorType(models.TextChoices):
+    SELLER = "seller", "Seller"
+    ADMIN = "admin", "Admin"
+    SYSTEM = "system", "System"
+
+
+class OnboardingEventType(models.TextChoices):
+    # seller
+    SECTION_UPDATED = "section_updated", "Section updated"
+    DOCUMENT_UPLOADED = "document_uploaded", "Document uploaded"
+    DOCUMENT_REPLACED = "document_replaced", "Document replaced"
+    DOCUMENT_DELETED = "document_deleted", "Document deleted"
+    REVIEW_REQUESTED = "review_requested", "Review requested"
+
+    # moderator
+    MODERATION_APPROVED = "moderation_approved", "Moderation approved"
+    MODERATION_REJECTED = "moderation_rejected", "Moderation rejected"
+
+
+class OnboardingAuditLog(models.Model):
+    """
+    Событийный журнал онбординга (минимальная версия).
+    Храним только факт события + минимальный контекст (payload).
+    Без "before/after" значений.
+    """
+    application = models.ForeignKey(
+        "sellers.SellerOnboardingApplication",
+        on_delete=models.CASCADE,
+        related_name="audit_logs",
+    )
+
+    actor_type = models.CharField(
+        max_length=16,
+        choices=OnboardingActorType.choices,
+        default=OnboardingActorType.SYSTEM,
+    )
+
+    actor = models.ForeignKey(
+        "accounts.CustomUser",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="onboarding_audit_logs",
+    )
+
+    event_type = models.CharField(max_length=64, choices=OnboardingEventType.choices)
+
+    # Минимальный контекст:
+    # - section + changed_fields
+    # - doc_type/scope/side
+    # - reason (moderation_rejected)
+    payload = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(fields=["application", "created_at"]),
+            models.Index(fields=["event_type", "created_at"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"OnboardingAuditLog({self.pk}) {self.event_type} app={self.application_id}"

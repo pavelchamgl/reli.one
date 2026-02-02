@@ -33,6 +33,7 @@ from .models import (
     SellerSelfEmployedPersonalDetails,
     SellerSelfEmployedTaxInfo,
     SellerWarehouseAddress,
+    OnboardingAuditLog,
 )
 from .services_onboarding import (
     approve_application,
@@ -268,6 +269,22 @@ class SellerDocumentAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin):
         super().delete_model(request, obj)
 
 
+class OnboardingAuditLogInline(ReadOnlyInline):
+    model = OnboardingAuditLog
+    fk_name = "application"
+    verbose_name_plural = "Audit log"
+    extra = 0
+    can_delete = False
+    show_change_link = False
+
+    fields = ("created_at", "actor_type", "actor", "event_type", "payload")
+    readonly_fields = fields
+    ordering = ("-created_at",)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 # ==========================================================
 # SellerOnboardingApplication — MAIN
 # ==========================================================
@@ -338,6 +355,7 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
         SellerWarehouseAddressInline,
         SellerReturnAddressInline,
         SellerDocumentInline,
+        OnboardingAuditLogInline,
     )
 
     class Media:
