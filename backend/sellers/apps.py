@@ -6,4 +6,4 @@ class SellersConfig(AppConfig):
     name = 'sellers'
 
     def ready(self):
-        import sellers.signals
+        from . import signals
