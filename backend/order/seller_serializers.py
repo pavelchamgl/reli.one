@@ -24,6 +24,7 @@ class SellerOrderListSerializer(serializers.ModelSerializer):
     can_cancel = serializers.SerializerMethodField()
 
     download_labels_url = serializers.SerializerMethodField()
+    export_csv_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -38,6 +39,7 @@ class SellerOrderListSerializer(serializers.ModelSerializer):
             "status",
             "branch",
             "download_labels_url",
+            "export_csv_url",
             "dispatch_before",
             "has_tracking",
             "has_label",
@@ -69,6 +71,22 @@ class SellerOrderListSerializer(serializers.ModelSerializer):
                 kwargs={"order_id": obj.id},
             )
         )
+
+    def get_export_csv_url(self, obj):
+        """
+        Absolute URL to export THIS order as CSV.
+        """
+        request = self.context.get("request")
+        if not request:
+            return None
+
+        return request.build_absolute_uri(
+            reverse(
+                "seller-order-export-csv",
+                kwargs={"order_id": obj.id},
+            )
+        )
+
 
 class SellerOrderBranchSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -134,7 +152,7 @@ class SellerOrderItemSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     sku = serializers.CharField(allow_null=True)
     name = serializers.CharField(allow_null=True)
-    variant_name = serializers.CharField(allow_null=True)  # <-- NEW
+    variant_name = serializers.CharField(allow_null=True)
     quantity = serializers.IntegerField()
     unit_price_gross = serializers.CharField()
     vat_rate = serializers.CharField()
@@ -205,6 +223,7 @@ class SellerOrderDetailSerializer(serializers.Serializer):
     items = SellerOrderItemSerializer(many=True)
     shipments = SellerShipmentSerializer(many=True)
     download_labels_url = serializers.SerializerMethodField()
+    export_csv_url = serializers.SerializerMethodField()
     timeline = SellerOrderEventSerializer(many=True)
     actions = SellerOrderActionsSerializer()
 
@@ -225,8 +244,32 @@ class SellerOrderDetailSerializer(serializers.Serializer):
             )
         )
 
+    def get_export_csv_url(self, obj):
+        """
+        Absolute URL to export THIS order as CSV.
+        """
+        request = self.context.get("request")
+        order = obj.get("summary")
+
+        if not request or not order:
+            return None
+
+        return request.build_absolute_uri(
+            reverse(
+                "seller-order-export-csv",
+                kwargs={"order_id": order["id"]},
+            )
+        )
+
 
 class SellerBulkLabelsSerializer(serializers.Serializer):
+    order_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+    )
+
+
+class SellerBulkExportSerializer(serializers.Serializer):
     order_ids = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         allow_empty=False,
