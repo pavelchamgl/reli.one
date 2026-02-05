@@ -425,6 +425,8 @@ class OnboardingAuditLog(models.Model):
         related_name="onboarding_audit_logs",
     )
 
+    actor_snapshot = models.JSONField(default=dict, blank=True)
+
     event_type = models.CharField(max_length=64, choices=OnboardingEventType.choices)
 
     # Минимальный контекст:
