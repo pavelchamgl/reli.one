@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMediaQuery } from 'react-responsive';
 import PinInput from 'react-pin-input';
 
-const VerifyPinInput = ({value, setValue}) => {
+const VerifyPinInput = ({ value, setValue }) => {
 
     const isMobile = useMediaQuery({ maxWidth: 500 })
 
@@ -11,9 +11,12 @@ const VerifyPinInput = ({value, setValue}) => {
         <PinInput
             length={6}
             initialValue=""
-            onChange={(value, index) => {
-                setValue(value);
+            onChange={(val, index) => {
+                console.log(val);
+
+                setValue(val);
             }}
+            onComplete={(val => setValue(val))}
             type="numeric"
             inputMode="number"
             inputStyle={
@@ -27,6 +30,7 @@ const VerifyPinInput = ({value, setValue}) => {
                         fontSize: "14px",
                         color: "#101828",
                         marginRight: "5px",
+                        fontFamily: "var(--ft)"
                     }
                     : {
                         border: "1.47px solid #d1d5dc",
@@ -37,6 +41,7 @@ const VerifyPinInput = ({value, setValue}) => {
                         fontSize: "14px",
                         color: "#101828",
                         marginRight: "8px",
+                        fontFamily: "var(--ft)"
                     }
             }
             inputFocusStyle={{ borderColor: "#3f7f6d;" }}

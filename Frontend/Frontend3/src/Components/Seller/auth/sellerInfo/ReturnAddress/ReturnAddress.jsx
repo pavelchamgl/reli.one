@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { useLocation } from "react-router-dom"
 
@@ -10,6 +10,8 @@ import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./ReturnAddress.module.scss"
+import { putReturnAddress } from "../../../../../api/seller/onboarding"
+import { toISODate } from "../../../../../code/seller"
 
 const ReturnAddress = ({ formik }) => {
 
@@ -19,11 +21,12 @@ const ReturnAddress = ({ formik }) => {
 
     const { selfData, companyData } = useSelector(state => state.selfEmploed)
 
-    const [isCheked, setIsChecked] = useState(
-        !!(selfData?.same_as_warehouse ?? companyData?.same_as_warehouse)
-    )
-
     const sourceData = pathname === companyPathname ? companyData : selfData
+
+    const [isCheked, setIsChecked] = useState(
+        Boolean(sourceData?.same_as_warehouse)
+    );
+
 
     const [country, setCountry] = useState(
         isCheked
@@ -40,6 +43,10 @@ const ReturnAddress = ({ formik }) => {
     ];
 
     const { safeData, safeCompanyData } = useActionSafeEmploed()
+
+    useEffect(() => {
+        setIsChecked(Boolean(sourceData?.same_as_warehouse));
+    }, [sourceData?.same_as_warehouse, pathname]);
 
     useEffect(() => {
         if (pathname === companyPathname) {
@@ -69,27 +76,122 @@ const ReturnAddress = ({ formik }) => {
 
     }, [isCheked])
 
-    const handleSameAsWarehouse = (checked) => {
+    // const handleSameAsWarehouse = async (checked) => {
+    //     setIsChecked(checked)
+
+    //     console.log(sourceData);
+
+    //     console.log(checked);
+    //     console.log(formik.values);
+
+
+
+    //     if (!checked) {
+    //         formik.setFieldValue("rStreet", "", true)
+    //         formik.setFieldValue("rCity", "", true)
+    //         formik.setFieldValue("rZip_code", "", true)
+    //         formik.setFieldValue("rCountry", null, true)
+    //         formik.setFieldValue("rContact_phone", "", true)
+    //     } else {
+    //         formik.setFieldValue("rStreet", sourceData.wStreet, true)
+    //         formik.setFieldValue("rCity", sourceData.wCity, true)
+    //         formik.setFieldValue("rZip_code", sourceData.wZip_code, true)
+    //         formik.setFieldValue("rCountry", sourceData.wCountry, true)
+    //         formik.setFieldValue("rContact_phone", sourceData.contact_phone, true)
+    //     }
+
+    //     await formik.validateForm()
+
+    // }
+
+    const handleSameAsWarehouse = async (checked) => {
         setIsChecked(checked)
 
         if (!checked) {
-            formik.setFieldValue("rStreet", "")
-            formik.setFieldValue("rCity", "")
-            formik.setFieldValue("rZip_code", "")
-            formik.setFieldValue("rCountry", null)
-            formik.setFieldValue("rContact_phone", "")
+            await formik.setValues({
+                ...formik.values,
+                rStreet: "",
+                rCity: "",
+                rZip_code: "",
+                rCountry: null,
+                rContact_phone: ""
+            })
+            setCountry("")
         } else {
-            formik.setFieldValue("rStreet", formik.values.wStreet)
-            formik.setFieldValue("rCity", formik.values.wCity)
-            formik.setFieldValue("rZip_code", formik.values.wZip_code)
-            formik.setFieldValue("rCountry", selfData.wCountry)
-            formik.setFieldValue("rContact_phone", formik.values.contact_phone)
+            await formik.setValues({
+                ...formik.values,
+                rStreet: sourceData?.wStreet ?? "",
+                rCity: sourceData?.wCity ?? "",
+                rZip_code: sourceData?.wZip_code ?? "",
+                rCountry: sourceData?.wCountry ?? null,
+                rContact_phone: sourceData?.contact_phone ?? ""
+            })
+            setCountry(sourceData?.wCountry ?? "")
         }
+
+
+        await formik.validateForm()
+    }
+
+    const isReturnFilled = (values) => {
+        console.log(values);
+        return Boolean(
+            values.rStreet &&
+            values.rCity &&
+            values.rZip_code &&
+            country &&
+            values.rContact_phone &&
+            values.wProof_document_issue_date
+        )
+    }
+
+    const rAddressRef = useRef(null)
+
+    const onLeaveReturnBlock = () => {
+
+        const filled = isReturnFilled(formik.values)
+
+        console.log(filled);
+
+
+        if (!filled) return
+
+        const payload = {
+            same_as_warehouse: isCheked,
+            street: formik.values.rStreet,
+            city: formik.values.rCity,
+            zip_code: formik.values.rZip_code,
+            country: country,
+            contact_phone: formik.values.rContact_phone,
+            proof_document_issue_date: toISODate(formik.values.wProof_document_issue_date)
+        }
+
+
+
+        if (pathname === companyPathname) {
+            safeCompanyData(payload)
+        } else {
+            safeData(payload)
+        }
+
+
+
+        putReturnAddress(payload)
+
 
     }
 
+
     return (
-        <div className={styles.main}>
+        <div className={styles.main}
+            tabIndex={-1}
+            ref={rAddressRef}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setTimeout(onLeaveReturnBlock, 0);
+                }
+            }}
+        >
 
             <div className={styles.titleWrap}>
                 <img src={returnAddress} alt="" />
@@ -124,6 +226,7 @@ const ReturnAddress = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.rZip_code}
+                        num={true}
                     />
                     <SellerInfoSellect arr={countryArr} value={country} setValue={setCountry}
                         title={"Country"} titleSellect={"Select"}
@@ -136,6 +239,7 @@ const ReturnAddress = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.rContact_phone}
+                    num={true}
                 />
 
 

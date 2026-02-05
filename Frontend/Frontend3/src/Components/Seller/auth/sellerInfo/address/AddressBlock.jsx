@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 
 import addressIc from "../../../../../assets/Seller/register/addressIc.svg"
@@ -9,14 +9,16 @@ import UploadInp from "../uploadInp/UploadInp"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./Address.module.scss"
-import { uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { putSelfAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { toISODate } from "../../../../../code/seller"
 
 const AddressBlock = ({ formik }) => {
 
     const { selfData } = useSelector(state => state.selfEmploed)
 
+    const { safeData } = useActionSafeEmploed()
 
-    const [country, setCountry] = useState(formik.values.address_country ?? null)
+    const [country, setCountry] = useState(formik.values.country ?? null)
 
     const countryArr = [
         { text: "Czech Republic", value: "cz" },
@@ -26,11 +28,10 @@ const AddressBlock = ({ formik }) => {
         { text: "United Kingdom", value: "gb" }
     ]
 
-    const { safeData } = useActionSafeEmploed()
 
     useEffect(() => {
-        safeData({ address_country: country })
-        formik.setFieldValue("address_country", country)
+        safeData({ country: country })
+        formik.setFieldValue("country", country)
     }, [country])
 
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
@@ -39,6 +40,8 @@ const AddressBlock = ({ formik }) => {
                 console.log("Документ загружен", res);
 
                 formik.setFieldValue("proof_document_issue_date", res.uploaded_at)
+                safeData({ proof_document_issue_date: res.uploaded_at })
+
 
             })
             .catch(err => {
@@ -47,9 +50,58 @@ const AddressBlock = ({ formik }) => {
             });
     };
 
+    const isAddressFilled = (values) => {
+        console.log(values);
+        return Boolean(
+            values.street,
+            values.city,
+            values.zip_code,
+            country,
+            values.proof_document_issue_date
+        )
+    }
+
+    const addressRef = useRef(null)
+
+
+    const onLeaveAddressBlock = () => {
+
+        const filled = isAddressFilled(formik.values)
+
+        console.log(filled);
+
+
+        if (!filled) return
+
+        const payload = {
+            street: formik.values.street,
+            city: formik.values.city,
+            zip_code: formik.values.zip_code,
+            country: country,
+            proof_document_issue_date: toISODate(formik.values.proof_document_issue_date)
+        }
+
+
+        safeData(payload)
+
+
+
+        putSelfAddress(payload)
+
+
+    }
+
 
     return (
-        <div className={styles.main}>
+        <div className={styles.main}
+            ref={addressRef}
+            tabIndex={-1}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setTimeout(onLeaveAddressBlock, 0);
+                }
+            }}
+        >
 
             <div className={styles.titleWrap}>
                 <img src={addressIc} alt="" />
@@ -98,6 +150,8 @@ const AddressBlock = ({ formik }) => {
                         inpText={"Upload document"}
                         scope={"self_employed_address"}
                         onChange={handleSingleFrontUpload}
+                        stateName={selfData?.self_address_name}
+                        nameTitle={"self_address_name"}
                     />
                     {formik.errors.proof_document_issue_date && <p className={styles.errorText}>Upload document is required</p>}
                 </div>

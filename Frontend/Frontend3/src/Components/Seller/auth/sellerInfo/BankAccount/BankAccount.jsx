@@ -1,14 +1,77 @@
 
+import { useRef } from "react"
+import { putOnboardingBank } from "../../../../../api/seller/onboarding"
 import bankAcc from "../../../../../assets/Seller/register/bankAcc.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
-
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./BankAccount.module.scss"
+import { useLocation } from "react-router-dom"
 
 const BankAccount = ({ formik }) => {
+
+    const isBankFilled = (values) => {
+        console.log(values);
+        return Boolean(
+            values.iban &&
+            values.swift_bic &&
+            values.account_holder
+        )
+    }
+
+    const { safeData, safeCompanyData } = useActionSafeEmploed()
+
+    const { pathname } = useLocation()
+
+    const companyPathname = '/seller/seller-company'
+
+
+    const bankRef = useRef(null)
+
+    const onLeaveBankBlock = () => {
+
+        const filled = isBankFilled(formik.values)
+
+        console.log(filled);
+
+
+        if (!filled) return
+
+        const payload = {
+            iban: formik.values.iban,
+            swift_bic: formik.values.swift_bic,
+            account_holder: formik.values.account_holder,
+            bank_code: formik.values.bank_code,
+            local_account_number: formik.values.local_account_number
+        }
+
+
+
+        if (pathname === companyPathname) {
+            safeCompanyData(payload)
+        } else {
+            safeData(payload)
+        }
+
+
+
+
+        putOnboardingBank(payload)
+
+
+    }
+
     return (
-        <div className={styles.main}>
+        <div className={styles.main}
+            ref={bankRef}
+            tabIndex={-1}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setTimeout(onLeaveBankBlock, 0);
+                }
+            }}
+        >
 
             <div className={styles.titleWrap}>
                 <img src={bankAcc} alt="" />
@@ -40,23 +103,31 @@ const BankAccount = ({ formik }) => {
                     error={formik.errors.account_holder}
                 />
 
-                <div className={styles.twoInpWrap}>
-                    <InputSeller title={"Bank code"} type={"text"} circle={true} required={true}
-                        placeholder={"080"} num={true}
-                        name="bank_code" value={formik.values.bank_code}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.errors.bank_code}
-                    />
 
-                    <InputSeller title={"Local account number"} type={"text"} circle={true} required={true}
-                        placeholder={"192001489"} num={true}
-                        name="local_account_number" value={formik.values.local_account_number}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.errors.local_account_number}
-                    />
-                </div>
+                {
+                    formik.values.country ?
+                        (formik.values.country === "cz" || formik.values.country === "sk") ?
+                            <div className={styles.twoInpWrap}>
+                                <InputSeller title={"Bank code"} type={"text"} circle={true} required={true}
+                                    placeholder={"080"} num={true}
+                                    name="bank_code" value={formik.values.bank_code}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.errors.bank_code}
+                                />
+
+                                <InputSeller title={"Local account number"} type={"text"} circle={true} required={true}
+                                    placeholder={"192001489"} num={true}
+                                    name="local_account_number" value={formik.values.local_account_number}
+                                    onChange={formik.handleChange}
+                                    onBlur={formik.handleBlur}
+                                    error={formik.errors.local_account_number}
+                                />
+                            </div>
+                            : null
+                        : null
+                }
+
 
 
 

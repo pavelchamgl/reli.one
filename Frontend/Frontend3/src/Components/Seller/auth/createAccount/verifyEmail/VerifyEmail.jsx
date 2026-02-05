@@ -64,7 +64,7 @@ const VeriFyEmail = () => {
     };
 
     const handleSendAgain = () => {
-        sendOtp(email)
+        sendOtp({ email: email })
             .then(() => {
                 setTime(59);
             })
@@ -91,12 +91,12 @@ const VeriFyEmail = () => {
             >
                 <VerifyPinInput setValue={setValue} value={value} />
                 {regErr && <p className={styles.errorText}>{regErr}</p>}
-                <AuthBtnSeller disabled={value.length === 0 || regErr} style={{ borderRadius: "16px" }} text={"Confirm"} />
+                <AuthBtnSeller disabled={value.length === 0 } style={{ borderRadius: "16px" }} text={"Confirm"} />
 
                 <div className={styles.timerDiv}>
                     {time ? (
                         <p className={styles.resentText}>
-                            Resend code in {`${time} s`}
+                            Resend code in <span className={styles.num}>{time}</span> s
                         </p>
                     ) : (
                         <button onClick={handleSendAgain} type="button" className={styles.resendBtn}>Resend code</button>

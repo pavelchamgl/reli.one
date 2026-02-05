@@ -3,8 +3,13 @@ export const sellerPathnames = ["/seller/login", "/seller/reset", "/seller/succe
 
 export const toISODate = (dateTime) => {
   if (!dateTime) return "";
+  if (/^\d{4}-\d{2}-\d{2}/.test(dateTime)) {
+    return dateTime.slice(0, 10); // на случай datetime
+  }
 
   const [date] = dateTime.split(" "); // "15.01.2026"
+  console.log(date);
+
   const [day, month, year] = date.split(".");
 
   return `${year}-${month}-${day}`;

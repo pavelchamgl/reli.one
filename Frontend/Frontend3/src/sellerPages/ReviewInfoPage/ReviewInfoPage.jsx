@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
 
 import AccountInfo from "../../Components/Seller/auth/review/accountInfo/AccountInfo"
 import FormWrap from "../../ui/Seller/auth/formWrap/FormWrap"
@@ -11,14 +12,16 @@ import BankAccount from "../../Components/Seller/auth/review/bankAccount/BankAcc
 import WarehouseAndReturn from "../../Components/Seller/auth/review/WarehouseAndReturn/WarehouseAndReturn"
 import SubBtn from "../../ui/Seller/review/subBtn/SubBtn"
 import { getReviewOnboarding, postSubmitOnboarding } from "../../api/seller/onboarding"
+import { ErrToast } from "../../ui/Toastify"
 
 import styles from "./ReviewInfoPage.module.scss"
-import { ErrToast } from "../../ui/Toastify"
 
 const ReviewInfoPage = () => {
 
     const { selfData } = useSelector(state => state.selfEmploed)
 
+
+    const navigate = useNavigate()
 
     useEffect(() => {
         getReviewOnboarding()
@@ -58,6 +61,7 @@ const ReviewInfoPage = () => {
             const messages = parseApiErrors(responseData);
 
             messages.forEach((msg) => ErrToast(msg));
+            navigate("/seller/seller-info")
         }
     };
 

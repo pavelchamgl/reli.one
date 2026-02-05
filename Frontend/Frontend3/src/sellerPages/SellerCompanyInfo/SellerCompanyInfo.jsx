@@ -23,7 +23,7 @@ import styles from "./SellerCompanyInfo.module.scss"
 
 const SellerCompanyInfo = () => {
 
-    const { companyData } = useSelector(state => state.selfEmploed)
+    const { companyData, registerData } = useSelector(state => state.selfEmploed)
 
     const { safeCompanyData } = useActionSafeEmploed()
 
@@ -47,8 +47,8 @@ const SellerCompanyInfo = () => {
             certificate_issue_date: companyData?.certificate_issue_date ?? "",   // ← выглядит нормально, если это дата выдачи сертификата
 
             // representative
-            first_name: companyData?.first_name ?? "",
-            last_name: companyData?.last_name ?? "",
+            first_name: registerData?.first_name ?? "",
+            last_name: registerData?.last_name ?? "",
             role: companyData?.role ?? "",
             date_of_birth: companyData?.date_of_birth ?? "",
             nationality: companyData?.nationality ?? "",
@@ -89,7 +89,6 @@ const SellerCompanyInfo = () => {
 
         },
         validationSchema: companyValidationSchema,
-        enableReinitialize: true,
         onSubmit: async (values) => {
             console.log(values);
             safeCompanyData({

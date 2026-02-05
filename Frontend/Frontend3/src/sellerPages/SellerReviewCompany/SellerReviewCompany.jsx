@@ -61,6 +61,7 @@ const SellerReviewCompany = () => {
             const messages = parseApiErrors(responseData);
 
             messages.forEach((msg) => ErrToast(msg));
+            navigate("/seller/seller-company")
 
         }
     }

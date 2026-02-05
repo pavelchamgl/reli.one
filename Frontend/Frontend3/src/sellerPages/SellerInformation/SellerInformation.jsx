@@ -27,7 +27,7 @@ const SellerInformation = () => {
 
     const navigate = useNavigate()
 
-    const { selfData } = useSelector(state => state.selfEmploed)
+    const { selfData, registerData } = useSelector(state => state.selfEmploed)
 
 
 
@@ -35,11 +35,11 @@ const SellerInformation = () => {
         initialValues: {
 
             // personal
-            first_name: selfData?.first_name ?? "",
-            last_name: selfData?.last_name ?? "",
+            first_name: registerData?.first_name ?? "",
+            last_name: registerData?.last_name ?? "",
             date_of_birth: selfData?.date_of_birth ?? "",
             nationality: selfData?.nationality ?? "",
-            personal_phone: selfData?.personal_phone ?? "",
+            personal_phone: registerData?.phone ?? "",
             uploadFront: selfData?.uploadFront ?? "",
             uploadBack: selfData?.uploadBack ?? "",
 
@@ -80,7 +80,8 @@ const SellerInformation = () => {
             rProof_document_issue_date: selfData?.rProof_document_issue_date ?? ""
         },
         validationSchema: validationSchemaSelf,
-        enableReinitialize: true,
+        // enableReinitialize: true,
+        validateOnChange: true,
         onSubmit: async (values) => {
             console.log(values);
             safeData(values);
@@ -103,7 +104,7 @@ const SellerInformation = () => {
                     promise: putTax({
                         tax_country: selfData.tax_country,
                         tin: values.tin,
-                        ico: values.ico,
+                        ico: (selfData.tax_country === "cz" || selfData.tax_country === "sk") ? "" : values.ico,
                         vat_id: values.vat_id
                     })
                 },
@@ -113,7 +114,7 @@ const SellerInformation = () => {
                         street: values.street,
                         city: values.city,
                         zip_code: values.zip_code,
-                        country: selfData.address_country,
+                        country: selfData.country,
                         proof_document_issue_date: toISODate(values.proof_document_issue_date)
                     })
                 },

@@ -1,6 +1,6 @@
 
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 import { useSelector } from "react-redux"
 
@@ -11,7 +11,8 @@ import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 
 import styles from "./CompanyInfo.module.scss"
-import { uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { toISODate } from "../../../../../code/seller"
 
 const CompanyInfo = ({ formik }) => {
 
@@ -22,6 +23,49 @@ const CompanyInfo = ({ formik }) => {
 
     const [country, setCountry] = useState(companyData?.country_of_registration ?? null)
     const [legal, setLegal] = useState(companyData?.legal_form ?? null)
+
+    const isCompanyFilled = (values) => {
+        console.log(values);
+        return Boolean(
+            values.company_name &&
+            values.business_id &&
+            values.tin &&
+            values.company_phone &&
+            values.certificate_issue_date
+        )
+    }
+
+    const companyRef = useRef(null)
+
+    const onLeaveCompanyBlock = () => {
+
+        const filled = isCompanyFilled(formik.values)
+
+        if (!filled) return
+
+        const payload = {
+            company_name: formik.values.company_name,
+            legal_form: legal,
+            country_of_registration: country,
+            business_id: formik.values.business_id,
+            ico: "string",
+            tin: formik.values?.tin,
+            vat_id: formik.values?.vat_id,
+            eori_number: formik.values?.eori_number,
+            imports_to_eu: Boolean(formik.values?.eori_number),
+            company_phone: formik.values?.company_phone,
+            certificate_issue_date: formik.values.certificate_issue_date,
+        }
+
+        safeCompanyData(payload)
+
+        putCompanyInfo({
+            ...payload,
+            certificate_issue_date: toISODate(payload.certificate_issue_date)
+        })
+
+
+    }
 
 
     const countryArr = [
@@ -60,6 +104,7 @@ const CompanyInfo = ({ formik }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
                 formik.setFieldValue("certificate_issue_date", res.uploaded_at)
+                safeCompanyData({ certificate_issue_date: res.uploaded_at })
                 console.log("Документ загружен", res);
             })
             .catch(err => {
@@ -71,7 +116,15 @@ const CompanyInfo = ({ formik }) => {
 
 
     return (
-        <div className={styles.main}>
+        <div className={styles.main}
+            tabIndex={-1}
+            ref={companyRef}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setTimeout(onLeaveCompanyBlock, 0);
+                }
+            }}
+        >
 
             <div className={styles.titleWrap}>
                 <img src={companyIc} alt="" />
@@ -143,6 +196,8 @@ const CompanyInfo = ({ formik }) => {
                         side={null}
                         onChange={handleSingleFrontUpload}
                         inpText={"Upload document"}
+                        stateName={companyData?.company_file_date}
+                        nameTitle={"company_file_date"}
                     />
                     {formik.errors.certificate_issue_date && <p className={styles.errorText}>{formik.errors.certificate_issue_date}</p>}
                 </div>

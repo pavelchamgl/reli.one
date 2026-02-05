@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 import personalIc from "../../../../../assets/Seller/register/personalDetailIc.svg"
@@ -10,14 +10,70 @@ import UploadInp from "../uploadInp/UploadInp";
 
 import styles from './PersonalDetails.module.scss';
 import { useSelector } from "react-redux";
-import { uploadSingleDocument } from "../../../../../api/seller/onboarding";
+import { putPersonalData, uploadSingleDocument } from "../../../../../api/seller/onboarding";
 import { ErrToast } from "../../../../../ui/Toastify";
+import { toISODate } from "../../../../../code/seller";
 
 const PersonalDetails = ({ formik }) => {
 
   const { selfData } = useSelector(state => state.selfEmploed)
+  const { safeData, setRegisterData } = useActionSafeEmploed()
+
 
   const [nationality, setNationality] = useState(selfData.nationality)
+
+  const isPersonalDataFilled = (values) => {
+    console.log(values);
+    return Boolean(
+      values.first_name &&
+      values.last_name &&
+      values.date_of_birth &&
+      values.personal_phone &&
+      values.uploadFront &&
+      values.uploadBack
+    )
+  }
+
+  const personalRef = useRef(null)
+
+  const onLeavePersonalBlock = () => {
+
+    const filled = isPersonalDataFilled(formik.values)
+
+    console.log(filled);
+
+
+    if (!filled) return
+
+    const payload = {
+      first_name: formik.values.first_name,
+      last_name: formik.values.last_name,
+      date_of_birth: formik.values.date_of_birth?.date_of_birth,
+      nationality: nationality,
+      personal_phone: formik.values.personal_phone,
+      wProof_document_issue_date: toISODate(formik.values.uploadFront)
+    }
+
+
+    safeData(payload)
+    setRegisterData({
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+      phone: payload.personal_phone,
+    })
+
+
+    putPersonalData({
+      date_of_birth: payload.date_of_birth
+        ?.split(".")
+        .reverse()
+        .join("-"),
+      nationality: payload.nationality,
+      personal_phone: payload.personal_phone
+    })
+
+
+  }
 
 
   const nationalArr = [
@@ -28,7 +84,6 @@ const PersonalDetails = ({ formik }) => {
     { text: "United Kingdom", value: "gb" }
   ];
 
-  const { safeData } = useActionSafeEmploed()
 
   useEffect(() => {
     safeData({ nationality: nationality })
@@ -41,10 +96,13 @@ const PersonalDetails = ({ formik }) => {
 
         if (res.side === "front") {
           formik.setFieldValue("uploadFront", res.uploaded_at)
+          safeData({ uploadFront: res.uploaded_at })
         }
 
         if (res.side === "back") {
           formik.setFieldValue("uploadBack", res.uploaded_at)
+          safeData({ uploadBack: res.uploaded_at })
+
         }
 
         console.log("Документ загружен", res);
@@ -56,20 +114,21 @@ const PersonalDetails = ({ formik }) => {
   };
 
 
-  const handleSingleBackUpload = ({ file, doc_type, scope, side }) => {
-    const formData = new FormData();
-
-    formData.append("doc_type", doc_type);
-    formData.append("scope", scope);
-    formData.append("side", side);
-    formData.append("file", file);
-
-    api.post("/kyc/documents/upload", formData);
-  };
-
 
   return (
-    <div className={styles.main}>
+    <div className={styles.main} 
+    ref={personalRef} 
+    tabIndex={-1} 
+    onBlurCapture={(e) => {
+      if (!e.currentTarget.contains(e.relatedTarget)) {
+        console.log("ijcwuhecuhweiuci");
+
+        setTimeout(onLeavePersonalBlock, 0);
+      }
+
+    }
+
+    }>
 
       <div className={styles.titleWrap}>
         <img src={personalIc} alt="" />
@@ -124,12 +183,17 @@ const PersonalDetails = ({ formik }) => {
             side={"front"}
             onChange={handleSingleFrontUpload}
             inpText={"Upload front side"}
+            stateName={selfData?.front}
+            nameTitle={"front"}
           />
 
           <UploadInp scope={"self_employed_personal"} docType={"identity_document"}
             side={"back"}
             onChange={handleSingleFrontUpload}
             inpText={"Upload back side"}
+            stateName={selfData?.back}
+            nameTitle={"back"}
+
           />
           {(formik.touched.uploadFront || formik.touched.uploadBack) &&
             (formik.errors.uploadFront || formik.errors.uploadBack) && (

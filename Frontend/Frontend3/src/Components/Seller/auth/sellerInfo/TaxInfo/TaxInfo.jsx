@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 
 import InputSeller from '../../../../../ui/Seller/auth/inputSeller/InputSeller'
@@ -9,13 +9,57 @@ import taxInfo from "../../../../../assets/Seller/register/taxInfo.svg"
 import { useActionSafeEmploed } from '../../../../../hook/useActionSafeEmploed'
 
 import styles from './TaxInfo.module.scss'
+import { putSelfAddress, putTax } from '../../../../../api/seller/onboarding'
 
 const TaxInfo = ({ formik }) => {
 
     const { selfData } = useSelector(state => state.selfEmploed)
+    const { safeData } = useActionSafeEmploed()
+
 
     const [country, setCountry] = useState(selfData.tax_country)
 
+
+    const taxDataRef = useRef(null)
+
+    const isTaxDataFilled = (values) => {
+        console.log(values);
+        return Boolean(
+            values.tax_country &&
+            values.tin &&
+            values.vat_id
+        )
+    }
+
+    const onLeaveTaxBlock = () => {
+
+        const filled = isTaxDataFilled(formik.values)
+
+        console.log(filled);
+
+
+        if (!filled) return
+
+        const payload = {
+            tax_country: country,
+            tin: formik.values.tin,
+            ico: formik.values.ico,
+            vat_id: formik.values.vat_id
+        }
+
+
+        safeData(payload)
+
+
+        putTax({
+            tax_country: country,
+            tin: payload.tin,
+            ico: (country === "cz" || country === "sk") ? "" : payload.ico,
+            vat_id: payload.vat_id
+        })
+
+
+    }
 
     const countryArr = [
         { text: "Czech Republic", value: "cz" },
@@ -25,7 +69,6 @@ const TaxInfo = ({ formik }) => {
         { text: "United Kingdom", value: "gb" },  // или "uk"
     ];
 
-    const { safeData } = useActionSafeEmploed()
 
     useEffect(() => {
         safeData({ tax_country: country })
@@ -33,8 +76,19 @@ const TaxInfo = ({ formik }) => {
 
     }, [country])
 
+
+
     return (
-        <div className={styles.main}>
+        <div className={styles.main}
+            ref={taxDataRef}
+            tabIndex={-1}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+
+                    setTimeout(onLeaveTaxBlock, 0);
+                }
+            }}
+        >
 
             <div className={styles.titleWrap}>
                 <img src={taxInfo} alt="" />
@@ -56,14 +110,18 @@ const TaxInfo = ({ formik }) => {
                     error={formik.errors.tin}
                 />
 
-                <InputSeller title={"IČO"} type={"text"} circle={true} required={true} num={true}
-                    placeholder={"123456789"}
-                    name="ico"
-                    value={formik.values.ico}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.ico}
-                />
+                {
+                    (country === "cz" || country === "sk") &&
+                    <InputSeller title={"IČO"} type={"text"} circle={true} required={true} num={true}
+                        placeholder={"123456789"}
+                        name="ico"
+                        value={formik.values.ico}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.ico}
+                    />
+                }
+
 
                 <InputSeller title={"VAT ID"} type={"text"} circle={true} num={true}
                     placeholder={"If registered"} name="vat_id"
