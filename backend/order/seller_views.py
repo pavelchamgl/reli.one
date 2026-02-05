@@ -1,3 +1,7 @@
+import csv
+from io import StringIO
+
+from django.http import HttpResponse
 from django.db.models import QuerySet
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,7 +17,12 @@ from drf_spectacular.utils import (
 )
 
 from .models import Order
-from .seller_serializers import SellerOrderListSerializer, SellerOrderDetailSerializer, SellerBulkLabelsSerializer
+from .seller_serializers import (
+    SellerOrderListSerializer,
+    SellerOrderDetailSerializer,
+    SellerBulkLabelsSerializer,
+    SellerBulkExportSerializer,
+)
 from .seller_filters import SellerOrderFilter
 from .seller_pagination import SellerOrdersPagination
 from .permissions_seller import IsSeller, get_seller_profile_for_user
@@ -238,8 +247,6 @@ class SellerOrderListView(ListAPIView):
         return ctx
 
 
-from drf_spectacular.utils import OpenApiExample
-
 @extend_schema(
     tags=["Seller Orders"],
     summary="Seller order detail",
@@ -274,15 +281,8 @@ from drf_spectacular.utils import OpenApiExample
                                 "phone": "+40712345678"
                             },
                             "delivery": {
-                                "delivery_type": {
-                                    "id": 1,
-                                    "name": "PUDO"
-                                },
-                                "courier_service": {
-                                    "id": 2,
-                                    "name": "Zásilkovna",
-                                    "code": "zasilkovna"
-                                },
+                                "delivery_type": {"id": 1, "name": "PUDO"},
+                                "courier_service": {"id": 2, "name": "Zásilkovna", "code": "zasilkovna"},
                                 "pickup_point_id": "22991",
                                 "delivery_address": {
                                     "full_name": "Pavel Ivanov",
@@ -294,10 +294,7 @@ from drf_spectacular.utils import OpenApiExample
                                     "country": "RO"
                                 }
                             },
-                            "branch": {
-                                "id": 1,
-                                "name": "Reli warehouse"
-                            },
+                            "branch": {"id": 1, "name": "Reli warehouse"},
                             "totals": {
                                 "purchase_excl_vat": "240.33",
                                 "sales_incl_vat": "290.80",
@@ -317,28 +314,19 @@ from drf_spectacular.utils import OpenApiExample
                                 "vat_rate": "21.00",
                                 "line_total_gross": "290.80",
                                 "line_total_net": "240.33",
-                                "warehouse": {
-                                    "id": 1,
-                                    "name": "Reli warehouse"
-                                }
+                                "warehouse": {"id": 1, "name": "Reli warehouse"}
                             }
                         ],
                         "shipments": [
                             {
                                 "id": 149,
-                                "carrier": {
-                                    "id": 2,
-                                    "name": "Zásilkovna"
-                                },
+                                "carrier": {"id": 2, "name": "Zásilkovna"},
                                 "tracking_number": "4754431376",
                                 "has_tracking": True,
                                 "has_label": True,
                                 "label_url": "/media/zasilkovna_labels/label_4754431376.pdf",
                                 "created_at": "19.11.2025 14:08",
-                                "warehouse": {
-                                    "id": 1,
-                                    "name": "Reli warehouse"
-                                },
+                                "warehouse": {"id": 1, "name": "Reli warehouse"},
                                 "items": [
                                     {
                                         "order_product_id": 175,
@@ -350,42 +338,12 @@ from drf_spectacular.utils import OpenApiExample
                             }
                         ],
                         "timeline": [
-                            {
-                                "type": "order_created",
-                                "label": "Order created",
-                                "created_at": "14.01.2026 10:49",
-                                "meta": {}
-                            },
-                            {
-                                "type": "payment_confirmed",
-                                "label": "Payment confirmed",
-                                "created_at": "14.01.2026 10:49",
-                                "meta": {}
-                            },
-                            {
-                                "type": "order_acknowledged",
-                                "label": "Order acknowledged",
-                                "created_at": "14.01.2026 10:49",
-                                "meta": {}
-                            },
-                            {
-                                "type": "shipment_created",
-                                "label": "Shipment created",
-                                "created_at": "14.01.2026 10:49",
-                                "meta": {}
-                            },
-                            {
-                                "type": "tracking_uploaded",
-                                "label": "Tracking uploaded",
-                                "created_at": "14.01.2026 10:49",
-                                "meta": {}
-                            },
-                            {
-                                "type": "delivered",
-                                "label": "Delivered",
-                                "created_at": "14.01.2026 10:50",
-                                "meta": {}
-                            }
+                            {"type": "order_created", "label": "Order created", "created_at": "14.01.2026 10:49", "meta": {}},
+                            {"type": "payment_confirmed", "label": "Payment confirmed", "created_at": "14.01.2026 10:49", "meta": {}},
+                            {"type": "order_acknowledged", "label": "Order acknowledged", "created_at": "14.01.2026 10:49", "meta": {}},
+                            {"type": "shipment_created", "label": "Shipment created", "created_at": "14.01.2026 10:49", "meta": {}},
+                            {"type": "tracking_uploaded", "label": "Tracking uploaded", "created_at": "14.01.2026 10:49", "meta": {}},
+                            {"type": "delivered", "label": "Delivered", "created_at": "14.01.2026 10:50", "meta": {}}
                         ],
                         "actions": {
                             "can_confirm": False,
@@ -434,10 +392,7 @@ class SellerOrderDetailView(RetrieveAPIView):
     ),
     request=None,
     responses={
-        200: OpenApiResponse(
-            response=SellerOrderDetailSerializer,
-            description="Updated seller order detail payload",
-        ),
+        200: OpenApiResponse(response=SellerOrderDetailSerializer, description="Updated seller order detail payload"),
         400: OpenApiResponse(description="Invalid status transition"),
         401: OpenApiResponse(description="Authentication credentials were not provided"),
         403: OpenApiResponse(description="Forbidden"),
@@ -469,10 +424,7 @@ class SellerOrderConfirmView(APIView):
     ),
     request=None,
     responses={
-        200: OpenApiResponse(
-            response=SellerOrderDetailSerializer,
-            description="Updated seller order detail payload",
-        ),
+        200: OpenApiResponse(response=SellerOrderDetailSerializer, description="Updated seller order detail payload"),
         400: OpenApiResponse(description="Invalid status transition"),
         401: OpenApiResponse(description="Authentication credentials were not provided"),
         403: OpenApiResponse(description="Forbidden"),
@@ -504,10 +456,7 @@ class SellerOrderMarkShippedView(APIView):
     ),
     request=None,
     responses={
-        200: OpenApiResponse(
-            response=SellerOrderDetailSerializer,
-            description="Updated order detail payload",
-        ),
+        200: OpenApiResponse(response=SellerOrderDetailSerializer, description="Updated order detail payload"),
         400: OpenApiResponse(description="Invalid status transition"),
         401: OpenApiResponse(description="Authentication credentials were not provided"),
         403: OpenApiResponse(description="Only admin can cancel orders"),
@@ -536,10 +485,7 @@ class SellerOrderCancelView(APIView):
         ),
     ],
     responses={
-        200: OpenApiResponse(
-            description="PDF shipping label",
-            response=OpenApiTypes.BINARY,
-        ),
+        200: OpenApiResponse(description="PDF shipping label", response=OpenApiTypes.BINARY),
         401: OpenApiResponse(description="Authentication credentials were not provided"),
         403: OpenApiResponse(description="Forbidden"),
         404: OpenApiResponse(description="Shipment not found"),
@@ -560,10 +506,7 @@ class SellerShipmentLabelView(APIView):
     summary="Download shipment label",
     description="Downloads PDF shipping label for a specific shipment.",
     responses={
-        200: OpenApiResponse(
-            description="PDF shipping label",
-            response=OpenApiTypes.BINARY,
-        ),
+        200: OpenApiResponse(description="PDF shipping label", response=OpenApiTypes.BINARY),
         401: OpenApiResponse(description="Authentication credentials were not provided"),
         403: OpenApiResponse(description="Forbidden"),
         404: OpenApiResponse(description="Shipment not found"),
@@ -588,10 +531,7 @@ class SellerOrderLabelsView(APIView):
     ),
     request=SellerBulkLabelsSerializer,
     responses={
-        200: OpenApiResponse(
-            description="ZIP archive with labels grouped by order",
-            response=OpenApiTypes.BINARY,
-        ),
+        200: OpenApiResponse(description="ZIP archive with labels grouped by order", response=OpenApiTypes.BINARY),
         400: OpenApiResponse(description="Invalid input"),
         401: OpenApiResponse(description="Authentication credentials were not provided"),
         403: OpenApiResponse(description="Forbidden"),
@@ -609,3 +549,198 @@ class SellerBulkOrderLabelsView(APIView):
             order_ids=serializer.validated_data["order_ids"],
             user=request.user,
         )
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Export single order to CSV",
+    description=(
+        "Each order item is exported as a separate row.\n\n"
+        "Order-level fields are duplicated for every item row.\n\n"
+        "This is used by the **Export Invoice** / **Export** action in UI.\n"
+        "Response is an attachment with content-type text/csv."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="order_id",
+            type=OpenApiTypes.INT,
+            location=OpenApiParameter.PATH,
+            description="Order ID",
+        )
+    ],
+    responses={
+        200: OpenApiResponse(description="CSV file", response=OpenApiTypes.BINARY),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Forbidden"),
+        404: OpenApiResponse(description="Order not found (or not accessible to this seller)"),
+    },
+)
+class SellerOrderExportCSVView(APIView):
+    permission_classes = [IsSeller]
+
+    def get(self, request, order_id: int):
+        order, seller_profile_id = SellerOrderDetailService.get_order_for_seller(
+            order_id=int(order_id),
+            user=request.user,
+        )
+        payload = SellerOrderDetailService.build_payload(
+            order=order,
+            seller_profile_id=seller_profile_id,
+            user=request.user,
+        )
+
+        # Minimal & safe: export order items as rows + summary columns duplicated per row.
+        summary = payload.get("summary") or {}
+        items = payload.get("items") or []
+
+        buf = StringIO()
+        writer = csv.writer(buf)
+
+        writer.writerow([
+            "order_id",
+            "order_number",
+            "order_date",
+            "status",
+            "customer_email",
+            "delivery_country",
+            "currency",
+            "purchase_excl_vat",
+            "sales_incl_vat",
+            "total_incl_vat_plus_delivery",
+            "item_id",
+            "sku",
+            "name",
+            "variant_name",
+            "quantity",
+            "unit_price_gross",
+            "vat_rate",
+            "line_total_gross",
+            "line_total_net",
+        ])
+
+        totals = (summary.get("totals") or {})
+        delivery = (summary.get("delivery") or {})
+        delivery_address = (delivery.get("delivery_address") or {})
+
+        for it in items:
+            writer.writerow([
+                summary.get("id"),
+                summary.get("order_number"),
+                summary.get("order_date"),
+                summary.get("status"),
+                (summary.get("customer") or {}).get("email"),
+                delivery_address.get("country"),
+                totals.get("currency"),
+                totals.get("purchase_excl_vat"),
+                totals.get("sales_incl_vat"),
+                totals.get("total_incl_vat_plus_delivery"),
+                it.get("id"),
+                it.get("sku"),
+                it.get("name"),
+                it.get("variant_name"),
+                it.get("quantity"),
+                it.get("unit_price_gross"),
+                it.get("vat_rate"),
+                it.get("line_total_gross"),
+                it.get("line_total_net"),
+            ])
+
+        filename = f"order_{summary.get('order_number') or summary.get('id')}.csv"
+        resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
+        resp["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return resp
+
+
+@extend_schema(
+    tags=["Seller Orders"],
+    summary="Export multiple orders to CSV",
+    description=(
+        "Exports multiple seller-scoped orders to a single CSV file.\n\n"
+        "Used by the bulk **Export** action in UI list page.\n"
+        "Input: order_ids[]"
+    ),
+    request=SellerBulkExportSerializer,
+    responses={
+        200: OpenApiResponse(description="CSV file", response=OpenApiTypes.BINARY),
+        400: OpenApiResponse(description="Invalid input"),
+        401: OpenApiResponse(description="Authentication credentials were not provided"),
+        403: OpenApiResponse(description="Forbidden"),
+        404: OpenApiResponse(description="One or more orders not found (or not accessible)"),
+    },
+)
+class SellerBulkOrdersExportCSVView(APIView):
+    permission_classes = [IsSeller]
+
+    def post(self, request):
+        serializer = SellerBulkExportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order_ids = serializer.validated_data["order_ids"]
+
+        buf = StringIO()
+        writer = csv.writer(buf)
+
+        writer.writerow([
+            "order_id",
+            "order_number",
+            "order_date",
+            "status",
+            "customer_email",
+            "delivery_country",
+            "currency",
+            "purchase_excl_vat",
+            "sales_incl_vat",
+            "total_incl_vat_plus_delivery",
+            "item_id",
+            "sku",
+            "name",
+            "variant_name",
+            "quantity",
+            "unit_price_gross",
+            "vat_rate",
+            "line_total_gross",
+            "line_total_net",
+        ])
+
+        for oid in order_ids:
+            order, seller_profile_id = SellerOrderDetailService.get_order_for_seller(
+                order_id=int(oid),
+                user=request.user,
+            )
+            payload = SellerOrderDetailService.build_payload(
+                order=order,
+                seller_profile_id=seller_profile_id,
+                user=request.user,
+            )
+
+            summary = payload.get("summary") or {}
+            items = payload.get("items") or []
+            totals = (summary.get("totals") or {})
+            delivery = (summary.get("delivery") or {})
+            delivery_address = (delivery.get("delivery_address") or {})
+
+            for it in items:
+                writer.writerow([
+                    summary.get("id"),
+                    summary.get("order_number"),
+                    summary.get("order_date"),
+                    summary.get("status"),
+                    (summary.get("customer") or {}).get("email"),
+                    delivery_address.get("country"),
+                    totals.get("currency"),
+                    totals.get("purchase_excl_vat"),
+                    totals.get("sales_incl_vat"),
+                    totals.get("total_incl_vat_plus_delivery"),
+                    it.get("id"),
+                    it.get("sku"),
+                    it.get("name"),
+                    it.get("variant_name"),
+                    it.get("quantity"),
+                    it.get("unit_price_gross"),
+                    it.get("vat_rate"),
+                    it.get("line_total_gross"),
+                    it.get("line_total_net"),
+                ])
+
+        resp = HttpResponse(buf.getvalue(), content_type="text/csv; charset=utf-8")
+        resp["Content-Disposition"] = 'attachment; filename="orders_export.csv"'
+        return resp
