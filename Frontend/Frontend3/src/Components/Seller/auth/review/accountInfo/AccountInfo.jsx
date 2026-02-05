@@ -1,4 +1,5 @@
 
+import { useSelector } from "react-redux"
 
 import accountInfo from "../../../../../assets/Seller/register/accountInfoIc.svg"
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
@@ -7,7 +8,7 @@ import styles from "./AccountInfo.module.scss"
 
 const AccountInfo = ({ data, type }) => {
 
-
+    const { registerData } = useSelector(state => state.selfEmploed)
 
 
     return (
@@ -28,15 +29,15 @@ const AccountInfo = ({ data, type }) => {
                 </li>
                 <li>
                     <p>Email</p>
-                    <span>1@mail.ru</span>
+                    <span>{registerData?.email ? registerData?.email : "1@gmail.com"}</span>
                 </li>
                 <li>
                     <p>Phone</p>
-                    <span>{data?.personal_phone||data?.company_phone}</span>
+                    <span className={styles.num}>{data?.personal_phone || data?.company_phone}</span>
                 </li>
                 <li>
                     <p>Seller Type</p>
-                    <span>{type === "company"?"Company / Legal entity":"Self-employed / Sole proprietor"}</span>
+                    <span>{type === "company" ? "Company / Legal entity" : "Self-employed / Sole proprietor"}</span>
                 </li>
             </ul>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
@@ -8,7 +8,8 @@ import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 
 import styles from "./CompanyAddress.module.scss"
-import { uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { putCompanyAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { toISODate } from "../../../../../code/seller"
 
 const CompanyAddress = ({ formik }) => {
 
@@ -18,6 +19,48 @@ const CompanyAddress = ({ formik }) => {
 
     const [country, setCountry] = useState(companyData?.country ?? null)
 
+    const isCompanyAddressFilled = (values) => {
+        console.log(values);
+        return Boolean(
+            values.street,
+            values.city,
+            values.zip_code,
+            country,
+            values.proof_document_issue_date
+        )
+    }
+
+    const companyAddressRef = useRef(null)
+
+    const onLeaveCompanyAddressBlock = () => {
+
+        const filled = isCompanyAddressFilled(formik.values)
+
+        console.log(filled);
+
+
+        if (!filled) return
+
+        const payload = {
+            street: formik.values.street,
+            city: formik.values.city,
+            zip_code: formik.values.zip_code,
+            country: country,
+            proof_document_issue_date: formik.values.proof_document_issue_date
+        }
+
+
+        safeCompanyData(payload)
+
+
+
+        putCompanyAddress({
+            ...payload,
+            proof_document_issue_date: toISODate(payload.proof_document_issue_date)
+        })
+
+
+    }
 
     const countryArr = [
         { text: "Czech Republic", value: "cz" },
@@ -41,6 +84,8 @@ const CompanyAddress = ({ formik }) => {
 
                 formik.setFieldValue("proof_document_issue_date", res.uploaded_at)
 
+                safeCompanyData({ proof_document_issue_date: res.uploaded_at })
+
             })
             .catch(err => {
                 ErrToast(err.message)
@@ -49,7 +94,17 @@ const CompanyAddress = ({ formik }) => {
     };
 
     return (
-        <div className={styles.main}>
+        <div className={styles.main}
+            ref={companyAddressRef}
+            tabIndex={-1}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+
+                    setTimeout(onLeaveCompanyAddressBlock, 0);
+                }
+
+            }}
+        >
 
             <div className={styles.titleWrap}>
                 <img src={companyAddressIc} alt="" />
@@ -97,6 +152,8 @@ const CompanyAddress = ({ formik }) => {
                         side={null}
                         onChange={handleSingleFrontUpload}
                         inpText={"Upload document"}
+                        stateName={companyData?.company_address_name}
+                        nameTitle={"company_address_name"}
                     />
                     {formik.errors.proof_document_issue_date &&
                         <p className={styles.errorText}>{formik.errors.proof_document_issue_date}</p>}

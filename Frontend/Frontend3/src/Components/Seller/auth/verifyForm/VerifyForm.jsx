@@ -95,7 +95,7 @@ const VerifyForm = () => {
                 <div className={styles.timerDiv}>
                     {time ? (
                         <p className={styles.resentText}>
-                            Resend code in {`${time} s`}
+                            Resend code in <span className={styles.num}>{time}</span> s
                         </p>
                     ) : (
                         <button onClick={handleSendAgain} type="button" className={styles.resendBtn}>Resend code</button>

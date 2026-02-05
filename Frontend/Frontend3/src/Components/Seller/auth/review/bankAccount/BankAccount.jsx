@@ -22,11 +22,11 @@ const BankAccount = ({ data }) => {
                 </li>
                 <li>
                     <p>Account Holder</p>
-                    <span>{data?.account_holder}</span>
+                    <span className={styles.num}>{data?.account_holder}</span>
                 </li>
                 <li>
                     <p>IBAN</p>
-                    <span>{data?.iban}</span>
+                    <span className={styles.num}>{data?.iban}</span>
                 </li>
             </ul>
         </div>

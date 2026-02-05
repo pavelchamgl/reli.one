@@ -13,10 +13,14 @@ const PersonalDetails = ({ data }) => {
         { text: "United Kingdom", value: "gb" }
     ];
 
-    const nationality = nationalArr.find((item) => item.value === data?.nationality)
+    const nationality = nationalArr.find((item) => item?.value === data?.nationality)
 
+    const tax_country = nationalArr.find((item)=>item?.value === data?.tax_country)
+
+
+    console.log(data);
     
-    
+
 
     return (
         <div className={styles.main}>
@@ -31,11 +35,11 @@ const PersonalDetails = ({ data }) => {
             <ul className={styles.infoList}>
                 <li>
                     <p>Date of Birth</p>
-                    <span>{data?.date_of_birth}</span>
+                    <span className={styles.num}>{data?.date_of_birth}</span>
                 </li>
                 <li>
                     <p>Tax ID</p>
-                    <span>{data?.tax_country}</span>
+                    <span>{tax_country?.text}</span>
                 </li>
                 <li>
                     <p>Nationality</p>

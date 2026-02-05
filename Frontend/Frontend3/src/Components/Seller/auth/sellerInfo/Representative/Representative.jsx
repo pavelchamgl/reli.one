@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
@@ -10,18 +10,61 @@ import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 
 import styles from "./Representative.module.scss"
 import SellerDateInp from "../dateInp/DateInp"
-import { uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { putRepresentative, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 
 const Representative = ({ formik }) => {
 
     const { companyData } = useSelector(state => state.selfEmploed)
 
-    const { safeCompanyData } = useActionSafeEmploed()
+    const { safeCompanyData, setRegisterData } = useActionSafeEmploed()
 
     const [role, setRole] = useState(companyData?.role ?? null)
     const [nationality, setNationality] = useState(companyData?.nationality ?? null)
 
+    const isRepresentativeFilled = (values) => {
+        console.log(values);
+        return Boolean(
+            values.first_name &&
+            values.last_name &&
+            values.date_of_birth
+        )
+    }
 
+    const representativeRef = useRef(null)
+
+    const onLeavePersonalBlock = () => {
+
+        const filled = isRepresentativeFilled(formik.values)
+
+        console.log(filled);
+
+
+        if (!filled) return
+
+        const payload = {
+            first_name: formik.values.first_name,
+            last_name: formik.values.last_name,
+            role: role,
+            date_of_birth: formik.values.date_of_birth,
+            nationality: nationality
+        }
+
+
+        safeCompanyData(payload)
+
+        setRegisterData({
+            first_name: payload.first_name,
+            last_name: payload.last_name,
+        })
+
+
+        putRepresentative({
+            ...payload,
+            date_of_birth:payload.date_of_birth?.split(".")?.reverse()?.join("-")
+        })
+
+
+    }
 
 
 
@@ -63,11 +106,11 @@ const Representative = ({ formik }) => {
 
                 if (side === "front") {
                     formik.setFieldValue("uploadFront", res.uploaded_at)
-
+                    safeCompanyData({ uploadFront: res.uploaded_at })
                 }
                 if (side === "back") {
                     formik.setFieldValue("uploadBack", res.uploaded_at)
-
+                    safeCompanyData({ uploadBack: res.uploaded_at })
                 }
             })
             .catch(err => {
@@ -77,7 +120,15 @@ const Representative = ({ formik }) => {
     };
 
     return (
-        <div className={styles.main}>
+        <div className={styles.main}
+            ref={representativeRef}
+            tabIndex={-1}
+            onBlurCapture={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setTimeout(onLeavePersonalBlock, 0);
+                }
+            }}
+        >
 
             <div className={styles.titleWrap}>
                 <img src={representativeIc} alt="" />
@@ -130,6 +181,8 @@ const Representative = ({ formik }) => {
                         side={"front"}
                         onChange={handleSingleFrontUpload}
                         inpText={"Upload front side"}
+                        stateName={companyData?.front}
+                        nameTitle={"front"}
                     />
                     <UploadInp
                         scope={"company_representative"}
@@ -137,6 +190,8 @@ const Representative = ({ formik }) => {
                         side={"back"}
                         onChange={handleSingleFrontUpload}
                         inpText={"Upload back side"}
+                        stateName={companyData?.back}
+                        nameTitle={"back"}
                     />
                     {
                         (formik.errors.uploadFront || formik.errors.uploadBack) && (

@@ -16,6 +16,7 @@ import userIc from "../../../../../assets/Seller/register/userIc.svg"
 import phoneIc from "../../../../../assets/Seller/register/phoneIc.svg"
 
 import styles from "./CreateForm.module.scss"
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 
 
 const CreateForm = () => {
@@ -28,6 +29,7 @@ const CreateForm = () => {
 
     const navigate = useNavigate()
 
+    const { setRegisterData } = useActionSafeEmploed()
 
     const validationSchema = yup.object().shape({
         first_name: yup.string().required(t("validation.name.required")),
@@ -74,11 +76,12 @@ const CreateForm = () => {
                 .then((res) => {
                     setRegErr("");
                     localStorage.setItem("email", JSON.stringify(values.email));
+                    setRegisterData({ ...values })
                     navigate("/seller/create-verify");
                 })
                 .catch((err) => {
                     console.log(err);
-                    
+
                     if (err.response) {
                         if (err.response.status === 500) {
                             setRegErr(
@@ -170,6 +173,7 @@ const CreateForm = () => {
                     type={"tel"} title={"Phone Number"}
                     img={phoneIc}
                     placeholder={"Your phone"}
+                    num={true}
                     name="phone"
                     value={formik.values.phone}
                     onChange={formik.handleChange}

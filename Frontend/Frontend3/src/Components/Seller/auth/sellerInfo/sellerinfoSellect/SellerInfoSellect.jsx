@@ -36,7 +36,7 @@ const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required
             <p className={styles.title}>{title}</p>
 
             <div className={`${styles.main} ${error ? styles.error : null}`}>
-                <button onClick={() => setOpen(!open)} className={styles.selectBtn}>
+                <button type="button" onClick={() => setOpen(!open)} className={styles.selectBtn}>
                     <p>{value ? selectText?.text : titleSellect}</p>
                     <img className={!open ? styles.activeArrow : ""} src={arrBottom} alt="" />
                 </button>
@@ -44,10 +44,12 @@ const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required
                 {open &&
                     <div>
                         {arr.map((item) => (
-                            <button onClick={() => {
-                                setValue(item?.value)
-                                setOpen(false)
-                            }} className={styles.selectItem}>{item?.text}</button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setValue(item?.value)
+                                    setOpen(false)
+                                }} className={styles.selectItem}>{item?.text}</button>
                         ))}
                     </div>
                 }

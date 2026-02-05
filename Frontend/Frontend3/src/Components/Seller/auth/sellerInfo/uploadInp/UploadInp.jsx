@@ -1,7 +1,9 @@
+import { useState } from "react";
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 import uploadIc from "../../../../../assets/Seller/register/uploadIc.svg"
 
-
 import styles from './UploadInp.module.scss';
+import { useLocation } from "react-router-dom";
 
 const UploadInp = ({
     title,
@@ -10,15 +12,32 @@ const UploadInp = ({
     scope,
     side,
     onChange,
-    inpText
+    inpText,
+    stateName,
+    nameTitle
 }) => {
+
+    const { pathname } = useLocation()
+
+    const companyPathname = '/seller/seller-company'
+
+    const { safeData, safeCompanyData } = useActionSafeEmploed()
+
+    const [name, setName] = useState(stateName ?? "")
 
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
-        console.log(file);
+        console.log(file.name);
 
         if (!file) return;
 
+        setName(file?.name)
+
+        if (pathname === companyPathname) {
+            safeCompanyData({ [`${nameTitle}`]: file?.name })
+        } else {
+            safeData({ [`${nameTitle}`]: file?.name })
+        }
         // MIME
         const allowedTypes = [
             "application/pdf",
@@ -59,7 +78,7 @@ const UploadInp = ({
                 <div className={styles.fileInpContent}>
                     <img src={uploadIc} alt="" />
                     <p>{inpText}</p>
-                    <span>(PDF, JPG, PNG - Max 10MB)</span>
+                    <span>{name ? name : "(PDF, JPG, PNG - Max 10MB)"}</span>
                 </div>
             </label>
         </div>

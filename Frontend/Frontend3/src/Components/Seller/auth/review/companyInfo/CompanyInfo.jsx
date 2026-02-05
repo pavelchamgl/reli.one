@@ -1,10 +1,16 @@
 
+import { useSelector } from "react-redux"
 import companyIc from "../../../../../assets/Seller/register/companyIcon.svg"
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from './CompanyInfo.module.scss'
 
 const CompanyInfo = ({ data }) => {
+
+
+    const { registerData } = useSelector(state => state.selfEmploed)
+
+
     return (
         <div className={styles.main}>
             <div className={styles.titleWrap}>
@@ -23,15 +29,15 @@ const CompanyInfo = ({ data }) => {
                 </li>
                 <li>
                     <p>Registration Number</p>
-                    <span>N/A</span>
+                    <span className={styles.num}>{registerData?.phone ? registerData?.phone : "N/A"}</span>
                 </li>
                 <li>
                     <p>Business ID</p>
-                    <span>{data?.business_id}</span>
+                    <span className={styles.num}>{data?.business_id}</span>
                 </li>
                 <li>
                     <p>VAT ID</p>
-                    <span>{data?.vat_id}</span>
+                    <span className={styles.num}>{data?.vat_id?data?.vat_id:"N/A"}</span>
                 </li>
             </ul>
         </div>
