@@ -51,6 +51,10 @@ def ensure_onboarding_application(sender, instance: SellerProfile, created: bool
     """
     Гарантируем, что у каждого SellerProfile есть draft onboarding application.
     """
+    # КЛЮЧЕВОЕ: позволяет игнорировать loaddata
+    if kwargs.get("raw", False):
+        return
+
     if not SellerOnboardingApplication.objects.filter(seller_profile=instance).exists():
         SellerOnboardingApplication.objects.create(seller_profile=instance)
 
