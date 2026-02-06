@@ -17,6 +17,10 @@ def send_email_confirmation_otp(sender, instance, created, **kwargs):
     """
     Отправка OTP для подтверждения email при создании пользователя.
     """
+    # КЛЮЧЕВОЕ: позволяет игнорировать loaddata
+    if kwargs.get("raw", False):
+        return
+
     if created and not instance.email_confirmed:
         try:
             from .utils import create_and_send_otp
@@ -32,10 +36,13 @@ def create_seller_profile(sender, instance, created, **kwargs):
     Создаёт SellerProfile если пользователь (новый или обновлённый) имеет роль SELLER
     и профиль ещё не существует.
     """
+    # КЛЮЧЕВОЕ: позволяет игнорировать loaddata
+    if kwargs.get("raw", False):
+        return
+
     if instance.role == UserRole.SELLER:
-        if not SellerProfile.objects.filter(user=instance).exists():
-            SellerProfile.objects.create(user=instance)
-            logger.info(f"Seller profile created for user {instance.email}")
+        SellerProfile.objects.get_or_create(user=instance)
+        logger.info(f"Seller profile ensured for user {instance.email}")
 
 
 @receiver(post_migrate)
@@ -51,6 +58,10 @@ def create_user_roles(sender, **kwargs):
 
 @receiver(post_save, sender=CustomUser)
 def assign_default_role(sender, instance, created, **kwargs):
+    # КЛЮЧЕВОЕ: позволяет игнорировать loaddata
+    if kwargs.get("raw", False):
+        return
+
     if created and not instance.role:
         CustomUser.objects.filter(pk=instance.pk).update(role=UserRole.CUSTOMER)
         logger.info(f"Default role CUSTOMER assigned to user {instance.pk}")
