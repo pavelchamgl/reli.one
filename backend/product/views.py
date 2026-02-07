@@ -1,17 +1,21 @@
+from decimal import Decimal
 from rest_framework import status
 from rest_framework import generics
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, Min, F, Sum
+from django.db.models import Q, Min, F, Sum, DecimalField, ExpressionWrapper, OuterRef, Subquery, Value
+from django.db.models.functions import Coalesce
 
 from .pagination import StandardResultsSetPagination
 from .filters import BaseProductFilter
 from .models import (
     BaseProduct,
     Category,
+    ProductStatus,
 )
 from .serializers import (
     BaseProductListSerializer,
@@ -19,6 +23,81 @@ from .serializers import (
     CategorySerializer,
     CategorySearchViewSerializer,
 )
+from order.models import OrderProduct
+from accounts.choices import UserRole
+
+
+ACQUIRING_MULTIPLIER = Decimal("1.04")
+
+def build_public_products_queryset(base_qs):
+    """
+    Единая логика для:
+    - category list
+    - search
+    Гарантирует одинаковое поведение и ordered_count
+    """
+
+    # 1. Минимальная цена без эквайринга
+    qs = base_qs.annotate(
+        base_min_price=Min("variants__price"),
+    ).filter(
+        base_min_price__isnull=False
+    )
+
+    # 2. Финальная цена с эквайрингом
+    qs = qs.annotate(
+        final_min_price=ExpressionWrapper(
+            F("base_min_price") * Value(ACQUIRING_MULTIPLIER),
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        )
+    )
+
+    # 3. ordered_count (без зависимости от related_name)
+    ordered_total_sq = (
+        OrderProduct.objects
+        .filter(product__product=OuterRef("pk"))
+        .values("product__product")
+        .annotate(total=Sum("quantity"))
+        .values("total")[:1]
+    )
+
+    qs = qs.annotate(
+        ordered_quantity=Coalesce(Subquery(ordered_total_sq), 0)
+    )
+
+    return qs.prefetch_related(
+        "images",
+        "variants",
+        "product_parameters",
+    ).distinct()
+
+
+class PublicVisibilityMixin:
+    """
+    Публичные пользователи:
+    - is_active=True
+    - status=APPROVED
+
+    Staff / Admin / Manager:
+    - видят всё (обратная совместимость)
+    """
+
+    def apply_public_visibility(self, qs):
+        user = getattr(self.request, "user", None)
+        role = getattr(user, "role", None)
+
+        is_staff_like = (
+                bool(getattr(user, "is_staff", False))
+                or role in (UserRole.ADMIN, UserRole.MANAGER)
+        )
+
+        if is_staff_like:
+            return qs
+
+        return qs.filter(
+            is_active=True,
+            status=ProductStatus.APPROVED,
+        )
 
 
 @extend_schema(
@@ -112,63 +191,53 @@ from .serializers import (
     },
     tags=["Search"]
 )
-class SearchView(generics.ListAPIView):
+class SearchView(PublicVisibilityMixin, generics.ListAPIView):
     serializer_class = BaseProductListSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
-    search_fields = [
-        'name',
-        'product_description',
-        'product_parameters__name',
-        'product_parameters__value',
-        'category__name'
-    ]
     filterset_class = BaseProductFilter
 
-    def get_search_terms(self, request):
-        return request.query_params.get('q', '').split()
-
-    ALLOWED_ORDERING_FIELDS = ['min_price', 'rating']
+    ALLOWED_ORDERING_FIELDS = ["price", "rating", "min_price"]
 
     def get_queryset(self):
-        query = self.request.query_params.get('q', '')
-        if not query.strip():
+        query = self.request.query_params.get("q", "").strip()
+        if not query:
             return BaseProduct.objects.none()
 
-        products = BaseProduct.objects.filter(
+        qs = BaseProduct.objects.filter(
             Q(name__icontains=query) |
             Q(product_description__icontains=query) |
             Q(product_parameters__name__icontains=query) |
             Q(product_parameters__value__icontains=query) |
             Q(category__name__icontains=query)
-        ).annotate(
-            min_price=Min('variants__price'),
-            rdered_quantity=Sum('variants__orderproduct__quantity')
-        ).filter(
-            min_price__isnull=False
-        ).prefetch_related(
-            'images',
-            'variants',
-            'product_parameters',
-        ).distinct()
+        )
 
-        # Получаем параметр сортировки из запроса
-        ordering = self.request.query_params.get('ordering', '-rating')
+        qs = self.apply_public_visibility(qs)
+        qs = build_public_products_queryset(qs)
 
-        # Проверяем, является ли поле сортировки допустимым
-        if ordering.lstrip('-') in self.ALLOWED_ORDERING_FIELDS:
-            # Определяем направление сортировки
-            if ordering.startswith('-'):
-                ordering_field = ordering[1:]
-                products = products.order_by(F(ordering_field).desc(nulls_last=True))
-            else:
-                ordering_field = ordering
-                products = products.order_by(F(ordering_field).asc(nulls_last=True))
+        ordering = self.request.query_params.get("ordering", "-rating")
+        return self.apply_ordering(qs, ordering)
+
+    def apply_ordering(self, qs, ordering):
+        field = ordering.lstrip("-")
+        desc = ordering.startswith("-")
+
+        if field not in self.ALLOWED_ORDERING_FIELDS:
+            field = "rating"
+            desc = True
+
+        if field == "price":
+            db_field = "final_min_price"
+        elif field == "min_price":
+            db_field = "base_min_price"
         else:
-            # Если поле недопустимо, используем сортировку по умолчанию
-            products = products.order_by(F('rating').desc(nulls_last=True))
+            db_field = field
 
-        return products
+        return qs.order_by(
+            F(db_field).desc(nulls_last=True)
+            if desc
+            else F(db_field).asc(nulls_last=True)
+        )
 
     def list(self, request, *args, **kwargs):
         products_queryset = self.filter_queryset(self.get_queryset())
@@ -234,49 +303,44 @@ class SearchView(generics.ListAPIView):
     },
     tags=["Product"]
 )
-class CategoryBaseProductListView(generics.ListAPIView):
+class CategoryBaseProductListView(PublicVisibilityMixin, generics.ListAPIView):
     serializer_class = BaseProductListSerializer
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = BaseProductFilter
 
-    ALLOWED_ORDERING_FIELDS = ['min_price', 'rating']
+    ALLOWED_ORDERING_FIELDS = ["price", "rating", "min_price"]
 
     def get_queryset(self):
-        category_id = self.kwargs.get('category_id')
-        try:
-            category = Category.objects.get(id=category_id)
-        except Category.DoesNotExist:
-            return BaseProduct.objects.none()
+        category = get_object_or_404(Category, id=self.kwargs["category_id"])
 
-        queryset = BaseProduct.objects.filter(category=category).annotate(
-            min_price=Min('variants__price'),
-            ordered_quantity=Sum('variants__orderproduct__quantity')
-        ).filter(
-            min_price__isnull=False
-        ).prefetch_related(
-            'images',
-            'variants',
-            'product_parameters',
-        ).distinct()
+        qs = BaseProduct.objects.filter(category=category)
+        qs = self.apply_public_visibility(qs)
+        qs = build_public_products_queryset(qs)
 
-        # Получаем параметр сортировки из запроса
-        ordering = self.request.query_params.get('ordering', '-rating')
+        ordering = self.request.query_params.get("ordering", "-rating")
+        return self.apply_ordering(qs, ordering)
 
-        # Проверяем, является ли поле сортировки допустимым
-        if ordering.lstrip('-') in self.ALLOWED_ORDERING_FIELDS:
-            # Определяем направление сортировки
-            if ordering.startswith('-'):
-                ordering_field = ordering[1:]
-                queryset = queryset.order_by(F(ordering_field).desc(nulls_last=True))
-            else:
-                ordering_field = ordering
-                queryset = queryset.order_by(F(ordering_field).asc(nulls_last=True))
+    def apply_ordering(self, qs, ordering):
+        field = ordering.lstrip("-")
+        desc = ordering.startswith("-")
+
+        if field not in self.ALLOWED_ORDERING_FIELDS:
+            field = "rating"
+            desc = True
+
+        if field == "price":
+            db_field = "final_min_price"
+        elif field == "min_price":
+            db_field = "base_min_price"
         else:
-            # Если поле недопустимо, используем сортировку по умолчанию
-            queryset = queryset.order_by(F('rating').desc(nulls_last=True))
+            db_field = field
 
-        return queryset
+        return qs.order_by(
+            F(db_field).desc(nulls_last=True)
+            if desc
+            else F(db_field).asc(nulls_last=True)
+        )
 
 
 @extend_schema(
@@ -353,15 +417,25 @@ class CategoryBaseProductListView(generics.ListAPIView):
     ],
     tags=["Product"],
 )
-class BaseProductDetailAPIView(generics.RetrieveAPIView):
-    queryset = BaseProduct.objects.select_related('category', 'license_files').prefetch_related(
-        'product_parameters',
-        'images',
-        'variants',
-        'variants__variant_reviews',
-    ).distinct()
+class BaseProductDetailAPIView(PublicVisibilityMixin, generics.RetrieveAPIView):
     serializer_class = BaseProductDetailSerializer
     lookup_field = 'id'
+
+    def get_queryset(self):
+        qs = (
+            BaseProduct.objects
+            .select_related("category")
+            .prefetch_related(
+                "license_files",
+                "product_parameters",
+                "images",
+                "variants",
+                "variants__variant_reviews",
+            )
+            .distinct()
+        )
+
+        return self.apply_public_visibility(qs)
 
 
 class CategoryListView(APIView):
@@ -380,6 +454,6 @@ class CategoryListView(APIView):
         """
         Retrieves all root categories and their nested subcategories.
         """
-        categories = Category.objects.filter(parent__isnull=True)
+        categories = Category.objects.filter(parent__isnull=True).prefetch_related("children__children__children")
         serializer = CategorySerializer(categories, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
