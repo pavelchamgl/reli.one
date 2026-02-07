@@ -4,8 +4,8 @@ from .models import BaseProduct
 
 
 class BaseProductFilter(filters.FilterSet):
-    min_price = filters.NumberFilter(field_name="min_price", lookup_expr='gte', label='Minimum Price')
-    max_price = filters.NumberFilter(field_name="min_price", lookup_expr='lte', label='Maximum Price')
+    min_price = filters.NumberFilter(field_name="final_min_price", lookup_expr='gte', label='Minimum Price')
+    max_price = filters.NumberFilter(field_name="final_min_price", lookup_expr='lte', label='Maximum Price')
     rating = filters.NumberFilter(field_name='rating', lookup_expr='gte')
 
     class Meta:

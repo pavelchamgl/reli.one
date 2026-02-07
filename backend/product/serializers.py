@@ -27,7 +27,7 @@ class BaseProductImageSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         request = self.context.get('request')
-        if obj.image:
+        if obj.image and request:
             return request.build_absolute_uri(obj.image.url)
         return None
 
@@ -93,10 +93,14 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_license_file(self, obj):
-        request = self.context.get('request')
-        license_file = obj.license_files.file if hasattr(obj, 'license_files') else None
-        if license_file:
-            return request.build_absolute_uri(license_file.url)
+        request = self.context.get("request")
+        try:
+            lf = obj.license_files
+        except BaseProduct.license_files.RelatedObjectDoesNotExist:
+            return None
+
+        if lf and lf.file and request:
+            return request.build_absolute_uri(lf.file.url)
         return None
 
     def get_is_favorite(self, obj):
@@ -143,7 +147,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     product_parameters = ProductParameterSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
-    price = serializers.DecimalField(source='min_price_with_acquiring', max_digits=10, decimal_places=2, read_only=True)
+    price = serializers.DecimalField(source='final_min_price', max_digits=10, decimal_places=2, read_only=True)
     ordered_count = serializers.IntegerField(source='ordered_quantity', read_only=True)
     seller_id = serializers.IntegerField(source='seller.id', read_only=True)
     is_age_restricted = serializers.BooleanField(read_only=True)
@@ -168,7 +172,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     def get_image(self, obj):
         request = self.context.get('request')
         first_image = obj.images.first()
-        if first_image and first_image.image:
+        if first_image and first_image.image and request:
             return request.build_absolute_uri(first_image.image.url)
         return None
 
