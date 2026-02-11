@@ -552,3 +552,14 @@ LOGGING = {
         },
     },
 }
+
+# Google Merchant Center feed
+PUBLIC_DOMAIN = os.getenv("PUBLIC_DOMAIN", "https://reli.one")
+FEED_CURRENCY = os.getenv("FEED_CURRENCY", "EUR")
+GMC_FEED_RELATIVE_PATH = os.getenv("GMC_FEED_RELATIVE_PATH", "feeds/google.xml")
+# Only Nutristar products in feed (SellerProfile id=43)
+GMC_ONLY_SELLER_IDS = [43]
+# Static brand override per seller_id
+GMC_STATIC_BRANDS = {
+    43: "Nutristar",
+}
