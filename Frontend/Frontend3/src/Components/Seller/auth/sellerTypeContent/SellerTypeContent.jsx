@@ -23,12 +23,15 @@ const SellerTypeContent = () => {
 
     useEffect(() => {
         getOnboardingStatus().then((res) => {
-            console.log(res);
             setStatus(res.status)
-            if (res?.status !== "draft") {
+
+            if (res?.status === "pending_verification") {
+
                 ErrToast("You have already selected a seller type.")
             }
         }).catch((err) => {
+            console.log(err);
+
             ErrToast(err.message)
 
         })
@@ -42,7 +45,6 @@ const SellerTypeContent = () => {
 
         try {
             const res = await postSellerType(company);
-            console.log("Успех:", res);
 
             if (res.status === 200) {
                 if (company === "company") {

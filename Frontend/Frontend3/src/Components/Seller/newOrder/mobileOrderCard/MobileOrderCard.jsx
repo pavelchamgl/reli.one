@@ -39,7 +39,6 @@ const MobileOrderCard = ({ item }) => {
     const handleDownload = async () => {
         try {
             const res = await getLabels(item?.id)
-            console.log(res);
 
             if (res.status === 200) {
                 downloadBlob(res.data, `order.${item?.id}.zip `)
@@ -50,7 +49,6 @@ const MobileOrderCard = ({ item }) => {
                 error?.response?.data?.detail ||
                 "Failed to download your label";
 
-            console.log(error);
 
 
             ErrToast(message);

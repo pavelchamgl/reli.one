@@ -12,7 +12,6 @@ import { useLocation } from "react-router-dom"
 const BankAccount = ({ formik }) => {
 
     const isBankFilled = (values) => {
-        console.log(values);
         return Boolean(
             values.iban &&
             values.swift_bic &&
@@ -33,7 +32,6 @@ const BankAccount = ({ formik }) => {
 
         const filled = isBankFilled(formik.values)
 
-        console.log(filled);
 
 
         if (!filled) return

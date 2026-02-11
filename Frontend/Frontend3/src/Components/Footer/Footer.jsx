@@ -169,7 +169,7 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <Link className={cls.LinkNavigate} to="https://info.reli.one">
+              <Link className={cls.LinkNavigate} to="/about_reli">
                 {t("about_company")}
               </Link>
             </li>
@@ -302,7 +302,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link className={cls.LinkNavigate} to="https://info.reli.one">
+                <Link className={cls.LinkNavigate} to="/about_reli">
                   {t("about_company")}
                 </Link>
               </li>

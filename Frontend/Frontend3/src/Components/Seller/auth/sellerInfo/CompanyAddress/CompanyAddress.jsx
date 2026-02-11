@@ -20,7 +20,6 @@ const CompanyAddress = ({ formik }) => {
     const [country, setCountry] = useState(companyData?.country ?? null)
 
     const isCompanyAddressFilled = (values) => {
-        console.log(values);
         return Boolean(
             values.street,
             values.city,
@@ -36,7 +35,6 @@ const CompanyAddress = ({ formik }) => {
 
         const filled = isCompanyAddressFilled(formik.values)
 
-        console.log(filled);
 
 
         if (!filled) return
@@ -80,7 +78,6 @@ const CompanyAddress = ({ formik }) => {
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
-                console.log("Документ загружен", res);
 
                 formik.setFieldValue("proof_document_issue_date", res.uploaded_at)
 

@@ -17,7 +17,6 @@ const DownLabelsBlock = () => {
     const handleDownload = async () => {
         try {
             const res = await postDownloadLabels(selectedIds)
-            console.log(res);
 
             if (res.status === 200) {
                 downloadBlob(res.data, `orders.zip `)

@@ -18,7 +18,6 @@ const WhareHouseAddress = ({ formik }) => {
 
 
     const isWarehouseFilled = (values) => {
-        console.log(values);
         return Boolean(
             values.wStreet &&
             values.wCity &&
@@ -96,7 +95,6 @@ const WhareHouseAddress = ({ formik }) => {
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
-                console.log("Документ загружен", res);
                 formik.setFieldValue("wProof_document_issue_date", res.uploaded_at)
                 setDate(res?.uploaded_at)
                 if (pathname === companyPathname) {

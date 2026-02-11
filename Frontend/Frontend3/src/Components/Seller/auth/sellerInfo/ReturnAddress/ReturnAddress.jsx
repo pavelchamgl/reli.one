@@ -79,10 +79,7 @@ const ReturnAddress = ({ formik }) => {
     // const handleSameAsWarehouse = async (checked) => {
     //     setIsChecked(checked)
 
-    //     console.log(sourceData);
 
-    //     console.log(checked);
-    //     console.log(formik.values);
 
 
 
@@ -134,7 +131,6 @@ const ReturnAddress = ({ formik }) => {
     }
 
     const isReturnFilled = (values) => {
-        console.log(values);
         return Boolean(
             values.rStreet &&
             values.rCity &&
@@ -151,7 +147,6 @@ const ReturnAddress = ({ formik }) => {
 
         const filled = isReturnFilled(formik.values)
 
-        console.log(filled);
 
 
         if (!filled) return

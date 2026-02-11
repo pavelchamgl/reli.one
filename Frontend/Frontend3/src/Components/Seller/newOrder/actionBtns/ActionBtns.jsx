@@ -9,13 +9,11 @@ import { downloadBlob } from "../../../../code/seller"
 
 const ActionBtns = ({ data }) => {
 
-    console.log(data);
 
 
     const handleDownload = async () => {
         try {
             const res = await getLabels(data?.id)
-            console.log(res);
 
             if (res.status === 200) {
                 downloadBlob(res.data, `order.${data?.id}.zip `)
@@ -37,7 +35,6 @@ const ActionBtns = ({ data }) => {
         try {
             const res = await postCencelOrder(data?.id);
 
-            console.log(res);
 
 
             // if (res.status === 200) {

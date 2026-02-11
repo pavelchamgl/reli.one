@@ -36,10 +36,12 @@ const App = () => {
     const updateURL = (lng) => {
       const params = new URLSearchParams(window.location.search);
       params.set("language", lng);
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
+
+      const hash = window.location.hash; // <-- сохраняем якорь
+      const newUrl = `${window.location.pathname}?${params.toString()}${hash}`;
+
       window.history.replaceState({}, "", newUrl);
     };
-
     // начальная проверка при загрузке
     const initialLang = i18n.language;
     const params = new URLSearchParams(window.location.search);
@@ -55,6 +57,18 @@ const App = () => {
       i18n.off("languageChanged", updateURL);
     };
   }, [i18n]);
+
+  useEffect(() => {
+    if (!window.location.hash) return;
+
+    const el = document.getElementById("get-in-touch");
+
+    if (el) {
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, []);
 
 
   return (

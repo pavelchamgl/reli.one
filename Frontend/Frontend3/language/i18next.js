@@ -5,15 +5,19 @@ import translationEn from "../src/locales/en/translation.json";
 import translationCz from "../src/locales/cz/translation.json";
 import contactEn from "../src/locales/en/contactEn.json";
 import contactCz from "../src/locales/cz/contactCz.json";
+import aboutCz from "../src/locales/cz/aboutCz.json";
+import aboutEn from "../src/locales/en/aboutEn.json";
 
 const resources = {
   en: {
     translation: translationEn,
-    contact: contactEn
+    contact: contactEn,
+    about: aboutEn
   },
   cz: {
     translation: translationCz,
-    contact: contactCz
+    contact: contactCz,
+    about: aboutCz
   },
 };
 

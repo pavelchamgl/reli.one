@@ -5,7 +5,6 @@ import styles from "./WarehouseAndReturn.module.scss"
 
 const WarehouseAndReturn = ({ data }) => {
 
-    console.log(data);
 
     const nationalArr = [
         { text: "Czech Republic", value: "cz" },

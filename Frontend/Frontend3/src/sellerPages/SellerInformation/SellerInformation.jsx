@@ -53,7 +53,7 @@ const SellerInformation = () => {
             street: selfData?.street ?? "",
             city: selfData?.city ?? "",
             zip_code: selfData?.zip_code ?? "",
-            address_country: selfData?.address_country ?? "",
+            country: selfData?.country ?? "",
             proof_document_issue_date: selfData.proof_document_issue_date ?? "",
 
             // bank
@@ -83,7 +83,6 @@ const SellerInformation = () => {
         // enableReinitialize: true,
         validateOnChange: true,
         onSubmit: async (values) => {
-            console.log(values);
             safeData(values);
 
             // массив промисов с описанием
@@ -167,7 +166,6 @@ const SellerInformation = () => {
                     })
                     .filter(Boolean);
 
-                console.log(errors);
 
 
                 if (errors.length > 0) {
@@ -191,9 +189,9 @@ const SellerInformation = () => {
 
     })
 
-    useEffect(() => {
-        console.log(formik.errors);
-    }, [formik.errors, selfData])
+    // useEffect(() => {
+    //     console.log(formik.errors);
+    // }, [formik.errors, selfData])
 
     return (
         <FormWrap style={{ height: "100%" }}>
