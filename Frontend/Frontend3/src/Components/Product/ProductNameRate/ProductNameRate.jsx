@@ -1,5 +1,5 @@
 import { Rating } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
@@ -26,7 +26,10 @@ const ProductNameRate = () => {
 
   const isMobile = useMediaQuery({ maxWidth: 426 })
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const navigate = useNavigate();
+  const { search } = useLocation()
   const dispatch = useDispatch();
 
   const { t } = useTranslation();
@@ -81,34 +84,67 @@ const ProductNameRate = () => {
     setFormattedText(replacedText);
   }, [product?.name]);
 
+  // useEffect(() => {
+  //   if (product && product.variants && product.variants.length > 0) {
+  //     // Проверка, есть ли продукт с текущим id в корзине
+  //     const existingProduct = basket.find((item) => item.id === product.id);
+
+
+  //     if (!existingProduct) {
+  //       // Если продукта нет в корзине, установить значения первого варианта
+  //       const firstVariant = product.variants[0];
+  //       setPrice(firstVariant.price);
+  //       setEndPice(firstVariant.price);
+  //       setSku(firstVariant.sku);
+  //       // setPriceVat(firstVariant.price_without_vat)
+  //     } else {
+  //       // Если продукт уже в корзине, использовать данные из корзины
+  //       setEndPice(existingProduct.product.price);
+  //       setSku(existingProduct.sku);
+  //       // setPriceVat(existingProduct?.price_without_vat)
+  //     }
+  //   }
+  // }, [product, basket]);
+
   useEffect(() => {
-    if (product && product.variants && product.variants.length > 0) {
-      // Проверка, есть ли продукт с текущим id в корзине
-      const existingProduct = basket.find((item) => item.id === product.id);
 
+    const sku = new URLSearchParams(search).get("variant")
+    const firstVariant = product.variants?.[0];
 
-      if (!existingProduct) {
-        // Если продукта нет в корзине, установить значения первого варианта
-        const firstVariant = product.variants[0];
-        setPrice(firstVariant.price);
-        setEndPice(firstVariant.price);
-        setSku(firstVariant.sku);
-        // setPriceVat(firstVariant.price_without_vat)
+    if (sku) {
+      const searchVariant = product.variants?.find((item) => item.sku === sku)
+
+      if (searchVariant) {
+        setPrice(searchVariant?.price)
+        setEndPice(searchVariant?.price)
+        setPriceVat(searchVariant?.price_without_vat)
+        setSku(sku)
       } else {
-        // Если продукт уже в корзине, использовать данные из корзины
-        setEndPice(existingProduct.product.price);
-        setSku(existingProduct.sku);
-        // setPriceVat(existingProduct?.price_without_vat)
+        setPrice(firstVariant?.price)
+        setEndPice(firstVariant?.price)
+        setPriceVat(firstVariant?.price_without_vat)
+        setSku(firstVariant?.sku)
       }
-    }
-  }, [product, basket]);
-
-  useEffect(() => {
-    if (product && product.variants && product.variants.length > 0) {
-      const firstVariant = product.variants[0];
-      setPriceVat(firstVariant.price_without_vat)
+    } else {
+      setPrice(firstVariant?.price)
+      setEndPice(firstVariant?.price)
+      setPriceVat(firstVariant?.price_without_vat)
+      setSku(firstVariant?.sku)
     }
   }, [])
+
+
+  const setVariant = (newVariant) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("variant", String(newVariant));
+
+    setSearchParams(params, { replace: true }); // ✅ без reload
+  };
+
+  useEffect(() => {
+    if (!sku) return
+    setVariant(sku)
+  }, [sku])
 
   // ? получения путей, для перевода id
 
@@ -135,6 +171,7 @@ const ProductNameRate = () => {
       <p className={styles.price}>{endPrice ? endPrice : price} €</p>
       <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVat} €</span></p>
       <ProdCharackButtons
+        sku={sku}
         setSku={setSku}
         setPrice={setEndPice}
         setPriceVat={setPriceVat}

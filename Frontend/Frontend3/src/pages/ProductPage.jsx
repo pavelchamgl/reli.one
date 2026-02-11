@@ -35,6 +35,8 @@ const ProductPage = () => {
   }, [id]);
 
 
+  
+
 
 
   if (status !== "loading") {
