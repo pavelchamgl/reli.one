@@ -20,6 +20,16 @@ const SellerReviewCompany = () => {
 
     const { companyData } = useSelector(state => state.selfEmploed)
 
+
+    console.log(companyData);
+
+
+
+    const complitnessArr = {
+        documents_complete: "Documents"
+    }
+
+
     useEffect(() => {
         getReviewOnboarding()
     }, [])
@@ -29,12 +39,20 @@ const SellerReviewCompany = () => {
     const parseApiErrors = (data) => {
         if (!data) return ["Unknown error"];
 
-        // detail / message
+        if (data.completeness) {
+            const incomplete = Object.entries(data.completeness)
+                .filter(([_, v]) => v !== "True")
+                .map(([k]) => complitnessArr[k] ?? k);
+
+            if (incomplete.length) {
+                return [`Please complete: ${incomplete.join(", ")}`];
+            }
+        }
+
         if (typeof data === "string") return [data];
         if (data.detail) return [data.detail];
         if (data.message) return [data.message];
 
-        // field errors
         if (typeof data === "object") {
             return Object.values(data).flatMap((value) => {
                 if (Array.isArray(value)) return value;
@@ -45,6 +63,7 @@ const SellerReviewCompany = () => {
 
         return ["Unexpected error"];
     };
+
 
     const handleSubmit = async () => {
         try {
@@ -59,6 +78,9 @@ const SellerReviewCompany = () => {
             const responseData = error?.response?.data;
 
             const messages = parseApiErrors(responseData);
+
+            console.log(messages);
+
 
             messages.forEach((msg) => ErrToast(msg));
             navigate("/seller/seller-company")
@@ -77,7 +99,7 @@ const SellerReviewCompany = () => {
 
                 </div>
 
-                <AccountInfo data={companyData} />
+                <AccountInfo isCompany={true} data={companyData} type={"company"} />
                 <CompanyInfo data={companyData} />
 
                 <BusinessAddress data={companyData} />

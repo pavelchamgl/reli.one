@@ -51,16 +51,20 @@ const ApplicationSubmitedContent = () => {
                 </ul>
             </div>
 
-            <button className={styles.returnHomeBtn}>
+            <a href="https://info.reli.one/" className={styles.returnHomeBtn}>
                 <img src={homeIc} alt="" />
                 Return to Homepage
-            </button>
+            </a>
 
 
 
             <div className={styles.bottomLinkWrap}>
                 <p>Need help?</p>
-                <FormLink text={"Contact support"} />
+                <a href="https://info.reli.one/#contact" onClick={() => {
+                    cookieStore.set("contact", JSON.stringify(true))
+                }} className={styles.linkBtn}>
+                    Contact support
+                </a>
             </div>
 
         </div>

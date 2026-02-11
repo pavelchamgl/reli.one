@@ -34,7 +34,6 @@ const ResetForm = () => {
         },
         validationSchema: validationReset,
         onSubmit: (values) => {
-            console.log(values);
             passSendOtp(values)
                 .then((res) => {
                     localStorage.setItem("email", JSON.stringify(values.email));

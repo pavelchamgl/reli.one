@@ -25,7 +25,6 @@ const CompanyInfo = ({ formik }) => {
     const [legal, setLegal] = useState(companyData?.legal_form ?? null)
 
     const isCompanyFilled = (values) => {
-        console.log(values);
         return Boolean(
             values.company_name &&
             values.business_id &&
@@ -48,7 +47,7 @@ const CompanyInfo = ({ formik }) => {
             legal_form: legal,
             country_of_registration: country,
             business_id: formik.values.business_id,
-            ico: "string",
+            ico: formik.values.ico,
             tin: formik.values?.tin,
             vat_id: formik.values?.vat_id,
             eori_number: formik.values?.eori_number,
@@ -105,7 +104,6 @@ const CompanyInfo = ({ formik }) => {
             .then(res => {
                 formik.setFieldValue("certificate_issue_date", res.uploaded_at)
                 safeCompanyData({ certificate_issue_date: res.uploaded_at })
-                console.log("Документ загружен", res);
             })
             .catch(err => {
                 ErrToast(err.message)
@@ -162,6 +160,17 @@ const CompanyInfo = ({ formik }) => {
                     onBlur={formik.handleBlur}
                     error={formik.errors.business_id}
                 />
+
+                {(country === "cz" || country === "sk") &&
+                    <InputSeller title={"IČO"} type={"text"} circle={true} required={true} num={true}
+                        placeholder={"123456789"}
+                        name="ico"
+                        value={formik.values.ico}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.ico}
+                    />
+                }
 
                 <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} placeholder={"987654321"}
                     name="tin"

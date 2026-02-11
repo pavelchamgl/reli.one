@@ -50,7 +50,6 @@ const LoginForm = () => {
         },
         validationSchema: validationLogin,
         onSubmit: async (values) => {
-            console.log(values);
 
             try {
                 const res = await login(values)

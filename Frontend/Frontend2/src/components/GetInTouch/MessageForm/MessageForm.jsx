@@ -37,12 +37,10 @@ const MessageForm = () => {
         onSubmit: async (values) => {
             try {
                 const res = await createContactMessage(values);
-                console.log(res);
 
                 toast.success("Message sent successfully!");
 
             } catch (err) {
-                console.log(err);
 
                 toast.error("Failed to send message. Try again.");
             }

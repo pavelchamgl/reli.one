@@ -43,6 +43,8 @@ export const getOnboardingStatus = async () => {
         const res = await mainInstance.get("/sellers/onboarding/state/");
         return res.data;
     } catch (error) {
+        console.log(error);
+
         handleError(error, "Failed to fetch onboarding status");
     }
 };

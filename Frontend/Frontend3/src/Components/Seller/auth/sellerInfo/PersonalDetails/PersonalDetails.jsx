@@ -23,7 +23,6 @@ const PersonalDetails = ({ formik }) => {
   const [nationality, setNationality] = useState(selfData.nationality)
 
   const isPersonalDataFilled = (values) => {
-    console.log(values);
     return Boolean(
       values.first_name &&
       values.last_name &&
@@ -40,7 +39,6 @@ const PersonalDetails = ({ formik }) => {
 
     const filled = isPersonalDataFilled(formik.values)
 
-    console.log(filled);
 
 
     if (!filled) return
@@ -109,7 +107,6 @@ const PersonalDetails = ({ formik }) => {
       })
       .catch(err => {
         ErrToast(err.message)
-        console.log("Ошибка загрузки", err);
       });
   };
 
@@ -121,7 +118,6 @@ const PersonalDetails = ({ formik }) => {
     tabIndex={-1} 
     onBlurCapture={(e) => {
       if (!e.currentTarget.contains(e.relatedTarget)) {
-        console.log("ijcwuhecuhweiuci");
 
         setTimeout(onLeavePersonalBlock, 0);
       }

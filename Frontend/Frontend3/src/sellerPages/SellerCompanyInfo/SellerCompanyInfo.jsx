@@ -90,7 +90,6 @@ const SellerCompanyInfo = () => {
         },
         validationSchema: companyValidationSchema,
         onSubmit: async (values) => {
-            console.log(values);
             safeCompanyData({
                 ...values
             });
@@ -103,7 +102,7 @@ const SellerCompanyInfo = () => {
                         legal_form: companyData?.legal_form,
                         country_of_registration: companyData?.country_of_registration,
                         business_id: values?.business_id,
-                        ico: "string",
+                        ico: values?.ico,
                         tin: values?.tin,
                         vat_id: values?.vat_id,
                         imports_to_eu: true,
@@ -177,11 +176,11 @@ const SellerCompanyInfo = () => {
     })
 
 
-    useEffect(() => {
-        console.log(formik.errors);
-        console.log(formik.values);
+    // useEffect(() => {
+    //     console.log(formik.errors);
+    //     console.log(formik.values);
 
-    }, [formik.errors, formik.values])
+    // }, [formik.errors, formik.values])
 
     return (
         <FormWrap style={{ height: "100%" }}>

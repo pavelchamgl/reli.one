@@ -1,0 +1,80 @@
+{
+  "title": "About Reli Group s.r.o. ",
+  "hero": {
+    "title": "A Company with Industrial Roots - A Marketplace Built on Operational Excellence.",
+    "subtitle": "Reli.one - A Marketplace Built by a Business with Real Experience"
+  },
+  "corporateOverview": {
+    "title": "Corporate Overview",
+    "description": "Reli Group s.r.o. is a European company headquartered in the Czech Republic.",
+    "description1": "Originally established as a distributor of solar panel solutions, we built our foundation in the highly regulated and competitive energy sector.",
+    "valuesTitle": "Through our experience we developed strong focus on:",
+    "values": {
+      "efficiency": "operational efficiency",
+      "supplyChain": "reliability in supply chain management",
+      "transparency": "transparent partner relationships",
+      "compliance": "compliance and quality control",
+      "sustainability": "long-term business sustainability"
+    },
+    "afterText": "These values have positioned Reli Group s.r.o. as a trusted and stable partner for businesses across several markets."
+  },
+  "transformation": {
+    "title": "Strategic Transformation",
+    "description": "In response to the fast-evolving digital economy, Reli Group s.r.o. initiated a strategic transformation:",
+    "desc1": "from a specialized distribution company to a modern digital commerce platform.",
+    "insightsTitle": "The shift followed clear market insights:",
+    "insights": {
+      "salesChannels": "businesses require efficient and credible online sales channels",
+      "transparency": "modern marketplaces often lack transparency toward their sellers",
+      "discipline": "companies need platforms that operate with the discipline of a  ",
+      "b2c": "B2C/B2B",
+      "enterprise": "enterprise"
+    },
+    "result": "Leveraging our operational expertise and technology investments, we developed Marketplace Reli (www.reli.one), a next-generation marketplace designed to support businesses of all sizes."
+  },
+  "marketplace": {
+    "title": "Reli.one Marketplace",
+    "subtitle": "Reli.one is a multi-category online marketplace built on principles that reflect our corporate heritage:",
+    "principles": {
+      "reliability": {
+        "title": "Operational Reliability",
+        "text": "A robust platform designed with precision and process orientation used in industrial distribution."
+      },
+      "transparency": {
+        "title": "Transparent Business Environment",
+        "text": "Clear conditions, predictable fees, and no unexpected changes. Sellers operate with confidence and long-term visibility.",
+        "text1": "Sellers operate with confidence and long-term visibility."
+      },
+      "infrastructure": {
+        "title": "Scalable Digital Infrastructure",
+        "text": "Secure payments, automated systems, detailed analytics, and integrated business tools - all designed for professional use."
+      },
+      "partnership": {
+        "title": "Partnership - Driven Approach",
+        "text": "We build long-term relationships with sellers, supporting their growth and treating them as strategic partners."
+      }
+    }
+  },
+  "valueForSellers": {
+    "title": "Value for Sellers",
+    "listTitle": "Sellers joining Reli.one benefit from:",
+    "items": {
+      "reach": "expanded market reach across the EU region",
+      "platform": "professionally managed platform prioritizing quality and reliability",
+      "tools": "growth-enabling tools: product insights, sales analytics, and promotional features",
+      "finance": "secure and transparent financial processes"
+    },
+    "goal": "Our goal is to create a marketplace ecosystem where sellers can operate efficiently, scale sustainably, and focus on what they do best - building their business."
+  },
+  "vision": {
+    "title": "Our Vision",
+    "text": "Reli Group s.r.o. is committed to establishing Reli.one as a leading European digital marketplace built on trust, operational excellence, and business integrity.",
+    "text1": "We aim to connect businesses, brands, and creators with customers through a platform reflecting professional standards and long-term strategic thinking."
+  },
+  "positioning": {
+    "title": "Reli.one - A Marketplace Built by a Business with Real Experience",
+    "text": "Our history in the solar energy sector taught us the value of precision, compliance, and reliability.",
+    "text1":"These values now define our marketplace.",
+    "text2":"Sellers who partner with Reli.one gain access to a platform built not on speculation, but on experience, structure, and corporate discipline."
+  }
+}

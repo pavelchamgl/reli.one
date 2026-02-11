@@ -20,6 +20,9 @@ const ReviewInfoPage = () => {
 
     const { selfData } = useSelector(state => state.selfEmploed)
 
+    console.log(selfData);
+    
+
 
     const navigate = useNavigate()
 

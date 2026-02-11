@@ -15,11 +15,10 @@ const PersonalDetails = ({ data }) => {
 
     const nationality = nationalArr.find((item) => item?.value === data?.nationality)
 
-    const tax_country = nationalArr.find((item)=>item?.value === data?.tax_country)
+    const tax_country = nationalArr.find((item) => item?.value === data?.tax_country)
 
 
-    console.log(data);
-    
+
 
 
     return (
@@ -27,20 +26,34 @@ const PersonalDetails = ({ data }) => {
             <div className={styles.titleWrap}>
                 <div>
                     <img src={personalIc} alt="" />
-                    <h3>Personal Details</h3>
+                    <h3>Tax information</h3>
                 </div>
 
                 <EditBtn />
             </div>
             <ul className={styles.infoList}>
                 <li>
-                    <p>Date of Birth</p>
-                    <span className={styles.num}>{data?.date_of_birth}</span>
+                    <p>TIN</p>
+                    <span className={styles.num}>{data?.tin}</span>
                 </li>
                 <li>
-                    <p>Tax ID</p>
+                    <p>Tax country</p>
                     <span>{tax_country?.text}</span>
                 </li>
+                {
+                    data?.ico &&
+                    <li>
+                        <p>ICO</p>
+                        <span className={styles.num}>{data?.text}</span>
+                    </li>
+                }
+                {
+                    data?.vat_id &&
+                    <li>
+                        <p>Vat id</p>
+                        <span className={styles.num}>{data?.vat_id}</span>
+                    </li>
+                }
                 <li>
                     <p>Nationality</p>
                     <span>{nationality?.text}</span>

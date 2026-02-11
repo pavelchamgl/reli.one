@@ -6,7 +6,15 @@ import styles from "./BusinessAddress.module.scss"
 
 const BusinessAddress = ({ data }) => {
 
+    const countryArr = [
+        { text: "Czech Republic", value: "cz" },
+        { text: "Germany", value: "de" },
+        { text: "France", value: "fr" },
+        { text: "Poland", value: "pl" },
+        { text: "United Kingdom", value: "gb" }
+    ];
 
+    const country = countryArr.find((item) => item.value === data?.country)
 
     return (
         <div className={styles.main}>
@@ -18,7 +26,7 @@ const BusinessAddress = ({ data }) => {
 
                 <EditBtn />
             </div>
-            <p className={styles.addressText}>{`${data?.street}, ${data?.city}, ${data?.address_country?.toUpperCase() || data?.country?.toUpperCase()}`}</p>
+            <p className={styles.addressText}>{`${data?.street}, ${data?.city}, ${country.text}`}</p>
         </div>
     )
 }

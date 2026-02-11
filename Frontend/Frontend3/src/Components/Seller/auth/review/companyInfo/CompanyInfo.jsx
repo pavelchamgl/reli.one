@@ -10,6 +10,16 @@ const CompanyInfo = ({ data }) => {
 
     const { registerData } = useSelector(state => state.selfEmploed)
 
+    const countryArr = [
+        { text: "Czech Republic", value: "cz" },
+        { text: "Germany", value: "de" },
+        { text: "France", value: "fr" },
+        { text: "Poland", value: "pl" },
+        { text: "United Kingdom", value: "gb" }
+    ];
+
+    const countryOfRegistration = countryArr.find((item) => item.value === data?.country_of_registration)
+
 
     return (
         <div className={styles.main}>
@@ -28,6 +38,35 @@ const CompanyInfo = ({ data }) => {
                     <span>{data?.company_name}</span>
                 </li>
                 <li>
+                    <p>Legal form</p>
+                    <span >{data?.legal_form}</span>
+                </li>
+                <li>
+                    <p>Country of registration</p>
+                    <span >{countryOfRegistration?.text}</span>
+                </li>
+                {
+                    data?.ico &&
+                    <li>
+                        <p>ICO</p>
+                        <span className={styles.num}>{data?.ico}</span>
+                    </li>
+                }
+                {
+                    data?.tin &&
+                    <li>
+                        <p>TIN</p>
+                        <span className={styles.num}>{data?.tin}</span>
+                    </li>
+                }
+                {
+                    data?.eori_number &&
+                    <li>
+                        <p>EORI number</p>
+                        <span className={styles.num}>{data?.eori_number}</span>
+                    </li>
+                }
+                <li>
                     <p>Registration Number</p>
                     <span className={styles.num}>{registerData?.phone ? registerData?.phone : "N/A"}</span>
                 </li>
@@ -37,7 +76,11 @@ const CompanyInfo = ({ data }) => {
                 </li>
                 <li>
                     <p>VAT ID</p>
-                    <span className={styles.num}>{data?.vat_id?data?.vat_id:"N/A"}</span>
+                    <span className={styles.num}>{data?.vat_id ? data?.vat_id : "N/A"}</span>
+                </li>
+                <li>
+                    <p>Company phone</p>
+                    <span className={styles.num}>{data?.company_phone ? data?.company_phone : "N/A"}</span>
                 </li>
             </ul>
         </div>

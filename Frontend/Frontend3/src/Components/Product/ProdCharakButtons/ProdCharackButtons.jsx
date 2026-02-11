@@ -7,14 +7,17 @@ import prodTestImg from "../../../assets/Product/ProductTestImage.svg";
 import styles from "./ProdCharackButtons.module.scss";
 import { useTranslation } from "react-i18next";
 
-const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }) => {
+const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPriceVat }) => {
   const { image, name, text, price } = variants[0] || {};
 
   const basket = useSelector((state) => state.basket.basket);
 
+  console.log(sku, variants);
+
+
   const [varPack, setVarPack] = useState(null);
   const [selected, setSelected] = useState(
-    variants.length > 0 ? variants[0].sku : null
+    variants?.[0]?.sku
   );
 
   const { t } = useTranslation()
@@ -29,13 +32,20 @@ const ProdCharackButtons = ({ variants = [], setPrice, setSku, id, setPriceVat }
     }
   }, [text, price, image]);
 
-  useEffect(() => {
-    const selectedProduct = basket.find((item) => item.id === id);
 
-    if (selectedProduct) {
-      setSelected(selectedProduct.sku);
+  useEffect(() => {
+    if (sku) {
+      setSelected(sku)
     }
-  }, [basket, variants, setPrice, setSku]);
+  }, [sku])
+
+  // useEffect(() => {
+  //   const selectedProduct = basket.find((item) => item.id === id);
+
+  //   if (selectedProduct) {
+  //     setSelected(selectedProduct.sku);
+  //   }
+  // }, [basket, variants, setPrice, setSku]);
 
   if (varPack === "pack3") {
     return (

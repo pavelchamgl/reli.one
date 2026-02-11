@@ -190,12 +190,13 @@ export const companyValidationSchema = Yup.object({
         .required("Country of registration is required"),
 
     business_id: Yup.string()
-        .matches(icoRegex, "Business ID (IČO) must contain exactly 8 digits")
         .required("Business ID (IČO) is required"),
 
-    // ico: Yup.string()
-    //     .matches(icoRegex, "IČO must contain exactly 8 digits")
-    //     .required("IČO is required"),
+    ico: Yup.string().when("country_of_registration", {
+        is: (val) => val === "cz" || val === "sk", // условие
+        then: (schema) => schema.required("IČO is required"), // обязательно
+        otherwise: (schema) => schema.notRequired(),          // иначе необязательно
+    }),
 
     tin: Yup.string()
         .matches(dicRegex, "DIČ must contain 8–10 digits")

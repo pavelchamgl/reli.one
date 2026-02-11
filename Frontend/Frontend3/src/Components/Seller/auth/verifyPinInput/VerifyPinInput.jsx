@@ -12,7 +12,6 @@ const VerifyPinInput = ({ value, setValue }) => {
             length={6}
             initialValue=""
             onChange={(val, index) => {
-                console.log(val);
 
                 setValue(val);
             }}

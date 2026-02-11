@@ -22,7 +22,6 @@ const Representative = ({ formik }) => {
     const [nationality, setNationality] = useState(companyData?.nationality ?? null)
 
     const isRepresentativeFilled = (values) => {
-        console.log(values);
         return Boolean(
             values.first_name &&
             values.last_name &&
@@ -36,7 +35,6 @@ const Representative = ({ formik }) => {
 
         const filled = isRepresentativeFilled(formik.values)
 
-        console.log(filled);
 
 
         if (!filled) return
@@ -102,7 +100,6 @@ const Representative = ({ formik }) => {
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
-                console.log("Документ загружен", res);
 
                 if (side === "front") {
                     formik.setFieldValue("uploadFront", res.uploaded_at)

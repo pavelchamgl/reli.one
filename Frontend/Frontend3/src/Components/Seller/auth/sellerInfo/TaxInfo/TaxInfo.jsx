@@ -23,7 +23,6 @@ const TaxInfo = ({ formik }) => {
     const taxDataRef = useRef(null)
 
     const isTaxDataFilled = (values) => {
-        console.log(values);
         return Boolean(
             values.tax_country &&
             values.tin &&
@@ -35,7 +34,6 @@ const TaxInfo = ({ formik }) => {
 
         const filled = isTaxDataFilled(formik.values)
 
-        console.log(filled);
 
 
         if (!filled) return
