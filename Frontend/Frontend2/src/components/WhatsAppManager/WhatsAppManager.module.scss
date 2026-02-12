@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  z-index: 1150;
+  z-index: 1199;
 
   &:hover .label {
     opacity: 1;
@@ -21,7 +21,7 @@
   }
 
   @media (max-width: 500px) {
-    bottom: 40px;
+    bottom: 70px;
   }
 }
 
@@ -33,10 +33,11 @@
     0 4px 6px -4px rgba(0, 0, 0, 0.1),
     0 10px 15px -3px rgba(0, 0, 0, 0.1);
   background: #101828;
+  width: 332px;
   font-weight: 500;
   font-size: 14px;
   color: #fff;
-  width: 332px;
+  // white-space: nowrap;
 
   opacity: 0;
   transform: translateX(20px);
@@ -47,7 +48,7 @@
     transform 0.3s ease;
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     right: -12px;
     top: 50%;
@@ -71,7 +72,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(195deg, #25d366 0%, #136d35 100%);
+  background: #136d35  ;
 
   display: flex;
   align-items: center;
@@ -81,12 +82,11 @@
   z-index: 1;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: -6px;
-    bottom: 20px;
     border-radius: 20px;
-    background: linear-gradient(195deg, #25d366 0%, #136d35 100%);
+    background: #25d3659e ;
     filter: blur(10px);
     opacity: 0;
     transition: opacity 0.25s ease;
@@ -111,25 +111,19 @@
   cursor: pointer;
 }
 
-.telegramWrap:hover .label {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.telegramWrap:hover .label,
+.telegramWrap:not(.noHover):hover .label,
 .telegramWrap.active .label {
   opacity: 1;
   transform: translateX(0);
+  pointer-events: auto;
 }
 
-.telegramWrap:hover .label,
-.telegramWrap.active .label {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto; // ← ВОТ ЭТО ВАЖНО
+.telegramWrap.noHover .label {
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
 }
 
 .label {
   pointer-events: none;
 }
-

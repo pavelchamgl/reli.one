@@ -1,0 +1,59 @@
+{
+    "for_seller": "Pro prodejce",
+    "title": "Cenová a provizní politika",
+    "subtitle": "Marketplace Reli.one",
+    "purpose": {
+        "title": "Účel a rozsah",
+        "point1": "Tato Cenová a provizní politika (dále jen „Politika“) stanovuje zásady, strukturu a výši provizí uplatňovaných vůči prodávajícím při využívání marketplace platformy Reli.one (dále jen „Platforma“).",
+        "point2": "Tato Politika se vztahuje na všechny prodávající registrované na Platformě, pokud není mezi Platformou a prodávajícím písemně sjednáno jinak.",
+        "point3": "Cílem této Politiky je zajistit transparentní, předvídatelné a spravedlivé podmínky stanovení provizí za zprostředkování prodeje prostřednictvím Platformy."
+    },
+    "generalPrinciples": {
+        "title": "Obecné zásady",
+        "intro": "Reli.one uplatňuje pevnou (fixní) provizní sazbu pro každou hlavní produktovou kategorii.",
+        "text22": "Provizní sazby:",
+        "text23": "Podkategorie slouží výhradně k:",
+        "rates": {
+            "item1": "jsou jednotné v rámci dané hlavní kategorie,",
+            "item2": "nejsou závislé na podkategoriích, typu produktu, značce ani cenových pásmech,",
+            "item3": "jsou účtovány výhradně v případě úspěšného dokončení transakce."
+        },
+        "subcategories": {
+            "item1": "orientaci uživatelů,",
+            "item2": "vyhledávání a filtrování produktů,",
+            "item3": "klasifikaci zboží,",
+            "item4": "analytickým a statistickým účelům,"
+        },
+        "subcategoriesNote": "a nemají žádný vliv na výši uplatněné provize."
+    },
+    "commissionRates": {
+        "title": "Výše provizí podle hlavních kategorií",
+        "text": "Následující provizní sazby se uplatňují na transakce uskutečněné prostřednictvím Platformy:"
+    },
+    "caps": {
+        "title": "Limity provize a zvláštní podmínky",
+        "point1": "Reli.one si vyhrazuje právo uplatnit maximální limit provize na jednu objednávku u vybraných kategorií nebo transakcí.",
+        "text": "Případné limity budou vždy transparentně oznámeny prostřednictvím administračního rozhraní prodávajícího nebo individuální smlouvy.",
+        "point2": "Zvýhodněné sazby, marketingové akce nebo individuální obchodní podmínky se uplatní výhradně na základě písemné dohody a nemění obecnou platnost této Politiky pro ostatní prodávající."
+    },
+    "changes": {
+        "title": "Změny Politiky",
+        "intro": "Reli.one si vyhrazuje právo tuto Politiku jednostranně změnit, zejména za účelem:",
+        "reasons": {
+            "item1": "rozšíření nebo úpravy nabízených kategorií,",
+            "item2": "přizpůsobení obchodního modelu,",
+            "item3": "reakce na změny právních předpisů nebo tržních podmínek."
+        },
+        "note": "Změny Politiky budou zveřejněny na Platformě a nabývají účinnosti ke dni v nich uvedenému."
+    },
+    "transparency": {
+        "title": "Transparentnost a poctivé jednání",
+        "point1": "Reli.one se zavazuje udržovat jednoduchou a transparentní strukturu provizí, která umožňuje prodávajícím předem jednoznačně určit výši nákladů spojených s využíváním Platformy.",
+        "point2": "Na rozdíl od platforem využívajících složité vícestupňové nebo podkategoriální modely provizí poskytuje Reli.one pevně stanovené a srozumitelné sazby bez skrytých podmínek."
+    },
+    "contact": {
+        "title": "Kontaktní údaje",
+        "text": "V případě dotazů týkajících se této Politiky se mohou prodávající obracet na:",
+        "email": "office@reli.one"
+    }
+}

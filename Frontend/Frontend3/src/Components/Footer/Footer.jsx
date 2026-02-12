@@ -114,7 +114,7 @@ const Footer = () => {
             <h3>{t("footer_additional.for_providers")}</h3>
 
             <li>
-              <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
+              <Link to={"/for-sell-new"} className={cls.LinkNavigate} href="#">
                 {t("for_seller")}
               </Link>
             </li>
@@ -169,7 +169,7 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <Link className={cls.LinkNavigate} to="/about_reli">
+              <Link className={cls.LinkNavigate} to="https://info.reli.one/">
                 {t("about_company")}
               </Link>
             </li>
@@ -247,7 +247,7 @@ const Footer = () => {
               <h3>{t("footer_additional.for_providers")}</h3>
 
               <li>
-                <Link to={"/for_sell"} className={cls.LinkNavigate} href="#">
+                <Link to={"/for-sell-new"} className={cls.LinkNavigate} href="#">
                   {t("for_seller")}
                 </Link>
               </li>
@@ -302,7 +302,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link className={cls.LinkNavigate} to="/about_reli">
+                <Link className={cls.LinkNavigate} to="https://info.reli.one/">
                   {t("about_company")}
                 </Link>
               </li>

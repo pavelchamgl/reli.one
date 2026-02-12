@@ -7,7 +7,7 @@ const ForSellerTable = () => {
 
   return (
     <div>
-      <div className={styles.tableItem}>
+      {/* <div className={styles.tableItem}>
         <div>
           <p>{t("table_alcohol")}</p>
         </div>
@@ -22,47 +22,178 @@ const ForSellerTable = () => {
         <div>
           <p>8%</p>
         </div>
-      </div>
+      </div> */}
       <div className={styles.tableItem}>
         <div>
           <p>{t("table_art_and_handmade")}</p>
         </div>
         <div>
-          <p>10%</p>
+          <p>8%</p>
         </div>
       </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_baby")}</p>
-        </div>
-        <div>
-          <p>10%</p>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_bags")}</p>
-        </div>
-        <div>
-          <p>13%</p>
-        </div>
-      </div>
+
       <div className={styles.tableItem}>
         <div>
           <p>{t("table_beauty")}</p>
         </div>
         <div>
-          <p>13%</p>
+          <p>6.5%</p>
         </div>
       </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("car_parts")}</p>
+        </div>
+        <div>
+          <p>5.5%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_baby")}</p>
+        </div>
+        <div>
+          <p>7%</p>
+        </div>
+      </div>
+
       <div className={styles.tableItem}>
         <div>
           <p>{t("table_clothing")}</p>
         </div>
         <div>
-          <p>11%</p>
+          <p>6.5%</p>
         </div>
       </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_contsr")}</p>
+        </div>
+        <div>
+          <p>7%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_electronics")}</p>
+        </div>
+        <div>
+          <p>3%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_equipment")}</p>
+        </div>
+        <div>
+          <p>5%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_food_and_drinks")}</p>
+        </div>
+        <div>
+          <p>4%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_furniture")}</p>
+        </div>
+        <div>
+          <p>6%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_hiking")}</p>
+        </div>
+        <div>
+          <p>5.5%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_hobby")}</p>
+        </div>
+        <div>
+          <p>6%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_garden")}</p>
+        </div>
+        <div>
+          <p>6%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_jewerly")}</p>
+        </div>
+        <div>
+          <p>6.5%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_luggage")}</p>
+        </div>
+        <div>
+          <p>6%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_medical")}</p>
+        </div>
+        <div>
+          <p>5%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_office")}</p>
+        </div>
+        <div>
+          <p>6%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_pets")}</p>
+        </div>
+        <div>
+          <p>6%</p>
+        </div>
+      </div>
+
+      <div className={styles.tableItem}>
+        <div>
+          <p>{t("table_photovoltaics")}</p>
+        </div>
+        <div>
+          <p>3%</p>
+        </div>
+      </div>
+
       <div className={styles.tableItem}>
         <div>
           <p>{t("table_computers")}</p>
@@ -71,112 +202,92 @@ const ForSellerTable = () => {
           <p>8%</p>
         </div>
       </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_equipment")}</p>
-        </div>
-        <div>
-          <p>5.5%</p>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_electronics")}</p>
-        </div>
-        <div>
-          <p>8%</p>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_food_and_drinks")}</p>
-        </div>
-        <div>
-          <p>6%</p>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_furniture")}</p>
-        </div>
-        <div>
-          <p>12%</p>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_home")}</p>
-        </div>
-        <div>
-          <p>13%</p>
-        </div>
-      </div>
-      <div className={styles.tableBigItem}>
-        <div className={styles.forBigTableDiv}>
-          <p>{t("table_jewerly")}</p>
-        </div>
-        <div className={styles.forBigTableDiv}>
-          <div>
-            <p>{t("table_price_text_1")}</p>
-            <p>250$</p>
-            <p>{t("table_price_text_2")}</p>
-            <p>250$</p>
-          </div>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_garden")}</p>
-        </div>
-        <div>
-          <p>13%</p>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_office")}</p>
-        </div>
-        <div>
-          <p>13%</p>
-        </div>
-      </div>
-      <div className={styles.tableItem}>
-        <div>
-          <p>{t("table_pets")}</p>
-        </div>
-        <div>
-          <p>13%</p>
-        </div>
-      </div>
+
       <div className={styles.tableItem}>
         <div>
           <p>{t("table_sports")}</p>
         </div>
         <div>
-          <p>13%</p>
+          <p>5.5%</p>
         </div>
       </div>
+
       <div className={styles.tableItem}>
         <div>
           <p>{t("table_toys")}</p>
         </div>
         <div>
-          <p>13%</p>
+          <p>6.5%</p>
         </div>
       </div>
-      <div className={styles.tableBigItem}>
-        <div className={styles.forBigTableDiv}>
+
+      <div className={styles.tableItem}>
+        <div>
           <p>{t("table_watches")}</p>
         </div>
-        <div className={styles.forBigTableDiv}>
-          <div>
-            <p>{t("table_price_text_1")}</p>
-            <p>1500$</p>
-            <p>{t("table_price_text_2")}</p>
-            <p>1500$</p>
-          </div>
+        <div>
+          <p>7%</p>
         </div>
       </div>
+
+
+
+
+
+      {/* <>
+        <div className={styles.tableBigItem}>
+          <div className={styles.forBigTableDiv}>
+            <p>{t("table_watches")}</p>
+          </div>
+          <div className={styles.forBigTableDiv}>
+            <div>
+              <p>{t("table_price_text_1")}</p>
+              <p>1500$</p>
+              <p>{t("table_price_text_2")}</p>
+              <p>1500$</p>
+            </div>
+          </div>
+        </div>
+        <div className={styles.tableItem}>
+          <div>
+            <p>{t("table_home")}</p>
+          </div>
+          <div>
+            <p>13%</p>
+          </div>
+        </div>
+        <div className={styles.tableBigItem}>
+          <div className={styles.forBigTableDiv}>
+            <p>{t("table_jewerly")}</p>
+          </div>
+          <div className={styles.forBigTableDiv}>
+            <div>
+              <p>{t("table_price_text_1")}</p>
+              <p>250$</p>
+              <p>{t("table_price_text_2")}</p>
+              <p>250$</p>
+            </div>
+          </div>
+        </div>
+        <div className={styles.tableItem}>
+          <div>
+            <p>{t("table_garden")}</p>
+          </div>
+          <div>
+            <p>13%</p>
+          </div>
+        </div>
+        <div className={styles.tableItem}>
+          <div>
+            <p>{t("table_office")}</p>
+          </div>
+          <div>
+            <p>13%</p>
+          </div>
+        </div>
+      </> */}
+
+
     </div>
   );
 };

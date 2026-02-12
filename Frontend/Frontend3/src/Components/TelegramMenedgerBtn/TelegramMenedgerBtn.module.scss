@@ -111,22 +111,17 @@
   cursor: pointer;
 }
 
-.telegramWrap:hover .label {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.telegramWrap:hover .label,
+.telegramWrap:not(.noHover):hover .label,
 .telegramWrap.active .label {
   opacity: 1;
   transform: translateX(0);
+  pointer-events: auto;
 }
 
-.telegramWrap:hover .label,
-.telegramWrap.active .label {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto; // ← ВОТ ЭТО ВАЖНО
+.telegramWrap.noHover .label {
+  opacity: 0;
+  transform: translateX(20px);
+  pointer-events: none;
 }
 
 .label {
