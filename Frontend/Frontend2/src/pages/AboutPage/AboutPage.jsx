@@ -10,14 +10,20 @@ import WhatsappMeneger from '../../components/WhatsAppManager/WhatsAppManager'
 
 const AboutPage = () => {
 
-    const { t } = useTranslation("about")
+    const { t, i18n } = useTranslation("about")
+
+    console.log(i18n.language);
+
 
     return (
         <>
             <Header />
             <div className={styles.mainTitleWrap}>
                 <h2>{t("mainTitle")}</h2>
-                <p>{t("mainDesc")}</p>
+                {
+                    i18n.language === "en" &&
+                    <p>{t("mainDesc")}</p>
+                }
             </div>
             <Container style={{
                 display: "flex",
@@ -37,7 +43,10 @@ const AboutPage = () => {
                             <li>{t("corporateBlock.list.list2")}</li>
                             <li>{t("corporateBlock.list.list3")}</li>
                             <li>{t("corporateBlock.list.list4")}</li>
-                            <li>{t("corporateBlock.list.list5")}</li>
+                            {
+                                i18n.language === "en" &&
+                                <li>{t("corporateBlock.list.list5")}</li>
+                            }
                         </ul>
                         <p>{t("corporateBlock.text4")}</p>
                     </div>
@@ -49,12 +58,19 @@ const AboutPage = () => {
                         <p>{t("strategicBlock.text1")}</p>
                         <p>{t("strategicBlock.text2")}</p>
                         <p>{t("strategicBlock.text3")}</p>
-                        <ul className={styles.yellowList}>
-                            <li>{t("strategicBlock.list.list1")}</li>
-                            <li>{t("strategicBlock.list.list2")}</li>
-                            <li>{t("strategicBlock.list.list3")}</li>
-                        </ul>
-                        <p>{t("strategicBlock.text4")}</p>
+                        {
+                            i18n.language === "en" &&
+                            <ul className={styles.yellowList}>
+                                <li>{t("strategicBlock.list.list1")}</li>
+                                <li>{t("strategicBlock.list.list2")}</li>
+                                <li>{t("strategicBlock.list.list3")}</li>
+                            </ul>
+                        }
+                        <p>{t("strategicBlock.text4")}
+                            <a className={styles.url} href="https://info.reli.one/">{t("strategicBlock.email")}</a>
+                            {t("strategicBlock.otherText4")}
+                        </p>
+
                     </div>
 
                     {/* adavantage block */}
@@ -62,6 +78,10 @@ const AboutPage = () => {
                     <div className={styles.block}>
                         <h3>{t("adavantageBlock.title")}</h3>
                         <p>{t("adavantageBlock.text1")}</p>
+                        {
+                            i18n.language === "cz" &&
+                            <p>{t("adavantageBlock.text2")}</p>
+                        }
 
                         <div className={styles.advantageBlocksWrap}>
                             <div className={styles.advantageBlock}>
@@ -96,6 +116,10 @@ const AboutPage = () => {
                             <li>{t("valueBlock.list.list2")}</li>
                             <li>{t("valueBlock.list.list3")}</li>
                             <li>{t("valueBlock.list.list4")}</li>
+                            {
+                                i18n.language === "cz" &&
+                                <li>{t("valueBlock.list.list5")}</li>
+                            }
                         </ul>
                         <p>{t("valueBlock.text2")}</p>
                     </div>
@@ -105,6 +129,15 @@ const AboutPage = () => {
                     <div className={styles.block}>
                         <h3>{t("visionBlock.title")}</h3>
                         <p>{t("visionBlock.text1")}</p>
+                        {
+                            i18n.language === "cz" &&
+                            <ul className={styles.yellowList}>
+                                <li>{t("visionBlock.list.list1")}</li>
+                                <li>{t("visionBlock.list.list2")}</li>
+                                <li>{t("visionBlock.list.list3")}</li>
+                                <li>{t("visionBlock.list.list4")}</li>
+                            </ul>
+                        }
                         <p>{t("visionBlock.text2")}</p>
                     </div>
 

@@ -67,7 +67,7 @@ import ReviewInfoPage from "./sellerPages/ReviewInfoPage/ReviewInfoPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
 import SellerCompanyInfo from "./sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx";
 import SellerReviewCompany from "./sellerPages/SellerReviewCompany/SellerReviewCompany.jsx";
-import AboutReli from "./pages/AboutReli.jsx";
+import NewSellerPage from "./pages/NewSellerPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -90,6 +90,10 @@ const router = createBrowserRouter([
         path: "/for_sell",
         element: <ForrSellerPage />,
       },
+      {
+        path: "/for-sell-new",
+        element: <NewSellerPage />,
+      },
       { path: "/for_buy", element: <ForBuyersPage /> },
       { path: "/liked", element: <LikedPage /> },
       { path: "/my_orders", element: <MyOrdersPage /> },
@@ -109,7 +113,6 @@ const router = createBrowserRouter([
       { path: "/create_new_pass", element: <CreateNewPass /> },
       { path: "/terms", element: <TermsPage /> },
       { path: "/delete-my-data", element: <DeleteMyDataPage /> },
-      { path: "/about_reli", element: <AboutReli /> },
 
       { path: "/mob_login", element: <MobLoginPage /> },
       { path: "/mob_basket", element: <BasketPage /> },

@@ -5,7 +5,7 @@
         "title": "Corporate Overview",
         "text1": "Reli Group s.r.o. is a European company headquartered in the Czech Republic.",
         "text2": "Originally established as a distributor of solar panel solutions, we built our foundation in the highly regulated and competitive energy sector.",
-        "text3": "Through our experience operating in a technical, logistics-heavy industry, we developed a strong focus on:",
+        "text3": "Through our experience we developed strong focus on:",
         "list": {
             "list1": "operational efficiency,",
             "list2": "reliability in supply chain management,",
@@ -20,7 +20,9 @@
         "text1": "In response to the fast-evolving digital economy, Reli Group s.r.o. initiated a strategic transformation:",
         "text2": "from a specialized distribution company to a modern digital commerce platform.",
         "text3": "The shift followed clear market insights:",
-        "text4": "Leveraging our operational expertise, technology investments, and experience managing large partner networks, we developed Marketplace Reli (www.reli.one), a next-generation marketplace designed to support businesses of all sizes.",
+        "text4": "Leveraging our operational expertise and technology investments, we developed Marketplace Reli ",
+        "email": "(www.reli.one)",
+        "otherText4": ", a next-generation marketplace designed to support businesses of all sizes.",
         "list": {
             "list1": "businesses require efficient and credible online sales channels;",
             "list2": "modern marketplaces often lack transparency toward their sellers;",
@@ -67,7 +69,7 @@
             },
             "block4": {
                 "title": "Partnership-Driven Approach",
-                "desc": "We build long-term relationships with sellers, supporting their growth and treating them as strategic partners, not just platform participants."
+                "desc": "We build long-term relationships with sellers, supporting their growth and treating them as strategic partners."
             }
         }
     }

@@ -1,0 +1,66 @@
+@import url("./ForSellerPage.module.scss");
+
+.numList {
+  list-style: none;
+  & li {
+    font-weight: 500;
+    font-size: clamp(12px, 2.5vw, 24px);
+    line-height: 140%;
+    color: #000;
+    margin-bottom: 10px;
+
+    // & span {
+    //   font-weight: 700;
+    // }
+  }
+}
+
+.linkDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 50px 0;
+  .linkItem:nth-child(even) {
+    padding-left: 0;
+  }
+  @media (max-width: 425px) {
+    margin: 27px 0;
+  }
+}
+
+.defaultList {
+  padding-left: 30px;
+  & li {
+    font-weight: 500;
+    font-size: clamp(12px, 2.5vw, 24px);
+    line-height: 140%;
+    color: #000;
+    margin-bottom: 10px;
+
+    & span {
+      font-weight: 700;
+    }
+  }
+}
+
+.textDesc {
+  font-weight: 500;
+  font-size: clamp(12px, 2.5vw, 24px);
+  line-height: 140%;
+  color: #000;
+
+  & span {
+    font-weight: 500;
+  }
+}
+
+.num {
+  font-family: var(--ft);
+}
+
+.emailText {
+  padding-left: 0px;
+  font-weight: 500;
+  font-size: clamp(12px, 2.5vw, 24px);
+  line-height: 140%;
+}

@@ -1,0 +1,59 @@
+{
+    "for_seller": "For sellers",
+    "title": "Pricing and Commission Policy",
+    "subtitle": "Reli.one Marketplace",
+    "purpose": {
+        "title": "Purpose and Scope",
+        "point1": "This Pricing and Commission Policy (the “Policy”) defines the principles, structure, and applicable commission rates for sellers offering products through the Reli.one marketplace (the “Platform”).",
+        "point2": "The Policy applies to all sellers registered on the Platform, unless explicitly agreed otherwise in an individual written agreement.",
+        "point3": "The purpose of this Policy is to ensure transparency, predictability, and fairness in the calculation of marketplace commissions."
+    },
+    "generalPrinciples": {
+        "title": "General Principles",
+        "intro": "Reli.one applies a fixed commission rate per main product category.",
+        "text22": "Commission rates:",
+        "text23": "Subcategories are used exclusively for:",
+        "rates": {
+            "item1": "are flat within each main category,",
+            "item2": "do not depend on subcategories, product type, brand, or price tiers,",
+            "item3": "are charged only upon successful completion of a transaction."
+        },
+        "subcategories": {
+            "item1": "navigation,",
+            "item2": "search functionality,",
+            "item3": "product classification,",
+            "item4": "analytical purposes,"
+        },
+        "subcategoriesNote": "and do not affect the applicable commission rate."
+    },
+    "commissionRates": {
+        "title": "Commission Rates by Category",
+        "text": "The following commission rates apply to sales completed on the Platform:"
+    },
+    "caps": {
+        "title": "Caps and Special Conditions",
+        "point1": "Reli.one may apply a maximum commission cap per order for selected categories or transactions.",
+        "text": "Where applicable, such caps will be communicated transparently in the Seller Panel or individual agreements.",
+        "point2": "Any preferential rates, promotional discounts, or individual commercial terms apply only if expressly agreed in writing and do not amend this Policy for other sellers."
+    },
+    "changes": {
+        "title": "Changes to the Policy",
+        "intro": "Reli.one reserves the right to amend this Policy in order to:",
+        "reasons": {
+            "item1": "reflect changes in business operations,",
+            "item2": "introduce new categories,",
+            "item3": "respond to regulatory or market developments."
+        },
+        "note": "Any changes will be published on the Platform and shall become effective on the date indicated therein."
+    },
+    "transparency": {
+        "title": "Transparency and Fair Dealing",
+        "point1": "Reli.one is committed to maintaining a simple and transparent fee structure.",
+        "point2": "Unlike marketplaces that apply complex tiered or subcategory-based pricing, Reli.one ensures that sellers are able to clearly determine their commission rate in advance, without hidden conditions."
+    },
+    "contact": {
+        "title": "Contact",
+        "text": "For questions regarding this Policy, sellers may contact:",
+        "email": "office@reli.one"
+    }
+}
