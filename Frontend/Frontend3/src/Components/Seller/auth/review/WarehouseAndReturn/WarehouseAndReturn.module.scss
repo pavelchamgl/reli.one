@@ -18,4 +18,19 @@
   border-bottom: 1.28px solid #e5e7eb;
   margin-bottom: 17px;
   margin-top: 24px;
+  display: flex;
+  justify-content: space-between;
+
+  & div {
+    width: 50%;
+  }
+}
+
+.lastBlock {
+  display: flex;
+  justify-content: space-between;
+
+  & div {
+    width: 50%;
+  }
 }

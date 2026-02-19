@@ -8,8 +8,9 @@ import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./BankAccount.module.scss"
 import { useLocation } from "react-router-dom"
+import { ErrToast } from "../../../../../ui/Toastify"
 
-const BankAccount = ({ formik }) => {
+const BankAccount = ({ formik, onClosePreview }) => {
 
     const isBankFilled = (values) => {
         return Boolean(
@@ -28,7 +29,7 @@ const BankAccount = ({ formik }) => {
 
     const bankRef = useRef(null)
 
-    const onLeaveBankBlock = () => {
+    const onLeaveBankBlock = async () => {
 
         const filled = isBankFilled(formik.values)
 
@@ -55,7 +56,15 @@ const BankAccount = ({ formik }) => {
 
 
 
-        putOnboardingBank(payload)
+
+
+
+        try {
+            await putOnboardingBank(payload)
+            onClosePreview?.();
+        } catch (err) {
+            ErrToast(err?.message || "Failed to save personal data");
+        }
 
 
     }
@@ -83,6 +92,8 @@ const BankAccount = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.iban}
+                    touched={formik.touched.iban}
+
                 />
 
                 <InputSeller title={"SWIFT/BIC"} type={"text"} circle={true} required={true} afterText={"8–11 characters"}
@@ -91,6 +102,8 @@ const BankAccount = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.swift_bic}
+                    touched={formik.touched.swift_bic}
+
                 />
 
                 <InputSeller title={"Account holder"} type={"text"} circle={true} required={true}
@@ -99,6 +112,8 @@ const BankAccount = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.account_holder}
+                    touched={formik.touched.account_holder}
+
                 />
 
 
@@ -112,6 +127,8 @@ const BankAccount = ({ formik }) => {
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
                                     error={formik.errors.bank_code}
+                                    touched={formik.touched.bank_code}
+
                                 />
 
                                 <InputSeller title={"Local account number"} type={"text"} circle={true} required={true}
@@ -120,6 +137,8 @@ const BankAccount = ({ formik }) => {
                                     onChange={formik.handleChange}
                                     onBlur={formik.handleBlur}
                                     error={formik.errors.local_account_number}
+                                    touched={formik.touched.local_account_number}
+
                                 />
                             </div>
                             : null

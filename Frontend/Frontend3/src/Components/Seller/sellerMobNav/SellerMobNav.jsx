@@ -11,6 +11,7 @@ import accountIcon from "../../../assets/Seller/mobNav/account.svg"
 import accountAccIcon from "../../../assets/Seller/mobNav/accountAcc.svg"
 
 import styles from "./SellereMobNav.module.scss";
+import { logout } from "../../../api/auth";
 
 const SellerMobNav = () => {
   const [showButton, setShowButton] = useState(false);
@@ -48,21 +49,26 @@ const SellerMobNav = () => {
     };
   }, [lastScrollTop]);
 
-  // ? на случай логина
-  // const handleLoginClick = () => {
-  //   setOpen(false);
-  //   if (token) {
-  //     navigate("/mob_profile_nav");
-  //   } else {
-  //     navigate("/mob_login");
-  //   }
-  // };
 
+
+
+
+  const token = JSON.parse(localStorage.getItem("token")) || {}
+
+
+  const handleLogout = () => {
+    logout({ refresh_token: token?.refresh }).then((res) => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("email");
+      window.location.reload();
+    });
+  };
 
   return (
     <div>
       <div className={styles.navMain}>
         <button
+          disabled={Object.keys(token).length === 0}
           onClick={() => {
             navigate("/seller/seller-home");
           }}
@@ -81,7 +87,9 @@ const SellerMobNav = () => {
             Home
           </p>
         </button>
-        <button onClick={() => navigate("/seller/goods-choice")} className={styles.navItem}>
+        <button
+          disabled={Object.keys(token).length === 0}
+          onClick={() => navigate("/seller/goods-choice")} className={styles.navItem}>
           <img
             src={
               location.pathname === "/seller/goods-choice" ||
@@ -107,7 +115,9 @@ const SellerMobNav = () => {
             Goods
           </p>
         </button>
-        <button onClick={() => navigate("/seller/seller-order")} className={styles.navItem}>
+        <button
+          disabled={Object.keys(token).length === 0}
+          onClick={() => navigate("/seller/seller-order")} className={styles.navItem}>
           <img
             src={
               location.pathname === "/seller/seller-order"
@@ -129,17 +139,24 @@ const SellerMobNav = () => {
         </button>
         <button
           className={styles.navItem}
+          onClick={() => {
+            if (token) {
+              handleLogout()
+            } else {
+              navigate("/seller/login")
+            }
+          }}
         >
           <img
             src={
-              location.pathname === "/seller" ? accountAccIcon : accountIcon
+              location.pathname === "/seller/login" ? accountAccIcon : accountIcon
             }
             alt=""
           />
           <p
             style={{
               color:
-                location.pathname === "/seller"
+                location.pathname === "/seller/login"
                   ? "#2BAE91"
                   : "#a09e96",
             }}
@@ -147,34 +164,6 @@ const SellerMobNav = () => {
             Account
           </p>
         </button>
-        {/* /mob_profile_nav */}
-        {/* /mob_login */}
-
-        {/* на случай логина */}
-        {/* <button onClick={handleLoginClick} className={styles.navItem}>
-          <img
-            src={
-              (location.pathname === "/mob_login" ||
-                location.pathname === "/mob_profile_nav") &&
-                !open
-                ? profileIconAcc
-                : profileIcon
-            }
-            alt=""
-          />
-          <p
-            style={{
-              color:
-                (location.pathname === "/mob_login" ||
-                  location.pathname === "/mob_profile_nav") &&
-                  !open
-                  ? "#F5B80B"
-                  : "#a09e96",
-            }}
-          >
-            {t("enter_account")}
-          </p>
-        </button> */}
       </div>
     </div>
   );

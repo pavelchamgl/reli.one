@@ -35,13 +35,35 @@ const FooterLinks = () => {
     ]
     // const links2 = ["About Us", "Careers", "Press ", "Contact ", "Blog "]
     const links2 = [
-        t("footer.columns.legal.links.link1"),
-        t("footer.columns.legal.links.link2"),
-        t("footer.columns.legal.links.link3"),
-        t("footer.columns.legal.links.link4"),
-        t("footer.columns.legal.links.link5"),
-        t("footer.columns.legal.links.link6"),
-        t("footer.columns.legal.links.link7"),
+        {
+            title: t("footer.columns.legal.links.link1"),
+            url: "/terms"
+        },
+        {
+            title: t("footer.columns.legal.links.link2"),
+            url: "#"
+        },
+        {
+            title: t("footer.columns.legal.links.link3"),
+            url: "#"
+        },
+        {
+            title: t("footer.columns.legal.links.link4"),
+            url: "#"
+        },
+        {
+            title: t("footer.columns.legal.links.link5"),
+            url: "/policy"
+        },
+        {
+            title: t("footer.columns.legal.links.link6"),
+            url: "#"
+        },
+        {
+            title: t("footer.columns.legal.links.link7"),
+            url: "#"
+        },
+
     ]
 
 
@@ -93,7 +115,7 @@ const FooterLinks = () => {
                     <h3 className={styles.listTitle}>{t("footer.columns.legal.title")}</h3>
                 </li>
                 {links2.map((item) => (
-                    <li><a className={styles.listItem} href="#">{item}</a></li>
+                    <li><a className={styles.listItem} href={item.url}>{item.title}</a></li>
                 ))}
             </ul>
             <ul>

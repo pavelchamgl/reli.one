@@ -9,6 +9,8 @@ import ForSeller from './pages/ForSeller/ForSeller.jsx';
 import AboutPage from './pages/AboutPage/AboutPage.jsx';
 import ContactPage from './pages/ContactPage/ContactPage.jsx';
 import PricingAndCommision from './pages/PricingAndCommission/PricingAndCommision.jsx';
+import TermsPage from './pages/TermsPage/TermsPage.jsx';
+import PrivacyPage from './pages/PrivacyPage/PrivacyPage.jsx';
 
 
 const router = createBrowserRouter([
@@ -31,6 +33,14 @@ const router = createBrowserRouter([
   {
     path: "/pricing-commission",
     element: <PricingAndCommision />
+  },
+  {
+    path: '/terms',
+    element: <TermsPage />
+  },
+  {
+    path: "/policy",
+    element: <PrivacyPage />
   }
 ])
 

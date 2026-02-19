@@ -1,0 +1,310 @@
+{
+    "mainTitle": "Zásady ochrany osobních údajů společnosti Reli Group s.r.o.",
+    "mainDesc": "Jak chráníme a zpracováváme vaše osobní údaje",
+    "intro": {
+        "title": "1. Úvodní ustanovení a definice",
+        "part1": "1.1. Tento dokument obsahuje důležité informace týkající se ochrany osobních údajů společností Reli Group s.r.o., IČO: 28003896, se sídlem Na lysinách 551/34, Hodkovičky, 147 00 Praha 4 (dále jen „Společnost“).",
+        "part2": "1.2. Tento dokument obsahuje informace o zásadách a postupech při zpracování osobních údajů, které probíhá v souladu s Nařízením Evropského parlamentu a Rady (EU) 2016/679 ze dne 27. 4. 2016, o ochraně fyzických osob v souvislosti se zpracováním osobních údajů a o volném pohybu těchto údajů a o zrušení směrnice 95/46/ES (dále jen „GDPR“).",
+        "part3": "1.3. Dále v tomto dokumentu mají následující pojmy, pokud jsou psány s velkým počátečním písmenem, následující význam:",
+        "list": {
+            "list1": {
+                "title": "Smlouva ",
+                "desc": "znamená právní jednání, na jehož základě se Společnost zavazuje Vám dodat zboží, ať již úplatně nebo bezúplatně."
+            },
+            "list2": {
+                "title": "Systém Reli ",
+                "desc": "znamená software pro vytváření a hosting rezervačního systému dle požadavků Uživatele."
+            },
+            "list3": {
+                "title": "Aplikace Reli ",
+                "desc": "znamená software pro koncové uživatele, který slouží k učinění rezervace u Uživatelů Systému Reli."
+            },
+            "list4": {
+                "title": "Uživatel ",
+                "desc": "znamená uživatele webových stránek https://reli.one nebo jiných produktů či služeb Společnosti."
+            },
+            "list5": {
+                "title": "Stránky Reli ",
+                "desc": "znamená webovou stránku https://reli.one."
+            }
+        }
+    },
+    "basicInfo": {
+        "title": "2. Základní informace",
+        "part2_1": "2.1. Identifikační údaje a kontaktní údaje správce: Správce je Společnost, kontaktní e-mail správce je",
+        "email": "privacy.reli.one@gmail.com",
+        "part1Desc": "Správce je Společnost, kontaktní e-mail správce je privacy.reli.one@gmail.com.",
+        "part1": "2.2. Správce není povinnou osobou podle čl. 37 GDPR, a tedy nejmenoval ani pověřence pro ochranu osobních údajů.",
+        "part2": "2.3. Správce nepředává osobní údaje do třetích zemí ani mezinárodním organizacím, vyjma předávání zpracovatelům, kteří jsou výslovně uvedeni v těchto Zásadách ochrany osobních údajů. Uvedení zpracovatelé zajišťují odpovídající úroveň ochrany osobních údajů v souladu s GDPR na základě smluvních závazků se Společností. Tyto záruky a ochranná opatření zajišťují srovnatelnou úroveň ochrany zaručenou v EU GDPR a Listinou základních práv Evropské unie.",
+        "part3": "2.4. Společnost neprovádí profilování ani automatizované individuální rozhodování ve smyslu čl. 22 GDPR.",
+        "part4": "2.5. Jsou-li osobní údaje zpracovávány za účelem plnění smlouvy nebo plnění právních povinností, je poskytnutí údajů zákonným požadavkem. Jsou-li osobní údaje zpracovávány na základě souhlasu subjektu údajů, je poskytnutí údajů smluvním požadavkem.",
+        "part5": "2.6. Dozorovým úřadem je nezávislý orgán veřejné moci příslušný k ochraně osobních údajů v daném státě. Dozorovým úřadem v místě sídla Společnosti je Úřad pro ochranu osobních údajů se sídlem Pplk. Sochora 27, 170 00 Praha 7."
+    },
+    "processingServices": {
+        "title": "3. Nakládání s osobními údaji při poskytování služeb pro podnikatele",
+        "administration": {
+            "title": "3.1. Správa osobních údajů",
+            "part1": "Společnost vystupuje v pozici správce osobních údajů ve vztahu k osobním údajům Uživatelů a fyzických osob, které navštíví webovou stránku Reli. Osobní údaje Společnost zpracovává za účelem plnění smlouvy (uzavření smlouvy a komunikace s Uživatelem), nebo plnění právních povinností (vedení účetnictví, vystavování daňových dokladů apod.).",
+            "part2": "Za tímto účelem Společnost zpracovává zejména následující osobní údaje: jméno, příjmení, název, IČO, DIČ, adresu bydliště nebo sídla, telefonní číslo a e-mailovou adresu.",
+            "part3": "Společnost dále zpracovává údaje, které získá od Uživatele nebo dalších fyzických osob tím, že použijí jí provozovaný rezervační systém Reli, nebo navštíví její webovou stránku. Jedná se o soubory cookies a soubory protokolu (IP adresa, případně jiné online identifikátory). Tyto údaje zpracovává Společnost na základě svého oprávněného zájmu nebo souhlasu subjektu údajů.",
+            "part4": "V případě, že má Společnost v úmyslu zpracovat jiný osobní údaj než výše uvedený v tomto článku, nebo pro jiné účely, činí tak pouze na základě platně uděleného souhlasu se zpracováním osobních údajů.",
+            "part5": "Společnost nezpracovává zvláštní kategorie osobních údajů ve smyslu čl. 9 GDPR ani osobní údaje týkající se rozsudků v trestních věcech a trestných činů ve smyslu čl. 10 GDPR.",
+            "part6": "Osobní údaje Uživatelů jsou zpracovávány po dobu trvání smluvního vztahu a následně po dobu maximálně 5 let od ukončení smluvního vztahu. Osobní údaje zpracovávané pro plnění povinností vyplývajících ze zvláštních právních předpisů zpracováváme po dobu stanovenou těmito předpisy.",
+            "part7": "V případě potřeby použití osobních údajů pro ochranu oprávněných zájmů Společnost zpracovává osobní údaje po dobu nezbytnou k uplatnění těchto práv.",
+            "part8": "Osobní údaje získáváme přímo od subjektů údajů při uzavírání Smlouvy. Společnost vždy informuje subjekty údajů, které osobní údaje musí být poskytnuty pro účely plnění Smlouvy."
+        },
+        "processing": {
+            "title": "3.2. Zpracování osobních údajů",
+            "part1": "Společnost poskytuje Uživateli datový prostor pro účely uložení dat provozovaných v rámci systému Reli na serverech Společnosti.",
+            "part2": "Součástí dat Uživatele mohou být též osobní údaje fyzických osob. Ve vztahu k osobním údajům, které Uživatel uloží na servery Společnosti (např. osoby, které provedou rezervaci u Uživatele na jeho webové stránce), je Společnost zpracovatelem osobních údajů. Správcem těchto osobních údajů je sám Uživatel.",
+            "noticeUsersTitle": "Upozornění pro Uživatele",
+            "noticeUsers": "Pokud budete prostřednictvím dotazníků sbírat osobní údaje fyzických osob, stáváte se správcem osobních údajů a jste povinni dodržovat veškerá pravidla ochrany osobních údajů stanovená GDPR a dalšími právními předpisy. Společnost nenese žádnou odpovědnost za porušení pravidel ochrany osobních údajů ze strany Uživatelů.",
+            "noticeEndUsersTitle": "Upozornění pro koncové uživatele",
+            "noticeEndUsers": "Využívání systému Reli může podléhat zásadám a pravidlům daného Uživatele, pokud takové zásady existují. Poskytnete-li Uživatelům své osobní údaje, obracejte se s dotazy ohledně ochrany osobních údajů přímo na Uživatele, neboť ten je v pozici správce osobních údajů. Nemůžeme odpovídat za zásady ochrany osobních údajů nebo postupy zabezpečení používané Uživatelem, které se mohou lišit od těchto Zásad ochrany osobních údajů.",
+            "purposeTitle": "Jaký je účel zpracování a jak nakládáme s daty?",
+            "purpose": "Společnost neprovádí s daty Uživatele včetně osobních údajů žádné operace kromě jejich uložení na serverech Společnosti. Do dat žádným způsobem nezasahuje, nepozměňuje je, nezpřístupňuje ani nepředává třetím osobám, vyjma jejich zpřístupnění státním orgánům v souladu se zákonem nebo třetím stranám uvedeným v těchto zásadách, případně pokud není ve Smlouvě stanoveno jinak. Osobní údaje jsou zpracovávány za účelem provozu systému Reli a aplikace Reli, aby bylo možné plnit Smlouvu s Uživatelem.",
+            "dataTitle": "Jaké osobní údaje zpracováváme?",
+            "data": "Zpracováváme pouze takové osobní údaje koncových uživatelů systému Reli a aplikace Reli, které tito uživatelé sami vyplní do rezervačního systému Reli. Může se jednat zejména o jméno, příjmení, e-mail, telefon a dále údaje nutné k plnění smlouvy a související administraci, zejména fakturační a platební údaje.",
+            "disclosureTitle": "Komu údaje předáváme?",
+            "disclosure": "Společnost předává údaje třetím stranám pouze v případech uvedených v těchto Zásadách ochrany osobních údajů a vždy pouze za účely v nich stanovené. Osobní údaje mohou být předány také společnosti Reli services s.r.o., IČO: 038 53 586, která je propojenou osobou se Společností a v rámci aplikace Reli a systému Reli zprostředkovává poskytování služeb koncovým zákazníkům.",
+            "retentionTitle": "Po jak dlouhou dobu zpracováváme osobní údaje?",
+            "retention": "Společnost zpracovává osobní údaje po dobu trvání smluvního vztahu s Uživatelem, respektive po dobu trvání případné reklamační lhůty, maximálně však po dobu pěti (5) let. Po zrušení účtu Uživatelem jsou veškerá data smazána."
+        }
+    },
+    "endUsersProcessing": {
+        "title": "4. Nakládání s osobními údaji při poskytování služeb pro koncové uživatele",
+        "administration": {
+            "title": "4.1. Správa osobních údajů",
+            "part1": "Společnost vystupuje v pozici správce osobních údajů ve vztahu k osobním údajům koncových uživatelů. Osobní údaje Společnost zpracovává za účelem plnění smlouvy (uzavření smlouvy a komunikace s Uživatelem), nebo plnění právních povinností (vedení účetnictví, vystavování daňových dokladů apod.).",
+            "part2": "Za tímto účelem Společnost zpracovává zejména následující osobní údaje: jméno, příjmení, název, IČO, DIČ, adresu bydliště nebo sídla, telefonní číslo a e-mailovou adresu.",
+            "part3": "Společnost dále zpracovává údaje, které získá od koncových uživatelů tím, že použijí jí provozovaný rezervační systém Reli nebo navštíví její webovou stránku, jedná se o soubory cookies a soubory protokolu (IP adresa, případně jiné online identifikátory). Tyto údaje zpracovává Společnost na základě svého oprávněného zájmu nebo souhlasu subjektu údajů.",
+            "part4": "V případě, že má Společnost v úmyslu zpracovat jiný osobní údaj než výše uvedený v tomto článku nebo pro jiné účely, činí tak pouze na základě platně uděleného souhlasu se zpracováním osobních údajů.",
+            "part5": "Společnost nezpracovává zvláštní kategorie osobních údajů ve smyslu čl. 9 GDPR ani osobní údaje týkající se rozsudků v trestních věcech a trestných činů ve smyslu čl. 10 GDPR.",
+            "part6": "Osobní údaje Uživatelů jsou zpracovávány po dobu trvání smluvního vztahu a následně po dobu maximálně 5 let od ukončení smluvního vztahu. Osobní údaje zpracovávané pro plnění povinností vyplývajících ze zvláštních právních předpisů zpracováváme po dobu stanovenou těmito právními předpisy. V případě potřeby použití osobních údajů pro ochranu našich oprávněných zájmů Společnost zpracovává osobní údaje po dobu nezbytnou k uplatnění těchto práv.",
+            "part7": "Osobní údaje získáváme přímo od subjektů údajů při uzavírání Smlouvy. Společnost vždy informuje subjekty údajů, které osobní údaje musí být poskytnuty pro účely plnění Smlouvy.",
+            "deliveryToUsers": {
+                "title": "Osobní údaje koncových uživatelů předáváme Uživatelům, kteří nám dodávají zboží, které od nás koncový uživatel objednal. ",
+                "part1": "Bez předání osobních údajů by nebylo možné zajistit dodání zboží. Ve vztahu k takto získaným osobním údajům vystupují Uživatelé jako správci osobních údajů, a proto je pro předání osobních údajů vyžadován informovaný souhlas koncového uživatele s předáním osobních údajů."
+            },
+            "courierDelivery": {
+                "title": "Osobní údaje koncových uživatelů předáváme pro účely organizace doručování objednávek kurýrním službám ",
+                "part1": "prostřednictvím API integrace. Integrace a smluvní ujednání jsou uzavřeny s jejich místními pobočkami v České republice a doručování je realizováno z České republiky, včetně doručování mimo její území. Osobní údaje mohou být za tímto účelem předávány správcům provozujícím kurýrní služby, konkrétně:",
+                "list": {
+                    "list1": {
+                        "title": "Zásilkovna s.r.o. ",
+                        "desc": "se sídlem Českomoravská 2408/1a, 190 00 Praha 9, Česká republika."
+                    },
+                    "list2": {
+                        "title": "Direct Parcel Distribution CZ s.r.o. (DPD Czech Republic) ",
+                        "desc": "se sídlem Modletice 135, 251 01 Říčany u Prahy, Česká republika."
+                    },
+                    "list3": {
+                        "title": "General Logistics Systems Czech Republic s.r.o. (GLS Czech Republic) ",
+                        "desc": "se sídlem Průmyslová 5619/1, 586 01 Jihlava, Česká republika."
+                    }
+                },
+                "part3": "Po úspěšném zpracování platby a obdržení webhookového oznámení od platebního systému platforma reli.one automaticky uloží objednávku do databáze a prostřednictvím API příslušné kurýrní služby iniciuje vytvoření zásilky.",
+                "part4": "Kurýrním službám jsou předávány pouze údaje nezbytné k doručení, zejména jméno a příjmení příjemce, doručovací adresa, telefonní číslo, e-mailová adresa (pokud je vyžadována) a technické údaje o zásilce.",
+                "part5": "Předávání údajů je prováděno výhradně v rozsahu nezbytném pro doručení a kurýrní služby používají získané údaje pouze pro účely poskytování doručovacích služeb."
+            },
+            "paymentProviders": {
+                "title": "Osobní údaje koncových uživatelů předáváme správcům, kteří jsou provozovateli platebních služeb PayPal Holdings, Inc., se sídlem 2211 NorthFirst Street, San Jose, CA 95131, USA a Stripe, LLC, se sídlem 354 Oyster Point Blvd, South San Francisco, CA 94080, USA",
+                "part2": "Těmto správcům jsou předávány následující údaje: částka a měna platby; technické identifikátory platební relace a transakce a emailová adresa plátce, pokud je vyžadována. Citlivé údaje, zejména čísla bankovních karet, CVC/CVV kódy a další bezpečnostní prvky, zadává uživatel přímo do zabezpečeného rozhraní platebního poskytovatele. Společnost tyto citlivé údaje v žádném okamžiku nezískává, nezpracovává ani neuchovává.Po zpracování transakce obdrží Společnost od platebního poskytovatele automatizované technické oznámení (webhook), na jehož základě dojde k zaznamenání výsledku platby a vytvoření objednávky v Systému Reli. Toto oznámení obsahuje pouze:informaci o stavu operace (úspěšná / neúspěšná);dentifikátor transakce; potvrzení částky a měny.Účelem tohoto zpracování je výhradně zahájení platební operace, získání potvrzení o jejím výsledku a následné zaúčtování objednávky. Společnost výslovně upozorňuje, že prostřednictvím výše uvedených platebních systémů neprovádí vypořádání vrácených plateb (refundací) ani přímé vyúčtování s prodejci (Uživateli)"
+            },
+            "badText": {
+                "part1B": "V systému Reli je implementována možnost přihlášení a registrace prostřednictvím externích autorizačních služeb Google LLC, ",
+                "part1": "1600 AmphitheatreParkway, MountainView, CA 94043, USA",
+                "meta": " a Meta Platforms, Inc. ",
+                "part1Other": "(Facebook), 1601 WillowRoad, Menlo Park, CA 94025, USA. ",
+                "part2B": "Pokud uživatel použije jednu z těchto služeb, jejich provozovateli budou předány následující osobní údaje uživatele:",
+                "part2": " jedinečný identifikátor uživatele u poskytovatele, jméno, e-mail a autorizační token (technický OAuth token používaný výhradně k potvrzení relace a správnému fungování autorizačního mechanismu). ",
+                "part2BCont": "Osobní údaje budou v takovém případě sdíleny vždy výhradně na základě jednání uživatele",
+                "part2cont": " aniž by uživatel musel mít uživatelské jméno a heslo přímo v systému Reli. ",
+                "part2End": "který zvolí způsob přihlášení do systému Reli pomocí dané autentifikační služby"
+            },
+            "badText1": {
+                "part1": "Pro účely analýzy účinnosti reklamních kampaní a vyhodnocování uživatelských aktivit na webu reli.one využíváme analytickou a reklamní integraci prostřednictvím ",
+                "googleAds": "Google Tag Manager a Google Ads, ",
+                "part1Cont": "přičemž údaje mohou být předávány správci, který je poskytovatelem těchto analytických a reklamních služeb, a to společnosti ",
+                "googleLcc": "Google LLC, ",
+                "part1End": "se sídlem 1600 AmphitheatreParkway, MountainView, CA 94043, USA; v rámci této integrace jsou předávány zejména události elektronického obchodu (např. přidání zboží do košíku, provedení nákupu) a technické parametry objednávek a zboží, zejména identifikátor objednávky, částka a měna a informace o zboží (číslo artiklu, název, cena, množství, kategorie a další charakteristiky), přičemž ",
+                "part2B": "předávány údaje umožňující přímou identifikaci uživatele, ",
+                "part2": "zejména jména uživatelů, e-mailové adresy, telefonní čísla, platební údaje, dodací adresy ani jiné obdobné identifikační informace; ",
+                "part2BCont": "údaje jsou přenášeny výhradně ve formě anonymizovaných událostí prostřednictvím mechanismu dataLayer, ",
+                "part2Cont": "osobní údaje nejsou předávány přímo do Google Ads a je využíván standardní analytický model Google Analytics 4 (GA4); účelem tohoto předávání je analýza účinnosti reklamních kampaní, statistická analytika a optimalizace marketingových procesů a uživatelské zkušenosti. "
+            },
+            "docusign": {
+                "part1": "Při elektronickém podepisování dokumentu prostřednictvím služby DOcuSign dochází k předání údajů společnosti Docusign, Inc ",
+                "part2": "221 Main St., Suite 1550, San Francisco, California, 94105 USA. Předávány jsou údaje nutné k ověření identity – jméno podepisujícího, e-mail a dokument k podepsání. K přenosu dochází přímo do DocuSign za účelem provedení podpisu. K předání údajů Docusign, Inc. Dochází pouze v případě, kdy dochází k podpisu dokumentu prostřednictvím DocuSign.",
+                "part3": "Osobní údaje předáváme prostřednictvím účetního systému POHODA jeho provozovateli. Bez předání osobních údajů by nebylo možné vést řádně účetnictví a plnit účetní a daňové povinnosti které nám ukládá zákon."
+            }
+        }
+    },
+    "common": {
+        "title": "5. Společná ustanovení",
+        "rights": {
+            "title": "5.1. Práva subjektů údajů",
+            "subtitle": "a) právo na přístup k osobním údajům",
+            "desc": "Subjekt údajů má právo získat od Společnosti potvrzení, zda osobní údaje, které se ho týkají, jsou či nejsou zpracovávány, a pokud je tomu tak, má právo získat přístup k těmto osobním údajům a k následujícím informacím:",
+            "part1": "a) účel zpracování;",
+            "part2": "b) kategorie dotčených osobních údajů;",
+            "part3": "c) příjemci, kterým osobní údaje byly nebo budou zpřístupněny;",
+            "part4": "d) plánovaná doba, po kterou budou osobní údaje uloženy;",
+            "part5": "e) existence práva požadovat od správce opravu nebo výmaz osobních údajů nebo omezení jejich zpracování, anebo vznést námitku proti tomuto zpracování;",
+            "part6": "f) právo podat stížnost u dozorového úřadu;",
+            "part7": "g) veškeré dostupné informace o zdroji osobních údajů, pokud nejsou získány od subjektu údajů;",
+            "part8": "h) skutečnost, že dochází k automatizovanému rozhodování, včetně profilování. Subjekt údajů má zároveň právo získat kopii zpracovaných osobních údajů."
+        },
+        "rectification": {
+            "title": "b) právo na opravu osobních údajů",
+            "part1": "Subjekt údajů má právo na to, abychom bez zbytečného odkladu opravili nepřesné osobní údaje, které se ho týkají, případně doplnili neúplné osobní údaje."
+        },
+        "erasure": {
+            "title": "c) právo na výmaz osobních údajů",
+            "desc": "Subjekt údajů má právo na to, abychom bez zbytečného odkladu vymazali osobní údaje, které se ho týkají, v případě, že:",
+            "part1": "a) osobní údaje již nejsou potřebné pro účely, pro které byly shromážděny nebo jinak zpracovány;",
+            "part2": "b) subjekt údajů odvolá souhlas, na jehož základě byly údaje zpracovány, a neexistuje žádný další právní důvod pro zpracování;",
+            "part3": "c) subjekt údajů vznese námitky proti zpracování a neexistují žádné převažující oprávněné důvody pro zpracování;",
+            "part4": "d) osobní údaje byly zpracovány protiprávně;",
+            "part5": "e) osobní údaje musí být vymazány ke splnění právní povinnosti stanovené v právu Unie nebo České republiky;",
+            "part6": "f) osobní údaje byly shromážděny v souvislosti s nabídkou služeb informační společnosti;",
+            "afterDesc": "Právo na výmaz se však neuplatní, pokud je zpracování nezbytné pro splnění právních povinností, pro určení, výkon nebo obhajobu právních nároků a v dalších případech stanovených v GDPR."
+        },
+        "restriction": {
+            "title": "d) právo na omezení zpracování",
+            "desc": "Subjekt údajů má právo na to, abychom omezili zpracování, v kterémkoli z těchto případů:",
+            "part1": "a) subjekt údajů popírá přesnost osobních údajů,",
+            "part2": "a to na dobu potřebnou k tomu, abychom mohli přesnost osobních údajů ověřit;",
+            "part3": "b) zpracování údajů je protiprávní a subjekt údajů odmítá výmaz osobních údajů",
+            "part4": "a žádá místo toho o omezení jejich použití;",
+            "part5": "c) Společnost již osobní údaje nepotřebuje pro účely zpracování,",
+            "part6": "ale subjekt údajů je požaduje pro určení, výkon nebo obhajobu právních nároků;",
+            "part7": "d) subjekt údajů vznesl námitku proti zpracování, dokud nebude ověřeno, zda naše oprávněné důvody převažují nad oprávněnými důvody subjektu údajů."
+        },
+        "object": {
+            "title": "e) právo vznést námitku proti zpracování",
+            "desc1": "Subjekt údajů má z důvodů týkajících se jeho konkrétní situace právo kdykoli vznést námitku proti zpracování osobních údajů, které se jej týkají a které zpracováváme z důvodu oprávněného zájmu.",
+            "desc2": "Společnost v takovém případě osobní údaje dále nezpracovává, pokud neprokáže závažné oprávněné důvody pro zpracování, které převažují nad zájmy nebo právy a svobodami subjektu údajů, nebo pro určení, výkon nebo obhajobu právních nároků."
+        },
+        "direct": {
+            "title": "f) právo vznést námitku proti zpracování pro účely přímého marketingu",
+            "desc": "Pokud zpracováváme Vaše osobní údaje pro účely přímého marketingu, máte právo kdykoli vznést námitku proti takovému zpracování. Společnost v takovém případě osobní údaje dále nezpracovává."
+        },
+        "portability": {
+            "title": "g) právo na přenositelnost údajů",
+            "desc": "Subjekt údajů má právo získat osobní údaje, které se ho týkají a jež nám poskytl, ve strukturovaném, běžně používaném a strojově čitelném formátu, a právo předat tyto údaje jinému správci, aniž by tomu Společnost bránila, v případě, že:",
+            "part1": "a) zpracování je založeno na souhlasu; a",
+            "part2": "b) zpracování se provádí automatizovaně.",
+            "afterDesc": "Při výkonu svého práva na přenositelnost údajů má subjekt údajů právo na to, aby osobní údaje byly předány přímo jedním správcem správci druhému, je-li to technicky proveditelné."
+        },
+        "supervisory": {
+            "title": "h) právo podat stížnost u dozorového úřadu",
+            "desc": "Pokud se subjekt údajů domnívá, že nezpracováváme jeho osobní údaje zákonným způsobem, má právo podat stížnost u dozorového úřadu. Dozorovým úřadem je Úřad pro ochranu osobních údajů se sídlem Pplk. Sochora 27, 170 00 Praha 7, e-mail:",
+            "email": "posta@uoou.cz, ",
+            "otherText": "tel.: +420 234 665 125"
+        },
+        "informed": {
+            "title": "i) právo na informace ohledně opravy nebo výmazu osobních údajů nebo omezení zpracování",
+            "desc": "Jsme povinni oznamovat jednotlivým příjemcům, jimž byly osobní údaje zpřístupněny, veškeré opravy nebo výmazy osobních údajů nebo omezení zpracování, s výjimkou případů, kdy se to ukáže jako nemožné nebo to vyžaduje nepřiměřené úsilí. Pokud to subjekt údajů požaduje, informujeme subjekt údajů o těchto příjemcích."
+        },
+        "event": {
+            "title": "j) právo být informován v případě porušení zabezpečení osobních údajů",
+            "desc": "Pokud je pravděpodobné, že porušení zabezpečení osobních údajů bude mít za následek vysoké riziko pro práva a svobody fyzických osob, jsme povinni oznámit toto porušení bez zbytečného odkladu subjektu údajů."
+        },
+        "withdraw": {
+            "title": "k) právo odvolat souhlas se zpracováním osobních údajů",
+            "desc": "V případě, že zpracování některých osobních údajů probíhá na základě souhlasu, má subjekt údajů právo svůj souhlas kdykoliv písemně odvolat zasláním oznámení na e-mailovou adresu",
+            "email": "privacy.reli.one@gmail.com."
+        },
+        "security5_2": {
+            "title": "5.2. Způsoby zabezpečení dat",
+            "part1": "Za účelem zabezpečení dat Uživatele proti jejich neoprávněnému nebo nahodilému zpřístupnění využívá Společnost přiměřená a vhodná technická a organizační opatření.",
+            "part2": "Technická opatření spočívají v aplikaci technologií, která brání neoprávněnému přístupu třetích osob k datům Uživatele. Společnost dbá na to, aby v případě umístění serverů v datovém centru provozovaném třetí osobou byla obdobná technická a organizační opatření zavedena i u této třetí osoby.",
+            "part3": "Veškerá data jsou umístěna pouze na serverech umístěných v Evropské unii nebo v zemích, zajišťující ochranu osobních údajů způsobem rovnocenným s ochranou zajišťovanou právními předpisy České republiky."
+        },
+        "commercial5_3": {
+            "title": "5.3. Zasílání obchodních sdělení, informace o přímém marketingu",
+            "desc": "Při rozesílce obchodních sdělení postupuje Společnost v souladu se zákonem č. 480/2004 Sb., o některých službách informační společnosti, ve znění pozdějších předpisů. Zasílání obchodních sdělení můžete zrušit použitím odhlašovacího odkazu v každém zaslaném e-mailu."
+        },
+        "recipients5_4": {
+            "title": "5.4. Příjemci osobních údajů",
+            "desc": "Společnost nepředává osobní údaje žádným jiným správcům.",
+            "desc1": "Společnost využívá následující zpracovatele osobních údajů:",
+            "part1": "právnické, případně fyzické podnikající osoby, zabývající se účetnictvím, které jsou pověřeny k provádění účetních operací.",
+            "part2": "právnické, případně fyzické podnikající osoby, zabývající se IT řešením, které jsou pověřeny k provádění IT administraci a vývoj softwarových programů, které Společnost využívá.",
+            "part3": "právnické, případně podnikající fyzické osoby, poskytující serverové služby, které jsou pověřeny k ukládání dat.",
+            "part4": "Společnosti poskytující služby v oblasti rozesílání e-mailových zpráv.",
+            "desc2": "Zpracování osobních údajů mohou provádět zpracovatelé výhradně na základě smlouvy o zpracování osobních údajů, tzn. s garancemi organizačně-technického zabezpečení těchto dat s vymezením účelu zpracování, přičemž zpracovatelé nesmí použít údaje k jiným účelům.",
+            "desc3": "Osobní údaje mohou být za určitých podmínek zpřístupněny státním orgánům (soudům, policii, notářům, finančním úřadům apod., v rámci výkonu jejich zákonných pravomocí) nebo mohou být poskytnuty jiným subjektům v rozsahu stanoveném zvláštním zákonem."
+        },
+        "cookies": {
+            "title": "5.5. Soubory cookies a soubory protokolu",
+            "part1": "Společnost používá soubory cookie, což jsou malé textové soubory, které identifikují uživatele webové stránky https://reli.one a nahrávají jeho uživatelské aktivity. Text v souboru cookie je často tvořen řadou čísel a písmen, které jednoznačně identifikují počítač uživatele, neposkytují však žádné konkrétní osobní údaje o Uživateli.",
+            "part2": "Webová stránka https://reli.one automaticky identifikuje IP adresu uživatele. IP adresa je číslo automaticky přidělené počítači uživatele po připojení k internetu. Všechny tyto informace jsou zaznamenávány v souboru činnosti serverem, který umožňuje následné zpracování údajů. Soubory cookie a podobné technologie slouží k několika účelům, například:",
+            "login": {
+                "title": "Přihlášení a ověření:",
+                "desc": "Jakmile Uživatel použije osobní účet, aby se přihlásil, dojde na jeho zařízení k uložení šifrovaného souboru cookie, který umožní přecházet mezi stránkami webu bez nutnosti se opakovaně přihlašovat. Uživatel rovněž může uložit své přihlašovací údaje, aby se nemusel přihlašovat pokaždé, když se na webovou stránku https://reli.one vrátí."
+            },
+            "customization": {
+                "title": "Editace:",
+                "desc": "Společnost používá soubory cookie k přizpůsobení obsahu a informací požadavkům Uživatelů za účelem zajištění uživatelské přívětivosti webových stránek."
+            },
+            "marketing": {
+                "title": "Marketing:",
+                "desc": "Společnost používá soubory cookie ke sledování svých reklamních kampaní a dále sledování příspěvků Uživatelů, přihlášek a slevových kuponů, akcí a soutěží."
+            },
+            "diagnostics": {
+                "title": "Diagnostika:",
+                "desc": "Společnost používá soubory cookie za účelem diagnózy a opravy technických problémů nahlášených Uživateli nebo programátory, které jsou spojeny s IP adresami pod kontrolou konkrétní webové společnosti nebo poskytovatele připojení."
+            },
+            "analytics": {
+                "title": "Analýza:",
+                "desc": "Společnost používá soubory cookie a jiné identifikátory za účelem shromažďování údajů o používání a výkonu webové stránky https://reli.one."
+            },
+            "operational": {
+                "title": "Provozní cookies",
+                "desc": "Cookies, které musíme na vaše zařízení uložit, aby daná stránka mohla fungovat. Z tohoto důvodu se nevyžaduje váš souhlas."
+            },
+            "third_party": {
+                "title": "Cookies třetích stran",
+                "desc": "Na webové stránce https://reli.one mohou být též umístěny soubory cookie třetích stran. Může se tak jednat například proto, že jsme pověřili třetí stranu např. analýzou stránek."
+            },
+            "settings": {
+                "title": "Nastavení cookies",
+                "desc1": "Většina webových prohlížečů přijímá soubory cookie automaticky. Je však možné využít ovládacích prvků, které umožňují jejich blokování nebo odstranění. Uživatelé webové stránky https://reli.one jsou tak oprávněni nastavit svůj prohlížeč tak, aby bylo používání cookie na jejich počítači zabráněno.",
+                "desc2": "Využíváme dva typy souborů cookie, trvalé a jednorázové.",
+                "desc3": "Trvalý soubor cookie zůstává na pevném disku i po zavření prohlížeče. Trvalé soubory cookie mohou být použity prohlížečem při dalších návštěvách webové stránky https://reli.one. Trvalé soubory cookie mohou být odstraněny. Jednorázové cookie soubory jsou dočasné a jsou smazány, jakmile zavřete prohlížeč. ",
+                "desc4": "Pokyny k blokování nebo odstraňování souborů cookie v prohlížečích lze zpravidla nalézt v zásadách ochrany osobních údajů nebo v dokumentaci nápovědy jednotlivých prohlížečů."
+            },
+            "log": {
+                "title": "Soubory protokolu",
+                "desc1": "Prohlížeč Uživatele automaticky hlásí některé informace při každém zobrazení webové stránky https://reli.one. Při registraci na webových stránkách https://reli.one nebo procházení webových stránek servery automaticky zaznamenávají určité informace, které webový prohlížeč odesílá při každé návštěvě webové stránky.",
+                "desc2": "Tyto protokoly serveru (tzv. „log soubory“) mohou obsahovat informace, jako je např. webový požadavek, IP adresa, typ internetového prohlížeče, jazyk prohlížeče, odkazující / výstupní stránky a URL, typ platformy, počet kliknutí, názvy domén, vstupní stránky, počet zhlédnutých stránek a pořadí těchto stránek, množství času stráveného na určitých stránkách, datum a čas zadaného požadavku a jeden nebo více souborů cookie, které mohou jednoznačně identifikovat internetový prohlížeč."
+            }
+        },
+        "applicable5_6": {
+            "title": "5.6. Aplikovaná legislativa ochrany osobních údajů",
+            "desc": "Společnost se při poskytování ochrany osobních údajů řídí především následujícími právními předpisy:",
+            "part1": "Nařízení Evropského parlamentu a Rady (EU) 2016/679 ze dne 27. dubna 2016 o ochraně fyzických osob v souvislosti se zpracováním osobních údajů a o volném pohybu těchto údajů a o zrušení směrnice 95/46/ES (obecné nařízení o ochraně osobních údajů);",
+            "part2": "Směrnice Evropského parlamentu a Rady 2002/58/ES ze dne 12. července 2002 o zpracování osobních údajů a ochraně soukromí v odvětví elektronických komunikací;",
+            "part3": "Nařízení Komise (EU) č. 611/2013 ze dne 24. června 2013 o opatřeních vztahujících se na oznámení o narušení bezpečnosti osobních údajů podle směrnice Evropského parlamentu a Rady 2002/58/ES o soukromí a elektronických komunikacích (v omezeném rozsahu);",
+            "part4": "Zákon č. 110/2019 Sb., o zpracování osobních údajů;",
+            "part5": "Zákon č. 121/2000 Sb., zákon o právu autorském, o právech souvisejících s právem autorským;"
+        },
+        "final5_7": {
+            "title": "5.7. Závěrečná ustanovení",
+            "part1": "Uzavřením Smlouvy Uživatel potvrzuje, že se s těmito Pravidly ochrany osobních údajů seznámil.",
+            "part2": "Tato Pravidla ochrany osobních údajů může Společnost v případě potřeby aktualizovat. Aktuální verze Pravidel ochrany osobních údajů bude vždy dostupná na webové stránce https://reli.one.",
+            "part3": "Dojde-li v těchto Pravidlech ochrany osobních údajů k podstatné změně ve způsobech nakládání s osobními údaji, Společnost Uživatele informuje tak, že před implementací těchto změn viditelně zveřejní upozornění.",
+            "part4": "Doporučujeme Pravidla ochrany osobních údajů při využívání systému Reli nebo webové stránky https://reli.one průběžně kontrolovat.",
+            "part5": "Pro úplné informace o ustanoveních Obecného nařízení o ochraně osobních údajů (GDPR) a o vašich právech z něj vyplývajcích se můžete seznámit s oficiálním zněním nařízení dostupným na adrese: https://gdpr-info.eu"
+        }
+    },
+    "dataProtectionContact": {
+        "title": "Kontakt pro ochranu osobních údajů",
+        "company": "Reli Group s.r.o.",
+        "id": "IČO: 280 03 896",
+        "address": "Sídlo: Na lysinách 551/34, Hodkovičky, 147 00 Praha 4",
+        "email": "E-mail: office@reli.one"
+    }
+}

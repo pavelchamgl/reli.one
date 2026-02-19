@@ -7,17 +7,26 @@ import contactEn from "../src/locales/en/contactEn.json";
 import contactCz from "../src/locales/cz/contactCz.json";
 import newSellerEn from "../src/locales/en/newSellerPageEn.json";
 import newSellerCz from "../src/locales/cz/newSellerPageCz.json";
+import privacyPolicyEn from "../src/locales/en/privacyPolicyEn.json";
+import privacyPolicyCz from "../src/locales/cz/privacyPolicyCz.json";
+import generalTermsEn from "../src/locales/en/generalTermsEn.json";
+import generalTermsCz from "../src/locales/cz/generalTermsCz.json";
+
 
 const resources = {
   en: {
     translation: translationEn,
     contact: contactEn,
-    newSeller: newSellerEn
+    newSeller: newSellerEn,
+    policy: privacyPolicyEn,
+    terms:generalTermsEn
   },
   cz: {
     translation: translationCz,
     contact: contactCz,
-    newSeller: newSellerCz
+    newSeller: newSellerCz,
+    policy: privacyPolicyCz,
+    terms:generalTermsCz
   },
 };
 

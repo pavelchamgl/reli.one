@@ -17,6 +17,9 @@ import styles from "./CreatePassForm.module.scss"
 const CreatePassForm = () => {
     const { t } = useTranslation();
     const [regErr, setRegErr] = useState("");
+    const [isLoading, setIsLoading] = useState(false)
+
+
     const navigate = useNavigate()
 
 
@@ -56,6 +59,7 @@ const CreatePassForm = () => {
         validationSchema: validationPassword,
         onSubmit: (values) => {
             console.log(values);
+            setIsLoading(true)
             createNewPassApi({
                 password: values.password,
                 confirm_password: values.confirm_password,
@@ -66,11 +70,15 @@ const CreatePassForm = () => {
                     localStorage.removeItem("email");
                     localStorage.removeItem("otp");
                     navigate("/seller/successfully-reset");
+                    setIsLoading(false)
+
                 })
                 .catch((err) => {
                     console.log(err);
 
                     if (err.response) {
+                        setIsLoading(false)
+
                         if (err.response.status === 500) {
                             setRegErr(
                                 "An error occurred on the server. Please try again later."
@@ -165,7 +173,9 @@ const CreatePassForm = () => {
                 {
                     regErr && <p className={styles.errorText}>{regErr}</p>
                 }
-                <AuthBtnSeller disabled={!formik.isValid || !formik.dirty} text={"Save new password"} />
+                <AuthBtnSeller
+                loading={isLoading}
+                disabled={!formik.isValid || !formik.dirty} text={"Save new password"} />
             </form>
 
             <div className={styles.bottomLinkWrap}>

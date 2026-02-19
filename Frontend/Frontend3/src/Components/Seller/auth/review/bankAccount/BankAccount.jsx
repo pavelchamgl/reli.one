@@ -4,7 +4,7 @@ import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from "./BankAccount.module.scss"
 
-const BankAccount = ({ data }) => {
+const BankAccount = ({ data, setOpen }) => {
     return (
         <div className={styles.main}>
             <div className={styles.titleWrap}>
@@ -13,7 +13,7 @@ const BankAccount = ({ data }) => {
                     <h3>Bank Account</h3>
                 </div>
 
-                <EditBtn />
+                <EditBtn setOpen={setOpen} />
             </div>
             <ul className={styles.infoList}>
                 <li>

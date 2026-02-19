@@ -17,6 +17,7 @@ import { syncBasket } from "../../../../redux/basketSlice";
 const LoginForm = () => {
 
     const [regErr, setRegErr] = useState("");
+    const [isLoading, setIsLoading] = useState(false)
 
 
     const { t } = useTranslation()
@@ -51,11 +52,14 @@ const LoginForm = () => {
         validationSchema: validationLogin,
         onSubmit: async (values) => {
 
+            setIsLoading(true)
+
             try {
                 const res = await login(values)
                 localStorage.setItem("token", JSON.stringify(res.data));
                 localStorage.setItem("email", JSON.stringify(values.email));
                 dispatch(syncBasket())
+                setIsLoading(false)
 
                 // setRegErr("");
                 // handleClose();
@@ -64,6 +68,7 @@ const LoginForm = () => {
 
             } catch (err) {
                 if (err.response) {
+                    setIsLoading(false)
                     if (err.response.status === 500) {
                         setRegErr("An error occurred on the server. Please try again later.");
                     } else if (err.response.status === 401) {
@@ -122,8 +127,10 @@ const LoginForm = () => {
                 }
 
                 <AuthBtnSeller
+                    loading={isLoading}
                     disabled={!formik.isValid || !formik.dirty}
                     text={"Log in"} />
+
                 <FormLink
                     url={"/seller/reset"}
                     text={"Forgot your password?"} />

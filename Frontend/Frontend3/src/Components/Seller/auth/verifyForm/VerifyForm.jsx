@@ -17,6 +17,8 @@ const VerifyForm = () => {
     const [time, setTime] = useState(59);
     const [value, setValue] = useState("");
     const [regErr, setRegErr] = useState("");
+    const [isLoading, setIsLoading] = useState(false)
+
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -49,6 +51,7 @@ const VerifyForm = () => {
     };
 
     const handleSubmit = async () => {
+        setIsLoading(true)
         try {
             const res = await emailPassConfirm({
                 email: email,
@@ -57,10 +60,12 @@ const VerifyForm = () => {
             setRegErr("");
             localStorage.setItem("otp", JSON.stringify(value));
             navigate("/seller/create-password")
+            setIsLoading(false)
 
         } catch (err) {
 
             if (err.response) {
+                setIsLoading(false)
                 if (err.response.status === 500) {
                     setRegErr("An error occurred on the server. Please try again later.");
                 } else if (err.response.status === 400) {
@@ -91,7 +96,9 @@ const VerifyForm = () => {
                     <VerifyPinInput value={value} setValue={setValue} />
                     {regErr && <p className={styles.errorText}>{regErr}</p>}
                 </div>
-                <AuthBtnSeller disabled={value.length === 0} text={"Confirm"} />
+                <AuthBtnSeller
+                    loading={isLoading}
+                    disabled={value.length === 0} text={"Confirm"} />
                 <div className={styles.timerDiv}>
                     {time ? (
                         <p className={styles.resentText}>

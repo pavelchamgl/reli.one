@@ -4,12 +4,12 @@ import editIc from "../../../../assets/Seller/register/editIc.svg"
 
 import styles from "./EditBtn.module.scss"
 
-const EditBtn = () => {
+const EditBtn = ({ setOpen }) => {
 
     const navigate = useNavigate()
 
     return (
-        <button onClick={() => navigate(-1)} className={styles.editBtn}>
+        <button onClick={() => setOpen(true)} className={styles.editBtn}>
             <img src={editIc} alt="" />
             Edit
         </button>

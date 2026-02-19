@@ -119,7 +119,7 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
+              <Link to={"/terms"} className={cls.LinkNavigate} href="#">
                 {t("for_buyers")}
               </Link>
             </li>
@@ -128,6 +128,13 @@ const Footer = () => {
               <button onClick={() => setOpenPolicy(true)} className={cls.btnNavigate} href="#">
                 {t("privacySettings")}
               </button>
+            </li>
+
+            <li>
+              <Link to={"/privacy-policy"} className={cls.LinkNavigate} href="#">
+                {/* {t("for_buyers")} */}
+                Privacy policy
+              </Link>
             </li>
           </ul>
 
@@ -252,7 +259,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to={"/for_buy"} className={cls.LinkNavigate} href="#">
+                <Link to={"/terms"} className={cls.LinkNavigate} href="#">
                   {t("for_buyers")}
                 </Link>
               </li>
@@ -262,6 +269,13 @@ const Footer = () => {
                   {t("privacySettings")}
                 </button>
               </li>
+
+              <li>
+              <Link to={"/privacy-policy"} className={cls.LinkNavigate} href="#">
+                {/* {t("for_buyers")} */}
+                Privacy policy
+              </Link>
+            </li>
             </ul>
 
             <ul>

@@ -31,3 +31,32 @@ export const downloadBlob = (blob, fileName = "file.zip") => {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 };
+
+
+export const countriesArr = [
+  { text: "Czech Republic", value: "cz" },
+  { text: "Slovakia", value: "sk" },
+  { text: "Romania", value: "ro" },
+  { text: "Hungary", value: "hu" },
+  { text: "Poland", value: "pl" },
+  { text: "Austria", value: "at" },
+  { text: "Germany", value: "de" },
+  { text: "Slovenia", value: "si" },
+  { text: "Croatia", value: "hr" },
+  { text: "Belgium", value: "be" },
+  { text: "Denmark", value: "dk" },
+  { text: "Netherlands", value: "nl" },
+  { text: "Luxembourg", value: "lu" },
+  { text: "Estonia", value: "ee" },
+  { text: "Lithuania", value: "lt" },
+  { text: "Latvia", value: "lv" },
+  { text: "Bulgaria", value: "bg" },
+  { text: "France", value: "fr" },
+  { text: "Italy", value: "it" },
+  { text: "Spain", value: "es" },
+  { text: "Finland", value: "fi" },
+  { text: "Sweden", value: "se" },
+  { text: "Greece", value: "gr" },
+  { text: "Portugal", value: "pt" },
+  { text: "Ireland", value: "ie" }
+]

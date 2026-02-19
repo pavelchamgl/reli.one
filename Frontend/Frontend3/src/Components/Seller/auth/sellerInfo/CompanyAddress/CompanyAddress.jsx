@@ -9,9 +9,10 @@ import UploadInp from "../uploadInp/UploadInp"
 
 import styles from "./CompanyAddress.module.scss"
 import { putCompanyAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
-import { toISODate } from "../../../../../code/seller"
+import { countriesArr, toISODate } from "../../../../../code/seller"
+import { ErrToast } from "../../../../../ui/Toastify"
 
-const CompanyAddress = ({ formik }) => {
+const CompanyAddress = ({ formik, onClosePreview }) => {
 
     const { companyData } = useSelector(state => state.selfEmploed)
 
@@ -31,7 +32,7 @@ const CompanyAddress = ({ formik }) => {
 
     const companyAddressRef = useRef(null)
 
-    const onLeaveCompanyAddressBlock = () => {
+    const onLeaveCompanyAddressBlock = async () => {
 
         const filled = isCompanyAddressFilled(formik.values)
 
@@ -50,23 +51,22 @@ const CompanyAddress = ({ formik }) => {
 
         safeCompanyData(payload)
 
+        try {
+            await putCompanyAddress({
+                ...payload,
+                proof_document_issue_date: toISODate(payload.proof_document_issue_date)
+            })
+
+            onClosePreview?.();
+        } catch (err) {
+            ErrToast(err?.message || "Failed to save personal data");
+        }
 
 
-        putCompanyAddress({
-            ...payload,
-            proof_document_issue_date: toISODate(payload.proof_document_issue_date)
-        })
 
 
     }
 
-    const countryArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
 
     useEffect(() => {
         if (country !== null) {
@@ -115,6 +115,8 @@ const CompanyAddress = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.street}
+                    touched={formik.touched.street}
+
                 />
 
                 <div className={styles.twoInpWrap}>
@@ -124,6 +126,8 @@ const CompanyAddress = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.city}
+                        touched={formik.touched.city}
+
                     />
 
 
@@ -133,8 +137,10 @@ const CompanyAddress = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.zip_code}
+                        touched={formik.touched.zip_code}
+
                     />
-                    <SellerInfoSellect arr={countryArr}
+                    <SellerInfoSellect arr={countriesArr}
                         value={country} setValue={setCountry}
                         title={"Country"} titleSellect={"Select"}
                         errText={"Country is required"}

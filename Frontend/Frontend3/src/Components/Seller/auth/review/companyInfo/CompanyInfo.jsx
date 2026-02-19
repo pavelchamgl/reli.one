@@ -4,21 +4,16 @@ import companyIc from "../../../../../assets/Seller/register/companyIcon.svg"
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from './CompanyInfo.module.scss'
+import { countriesArr } from "../../../../../code/seller"
 
-const CompanyInfo = ({ data }) => {
+const CompanyInfo = ({ data, setOpen }) => {
 
 
     const { registerData } = useSelector(state => state.selfEmploed)
 
-    const countryArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
+  
 
-    const countryOfRegistration = countryArr.find((item) => item.value === data?.country_of_registration)
+    const countryOfRegistration = countriesArr.find((item) => item.value === data?.country_of_registration)
 
 
     return (
@@ -29,7 +24,7 @@ const CompanyInfo = ({ data }) => {
                     <h3>Company Information</h3>
                 </div>
 
-                <EditBtn />
+                <EditBtn setOpen={setOpen} />
             </div>
 
             <ul className={styles.infoList}>

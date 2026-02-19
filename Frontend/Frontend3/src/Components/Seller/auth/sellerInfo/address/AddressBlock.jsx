@@ -10,9 +10,9 @@ import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./Address.module.scss"
 import { putSelfAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
-import { toISODate } from "../../../../../code/seller"
+import { countriesArr, toISODate } from "../../../../../code/seller"
 
-const AddressBlock = ({ formik }) => {
+const AddressBlock = ({ formik, onClosePreview }) => {
 
     const { selfData } = useSelector(state => state.selfEmploed)
 
@@ -20,13 +20,7 @@ const AddressBlock = ({ formik }) => {
 
     const [country, setCountry] = useState(formik.values.country ?? null)
 
-    const countryArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ]
+
 
 
     useEffect(() => {
@@ -54,15 +48,14 @@ const AddressBlock = ({ formik }) => {
             values.street,
             values.city,
             values.zip_code,
-            country,
-            values.proof_document_issue_date
+            country
         )
     }
 
     const addressRef = useRef(null)
 
 
-    const onLeaveAddressBlock = () => {
+    const onLeaveAddressBlock = async() => {
 
         const filled = isAddressFilled(formik.values)
 
@@ -83,7 +76,15 @@ const AddressBlock = ({ formik }) => {
 
 
 
-        putSelfAddress(payload)
+
+        try {
+            await putSelfAddress(payload)
+
+            onClosePreview?.();
+        } catch (err) {
+            ErrToast(err?.message || "Failed to save personal data");
+        }
+
 
 
     }
@@ -112,6 +113,8 @@ const AddressBlock = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.street}
+                    touched={formik.touched.street}
+
                 />
 
                 <div className={styles.twoInpWrap}>
@@ -121,6 +124,8 @@ const AddressBlock = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.city}
+                        touched={formik.touched.city}
+
                     />
 
                     <InputSeller title={"ZIP"} type={"text"} circle={true} required={true}
@@ -129,9 +134,11 @@ const AddressBlock = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.zip_code}
+                        touched={formik.touched.zip_code}
+
                     />
 
-                    <SellerInfoSellect arr={countryArr} value={country}
+                    <SellerInfoSellect arr={countriesArr} value={country}
                         setValue={setCountry} title={"Country"}
                         titleSellect={"Select"}
                         errText={"Country is required"}

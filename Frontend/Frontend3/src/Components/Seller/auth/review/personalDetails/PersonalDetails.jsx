@@ -1,21 +1,15 @@
 import personalIc from "../../../../../assets/Seller/register/personalDetailsRevies.svg"
+import { countriesArr } from "../../../../../code/seller";
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from "./PersonalDetails.module.scss"
 
-const PersonalDetails = ({ data }) => {
+const PersonalDetails = ({ data, setOpen }) => {
 
-    const nationalArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
 
-    const nationality = nationalArr.find((item) => item?.value === data?.nationality)
+    const nationality = countriesArr.find((item) => item?.value === data?.nationality)
 
-    const tax_country = nationalArr.find((item) => item?.value === data?.tax_country)
+    const tax_country = countriesArr.find((item) => item?.value === data?.tax_country)
 
 
 
@@ -29,7 +23,7 @@ const PersonalDetails = ({ data }) => {
                     <h3>Tax information</h3>
                 </div>
 
-                <EditBtn />
+                <EditBtn setOpen={setOpen} />
             </div>
             <ul className={styles.infoList}>
                 <li>
@@ -44,7 +38,7 @@ const PersonalDetails = ({ data }) => {
                     data?.ico &&
                     <li>
                         <p>ICO</p>
-                        <span className={styles.num}>{data?.text}</span>
+                        <span className={styles.num}>{data?.ico}</span>
                     </li>
                 }
                 {
@@ -54,10 +48,7 @@ const PersonalDetails = ({ data }) => {
                         <span className={styles.num}>{data?.vat_id}</span>
                     </li>
                 }
-                <li>
-                    <p>Nationality</p>
-                    <span>{nationality?.text}</span>
-                </li>
+               
             </ul>
         </div>
     )

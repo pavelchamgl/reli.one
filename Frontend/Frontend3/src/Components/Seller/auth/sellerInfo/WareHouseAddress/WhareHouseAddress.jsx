@@ -11,7 +11,7 @@ import styles from "./WareHouseAddress.module.scss"
 import { useLocation } from "react-router-dom"
 import UploadInp from "../uploadInp/UploadInp"
 import { putWarehouse, uploadSingleDocument } from "../../../../../api/seller/onboarding"
-import { toISODate } from "../../../../../code/seller"
+import { countriesArr, toISODate } from "../../../../../code/seller"
 
 const WhareHouseAddress = ({ formik }) => {
 
@@ -38,13 +38,7 @@ const WhareHouseAddress = ({ formik }) => {
 
     const [country, setCountry] = useState(selfData.wCountry || companyData.wCountry)
 
-    const countryArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
+
 
     const { safeData, safeCompanyData } = useActionSafeEmploed()
 
@@ -139,6 +133,8 @@ const WhareHouseAddress = ({ formik }) => {
                     }
                     onBlur={formik.handleBlur}
                     error={formik.errors.wStreet}
+                    touched={formik.touched.wStreet}
+
 
                 />
 
@@ -154,6 +150,8 @@ const WhareHouseAddress = ({ formik }) => {
                         }
                         onBlur={formik.handleBlur}
                         error={formik.errors.wCity}
+                        touched={formik.touched.wCity}
+
                     />
 
                     <InputSeller title={"ZIP"} type={"text"} circle={true} required={true}
@@ -162,9 +160,11 @@ const WhareHouseAddress = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.wZip_code}
+                        touched={formik.touched.wZip_code}
+
                     />
 
-                    <SellerInfoSellect arr={countryArr} value={country}
+                    <SellerInfoSellect arr={countriesArr} value={country}
                         setValue={setCountry} title={"Country"}
                         titleSellect={"Select"}
                         errText={"Country is required"}
@@ -177,6 +177,9 @@ const WhareHouseAddress = ({ formik }) => {
                     onBlur={formik.handleBlur}
                     error={formik.errors.contact_phone}
                     num={true}
+                    touched={formik.touched.contact_phone}
+
+
                 />
 
                 <div>
@@ -191,7 +194,6 @@ const WhareHouseAddress = ({ formik }) => {
                         stateName={selfData?.warehouse_name}
                         nameTitle={"warehouse_name"}
                     />
-                    {formik.errors.wProof_document_issue_date && <p className={styles.errorText}>Upload document is required</p>}
                 </div>
 
 
