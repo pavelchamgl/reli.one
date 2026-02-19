@@ -17,6 +17,10 @@ import blocksEn from "./en/blocksEn.json"
 import blocksCz from "./cz/blocksCz.json"
 import footerEn from "./en/footerEn.json"
 import footerCz from "./cz/footerCz.json"
+import termsEn from "./en/terms.json"
+import termsCz from "./cz/terms.json"
+import policyEn from "./en/privacyPolicyEn.json"
+import policyCz from "./cz/privacyPolicyCz.json"
 
 
 
@@ -30,7 +34,9 @@ const resources = {
         banners: bannersEn,
         blocks: blocksEn,
         footer: footerEn,
-        contact: contactEn
+        contact: contactEn,
+        terms: termsEn,
+        policy: policyEn
     },
     cz: {
         translation: translationCz,
@@ -40,7 +46,10 @@ const resources = {
         banners: bannersCz,
         blocks: blocksCz,
         footer: footerCz,
-        contact: contactCz
+        contact: contactCz,
+        terms: termsCz,
+        policy: policyCz
+
     }
 };
 

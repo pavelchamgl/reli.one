@@ -24,8 +24,8 @@ const CreateForm = () => {
     const { t, i18n } = useTranslation();
 
     const [isAgree, setIsAgree] = useState(false)
-
     const [regErr, setRegErr] = useState("");
+    const [isLoading, setIsLoading] = useState(false)
 
     const navigate = useNavigate()
 
@@ -71,18 +71,23 @@ const CreateForm = () => {
         validationSchema: validationSchema,
         onSubmit: (values) => {
             console.log(values);
+            setIsLoading(true)
+
 
             registerSeller(values)
                 .then((res) => {
                     setRegErr("");
                     localStorage.setItem("email", JSON.stringify(values.email));
                     setRegisterData({ ...values })
+                    setIsLoading(false)
                     navigate("/seller/create-verify");
                 })
                 .catch((err) => {
                     console.log(err);
 
                     if (err.response) {
+                        setIsLoading(false)
+
                         if (err.response.status === 500) {
                             setRegErr(
                                 "An error occurred on the server. Please try again later."
@@ -218,6 +223,7 @@ const CreateForm = () => {
                 </div>
 
                 <AuthBtnSeller
+                loading={isLoading}
                     disabled={
                         !formik.isValid ||
                         !formik.dirty ||

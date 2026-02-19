@@ -11,8 +11,10 @@ import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import styles from "./Representative.module.scss"
 import SellerDateInp from "../dateInp/DateInp"
 import { putRepresentative, uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { countriesArr } from "../../../../../code/seller"
+import { ErrToast } from "../../../../../ui/Toastify"
 
-const Representative = ({ formik }) => {
+const Representative = ({ formik, onClosePreview }) => {
 
     const { companyData } = useSelector(state => state.selfEmploed)
 
@@ -31,7 +33,7 @@ const Representative = ({ formik }) => {
 
     const representativeRef = useRef(null)
 
-    const onLeavePersonalBlock = () => {
+    const onLeavePersonalBlock = async () => {
 
         const filled = isRepresentativeFilled(formik.values)
 
@@ -56,11 +58,18 @@ const Representative = ({ formik }) => {
         })
 
 
-        putRepresentative({
-            ...payload,
-            date_of_birth:payload.date_of_birth?.split(".")?.reverse()?.join("-")
-        })
 
+
+        try {
+            await putRepresentative({
+                ...payload,
+                date_of_birth: payload.date_of_birth?.split(".")?.reverse()?.join("-")
+            })
+
+            onClosePreview?.();
+        } catch (err) {
+            ErrToast(err?.message || "Failed to save personal data");
+        }
 
     }
 
@@ -74,13 +83,7 @@ const Representative = ({ formik }) => {
         { text: "Authorized Signatory", value: "Authorized Signatory" },
     ];
 
-    const nationalArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
+
 
     useEffect(() => {
         if (role !== null) {
@@ -143,6 +146,8 @@ const Representative = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.first_name}
+                        touched={formik.touched.first_name}
+
                     />
                     <InputSeller title={"Last name"} type={"text"} circle={true} required={true} placeholder={"Smith"}
                         name="last_name"
@@ -150,6 +155,8 @@ const Representative = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.last_name}
+                        touched={formik.touched.last_name}
+
                     />
                 </div>
 
@@ -161,7 +168,7 @@ const Representative = ({ formik }) => {
 
                 <div className={styles.twoInpWrap}>
                     <SellerDateInp formik={formik} />
-                    <SellerInfoSellect arr={nationalArr} title={"Nationality"}
+                    <SellerInfoSellect arr={countriesArr} title={"Nationality"}
                         titleSellect={"Select nationality"}
                         value={nationality} setValue={setNationality}
                         errText={"Nationality is required"}

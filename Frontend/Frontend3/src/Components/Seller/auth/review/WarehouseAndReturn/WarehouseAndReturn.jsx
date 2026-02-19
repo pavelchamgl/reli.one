@@ -1,21 +1,15 @@
 import warehouseIc from "../../../../../assets/Seller/register/warehouseAndReturn.svg"
+import { countriesArr } from "../../../../../code/seller";
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from "./WarehouseAndReturn.module.scss"
 
-const WarehouseAndReturn = ({ data }) => {
+const WarehouseAndReturn = ({ data, setOpen }) => {
 
 
-    const nationalArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
 
-    const wCountry = nationalArr.find((item) => item.value === data?.wCountry)
-    const rCountry = nationalArr.find((item) => item.value === data?.rCountry)
+    const wCountry = countriesArr.find((item) => item.value === data?.wCountry)
+    const rCountry = countriesArr.find((item) => item.value === data?.rCountry)
 
 
     return (
@@ -26,17 +20,47 @@ const WarehouseAndReturn = ({ data }) => {
                     <h3>Warehouse & Return</h3>
                 </div>
 
-                <EditBtn />
+                <EditBtn setOpen={setOpen} />
             </div>
 
             <div className={styles.firstBlock}>
-                <p className={styles.title}>Warehouse Address</p>
-                <span className={styles.desc}>{`${data?.wStreet}, ${data?.wCity}, ${wCountry.text}`}</span>
+                <div>
+                    <p className={styles.title}>Warehouse Address</p>
+                    <span className={styles.desc}>{`${data?.wStreet}, ${data?.wCity}, ${wCountry?.text}, ${data?.wZip_code}`}</span>
+                </div>
+                <div>
+                    <p className={styles.title}>Contact phone</p>
+                    <span className={`${styles.desc} ${styles.num}`}>{`${data?.contact_phone}`}</span>
+                </div>
             </div>
 
-            <div>
-                <p className={styles.title}>Return Address</p>
-                <span className={styles.desc}>{data?.same_as_warehouse ? "Same as warehouse address" : `${data?.rStreet}, ${data?.rCity}, ${rCountry.text}`}</span>
+
+            <div className={styles.lastBlock}>
+
+                {
+                    data?.same_as_warehouse ?
+
+                        <div>
+                            <p className={styles.title}>Return Address</p>
+                            <span className={styles.desc}>{"Same as warehouse address"}</span>
+                        </div>
+
+                        :
+
+                        <>
+                            <div>
+                                <p className={styles.title}>Return Address</p>
+                                <span className={styles.desc}>{data?.same_as_warehouse ? "Same as warehouse address" : `${data?.rStreet}, ${data?.rCity}, ${rCountry?.text}, ${data?.rZip_code}`}</span>
+                            </div>
+
+                            <div>
+                                <p className={styles.title}>Contact phone</p>
+                                <span className={styles.desc}>{data?.rContact_phone}</span>
+                            </div>
+                        </>
+                }
+
+
             </div>
         </div>
     )

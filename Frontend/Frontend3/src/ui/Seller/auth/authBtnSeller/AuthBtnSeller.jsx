@@ -1,10 +1,15 @@
+import Spinner from "../../../Spiner/Spiner"
 import styles from "./AuthBtnSeller.module.scss"
 
-const AuthBtnSeller = ({ text, style, disabled, handleClick }) => {
+const AuthBtnSeller = ({ text, style, disabled, handleClick, loading }) => {
     return (
         <>
             <button style={style} type="submit" className={styles.btn} disabled={disabled} onClick={handleClick}>
-                {text}
+                {
+                    loading ?
+                        <Spinner /> :
+                        text
+                }
             </button>
         </>
     )

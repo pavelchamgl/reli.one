@@ -10,10 +10,12 @@ const SellerDateInp = ({ formik }) => {
 
     // const [value, setValue] = useState("")
 
+    const showError = Boolean(formik.touched.date_of_birth && formik.errors.date_of_birth); // ✅ ошибка только после touched
+
     return (
         <div className={styles.dateWrap}>
             <p className={styles.dateTitle}>Date of birth</p>
-            <div className={`${styles.inpWrap} ${formik.errors.date_of_birth ? styles.error : ""}`}>
+            <div className={`${styles.inpWrap} ${showError ? styles.error : ""}`}>
 
                 <img src={dateIc} alt="" />
                 <InputMask
@@ -31,7 +33,7 @@ const SellerDateInp = ({ formik }) => {
                     {(inputProps) => <input className={styles.input} {...inputProps} type="tel" />}
                 </InputMask>
             </div>
-                {formik.errors.date_of_birth ? <p className={styles.errorText}>{formik.errors.date_of_birth}</p> : null}
+            {showError ? <p className={styles.errorText}>{formik.errors.date_of_birth}</p> : null}
         </div>
     )
 }

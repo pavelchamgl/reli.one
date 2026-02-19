@@ -19,10 +19,18 @@
     display: flex;
     flex-direction: column;
 
-    position: absolute;
-    z-index: 1000px;
+    position: fixed;
+    z-index: 1000;
     top: 0;
     right: 200px;
+
+
+}
+
+@media (max-width:951px) {
+    .modal {
+        right: 14px;
+    }
 }
 
 

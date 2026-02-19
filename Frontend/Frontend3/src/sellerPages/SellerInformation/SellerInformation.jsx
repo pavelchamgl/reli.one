@@ -82,6 +82,9 @@ const SellerInformation = () => {
         validationSchema: validationSchemaSelf,
         // enableReinitialize: true,
         validateOnChange: true,
+        // validateOnMount: false,
+        // validateOnChange: false,
+        // validateOnBlur: true,
         onSubmit: async (values) => {
             safeData(values);
 
@@ -216,7 +219,7 @@ const SellerInformation = () => {
                 <ReturnAddress formik={formik} />
 
                 <AuthBtnSeller
-                    disabled={!formik.isValid}
+                    // disabled={!formik.isValid}
                     text={"Continue to Review"}
                     style={{ borderRadius: "16px", width: "222px" }}
                     handleClick={formik.handleSubmit}

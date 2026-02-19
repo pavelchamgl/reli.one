@@ -1,0 +1,328 @@
+{
+    "mainTitle": "Privacy Policy of Reli Group s.r.o.",
+    "mainDesc": "How we protect and process your personal data",
+    "intro": {
+        "title": "1. Introductory Provisions and Definitions",
+        "part1": "1.1. This document contains important information regarding the protection of personal data by Reli Group s.r.o., Company ID No.: 280 03 896, with its registered office at Na lysinách 551/34, Hodkovičky, 147 00 Prague 4 (hereinafter referred to as the “Company”).",
+        "part2": "1.2. This document sets out information on the principles and procedures for the processing of personal data, which is carried out in accordance with Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data and repealing Directive 95/46/EC (hereinafter referred to as the “GDPR”).",
+        "part3": "1.3. In this document, the following terms, when capitalized, shall have the following meanings:",
+        "list": {
+            "list1": {
+                "title": "Agreement ",
+                "desc": " means a legal act on the basis of which the Company undertakes to deliver goods to you, whether for consideration or free of charge."
+            },
+            "list2": {
+                "title": "Reli System ",
+                "desc": "means software for the creation and hosting of a reservation system according to the User’s requirements."
+            },
+            "list3": {
+                "title": "Reli Application ",
+                "desc": "means software for end users, which serves to make reservations with Users of the Reli System."
+            },
+            "list4": {
+                "title": "User ",
+                "desc": "means a user of the website https://reli.one, or other products or services of the Company."
+            },
+            "list5": {
+                "title": "User ",
+                "desc": "means a user of the website https://reli.one, or other products or services of the Company."
+            },
+            "list6": {
+                "title": "Reli Website ",
+                "desc": "means the website https://reli.one. "
+            }
+        }
+    },
+    "basicInfo": {
+        "title": "2. Basic Information",
+        "part2_1": {
+            "title": " Identification and Contact Details of the Controller:",
+            "desc": "The controller is the Company. The contact email address of the controller is"
+        },
+        "email": "privacy.reli.one@gmail.com.",
+        "part1Title": "2.1. Identification and Contact Details of the Controller:",
+        "part1Desc": "The controller is the Company. The contact email address of the controller is privacy.reli.one@gmail.com.",
+        "part1": "2.2. The Controller is not an entity obliged under Article 37 of the GDPR and has therefore not appointed a Data Protection Officer.",
+        "part2": "2.3. The Controller does not transfer personal data to third countries or international organizations, except for transfers to processors expressly specified in this Privacy Policy. The aforementioned processors ensure an adequate level of protection of personal data in accordance with the GDPR on the basis of contractual commitments with the Company. These safeguards and protective measures ensure a level of protection comparable to that guaranteed in the EU by the GDPR and the Charter of Fundamental Rights of the European Union.",
+        "part3": "2.4. The Company does not carry out profiling or automated individual decision-making within the meaning of Article 22 of the GDPR.",
+        "part4": "2.5. Where personal data are processed for the purpose of performance of a contract or compliance with legal obligations, the provision of such data is a statutory requirement. Where personal data are processed on the basis of the data subject’s consent, the provision of such data is a contractual requirement.",
+        "part5": "2.6. The supervisory authority is an independent public authority competent for the protection of personal data in the relevant state. The supervisory authority at the Company’s registered office is the Office for Personal Data Protection, with its registered office at Pplk. Sochora 27, 170 00 Prague 7."
+    },
+    "processingServices": {
+        "title": "3. Processing of Personal Data in the Provision of Services to Entrepreneurs",
+        "administration": {
+            "title": "3.1. Administration of Personal Data",
+            "part1": "The Company acts as the controller of personal data in relation to the personal data of Users and natural persons who visit the Reli Website. The Company processes personal data for the purpose of performance of a contract (conclusion of the contract and communication with the User) or for the purpose of compliance with legal obligations (accounting, issuance of tax documents, etc.).",
+            "part2": "For this purpose, the Company processes in particular the following personal data: first name, surname, business name, Company ID No. (IČO), VAT ID No. (DIČ), residential or registered office address, telephone number, and email address.",
+            "part3": "The Company further processes data obtained from the User or other natural persons by using the reservation system operated by the Company (Reli System) or by visiting its website. Such data include cookies and log files (IP address and, where applicable, other online identifiers). The Company processes such data on the basis of its legitimate interest or on the basis of the data subject’s consent.",
+            "part4": "If the Company intends to process personal data other than those listed in this Article, or for purposes other than those specified herein, it shall do so solely on the basis of validly granted consent to the processing of personal data.",
+            "part5": "The Company does not process special categories of personal data within the meaning of Article 9 of the GDPR, nor personal data relating to criminal convictions and offences within the meaning of Article 10 of the GDPR.",
+            "part6": "Personal data of Users are processed for the duration of the contractual relationship and subsequently for a maximum period of five (5) years following termination of the contractual relationship. Personal data processed for the purpose of fulfilling obligations arising from specific legal regulations are processed for the period stipulated by such legal regulations.",
+            "part7": "Where necessary for the protection of the Company’s legitimate interests, personal data shall be processed for the period necessary to exercise such rights.",
+            "part8": "Personal data are obtained directly from the data subjects when concluding the Agreement. The Company always informs data subjects which personal data must be provided for the purpose of performance of the Agreement."
+        },
+        "processing": {
+            "title": "3.2. Processing of Personal Data",
+            "part1": "The Company provides the User with data storage space for the purpose of storing data operated within the Reli System, on the Company’s servers. The User’s data may also include personal data of individuals. In relation to personal data stored by the User on the Company’s servers (i.e., persons who make a reservation with the User on the User’s website), the Company acts as a processor of personal data. The User is the controller of such personal data.",
+            "noticeUsersTitle": "Notice to Users",
+            "noticeUsers": "If you collect personal data of natural persons through questionnaires or other means, you become the controller of such personal data and are obliged to comply with all personal data protection rules set out in the GDPR and other applicable legal regulations governing this area. The Company bears no responsibility for any breach of personal data protection rules by Users.",
+            "noticeEndUsersTitle": "Notice to End Users",
+            "noticeEndUsers": "The use of the Reli System may be subject to the policies and rules of the respective User, if such policies exist. If you provide your personal data to Users, you should address any questions regarding personal data protection directly to the respective User, as that User acts as the controller of personal data. We cannot be responsible for the privacy policies or security practices applied by the User, which may differ from this Privacy Policy.",
+            "purposeTitle": "What is the purpose of processing and how do we handle the data?",
+            "purpose": "The Company does not perform any operations with the User’s data, including personal data, other than storing them on the Company’s servers. The Company does not access, modify, disclose, or transfer such data to third parties, except where disclosure is required to public authorities in accordance with applicable law, or to third parties specified in this Privacy Policy, or unless otherwise stipulated in the Agreement. Personal data are processed for the purpose of operating the Reli System and the Reli Application so that the Agreement with the User can be duly performed.",
+            "dataTitle": "What personal data do we process?",
+            "data": "We process only such personal data of end users of the Reli System and the Reli Application as are entered by such end users into the Reli reservation system. These may include, in particular, first name, surname, email address, telephone number, as well as data necessary for the performance of the contract and related administration, in particular billing data and payment details.",
+            "disclosureTitle": "To whom do we disclose personal data?",
+            "disclosure": "The Company discloses personal data to third parties only in the cases specified in this Privacy Policy, and always solely for the purposes set out herein. Personal data may also be disclosed to Reli services s.r.o., Company ID No.: 038 53 586, which is an affiliated entity of the Company and which, within the framework of the Reli Application and the Reli System, facilitates the provision of services to end customers.",
+            "retentionTitle": "For how long do we process personal data?",
+            "retention": "The Company processes personal data for the duration of the contractual relationship with the User, or for the duration of any applicable complaint period, but for no longer than five (5) years. Upon deletion of the account by the User, all data shall be erased."
+        }
+    },
+    "endUsersProcessing": {
+        "title": "4. Processing of Personal Data in the Provision of Services to End Users",
+        "administration": {
+            "title": "4.1. Administration of Personal Data",
+            "part1": "The Company acts as the controller of personal data in relation to the personal data of end users. The Company processes personal data for the purpose of performance of a contract (conclusion of the contract and communication with the User) or for the purpose of compliance with legal obligations (accounting, issuance of tax documents, etc.).",
+            "part2": "For this purpose, the Company processes in particular the following personal data: first name, surname, business name, Company ID No. (IČO), VAT ID No. (DIČ), residential or registered office address, telephone number, and email address.",
+            "part3": "The Company further processes data obtained from end users by using the reservation system operated by the Company (Reli System) or by visiting its website. Such data include cookies and log files (IP address and, where applicable, other online identifiers). The Company processes such data on the basis of its legitimate interest or on the basis of the data subject’s consent.",
+            "part4": "If the Company intends to process personal data other than those listed in this Article, or for purposes other than those specified herein, it shall do so solely on the basis of validly granted consent to the processing of personal data.",
+            "part5": "The Company does not process special categories of personal data within the meaning of Article 9 of the GDPR, nor personal data relating to criminal convictions and offences within the meaning of Article 10 of the GDPR.",
+            "part6": "Personal data of Users are processed for the duration of the contractual relationship and subsequently for a maximum period of five (5) years following termination of the contractual relationship. Personal data processed for the purpose of fulfilling obligations arising from specific legal regulations are processed for the period stipulated by such legal regulations. Where necessary for the protection of the Company’s legitimate interests, personal data shall be processed for the period necessary to exercise such rights.",
+            "part7": "Personal data are obtained directly from the data subjects when concluding the Agreement. The Company always informs data subjects which personal data must be provided for the purpose of performance of the Agreement.",
+            "deliveryToUsers": {
+                "title": "Disclosure to Users Who Supply Goods",
+                "part1": "Personal data of end users are disclosed to Users who supply the goods ordered by the end user from us. Without the disclosure of personal data, it would not be possible to ensure delivery of the goods. In relation to personal data obtained in this manner, the Users act as controllers of personal data; therefore, the informed consent of the end user to the transfer of personal data is required."
+            },
+            "courierDelivery": {
+                "title": "Disclosure to Courier Services",
+                "part1": "Personal data of end users are disclosed for the purpose of organizing the delivery of orders to courier services via API integration,",
+                "part1Other": " with integrations and contractual arrangements concluded with their local branches in the Czech Republic, and delivery being carried out from the Czech Republic, including deliveries outside its territory. For this purpose, personal data may be disclosed to controllers operating courier services, specifically:",
+                "list": {
+                    "list1": {
+                        "title": "",
+                        "desc": "Zásilkovna s.r.o. with its registered office at Českomoravská 2408/1a, 190 00 Prague 9, Czech Republic."
+                    },
+                    "list2": {
+                        "title": "",
+                        "desc": "Direct Parcel Distribution CZ s.r.o. (DPD Czech Republic) with its registered office at Modletice 135, 251 01 Říčany u Prahy, Czech Republic."
+                    },
+                    "list3": {
+                        "title": "",
+                        "desc": "General Logistics Systems Czech Republic s.r.o. (GLS Czech Republic) with its registered office at Průmyslová 5619/1, 586 01 Jihlava, Czech Republic."
+                    }
+                },
+                "part3": "Following the successful processing of a payment and receipt of a webhook notification from the payment system, the reli.one platform automatically stores the order in the database and, via the API of the relevant courier service, initiates the creation of a postal/courier shipment.",
+                "part4": "Courier services are provided only with the data necessary for delivery, in particular: the recipient’s first and last name; delivery address (country, city, street, postal code, house/apartment number); recipient’s telephone number; email address (where required by the specific delivery service); and technical shipment data (e.g., order number, delivery type, and related identifiers).",
+                "part5": "Such data are transferred solely for the purpose of processing the shipment, delivering the order to the recipient, and enabling communication between the courier service and the recipient. Data transfers are carried out exclusively to the extent necessary for delivery, and courier services use the received data solely for the purpose of providing delivery services in accordance with their respective personal data processing policies."
+            },
+            "paymentProviders": {
+                "title": "Disclosure to Payment Services",
+                "part1": "Personal data of end users are also disclosed to controllers that operate payment services, namely PayPal Holdings, Inc., with its registered office at 2211 North First Street, San Jose, CA 95131, USA, and Stripe, LLC, with its registered office at 354 Oyster Point Blvd, South San Francisco, CA 94080, USA.",
+                "part2": "The following data are disclosed to these controllers: payment amount and currency; technical identifiers of the payment session and transaction; and the payer’s email address, where required.",
+                "part3": "Sensitive data, in particular bank card numbers, CVC/CVV codes, and other security elements, are entered by the user directly into the secure interface of the payment provider. The Company does not obtain, process, or store such sensitive data at any time.",
+                "part4": "After the transaction is processed, the Company receives an automated technical notification (webhook) from the payment provider, on the basis of which the payment result is recorded and the order is created within the Reli System. This notification contains only:",
+                "list": {
+                    "list1": {
+                        "desc": "information on the status of the operation (successful / unsuccessful)."
+                    },
+                    "list2": {
+                        "desc": "transaction identifier."
+                    },
+                    "list3": {
+                        "desc": "confirmation of the amount and currency."
+                    }
+                },
+                "part6": "The purpose of this processing is exclusively to initiate the payment operation, obtain confirmation of its result, and subsequently record the order.",
+                "part7": "The Company expressly states that it does not process refunds or conduct direct settlements with sellers (Users) through the above-mentioned payment systems."
+            },
+            "externalAuth": {
+                "title": "External Authorization Services",
+                "part1": "The Reli System includes the option to log in and register through external authorization services provided by Google LLC, 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA, and Meta Platforms, Inc. (Facebook), 1601 Willow Road, Menlo Park, CA 94025, USA.",
+                "part2": "If a user chooses to use one of these services, the following personal data will be transferred to the respective provider: the user’s unique identifier with the provider; name; email address; and authorization token (a technical OAuth token used solely to confirm the session and ensure proper functioning of the authorization mechanism).",
+                "part3": "The purpose of this data transfer is to authorize and identify the user and to link the user’s account with the relevant authorization service provider to the user’s account in the Reli System, without the need to create a separate username and password directly within the Reli System. In such cases, personal data are shared exclusively on the basis of the user’s own action in choosing to log in to the Reli System via the respective authentication service."
+            },
+            "adsAnalytics": {
+                "title": "Analytics and Advertising Integration",
+                "part1": "For the purpose of analyzing the effectiveness of advertising campaigns and evaluating user activity on the reli.one website, the Company uses analytical and advertising integration through Google Tag Manager and Google Ads. Data may therefore be disclosed to the controller providing these analytical and advertising services, namely Google LLC , with its registered office at 1600 Amphitheatre Parkway, Mountain View, CA 94043, USA.",
+                "part2": "Within the scope of this integration, the data transferred include in particular e-commerce events (e.g., adding items to cart, completing a purchase) and technical parameters relating to orders and goods, especially order identifier, amount and currency, and product information (item number, name, price, quantity, category, and other characteristics).",
+                "part3": "No data enabling the direct identification of the user are transferred, in particular no names, email addresses, telephone numbers, payment details, delivery addresses, or other similar identifying information.",
+                "part4": "Data are transmitted exclusively in the form of anonymized events via the dataLayer mechanism. Personal data are not transmitted directly to Google Ads, and the standard analytical model Google Analytics 4 (GA4) is used.",
+                "part5": "The purpose of this data transfer is to analyze the effectiveness of advertising campaigns, perform statistical analytics, and optimize marketing processes and user experience."
+            },
+            "docusign": {
+                "title": "Electronic Signing via DocuSign",
+                "part1": "When electronically signing a document through the DocuSign service, personal data are transferred to DocuSign, Inc., 221 Main St., Suite 1550, San Francisco, California, 94105, USA.",
+                "part2": "The transferred data include information necessary for identity verification, namely the signatory’s name, email address, and the document to be signed. The transfer is carried out directly to DocuSign for the purpose of executing the electronic signature and occurs only in cases where a document is signed via the DocuSign service. Personal data are also transferred through the POHODA accounting system to its operator, as without such transfer it would not be possible to maintain proper accounting records and fulfill the accounting and tax obligations imposed by applicable law."
+            }
+        }
+    },
+    "common": {
+        "title": "5. Common Provisions",
+        "rights": {
+            "title": "5.1. Rights of Data Subjects",
+            "subtitle": "a) Right of access to personal data",
+            "desc": "The data subject has the right to obtain from the Company confirmation as to whether or not personal data concerning him or her are being processed. Where that is the case, the data subject has the right to access such personal data and the following information:",
+            "part1": "a) the purposes of the processing;",
+            "part2": "b) the categories of personal data concerned;",
+            "part3": "c) the recipients to whom the personal data have been or will be disclosed;",
+            "part4": "d) the envisaged period for which the personal data will be stored;",
+            "part5": "e) the existence of the right to request from the controller rectification or erasure of personal data, restriction of processing, or to object to such processing;",
+            "part6": "f) the right to lodge a complaint with a supervisory authority;",
+            "part7": "g) any available information as to the source of the personal data, where they are not obtained from the data subject;",
+            "part8": "h) the existence of automated decision-making, including profiling. The data subject also has the right to obtain a copy of the personal data undergoing processing."
+        },
+        "rectification": {
+            "title": "b) Right to rectification of personal data",
+            "part1": "The data subject has the right to have inaccurate personal data concerning him or her corrected without undue delay and, where appropriate, to have incomplete personal data completed."
+        },
+        "erasure": {
+            "title": "c) Right to erasure of personal data ",
+            "desc": "The data subject has the right to obtain from the Company the erasure of personal data concerning him or her without undue delay where one of the following grounds applies:",
+            "part1": "a) the personal data are no longer necessary for the purposes for which they were collected or otherwise processed;",
+            "part2": "b) the data subject withdraws consent on which the processing is based and there is no other legal ground for the processing;",
+            "part3": "c) the data subject objects to the processing and there are no overriding legitimate grounds for the processing;",
+            "part4": "d) the personal data have been unlawfully processed;",
+            "part5": "e) the personal data must be erased for compliance with a legal obligation under European Union or Czech law;",
+            "part6": "f) the personal data were collected in connection with the offer of information society services;",
+            "part7": "The right to erasure shall not apply where processing is necessary for compliance with a legal obligation,",
+            "part8": "for the establishment, exercise, or defense of legal claims, or in other cases provided for by the GDPR."
+        },
+        "restriction": {
+            "title": "d) Right to restriction of processing",
+            "desc": "The data subject has the right to obtain from the Company restriction of processing where one of the following applies:",
+            "part1": "a) the data subject contests the accuracy of the personal data,",
+            "part2": "for a period enabling the Company to verify their accuracy;",
+            "part3": "b) the processing is unlawful and the data subject opposes the erasure of the personal data",
+            "part4": "and requests restriction of their use instead;",
+            "part5": "c) the Company no longer needs the personal data for the purposes of processing,",
+            "part6": "but the data subject requires them for the establishment, exercise, or defense of legal claims;",
+            "part7": "d) the data subject has objected to processing,",
+            "part8": "pending verification whether the legitimate grounds of the Company override those of the data subject."
+        },
+        "object": {
+            "title": "e) Right to object to processing",
+            "desc1": "The data subject has the right, on grounds relating to his or her particular situation, to object at any time to the processing of personal data concerning him or her which is carried out on the basis of the Company’s legitimate interests.",
+            "desc2": "In such a case, the Company shall no longer process the personal data unless it demonstrates compelling legitimate grounds for the processing which override the interests, rights, and freedoms of the data subject, or for the establishment, exercise, or defense of legal claims."
+        },
+        "direct": {
+            "title": "f) Right to object to processing for direct marketing purposes",
+            "desc": "Where we process your personal data for direct marketing purposes, you have the right to object to such processing at any time. In such case, the Company shall cease processing your personal data for direct marketing purposes without undue delay."
+        },
+        "portability": {
+            "title": "g) Right to data portability",
+            "desc": "The data subject has the right to receive personal data concerning him or her that he or she has provided to us, in a structured, commonly used, and machine-readable format, and has the right to transmit those data to another controller without hindrance from the Company, where:",
+            "part1": "a) the processing is based on consent; and",
+            "part2": "b) the processing is carried out by automated means.",
+            "afterDesc": "In exercising the right to data portability, the data subject has the right to have the personal data transmitted directly from one controller to another, where technically feasible."
+        },
+        "supervisory": {
+            "title": "h) Right to lodge a complaint with a supervisory authority",
+            "desc": "If the data subject believes that we do not process his or her personal data in a lawful manner, he or she has the right to lodge a complaint with the supervisory authority. The supervisory authority is the Office for Personal Data Protection, with its registered office at Pplk. Sochora 27, 170 00 Prague 7, Czech Republic, email:  ",
+            "email": "posta@uoou.cz, ",
+            "otherText": "tel.: +420 234 665 125"
+        },
+        "informed": {
+            "title": "i) Right to be informed of rectification, erasure, or restriction of processing",
+            "desc": "We are obliged to notify each recipient to whom personal data have been disclosed of any rectification or erasure of personal data or restriction of processing, unless this proves impossible or involves disproportionate effort. If requested by the data subject, we shall inform the data subject about such recipients."
+        },
+        "event": {
+            "title": "j) Right to be informed in the event of a personal data breach",
+            "desc": "Where a personal data breach is likely to result in a high risk to the rights and freedoms of natural persons, we are obliged to notify the data subject of such breach without undue delay"
+        },
+        "withdraw": {
+            "title": "k) Right to withdraw consent to the processing of personal data",
+            "desc": "Where the processing of certain personal data is based on consent, the data subject has the right to withdraw such consent at any time in writing, by sending a notice of withdrawal of consent to the email address",
+            "email": "privacy.reli.one@gmail.com. "
+        },
+        "security5_2": {
+            "title": "5.2. Data Security Measures",
+            "part1": "In order to protect User data against unauthorized or accidental access, the Company implements appropriate and adequate technical and organizational measures.",
+            "part2": "Technical measures consist of the application of technologies that prevent unauthorized access by third parties to User data. The Company ensures that, where servers are located in a data center operated by a third party, equivalent technical and organizational measures are implemented by such third party as well.",
+            "part3": "All data are stored exclusively on servers located within the European Union or in countries ensuring a level of personal data protection equivalent to that provided under the laws of the Czech Republic."
+        },
+        "commercial5_3": {
+            "title": "5.3. Sending Commercial Communications and Information on Direct Marketing",
+            "desc": "When sending commercial communications, the Company proceeds in accordance with Act No. 480/2004 Coll., on Certain Information Society Services, as amended. You may unsubscribe from receiving commercial communications by using the unsubscribe link contained in each email sent."
+        },
+        "recipients5_4": {
+            "title": "5.4. Recipients of Personal Data",
+            "desc": "The Company does not transfer personal data to any other controllers beyond those specified in this Privacy Policy.",
+            "desc1": "The Company uses the following processors of personal data:",
+            "part1": "legal entities or self-employed natural persons engaged in accounting services, authorized to perform accounting operations;",
+            "part2": "legal entities or self-employed natural persons engaged in IT solutions, authorized to perform IT administration and development of software programs used by the Company;",
+            "part3": "legal entities or self-employed natural persons providing server hosting services, authorized to store data;",
+            "part4": "companies providing services related to the distribution of email communications.",
+            "desc2": "Processing of personal data may be carried out by processors exclusively on the basis of a personal data processing agreement, i.e., with guarantees of appropriate technical and organizational safeguards and a clearly defined purpose of processing. Processors are not permitted to use personal data for any purposes other than those agreed.",
+            "desc3": "Under certain conditions, personal data may be disclosed to public authorities (courts, police authorities, notaries, tax authorities, etc.) within the scope of their statutory powers, or may be provided to other entities where required by specific legal regulations."
+        },
+        "cookies": {
+            "title": "5.5. Cookies and Log Files",
+            "part1": "The Company uses cookies, which are small text files that identify users of the website https://reli.one and record their user activity. The text contained in a cookie is often composed of a sequence of numbers and letters that uniquely identifies the user’s computer; however, it does not provide any specific personal data about the User.",
+            "part2": "The website https://reli.one automatically identifies the user’s IP address. An IP address is a number automatically assigned to the user’s computer upon connection to the internet. All such information is recorded in server log files, which allow for subsequent data processing. Cookies and similar technologies are used for several purposes, including:",
+            "login": {
+                "title": "Login and authentication:",
+                "desc": "When a User logs into a personal account, an encrypted cookie is stored on the User’s device, enabling navigation between pages of the website without the need to repeatedly log in. The User may also choose to store login credentials so that they do not have to log in each time they return to the website https://reli.one. "
+            },
+            "customization": {
+                "title": "Customization:",
+                "desc": "The Company uses cookies to tailor content and information to Users’ preferences in order to ensure user-friendly operation of the website."
+            },
+            "marketing": {
+                "title": "Marketing:",
+                "desc": "The Company uses cookies to monitor its advertising campaigns and to track User contributions, registrations, discount coupons, promotions, and competitions."
+            },
+            "diagnostics": {
+                "title": "Diagnostics:",
+                "desc": "The Company uses cookies to diagnose and resolve technical issues reported by Users or programmers that are associated with IP addresses under the control of a specific web company or internet service provider."
+            },
+            "analytics": {
+                "title": "Analytics:",
+                "desc": "The Company uses cookies and other identifiers to collect data on the use and performance of the website https://reli.one. "
+            },
+            "operational": {
+                "title": "Operational cookies",
+                "desc": "These are cookies that must be stored on your device in order for the website to function properly. For this reason, your consent is not required for their use."
+            },
+            "third_party": {
+                "title": "Third-party cookies:",
+                "desc": "The website https://reli.one may also use third-party cookies. This may occur, for example, where a third party has been engaged to provide services such as website analytics."
+            },
+            "settings": {
+                "title": "Cookie settings:",
+                "desc1": "Most web browsers automatically accept cookies. However, it is possible to use browser controls to block or delete cookies. Users of the website https://reli.one are entitled to configure their browser settings to prevent the use of cookies on their device.",
+                "desc2": "We use two types of cookies: persistent cookies and session cookies.",
+                "desc3": "A persistent cookie remains stored on your hard drive even after you close your browser. Persistent cookies may be used by the browser during subsequent visits to the website https://reli.one Persistent cookies can be deleted.",
+                "desc4": "Session cookies are temporary and are deleted once you close your browser. Instructions for blocking or deleting cookies can generally be found in the privacy policy or help documentation of the respective web browser."
+            },
+            "log": {
+                "title": "Log Files",
+                "desc1": "The User’s browser automatically reports certain information each time the website https://reli.one is accessed. When registering on the website https://reli.one or browsing the website, the servers automatically record certain information that the web browser sends with each visit.",
+                "desc2": "These server logs (so-called “log files”) may contain information such as the web request, IP address, type of internet browser, browser language, referring/exit pages and URLs, platform type, number of clicks, domain names, landing pages, number of pages viewed and the order of those pages, time spent on specific pages, date and time of the request, and one or more cookies that may uniquely identify the internet browser."
+            }
+        },
+        "applicable5_6": {
+            "title": "5.6. Applicable Personal Data Protection Legislation",
+            "desc": "In providing personal data protection, the Company primarily complies with the following legal regulations:",
+            "part1": "Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data and repealing Directive 95/46/EC (General Data Protection Regulation);",
+            "part2": "Directive 2002/58/EC of the European Parliament and of the Council of 12 July 2002 concerning the processing of personal data and the protection of privacy in the electronic communications sector;",
+            "part3": "Commission Regulation (EU) No. 611/2013 of 24 June 2013 on the measures applicable to the notification of personal data breaches under Directive 2002/58/EC on privacy and electronic communications (to a limited extent);",
+            "part4": "Act No. 110/2019 Coll., on the Processing of Personal Data;",
+            "part5": "Act No. 121/2000 Coll., the Copyright Act, on Copyright and Rights Related to Copyright."
+        },
+        "final5_7": {
+            "title": "5.7. Final Provisions",
+            "part1": "By concluding the Agreement, the User confirms that he or she has familiarized himself or herself with this Privacy Policy.",
+            "part2": "The Company may update this Privacy Policy as necessary. The current version of the Privacy Policy will always be available on the website https://reli.one. ",
+            "part3": "If a substantial change occurs in the manner in which personal data are handled under this Privacy Policy, the Company shall inform Users by visibly publishing a notice prior to the implementation of such changes.",
+            "part4": "We recommend that you review the Privacy Policy regularly when using the Reli System or the website https://reli.one.",
+            "part5": "For comprehensive information regarding the provisions of the General Data Protection Regulation (GDPR) and your rights thereunder, you may consult the official text of the Regulation available at: https://gdpr-info.eu"
+        }
+    },
+    "dataProtectionContact": {
+        "title": "Contact for Data Protection",
+        "company": "Reli Group s.r.o.",
+        "id": "Company ID No.: 280 03 896",
+        "address": "Registered office: Na lysinách 551/34, Hodkovičky, 147 00 Prague 4",
+        "email": "Email: office@reli.one"
+    }
+}

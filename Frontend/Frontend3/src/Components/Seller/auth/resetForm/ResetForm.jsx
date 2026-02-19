@@ -17,6 +17,8 @@ const ResetForm = () => {
 
     const { t } = useTranslation()
     const [regErr, setRegErr] = useState("");
+    const [isLoading, setIsLoading] = useState(false)
+
     const navigate = useNavigate()
 
 
@@ -34,13 +36,16 @@ const ResetForm = () => {
         },
         validationSchema: validationReset,
         onSubmit: (values) => {
+            setIsLoading(true)
             passSendOtp(values)
                 .then((res) => {
                     localStorage.setItem("email", JSON.stringify(values.email));
                     navigate("/seller/verify-email");
+                    setIsLoading(false)
                 })
                 .catch((err) => {
                     if (err.response) {
+                        setIsLoading(false)
                         if (err.response.status === 500) {
                             setRegErr(
                                 "An error occurred on the server. Please try again later."
@@ -97,6 +102,7 @@ const ResetForm = () => {
                 />
                 {regErr && <p className={styles.errText}>{regErr}</p>}
                 <AuthBtnSeller
+                    loading={isLoading}
                     disabled={!formik.isValid || !formik.dirty}
                     text={"Send code"} />
             </form>

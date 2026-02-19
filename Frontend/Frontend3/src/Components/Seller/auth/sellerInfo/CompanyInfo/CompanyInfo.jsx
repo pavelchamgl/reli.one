@@ -12,13 +12,16 @@ import UploadInp from "../uploadInp/UploadInp"
 
 import styles from "./CompanyInfo.module.scss"
 import { putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
-import { toISODate } from "../../../../../code/seller"
+import { countriesArr, toISODate } from "../../../../../code/seller"
 
-const CompanyInfo = ({ formik }) => {
+const CompanyInfo = ({ formik, onClosePreview }) => {
+
+
 
     const { companyData } = useSelector(state => state.selfEmploed)
 
     const { safeCompanyData } = useActionSafeEmploed()
+
 
 
     const [country, setCountry] = useState(companyData?.country_of_registration ?? null)
@@ -36,7 +39,7 @@ const CompanyInfo = ({ formik }) => {
 
     const companyRef = useRef(null)
 
-    const onLeaveCompanyBlock = () => {
+    const onLeaveCompanyBlock = async () => {
 
         const filled = isCompanyFilled(formik.values)
 
@@ -58,22 +61,24 @@ const CompanyInfo = ({ formik }) => {
 
         safeCompanyData(payload)
 
-        putCompanyInfo({
-            ...payload,
-            certificate_issue_date: toISODate(payload.certificate_issue_date)
-        })
+
+
+        try {
+            await putCompanyInfo({
+                ...payload,
+                certificate_issue_date: toISODate(payload.certificate_issue_date)
+            })
+
+            onClosePreview?.();
+        } catch (err) {
+            ErrToast(err?.message || "Failed to save personal data");
+        }
 
 
     }
 
 
-    const countryArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
+
 
     const legalArr = [
         { value: "GmbH (Germany)", text: "GmbH (Germany)" },
@@ -136,6 +141,7 @@ const CompanyInfo = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.company_name}
+                    touched={formik.touched.company_name}
                 />
 
 
@@ -144,9 +150,12 @@ const CompanyInfo = ({ formik }) => {
                         titleSellect={"Select legal form"}
                         value={legal} setValue={setLegal}
                         errText={"Legal form is required"}
+                        style={{
+                            height: "auto"
+                        }}
                     />
 
-                    <SellerInfoSellect arr={countryArr} title={"Country of registration"}
+                    <SellerInfoSellect arr={countriesArr} title={"Country of registration"}
                         titleSellect={"Select country"}
                         value={country} setValue={setCountry}
                         errText={"Country of registration is required"}
@@ -159,6 +168,8 @@ const CompanyInfo = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.business_id}
+                    touched={formik.touched.business_id}
+
                 />
 
                 {(country === "cz" || country === "sk") &&
@@ -169,6 +180,8 @@ const CompanyInfo = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.ico}
+                        touched={formik.touched.ico}
+
                     />
                 }
 
@@ -178,6 +191,8 @@ const CompanyInfo = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.tin}
+                    touched={formik.touched.tin}
+
                 />
 
                 <InputSeller title={"EORI"} type={"text"} circle={true} placeholder={"If importing into EU"}
@@ -186,6 +201,8 @@ const CompanyInfo = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.eori_number}
+                    touched={formik.touched.eori_number}
+
                 />
 
                 <InputSeller title={"VAT ID"} type={"text"} circle={true} placeholder={"If registered"}
@@ -194,6 +211,8 @@ const CompanyInfo = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.vat_id}
+                    touched={formik.touched.vat_id}
+
                 />
 
                 <div>
@@ -208,7 +227,6 @@ const CompanyInfo = ({ formik }) => {
                         stateName={companyData?.company_file_date}
                         nameTitle={"company_file_date"}
                     />
-                    {formik.errors.certificate_issue_date && <p className={styles.errorText}>{formik.errors.certificate_issue_date}</p>}
                 </div>
 
                 <InputSeller title={"Company phone"} type={"tel"} circle={true} required={true} num={true} placeholder={"Personal phone"}
@@ -217,6 +235,8 @@ const CompanyInfo = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.company_phone}
+                    touched={formik.touched.company_phone}
+
                 />
 
 

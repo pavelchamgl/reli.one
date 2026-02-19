@@ -12,9 +12,9 @@ import styles from './PersonalDetails.module.scss';
 import { useSelector } from "react-redux";
 import { putPersonalData, uploadSingleDocument } from "../../../../../api/seller/onboarding";
 import { ErrToast } from "../../../../../ui/Toastify";
-import { toISODate } from "../../../../../code/seller";
+import { countriesArr, toISODate } from "../../../../../code/seller";
 
-const PersonalDetails = ({ formik }) => {
+const PersonalDetails = ({ formik, onClosePreview }) => {
 
   const { selfData } = useSelector(state => state.selfEmploed)
   const { safeData, setRegisterData } = useActionSafeEmploed()
@@ -35,52 +35,42 @@ const PersonalDetails = ({ formik }) => {
 
   const personalRef = useRef(null)
 
-  const onLeavePersonalBlock = () => {
-
-    const filled = isPersonalDataFilled(formik.values)
-
-
-
-    if (!filled) return
+  const onLeavePersonalBlock = async () => {
+    const filled = isPersonalDataFilled(formik.values);
+    if (!filled) return;
 
     const payload = {
       first_name: formik.values.first_name,
       last_name: formik.values.last_name,
-      date_of_birth: formik.values.date_of_birth?.date_of_birth,
-      nationality: nationality,
+      date_of_birth: formik.values?.date_of_birth,
+      nationality,
       personal_phone: formik.values.personal_phone,
-      wProof_document_issue_date: toISODate(formik.values.uploadFront)
-    }
+      wProof_document_issue_date: toISODate(formik.values.uploadFront),
+    };
 
-
-    safeData(payload)
+    safeData(payload);
     setRegisterData({
       first_name: payload.first_name,
       last_name: payload.last_name,
       phone: payload.personal_phone,
-    })
+    });
+
+    try {
+      await putPersonalData({
+        date_of_birth: payload.date_of_birth?.split(".").reverse().join("-"),
+        nationality: payload.nationality,
+        personal_phone: payload.personal_phone,
+      });
+
+      onClosePreview?.();
+    } catch (err) {
+      ErrToast(err?.message || "Failed to save personal data");
+    }
+  };
 
 
-    putPersonalData({
-      date_of_birth: payload.date_of_birth
-        ?.split(".")
-        .reverse()
-        .join("-"),
-      nationality: payload.nationality,
-      personal_phone: payload.personal_phone
-    })
 
 
-  }
-
-
-  const nationalArr = [
-    { text: "Czech Republic", value: "cz" },
-    { text: "Germany", value: "de" },
-    { text: "France", value: "fr" },
-    { text: "Poland", value: "pl" },
-    { text: "United Kingdom", value: "gb" }
-  ];
 
 
   useEffect(() => {
@@ -113,18 +103,18 @@ const PersonalDetails = ({ formik }) => {
 
 
   return (
-    <div className={styles.main} 
-    ref={personalRef} 
-    tabIndex={-1} 
-    onBlurCapture={(e) => {
-      if (!e.currentTarget.contains(e.relatedTarget)) {
+    <div className={styles.main}
+      ref={personalRef}
+      tabIndex={-1}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) {
 
-        setTimeout(onLeavePersonalBlock, 0);
+          setTimeout(onLeavePersonalBlock, 0);
+        }
+
       }
 
-    }
-
-    }>
+      }>
 
       <div className={styles.titleWrap}>
         <img src={personalIc} alt="" />
@@ -140,6 +130,7 @@ const PersonalDetails = ({ formik }) => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             error={formik.errors.first_name}
+            touched={formik.touched.first_name}
           />
 
           <InputSeller title={"Last name"} type={"text"} circle={true} required={true}
@@ -149,6 +140,8 @@ const PersonalDetails = ({ formik }) => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             error={formik.errors.last_name}
+            touched={formik.touched.last_name}
+
           />
         </div>
 
@@ -161,10 +154,12 @@ const PersonalDetails = ({ formik }) => {
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
             error={formik.errors.personal_phone}
+            touched={formik.touched.personal_phone}
+
           />
         </div>
 
-        <SellerInfoSellect arr={nationalArr}
+        <SellerInfoSellect arr={countriesArr}
           title={"Nationality"}
           titleSellect={"Select nationality"}
           value={nationality}

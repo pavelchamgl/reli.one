@@ -6,6 +6,7 @@ import SellerHeader from "../Components/Seller/sellerHeader/SellerHeader"
 import SellerPageContainer from "../ui/Seller/SellerPageContainer/SellerPageContainer"
 import SellerMobNav from "../Components/Seller/sellerMobNav/SellerMobNav"
 import { sellerPathnames } from "../code/seller"
+import ScrollToTop from "../Components/ScrollToTop/ScrollToTop"
 
 const SellerPage = () => {
     const isMobile = useMediaQuery({ maxWidth: 500 })
@@ -28,6 +29,8 @@ const SellerPage = () => {
                         <Outlet />
                     </SellerPageContainer>
             }
+
+            <ScrollToTop />
 
             {isMobile && <SellerMobNav />}
             <ToastContainer />

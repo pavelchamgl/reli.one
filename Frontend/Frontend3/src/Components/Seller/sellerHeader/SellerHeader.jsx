@@ -9,6 +9,7 @@ import SellerTab from "../../../ui/Seller/sellerTab/SellerTab";
 
 import styles from "./SellerHeader.module.scss";
 import ChangeLang from "../all/ChangeLang/ChangeLang";
+import { logout } from "../../../api/auth";
 
 const SellerHeader = () => {
   const { t } = useTranslation();
@@ -17,8 +18,19 @@ const SellerHeader = () => {
 
   const { pathname } = useLocation()
 
+  const token = JSON.parse(localStorage.getItem("token")) || {}
 
 
+  const handleLogout = () => {
+    logout({ refresh_token: token?.refresh }).then((res) => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("email");
+      window.location.reload();
+    });
+  };
+
+
+  console.log(token);
 
 
 
@@ -29,12 +41,17 @@ const SellerHeader = () => {
 
         <div className={styles.langAndLogin}>
           {
-            !mobile
-            &&
-            <Link to={"/seller/login"} className={styles.loginItem}>
-              <img src={profileIcon} alt="" />
-              <p>{t("enter_account")}</p>
-            </Link>
+            Object.keys(token).length > 0 ? (
+              <button onClick={handleLogout} className={styles.loginItem}>
+                <img src={profileIcon} alt="" />
+                <p>Logout</p>
+              </button>
+            ) : (
+              <Link to={"/seller/login"} className={styles.loginItem}>
+                <img src={profileIcon} alt="" />
+                <p>{t("enter_account")}</p>
+              </Link>
+            )
           }
           <ChangeLang />
         </div>

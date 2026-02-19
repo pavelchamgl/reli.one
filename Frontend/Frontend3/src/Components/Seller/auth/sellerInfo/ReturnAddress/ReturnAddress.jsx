@@ -11,7 +11,7 @@ import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./ReturnAddress.module.scss"
 import { putReturnAddress } from "../../../../../api/seller/onboarding"
-import { toISODate } from "../../../../../code/seller"
+import { countriesArr, toISODate } from "../../../../../code/seller"
 
 const ReturnAddress = ({ formik }) => {
 
@@ -34,13 +34,6 @@ const ReturnAddress = ({ formik }) => {
             : sourceData?.rCountry ?? null
     )
 
-    const countryArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
 
     const { safeData, safeCompanyData } = useActionSafeEmploed()
 
@@ -205,6 +198,8 @@ const ReturnAddress = ({ formik }) => {
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.rStreet}
+                    touched={formik.touched.rStreet}
+
                 />
 
                 <div className={styles.twoInpWrap}>
@@ -214,6 +209,7 @@ const ReturnAddress = ({ formik }) => {
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.rCity}
+                        touched={formik.touched.rCity}
                     />
                     <InputSeller title={"ZIP"} type={"text"} circle={true} required={true}
                         placeholder={"602 00"}
@@ -222,8 +218,10 @@ const ReturnAddress = ({ formik }) => {
                         onBlur={formik.handleBlur}
                         error={formik.errors.rZip_code}
                         num={true}
+                        touched={formik.touched.rZip_code}
+
                     />
-                    <SellerInfoSellect arr={countryArr} value={country} setValue={setCountry}
+                    <SellerInfoSellect arr={countriesArr} value={country} setValue={setCountry}
                         title={"Country"} titleSellect={"Select"}
                         errText={"Country is required"}
                     />
@@ -235,6 +233,8 @@ const ReturnAddress = ({ formik }) => {
                     onBlur={formik.handleBlur}
                     error={formik.errors.rContact_phone}
                     num={true}
+                    touched={formik.touched.rContact_phone}
+
                 />
 
 

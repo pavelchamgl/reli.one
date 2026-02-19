@@ -5,20 +5,18 @@ import accountInfo from "../../../../../assets/Seller/register/accountInfoIc.svg
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from "./AccountInfo.module.scss"
+import { countriesArr } from "../../../../../code/seller"
 
-const AccountInfo = ({ data, type, isCompany }) => {
+const AccountInfo = ({ data, type, isCompany, setOpen }) => {
 
     const { registerData } = useSelector(state => state.selfEmploed)
 
-    const nationalArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
 
-    const nationality = nationalArr.find((item) => item.value === data?.nationality)
+    console.log(data);
+    
+
+
+    const nationality = countriesArr.find((item) => item.value === data?.nationality)
 
 
     return (
@@ -29,7 +27,7 @@ const AccountInfo = ({ data, type, isCompany }) => {
                     <h3>{isCompany ? "Representative" : "Account Information"}</h3>
                 </div>
 
-                <EditBtn />
+                <EditBtn setOpen={setOpen} />
             </div>
 
             <ul className={styles.infoList}>
@@ -46,25 +44,21 @@ const AccountInfo = ({ data, type, isCompany }) => {
                     <span>{registerData?.email ? registerData?.email : "1@gmail.com"}</span>
                 </li>
                 {
-                    isCompany ?
-                        <li>
-                            <p>Role</p>
-                            <span>{data?.role}</span>
-                        </li>
-                        :
-                        <li>
-                            <p>Phone</p>
-                            <span className={styles.num}>{data?.personal_phone || data?.company_phone}</span>
-                        </li>
+                    isCompany &&
+                    <li>
+                        <p>Role</p>
+                        <span>{data?.role}</span>
+                    </li>
+
                 }
                 <li>
                     <p>Phone</p>
                     <span className={styles.num}>{data?.personal_phone || data?.company_phone}</span>
                 </li>
-                <li>
+                {/* <li>
                     <p>Nationality</p>
-                    <span>{nationality.text}</span>
-                </li>
+                    <span>{nationality?.text}</span>
+                </li> */}
                 <li>
                     <p>Seller Type</p>
                     <span>{type === "company" ? "Company / Legal entity" : "Self-employed / Sole proprietor"}</span>

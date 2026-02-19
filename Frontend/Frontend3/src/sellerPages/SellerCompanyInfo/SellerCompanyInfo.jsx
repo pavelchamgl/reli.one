@@ -89,6 +89,9 @@ const SellerCompanyInfo = () => {
 
         },
         validationSchema: companyValidationSchema,
+        // validateOnMount: false,
+        validateOnChange: true,
+        // validateOnBlur: true,
         onSubmit: async (values) => {
             safeCompanyData({
                 ...values
@@ -194,8 +197,8 @@ const SellerCompanyInfo = () => {
                 </div>
 
                 <CompanyInfo formik={formik} />
-                <Representative formik={formik} />
 
+                <Representative formik={formik} />
 
                 <CompanyAddress formik={formik} />
 
@@ -209,7 +212,7 @@ const SellerCompanyInfo = () => {
                     text={"Continue to Review"}
                     style={{ borderRadius: "16px", width: "222px" }}
                     handleClick={formik.handleSubmit}
-                    disabled={!formik.isValid}
+                    // disabled={!formik.isValid}
                 />
 
             </div>

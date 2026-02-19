@@ -18,6 +18,7 @@ const VeriFyEmail = () => {
     const [value, setValue] = useState("")
     const [regErr, setRegErr] = useState("");
     const [time, setTime] = useState(59);
+    const [isLoading, setIsLoading] = useState(false)
 
     const navigate = useNavigate()
 
@@ -36,6 +37,7 @@ const VeriFyEmail = () => {
     const email = JSON.parse(localStorage.getItem("email"));
 
     const handleSubmit = async () => {
+        setIsLoading(true)
         try {
             const res = await emailConfirm({
                 email: email,
@@ -44,10 +46,12 @@ const VeriFyEmail = () => {
             setRegErr("");
             localStorage.setItem("token", JSON.stringify(res.data));
             navigate("/seller/seller-type")
+            setIsLoading(false)
 
         } catch (err) {
 
             if (err.response) {
+                setIsLoading(false)
                 if (err.response.status === 500) {
                     setRegErr("An error occurred on the server. Please try again later.");
                 } else if (err.response.status === 400) {
@@ -91,7 +95,9 @@ const VeriFyEmail = () => {
             >
                 <VerifyPinInput setValue={setValue} value={value} />
                 {regErr && <p className={styles.errorText}>{regErr}</p>}
-                <AuthBtnSeller disabled={value.length === 0 } style={{ borderRadius: "16px" }} text={"Confirm"} />
+                <AuthBtnSeller
+                loading={isLoading}
+                disabled={value.length === 0} style={{ borderRadius: "16px" }} text={"Confirm"} />
 
                 <div className={styles.timerDiv}>
                     {time ? (

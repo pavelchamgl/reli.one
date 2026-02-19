@@ -1,32 +1,28 @@
+import { useLocation } from "react-router-dom";
 import addressIc from "../../../../../assets/Seller/register/addressIc.svg"
+import { countriesArr } from "../../../../../code/seller";
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 
 import styles from "./BusinessAddress.module.scss"
 
-const BusinessAddress = ({ data }) => {
+const BusinessAddress = ({ data, setOpen }) => {
 
-    const countryArr = [
-        { text: "Czech Republic", value: "cz" },
-        { text: "Germany", value: "de" },
-        { text: "France", value: "fr" },
-        { text: "Poland", value: "pl" },
-        { text: "United Kingdom", value: "gb" }
-    ];
+    const { pathname } = useLocation()
 
-    const country = countryArr.find((item) => item.value === data?.country)
+    const country = countriesArr.find((item) => item.value === data?.country)
 
     return (
         <div className={styles.main}>
             <div className={styles.titleWrap}>
                 <div>
                     <img src={addressIc} alt="" />
-                    <h3>Business Address</h3>
+                    <h3>{pathname === "/seller/seller-review" ? "Address" : "Business Address"}</h3>
                 </div>
 
-                <EditBtn />
+                <EditBtn setOpen={setOpen} />
             </div>
-            <p className={styles.addressText}>{`${data?.street}, ${data?.city}, ${country.text}`}</p>
+            <p className={styles.addressText}>{`${data?.street}, ${data?.city}, ${country?.text} , ${data?.zip_code}`}</p>
         </div>
     )
 }
