@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useMediaQuery } from "react-responsive";
 
 import SellerLogo from "../../../ui/Seller/sellerLogo/SellerLogo";
@@ -17,6 +17,7 @@ const SellerHeader = () => {
   const mobile = useMediaQuery({ maxWidth: 500 })
 
   const { pathname } = useLocation()
+  const navigate = useNavigate()
 
   const token = JSON.parse(localStorage.getItem("token")) || {}
 
@@ -25,13 +26,10 @@ const SellerHeader = () => {
     logout({ refresh_token: token?.refresh }).then((res) => {
       localStorage.removeItem("token");
       localStorage.removeItem("email");
+      navigate('/seller/login')
       window.location.reload();
     });
   };
-
-
-  console.log(token);
-
 
 
   return (

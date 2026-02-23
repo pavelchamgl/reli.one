@@ -12,7 +12,7 @@ export default function renderI18nRichText({
 }) {
     const parts = [];
 
-    let workingText = text;
+    let workingText = text||"";
 
     // ===== 1. Обрабатываем число в начале строки =====
     const leadingMatch = workingText.match(LEADING_NUMBER_RE);

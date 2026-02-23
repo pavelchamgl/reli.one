@@ -49,16 +49,16 @@ const OrderSummary = ({ data }) => {
             desc: `${totals?.total_incl_vat_plus_delivery} €`,
             num: true
         },
-        {
-            title: "Delivery Method",
-            desc: delivery?.delivery_type?.name,
-            url: truckGr
-        },
+        // {
+        //     title: "Delivery Method",
+        //     desc: delivery?.delivery_type?.name,
+        //     url: truckGr
+        // },
     ]
 
     return (
         <div className={styles.main}>
-            <h4 className={styles.title}>Actions</h4>
+            <h4 className={styles.title}>Order Summary</h4>
 
             <div className={styles.textElementWrap}>
 

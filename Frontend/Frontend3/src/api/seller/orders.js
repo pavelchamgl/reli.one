@@ -51,6 +51,20 @@ export const getLabels = async (id) => {
     }
 };
 
+export const getExportLabels = async (id) => {
+    try {
+        const res = await mainInstance.get(`sellers/orders/${id}/export/`, {
+            responseType: "blob", // важно для получения файла
+        });
+        return res;
+    } catch (error) {
+        console.error("Ошибка при получении метки:", error);
+        throw error;
+    }
+};
+
+
+
 export const postCencelOrder = async (id) => {
     try {
         const res = await mainInstance.post(`sellers/orders/${id}/cancel/`)
@@ -78,6 +92,22 @@ export const postDownloadLabels = async (arr) => {
     try {
         const res = await mainInstance.post(
             'sellers/orders/labels/',
+            { order_ids: arr },           // ← просто массив
+            {
+                responseType: 'blob'      // ← здесь правильное место
+            }
+        );
+        return res;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+};
+
+export const postExportLabels = async (arr) => {
+    try {
+        const res = await mainInstance.post(
+            'sellers/orders/export/',
             { order_ids: arr },           // ← просто массив
             {
                 responseType: 'blob'      // ← здесь правильное место

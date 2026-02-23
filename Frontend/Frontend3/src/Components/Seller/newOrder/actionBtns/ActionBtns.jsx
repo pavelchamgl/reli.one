@@ -16,7 +16,7 @@ const ActionBtns = ({ data }) => {
             const res = await getLabels(data?.id)
 
             if (res.status === 200) {
-                downloadBlob(res.data, `order.${data?.id}.zip `)
+                downloadBlob(res.data, `order.${data?.id}.zip`)
             }
         } catch (error) {
             const message =

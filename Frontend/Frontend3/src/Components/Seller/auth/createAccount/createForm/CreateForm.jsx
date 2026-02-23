@@ -216,14 +216,14 @@ const CreateForm = () => {
                     }} />
                     <p>
                         I agree with the
-                        <a target="_blank" href={i18n.language === "en" ? "../../../../../../public/TermsEN.pdf" : "../../../../../../public/TermsCZ.pdf"}> terms & conditions </a>
+                        <Link to={'/terms'}> terms & conditions </Link>
                         and
                         <Link to={"/privacy-policy"}> privacy policy</Link>
                     </p>
                 </div>
 
                 <AuthBtnSeller
-                loading={isLoading}
+                    loading={isLoading}
                     disabled={
                         !formik.isValid ||
                         !formik.dirty ||

@@ -47,18 +47,18 @@ const FooterLinks = () => {
             title: t("footer.columns.legal.links.link3"),
             url: "#"
         },
-        {
-            title: t("footer.columns.legal.links.link4"),
-            url: "#"
-        },
+        // {
+        //     title: t("footer.columns.legal.links.link4"),
+        //     url: "#"
+        // },
         {
             title: t("footer.columns.legal.links.link5"),
             url: "/policy"
         },
-        {
-            title: t("footer.columns.legal.links.link6"),
-            url: "#"
-        },
+        // {
+        //     title: t("footer.columns.legal.links.link6"),
+        //     url: "#"
+        // },
         {
             title: t("footer.columns.legal.links.link7"),
             url: "#"
