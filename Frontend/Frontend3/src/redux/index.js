@@ -19,14 +19,25 @@ import { reducer as sellerStaticsSlice } from "./sellerStaticsSlice"
 import { reducer as sellerGoodsListSlice } from "./sellerGoodsListSlice"
 import { reducer as selfEmploedSlice } from "./selfEmployed"
 import { reducer as newOrderSlice } from "./newOrderSlice"
+import { PERSIST_VERSION } from "../configs/cookieConfig"
+import { createMigrate } from "redux-persist"
 
+
+export const migrations = {
+    [PERSIST_VERSION]: (state) => ({
+        ...state,
+        selfEmploed: undefined
+    })
+}
 
 // Импорт
 
 const persistConfig = {
     key: 'root',
     storage,
+    version: PERSIST_VERSION,
     whitelist: ['basket', 'payment', "selfEmploed"], // только эти слайсы сохраняются
+    migrate: createMigrate(migrations, { debug: false })
 }
 
 const rootReducer = combineReducers({

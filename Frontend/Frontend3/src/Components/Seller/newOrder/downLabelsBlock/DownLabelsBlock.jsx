@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import down from "../../../../assets/Seller/newOrder/down.svg"
 import exp from "../../../../assets/Seller/newOrder/export.svg"
 import whiteX from "../../../../assets/Seller/newOrder/whiteX.svg"
-import { postDownloadLabels } from "../../../../api/seller/orders";
+import { postDownloadLabels, postExportLabels } from "../../../../api/seller/orders";
 import { ErrToast } from "../../../../ui/Toastify";
 import { downloadBlob } from "../../../../code/seller";
 
@@ -19,7 +19,7 @@ const DownLabelsBlock = () => {
             const res = await postDownloadLabels(selectedIds)
 
             if (res.status === 200) {
-                downloadBlob(res.data, `orders.zip `)
+                downloadBlob(res.data, `orders.zip`)
             }
         } catch (error) {
             const message =
@@ -34,6 +34,26 @@ const DownLabelsBlock = () => {
         }
     }
 
+
+    const handleExport = async () => {
+        try {
+            const res = await postExportLabels(selectedIds)
+
+            if (res.status === 200) {
+                downloadBlob(res.data, `orders.csv`)
+            }
+        } catch (error) {
+            const message =
+                error?.response?.data?.message ||
+                error?.response?.data?.detail ||
+                "Failed to download your label";
+
+            console.log(error);
+
+
+            ErrToast(message);
+        }
+    }
 
     return (
         <div className={styles.block}>
@@ -52,7 +72,16 @@ const DownLabelsBlock = () => {
                     Download Labels
                 </button>
 
-                <button className={styles.downloadAndExportBtn}>
+                <button
+                    onClick={() => {
+                        if (selectedIds?.length > 0) {
+                            handleExport()
+                        } else {
+                            ErrToast("No orders selected")
+                        }
+                    }}
+
+                    className={styles.downloadAndExportBtn}>
                     <img src={exp} alt="" />
                     Export
                 </button>

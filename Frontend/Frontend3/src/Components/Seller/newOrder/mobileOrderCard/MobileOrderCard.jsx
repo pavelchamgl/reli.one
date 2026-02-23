@@ -41,7 +41,7 @@ const MobileOrderCard = ({ item }) => {
             const res = await getLabels(item?.id)
 
             if (res.status === 200) {
-                downloadBlob(res.data, `order.${item?.id}.zip `)
+                downloadBlob(res.data, `order.${item?.id}.zip`)
             }
         } catch (error) {
             const message =

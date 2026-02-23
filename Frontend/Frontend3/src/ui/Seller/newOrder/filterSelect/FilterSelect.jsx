@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import selectArr from "../../../../assets/Seller/all/selectArr.svg"
 
@@ -8,13 +8,14 @@ import { useActionNewOrder } from "../../../../hook/useActionNewOrder";
 
 
 
-const FilterSelect = ({ openSelect, setOpenSelect, value, setValue, itemsArr, title, btnText }) => {
+const FilterSelect = ({ openSelect, setOpenSelect, value, setValue, itemsArr, title, btnText, style }) => {
 
 
     const isMobile = useMediaQuery({ maxWidth: 500 })
 
     const { setCouriers, setStatus, setDeliveryType } = useActionNewOrder()
 
+    const selectRef = useRef(null)
 
     useEffect(() => {
         if (title === "Couriers") {
@@ -32,15 +33,23 @@ const FilterSelect = ({ openSelect, setOpenSelect, value, setValue, itemsArr, ti
     }, [value])
 
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (selectRef.current && !selectRef.current.contains(event.target)) {
+                setOpenSelect(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
+
+
     return (
-        <div className={styles.mainWrap}>
+        <div className={styles.mainWrap} ref={selectRef}>
             <p className={styles.selectTitle}>{title}</p>
             <button style={{
-                borderRadius: !isMobile
-                    ? "0px"                 // десктоп
-                    : openSelect
-                        ? "10px 10px 0 0"       // мобилка — открыт
-                        : "10px"                // мобилка — закрыт
+                borderRadius: !openSelect ? "16px" : '16px 16px 0 0',             // мобилка — закрыт
             }} className={`${styles.mainBtn} ${openSelect ? styles.btnAct : ""}`} onClick={() => setOpenSelect(!openSelect)}>
                 <p>{value ? value : btnText}</p>
 

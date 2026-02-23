@@ -129,7 +129,7 @@ const ProductsTable = ({ data }) => {
                                                 {`${item?.unit_price_gross} €`}
                                             </p>
                                             <p
-                                                style={{ minWidth: "87px", fontFamily: "var(--ft)" }}
+                                                style={{ minWidth: "107px", fontFamily: "var(--ft)" }}
                                             >
                                                 {`${item?.line_total_gross} €`}
                                             </p>

@@ -83,9 +83,10 @@ const ShipmentsSelectInfo = ({ shipment }) => {
                     <h4 className={styles.itemsParcelsTitle}>Items in this parcel</h4>
                     <div className={styles.itemsParcelWrap}>
                         {
-                            shipment?.items?.map((item) => (
-                                <ParcelItem item={item} />
+                            shipment?.items?.map((item, index) => (
+                                <ParcelItem item={item} key={index} />
                             ))
+                            
                         }
                     </div>
                 </div>

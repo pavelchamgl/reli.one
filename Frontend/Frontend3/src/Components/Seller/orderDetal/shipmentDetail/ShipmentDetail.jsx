@@ -6,12 +6,13 @@ const ShipmentDetail = ({ shipment }) => {
     
     return (
         <div className={styles.main}>
-            <h4 className={styles.title}>Actions</h4>
+            <h4 className={styles.title}>Shipment Details</h4>
             {
                 shipment?.map((item) => (
                     <ShipmentsSelectInfo shipment={item} />
                 ))
             }
+
         </div>
     )
 }

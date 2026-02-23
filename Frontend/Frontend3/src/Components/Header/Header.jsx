@@ -82,7 +82,7 @@ const Header = () => {
         <div className={styles.headerTopWrap}>
           <ChangeLang />
           <Link to={"/for_sell"}>{t("for_seller")}</Link>
-          <Link to={"/for_buy"}>{t("for_buyers")}</Link>
+          <Link to={"/terms"}>{t("for_buyers")}</Link>
           <a href="https://info.reli.one">{t("about_company")}</a>
         </div>
       </div>

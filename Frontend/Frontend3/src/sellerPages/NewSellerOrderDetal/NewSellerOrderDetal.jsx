@@ -15,6 +15,7 @@ import OrderStatusWrap from '../../Components/Seller/orderDetal/orderStatusWrap/
 import { useMediaQuery } from 'react-responsive'
 import { useEffect, useState } from 'react'
 import { getOrderDetails } from '../../api/seller/orders'
+import DeliveryInformation from '../../Components/Seller/orderDetal/deliveryInformation/DeliveryInformation'
 
 const NewSellerOrderDetal = () => {
 
@@ -78,6 +79,7 @@ const NewSellerOrderDetal = () => {
                 <div className={styles.sectionsWrapFirst}>
                     <OrderStatusWrap summary={summary} />
                     <OrderSummary data={data} />
+                    <DeliveryInformation data={summary} />
                     <ProductsTable data={data} />
                     <ShipmentDetail shipment={shipments} />
                 </div>
