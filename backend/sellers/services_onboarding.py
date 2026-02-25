@@ -26,6 +26,15 @@ IBAN_RE = re.compile(r"^[A-Z0-9]{15,34}$")
 SWIFT_RE = re.compile(r"^[A-Z0-9]{8,11}$")
 
 
+def ensure_application_editable(app: SellerOnboardingApplication) -> None:
+    """
+    Разрешаем редактирование только в draft/rejected.
+    Используем ValidationError (400).
+    """
+    if app.status not in [OnboardingStatus.DRAFT, OnboardingStatus.REJECTED]:
+        raise ValidationError({"detail": "Only draft/rejected applications can be edited."})
+
+
 def get_or_create_application_for_user(user) -> SellerOnboardingApplication:
     if not hasattr(user, "seller_profile"):
         raise ValidationError({"detail": "User is not a seller."})

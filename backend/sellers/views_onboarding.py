@@ -4,7 +4,6 @@ import json
 
 from django.db import transaction
 from rest_framework import status
-from rest_framework.views import APIView
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiResponse,
@@ -46,6 +45,7 @@ from .serializers_onboarding import (
     ReturnAddressSerializer,
 )
 from .services_onboarding import (
+    ensure_application_editable,
     get_or_create_application_for_user,
     compute_completeness,
     submit_application,
@@ -221,12 +221,7 @@ class SellerSetSellerTypeAPIView(AuditAPIView):
     )
     def post(self, request):
         app = get_or_create_application_for_user(request.user)
-        if app.status != OnboardingStatus.DRAFT:
-            return Response(
-                {"detail": "Seller type can only be set in draft status."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
+        ensure_application_editable(app)
         ser = SellerTypeSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
 
@@ -285,6 +280,7 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerSelfEmployedPersonalDetails,
             app,
@@ -339,6 +335,7 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerSelfEmployedTaxInfo,
             app,
@@ -394,6 +391,7 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerSelfEmployedAddress,
             app,
@@ -457,6 +455,7 @@ class SellerCompanyInfoAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerCompanyInfo,
             app,
@@ -515,6 +514,7 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerCompanyRepresentative,
             app,
@@ -571,6 +571,7 @@ class SellerCompanyAddressAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerCompanyAddress,
             app,
@@ -629,6 +630,7 @@ class SellerBankAccountAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerBankAccount,
             app,
@@ -686,6 +688,7 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerWarehouseAddress,
             app,
@@ -758,6 +761,7 @@ class SellerReturnAddressAPIView(AuditAPIView):
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
         obj = _get_or_create_one_to_one(
             SellerReturnAddress,
             app,
@@ -897,6 +901,7 @@ class SellerDocumentUploadAPIView(AuditAPIView):
             raise ValidationError("Content-Type must be multipart/form-data")
 
         app = get_or_create_application_for_user(request.user)
+        ensure_application_editable(app)
 
         if request.data.get("documents"):
             return self._handle_batch_upload(request, app)
