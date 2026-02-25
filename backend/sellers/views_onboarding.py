@@ -14,7 +14,6 @@ from rest_framework.exceptions import ValidationError
 from django.core.files.storage import default_storage
 
 from .models import (
-    OnboardingStatus,
     SellerOnboardingApplication,
     SellerSelfEmployedPersonalDetails,
     SellerSelfEmployedTaxInfo,
@@ -169,11 +168,12 @@ class SellerSetSellerTypeAPIView(AuditAPIView):
             "- `self_employed` — self-employed / sole proprietor\n"
             "- `company` — company / legal entity\n\n"
             "Seller type can only be changed while the onboarding application "
-            "is in `draft` status."
+            "is in `draft` or `rejected` status."
         ),
         request=SellerTypeSerializer,
         responses={
             200: OpenApiResponse(
+                response=OnboardingStateSerializer,
                 description="Seller type successfully set",
                 examples=[
                     OpenApiExample(
@@ -203,13 +203,11 @@ class SellerSetSellerTypeAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request or onboarding is not in draft status",
+                description="Invalid request or onboarding is not editable (only draft/rejected)",
                 examples=[
                     OpenApiExample(
-                        name="Not draft status",
-                        value={
-                            "detail": "Seller type can only be set in draft status."
-                        },
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
                         response_only=True,
                     )
                 ],
@@ -222,6 +220,7 @@ class SellerSetSellerTypeAPIView(AuditAPIView):
     def post(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         ser = SellerTypeSerializer(data=request.data)
         ser.is_valid(raise_exception=True)
 
@@ -241,8 +240,47 @@ def _get_or_create_one_to_one(model_cls, app: SellerOnboardingApplication, relat
     return model_cls.objects.create(application=app)
 
 
+def _get_one_to_one_or_none(app: SellerOnboardingApplication, related_name: str):
+    return getattr(app, related_name, None)
+
+
 class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get self-employed personal details",
+        description=(
+            "Returns saved personal details for a self-employed seller.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=SelfEmployedPersonalSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "date_of_birth": "1990-05-12",
+                            "nationality": "PL",
+                            "personal_phone": "+48123123123",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "self_employed_personal")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(SelfEmployedPersonalSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -251,12 +289,13 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
             "Updates personal details for a self-employed seller during onboarding.\n\n"
             "This endpoint stores personal identification data required for KYC verification, "
             "such as date of birth and nationality.\n\n"
-            "The data is saved in a draft state and can be updated multiple times "
+            "The data is saved in a draft/rejected state and can be updated multiple times "
             "until the onboarding application is submitted."
         ),
         request=SelfEmployedPersonalSerializer,
         responses={
             200: OpenApiResponse(
+                response=SelfEmployedPersonalSerializer,
                 description="Personal details successfully saved",
                 examples=[
                     OpenApiExample(
@@ -271,7 +310,14 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
             403: OpenApiResponse(
                 description="User is not a seller",
@@ -281,6 +327,7 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerSelfEmployedPersonalDetails,
             app,
@@ -291,12 +338,47 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerSelfEmployedTaxAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get self-employed tax information",
+        description=(
+            "Returns saved tax-related information for a self-employed seller.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=SelfEmployedTaxSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "tax_country": "PL",
+                            "tin": "1234567890",
+                            "ico": None,
+                            "vat_id": "PL1234567890",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "self_employed_tax")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(SelfEmployedTaxSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -306,11 +388,12 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
             "This endpoint stores tax identification data required for KYB/KYC compliance, "
             "including tax country and tax identification number (TIN).\n\n"
             "The data can be updated multiple times while the onboarding application "
-            "remains in draft status."
+            "remains in draft/rejected status."
         ),
         request=SelfEmployedTaxSerializer,
         responses={
             200: OpenApiResponse(
+                response=SelfEmployedTaxSerializer,
                 description="Tax information successfully saved",
                 examples=[
                     OpenApiExample(
@@ -326,7 +409,14 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
             403: OpenApiResponse(
                 description="User is not a seller",
@@ -336,6 +426,7 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerSelfEmployedTaxInfo,
             app,
@@ -346,12 +437,48 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerSelfEmployedAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get self-employed address",
+        description=(
+            "Returns saved residential address of a self-employed seller.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=SelfEmployedAddressSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "street": "Main Street 12",
+                            "city": "Warsaw",
+                            "zip_code": "00-001",
+                            "country": "PL",
+                            "proof_document_issue_date": "2025-01-10",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "self_employed_address")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(SelfEmployedAddressSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -361,11 +488,12 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
             "This address is used for KYC verification and must correspond "
             "to the proof of address document uploaded later.\n\n"
             "The information can be updated multiple times while the onboarding "
-            "application remains in draft status."
+            "application remains in draft/rejected status."
         ),
         request=SelfEmployedAddressSerializer,
         responses={
             200: OpenApiResponse(
+                response=SelfEmployedAddressSerializer,
                 description="Self-employed address successfully saved",
                 examples=[
                     OpenApiExample(
@@ -382,7 +510,14 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
             403: OpenApiResponse(
                 description="User is not a seller",
@@ -392,6 +527,7 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerSelfEmployedAddress,
             app,
@@ -402,12 +538,54 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerCompanyInfoAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get company information",
+        description=(
+            "Returns saved company identification and registration details.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=CompanyInfoSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "company_name": "Reli Group s.r.o.",
+                            "legal_form": "s.r.o.",
+                            "country_of_registration": "CZ",
+                            "business_id": "12345678",
+                            "ico": "12345678",
+                            "tin": "CZ12345678",
+                            "vat_id": "CZ12345678",
+                            "imports_to_eu": True,
+                            "eori_number": "CZEORI123456",
+                            "company_phone": "+420777123456",
+                            "certificate_issue_date": "2024-11-15",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "company_info")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(CompanyInfoSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -419,11 +597,12 @@ class SellerCompanyInfoAPIView(AuditAPIView):
             "The provided information is used for KYB verification and must match "
             "the uploaded company registration documents.\n\n"
             "Data can be updated multiple times while the onboarding application "
-            "is in draft status."
+            "is in draft/rejected status."
         ),
         request=CompanyInfoSerializer,
         responses={
             200: OpenApiResponse(
+                response=CompanyInfoSerializer,
                 description="Company information successfully saved",
                 examples=[
                     OpenApiExample(
@@ -446,7 +625,14 @@ class SellerCompanyInfoAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
             403: OpenApiResponse(
                 description="User is not a seller",
@@ -456,6 +642,7 @@ class SellerCompanyInfoAPIView(AuditAPIView):
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerCompanyInfo,
             app,
@@ -466,12 +653,48 @@ class SellerCompanyInfoAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerCompanyRepresentativeAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get company representative details",
+        description=(
+            "Returns saved personal details of the company representative.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=CompanyRepresentativeSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "first_name": "Jan",
+                            "last_name": "Novák",
+                            "role": "Managing Director",
+                            "date_of_birth": "1985-03-22",
+                            "nationality": "CZ",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "company_representative")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(CompanyRepresentativeSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -484,11 +707,12 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
             "The provided information is used for KYC verification and must match "
             "the uploaded identity document.\n\n"
             "Data can be updated multiple times while the onboarding application "
-            "remains in draft status."
+            "remains in draft/rejected status."
         ),
         request=CompanyRepresentativeSerializer,
         responses={
             200: OpenApiResponse(
+                response=CompanyRepresentativeSerializer,
                 description="Company representative details successfully saved",
                 examples=[
                     OpenApiExample(
@@ -505,16 +729,22 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller"),
         },
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerCompanyRepresentative,
             app,
@@ -525,12 +755,48 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerCompanyAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get company registered address",
+        description=(
+            "Returns saved registered legal address of the company.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=CompanyAddressSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "street": "Václavské náměstí 1",
+                            "city": "Praha",
+                            "zip_code": "11000",
+                            "country": "CZ",
+                            "proof_document_issue_date": "2024-12-01",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "company_address")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(CompanyAddressSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -541,11 +807,12 @@ class SellerCompanyAddressAPIView(AuditAPIView):
             "The address must correspond to the company registration details and "
             "must match the uploaded proof of address document.\n\n"
             "Data can be updated multiple times while the onboarding application "
-            "remains in draft status."
+            "remains in draft/rejected status."
         ),
         request=CompanyAddressSerializer,
         responses={
             200: OpenApiResponse(
+                response=CompanyAddressSerializer,
                 description="Company address successfully saved",
                 examples=[
                     OpenApiExample(
@@ -562,16 +829,22 @@ class SellerCompanyAddressAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller"),
         },
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerCompanyAddress,
             app,
@@ -582,12 +855,48 @@ class SellerCompanyAddressAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerBankAccountAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get seller bank account details",
+        description=(
+            "Returns saved bank account information used for seller payouts.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=BankAccountSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "iban": "PL61109010140000071219812874",
+                            "swift_bic": "WBKPPLPP",
+                            "account_holder": "Jan Kowalski",
+                            "bank_code": "1090",
+                            "local_account_number": "071219812874",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "bank_account")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(BankAccountSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -605,6 +914,7 @@ class SellerBankAccountAPIView(AuditAPIView):
         request=BankAccountSerializer,
         responses={
             200: OpenApiResponse(
+                response=BankAccountSerializer,
                 description="Bank account details successfully saved",
                 examples=[
                     OpenApiExample(
@@ -621,16 +931,22 @@ class SellerBankAccountAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller"),
         },
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerBankAccount,
             app,
@@ -641,12 +957,49 @@ class SellerBankAccountAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerWarehouseAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get warehouse address",
+        description=(
+            "Returns saved warehouse (shipping origin) address.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=WarehouseAddressSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "street": "Logistics Park 7",
+                            "city": "Wrocław",
+                            "zip_code": "50-001",
+                            "country": "PL",
+                            "contact_phone": "+48777123456",
+                            "proof_document_issue_date": "2024-10-20",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "warehouse_address")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(WarehouseAddressSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -662,6 +1015,7 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
         request=WarehouseAddressSerializer,
         responses={
             200: OpenApiResponse(
+                response=WarehouseAddressSerializer,
                 description="Warehouse address successfully saved",
                 examples=[
                     OpenApiExample(
@@ -679,16 +1033,22 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller"),
         },
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerWarehouseAddress,
             app,
@@ -699,12 +1059,50 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerReturnAddressAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Get return address",
+        description=(
+            "Returns saved return address used for customer returns.\n\n"
+            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "Frontend should use this endpoint to prefill onboarding forms."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=ReturnAddressSerializer,
+                description="Existing data or empty object",
+                examples=[
+                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Existing data",
+                        value={
+                            "same_as_warehouse": False,
+                            "street": "Returns Center 5",
+                            "city": "Poznań",
+                            "zip_code": "60-001",
+                            "country": "PL",
+                            "contact_phone": "+48600123456",
+                            "proof_document_issue_date": "2024-11-01",
+                        },
+                        response_only=True,
+                    ),
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        obj = _get_one_to_one_or_none(app, "return_address")
+        if not obj:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response(ReturnAddressSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -721,6 +1119,7 @@ class SellerReturnAddressAPIView(AuditAPIView):
         request=ReturnAddressSerializer,
         responses={
             200: OpenApiResponse(
+                response=ReturnAddressSerializer,
                 description="Return address successfully saved",
                 examples=[
                     OpenApiExample(
@@ -752,16 +1151,22 @@ class SellerReturnAddressAPIView(AuditAPIView):
                 ],
             ),
             400: OpenApiResponse(
-                description="Invalid request data",
+                description="Invalid request data or onboarding is not editable",
+                examples=[
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    )
+                ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller"),
         },
     )
     def put(self, request):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
+
         obj = _get_or_create_one_to_one(
             SellerReturnAddress,
             app,
@@ -772,12 +1177,56 @@ class SellerReturnAddressAPIView(AuditAPIView):
         ser.save()
 
         app.save(update_fields=["updated_at"])
-
         return Response(ser.data, status=status.HTTP_200_OK)
 
 
 class SellerDocumentUploadAPIView(AuditAPIView):
     permission_classes = [IsSeller]
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="List uploaded documents",
+        description=(
+            "Returns list of uploaded documents for the current onboarding application.\n\n"
+            "Frontend should use this endpoint to display already uploaded documents "
+            "and allow replacing them when onboarding is editable."
+        ),
+        responses={
+            200: OpenApiResponse(
+                response=SellerDocumentReadSerializer(many=True),
+                description="Document(s) successfully uploaded",
+                examples=[
+                    OpenApiExample(
+                        name="Documents list example",
+                        value=[
+                            {
+                                "id": 46,
+                                "doc_type": "identity_document",
+                                "scope": "company_representative",
+                                "side": "front",
+                                "file": "/media/seller_onboarding_documents/id_front.jpg",
+                                "uploaded_at": "2025-01-15T12:31:00Z",
+                            },
+                            {
+                                "id": 47,
+                                "doc_type": "identity_document",
+                                "scope": "company_representative",
+                                "side": "back",
+                                "file": "/media/seller_onboarding_documents/id_back.jpg",
+                                "uploaded_at": "2025-01-15T12:31:01Z",
+                            },
+                        ],
+                        response_only=True,
+                    )
+                ],
+            ),
+            403: OpenApiResponse(description="User is not a seller"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+        qs = SellerDocument.objects.filter(application=app).order_by("-uploaded_at", "-id")
+        return Response(SellerDocumentReadSerializer(qs, many=True).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
@@ -837,6 +1286,7 @@ class SellerDocumentUploadAPIView(AuditAPIView):
         },
         responses={
             201: OpenApiResponse(
+                response=SellerDocumentReadSerializer,
                 description="Document(s) successfully uploaded",
                 examples=[
                     OpenApiExample(
@@ -888,11 +1338,14 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                         value={"detail": "Unsupported file type: application/x-msdownload"},
                         response_only=True,
                     ),
+                    OpenApiExample(
+                        name="Not editable status",
+                        value={"detail": "Only draft/rejected applications can be edited."},
+                        response_only=True,
+                    ),
                 ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller"),
         },
     )
     @transaction.atomic
@@ -939,7 +1392,6 @@ class SellerDocumentUploadAPIView(AuditAPIView):
             raise ValidationError("Documents metadata list is empty")
 
         files = request.FILES.getlist("files")
-
         if not files:
             raise ValidationError("No files provided")
 
@@ -954,7 +1406,6 @@ class SellerDocumentUploadAPIView(AuditAPIView):
             )
 
         created_documents = []
-
         for meta, file in zip(documents_meta, files):
             self._validate_file(file)
 
@@ -969,7 +1420,6 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                 application=app,
                 **serializer.validated_data,
             )
-
             created_documents.append(document)
 
         return Response(
@@ -983,15 +1433,11 @@ class SellerDocumentUploadAPIView(AuditAPIView):
             raise ValidationError("File is required")
 
         if file.content_type not in ALLOWED_MIME_TYPES:
-            raise ValidationError(
-                f"Unsupported file type: {file.content_type}"
-            )
+            raise ValidationError(f"Unsupported file type: {file.content_type}")
 
         max_size_bytes = MAX_FILE_SIZE_MB * 1024 * 1024
         if file.size > max_size_bytes:
-            raise ValidationError(
-                f"File size exceeds {MAX_FILE_SIZE_MB} MB limit"
-            )
+            raise ValidationError(f"File size exceeds {MAX_FILE_SIZE_MB} MB limit")
 
     # REPLACE EXISTING DOCUMENT (KYC CORE LOGIC)
     def _replace_existing_document(self, app, data):
@@ -1059,9 +1505,7 @@ class SellerOnboardingReviewAPIView(AuditAPIView):
                     ),
                 ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller"),
         },
     )
     def get(self, request):
@@ -1140,9 +1584,7 @@ class SellerOnboardingSubmitAPIView(AuditAPIView):
                     ),
                 ],
             ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
+            403: OpenApiResponse(description="User is not a seller",),
         },
     )
     def post(self, request):
