@@ -1,55 +1,58 @@
 .main {
   display: flex;
-  height: 500px;
-  width: 754px;
+  flex-direction: column;
+  // height: 500px;
+  height: auto;
   gap: 30px;
-  @media (max-width: 950px) {
-    width: 554px;
-    height: 300px;
+  position: sticky;
+  top: 50px;
+  @media (max-width: 1052px) {
+    position: initial;
   }
-  @media (max-width: 600px) {
-    width: 454px;
-    height: 200px;
-    gap: 20px;
-  }
+  // @media (max-width: 1100px) {
+  //   height: 300px;
+  //   gap: 20px;
+  // }
 }
 
 .mainImage {
-  width: 581px;
-  height: 499px;
+  width: 100%;
+  min-width: 259px; /* Минимальная ширина, чтобы изображение не схлопывалось */
+  max-width: 500px;
+  flex-shrink: 1;
   object-fit: cover;
-  @media (max-width: 950px) {
-    width: 381px;
-    height: 299px;
-  }
-  @media (max-width: 600px) {
-    width: 281px;
-    height: 199px;
-  }
+  aspect-ratio: 1/1;
+  // @media (max-width: 1300px) {
+  //   width: 350px;
+  //   height: 350px;
+  // }
+  // @media (max-width: 1100px) {
+  //   width: 251px;
+  //   height: 259px;
+  // }
 }
 
 .smallImage {
   background-color: transparent;
   img {
-    width: 156px;
-    height: 158px;
+    width: 75px;
+    aspect-ratio: 1/1;
     object-fit: cover;
-    @media (max-width: 950px) {
-      width: 96px;
-      height: 98px;
-    }
-    @media (max-width: 950px) {
-      width: 76px;
-      height: 78px;
-    }
   }
 }
 
 .smallImageDiv {
+  min-width: 259px;
+  max-width: 500px;
+  overflow-x: scroll;
   display: flex;
-  flex-direction: column;
-  gap: 20px;
-  @media (max-width: 600px) {
-    gap: 10px;
-  }
+  gap: 10px;
+
+  /* Скрыть скроллбар */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+}
+
+.smallImageDiv::-webkit-scrollbar {
+  display: none; /* Chrome, Safari и Opera */
 }

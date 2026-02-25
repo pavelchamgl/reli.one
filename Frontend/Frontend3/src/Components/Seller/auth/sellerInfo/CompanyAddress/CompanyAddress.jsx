@@ -90,11 +90,20 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
             });
     };
 
+    const ignoreBlurRef = useRef(false);
+
+
     return (
         <div className={styles.main}
             ref={companyAddressRef}
             tabIndex={-1}
             onBlurCapture={(e) => {
+
+                if (ignoreBlurRef.current) {
+                    ignoreBlurRef.current = false;
+                    return;
+                }
+
                 if (!e.currentTarget.contains(e.relatedTarget)) {
 
                     setTimeout(onLeaveCompanyAddressBlock, 0);
@@ -157,6 +166,7 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
                         inpText={"Upload document"}
                         stateName={companyData?.company_address_name}
                         nameTitle={"company_address_name"}
+                        onMouseDown={() => (ignoreBlurRef.current = true)}
                     />
                     {formik.errors.proof_document_issue_date &&
                         <p className={styles.errorText}>{formik.errors.proof_document_issue_date}</p>}

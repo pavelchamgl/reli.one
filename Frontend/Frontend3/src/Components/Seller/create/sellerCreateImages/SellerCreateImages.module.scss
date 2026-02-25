@@ -175,7 +175,6 @@
     @media (max-width: 426px) {
       padding-bottom: 10px;
       padding-top: 10px;
-      height: 96px;
       overflow-x: scroll; /* Включаем вертикальный скрол */
       scroll-behavior: smooth; /* Плавный скрол */
     }
@@ -190,6 +189,8 @@
     align-items: center;
 
     & img {
+      width: 140px;
+      height: 140px;
       object-fit: cover;
       border-radius: 2px;
 

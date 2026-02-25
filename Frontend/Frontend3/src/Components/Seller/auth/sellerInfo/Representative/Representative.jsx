@@ -119,11 +119,20 @@ const Representative = ({ formik, onClosePreview }) => {
             });
     };
 
+    const ignoreBlurRef = useRef(false);
+
+
     return (
         <div className={styles.main}
             ref={representativeRef}
             tabIndex={-1}
             onBlurCapture={(e) => {
+
+                if (ignoreBlurRef.current) {
+                    ignoreBlurRef.current = false;
+                    return;
+                }
+
                 if (!e.currentTarget.contains(e.relatedTarget)) {
                     setTimeout(onLeavePersonalBlock, 0);
                 }
@@ -187,6 +196,8 @@ const Representative = ({ formik, onClosePreview }) => {
                         inpText={"Upload front side"}
                         stateName={companyData?.front}
                         nameTitle={"front"}
+                        onMouseDown={() => (ignoreBlurRef.current = true)}
+
                     />
                     <UploadInp
                         scope={"company_representative"}
@@ -196,6 +207,8 @@ const Representative = ({ formik, onClosePreview }) => {
                         inpText={"Upload back side"}
                         stateName={companyData?.back}
                         nameTitle={"back"}
+                        onMouseDown={() => (ignoreBlurRef.current = true)}
+
                     />
                     {
                         (formik.errors.uploadFront || formik.errors.uploadBack) && (

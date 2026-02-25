@@ -5,9 +5,65 @@ import { ErrToast } from '../../../Toastify';
 import { useMediaQuery } from 'react-responsive';
 
 
-const STATUSES = ["Pending", "Processing", "Shipped"];
+const STATUSES_PEND = [
+    {
+        text: "Pending",
+        value: "pending"
+    },
+    {
+        text: "Confirm order",
+        value: "confirm"
+    },
+    {
+        text: "Processing",
+        value: "processing"
+    }
+];
 
-const StatusUpdateSwitch = ({ status, id }) => {
+const stylesPending = {
+    pending: {
+        border: "1.20px solid #fff085",
+        background: "#fefce8",
+        color: "#a65f00"
+    },
+    confirm: {
+        background: "#e47a00",
+        color: "white",
+        border: "1.20px solid #e47a00",
+        cursor: "pointer"
+    },
+}
+
+const STATUSES_PROC = [
+    {
+        text: "Processing",
+        value: "processing"
+    },
+    {
+        text: "Mark as shipped",
+        value: "mark"
+    },
+    {
+        text: "Shipped",
+        value: "shipped"
+    }
+];
+
+const stylesProc = {
+    processing: {
+        border: " 1.20px solid #ffd6a7",
+        background: "#fff7ed",
+        color: "#ca3500"
+    },
+    mark: {
+        background: "#0070ff",
+        color: "white",
+        border: "1.20px solid #0070ff",
+        cursor: "pointer"
+    },
+}
+
+const StatusUpdateSwitch = ({ status, id, statusState, setStatusState, setLoading }) => {
     const [active, setActive] = useState(0);
 
     const wrapperRef = useRef(null);
@@ -18,91 +74,105 @@ const StatusUpdateSwitch = ({ status, id }) => {
 
 
 
-    useLayoutEffect(() => {
-        if (isMobile) return;
-
-        const wrapper = wrapperRef.current;
-        const track = trackRef.current;
-        const activeStep = stepRefs.current[active];
-
-        if (!wrapper || !track || !activeStep) return;
-
-        const wrapperCenter = wrapper.offsetWidth / 2;
-        const stepCenter =
-            activeStep.offsetLeft + activeStep.offsetWidth / 2;
-
-        track.style.transform = `translateX(${wrapperCenter - stepCenter}px)`;
-    }, [active, isMobile]);
 
 
-    useEffect(() => {
-        if (!status) return;
+    // useLayoutEffect(() => {
+    //     if (isMobile) return;
 
-        const index = STATUSES.findIndex(item => item === status);
-        if (index !== -1) {
-            setActive(index);
-        }
-    }, [status]);
+    //     const wrapper = wrapperRef.current;
+    //     const track = trackRef.current;
+    //     const activeStep = stepRefs.current[active];
 
-    const handleConfirm = async () => {
-        try {
-            const res = await postOrderConfirm(id);
+    //     if (!wrapper || !track || !activeStep) return;
 
-            if (res.status === 200) {
-                setActive(1)
+    //     const wrapperCenter = wrapper.offsetWidth / 2;
+    //     const stepCenter =
+    //         activeStep.offsetLeft + activeStep.offsetWidth / 2;
+
+    //     track.style.transform = `translateX(${wrapperCenter - stepCenter}px)`;
+    // }, [active, isMobile]);
+
+
+
+
+    const handleConfirm = async (btnStatus) => {
+
+        if (btnStatus === "confirm") {
+            setLoading(true)
+            try {
+                const res = await postOrderConfirm(id);
+
+                if (res.status === 200) {
+                    setLoading(false)
+                    setStatusState("Processing")
+                }
+            } catch (error) {
+                setLoading(false)
+                const message =
+                    error?.response?.data?.message ||
+                    error?.response?.data?.detail ||
+                    "Failed to confirm your order";
+
+                ErrToast(message);
             }
-        } catch (error) {
-            const message =
-                error?.response?.data?.message ||
-                error?.response?.data?.detail ||
-                "Failed to confirm your order";
-
-            ErrToast(message);
         }
+
+        if (btnStatus === "mark") {
+            setLoading(true)
+            try {
+                const res = await postOrderShipped(id);
+
+                if (res.status === 200) {
+                    setLoading(false)
+                    setStatusState("Shipped")
+                }
+            } catch (error) {
+                setLoading(false)
+                const message =
+                    error?.response?.data?.message ||
+                    error?.response?.data?.detail ||
+                    "Failed to confirm your order";
+
+                ErrToast(message);
+            }
+        }
+
+
     };
 
-    const handleShipped = async () => {
-        try {
-            const res = await postOrderShipped(id);
-
-            if (res.status === 200) {
-                setActive(2)
-            }
-        } catch (error) {
-            const message =
-                error?.response?.data?.message ||
-                error?.response?.data?.detail ||
-                "Failed to ship the order";
-
-            ErrToast(message);
-        }
-    };
+    const steps = statusState === "Pending" ? STATUSES_PEND : STATUSES_PROC;
+    const stepStyles = statusState === "Pending" ? stylesPending : stylesProc;
 
     return (
-        <div className={styles.wrapper} ref={wrapperRef}>
-            <div className={styles.track} ref={trackRef}>
-                {STATUSES.map((status, i) => (
-                    <div key={status} className={styles.block}>
-                        <button
-                            ref={(el) => (stepRefs.current[i] = el)}
-                            className={`${styles.step} ${i === active ? styles.active : ""
-                                }`}
-                            onClick={() => {
-                                if (i === 1) {
-                                    handleConfirm()
-                                }
-                                if (i === 2) {
-                                    handleShipped()
-                                }
-                            }}
+        <div className={styles.wrapper}>
+            <div className={styles.trackGrid}>
+                <button
+                    className={styles.step}
+                    style={stepStyles[steps[0].value]}
+                    onClick={() => handleConfirm(steps[0].value)}
+                >
+                    {steps[0].text}
+                </button>
 
-                        >
-                            {status}
-                        </button>
+                <div className={styles.arrow} />
 
-                        {i < STATUSES.length - 1 && <div className={styles.arrow} />}
-                    </div>
-                ))}
+                <button
+                    className={styles.step}
+                    style={stepStyles[steps[1].value]}
+                    onClick={() => handleConfirm(steps[1].value)}
+                >
+                    {steps[1].text}
+                </button>
+
+                <div className={styles.arrow} />
+
+                <button
+                    className={styles.step}
+                    style={stepStyles[steps[2].value]}
+                    onClick={() => handleConfirm(steps[2].value)}
+                >
+                    {steps[2].text}
+                </button>
             </div>
         </div>
     );

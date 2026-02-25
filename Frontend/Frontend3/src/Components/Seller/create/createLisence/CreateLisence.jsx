@@ -196,12 +196,12 @@ const CreateLisence = () => {
                             ))
                         )}
                     </Swiper>
-                    <button className={styles.swiperLisencePrev}>
+                    {/* <button className={styles.swiperLisencePrev}>
                         <img src={arrLeft} alt="" />
                     </button>
                     <button className={styles.swiperLisenceNext}>
                         <img src={arrRight} alt="" />
-                    </button>
+                    </button> */}
                 </>
             </div>
             {/* {error ? <p className={styles.errText}>Image is required</p> : <></>} */}

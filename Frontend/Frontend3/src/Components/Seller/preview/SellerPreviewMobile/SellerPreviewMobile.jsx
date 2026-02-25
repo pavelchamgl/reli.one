@@ -7,13 +7,13 @@ import styles from "./SellerPreviewMobile.module.scss";
 
 const SellerPreviewMobile = ({product}) => {
   return (
-    <SellerPageContainer>
+    <>
       <div className={styles.main}>
         <PreviewImageAndName product={product} />
         <PreviewMobileSwitch />
       </div>
       <PreviewCharacteristics product={product} />
-    </SellerPageContainer>
+    </>
   );
 };
 

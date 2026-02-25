@@ -1,0 +1,36 @@
+.main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  border: 1.28px solid #b1bed1;
+  border-radius: 16px;
+  padding: 5px 16px;
+
+  font-weight: 400;
+  font-size: 14px;
+  color: #364153;
+
+  & div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+
+    min-width: 0; // ✅ ключевая строка для переноса текста в flex
+  }
+
+  & span {
+    white-space: normal; // можно переносить
+    overflow-wrap: anywhere; // ✅ переносит даже очень длинные слова/имена файлов
+    word-break: break-word; // запасной вариант
+  }
+
+  & button {
+    width: 20px;
+    height: 40px;
+    background-color: transparent;
+    margin-left: 20px;
+  }
+}

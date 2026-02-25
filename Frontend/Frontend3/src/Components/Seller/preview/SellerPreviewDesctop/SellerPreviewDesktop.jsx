@@ -16,10 +16,18 @@ const SellerPreviewDesktop = ({ product }) => {
       <div className={styles.main}>
         <div className={styles.imageRateDiv}>
           <PreviewImage product={product} />
-          <PreviewProductNameRate product={product} />
+          <div className={styles.detalPageWrap}>
+            <PreviewProductNameRate product={product} />
+            <div className={styles.tabGap}>
+              <ProductTab setTab={setSection} />
+            </div>
+            <PreviewCharacteristics product={product} />
+          </div>
         </div>
-        <ProductTab setTab={setSection} />
-        <PreviewCharacteristics product={product} />
+
+
+
+
       </div>
     </div>
   );

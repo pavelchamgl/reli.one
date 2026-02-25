@@ -100,21 +100,23 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
       });
   };
 
-
+  const ignoreBlurRef = useRef(false);
 
   return (
     <div className={styles.main}
       ref={personalRef}
       tabIndex={-1}
       onBlurCapture={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) {
-
-          setTimeout(onLeavePersonalBlock, 0);
+        if (ignoreBlurRef.current) {
+          ignoreBlurRef.current = false;
+          return;
         }
 
-      }
 
-      }>
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          setTimeout(onLeavePersonalBlock, 0);
+        }
+      }}>
 
       <div className={styles.titleWrap}>
         <img src={personalIc} alt="" />
@@ -176,6 +178,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
             inpText={"Upload front side"}
             stateName={selfData?.front}
             nameTitle={"front"}
+            onMouseDown={() => (ignoreBlurRef.current = true)}
           />
 
           <UploadInp scope={"self_employed_personal"} docType={"identity_document"}
@@ -184,6 +187,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
             inpText={"Upload back side"}
             stateName={selfData?.back}
             nameTitle={"back"}
+            onMouseDown={() => (ignoreBlurRef.current = true)}
 
           />
           {(formik.touched.uploadFront || formik.touched.uploadBack) &&

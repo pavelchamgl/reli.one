@@ -147,7 +147,7 @@ const
         <CreateCharacInp err={parametersErr} setErr={setParametersErr} setParameters={setParameters} />
 
         <CreateFormInp text={"Barcode"} titleSize={"small"} />
-        <CreateFormInp text={"Item"} titleSize={"small"} required={true} />
+        <CreateFormInp text={"Item"} titleSize={"small"}  />
         {/* <div className={styles.priceDiv}>
         <CreateFormInp
           text={"Your price"}
@@ -164,22 +164,49 @@ const
 
         <h4 className={styles.wightTitle}>Dimensions and weight</h4>
 
-        <CreateFormInp name={"length"} value={formik.values.length} {...formik} handleChange={(e) => {
-          formik.handleChange(e)
-          setLength({ length: e.target.value })
-        }} text={"Package length, mm"} titleSize={"small"} error={formik.errors.length} />
-        <CreateFormInp name={"width"} value={formik.values.width} {...formik} handleChange={(e) => {
-          formik.handleChange(e)
-          setWidth({ width: e.target.value })
-        }} text={"Package width, mm"} titleSize={"small"} error={formik.errors.width} />
-        <CreateFormInp name={"height"} value={formik.values.height} {...formik} handleChange={(e) => {
-          formik.handleChange(e)
-          setHeigth({ height: e.target.value })
-        }} text={"Package height, mm"} titleSize={"small"} error={formik.errors.height} />
-        <CreateFormInp name={"weight"} value={formik.values.weight} {...formik} handleChange={(e) => {
-          formik.handleChange(e)
-          setWeight({ weight: e.target.value })
-        }} text={"Weight with package, g"} titleSize={"small"} error={formik.errors.weight} />
+        <CreateFormInp name={"length"}
+          value={formik.values.length}
+          {...formik} handleChange={(e) => {
+            formik.handleChange(e)
+            setLength({ length: e.target.value })
+          }} text={"Package length, mm"} 
+          titleSize={"small"} 
+          error={formik.errors.length} 
+          num={true}
+          />
+
+        <CreateFormInp name={"width"}
+          value={formik.values.width} {
+          ...formik} handleChange={(e) => {
+            formik.handleChange(e)
+            setWidth({ width: e.target.value })
+          }} text={"Package width, mm"} 
+          titleSize={"small"} 
+          error={formik.errors.width} 
+          num={true}
+          />
+
+        <CreateFormInp name={"height"}
+          value={formik.values.height}
+          {...formik} handleChange={(e) => {
+            formik.handleChange(e)
+            setHeigth({ height: e.target.value })
+          }} text={"Package height, mm"} 
+          titleSize={"small"} 
+          error={formik.errors.height}
+          num={true}
+          />
+
+        <CreateFormInp name={"weight"}
+          value={formik.values.weight}
+          {...formik} handleChange={(e) => {
+            formik.handleChange(e)
+            setWeight({ weight: e.target.value })
+          }} text={"Weight with package, g"} 
+          titleSize={"small"} 
+          error={formik.errors.weight}
+          
+          num={true}/>
 
 
         <SellerCreateVariants err={varErr} setErr={setVarErr} type={type} setType={setType} errName={varNameErr} setErrName={setVarNameErr} setMainVariants={setVariants} />

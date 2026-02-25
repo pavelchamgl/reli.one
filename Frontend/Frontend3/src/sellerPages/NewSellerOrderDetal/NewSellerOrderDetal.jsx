@@ -22,8 +22,10 @@ const NewSellerOrderDetal = () => {
     const { id } = useParams()
 
     const [data, setData] = useState(null)
+    const [statusState, setStatusState] = useState("")
 
-    const isPlanshet = useMediaQuery({ maxWidth: 800 })
+
+    const isPlanshet = useMediaQuery({ maxWidth: 1000 })
     const isMobile = useMediaQuery({ maxWidth: 500 })
 
 
@@ -44,6 +46,8 @@ const NewSellerOrderDetal = () => {
 
     ]
 
+    const { summary, items, shipments, timeline, actions } = data || {}
+
     useEffect(() => {
         getOrderDetails(id).then((res) => {
             console.log(res);
@@ -51,7 +55,11 @@ const NewSellerOrderDetal = () => {
         })
     }, [id])
 
-    const { summary, items, shipments, timeline, actions } = data || {}
+    useEffect(() => {
+        if (!summary?.status) return
+        setStatusState(summary?.status)
+    }, [summary?.status])
+
     // const { delivery, totals } = summary || {}
 
     return (
@@ -72,12 +80,12 @@ const NewSellerOrderDetal = () => {
                         :
                         <h3>Order {summary?.order_number}</h3>
                 }
-                <StatusText status={summary?.status ? summary?.status : "Canceled"} />
+                <StatusText status={statusState ? statusState : "Canceled"} />
             </div>
 
             <div className={styles.sectionsWrapMain} style={{ flexWrap: isPlanshet ? "wrap" : "nowrap" }}>
                 <div className={styles.sectionsWrapFirst}>
-                    <OrderStatusWrap summary={summary} />
+                    <OrderStatusWrap statusState={statusState} setStatusState={setStatusState} summary={summary} />
                     <OrderSummary data={data} />
                     <DeliveryInformation data={summary} />
                     <ProductsTable data={data} />
