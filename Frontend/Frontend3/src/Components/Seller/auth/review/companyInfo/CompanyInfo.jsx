@@ -5,13 +5,14 @@ import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from './CompanyInfo.module.scss'
 import { countriesArr } from "../../../../../code/seller"
+import PrevDocBtn from "../../../newOrder/prevDocBtn/PrevDocBtn"
 
 const CompanyInfo = ({ data, setOpen }) => {
 
 
-    const { registerData } = useSelector(state => state.selfEmploed)
+    const { registerData, companyData } = useSelector(state => state.selfEmploed)
 
-  
+
 
     const countryOfRegistration = countriesArr.find((item) => item.value === data?.country_of_registration)
 
@@ -78,6 +79,17 @@ const CompanyInfo = ({ data, setOpen }) => {
                     <span className={styles.num}>{data?.company_phone ? data?.company_phone : "N/A"}</span>
                 </li>
             </ul>
+
+            {
+                companyData && companyData?.company_file_date &&
+
+                <div>
+                    <p className={styles.docTitle}>Registration certificate</p>
+                    <PrevDocBtn setOpen={setOpen} text={companyData?.company_file_date} />
+                </div>
+            }
+
+
         </div>
     )
 }

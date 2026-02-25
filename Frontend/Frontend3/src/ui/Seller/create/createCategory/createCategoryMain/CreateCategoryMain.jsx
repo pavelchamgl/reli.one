@@ -105,6 +105,7 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
                                     key={index}
                                     item={item}
                                     setStage={setStage}
+                                    setOpen={setOpen}
                                 />
                             ))}
                     </div>

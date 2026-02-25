@@ -11,7 +11,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: clamp(10px, 2.5vw, 25px);
+  margin-top: clamp(20px, 2.5vw, 30px);
 
   & button {
     --paddY: 10px;
@@ -32,6 +32,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 210px;
     gap: 20px;
     background: #047857;
 

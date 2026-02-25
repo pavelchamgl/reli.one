@@ -103,12 +103,18 @@ const WhareHouseAddress = ({ formik }) => {
             });
     };
 
+    const ignoreBlurRef = useRef(false);
 
 
     return (
         <div className={styles.main}
             ref={warehouseRef}
             onBlurCapture={(e) => {
+                if (ignoreBlurRef.current) {
+                    ignoreBlurRef.current = false;
+                    return;
+                }
+
                 // если фокус ушёл вне блока
                 if (!e.currentTarget.contains(e.relatedTarget)) {
                     setTimeout(onLeaveWarehouseBlock, 0);
@@ -193,6 +199,8 @@ const WhareHouseAddress = ({ formik }) => {
                         onChange={handleSingleFrontUpload}
                         stateName={selfData?.warehouse_name}
                         nameTitle={"warehouse_name"}
+                        onMouseDown={() => (ignoreBlurRef.current = true)}
+
                     />
                 </div>
 

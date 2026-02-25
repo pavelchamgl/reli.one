@@ -14,12 +14,13 @@ const UploadInp = ({
     onChange,
     inpText,
     stateName,
-    nameTitle
+    nameTitle,
+    onMouseDown
 }) => {
 
     const { pathname } = useLocation()
 
-    const companyPathname = '/seller/seller-company'
+    const companyPathname = ['/seller/seller-company', '/seller/seller-review-company']
 
     const { safeData, safeCompanyData } = useActionSafeEmploed()
 
@@ -32,7 +33,7 @@ const UploadInp = ({
 
         setName(file?.name)
 
-        if (pathname === companyPathname) {
+        if ( companyPathname.includes(pathname)) {
             safeCompanyData({ [`${nameTitle}`]: file?.name })
         } else {
             safeData({ [`${nameTitle}`]: file?.name })
@@ -71,7 +72,9 @@ const UploadInp = ({
             }
             <span className={styles.desc}>{description}</span>
 
-            <label className={styles.fileLabel}>
+            <label
+                onMouseDown={onMouseDown}
+                className={styles.fileLabel}>
                 <input type="file" hidden onChange={handleFileChange} />
 
                 <div className={styles.fileInpContent}>

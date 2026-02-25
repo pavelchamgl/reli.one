@@ -70,8 +70,11 @@
     font-weight: 400;
     font-size: 16px;
     color: #0f172b;
-    white-space: normal;
-    word-break: break-word;
+
+    @media (max-width: 500px) {
+      white-space: normal;
+      word-break: break-word;
+    }
   }
 
   & img {

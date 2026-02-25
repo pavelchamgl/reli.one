@@ -216,7 +216,7 @@ const CreateForm = () => {
                     }} />
                     <p>
                         I agree with the
-                        <Link to={'/terms'}> terms & conditions </Link>
+                        <Link to={'https://info.reli.one/terms'}> terms & conditions </Link>
                         and
                         <Link to={"/privacy-policy"}> privacy policy</Link>
                     </p>

@@ -6,14 +6,17 @@ import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 
 import styles from "./AccountInfo.module.scss"
 import { countriesArr } from "../../../../../code/seller"
+import PrevDocBtn from "../../../newOrder/prevDocBtn/PrevDocBtn"
 
 const AccountInfo = ({ data, type, isCompany, setOpen }) => {
 
-    const { registerData } = useSelector(state => state.selfEmploed)
+    const { registerData, selfData, companyData } = useSelector(state => state.selfEmploed)
 
 
     console.log(data);
-    
+
+
+    const storeData = isCompany ? companyData : selfData
 
 
     const nationality = countriesArr.find((item) => item.value === data?.nationality)
@@ -64,6 +67,17 @@ const AccountInfo = ({ data, type, isCompany, setOpen }) => {
                     <span>{type === "company" ? "Company / Legal entity" : "Self-employed / Sole proprietor"}</span>
                 </li>
             </ul>
+            {
+                storeData?.front && storeData?.back &&
+
+                <div >
+                    <p className={styles.docTitle}>Identity document</p>
+                    <div className={styles.twoDocWrap}>
+                        <PrevDocBtn setOpen={setOpen} text={storeData?.front} />
+                        <PrevDocBtn setOpen={setOpen} text={storeData?.back} />
+                    </div>
+                </div>
+            }
 
         </div>
     )

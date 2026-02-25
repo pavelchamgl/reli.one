@@ -36,8 +36,8 @@ const persistConfig = {
     key: 'root',
     storage,
     version: PERSIST_VERSION,
-    whitelist: ['basket', 'payment', "selfEmploed"], // только эти слайсы сохраняются
-    migrate: createMigrate(migrations, { debug: false })
+    whitelist: ['basket', 'payment', "selfEmploed", "edit_goods"], // только эти слайсы сохраняются
+    // migrate: createMigrate(migrations, { debug: false })
 }
 
 const rootReducer = combineReducers({

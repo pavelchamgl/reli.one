@@ -161,7 +161,11 @@ const SellerMobNav = () => {
                   : "#a09e96",
             }}
           >
-            Account
+            {
+              token ?
+                "Logout" :
+                "Account"
+            }
           </p>
         </button>
       </div>

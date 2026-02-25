@@ -55,7 +55,7 @@ const AddressBlock = ({ formik, onClosePreview }) => {
     const addressRef = useRef(null)
 
 
-    const onLeaveAddressBlock = async() => {
+    const onLeaveAddressBlock = async () => {
 
         const filled = isAddressFilled(formik.values)
 
@@ -89,12 +89,21 @@ const AddressBlock = ({ formik, onClosePreview }) => {
 
     }
 
+    const ignoreBlurRef = useRef(false);
+
+
 
     return (
         <div className={styles.main}
             ref={addressRef}
             tabIndex={-1}
             onBlurCapture={(e) => {
+
+                if (ignoreBlurRef.current) {
+                    ignoreBlurRef.current = false;
+                    return;
+                }
+
                 if (!e.currentTarget.contains(e.relatedTarget)) {
                     setTimeout(onLeaveAddressBlock, 0);
                 }
@@ -156,6 +165,7 @@ const AddressBlock = ({ formik, onClosePreview }) => {
                         onChange={handleSingleFrontUpload}
                         stateName={selfData?.self_address_name}
                         nameTitle={"self_address_name"}
+                        onMouseDown={() => (ignoreBlurRef.current = true)}
                     />
                     {formik.errors.proof_document_issue_date && <p className={styles.errorText}>Upload document is required</p>}
                 </div>

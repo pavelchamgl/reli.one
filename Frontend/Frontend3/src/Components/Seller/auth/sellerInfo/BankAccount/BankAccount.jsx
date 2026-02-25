@@ -24,7 +24,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
 
     const { pathname } = useLocation()
 
-    const companyPathname = '/seller/seller-company'
+    const companyPathname = ['/seller/seller-company', "/seller/seller-review-company"]
 
 
     const bankRef = useRef(null)
@@ -47,7 +47,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
 
 
 
-        if (pathname === companyPathname) {
+        if (companyPathname.includes(pathname)) {
             safeCompanyData(payload)
         } else {
             safeData(payload)

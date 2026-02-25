@@ -116,6 +116,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
             });
     };
 
+    const ignoreBlurRef = useRef(false);
 
 
     return (
@@ -123,6 +124,12 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
             tabIndex={-1}
             ref={companyRef}
             onBlurCapture={(e) => {
+
+                if (ignoreBlurRef.current) {
+                    ignoreBlurRef.current = false;
+                    return;
+                }
+
                 if (!e.currentTarget.contains(e.relatedTarget)) {
                     setTimeout(onLeaveCompanyBlock, 0);
                 }
@@ -226,6 +233,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         inpText={"Upload document"}
                         stateName={companyData?.company_file_date}
                         nameTitle={"company_file_date"}
+                        onMouseDown={() => (ignoreBlurRef.current = true)}
                     />
                 </div>
 

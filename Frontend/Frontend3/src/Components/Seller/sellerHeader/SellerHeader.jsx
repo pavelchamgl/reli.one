@@ -38,18 +38,23 @@ const SellerHeader = () => {
         <SellerLogo />
 
         <div className={styles.langAndLogin}>
+
           {
-            Object.keys(token).length > 0 ? (
-              <button onClick={handleLogout} className={styles.loginItem}>
-                <img src={profileIcon} alt="" />
-                <p>Logout</p>
-              </button>
-            ) : (
-              <Link to={"/seller/login"} className={styles.loginItem}>
-                <img src={profileIcon} alt="" />
-                <p>{t("enter_account")}</p>
-              </Link>
+            !mobile ? (
+              Object.keys(token).length > 0 ? (
+                <button onClick={handleLogout} className={styles.loginItem}>
+                  <img src={profileIcon} alt="" />
+                  <p>Logout</p>
+                </button>
+              ) : (
+                <Link to={"/seller/login"} className={styles.loginItem}>
+                  <img src={profileIcon} alt="" />
+                  <p>{t("enter_account")}</p>
+                </Link>
+              )
             )
+              :
+              null
           }
           <ChangeLang />
         </div>
