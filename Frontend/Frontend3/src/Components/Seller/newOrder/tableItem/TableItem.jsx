@@ -34,7 +34,7 @@ const TableItem = ({ data }) => {
             <p className={`${styles.prodWrap} ${styles.price}`} style={{ minWidth: "151px" }}>{data?.purchase_excl_vat} €</p>
             <p className={`${styles.prodWrap} ${styles.price}`} style={{ minWidth: "123px" }}>{data?.sales_incl_vat} €</p>
             <p className={`${styles.prodWrap} ${styles.price}`} style={{ minWidth: "127px" }}>{data?.total_incl_vat_plus_delivery} €</p>
-            <StatusText status={data?.status} />
+                <StatusText status={data?.status} />
             <p className={`${styles.prodWrap} ${styles.date}`} style={{ minWidth: "133px" }}>{data?.dispatch_before ? data?.dispatch_before : "Pending"}</p>
             <ActionBtns data={data} />
         </div>
