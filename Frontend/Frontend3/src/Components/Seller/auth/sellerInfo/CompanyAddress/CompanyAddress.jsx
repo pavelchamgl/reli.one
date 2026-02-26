@@ -59,7 +59,7 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
 
             onClosePreview?.();
         } catch (err) {
-            ErrToast(err?.message || "Failed to save personal data");
+            // ErrToast(err?.message || "Failed to save personal data");
         }
 
 
