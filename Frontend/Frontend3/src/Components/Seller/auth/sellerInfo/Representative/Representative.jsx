@@ -184,7 +184,6 @@ const Representative = ({ formik, onClosePreview }) => {
                     />
                 </div>
 
-
                 <div>
                     <UploadInp
                         title={"Identity document"}

@@ -89,7 +89,7 @@ const NewOrderTable = ({ data }) => {
                 />
                 {
                     tableTitleTexts.map((textObj) => (
-                        <div className={styles.titleTextWrap} style={{ minWidth: `${textObj.width}px`, textAlign: textObj.textAlign, justifyContent: textObj.justify }}>
+                        <div className={styles.titleTextWrap} style={{ minWidth: `${textObj.width}px`, textAlign: textObj.textAlign, justifyContent: textObj.justify, padding: textObj.text === "Status" || textObj.text === "Actions" ? "0 0" : "0 14px" }}>
                             <p className={`${styles.titleText}`}
                                 style={{ textAlign: textObj.textAlign, width: `${textObj.break}px` }}
                             >{textObj.text}</p>
