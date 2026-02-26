@@ -26,6 +26,78 @@ class OnboardingStateSerializer(serializers.ModelSerializer):
         fields = ["id", "seller_type", "status", "submitted_at", "reviewed_at", "rejected_reason"]
 
 
+class OnboardingCompletenessSerializer(serializers.Serializer):
+    seller_type_selected = serializers.BooleanField()
+    personal_complete = serializers.BooleanField()
+    tax_complete = serializers.BooleanField()
+    address_complete = serializers.BooleanField()
+    bank_complete = serializers.BooleanField()
+    warehouse_complete = serializers.BooleanField()
+    return_complete = serializers.BooleanField()
+    documents_complete = serializers.BooleanField()
+    is_submittable = serializers.BooleanField()
+
+
+class DocumentsRequirementSerializer(serializers.Serializer):
+    doc_type = serializers.CharField()
+    scope = serializers.CharField()
+    status = serializers.ChoiceField(choices=["satisfied", "missing"])
+    satisfied_by = serializers.ChoiceField(
+        choices=["double_sided", "single_sided"],
+        allow_null=True,
+        required=False,
+    )
+    # side может быть "front"/"back" либо null (для single-sided в вашей модели)
+    uploaded_sides = serializers.ListField(
+        child=serializers.CharField(allow_null=True),
+    )
+    document_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+    )
+
+
+class DocumentsSummaryCountsSerializer(serializers.Serializer):
+    total_uploaded = serializers.IntegerField()
+    used_for_requirements = serializers.IntegerField()
+    extra_unused = serializers.IntegerField()
+
+
+class DocumentsSummarySerializer(serializers.Serializer):
+    requirements = DocumentsRequirementSerializer(many=True)
+    counts = DocumentsSummaryCountsSerializer()
+
+
+class DocumentsMissingItemSerializer(serializers.Serializer):
+    doc_type = serializers.CharField()
+    scope = serializers.CharField()
+    rule = serializers.CharField()
+    missing_sides = serializers.ListField(
+        child=serializers.CharField(allow_null=True),
+    )
+    # есть не во всех правилах — optional
+    accepts_single_side = serializers.BooleanField(required=False)
+
+
+class OnboardingStateResponseSerializer(serializers.Serializer):
+    # поля заявки (как в OnboardingStateSerializer)
+    id = serializers.IntegerField()
+    seller_type = serializers.CharField(allow_null=True, required=False)
+    status = serializers.CharField()
+    submitted_at = serializers.DateTimeField(allow_null=True, required=False)
+    reviewed_at = serializers.DateTimeField(allow_null=True, required=False)
+    rejected_reason = serializers.CharField(allow_null=True, required=False)
+
+    # computed fields
+    completeness = OnboardingCompletenessSerializer()
+    is_editable = serializers.BooleanField()
+    can_submit = serializers.BooleanField()
+    requires_onboarding = serializers.BooleanField()
+    next_step = serializers.CharField(allow_null=True, required=False)
+
+    documents_summary = DocumentsSummarySerializer()
+    documents_missing = DocumentsMissingItemSerializer(many=True)
+
+
 class SellerDocumentCreateSerializer(serializers.ModelSerializer):
     """
     Финальный сериалайзер для загрузки KYC/KYB документов.

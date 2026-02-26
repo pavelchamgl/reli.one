@@ -26,6 +26,15 @@ IBAN_RE = re.compile(r"^[A-Z0-9]{15,34}$")
 SWIFT_RE = re.compile(r"^[A-Z0-9]{8,11}$")
 
 
+def ensure_application_editable(app: SellerOnboardingApplication) -> None:
+    """
+    Разрешаем редактирование только в draft/rejected.
+    Используем ValidationError (400).
+    """
+    if app.status not in [OnboardingStatus.DRAFT, OnboardingStatus.REJECTED]:
+        raise ValidationError({"detail": "Only draft/rejected applications can be edited."})
+
+
 def get_or_create_application_for_user(user) -> SellerOnboardingApplication:
     if not hasattr(user, "seller_profile"):
         raise ValidationError({"detail": "User is not a seller."})
@@ -215,6 +224,269 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         return_complete=return_complete,
         documents_complete=documents_complete,
     )
+
+
+def compute_next_step(app: SellerOnboardingApplication, completeness: Completeness) -> str:
+    """
+    Куда вернуть продавца при продолжении онбординга.
+
+    Унифицированный порядок шагов:
+    seller_type -> personal -> tax -> address -> bank -> warehouse -> return -> documents -> review
+    """
+    if not completeness.seller_type_selected:
+        return "seller_type"
+    if not completeness.personal_complete:
+        return "personal"
+    if not completeness.tax_complete:
+        return "tax"
+    if not completeness.address_complete:
+        return "address"
+    if not completeness.bank_complete:
+        return "bank"
+    if not completeness.warehouse_complete:
+        return "warehouse"
+    if not completeness.return_complete:
+        return "return"
+    if not completeness.documents_complete:
+        return "documents"
+    return "review"
+
+
+def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> tuple[dict, list[dict]]:
+    """
+    Возвращает:
+    - documents_summary: "нормализованная" сводка по требованиям (не raw dump документов)
+    - documents_missing: список требований, которые ещё не выполнены (как и раньше)
+
+    ВАЖНО: логика требований 1-в-1 соответствует compute_completeness() в этом файле:
+      - identity_document допускает:
+          passport (1 сторона: side=None или side="front")
+          или ID/residence (2 стороны: front+back)
+      - proof_of_address / registration_certificate: 1 сторона (None или front)
+
+    Формат documents_summary:
+
+    {
+      "requirements": [
+        {
+          "doc_type": "...",
+          "scope": "...",
+          "status": "satisfied" | "missing",
+          "satisfied_by": "double_sided" | "single_sided" | None,
+          "uploaded_sides": ["front","back"] | [null] | [],
+          "document_ids": [1,2] | []
+        }
+      ],
+      "counts": {
+        "total_uploaded": 5,
+        "used_for_requirements": 3,
+        "extra_unused": 2
+      }
+    }
+    """
+
+    uploaded_docs = list(app.documents.all())
+    total_uploaded = len(uploaded_docs)
+
+    # Индекс по ключу (doc_type, scope, side) -> document_id
+    doc_id_by_key: dict[tuple[str, str, str | None], int] = {
+        (d.doc_type, d.scope, d.side): d.id for d in uploaded_docs
+    }
+
+    uploaded_keys = set(doc_id_by_key.keys())
+
+    def has_key(doc_type: str, scope: str, side: str | None) -> bool:
+        return (doc_type, scope, side) in uploaded_keys
+
+    def pick_single_sided(doc_type: str, scope: str) -> tuple[bool, list[str | None], list[int]]:
+        """
+        single-sided = (None) OR ("front")
+        Возвращает:
+          (is_present, uploaded_sides, document_ids_used)
+        """
+        if has_key(doc_type, scope, None):
+            return True, [None], [doc_id_by_key[(doc_type, scope, None)]]
+        if has_key(doc_type, scope, "front"):
+            return True, ["front"], [doc_id_by_key[(doc_type, scope, "front")]]
+        return False, [], []
+
+    def pick_double_sided(doc_type: str, scope: str) -> tuple[bool, list[str], list[int]]:
+        """
+        double-sided = ("front" AND "back")
+        """
+        if has_key(doc_type, scope, "front") and has_key(doc_type, scope, "back"):
+            return (
+                True,
+                ["front", "back"],
+                [
+                    doc_id_by_key[(doc_type, scope, "front")],
+                    doc_id_by_key[(doc_type, scope, "back")],
+                ],
+            )
+        return False, [], []
+
+    def pick_identity(scope: str) -> tuple[str | None, list[str | None], list[int]]:
+        """
+        identity_document:
+          - предпочтение double-sided (ID/residence), если есть front+back
+          - иначе single-sided (passport), если есть side=None или front
+        Возвращает:
+          (satisfied_by, uploaded_sides, document_ids_used)
+        """
+        ok2, sides2, ids2 = pick_double_sided("identity_document", scope)
+        if ok2:
+            return "double_sided", sides2, ids2
+
+        ok1, sides1, ids1 = pick_single_sided("identity_document", scope)
+        if ok1:
+            return "single_sided", sides1, ids1
+
+        return None, [], []
+
+    def requirement_entry(
+        doc_type: str,
+        scope: str,
+        satisfied_by: str | None,
+        uploaded_sides: list[str | None],
+        document_ids: list[int],
+    ) -> dict:
+        return {
+            "doc_type": doc_type,
+            "scope": scope,
+            "status": "satisfied" if satisfied_by else "missing",
+            "satisfied_by": satisfied_by,
+            "uploaded_sides": uploaded_sides,
+            "document_ids": document_ids,
+        }
+
+    requirements: list[dict] = []
+    used_doc_ids: set[int] = set()
+
+    missing: list[dict] = []
+
+    if app.seller_type == SellerType.SELF_EMPLOYED:
+        # identity_document for self-employed personal
+        satisfied_by, sides, ids = pick_identity("self_employed_personal")
+        requirements.append(
+            requirement_entry(
+                "identity_document",
+                "self_employed_personal",
+                satisfied_by,
+                sides,
+                ids,
+            )
+        )
+        used_doc_ids.update(ids)
+
+        if not satisfied_by:
+            missing.append({
+                "doc_type": "identity_document",
+                "scope": "self_employed_personal",
+                "rule": "identity_document",
+                "missing_sides": ["front", "back"],
+                "accepts_single_side": True,
+            })
+
+        # proof_of_address for self-employed address (single-sided)
+        ok, sides, ids = pick_single_sided("proof_of_address", "self_employed_address")
+        requirements.append(
+            requirement_entry(
+                "proof_of_address",
+                "self_employed_address",
+                "single_sided" if ok else None,
+                sides,
+                ids,
+            )
+        )
+        used_doc_ids.update(ids)
+
+        if not ok:
+            missing.append({
+                "doc_type": "proof_of_address",
+                "scope": "self_employed_address",
+                "rule": "single_sided",
+                "missing_sides": [None],
+            })
+
+    elif app.seller_type == SellerType.COMPANY:
+        # registration_certificate for company_info (single-sided)
+        ok, sides, ids = pick_single_sided("registration_certificate", "company_info")
+        requirements.append(
+            requirement_entry(
+                "registration_certificate",
+                "company_info",
+                "single_sided" if ok else None,
+                sides,
+                ids,
+            )
+        )
+        used_doc_ids.update(ids)
+
+        if not ok:
+            missing.append({
+                "doc_type": "registration_certificate",
+                "scope": "company_info",
+                "rule": "single_sided",
+                "missing_sides": [None],
+            })
+
+        # identity_document for company_representative
+        satisfied_by, sides, ids = pick_identity("company_representative")
+        requirements.append(
+            requirement_entry(
+                "identity_document",
+                "company_representative",
+                satisfied_by,
+                sides,
+                ids,
+            )
+        )
+        used_doc_ids.update(ids)
+
+        if not satisfied_by:
+            missing.append({
+                "doc_type": "identity_document",
+                "scope": "company_representative",
+                "rule": "identity_document",
+                "missing_sides": ["front", "back"],
+                "accepts_single_side": True,
+            })
+
+        # proof_of_address for company_address (single-sided)
+        ok, sides, ids = pick_single_sided("proof_of_address", "company_address")
+        requirements.append(
+            requirement_entry(
+                "proof_of_address",
+                "company_address",
+                "single_sided" if ok else None,
+                sides,
+                ids,
+            )
+        )
+        used_doc_ids.update(ids)
+
+        if not ok:
+            missing.append({
+                "doc_type": "proof_of_address",
+                "scope": "company_address",
+                "rule": "single_sided",
+                "missing_sides": [None],
+            })
+
+    # counts
+    used_for_requirements = len(used_doc_ids)
+    extra_unused = max(total_uploaded - used_for_requirements, 0)
+
+    documents_summary = {
+        "requirements": requirements,
+        "counts": {
+            "total_uploaded": total_uploaded,
+            "used_for_requirements": used_for_requirements,
+            "extra_unused": extra_unused,
+        },
+    }
+
+    return documents_summary, missing
 
 
 def validate_before_submit(app: SellerOnboardingApplication) -> None:
