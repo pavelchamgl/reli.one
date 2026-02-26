@@ -271,7 +271,7 @@ const ReviewInfoPage = () => {
       console.log(submitRes);
 
 
-      if (submitRes.status >= 200 && submitRes.status < 300) {
+      if (submitRes.status === "pending_verification") {
         navigate("/seller/application-sub");
       } else {
         ErrToast("Failed to submit onboarding");

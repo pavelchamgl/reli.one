@@ -266,7 +266,10 @@ const SellerReviewCompany = () => {
 
             const submitRes = await postSubmitOnboarding();
 
-            if (submitRes.status >= 200 && submitRes.status < 300) {
+            console.log(submitRes);
+            
+
+            if (submitRes.status === "pending_verification") {
                 navigate("/seller/application-sub");
             } else {
                 ErrToast("Failed to submit onboarding");
@@ -284,7 +287,7 @@ const SellerReviewCompany = () => {
 
 
             messages.forEach((msg) => ErrToast(msg));
-            navigate("/seller/seller-company")
+            // navigate("/seller/seller-company")
 
         }
     }
