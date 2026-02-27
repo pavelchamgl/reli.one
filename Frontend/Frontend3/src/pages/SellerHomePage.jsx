@@ -11,6 +11,7 @@ import SellerTitle from "../ui/Seller/Home/SellerHomeTitle/SellerHomeTitle";
 
 import styles from "../styles/SellerHomePage.module.scss";
 import Spinner from "../ui/Spiner/Spiner";
+import { COOKIE_VERSION } from "../configs/cookieConfig";
 
 const SellerHomePage = () => {
   const dispatch = useDispatch()
@@ -21,6 +22,18 @@ const SellerHomePage = () => {
   useEffect(() => {
     dispatch(fetchSellerStatics())
   }, [])
+
+  useEffect(() => {
+      const cookieVersion = localStorage.getItem("COOKIE_VERSION")
+  
+      if (COOKIE_VERSION !== cookieVersion) {
+  
+        localStorage.setItem("COOKIE_VERSION", COOKIE_VERSION)
+        localStorage.removeItem("cookieSave")
+        localStorage.removeItem("token")
+      }
+  
+    }, [])
 
 
 
