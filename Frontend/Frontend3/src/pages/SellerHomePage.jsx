@@ -34,6 +34,8 @@ const SellerHomePage = () => {
       }
   
     }, [])
+    
+    
 
 
 

@@ -11,7 +11,7 @@ import BankAccount from "../../Components/Seller/auth/review/bankAccount/BankAcc
 import AccountInfo from "../../Components/Seller/auth/review/accountInfo/AccountInfo"
 import BusinessAddress from "../../Components/Seller/auth/review/businessAddress/BusinessAddress"
 import CompanyInfo from "../../Components/Seller/auth/review/companyInfo/CompanyInfo"
-import { getReviewOnboarding, postSubmitOnboarding, putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from "../../api/seller/onboarding"
+import { getOnboardingStatus, getReviewOnboarding, postSubmitOnboarding, putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from "../../api/seller/onboarding"
 import { useEffect, useState } from "react"
 import { ErrToast } from "../../ui/Toastify"
 import { useNavigate } from "react-router-dom"
@@ -264,15 +264,17 @@ const SellerReviewCompany = () => {
                 return;
             }
 
-            const submitRes = await postSubmitOnboarding();
+            const statusOnboard = await getOnboardingStatus()
 
-            console.log(submitRes);
-            
 
-            if (submitRes.status === "pending_verification") {
-                navigate("/seller/application-sub");
-            } else {
-                ErrToast("Failed to submit onboarding");
+
+            if (statusOnboard && statusOnboard?.can_submit === true) {
+                const submitRes = await postSubmitOnboarding();
+                if (submitRes.status === "pending_verification") {
+                    navigate("/seller/application-sub");
+                } else {
+                    ErrToast("Failed to submit onboarding");
+                }
             }
 
 

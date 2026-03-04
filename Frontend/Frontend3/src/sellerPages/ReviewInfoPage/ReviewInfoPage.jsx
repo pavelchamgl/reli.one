@@ -11,7 +11,7 @@ import BusinessAddress from "../../Components/Seller/auth/review/businessAddress
 import BankAccount from "../../Components/Seller/auth/review/bankAccount/BankAccount"
 import WarehouseAndReturn from "../../Components/Seller/auth/review/WarehouseAndReturn/WarehouseAndReturn"
 import SubBtn from "../../ui/Seller/review/subBtn/SubBtn"
-import { getReviewOnboarding, postSubmitOnboarding, putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, putTax, putWarehouse } from "../../api/seller/onboarding"
+import { getOnboardingStatus, getReviewOnboarding, postSubmitOnboarding, putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, putTax, putWarehouse } from "../../api/seller/onboarding"
 import { ErrToast } from "../../ui/Toastify"
 
 import PersonalEdit from "../../Components/Seller/auth/sellerInfo/PersonalDetails/PersonalDetails"
@@ -107,64 +107,64 @@ const ReviewInfoPage = () => {
     getReviewOnboarding()
   }, [])
 
- const parseApiErrors = (data) => {
-  if (!data) return ["Unknown error"];
+  const parseApiErrors = (data) => {
+    if (!data) return ["Unknown error"];
 
-  // 🔹 Если строка
-  if (typeof data === "string") return [data];
+    // 🔹 Если строка
+    if (typeof data === "string") return [data];
 
-  // 🔹 Стандартные backend поля
-  if (data.detail) return [String(data.detail)];
-  if (data.message) return [String(data.message)];
+    // 🔹 Стандартные backend поля
+    if (data.detail) return [String(data.detail)];
+    if (data.message) return [String(data.message)];
 
-  // 🔹 Человекочитаемые названия для completeness
-  const labels = {
-    seller_type_selected: "Seller type",
-    personal_complete: "Personal details",
-    tax_complete: "Tax info",
-    address_complete: "Address",
-    bank_complete: "Bank account",
-    warehouse_complete: "Warehouse",
-    return_complete: "Return address",
-    documents_complete: "Documents",
-  };
+    // 🔹 Человекочитаемые названия для completeness
+    const labels = {
+      seller_type_selected: "Seller type",
+      personal_complete: "Personal details",
+      tax_complete: "Tax info",
+      address_complete: "Address",
+      bank_complete: "Bank account",
+      warehouse_complete: "Warehouse",
+      return_complete: "Return address",
+      documents_complete: "Documents",
+    };
 
-  // 🔹 Обработка completeness
-  const completeness = data.completeness ?? data;
+    // 🔹 Обработка completeness
+    const completeness = data.completeness ?? data;
 
-  if (completeness && typeof completeness === "object") {
-    const failed = Object.entries(completeness)
-      .filter(
-        ([_, value]) =>
-          typeof value === "string" &&
-          value.toLowerCase() === "false"
-      )
-      .map(([key]) => labels[key] ?? key);
+    if (completeness && typeof completeness === "object") {
+      const failed = Object.entries(completeness)
+        .filter(
+          ([_, value]) =>
+            typeof value === "string" &&
+            value.toLowerCase() === "false"
+        )
+        .map(([key]) => labels[key] ?? key);
 
-    if (failed.length) {
-      return ["Please complete: " + failed.join(", ")];
+      if (failed.length) {
+        return ["Please complete: " + failed.join(", ")];
+      }
     }
-  }
 
-  // 🔹 Универсальный проход по вложенным объектам
-  const messages = [];
+    // 🔹 Универсальный проход по вложенным объектам
+    const messages = [];
 
-  const walk = (obj) => {
-    if (!obj) return;
+    const walk = (obj) => {
+      if (!obj) return;
 
-    if (typeof obj === "string") {
-      messages.push(obj);
-    } else if (Array.isArray(obj)) {
-      obj.forEach(walk);
-    } else if (typeof obj === "object") {
-      Object.values(obj).forEach(walk);
-    }
+      if (typeof obj === "string") {
+        messages.push(obj);
+      } else if (Array.isArray(obj)) {
+        obj.forEach(walk);
+      } else if (typeof obj === "object") {
+        Object.values(obj).forEach(walk);
+      }
+    };
+
+    walk(data);
+
+    return messages.length ? messages : ["Unexpected error"];
   };
-
-  walk(data);
-
-  return messages.length ? messages : ["Unexpected error"];
-};
 
   const handleSubmit = async () => {
     const values = formik.values;
@@ -265,18 +265,18 @@ const ReviewInfoPage = () => {
         return;
       }
 
-      // 🔥 Теперь отправляем submit
-      const submitRes = await postSubmitOnboarding();
-
-      console.log(submitRes);
+      const statusOnboard = await getOnboardingStatus()
 
 
-      if (submitRes.status === "pending_verification") {
-        navigate("/seller/application-sub");
-      } else {
-        ErrToast("Failed to submit onboarding");
+
+      if (statusOnboard && statusOnboard?.can_submit === true) {
+        const submitRes = await postSubmitOnboarding();
+        if (submitRes.status === "pending_verification") {
+          navigate("/seller/application-sub");
+        } else {
+          ErrToast("Failed to submit onboarding");
+        }
       }
-
     } catch (error) {
       console.log(error);
 

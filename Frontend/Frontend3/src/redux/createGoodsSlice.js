@@ -23,7 +23,7 @@ const createGoodsSlice = createSlice({
         categories: null,
         categoriesStatus: null,
         childCategoryName: null,
-        categoriesStage: [] // Массив для хранения выбранных категорий
+        categoriesStage: [], // Массив для хранения выбранных категорий,
     },
     reducers: {
         setChildCategories: (state, action) => {
@@ -49,6 +49,7 @@ const createGoodsSlice = createSlice({
             state.categoriesStatus = null
             state.childCategoryName = null
         }
+       
     },
     extraReducers: (build) => {
         build.addCase(fetchCategories.fulfilled, (state, action) => {

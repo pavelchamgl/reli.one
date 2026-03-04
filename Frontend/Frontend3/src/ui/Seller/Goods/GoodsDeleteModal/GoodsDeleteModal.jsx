@@ -3,8 +3,11 @@ import { useRef, useEffect } from "react";
 import xIcon from "../../../../assets/loginModal/loginModalX.svg";
 
 import styles from "./GoodsDeleteModal.module.scss";
+import { deleteSellerProduct } from "../../../../api/seller/sellerProduct";
+import { ErrToast } from "../../../Toastify";
+import { useActionSellerList } from "../../../../hook/useActionSellerList";
 
-const GoodsDeleteModal = ({ open, handleClose }) => {
+const GoodsDeleteModal = ({ open, handleClose, item }) => {
   const dialogRef = useRef(null);
 
   useEffect(() => {
@@ -22,6 +25,25 @@ const GoodsDeleteModal = ({ open, handleClose }) => {
     }
   };
 
+  const { filterProducts } = useActionSellerList()
+
+  const handleDelete = async () => {
+    try {
+      const res = await deleteSellerProduct(item?.id)
+      console.log(res);
+      filterProducts({ id: item?.id })
+      handleClose()
+
+    } catch (error) {
+      if (error?.response?.status === 404 || error?.response?.status === 401) {
+        ErrToast(error?.response?.data?.detail)
+      } else {
+        ErrToast("An unknown error")
+      }
+
+    }
+  }
+
   return (
     <dialog
       ref={dialogRef}
@@ -34,7 +56,7 @@ const GoodsDeleteModal = ({ open, handleClose }) => {
         </button>
         <h3>Are you sure you want to remove the item?</h3>
         <div className={styles.btnsDiv}>
-          <button>Yes</button>
+          <button onClick={() => handleDelete()}>Yes</button>
           <button onClick={handleClose}>No</button>
         </div>
       </div>

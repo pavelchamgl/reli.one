@@ -135,3 +135,24 @@ export const postSellerLisence = async (id, obj) => {
 };
 
 
+export const deleteSellerProduct = async (id) => {
+    try {
+        const res = await mainInstance.delete(`sellers/products/${id}/`)
+        return res
+    } catch (error) {
+        throw error
+    }
+}
+
+export const getSellerProductById = async (id) => {
+    try {
+        const res = await mainInstance.get(`sellers/products/${id}/`)
+        return res
+    } catch (error) {
+        throw error
+    }
+}
+
+
+
+

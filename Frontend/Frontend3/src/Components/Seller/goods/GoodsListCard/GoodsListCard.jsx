@@ -6,11 +6,17 @@ import testImg from "../../../../assets/Product/ProductTestImage.svg";
 import GoodsDeleteModal from "../../../../ui/Seller/Goods/GoodsDeleteModal/GoodsDeleteModal";
 
 import styles from "./GoodsListCard.module.scss";
+import { deleteSellerProduct } from "../../../../api/seller/sellerProduct";
 
 const GoodsListCard = ({ item, isLoading }) => {
   const navigate = useNavigate()
 
   const [open, setOpen] = useState(false);
+
+
+  console.log(item);
+  
+
 
 
 
@@ -40,7 +46,7 @@ const GoodsListCard = ({ item, isLoading }) => {
           <img src={item?.image} alt="" />
         </div>
         <div className={styles.priceDiv}>
-          {item ? <p>{`${item?.price}€`}</p> : <></>}
+          {/* {item ? <p>{`${item?.price}€`}</p> : <></>} */}
           {/* <span>120€</span> */}
         </div>
         <p className={styles.name}>{item?.name}</p>
@@ -54,7 +60,7 @@ const GoodsListCard = ({ item, isLoading }) => {
           <button onClick={() => setOpen(!open)}>Del</button>
         </div>
       </div>
-      <GoodsDeleteModal open={open} handleClose={() => setOpen(!open)} />
+      <GoodsDeleteModal item={item} open={open} handleClose={() => setOpen(!open)} />
     </>
   );
 };

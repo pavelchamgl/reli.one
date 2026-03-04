@@ -63,8 +63,8 @@ export const fetchSellerProducts = createAsyncThunk(
             const state = getState().products
             const res = await mainInstance.get(`https://reli.one/api/sellers/${id}/products/`, {
                 params: {
-                    max_price: state.max,
-                    min_price: state.min,
+                    // max_price: state.max,
+                    // min_price: state.min,
                     ordering: state.ordering,
                     page: state.searchPage,
                     page_size: 35

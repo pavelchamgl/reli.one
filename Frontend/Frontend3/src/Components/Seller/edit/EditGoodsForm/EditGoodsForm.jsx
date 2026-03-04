@@ -165,19 +165,37 @@ const EditGoodsForm = () => {
             <CreateFormInp name={"length"} value={formik.values.length} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "length", value: e.target.value })
-            }} text={"Package length, mm"} titleSize={"small"} error={formik.errors.length} />
+            }} text={"Package length, mm"}
+                titleSize={"small"}
+                error={formik.errors.length}
+                num={true}
+            />
+
             <CreateFormInp name={"width"} value={formik.values.width} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "width", value: e.target.value })
-            }} text={"Package width, mm"} titleSize={"small"} error={formik.errors.width} />
+            }} text={"Package width, mm"}
+                titleSize={"small"}
+                error={formik.errors.width}
+                num={true}
+            />
             <CreateFormInp name={"height"} value={formik.values.height} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "height", value: e.target.value })
-            }} text={"Package height, mm"} titleSize={"small"} error={formik.errors.height} />
+            }} text={"Package height, mm"}
+                titleSize={"small"}
+                error={formik.errors.height}
+                num={true}
+            />
+
             <CreateFormInp name={"weight"} value={formik.values.weight} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "weight", value: e.target.value })
-            }} text={"Weight with package, g"} titleSize={"small"} error={formik.errors.weight} />
+            }} text={"Weight with package, g"} 
+            titleSize={"small"} 
+            error={formik.errors.weight} 
+            num={true}
+            />
 
             <EditMainVariants type={type} setType={setType} err={varErr} setErr={setVarErr} errName={varNameErr} setErrName={setVarNameErr} />
 

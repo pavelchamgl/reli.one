@@ -12,6 +12,8 @@ import accountAccIcon from "../../../assets/Seller/mobNav/accountAcc.svg"
 
 import styles from "./SellereMobNav.module.scss";
 import { logout } from "../../../api/auth";
+import { getOnboardingStatus } from "../../../api/seller/onboarding";
+import { ErrToast } from "../../../ui/Toastify";
 
 const SellerMobNav = () => {
   const [showButton, setShowButton] = useState(false);
@@ -55,6 +57,20 @@ const SellerMobNav = () => {
 
   const token = JSON.parse(localStorage.getItem("token")) || {}
 
+  const handleClick = async (url) => {
+    try {
+      const res = await getOnboardingStatus()
+      if (res.status === 'approved' && Boolean(token)) {
+        navigate(url)
+      } else {
+        ErrToast('Access denied: onboarding not approved.')
+      }
+
+    } catch (error) {
+      console.log(error);
+
+    }
+  }
 
   const handleLogout = () => {
     logout({ refresh_token: token?.refresh }).then((res) => {
@@ -70,7 +86,7 @@ const SellerMobNav = () => {
         <button
           disabled={Object.keys(token).length === 0}
           onClick={() => {
-            navigate("/seller/seller-home");
+            handleClick("/seller/seller-home")
           }}
           className={styles.navItem}
         >
@@ -89,7 +105,10 @@ const SellerMobNav = () => {
         </button>
         <button
           disabled={Object.keys(token).length === 0}
-          onClick={() => navigate("/seller/goods-choice")} className={styles.navItem}>
+          onClick={() => {
+            handleClick("/seller/goods-choice")
+          }}
+          className={styles.navItem}>
           <img
             src={
               location.pathname === "/seller/goods-choice" ||
@@ -117,7 +136,9 @@ const SellerMobNav = () => {
         </button>
         <button
           disabled={Object.keys(token).length === 0}
-          onClick={() => navigate("/seller/seller-order")} className={styles.navItem}>
+          onClick={() => {
+            handleClick("/seller/seller-order")
+          }} className={styles.navItem}>
           <img
             src={
               location.pathname === "/seller/seller-order"
