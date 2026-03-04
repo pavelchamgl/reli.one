@@ -43,14 +43,14 @@ const SellerStatistics = ({ data, setTabMain, grapheData }) => {
         <div className={`${styles.statics} ${styles.orderStatic}`}>
           <div>
             <h4>Ordered:</h4>
-            <span>{`as of ${newTodayData}`}</span>
+            <p>as of <span>{newTodayData}</span></p>
           </div>
           <p>{data && data.ordered_period && tab === "curr" ? `€ ${ordered_period?.amount}` : `${ordered_period?.count} pcs.`}</p>
         </div>
         <div className={`${styles.statics} ${styles.deliveredStatic}`}>
           <div>
             <h4>Delivered:</h4>
-            <span>{`as of ${newTodayData}`}</span>
+            <p>as of <span>{newTodayData}</span></p>
           </div>
           <p>{data && data.ordered_period && tab === "curr" ? `€ ${delivered_period?.amount}` : `${delivered_period?.count} pcs.`}</p>
         </div>

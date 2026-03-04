@@ -14,7 +14,7 @@ import CompanyAddress from '../../Components/Seller/auth/sellerInfo/CompanyAddre
 import CompanyInfo from '../../Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo';
 import Representative from '../../Components/Seller/auth/sellerInfo/Representative/Representative';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
-import { putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from '../../api/seller/onboarding';
+import { getOnboardingStatus, putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from '../../api/seller/onboarding';
 import { companyValidationSchema } from '../../code/seller/validation';
 import { ErrToast } from '../../ui/Toastify';
 import { toISODate } from '../../code/seller';
@@ -179,11 +179,11 @@ const SellerCompanyInfo = () => {
     })
 
 
-    // useEffect(() => {
-    //     console.log(formik.errors);
-    //     console.log(formik.values);
-
-    // }, [formik.errors, formik.values])
+    useEffect(() => {
+       getOnboardingStatus().then((res)=>{
+        console.log(res);
+       })
+    }, [])
 
     return (
         <FormWrap style={{ height: "100%" }}>
@@ -212,7 +212,7 @@ const SellerCompanyInfo = () => {
                     text={"Continue to Review"}
                     style={{ borderRadius: "16px", width: "222px" }}
                     handleClick={formik.handleSubmit}
-                    // disabled={!formik.isValid}
+                    disabled={!formik.isValid}
                 />
 
             </div>

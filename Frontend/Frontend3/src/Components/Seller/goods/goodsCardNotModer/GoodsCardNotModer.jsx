@@ -28,7 +28,7 @@ const GoodsCardNotModer = ({ item, isLoading }) => {
                     <img src={item?.image} alt="" />
                 </div>
                 <div className={styles.priceDiv}>
-                    {item ? <p>{`${item?.price}€`}</p> : <></>}
+                    {/* {item ? <p>{`${item?.price}€`}</p> : <></>} */}
                 </div>
                 <p className={styles.name}>{item?.name}</p>
                 <p className={styles.moderDescText}>Cause: prohibited goods</p>

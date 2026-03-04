@@ -1,9 +1,14 @@
 
+import { useNavigate } from "react-router-dom";
 import testImg from "../../../../assets/Product/ProductTestImage.svg";
+import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
 
 import styles from "./GoodsCardModer.module.scss"
 
 const GoodsCardModer = ({ item, isLoading }) => {
+
+    const { setPreviewProduct } = useActionCreatePrev()
+    const navigate = useNavigate()
 
     if (isLoading) {
         return (
@@ -29,12 +34,19 @@ const GoodsCardModer = ({ item, isLoading }) => {
                     <img src={item?.image} alt="" />
                 </div>
                 <div className={styles.priceDiv}>
-                    {item ? <p>{`${item?.price}€`}</p> : <></>}
+                    {/* {item ? <p>{`${item?.price}€`}</p> : <></>} */}
                     {/* <span>120€</span> */}
                 </div>
                 <p className={styles.name}>{item?.name}</p>
                 <p className={styles.moderDescText}>Approximate moderation time: 24 hours</p>
-                <button className={styles.previewBtn}>Preview</button>
+                <button className={styles.previewBtn}
+                    onClick={() => {
+                        if (item && item?.id) {
+                            // setPreviewProduct(item)
+                            // navigate(`/seller/seller-preview/${item?.id}`)
+                        }
+                    }}
+                >Preview</button>
             </div>
         </>
     );

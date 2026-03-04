@@ -92,7 +92,8 @@ const createProdPrevSlice = createSlice({
         // filesMain: null,
         product_parameters: null,
         status: null,
-        err: null
+        err: null,
+        previewProduct: null
     },
     reducers: {
         setName: (state, action) => {
@@ -184,6 +185,9 @@ const createProdPrevSlice = createSlice({
                 ...state,
                 license_file: state.license_file.filter(item => item.id !== action.payload.id)
             }
+        },
+        setPreviewProduct: (state, action) => {
+            state.previewProduct = action.payload
         }
     },
     extraReducers: build => {
@@ -204,5 +208,5 @@ const createProdPrevSlice = createSlice({
     }
 })
 
-export const { addLicense, deleteLicense, setName, setDescription, setCategory, setParametersPrev, setImages, setVariantsPrev, setLength, setWidth, setHeigth, setWeight, setFilesMain, deleteImage, setVariantsName } = createProdPrevSlice.actions
+export const { addLicense, deleteLicense, setName, setDescription, setCategory, setParametersPrev, setImages, setVariantsPrev, setLength, setWidth, setHeigth, setWeight, setFilesMain, deleteImage, setVariantsName, setPreviewProduct } = createProdPrevSlice.actions
 export const { reducer } = createProdPrevSlice

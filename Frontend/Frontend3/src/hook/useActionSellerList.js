@@ -1,7 +1,7 @@
 import { bindActionCreators } from "@reduxjs/toolkit"
 import { useDispatch } from "react-redux"
 import { useMemo } from "react"
-import { setMax, setMin, setOrdering, setProdPage, setSearchQuery, setStatus, fetchGetGoodsList } from "../redux/sellerGoodsListSlice"
+import { setMax, setMin, setOrdering, setProdPage, setSearchQuery, setStatus, fetchGetGoodsList, filterProducts } from "../redux/sellerGoodsListSlice"
 
 
 const rootActions = {
@@ -12,6 +12,7 @@ const rootActions = {
     setSearchQuery,
     setStatus,
     fetchGetGoodsList,
+    filterProducts
 }
 
 

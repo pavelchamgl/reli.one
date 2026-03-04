@@ -13,6 +13,7 @@ import { login } from "../../../../api/auth";
 
 import styles from "./LoginForm.module.scss"
 import { syncBasket } from "../../../../redux/basketSlice";
+import { getOnboardingStatus } from "../../../../api/seller/onboarding";
 
 const LoginForm = () => {
 
@@ -61,10 +62,47 @@ const LoginForm = () => {
                 dispatch(syncBasket())
                 setIsLoading(false)
 
+                const res2 = await getOnboardingStatus()
+                console.log(res2);
+
+                if (res2 && res2?.requires_onboarding === false) {
+                    navigate("/seller/goods-choice"); // Обновление страницы
+                }
+
+                if (res2 && res2?.requires_onboarding === true && res2?.is_editable === false) {
+                    // navigate("/seller/application-sub");
+                    navigate("/seller/goods-choice"); // Обновление страницы
+
+                }
+
+                if (res2 && res2.requires_onboarding === true && res2?.is_editable === true) {
+                    const onboardRoutes = ['personal', 'tax', 'address', 'bank', 'warehouse', 'return', 'documents']
+                    const nextStep = res2?.next_step
+                    const sellerType = res2?.seller_type
+                    if (onboardRoutes.includes(nextStep)) {
+                        if (sellerType === 'company') {
+                            navigate("/seller/seller-company");
+                        } else {
+                            navigate("/seller/seller-info");
+                        }
+                    }
+                    if (nextStep === "seller_type") {
+                        navigate('/seller/seller-type')
+                    }
+                    if (nextStep === 'review') {
+                        if (sellerType === 'company') {
+                            navigate("/seller/seller-review");
+                        } else {
+                            navigate("/seller/seller-review-company");
+                        }
+                    }
+                }
+
+
+
                 // setRegErr("");
                 // handleClose();
                 // setIsBuy(false)
-                navigate("/seller/goods-choice"); // Обновление страницы
 
             } catch (err) {
                 if (err.response) {

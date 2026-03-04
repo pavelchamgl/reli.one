@@ -32,7 +32,7 @@ const CreateLisence = () => {
     const { license_file } = useSelector(state => state.create_prev)
 
 
-    const arr = 6
+    const arr = 1
 
     useEffect(() => {
         if (license_file?.length === 1) {
@@ -100,7 +100,7 @@ const CreateLisence = () => {
             <div className={styles.btnRatioWrap}>
                 <p>Formats: docx, pdf</p>
                 <label className={styles.addPhotos}>
-                    <span>+ Add files</span>
+                    <span>+ Add file</span>
                     <input
                         disabled={isDisabled}
                         onChange={handleChangeFile}

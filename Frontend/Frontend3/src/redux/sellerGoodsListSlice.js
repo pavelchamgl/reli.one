@@ -8,11 +8,13 @@ export const fetchGetGoodsList = createAsyncThunk(
         try {
             const state = getState().seller_goods;
             const res = await mainInstance.get(
-                `/sellers/my-products/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=${state.page_size}&search=${state.searchQuery}&status=${state.productStatus}`
+                `/sellers/my-products/?ordering=${state.ordering}&page=${state.page}&page_size=${state.page_size}&search=${state.searchQuery}&status=${state.productStatus}`
             );
 
+            //! max_price=${state.max}&min_price=${state.min}&
+
             return res.data; // Возвращаем данные при успешном запросе
-            
+
         } catch (error) {
             if (!error.response) {
                 // Ошибки сети или отсутствие ответа от сервера
@@ -87,6 +89,11 @@ const sellerGoodsListSlise = createSlice({
             return {
                 ...state, productStatus: action.payload
             }
+        },
+        filterProducts: (state, action) => {
+            console.log(action.payload);
+            
+            state.products = state.products.filter((item) => item?.id !== action.payload.id)
         }
     },
     extraReducers: build => {
@@ -111,5 +118,5 @@ const sellerGoodsListSlise = createSlice({
     }
 })
 
-export const { setMax, setMin, setOrdering, setProdPage, setSearchQuery, setStatus } = sellerGoodsListSlise.actions
+export const { setMax, setMin, setOrdering, setProdPage, setSearchQuery, setStatus, filterProducts } = sellerGoodsListSlise.actions
 export const { reducer } = sellerGoodsListSlise

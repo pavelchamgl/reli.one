@@ -76,6 +76,7 @@
   line-height: 70%;
   letter-spacing: -0.01em;
   color: #000;
+  margin-top: clamp(20px, 2.5vw, 40px);
 }
 
 .title:after {
@@ -134,7 +135,9 @@
   height: 100%;
   background-color: rgba(113, 113, 113, 0.522); /* Немного прозрачного фона */
   visibility: hidden; /* Элемент скрыт по умолчанию */
-  transition: visibility 0s, opacity 0.3s ease-in-out; /* Плавный переход */
+  transition:
+    visibility 0s,
+    opacity 0.3s ease-in-out; /* Плавный переход */
 }
 
 .imageWrapper:hover .deleteWrap {
@@ -189,6 +192,8 @@
     align-items: center;
 
     & img {
+      width: 140px;
+      height: 140px;
       object-fit: cover;
       border-radius: 2px;
 

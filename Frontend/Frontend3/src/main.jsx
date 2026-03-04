@@ -188,6 +188,10 @@ const router = createBrowserRouter([
         element: <SellerPreviewPage />,
       },
       {
+        path: "seller-preview/:id",
+        element: <SellerPreviewPage />,
+      },
+      {
         path: "seller-edit/:id",
         element: <EditGoodsPage />
       },

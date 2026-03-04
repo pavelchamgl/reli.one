@@ -45,24 +45,29 @@
   & div {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    // align-items: center;
     gap: 14px;
+    min-width: 142px;
 
     & h4 {
       font-weight: 400;
       font-size: clamp(24px, 2.5vw, 32px);
       line-height: 66%;
       letter-spacing: -0.01em;
-      text-align: center;
+      text-align: left;
       color: #000;
     }
-    & span {
+    & p {
       font-weight: 700;
       font-size: clamp(12px, 2.5vw, 14px);
       line-height: 150%;
       letter-spacing: -0.02em;
       text-align: center;
       color: #64748b;
+
+      & span{
+        font-family: var(--ft);
+      }
     }
   }
 

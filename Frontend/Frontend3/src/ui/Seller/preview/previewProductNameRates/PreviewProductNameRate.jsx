@@ -29,8 +29,8 @@ const PreviewProductNameRate = ({ product }) => {
   return (
     <div className={styles.main}>
       <div className={styles.ratingDiv}>
-        <Rating name="read-only" value={product.rating} readOnly />
-        <p>{product.total_reviews}</p>
+        <Rating name="read-only" value={product?.rating} readOnly />
+        <p>{product?.total_reviews}</p>
       </div>
       <div className={styles.nameCategoryDiv}>
         <p>{product?.name}</p>

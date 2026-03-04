@@ -42,7 +42,7 @@ const EditLicense = () => {
     }, [license_file])
 
 
-    const arr = 6
+    const arr = 1
 
 
     const handleChangeFile = (e) => {
@@ -103,7 +103,7 @@ const EditLicense = () => {
             <div className={styles.btnRatioWrap}>
                 <p>Formats: docx, pdf</p>
                 <label className={isDisabled ? styles.addPhotosDisabled : styles.addPhotos}>
-                    <span >+ Add files</span>
+                    <span >+ Add file</span>
                     <input
                         onChange={handleChangeFile}
                         type="file"
@@ -199,12 +199,12 @@ const EditLicense = () => {
                             ))
                         )}
                     </Swiper>
-                    <button className={styles.swiperLisencePrev}>
+                    {/* <button className={styles.swiperLisencePrev}>
                         <img src={arrLeft} alt="" />
                     </button>
                     <button className={styles.swiperLisenceNext}>
                         <img src={arrRight} alt="" />
-                    </button>
+                    </button> */}
                 </>
             </div>
             {/* {error ? <p className={styles.errText}>Image is required</p> : <></>} */}

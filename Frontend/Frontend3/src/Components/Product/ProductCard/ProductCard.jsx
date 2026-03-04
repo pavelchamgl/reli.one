@@ -37,6 +37,8 @@ const ProductCard = ({ data = null }) => {
   const isPlanshet = useMediaQuery({ maxWidth: 600 });
   const isMobile = useMediaQuery({ maxWidth: 426 });
 
+
+
   // сделай как в дизайне
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -193,7 +195,10 @@ const ProductCard = ({ data = null }) => {
       />
       <div className={styles.descWrap}>
         <div className={styles.priceDiv}>
-          <p className={styles.price}>{data.price}€</p>
+          {
+            data?.price &&
+            <p className={styles.price}>{data.price}€</p>
+          }
           <p className={styles.priceSale}>{data?.price_sale}</p>
         </div>
         <p
