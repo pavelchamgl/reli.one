@@ -176,11 +176,13 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                     onBlur={formik.handleBlur}
                     error={formik.errors.business_id}
                     touched={formik.touched.business_id}
+                    num={true}
 
                 />
 
                 {(country === "cz" || country === "sk") &&
-                    <InputSeller title={"IČO"} type={"text"} circle={true} required={true} num={true}
+                    <InputSeller title={"IČO"} type={"text"} 
+                    circle={true} required={true} num={true}
                         placeholder={"123456789"}
                         name="ico"
                         value={formik.values.ico}
@@ -188,6 +190,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         onBlur={formik.handleBlur}
                         error={formik.errors.ico}
                         touched={formik.touched.ico}
+                        
 
                     />
                 }
@@ -199,6 +202,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                     onBlur={formik.handleBlur}
                     error={formik.errors.tin}
                     touched={formik.touched.tin}
+                    num={true}
 
                 />
 

@@ -86,21 +86,21 @@ export const validationSchemaSelf = Yup.object({
     //     .required("Document issue date is required"),
 
     // ================= BANK =================
-    iban: Yup.string()
-        .matches(ibanRegex, "Invalid IBAN")
-        .required("IBAN is required"),
+    // iban: Yup.string()
+    //     .matches(ibanRegex, "Invalid IBAN")
+    //     .required("IBAN is required"),
 
-    swift_bic: Yup.string().min(8, "SWIFT / BIC must contain at least 8 characters").max(11, "SWIFT / BIC must contain a maximum of 11 characters")
-        .required("SWIFT/BIC is required"),
+    // swift_bic: Yup.string().min(8, "SWIFT / BIC must contain at least 8 characters").max(11, "SWIFT / BIC must contain a maximum of 11 characters")
+    //     .required("SWIFT/BIC is required"),
 
-    account_holder: Yup.string()
-        .required("Account holder is required"),
+    // account_holder: Yup.string()
+    //     .required("Account holder is required"),
 
-    bank_code: Yup.string().when("country", {
-        is: (val) => val === "cz" || val === "sk", // условие
-        then: (schema) => schema.required("Bank code is required"), // обязательно
-        otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    }),
+    // bank_code: Yup.string().when("country", {
+    //     is: (val) => val === "cz" || val === "sk", // условие
+    //     then: (schema) => schema.required("Bank code is required"), // обязательно
+    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
+    // }),
 
     // bank_code: Yup.string()
     //     .required("Bank code is required"),
@@ -292,22 +292,22 @@ export const companyValidationSchema = Yup.object({
     //     .required("Document issue date is required"),
 
     /* ========= BANK ========= */
-    iban: Yup.string()
-        .matches(ibanRegex, "Invalid IBAN format")
-        .required("IBAN is required"),
+    // iban: Yup.string()
+    //     .matches(ibanRegex, "Invalid IBAN format")
+    //     .required("IBAN is required"),
 
-    swift_bic: Yup.string()
-        .matches(swiftRegex, "Invalid SWIFT/BIC format")
-        .required("SWIFT/BIC is required"),
+    // swift_bic: Yup.string()
+    //     .matches(swiftRegex, "Invalid SWIFT/BIC format")
+    //     .required("SWIFT/BIC is required"),
 
-    account_holder: Yup.string()
-        .required("Account holder is required"),
+    // account_holder: Yup.string()
+    //     .required("Account holder is required"),
 
-    bank_code: Yup.string().when("country", {
-        is: (val) => val === "cz" || val === "sk", // условие
-        then: (schema) => schema.required("Bank code is required"), // обязательно
-        otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    }),
+    // bank_code: Yup.string().when("country", {
+    //     is: (val) => val === "cz" || val === "sk", // условие
+    //     then: (schema) => schema.required("Bank code is required"), // обязательно
+    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
+    // }),
 
     // bank_code: Yup.string()
     //     .required("Bank code is required"),

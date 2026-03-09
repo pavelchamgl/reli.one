@@ -20,7 +20,7 @@ import { reducer as sellerGoodsListSlice } from "./sellerGoodsListSlice"
 import { reducer as selfEmploedSlice } from "./selfEmployed"
 import { reducer as newOrderSlice } from "./newOrderSlice"
 import { PERSIST_VERSION } from "../configs/cookieConfig"
-import { createMigrate } from "redux-persist"
+import { createMigrate, createTransform } from "redux-persist"
 
 
 export const migrations = {
@@ -30,14 +30,16 @@ export const migrations = {
     })
 }
 
+
 // Импорт
 
 const persistConfig = {
     key: 'root',
     storage,
     version: PERSIST_VERSION,
-    whitelist: ['basket', 'payment', "selfEmploed", "edit_goods"], // только эти слайсы сохраняются
-    migrate: createMigrate(migrations, { debug: false })
+    whitelist: ['basket', 'payment', 'selfEmploed', "edit_goods"], // только эти слайсы сохраняются
+    migrate: createMigrate(migrations, { debug: false }),
+
 }
 
 const rootReducer = combineReducers({

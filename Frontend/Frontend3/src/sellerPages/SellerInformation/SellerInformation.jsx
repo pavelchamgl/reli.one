@@ -17,19 +17,21 @@ import { putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, p
 
 import styles from "./SellerInformation.module.scss"
 import { validationSchemaSelf } from "../../code/seller/validation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { ErrToast } from "../../ui/Toastify"
 import { toISODate } from "../../code/seller"
+import { getBankData } from "../../api/seller/getOnboardingData"
 
 const SellerInformation = () => {
 
-    const { safeData } = useActionSafeEmploed()
+    const { safeData, getAllDataFromBD } = useActionSafeEmploed()
 
     const navigate = useNavigate()
 
-    const { selfData, registerData } = useSelector(state => state.selfEmploed)
+    const { selfData, registerData, selfDataLoading } = useSelector(state => state.selfEmploed)
 
-
+    const [bankData, setBankData] = useState(null)
+    const [errors, setErrors] = useState({})
 
     const formik = useFormik({
         initialValues: {
@@ -57,11 +59,11 @@ const SellerInformation = () => {
             proof_document_issue_date: selfData.proof_document_issue_date ?? "",
 
             // bank
-            iban: selfData?.iban ?? "",
-            swift_bic: selfData?.swift_bic ?? "",
-            account_holder: selfData?.account_holder ?? "",
-            bank_code: selfData?.bank_code ?? "",
-            local_account_number: selfData?.local_account_number ?? "",
+            // iban: selfData?.iban ?? "",
+            // swift_bic: selfData?.swift_bic ?? "",
+            // account_holder: selfData?.account_holder ?? "",
+            // bank_code: selfData?.bank_code ?? "",
+            // local_account_number: selfData?.local_account_number ?? "",
 
             // warehouse
             wStreet: selfData?.wStreet ?? "",
@@ -123,11 +125,11 @@ const SellerInformation = () => {
                 {
                     name: "Bank Account",
                     promise: putOnboardingBank({
-                        iban: values.iban,
-                        swift_bic: values.swift_bic,
-                        account_holder: values.account_holder,
-                        bank_code: values.bank_code,
-                        local_account_number: values.local_account_number
+                        iban: bankData?.iban,
+                        swift_bic: bankData?.swift_bic,
+                        account_holder: bankData?.account_holder,
+                        bank_code: bankData?.bank_code,
+                        local_account_number: bankData?.local_account_number
                     })
                 },
                 {
@@ -187,47 +189,66 @@ const SellerInformation = () => {
                 ErrToast("Unexpected error: " + err.message || err);
             }
         }
-
-
-
     })
 
-    // useEffect(() => {
-    //     console.log(formik.errors);
-    // }, [formik.errors, selfData])
+    useEffect(() => {
+        getAllDataFromBD()
+        getBankData().then((res) => {
+            console.log(res);
 
-    return (
-        <FormWrap style={{ height: "100%" }}>
-            <div className={styles.main}>
-                <div className={styles.titleWrap}>
-                    <TitleAndDesc title={"Seller Information"}
-                        desc={"Please provide all required information for verification"} />
-                    <StepWrap step={4} />
+            setBankData(res)
+        })
+    }, [])
 
+    const isBankValid = (data) => {
+        if (!data) return false
+
+        return (
+            data.iban?.trim() &&
+            data.swift_bic?.trim() &&
+            data.account_holder?.trim()
+        )
+    }
+
+
+    if (!selfDataLoading) {
+        return (
+            <FormWrap style={{ height: "100%" }}>
+                <div className={styles.main}>
+                    <div className={styles.titleWrap}>
+                        <TitleAndDesc title={"Seller Information"}
+                            desc={"Please provide all required information for verification"} />
+                        <StepWrap step={4} />
+
+                    </div>
+
+                    <PersonalDetails formik={formik} />
+
+                    <TaxInfo formik={formik} />
+
+                    <AddressBlock formik={formik} />
+
+                    <BankAccount formik={formik}
+                        data={bankData} setData={setBankData}
+                        errors={errors} setErrors={setErrors}
+                    />
+
+                    <WhareHouseAddress formik={formik} />
+
+                    <ReturnAddress formik={formik} />
+
+                    <AuthBtnSeller
+                        disabled={!isBankValid(bankData)}
+                        text={"Continue to Review"}
+                        style={{ borderRadius: "16px", width: "222px" }}
+                        handleClick={formik.handleSubmit}
+                    />
                 </div>
 
-                <PersonalDetails formik={formik} />
+            </FormWrap>
+        )
+    }
 
-                <TaxInfo formik={formik} />
-
-                <AddressBlock formik={formik} />
-
-                <BankAccount formik={formik} />
-
-                <WhareHouseAddress formik={formik} />
-
-                <ReturnAddress formik={formik} />
-
-                <AuthBtnSeller
-                    // disabled={!formik.isValid}
-                    text={"Continue to Review"}
-                    style={{ borderRadius: "16px", width: "222px" }}
-                    handleClick={formik.handleSubmit}
-                />
-            </div>
-
-        </FormWrap>
-    )
 }
 
 export default SellerInformation

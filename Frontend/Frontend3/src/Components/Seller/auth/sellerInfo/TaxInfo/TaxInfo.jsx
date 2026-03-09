@@ -27,7 +27,7 @@ const TaxInfo = ({ formik, onClosePreview }) => {
     const isTaxDataFilled = (values) => {
         return Boolean(
             values.tax_country &&
-            values.tin 
+            values.tin
             // values.vat_id
         )
     }
@@ -57,7 +57,7 @@ const TaxInfo = ({ formik, onClosePreview }) => {
             await putTax({
                 tax_country: country,
                 tin: payload.tin,
-                ico: (country === "cz" || country === "sk") ? "" : payload.ico,
+                ico: (country === "cz" || country === "sk") ? payload.ico : "",
                 vat_id: payload.vat_id
             })
 

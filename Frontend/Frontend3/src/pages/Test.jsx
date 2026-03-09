@@ -1,5 +1,9 @@
 // import React from "react";
 
+import { useEffect } from "react";
+import { getAllDataFromBD } from "../redux/selfEmployed";
+import { useActionSafeEmploed } from "../hook/useActionSafeEmploed";
+
 // const URL_RE =
 //   /\bhttps?:\/\/[^\s<]+[^\s<\.)\],:;"']\b/gi; // более-менее аккуратно режет ссылку
 
@@ -90,6 +94,12 @@ export default function PolicyText() {
   // const { t } = useTranslation("policy");
 
   // const text = t("intro.part1"); // обычная строка из JSON
+
+  const { getAllDataFromBD } = useActionSafeEmploed()
+
+  useEffect(() => {
+    getAllDataFromBD()
+  }, [])
 
   return (
     <></>

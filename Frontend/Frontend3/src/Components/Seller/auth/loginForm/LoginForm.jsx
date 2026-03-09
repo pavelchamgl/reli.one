@@ -70,8 +70,8 @@ const LoginForm = () => {
                 }
 
                 if (res2 && res2?.requires_onboarding === true && res2?.is_editable === false) {
-                    // navigate("/seller/application-sub");
-                    navigate("/seller/goods-choice"); // Обновление страницы
+                    navigate("/seller/application-sub");
+                    // navigate("/seller/goods-choice"); // Обновление страницы
 
                 }
 

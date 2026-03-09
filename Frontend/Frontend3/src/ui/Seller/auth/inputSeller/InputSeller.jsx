@@ -16,12 +16,15 @@ const InputSeller = ({
     placeholder,
     num,
     error,
-    touched,          // ✅ добавили
+    touched,
+    bank,      // ✅ добавили
     ...props
 }) => {
     const [inpType, setInpType] = useState(type);
 
-    const showError = Boolean(touched && error); // ✅ ошибка только после touched
+    const showError = bank
+        ? Boolean(error)
+        : Boolean(error && (touched ?? true));
 
     if (type === "email") {
         return (

@@ -23,6 +23,10 @@ const greenTheme = createTheme({
 });
 
 const SellerDateInp = ({ formik }) => {
+
+  console.log(formik.values);
+  
+
   const masks = "99.99.9999";
 
   const [open, setOpen] = useState(false);

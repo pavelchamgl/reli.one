@@ -28,6 +28,7 @@ const ReturnAddress = ({ formik }) => {
     );
 
 
+
     const [country, setCountry] = useState(
         isCheked
             ? sourceData?.wCountry ?? null
@@ -41,25 +42,25 @@ const ReturnAddress = ({ formik }) => {
         setIsChecked(Boolean(sourceData?.same_as_warehouse));
     }, [sourceData?.same_as_warehouse, pathname]);
 
+    // useEffect(() => {
+    //     if (pathname === companyPathname) {
+    //         safeCompanyData({ rCountry: country })
+    //         formik.setFieldValue("rCountry", country)
+
+
+    //     } else {
+    //         safeData({ rCountry: country })
+    //         formik.setFieldValue("rCountry", country)
+
+    //     }
+    // }, [country])
+
     useEffect(() => {
-        if (pathname === companyPathname) {
-            safeCompanyData({ rCountry: country })
-            formik.setFieldValue("rCountry", country)
-
-
-        } else {
-            safeData({ rCountry: country })
-            formik.setFieldValue("rCountry", country)
-
-        }
-    }, [country])
-
-    useEffect(() => {
-        if (isCheked) {
-            setCountry(selfData.wCountry)
-        } else {
-            setCountry(selfData.rCountry)
-        }
+        // if (isCheked) {
+        //     setCountry(selfData.wCountry)
+        // } else {
+        //     setCountry(selfData.rCountry)
+        // }
 
         if (pathname === companyPathname) {
             safeCompanyData({ same_as_warehouse: isCheked })
@@ -94,33 +95,66 @@ const ReturnAddress = ({ formik }) => {
 
     // }
 
-    const handleSameAsWarehouse = async (checked) => {
+    useEffect(() => {
+        console.log(formik.values);
+
+    }, [formik.values])
+
+    const handleSameAsWarehouse = (checked) => {
         setIsChecked(checked)
 
         if (!checked) {
-            await formik.setValues({
-                ...formik.values,
-                rStreet: "",
-                rCity: "",
-                rZip_code: "",
-                rCountry: null,
-                rContact_phone: ""
-            })
-            setCountry("")
+
+            formik.setFieldValue("rStreet", "")
+            formik.setFieldValue("rCity", "")
+            formik.setFieldValue("rZip_code", "")
+            formik.setFieldValue("rCountry", null)
+            formik.setFieldValue("rContact_phone", "")
+
+
+            if (pathname === companyPathname) {
+                safeCompanyData({
+                    rStreet: '',
+                    rCity: '',
+                    rZip_code: '',
+                    rCountry: '',
+                    rContact_phone: ''
+                })
+            } else {
+                safeData({
+                    rStreet: '',
+                    rCity: '',
+                    rZip_code: '',
+                    rCountry: '',
+                    rContact_phone: ''
+                })
+            }
         } else {
-            await formik.setValues({
-                ...formik.values,
-                rStreet: sourceData?.wStreet ?? "",
-                rCity: sourceData?.wCity ?? "",
-                rZip_code: sourceData?.wZip_code ?? "",
-                rCountry: sourceData?.wCountry ?? null,
-                rContact_phone: sourceData?.contact_phone ?? ""
-            })
-            setCountry(sourceData?.wCountry ?? "")
+
+            formik.setFieldValue("rStreet", sourceData?.wStreet ?? "")
+            formik.setFieldValue("rCity", sourceData?.wCity ?? "")
+            formik.setFieldValue("rZip_code", sourceData?.wZip_code ?? "")
+            formik.setFieldValue("rCountry", sourceData?.wCountry ?? null)
+            formik.setFieldValue("rContact_phone", sourceData?.contact_phone ?? "")
+
+            if (pathname === companyPathname) {
+                safeCompanyData({
+                    rStreet: sourceData?.wStreet ?? '',
+                    rCity: sourceData?.wCity ?? '',
+                    rZip_code: sourceData?.wZip_code ?? '',
+                    rCountry: sourceData?.wCountry ?? '',
+                    rContact_phone: sourceData.contact_phone ?? ''
+                })
+            } else {
+                safeData({
+                    rStreet: sourceData?.wStreet ?? '',
+                    rCity: sourceData?.wCity ?? '',
+                    rZip_code: sourceData?.wZip_code ?? '',
+                    rCountry: sourceData?.wCountry ?? '',
+                    rContact_phone: sourceData.contact_phone ?? ''
+                })
+            }
         }
-
-
-        await formik.validateForm()
     }
 
     const isReturnFilled = (values) => {
@@ -128,9 +162,8 @@ const ReturnAddress = ({ formik }) => {
             values.rStreet &&
             values.rCity &&
             values.rZip_code &&
-            country &&
-            values.rContact_phone &&
-            values.wProof_document_issue_date
+            values.rCountry &&
+            values.rContact_phone
         )
     }
 
@@ -149,7 +182,7 @@ const ReturnAddress = ({ formik }) => {
             street: formik.values.rStreet,
             city: formik.values.rCity,
             zip_code: formik.values.rZip_code,
-            country: country,
+            country: formik.values.rCountry,
             contact_phone: formik.values.rContact_phone,
             proof_document_issue_date: toISODate(formik.values.wProof_document_issue_date)
         }
@@ -221,7 +254,9 @@ const ReturnAddress = ({ formik }) => {
                         touched={formik.touched.rZip_code}
 
                     />
-                    <SellerInfoSellect arr={countriesArr} value={country} setValue={setCountry}
+                    <SellerInfoSellect arr={countriesArr}
+                        value={formik.values?.rCountry}
+                        setValue={(t) => formik.setFieldValue("rCountry", t)}
                         title={"Country"} titleSellect={"Select"}
                         errText={"Country is required"}
                     />

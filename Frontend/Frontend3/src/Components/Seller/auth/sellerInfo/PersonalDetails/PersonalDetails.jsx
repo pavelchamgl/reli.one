@@ -27,9 +27,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
       values.first_name &&
       values.last_name &&
       values.date_of_birth &&
-      values.personal_phone &&
-      values.uploadFront &&
-      values.uploadBack
+      values.personal_phone 
     )
   }
 
@@ -37,6 +35,10 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
 
   const onLeavePersonalBlock = async () => {
     const filled = isPersonalDataFilled(formik.values);
+    
+
+    console.log(filled);
+    
     if (!filled) return;
 
     const payload = {
