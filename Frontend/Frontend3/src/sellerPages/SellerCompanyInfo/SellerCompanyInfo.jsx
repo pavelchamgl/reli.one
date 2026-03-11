@@ -1,6 +1,6 @@
 import { useFormik } from 'formik'
 import { useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import TitleAndDesc from '../../ui/Seller/auth/titleAndDesc/TitleAndDesc';
@@ -20,15 +20,18 @@ import { ErrToast } from '../../ui/Toastify';
 import { toISODate } from '../../code/seller';
 
 import styles from "./SellerCompanyInfo.module.scss"
+import { getBankData } from '../../api/seller/getOnboardingData';
 
 const SellerCompanyInfo = () => {
 
-    const { companyData, registerData } = useSelector(state => state.selfEmploed)
+    const { companyData, registerData, companyDataLoading } = useSelector(state => state.selfEmploed)
 
-    const { safeCompanyData } = useActionSafeEmploed()
+    const { safeCompanyData, getAllCompanyDataBD } = useActionSafeEmploed()
 
     const navigate = useNavigate()
 
+    const [bankData, setBankData] = useState(null)
+    const [errors, setErrors] = useState({})
 
 
     const formik = useFormik({
@@ -65,11 +68,11 @@ const SellerCompanyInfo = () => {
 
 
             // bank
-            iban: companyData?.iban ?? "",
-            swift_bic: companyData?.swift_bic ?? "",
-            account_holder: companyData?.account_holder ?? "",
-            bank_code: companyData?.bank_code ?? "",
-            local_account_number: companyData?.local_account_number ?? "",
+            // iban: companyData?.iban ?? "",
+            // swift_bic: companyData?.swift_bic ?? "",
+            // account_holder: companyData?.account_holder ?? "",
+            // bank_code: companyData?.bank_code ?? "",
+            // local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
             wStreet: companyData?.wStreet ?? "",
@@ -128,11 +131,11 @@ const SellerCompanyInfo = () => {
                         proof_document_issue_date: toISODate(values.proof_document_issue_date),
                     }),
                     putOnboardingBank({
-                        iban: values.iban,
-                        swift_bic: values.swift_bic,
-                        account_holder: values.account_holder,
-                        bank_code: values.bank_code,
-                        local_account_number: values.local_account_number,
+                        iban: bankData?.iban,
+                        swift_bic: bankData?.swift_bic,
+                        account_holder: bankData?.account_holder,
+                        bank_code: bankData?.bank_code,
+                        local_account_number: bankData?.local_account_number
                     }),
                     putWarehouse({
                         street: values.wStreet,
@@ -180,45 +183,71 @@ const SellerCompanyInfo = () => {
 
 
     useEffect(() => {
-       getOnboardingStatus().then((res)=>{
-        console.log(res);
-       })
+        getAllCompanyDataBD()
+        getBankData().then((res) => {
+            console.log(res);
+
+            setBankData(res)
+        })
     }, [])
 
-    return (
-        <FormWrap style={{ height: "100%" }}>
-            <div className={styles.main}>
-                <div className={styles.titleWrap}>
-                    <TitleAndDesc title={"Seller Information"}
-                        desc={"Please provide all required information for verification"} />
+    // useEffect(() => {
+    //     formik.setValues({
+    //         ...formik.values,
+    //         ...companyData
+    //     })
+    // }, [companyData])
 
-                    <StepWrap step={4} />
+    const isBankValid = (data) => {
+        if (!data) return false
+
+        return (
+            data.iban?.trim() &&
+            data.swift_bic?.trim() &&
+            data.account_holder?.trim()
+        )
+    }
+
+    if (!companyDataLoading) {
+        return (
+            <FormWrap style={{ height: "100%" }}>
+                <div className={styles.main}>
+                    <div className={styles.titleWrap}>
+                        <TitleAndDesc title={"Seller Information"}
+                            desc={"Please provide all required information for verification"} />
+
+                        <StepWrap step={4} />
+
+                    </div>
+
+                    <CompanyInfo formik={formik} />
+
+                    <Representative formik={formik} />
+
+                    <CompanyAddress formik={formik} />
+
+                    <BankAccount formik={formik}
+                        data={bankData} setData={setBankData}
+                        errors={errors} setErrors={setErrors}
+                    />
+
+                    <WhareHouseAddress formik={formik} />
+
+                    <ReturnAddress formik={formik} />
+
+                    <AuthBtnSeller
+                        disabled={!isBankValid(bankData)}
+                        text={"Continue to Review"}
+                        style={{ borderRadius: "16px", width: "222px" }}
+                        handleClick={formik.handleSubmit}
+                    />
 
                 </div>
 
-                <CompanyInfo formik={formik} />
+            </FormWrap>
+        )
+    }
 
-                <Representative formik={formik} />
-
-                <CompanyAddress formik={formik} />
-
-                <BankAccount formik={formik} />
-
-                <WhareHouseAddress formik={formik} />
-
-                <ReturnAddress formik={formik} />
-
-                <AuthBtnSeller
-                    text={"Continue to Review"}
-                    style={{ borderRadius: "16px", width: "222px" }}
-                    handleClick={formik.handleSubmit}
-                    disabled={!formik.isValid}
-                />
-
-            </div>
-
-        </FormWrap>
-    )
 }
 
 export default SellerCompanyInfo

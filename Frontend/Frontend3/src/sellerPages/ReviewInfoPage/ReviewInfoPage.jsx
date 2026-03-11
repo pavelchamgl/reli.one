@@ -26,6 +26,7 @@ import BankAccountEdit from "../../Components/Seller/auth/sellerInfo/BankAccount
 import WhareHouseAddress from "../../Components/Seller/auth/sellerInfo/WareHouseAddress/WhareHouseAddress"
 import ReturnAddress from "../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress"
 import { toISODate } from "../../code/seller"
+import { getBankData } from "../../api/seller/getOnboardingData"
 
 const ReviewInfoPage = () => {
 
@@ -58,11 +59,11 @@ const ReviewInfoPage = () => {
       proof_document_issue_date: selfData.proof_document_issue_date ?? "",
 
       // bank
-      iban: selfData?.iban ?? "",
-      swift_bic: selfData?.swift_bic ?? "",
-      account_holder: selfData?.account_holder ?? "",
-      bank_code: selfData?.bank_code ?? "",
-      local_account_number: selfData?.local_account_number ?? "",
+      // iban: selfData?.iban ?? "",
+      // swift_bic: selfData?.swift_bic ?? "",
+      // account_holder: selfData?.account_holder ?? "",
+      // bank_code: selfData?.bank_code ?? "",
+      // local_account_number: selfData?.local_account_number ?? "",
 
       // warehouse
       wStreet: selfData?.wStreet ?? "",
@@ -100,11 +101,17 @@ const ReviewInfoPage = () => {
   const [openBank, setOpenBank] = useState(false)
   const [openWarehouse, setOpenWarehouse] = useState(false)
 
+  const [bankData, setBankData] = useState(null)
+  const [errors, setErrors] = useState({})
 
   const navigate = useNavigate()
 
   useEffect(() => {
     getReviewOnboarding()
+    getBankData().then((res) => {
+      setBankData(res)
+    })
+
   }, [])
 
   const parseApiErrors = (data) => {
@@ -208,11 +215,11 @@ const ReviewInfoPage = () => {
         {
           name: "Bank Account",
           promise: putOnboardingBank({
-            iban: values.iban,
-            swift_bic: values.swift_bic,
-            account_holder: values.account_holder,
-            bank_code: values.bank_code,
-            local_account_number: values.local_account_number,
+            iban: bankData?.iban,
+            swift_bic: bankData?.swift_bic,
+            account_holder: bankData?.account_holder,
+            bank_code: bankData?.bank_code,
+            local_account_number: bankData?.local_account_number,
           }),
         },
         {
@@ -323,9 +330,14 @@ const ReviewInfoPage = () => {
 
         {
           openBank ?
-            <BankAccountEdit onClosePreview={() => setOpenBank(false)} formik={formik} />
+            <BankAccountEdit 
+            data={bankData}
+              setData={setBankData}
+              errors={errors} setErrors={setErrors}
+              onClosePreview={() => setOpenBank(false)} 
+              formik={formik} />
             :
-            <BankAccount setOpen={setOpenBank} data={selfData} />
+            <BankAccount setOpen={setOpenBank} data={bankData} />
         }
 
         {

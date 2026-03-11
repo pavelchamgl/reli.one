@@ -35,9 +35,13 @@ const WhareHouseAddress = ({ formik }) => {
     const companyPathname = '/seller/seller-company'
 
     const { selfData, companyData } = useSelector(state => state.selfEmploed)
+   
+    const resultData = companyPathname === pathname ? companyData : selfData
 
-    const [country, setCountry] = useState(selfData.wCountry || companyData.wCountry)
+    console.log(resultData);
+    
 
+    const [country, setCountry] = useState(resultData.wCountry)
 
 
     const { safeData, safeCompanyData } = useActionSafeEmploed()
@@ -75,16 +79,6 @@ const WhareHouseAddress = ({ formik }) => {
 
     }
 
-
-    useEffect(() => {
-        if (companyPathname === pathname) {
-            safeCompanyData({ wCountry: country })
-            formik.setFieldValue("wCountry", country)
-        } else {
-            safeData({ wCountry: country })
-            formik.setFieldValue("wCountry", country)
-        }
-    }, [country])
 
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
@@ -134,7 +128,6 @@ const WhareHouseAddress = ({ formik }) => {
                     onChange={
                         (e) => {
                             formik.handleChange(e)
-                            setWStreet(e.target.value)
                         }
                     }
                     onBlur={formik.handleBlur}
@@ -151,7 +144,6 @@ const WhareHouseAddress = ({ formik }) => {
                         onChange={
                             (e) => {
                                 formik.handleChange(e)
-                                setWCity(e.target.value)
                             }
                         }
                         onBlur={formik.handleBlur}
@@ -170,8 +162,10 @@ const WhareHouseAddress = ({ formik }) => {
 
                     />
 
-                    <SellerInfoSellect arr={countriesArr} value={country}
-                        setValue={setCountry} title={"Country"}
+                    <SellerInfoSellect arr={countriesArr} value={formik.values.wCountry}
+                        setValue={(t) => {
+                            formik.setFieldValue("wCountry", t)
+                        }} title={"Country"}
                         titleSellect={"Select"}
                         errText={"Country is required"}
                     />
@@ -197,7 +191,7 @@ const WhareHouseAddress = ({ formik }) => {
                         inpText={"Upload document"}
                         scope={"warehouse_address"}
                         onChange={handleSingleFrontUpload}
-                        stateName={selfData?.warehouse_name}
+                        stateName={resultData?.warehouse_name}
                         nameTitle={"warehouse_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
 

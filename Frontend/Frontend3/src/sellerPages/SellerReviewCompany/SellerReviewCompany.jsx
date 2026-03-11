@@ -25,6 +25,7 @@ import CompanyAddress from "../../Components/Seller/auth/sellerInfo/CompanyAddre
 import WhareHouseAddress from "../../Components/Seller/auth/sellerInfo/WareHouseAddress/WhareHouseAddress"
 import ReturnAddress from "../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress"
 import { toISODate } from "../../code/seller"
+import { getBankData } from "../../api/seller/getOnboardingData"
 
 const SellerReviewCompany = () => {
 
@@ -32,13 +33,7 @@ const SellerReviewCompany = () => {
 
     const { safeCompanyData } = useActionSafeEmploed()
 
-    console.log(companyData);
 
-
-
-    const complitnessArr = {
-        documents_complete: "Documents"
-    }
 
     const formik = useFormik({
         initialValues: {
@@ -74,11 +69,11 @@ const SellerReviewCompany = () => {
 
 
             // bank
-            iban: companyData?.iban ?? "",
-            swift_bic: companyData?.swift_bic ?? "",
-            account_holder: companyData?.account_holder ?? "",
-            bank_code: companyData?.bank_code ?? "",
-            local_account_number: companyData?.local_account_number ?? "",
+            // iban: companyData?.iban ?? "",
+            // swift_bic: companyData?.swift_bic ?? "",
+            // account_holder: companyData?.account_holder ?? "",
+            // bank_code: companyData?.bank_code ?? "",
+            // local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
             wStreet: companyData?.wStreet ?? "",
@@ -117,9 +112,15 @@ const SellerReviewCompany = () => {
     const [openBank, setOpenBank] = useState(false)
     const [openWarehouse, setOpenWarehouse] = useState(false)
 
+    const [bankData, setBankData] = useState(null)
+    const [errors, setErrors] = useState({})
+
 
     useEffect(() => {
         getReviewOnboarding()
+        getBankData().then((res) => {
+            setBankData(res)
+        })
     }, [])
 
     const navigate = useNavigate()
@@ -218,11 +219,11 @@ const SellerReviewCompany = () => {
                     proof_document_issue_date: toISODate(values.proof_document_issue_date),
                 }),
                 putOnboardingBank({
-                    iban: values.iban,
-                    swift_bic: values.swift_bic,
-                    account_holder: values.account_holder,
-                    bank_code: values.bank_code,
-                    local_account_number: values.local_account_number,
+                    iban: bankData?.iban,
+                    swift_bic: bankData?.swift_bic,
+                    account_holder: bankData?.account_holder,
+                    bank_code: bankData?.bank_code,
+                    local_account_number: bankData?.local_account_number,
                 }),
                 putWarehouse({
                     street: values.wStreet,
@@ -329,10 +330,15 @@ const SellerReviewCompany = () => {
 
                 {
                     openBank ?
-                        <BankAccountEdit onClosePreview={() => setOpenBank(false)} formik={formik} />
+                        <BankAccountEdit
+                            onClosePreview={() => setOpenBank(false)}
+                            formik={formik}
+                            data={bankData}
+                            setData={setBankData}
+                            errors={errors} setErrors={setErrors}
+                        />
                         :
-
-                        <BankAccount setOpen={setOpenBank} data={companyData} />
+                        <BankAccount setOpen={setOpenBank} data={bankData} />
                 }
 
                 {

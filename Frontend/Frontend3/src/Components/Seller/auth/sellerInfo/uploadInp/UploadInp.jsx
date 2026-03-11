@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 import uploadIc from "../../../../../assets/Seller/register/uploadIc.svg"
 
@@ -26,6 +26,13 @@ const UploadInp = ({
 
     const [name, setName] = useState(stateName ?? "")
 
+    useEffect(() => {
+        console.log(stateName);
+        
+    }, [stateName]);
+
+
+
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
 
@@ -33,7 +40,7 @@ const UploadInp = ({
 
         setName(file?.name)
 
-        if ( companyPathname.includes(pathname)) {
+        if (companyPathname.includes(pathname)) {
             safeCompanyData({ [`${nameTitle}`]: file?.name })
         } else {
             safeData({ [`${nameTitle}`]: file?.name })
