@@ -1,0 +1,33 @@
+{
+    "claim": {
+        "title": "Reklamace a práva z vadného plnění",
+        "text1": "Zákazník je oprávněn uplatnit práva z vadného plnění prostřednictvím platformy Reli.one v souladu s platnými právními předpisy.",
+        "text2": "Kupní smlouva je uzavírána přímo mezi zákazníkem a příslušným prodejcem.",
+        "text3": "Za odpovědnost za vady zboží a za řádné vyřízení reklamace odpovídá prodejce, se kterým byla kupní smlouva uzavřena.",
+        "text4": "Podrobné informace o rozsahu práv zákazníka, způsobu uplatnění reklamace a lhůtách pro její vyřízení jsou uvedeny v Reklamačním řádu.",
+        "moreInfo": "Podrobné informace",
+        "claimForm": "Reklamační formulář",
+        "afterDesc": "V případě dotazů nebo potřeby doplňujících informací nás prosím kontaktujte"
+    },
+    "withdawal": {
+        "title": "Odstoupení od smlouvy a vrácení zboží",
+        "text1": "Zákazník má právo odstoupit od kupní smlouvy uzavřené na dálku prostřednictvím platformy Reli.one ve lhůtě 14 dnů od převzetí zboží, a to bez udání důvodu.",
+        "text2": "Kupní smlouva je uzavírána přímo mezi zákazníkem a příslušným prodejcem.",
+        "text3": "Za přijetí vráceného zboží a vrácení peněžních prostředků odpovídá prodejce, se kterým byla kupní smlouva uzavřena.",
+        "text4": "Podrobné informace o podmínkách odstoupení od smlouvy, lhůtách a postupu vrácení zboží jsou uvedeny v obchodních podmínkách.",
+        "moreInfo": "Podrobné informace",
+        "withForm": "Formulář pro odstoupení od smlouvy",
+        "blockTitle": " denní lhůta pro vrácení zboží",
+        "blockDesc": "Máte ",
+        "afterDesc": " dní od převzetí objednávky na odstoupení od smlouvy bez udání důvodu."
+    },
+    "contact": {
+        "title": "Kontaktní informace pro reklamace a vrácení zboží",
+        "text1": "Pro uplatnění reklamace nebo odstoupení od kupní smlouvy je nutné vyplnit příslušný formulář dostupný na této stránce a zaslat jej na níže uvedenou e-mailovou adresu.",
+        "emailText": "E-mail pro zaslání formuláře:",
+        "phoneText": "Telefon:",
+        "afterDesc": "V případě dotazů nebo potřeby doplňujících informací nás můžete rovněž kontaktovat prostřednictvím e-mailu nebo telefonicky.",
+        "claimForm": "Reklamační formulář",
+        "withForm": "Formulář pro odstoupení od smlouvy"
+    }
+}
