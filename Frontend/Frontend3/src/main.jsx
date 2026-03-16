@@ -68,6 +68,9 @@ import ContactPage from "./pages/ContactPage.jsx";
 import SellerCompanyInfo from "./sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx";
 import SellerReviewCompany from "./sellerPages/SellerReviewCompany/SellerReviewCompany.jsx";
 import NewSellerPage from "./pages/NewSellerPage.jsx";
+import ClaimsAndRightsPage from "./pages/ClaimsAndRightsPage.jsx";
+import Withdrawal from "./pages/Withdrawal.jsx";
+import ContactReturnPage from "./pages/ContactReturnPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -131,6 +134,15 @@ const router = createBrowserRouter([
       },
       {
         path: "/cookie-policy", element: <CookiePolicy />
+      },
+      {
+        path: '/claim', element: <ClaimsAndRightsPage />
+      },
+      {
+        path: "/withdrawal", element: <Withdrawal />
+      },
+      {
+        path: "/contact-return", element: <ContactReturnPage />
       }
     ],
   },

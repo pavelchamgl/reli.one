@@ -11,6 +11,8 @@ import privacyPolicyEn from "../src/locales/en/privacyPolicyEn.json";
 import privacyPolicyCz from "../src/locales/cz/privacyPolicyCz.json";
 import generalTermsEn from "../src/locales/en/generalTermsEn.json";
 import generalTermsCz from "../src/locales/cz/generalTermsCz.json";
+import claimEn from "../src/locales/en/claimEn.json";
+import claimCz from "../src/locales/cz/claimCz.json";
 
 
 const resources = {
@@ -19,14 +21,16 @@ const resources = {
     contact: contactEn,
     newSeller: newSellerEn,
     policy: privacyPolicyEn,
-    terms:generalTermsEn
+    terms:generalTermsEn,
+    claim:claimEn
   },
   cz: {
     translation: translationCz,
     contact: contactCz,
     newSeller: newSellerCz,
     policy: privacyPolicyCz,
-    terms:generalTermsCz
+    terms:generalTermsCz,
+    claim:claimCz
   },
 };
 

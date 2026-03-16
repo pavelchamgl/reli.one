@@ -16,7 +16,8 @@ import googlePay from "../../assets/Footer/googlePay.svg"
 import visa from "../../assets/Footer/visa.svg"
 import mastercard from "../../assets/Footer/mastercard.svg"
 import maestro from "../../assets/Footer/maestro.svg"
-
+import formular from "../../../public/Formulář pro uplatnění reklamace Reli.one (1).pdf"
+import file from "../../../public/Odstoupení od smlouvy a vrácení zboží reli.one (1).pdf"
 
 import LoginModal from "../LoginModal/LoginModal";
 
@@ -141,27 +142,27 @@ const Footer = () => {
           <ul>
             <h3>{t("footer_additional.section_title")}</h3>
             <li>
-              <Link className={cls.LinkNavigate}>
+              <Link className={cls.LinkNavigate} to={'/claim'}>
                 {t("footer_additional.complaints_procedure")}
               </Link>
             </li>
             <li>
-              <Link className={cls.LinkNavigate}>
+              <Link className={cls.LinkNavigate} to={'/withdrawal'}>
                 {t("footer_additional.returns_procedure")}
               </Link>
             </li>
             <li>
-              <Link className={cls.LinkNavigate}>
+              <a href={formular} download className={cls.LinkNavigate}>
                 {t("footer_additional.complaint_form")}
-              </Link>
+              </a>
             </li>
             <li>
-              <Link className={cls.LinkNavigate}>
+              <a href={file} download className={cls.LinkNavigate}>
                 {t("footer_additional.return_form")}
-              </Link>
+              </a>
             </li>
             <li>
-              <Link className={cls.LinkNavigate}>
+              <Link className={cls.LinkNavigate} to={'/contact-return'}>
                 {t("footer_additional.contacts")}
               </Link>
             </li>
@@ -271,37 +272,37 @@ const Footer = () => {
               </li>
 
               <li>
-              <Link to={"/privacy-policy"} className={cls.LinkNavigate} href="#">
-                {/* {t("for_buyers")} */}
-                Privacy policy
-              </Link>
-            </li>
+                <Link to={"/privacy-policy"} className={cls.LinkNavigate} href="#">
+                  {/* {t("for_buyers")} */}
+                  Privacy policy
+                </Link>
+              </li>
             </ul>
 
             <ul>
               <h3>{t("footer_additional.section_title")}</h3>
               <li>
-                <Link className={cls.LinkNavigate}>
+                <Link className={cls.LinkNavigate} to={'/claim'}>
                   {t("footer_additional.complaints_procedure")}
                 </Link>
               </li>
               <li>
-                <Link className={cls.LinkNavigate}>
+                <Link className={cls.LinkNavigate} to={'/withdrawal'}>
                   {t("footer_additional.returns_procedure")}
                 </Link>
               </li>
               <li>
-                <Link className={cls.LinkNavigate}>
+                <a href={formular} download className={cls.LinkNavigate}>
                   {t("footer_additional.complaint_form")}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link className={cls.LinkNavigate}>
+                <a href={file} download className={cls.LinkNavigate}>
                   {t("footer_additional.return_form")}
-                </Link>
+                </a>
               </li>
               <li>
-                <Link className={cls.LinkNavigate}>
+                <Link className={cls.LinkNavigate} to={'/contact-return'}>
                   {t("footer_additional.contacts")}
                 </Link>
               </li>

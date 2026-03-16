@@ -1,0 +1,33 @@
+{
+    "claim": {
+        "title": "Claims and Rights Arising from Defective Performance",
+        "text1": "Customers are entitled to exercise their rights arising from defective performance through the Reli.one platform in accordance with applicable legal regulations.",
+        "text2": "The purchase contract is concluded directly between the customer and the respective seller.",
+        "text3": "The seller with whom the purchase contract has been concluded is responsible for product defects and for the proper handling of claims.",
+        "text4": "Detailed information regarding the scope of customer rights, the procedure for submitting a claim and the applicable time limits is provided in the Claims Policy.",
+        "moreInfo": "More information",
+        "claimForm": "Claim form",
+        "afterDesc": "For questions or additional information, please contact our support team"
+    },
+    "withdawal": {
+        "title": "Withdrawal from the Contract and Return of Goods",
+        "text1": "Customers have the right to withdraw from a purchase contract concluded remotely through the Reli.one platform within 14 days from receiving the goods, without giving any reason.",
+        "text2": "The purchase contract is concluded directly between the customer and the respective seller.",
+        "text3": "The seller with whom the purchase contract has been concluded is responsible for receiving the returned goods and processing the refund.",
+        "text4": "Detailed information regarding withdrawal conditions, applicable time limits and the return procedure can be found in the terms and conditions.",
+        "moreInfo": "More information",
+        "withForm": "Withdrawal form",
+        "blockTitle": " - Day Return Right",
+        "blockDesc": "You have ",
+        "afterDesc": " days from receiving your order to withdraw from the contract without giving any reason."
+    },
+    "contact": {
+        "title": "Contact Information for Complaints and Returns",
+        "text1": "To submit a complaint or exercise the right to withdraw from a purchase contract, please complete the relevant form available on this page and send the completed form to the e-mail address below.",
+        "emailText": "E-mail for submitting the form:",
+        "phoneText": "Phone:",
+        "afterDesc": "If you have any questions or require additional information, you may also contact us by e-mail or by phone.",
+        "claimForm": "Claim form",
+        "withForm": "Withdrawal form"
+    }
+}
