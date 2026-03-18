@@ -1,0 +1,138 @@
+{
+    "title": "Všeobecné obchodní podmínky společnosti Reli Group s.r.o. pro koncové zákazníky pro nákup zboží",
+    "intro": {
+        "title": "1. Úvodní ustanovení a definice",
+        "part1": "1.1. Tyto všeobecné obchodní podmínky (dále jen „Podmínky“) upravují práva a povinnosti koncových zákazníku využívajících služby společnosti Reli Group s.r.o., IČO: 28003896, se sídlem Na lysinách 551/34, Hodkovičky, 147 00 Praha 4 (dále jen „Společnost“).",
+        "part2": "1.2. Tyto podmínky jsou určeny výhradně Koncovým zákazníkům a nejsou určeny pro Partnery.",
+        "part3": "1.3. Pro účely těchto Podmínek mají následující pojmy tam, kde jsou psány s velkými počátečními písmeny tento význam:",
+        "list1": {
+            "title": "Aplikace",
+            "desc": "znamená mobilní aplikaci, prostřednictvím které Koncoví zákazníci objednávají Zboží."
+        },
+        "list2": {
+            "title": "Koncová cena",
+            "desc": "znamená cenu za Zboží, kterou Partner nabízí Koncovému zákazníkovi prostřednictvím Služby Reli, včetně případné DPH."
+        },
+        "list3": {
+            "title": "Koncový zákazník",
+            "desc": "znamená osobu objednávající nebo Zboží prostřednictvím Služby Reli. Vzhledem k platné právní úpravě se rozlišuje mezi Koncovým zákazníkem, který je spotřebitelem, tedy tím, který při uzavírání a plnění smlouvy nejedná v rámci své obchodní nebo jiné podnikatelské činnosti, a Koncovým zákazníkem, který si objednává Zboží za účelem svého podnikání."
+        },
+        "list4": {
+            "title": "Portál",
+            "desc": "znamená webový portál dostupný na webové stránce https://reli.one, prostřednictvím kterého Koncoví zákazníci objednávají Zboží."
+        },
+        "list5": {
+            "title": "Služba Reli",
+            "desc": "znamená službu dostupnou v Aplikaci a na Portálu, kterou poskytuje Společnost, prostřednictvím které dochází k objednání Zboží nebo."
+        },
+        "list6": {
+            "title": "Zboží",
+            "desc": "znamená zboží které Společnost nabízí Koncovým zákazníkům prostřednictvím Aplikace a Portálu."
+        },
+        "list7": {
+            "title": "Smlouva o koupi Zboží",
+            "desc": "znamená smlouvu uzavřenou mezi Koncovým zákazníkem a Společností, jejímž předmětem je závazek Společnosti dodat Koncovému zákazníku zboží a závazek Koncového zákazníka zaplatit za Zboží Koncovou cenu."
+        },
+        "list8": {
+            "title": "Partner",
+            "desc": "znamená fyzickou podnikající osobu nebo právnickou osobu, která dodává Společnosti Zboží, které Společnost následně prodává Koncovým zákazníkům."
+        },
+        "list9": {
+            "title": "Zákaznický účet",
+            "desc": "znamená účet, který bude Koncovému zákazníkovi vytvořen na základě registrace popsané v čl. 3 těchto Podmínek."
+        },
+        "list10": {
+            "title": "Občanský zákoník",
+            "desc": "znamená zákon č. 89/2012 Sb. Občanský zákoník v platném znění."
+        }
+    },
+    "service": {
+        "title": "2. Služba Reli",
+        "part1": "2.1. Poskytnutí Služby Reli je pro Koncového zákazníka bezplatné.",
+        "part2": "2.2. Poskytnutí Služby Reli pro Koncového zákazníka probíhá následujícím způsobem:",
+        "part3": "Koncový zákazník si v nabídce na Portálu nebo v Aplikaci vybere Zboží, které má v úmyslu koupit;",
+        "part4": "po výběru konkrétního Zboží Zákazník klikne na políčko „Objednat“ v případě Zboží, čímž provede objednávku zavazující k platbě;",
+        "part5": "Společnost zašle Koncovému zákazníkovi potvrzení o přijetí objednávky, tímto okamžikem dojde k uzavření Smlouvy o koupi Zboží mezi Koncovým zákazníkem a Společností;",
+        "part6": "V případě, že v daném případě proběhne platba předem (Tj. před dodáním Zboží), bezhotovostní platbu od Koncového zákazníka inkasuje Společnost prostřednictvím platební brány v Aplikaci nebo na Portálu. V případě platby na dobírku, platbu od Koncového zákazníka v hotovosti nebo bezhotovostní platbu od Koncového zákazníka inkasuje Partner, případně smluvní dopravce, který doručí Zboží;"
+    },
+    "registration": {
+        "title": "3. Registrace koncového zákazníka, použití portálu a aplikace",
+        "part1": "3.1. Objednávat Zboží prostřednictvím Aplikace nebo Portálu mohou pouze registrovaní Koncoví zákazníci. Koncový zákazník má možnost se registrovat prostřednictvím registračního formuláře dostupného v Aplikaci a na Portále.",
+        "part2": "3.2. Koncový zákazník je povinen poskytovat Společnosti pravdivé a úplné údaje o své osobě. Při uvedení nepravdivých a/nebo neúplných údajů nese Koncový zákazník veškerou odpovědnost za škodu tímto způsobenou.",
+        "part3": "3.3. Pokud bude chtít Koncový zákazník svoji registraci zrušit, může tak učinit kdykoliv kontaktováním zákaznické podpory na e-mailovou adresu office@reli.one, nebo může registraci zrušit v nastavení účtu prostřednictvím nastavení účtu v Aplikaci nebo Portálu.",
+        "part4": "3.4. Společnost si vyhrazuje právo kdykoliv omezit či ukončit přístup Koncového zákazníka do Zákaznického účtu.",
+        "part5": "3.5. Koncoví zákazníci jsou povinni chránit si své přístupové údaje. V případě ztráty či jeho zneužití jsou povinni ihned informovat Společnost tak, aby mohl přijmout přiměřená opatření. Společnost však nenese odpovědnost za škody vzniklé v důsledku ztráty nebo zneužití přístupových údajů Koncového zákazníka.",
+        "part6": "3.6. Koncový zákazník je povinen informovat Společnost o změně jakýchkoliv údajů o své osobě. Společnost je oprávněna obrátit se na Koncového zákazníka za účelem ověření aktuálnosti, resp. správnosti poskytnutých údajů a žádat o poskytnutí dodatečných informací. V případě, že bude mít Společnost podezření na zneužití údajů Koncového zákazníka, má právo dle svého uvážení odmítnout žádost o provedení změny.",
+        "part7": "3.7. Koncový zákazník bere na vědomí, že dodání Zboží zajišťuje Partner, od kterého Společnost dané zboží odebírá. Koncový zákazník souhlasí s tím, že pro účely doručení, resp. dodání Zboží Společnost Partnerovi, který je dodavatelem Zboží sdělí k tomu potřebné osobní údaje Koncového zákazníka.",
+        "part8": "3.8. Společnost umožňuje Partnerovi uložení Obsahu Partnera na Portál a do Aplikace. Společnost není odpovědná za činnost Partnera a ani nenese odpovědnost za případnou závadnost obsahu či vzhledu materiálů zveřejňovaných Partnery v Aplikaci a na Portále.",
+        "part9": "3.9. Společnost neodpovídá za úplnost, přesnost, pravdivost materiálů zveřejňovaných na Portále a v Aplikaci ani za případné nekalé soutěžní jednání Partnera prostřednictvím Služby Reli nebo porušení osobnostních nebo autorských práv.",
+        "part10": "3.10. Společnost neodpovídá za škody vzniklé v souvislosti s užitím informací zveřejněných na Portále a v Aplikaci.",
+        "part11": "3.11. Společnost si vyhrazuje právo kdykoliv bez předchozího upozornění změnit nebo odstranit jakoukoliv část obsahu Aplikace a Portálu, případně přerušit provoz Aplikace a Portálu na neomezeně dlouho dobu, zejména pak z důvodu plánované údržby nebo neplánované pohotovostní údržby, kterou provádí Společnost nebo třetí strana.",
+        "part12": "3.12. Služba Reli se poskytuje „tak, jak je“ a na základě „dostupnosti“. Společnost neručí za to, že Služba Reli bude probíhat bez přerušení, včas, bezpečně, bezchybně a bez virů, ani neručí za výsledky, které bude možné dosáhnout na základě využívání Služby Reli.",
+        "part13": "3.13. Kliknutím na některé odkazy v Aplikaci a na Portále může dojít k opuštění Aplikace a Portálu a k přesměrování na webové stránky třetích subjektů. Společnost nenese odpovědnost za obsah stránek třetích osob, na které je odkazováno z Aplikace nebo Portálu ani za případné porušení právních předpisů třetími osobami provozujícími tyto stránky a případnou škodu či jinou újmu tím způsobenou. Zařazení jakéhokoliv odkazu na Portál nebo do Aplikace neznamená souhlas Společnosti s takovou stránkou či její podporu, propagaci apod., pokud tak není výslovně uvedeno."
+    },
+    "ordering": {
+        "title": "4. Objednávka a uzavření Smlouvy o koupi Zboží",
+        "part1": "4.1. Koncový zákazník si může objednat Zboží prostřednictvím Aplikace nebo Portálu. Součástí Objednávky je i výběr způsobu dopravy. Objednávku Koncový zákazník odešle prostřednictvím tlačítka „Objednat“.",
+        "part2": "4.2. Ceny jsou uvedeny v českých korunách nebo eurech. Ceny jsou konečné včetně všech případných daní a poplatků, s výjimkou případných nákladů na dopravu a dodání. V případě že s dodáním Zboží jsou spojeny náklady na dopravu nebo dodání, musí být koncový zákazník seznámen s výší těchto nákladů a zpravidla Koncovému zákazníku umožněn výběr způsobu dodání nebo dopravy. Koncový zákazník uhradí cenu způsobem podle odst. 2.2. písm. d).",
+        "part3": "4.3. Po provedení objednávky Koncovým zákazníkem zašle Společnost Koncovému zákazníkovi potvrzení o přijetí objednávky, čímž dojde o uzavření Smlouvy o koupi Zboží mezi Koncovým zákazníkem a Společností.",
+        "part4": "4.4. Koncový zákazník je oprávněn bez udání důvodu zrušit objednávku až do okamžiku potvrzení o přijetí objednávky. Zrušení objednávky může Koncový Zákazník provést oznámení na e-mailovou adresu",
+        "email": "office@reli.one",
+        "part4Other": " nebo v Aplikaci. Zrušení Objednávky po uzavření Smlouvy o koupi Zboží již není možné, tím však není dotčeno případné právo Koncového zákazníka odstoupit od smlouvy dle oddílu 6 těchto VOP.",
+        "part5": "4.5. Koncový zákazník bere na vědomí, že obrazové informace k nabízenému Zboží mohou být pouze ilustrativního charakteru."
+    },
+    "delivery": {
+        "title": "5. Dodání Zboží",
+        "part1": "5.1. Zboží bude Koncovému zákazníkovi dodáno ve lhůtě uvedené u objednávky způsobem, který bude u daného Zboží uveden, zpravidla způsobem, který Koncový zákazník zvolí. Dodání zboží může zajistit nebo provést přímo Partner."
+    },
+    "withdrawal": {
+        "title": "6. Odstoupení od smlouvy Koncovým zákazníkem",
+        "part1": "6.1. Koncový zákazník má právo od uzavřené Smlouvy o koupi Zboží do 14 dnů ode dne dodání Zboží odstoupit bez udání důvodu.",
+        "part2": "6.2. Koncový zákazník, může od Smlouvy o koupi Zboží odstoupit tak, že tuto skutečnost oznámí Společnosti za využití formuláře pro odstoupení od smlouvy, který je dostupný v Aplikaci a na Portálu, kontaktováním zákaznické podpory na e-mailovou adresu",
+        "email":"office@reli.one",
+        "part2Other": " nebo v Aplikaci. Při odstoupení je Koncový zákazník povinen uvést číslo a datum objednávky.",
+        "part3": "6.3. Koncová cena bude v případě odstoupení od Smlouvy o koupi Zboží Koncovému zákazníkovi vrácena stejným způsobem, kterým Koncovou cenu zaplatil s tím, že v případě platby za Zboží na dobírku může být cena vrácena i na bankovní účet který Koncový zákazník Společnosti sdělí.",
+        "part4": "6.4. V případě Koncového zákazníka, který není spotřebitelem, se řídí odstoupení od smlouvy ustanovením § 2001 a násl. Občanského zákoníku."
+    },
+    "complaints": {
+        "title": "7. Reklamační řád",
+        "part1": "7.1. Koncový zákazník může právo z vadného plnění (reklamaci) v souvislosti se Zbožím uplatnit prostřednictvím Aplikace nebo Portálu podle tohoto reklamačního řádu.",
+        "part2": "7.2. Tento reklamační řád upravuje uplatnění práv z odpovědnosti z vadného plnění ze Smluv o koupi Zboží uzavřených mezi Společností a Koncovým zákazníkem prostřednictvím Služby Reli.",
+        "part3": "7.3. Rozsah odpovědnosti z vadného plnění se řídí v rozsahu neupraveném těmito VOP příslušnými ustanoveními Občanského zákoníku a v případě, že Koncový zákazník je spotřebitelem případně také zákonem č. 634/1992 Sb., o ochraně spotřebitele.",
+        "part4": "7.4. Společnost vyřizuje reklamace do 30 dnů od jejich doručení.",
+        "part5": "7.5. V případě uplatnění reklamace musí Koncový zákazník uvést číslo objednávky, popis vady a požadovaný způsob vyřízení reklamace.",
+        "part6": "7.6. Koncový zákazník může jako právo z vadného plnění požadovat v rámci vyřízení reklamace.",
+        "part7": "Opravu Zboží;",
+        "part8": "Výměnu Zboží;",
+        "part9": "Přiměřenou slevu z ceny Zboží;",
+        "part10": "Odstoupení od smlouvy a vrácení ceny Zboží.",
+        "part11": "7.7. V případě, že Koncový zákazník požaduje vyřízení reklamace podle písm. a), b), nebo d) předchozího článku zašle Zboží na adresu Partnera, kterou mu Společnost sdělí prostřednictvím Aplikace nebo Portálu.",
+        "part12": "7.8. V případě oprávněné reklamace Společnost vyhoví požadovanému způsobu vyřízení reklamace Koncovým zákazníkem. V případě že Koncový zákazník požaduje Opravu Zboží je Společnost oprávněna reklamaci vyřídit i výměnou Zboží (Dodáním nového kusu).",
+        "part13": "7.9. V případě neoprávněné reklamace Společnost Koncovému zákazníku sdělí, že reklamaci nevyhovuje a v případě že Koncový zákazník zaslal Partnerovi Zboží zpět zašle Partner Zboží opět Koncovému zákazníkovi.",
+        "part14": "7.10. V případě oprávněné reklamace zákazník nenese náklady spojené s jejím uplatněním, to platí i o nákladech na zpětné zaslání Zboží Partnerovi.",
+        "part15": "7.11. V případě neoprávněné reklamace může Společnost po Koncovém zákazníku požadovat úhradu nákladů na dopravu Zboží od Koncového zákazníka k Partnerovi a zpět pokud v souvislosti s reklamací došlo k přepravě Zboží.",
+        "part16": "7.12. Tento reklamační řád je nedílnou součástí každé Smlouvy o koupi Zboží."
+    },
+    "copyright": {
+        "title": "8. Autorskoprávní ujednání",
+        "part1": "8.1. Společnost zůstává jediným a výlučným vlastníkem veškerých práv ke Službě Reli a jejím složkám. Koncový zákazník není oprávněn kopírovat, měnit, vytvářet odvození díla, zpětně analyzovat ani sestavovat ani se pokoušet zjistit jakýkoli zdrojový kód jiným způsobem, prodat, postoupit, poskytnout sublicenci ani jiným způsobem převést jakákoli práva k jakémukoli softwaru. Společnost neuděluje žádné licence a neposkytuje žádná práva k užívání ochranných známek Společnosti.",
+        "part2": "8.2. Pro ochranu zájmů Partnerů a Společnosti je zakázán jakýkoli automatizovaný sběr dat a informací z Aplikace a Portálu; kopírování a ukládání informací, dat a obrázků pro jiné účely, než je využívání služby Reli."
+    },
+    "personalData": {
+        "title": "9. Osobní údaje",
+        "part1": "9.1. Při zpracování osobních údajů Společnost postupuje v souladu s Nařízením Evropského parlamentu a Rady (EU) 2016/679 ze dne 27. 4. 2016, o ochraně fyzických osob v souvislosti se zpracováním osobních údajů a o volném pohybu těchto údajů a o zrušení směrnice 95/46/ES (dále jen „GDPR“) a národními právními předpisy upravujícími zpracovávání osobních údajů, zejména pak zákonem č. 110/2009 Sb., o zpracování osobních údajů.",
+        "part2": "9.2. Veškeré informace o zásadách a postupech při zpracování osobních údajů jsou uvedeny v Zásadách ochrany osobních údajů Společnosti, které jsou zveřejněny na stránce https://reli.one."
+    },
+    "finalProvisions": {
+        "title": "10. Závěrečná ustanovení",
+        "part1": "10.1. Službu Reli smí využívat pouze osoby starší 16 let.",
+        "part2": "10.2. Uzavřenou Smlouvu o koupi Zboží, může Společnost archivovat.",
+        "part3": "10.3. V případě, že jakékoliv ustanovení těchto Podmínek je neplatné nebo nevykonatelné, neovlivní to platnost ostatních ustanovení. Ta zůstanou platná a vykonatelná podle podmínek v nich stanovených.",
+        "part4": "10.4. Společnost si vyhrazuje právo kdykoli revidovat nebo upravit tyto Podmínky podle svého uvážení.",
+        "part5": "10.5. Společnost a Koncoví zákazníci výslovně sjednávají, že pro řešení vzájemných sporů věcnou a místní příslušnost obecného soudu v České republice. Právní vztahy výslovně neupravené těmito Podmínkami se řídí právními předpisy platnými na území České republiky. Odchylná písemná ujednání mezi Koncovým zákazníkem a Společností mají přednost před ustanoveními těchto Podmínek.",
+        "part6": "10.6. Vyřizování stížností Koncových zákazníků zajišťuje Společnost prostřednictvím emailové adresy",
+        "part7": "10.7. Živnostenskou kontrolu provádí v rámci své působnosti příslušný živnostenský úřad. Dozor nad oblastí ochrany osobních údajů vykonává Úřad pro ochranu osobních údajů. Česká obchodní inspekce vykonává ve vymezeném rozsahu mimo jiné dozor nad dodržováním zákona č. 634/1992 Sb., o ochraně spotřebitele, v platném a účinném znění.",
+        "part8": "10.8. Společnost není ve vztahu ke Koncovému zákazníkovi vázána žádnými kodexy chování ve smyslu ustanovení § 1826 odst. 1 písm. e) Občanského zákoníku.",
+        "part9": "10.9. Koncový zákazník, který je spotřebitelem, má právo na mimosoudní řešení spotřebitelského sporu. Subjektem mimosoudního řešení spotřebitelských sporů je Česká obchodní inspekce se sídlem Štěpánská 567/15, 120 00 Praha 2."
+    }
+}

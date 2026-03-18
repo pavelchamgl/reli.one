@@ -1,10 +1,19 @@
 .listWrap {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 20px;
+  justify-content: center;
+  max-width: 100%;
   margin-top: clamp(18px, 2.5vw, 50px);
+
+  // @media (max-width: 769px) {
+  //   grid-template-columns: repeat(3, minmax(182px, 1fr));
+  // }
+
+  @media (max-width: 600px) {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 20px;
+  }
 }
 
 .paginateDiv {

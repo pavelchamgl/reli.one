@@ -283,6 +283,8 @@ const ReviewInfoPage = () => {
         } else {
           ErrToast("Failed to submit onboarding");
         }
+      }else{
+        ErrToast('You have not filled in all the data completely.')
       }
     } catch (error) {
       console.log(error);

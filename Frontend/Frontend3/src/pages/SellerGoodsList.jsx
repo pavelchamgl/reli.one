@@ -41,13 +41,13 @@ const SellerGoodsList = () => {
 
   useEffect(() => {
     if (goodsStatus === "active") {
-      setStatus("approved")
+      setStatus("active")
     }
     if (goodsStatus === "moder") {
-      setStatus("pending")
+      setStatus("on_moderation")
     }
     if (goodsStatus === "notModer") {
-      setStatus("rejected")
+      setStatus("not_moderated")
     }
   }, [goodsStatus])
 

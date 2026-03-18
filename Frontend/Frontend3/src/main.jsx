@@ -71,6 +71,7 @@ import NewSellerPage from "./pages/NewSellerPage.jsx";
 import ClaimsAndRightsPage from "./pages/ClaimsAndRightsPage.jsx";
 import Withdrawal from "./pages/Withdrawal.jsx";
 import ContactReturnPage from "./pages/ContactReturnPage.jsx";
+import NewTermsPage from "./pages/NewTermsPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -115,6 +116,9 @@ const router = createBrowserRouter([
       { path: "/otp_conf", element: <OtpConfirmPage /> },
       { path: "/create_new_pass", element: <CreateNewPass /> },
       { path: "/terms", element: <TermsPage /> },
+      {
+        path: "/new-term", element: <NewTermsPage />
+      },
       { path: "/delete-my-data", element: <DeleteMyDataPage /> },
 
       { path: "/mob_login", element: <MobLoginPage /> },

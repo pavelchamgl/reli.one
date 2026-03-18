@@ -1,0 +1,140 @@
+{
+    "title": "General Terms and Conditions of Reli Group s.r.o. for End Customers for the Purchase of Goods",
+    "intro": {
+        "title": "1. Introductory Provisions and Definitions",
+        "part1": "1.1. These general terms and conditions (hereinafter referred to as the \"Terms\") govern the rights and obligations of end customers using the services of Reli Group s.r.o., ID No.: 280 03 896, with its registered office at Na lysinách 551/34, Hodkovičky, 147 00 Prague 4 (hereinafter referred to as the \"Company\").",
+        "part2": "1.2. These Terms are intended exclusively for End Customers and are not intended for Partners.",
+        "part3": "1.3. For the purposes of these Terms and Conditions, the following terms, where written with capital letters, have the following meanings:",
+        "list1": {
+            "title": "Application ",
+            "desc": "means the mobile application through which End Customers order Goods."
+        },
+        "list2": {
+            "title": "Final Price ",
+            "desc": "means the price for the Goods that the Partner offers to the End Customer through the Reli Service, including any VAT."
+        },
+        "list3": {
+            "title": "End Customer ",
+            "desc": "means a person ordering Goods through the Reli Service. In view of the applicable legal regulations, a distinction is made between an End Customer who is a consumer, i.e. one who does not act within the scope of their business or other entrepreneurial activity when concluding and performing a contract, and an End Customer who orders Goods for the purposes of their business."
+        },
+        "list4": {
+            "title": "Portal ",
+            "desc": "means the web portal available at https://reli.one, through which End Customers order Goods."
+        },
+        "list5": {
+            "title": "Reli Service ",
+            "desc": "means the service available in the Application and on the Portal, provided by the Company, through which Goods are ordered."
+        },
+        "list6": {
+            "title": "Goods ",
+            "desc": "means goods that the Company offers to End Customers through the Application and the Portal."
+        },
+        "list7": {
+            "title": "Goods Purchase Agreement ",
+            "desc": "means an agreement concluded between an End Customer and the Company, the subject of which is the Company's obligation to deliver goods to the End Customer and the End Customer's obligation to pay the End Price for the Goods."
+        },
+        "list8": {
+            "title": "Partner ",
+            "desc": "means a natural person engaged in business or a legal entity that supplies the Company with Goods, which the Company then sells to End Customers."
+        },
+        "list9": {
+            "title": "Customer Account ",
+            "desc": "means an account that will be created for the End Customer based on the registration described in Article 3 of these Terms and Conditions."
+        },
+        "list10": {
+            "title": "Civil Code ",
+            "desc": "means Act No. 89/2012 Coll. Civil Code, as amended."
+        }
+    },
+    "service": {
+        "title": "2. Reli Service",
+        "part1": "2.1. The provision of the Reli Service is free of charge for the End Customer.",
+        "part2": "2.2. The provision of the Reli Service to the End Customer takes place as follows:",
+        "part3": "The End Customer selects the Goods they intend to purchase from the offer on the Portal or in the Application;",
+        "part4": "after selecting specific Goods, the Customer clicks on the \"Order\" button for the Goods, thereby placing an order binding for payment;",
+        "part5": "the Company sends the End Customer a confirmation of receipt of the order, at which point the Contract for the purchase of Goods between the End Customer and the Company is concluded;",
+        "part6": "In the event that payment is made in advance (i.e., before delivery of the Goods), the Company collects the cashless payment from the End Customer via the payment gateway in the Application or on the Portal. In the case of cash on delivery, the Partner or the contracted carrier delivering the Goods collects cash or cashless payments from the End Customer."
+    },
+    "registration": {
+        "title": "3. End Customer Registration, Use of the Portal and Application",
+        "part1": "3.1. Only registered End Customers may order Goods through the Application or Portal. The End Customer can register using the registration form available in the Application and on the Portal.",
+        "part2": "3.2. The End Customer is obliged to provide the Company with true and complete information about themselves. If false and/or incomplete information is provided, the End Customer bears full responsibility for any damage caused thereby.",
+        "part3": "3.3. If the End Customer wishes to cancel their registration, they may do so at any time by contacting customer support at the email address",
+        "email": "office@reli.one",
+        "otherPart3": ", or they may cancel their registration in their account settings via the account settings in the Application or Portal.",
+        "part4": "3.4. The Company reserves the right to restrict or terminate the End Customer's access to the Customer Account at any time.",
+        "part5": "3.5. End Customers are required to protect their access data. In the event of loss or misuse, they are obliged to inform the Company immediately so that it can take appropriate measures. However, the Company is not liable for any damage resulting from the loss or misuse of the End Customer's access data.",
+        "part6": "3.6. The End Customer is obliged to inform the Company of any changes to their personal data. The Company is entitled to contact the End Customer to verify the accuracy and correctness of the information provided and to request additional information. If the Company suspects misuse of the End Customer's data, it has the right to refuse the request for change at its discretion.",
+        "part7": "3.7. The End Customer acknowledges that the delivery of the Goods is provided by the Partner from whom the Company purchases the Goods. The End Customer agrees that for the purposes of delivery of the Goods, the Company will provide the Partner, who is the supplier of the Goods, with the necessary personal data of the End Customer.",
+        "part8": "3.8. The Company allows the Partner to store the Partner's Content on the Portal and in the Application. The Company is not responsible for the Partner's activities and is not liable for any defects in the content or appearance of materials published by Partners in the Application and on the Portal.",
+        "part9": "3.9. The Company is not responsible for the completeness, accuracy, or truthfulness of the materials published on the Portal and in the Application, nor for any unfair competitive conduct by the Partner through the Reli Service or for any violation of personal or copyright laws.",
+        "part10": "3.10. The Company is not liable for any damage arising in connection with the use of information published on the Portal and in the Application.",
+        "part11": "3.11. The Company reserves the right to change or remove any part of the content of the Application and the Portal at any time without prior notice, or to suspend the operation of the Application and the Portal for an indefinite period of time, in particular due to planned maintenance or unplanned emergency maintenance performed by the Company or a third party.",
+        "part12": "3.12. The Reli Service is provided \"as is\" and on an \"as available\" basis. The Company does not guarantee that the Reli Service will run without interruption, in a timely manner, securely, without errors, or without viruses, nor does it guarantee the results that may be achieved through the use of the Reli Service.",
+        "part13": "3.13. Clicking on certain links in the Application and on the Portal may cause you to leave the Application and Portal and be redirected to third-party websites. The Company is not responsible for the content of third-party websites linked to from the Application or Portal, nor for any violation of legal regulations by third parties operating these websites and any damage or other harm caused thereby. The inclusion of any link on the Portal or in the Application does not imply the Company's consent to or support for such a website unless expressly stated."
+    },
+    "ordering": {
+        "title": "4. Ordering and Concluding a Contract for the Purchase of Goods",
+        "part1": "4.1. The End Customer may order Goods via the Application or the Portal. The Order also includes the selection of the method of delivery. The End Customer sends the Order by clicking on the \"Order\" button.",
+        "part2": "4.2. Prices are listed in Czech crowns or Euros. Prices are final, including all applicable taxes and fees, except for any shipping and delivery costs. If shipping or delivery costs are associated with the delivery of Goods, the End Customer must be informed of the amount of these costs and, as a rule, the End Customer must be allowed to choose the method of delivery or shipping. The End Customer shall pay the price in accordance with paragraph 2.2. letter d).",
+        "part3": "4.3. After the End Customer has placed an order, the Company shall send the End Customer a confirmation of receipt of the order, thereby concluding a Contract for the Purchase of Goods between the End Customer and the Company.",
+        "part4": "4.4. The End Customer is entitled to cancel the order without giving any reason until the moment of confirmation of acceptance of the order. The End Customer may cancel the order by sending a notification to the email address",
+        "email": "office@reli.one",
+        "part4Other": " or in the Application. Cancellation of the Order after the conclusion of the Contract for the Purchase of Goods is no longer possible, but this does not affect the End Customer's right to withdraw from the contract in accordance with Section 6 of these GTC.",
+        "part5": "4.5. The End Customer acknowledges that the visual information about the offered Goods may be of an illustrative nature only."
+    },
+    "delivery": {
+        "title": "5. Delivery of Goods",
+        "part1": "5.1. The Goods will be delivered to the End Customer within the period specified in the order in the manner specified for the Goods, usually in the manner chosen by the End Customer. The delivery of Goods may be arranged or carried out directly by the Partner. "
+    },
+    "withdrawal": {
+        "title": "6. Withdrawal from the Contract by the End Customer",
+        "part1": "6.1. The End Customer has the right to withdraw from the concluded Contract for the purchase of Goods within 14 days of the date of delivery of the Goods without giving any reason.",
+        "part2": "6.2. The End Customer may withdraw from the Contract for the Purchase of Goods by notifying the Company of this fact using the withdrawal form available in the Application and on the Portal, by contacting customer support at the email address",
+        "email": "office@reli.one",
+        "part2Other": " or in the Application. Upon withdrawal, the End Customer is obliged to state the order number and date.",
+        "part3": "6.3. In the event of withdrawal from the Contract for the Purchase of Goods, the Final Price will be refunded to the End Customer in the same manner in which the Final Price was paid, with the proviso that in the case of cash on delivery payment for the Goods, the price may also be refunded to a bank account provided by the End Customer to the Company.",
+        "part4": "6.4. In the case of an End Customer who is not a consumer, withdrawal from the contract is governed by the provisions of Section 2001 et seq. of the Civil Code."
+    },
+    "complaints": {
+        "title": "7. Complaints Procedure",
+        "part1": "7.1. The End Customer may exercise their right arising from defective performance (complaint) in connection with the Goods through the Application or Portal in accordance with this Complaints Procedure.",
+        "part2": "7.2. These Complaints Procedure Rules govern the exercise of rights arising from liability for defective performance under Contracts for the Purchase of Goods concluded between the Company and the End Customer through the Reli Service.",
+        "part3": "7.3. The scope of liability for defective performance is governed, to the extent not regulated by these GTC, by the relevant provisions of the Civil Code and, if the End Customer is a consumer, also by Act No. 634/1992 Coll.",
+        "part4": "7.4. The Company shall handle complaints within 30 days of their delivery.",
+        "part5": "7.5. When filing a complaint, the End Customer must provide the order number, a description of the defect, and the desired method of handling the complaint.",
+        "part6": "7.6. The End Customer may, as a right arising from defective performance, request the following as part of the complaint handling process:",
+        "part7": "Repair of the Goods;",
+        "part8": "Replacement of the Goods;",
+        "part9": "A reasonable discount on the price of the Goods;",
+        "part10": "Withdrawal from the contract and a refund of the price of the Goods.",
+        "part11": "7.7. If the End Customer requests the settlement of a complaint under points a), b), or d) of the previous article, they shall send the Goods to the Partner's address, which the Company shall provide to them via the Application or the Portal.",
+        "part12": "7.8. In the event of a justified complaint, the Company shall comply with the requested method of handling the complaint by the End Customer. If the End Customer requests Repair of the Goods, the Company is also entitled to handle the complaint by replacing the Goods (Delivery of a new item).",
+        "part13": "7.9. In the event of an unjustified complaint, the Company shall inform the End Customer that it does not accept the complaint and, if the End Customer has sent the Goods back to the Partner, the Partner shall send the Goods back to the End Customer.",
+        "part14": "7.10. In the event of a justified complaint, the customer shall not bear the costs associated with its enforcement, this also applies to the costs of returning the Goods to the Partner.",
+        "part15": "7.11. In the event of an unjustified complaint, the Company may require the End Customer to pay the costs of transporting the Goods from the End Customer to the Partner and back if the Goods were transported in connection with the complaint.",
+        "part16": "7.12. These Complaints Rules form an integral part of every Contract for the Purchase of Goods."
+    },
+    "copyright": {
+        "title": "8. Copyright Agreement",
+        "part1": "8.1. The Company remains the sole and exclusive owner of all rights to the Reli Service and its components. The End Customer is not entitled to copy, modify, create derivative works, reverse engineer or compile, or attempt to discover any source code in any other way, sell, assign, sublicense or otherwise transfer any rights to any software. The Company does not grant any licenses or rights to use the Company's trademarks.",
+        "part2": "8.2. To protect the interests of the Partners and the Company, any automated collection of data and information from the Application and the Portal is prohibited, as is the copying and storage of information, data, and images for purposes other than the use of the Reli service."
+    },
+    "personalData": {
+        "title": "9. Personal data",
+        "part1": "9.1. When processing personal data, the Company proceeds in accordance with Regulation (EU) 2016/679 of the European Parliament and of the Council of 27 April 2016 on the protection of natural persons with regard to the processing of personal data and on the free movement of such data, and repealing Directive 95/46/EC (hereinafter referred to as \"GDPR\") and national legislation governing the processing of personal data, in particular Act No. 110/2009 Coll., on the processing of personal data.",
+        "part2": "9.2. All information on the principles and procedures for the processing of personal data is set out in the Company's Privacy Policy, which is published on the website https://reli.one."
+    },
+    "finalProvisions": {
+        "title": "10. Final provisions",
+        "part1": "10.1. Only persons over the age of 16 may use the Reli service.",
+        "part2": "10.2. The Company may archive the concluded Contract for the Purchase of Goods.",
+        "part3": "10.3. If any provision of these Terms and Conditions is invalid or unenforceable, this shall not affect the validity of the other provisions. These shall remain valid and enforceable under the terms set out therein.",
+        "part4": "10.4. The Company reserves the right to revise or amend these Terms and Conditions at any time at its discretion.",
+        "part5": "10.5. The Company and End Customers expressly agree that the general court in the Czech Republic shall have jurisdiction over the resolution of mutual disputes. Legal relationships not expressly governed by these Terms and Conditions shall be governed by the laws applicable in the Czech Republic. Any deviating written agreements between the End Customer and the Company shall take precedence over the provisions of these Terms and Conditions.",
+        "part6": "10.6. The Company handles complaints from End Customers via the email address",
+        "part7": "10.7. Trade inspections are carried out by the relevant trade licensing office within its jurisdiction. Supervision of personal data protection is carried out by the Office for Personal Data Protection. The Czech Trade Inspection Authority supervises, among other things, compliance with Act No. 634/1992 Coll., on consumer protection, as amended and effective.",
+        "part8": "10.8. The Company is not bound by any codes of conduct in relation to the End Customer within the meaning of Section 1826(1)(e) of the Civil Code.",
+        "part9": "10.9. An End Customer who is a consumer has the right to out-of-court settlement of a consumer dispute. The entity responsible for out-of-court settlement of consumer disputes is the Czech Trade Inspection Authority, with its registered office at Štěpánská 567/15, 120 00 Prague 2."
+    }
+}

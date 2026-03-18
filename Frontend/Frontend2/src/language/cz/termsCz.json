@@ -1,0 +1,194 @@
+{
+    "title": "Všeobecné obchodní podmínky společnosti Reli Group s.r.o. pro partnery prodávající zboží",
+    "intro": {
+        "title": "1. Úvodní ustanovení",
+        "part1": "1.1. Tyto všeobecné obchodní podmínky (dále jen „VOP“) upravují práva a povinnosti právnických nebo podnikajících fyzických osob (dále jen „Dodavatel“) využívajících služby společnosti Reli Group s.r.o., IČO: 280 03 896, se sídlem Na lysinách 551/34, Hodkovičky, 147 00 Praha 4 (dále jen „Odběratel“) při prodeji zboží jejím prostřednictvím na základě Rámcové smlouvy o koupi zboží (dále jen „Smlouva“), přičemž není-li dále uvedeno jinak, vztahuje se vše, co je v těchto VOP uvedeno o Smlouvě, i na dílčí smlouvy uzavřené na základě Smlouvy."
+    },
+    "supplier": {
+        "mainTitle": "2. Prohlášení Dodavatele",
+        "title1": "2.1. Dodavatel tímto prohlašuje a zaručuje Odběrateli, že:",
+        "title2": "2.2. Dodavatel je povinen informovat Odběratele o změně jakýchkoliv údajů o své osobě, zejména změnu sídla, obchodní firmy nebo jakýchkoli jiných fakturačních údajů. Dodavatel je dále povinen oznámit jakoukoli změnu ohledně plátcovství DPH, zejména je povinen oznámit Odběrateli, že se stal plátcem DPH nebo nespolehlivým plátcem. Odběratel je oprávněn obrátit se na Dodavatele za účelem ověření aktuálnosti a správnosti poskytnutých údajů a žádat o poskytnutí dodatečných informací. V případě podezření na zneužití údajů Dodavatele je Odběratel oprávněn dle svého uvážení odmítnout žádost o provedení změny.",
+        "part1": "je oprávněn uzavřít Smlouvu, plnit závazky z ní vyplývající a řádně a včas realizovat příslušnou transakci, přičemž přebírá riziko změn okolností;",
+        "part2": "uzavření Smlouvy nebo realizace jednotlivých kroků v souvislosti s dílčí smlouvou nepředstavuje porušení žádné povinnosti Dodavatele vyplývající z příslušných právních předpisů, závazných smluv, dohod a prohlášení, ani není v rozporu s žádným požadavkem, rozhodnutím nebo předběžným opatřením správního orgánu, soudu či rozhodčího nálezu, k němuž je Dodavatel vázán, ani neporušuje žádná práva třetích stran;",
+        "part3": "není v úpadku ani v hrozícím úpadku a nebyl podán návrh na zahájení insolvenčního řízení a/nebo na výkon rozhodnutí vůči jeho majetku;",
+        "part4": "Zboží nemá žádné právní vady, což znamená zejména, nikoli však výlučně, že není zatíženo zástavním právem, nájemním právem, jiným uživatelským právem ani jiným právem třetí strany;",
+        "part5": "Zboží je ve vlastnictví Dodavatele a veškeré platby a poplatky podle platných právních předpisů, včetně daní, odvodů a poplatků, stejně jako poplatků souvisejících s distribucí elektrických zařízení, baterií a autorských poplatků, jsou nebo budou řádně uhrazeny ve vztahu ke Zboží, které je způsobilé k distribuci v zemích Evropské unie a Evropského hospodářského prostoru;",
+        "part6": "Zboží je řádně zabaleno v originálním a neporušeném obalu, včetně všech etiket a kódů, a obsahuje všechny návody, pokyny, technické specifikace, certifikáty shody a grafické a informační materiály a splňuje veškeré požadavky na bezpečnost výrobků stanovené Nařízením Evropského parlamentu a Rady (EU) 2023/988, a to minimálně v jazycích zemí, kam bude Zboží dodáno koncovým zákazníkům Odběratelem, včetně elektronického formátu (.pdf), přičemž veškeré Zboží je a bude opatřeno originálním označením, nepoužité a bez vad a jeho vlastnosti budou odpovídat oprávněným očekáváním Odběratele;",
+        "part7": "Dodavatel má veškerá práva a oprávnění vztahující se k jakýmkoliv marketingovým nebo jiným materiálům dodávaným Dodavatelem, včetně práva poskytnout je Odběrateli, přičemž toto poskytnutí žádným způsobem neomezuje práva třetích stran."
+    },
+    "terms": {
+        "title": "3. Obchodní podmínky",
+        "part1": "3.1. Dodavatel bere na vědomí, že v případě jakéhokoli porušení povinností Dodavatele vyplývajících ze Smlouvy a/nebo jakéhokoli snížení kvality dodávaného Zboží a/nebo zvýšení jeho vadovosti má Odběratel právo přestat nabízet veškeré Zboží Dodavatele a pozastavit spolupráci, dokud Dodavatel nezajistí kvalitu poskytovaných služeb v souladu se zásadami nejlepší praxe a podmínkami stanovenými ve Smlouvě.",
+        "part2": "3.2. Dodavatel se zavazuje neprodleně informovat Odběratele telefonicky nebo e-mailem na kontakty uvedené v článku 13 těchto Obchodních podmínek o všech okolnostech, které by mohly způsobit zpoždění nebo dočasné přerušení dodávek koncovým zákazníkům Odběratele.",
+        "part3": "3.3. Dodavatel se zavazuje v rámci elektronické komunikace prostřednictvím e-mailu zasílat ceny produktů dohodnuté během obchodních jednání.",
+        "part4": "3.4. Dodavatel se zavazuje, že v případě zasílání nákupních cen podle dokumentace dostupné na jeho Osobním účtu na adrese https://reli.one zaručuje jejich platnost pro objednávky koncových zákazníků Odběratele.",
+        "part5": "3.5. Dodavatel se zavazuje dodat Zboží za cenu potvrzenou během předběžné rezervace, pokud její platnost nevypršela.",
+        "part6": "3.6. Dodavatel se zavazuje reagovat na komunikaci od Odběratele do 24 hodin v pracovních dnech. Opakované nesplnění této povinnosti je podstatným porušením Smlouvy.",
+        "part7": "3.7. Pokud Dodavatel nedodrží proces stanovený Odběratelem během zkušebního provozu, je Odběratel oprávněn požadovat náhradu všech tím vzniklých nákladů.",
+        "part8": "3.8. Ceny za přepravní náklady pro koncového zákazníka Odběratele, které je Dodavatel oprávněn Odběrateli účtovat, jsou definovány Kartou dodavatele a vždy jsou fakturovány kumulativně a odděleně od zakoupeného Zboží. Nedílnou přílohou faktury musí být vždy seznam jednotlivých objednávek společně s náklady na přepravu."
+    },
+    "delivery": {
+        "title": "4. Dodací a logistické podmínky",
+        "part1": "4.1. Dodavatel se zavazuje dodat Zboží Odběrateli v množství, standardu a kvalitě požadované Odběratelem, přičemž Zboží bude zabaleno v originálním, nepoškozeném obalu s připojenými EAN kódy a čárovými kódy, případně sériovým číslem a/nebo kódem IMEI, včetně veškeré související dokumentace a příslušenství, které musí být poskytnuto spolu se Zbožím tak, aby mohlo být uvedeno na trh v zemích Evropské unie a Evropského hospodářského prostoru.",
+        "part2": "4.2. Dodavatel se zavazuje poskytnout Odběrateli veškeré potřebné informace týkající se poplatkových povinností, zejména ve vztahu k recyklačním poplatkům za obaly, elektroodpad, baterie a autorským odměnám, a poskytovat maximální součinnost při jednání s příslušnými organizacemi.",
+        "part3": "4.3. Dodavatel je povinen neprodleně informovat Odběratele o vadách, problémech a skutečnostech týkajících se Zboží, aby bylo možné předejít jakýmkoli škodám, a v případě nutnosti stažení Zboží nese veškerou odpovědnost a náklady.",
+        "part4": "4.4. Dodavatel se zavazuje minimalizovat riziko poškození Zboží během přepravy dodržováním podmínek stanovených přepravcem nebo Odběratelem, jinak je povinen uhradit vzniklé náklady.",
+        "part5": "4.5. Dodavatel se zavazuje, že objednávky podané do času „Cut-Off Time“ budou zpracovány a předány přepravci dle „Pick-Up Time for the Carrier“ uvedeného v Osobním účtu.",
+        "part6": "4.6. Dodavatel se zavazuje, že objednávky doručované vlastním přepravcem budou doručeny dle specifikace v Osobním účtu, jinak je Odběratel oprávněn uplatnit smluvní pokutu.",
+        "part7": "4.7. Dodavatel se zavazuje informovat Odběratele o předání Zboží přepravci dle dokumentace nebo prostřednictvím systému třetí strany.",
+        "part8": "4.8. Dodavatel se zavazuje předat objednávku přepravci vždy jako kompletní zásilku obsahující všechny položky potvrzené objednávky.",
+        "part9": "4.9. Nepřevzaté Zboží koncovým zákazníkem se vždy vrací do skladu Dodavatele.",
+        "part10": "4.10. Dodavatel se zavazuje zajistit zpětné převzetí Zboží, od jehož koupě zákazník odstoupil, nejpozději do tří (3) dnů od žádosti Odběratele.",
+        "part11": "4.11. Dodavatel se zavazuje zajistit převzetí reklamovaného Zboží následující den po oznámení reklamace."
+    },
+    "accounting": {
+        "title": "5. Účetní a fakturační podmínky",
+        "part1": "5.1. Dodavatel prohlašuje, že je schopen komunikovat v rámci standardů a dále je schopen oddělovat zprávy související s doručováním v režimu „drop shipment“ od ostatních předávaných zpráv dle příslušné dokumentace, je-li to relevantní.",
+        "part2": "5.2. Dodavatel se zavazuje, že tok účetních dokladů (jednotlivé typy a podtypy zpráv) souvisejících s nákupy, prodejem, poprodejními službami, reklamacemi a zpětným odkupem zboží bude realizován výhradně podle parametrů stanovených v Osobním účtu Dodavatele.",
+        "part3": "5.3. Dodavatel se zavazuje doručovat Odběrateli daňový doklad s frekvencí stanovenou v Osobním účtu Dodavatele. Dodavatel se zavazuje oznámit Odběrateli veškeré změny týkající se jeho povinnosti odvodu daně z přidané hodnoty, a to zejména, zda je, či není plátcem DPH (daně z přidané hodnoty).",
+        "part4": "5.4. Splatnost faktury na kupní cenu Zboží je stanovena na třicet (30) kalendářních dnů od okamžiku doručení daňového dokladu Odběrateli, přičemž splatnost nenastane dříve než třicet (30) kalendářních dnů od dodání Zboží koncovému zákazníkovi, včetně řádného dodacího listu, veškerého příslušenství a částí.",
+        "part5": "5.5. V případě prodlení s úhradou dlužné částky se smluvní strany dohodly na smluvním úroku z prodlení ve výši 0,05 % za každý započatý den prodlení.",
+        "part6": "5.6. Veškeré daňové doklady musí splňovat požadavky příslušného právního předpisu. Pokud daňový doklad neobsahuje stanovené náležitosti a přílohy, nebo pokud nejsou údaje správně uvedeny, je oprávněná strana oprávněna vrátit daňový doklad ve lhůtě splatnosti jeho vystaviteli. V takovém případě se splatnost přeruší a nová splatnost začne běžet okamžikem obdržení opraveného daňového dokladu.",
+        "part7": "5.7. Dodavatel se zavazuje, že vybrané dobírkové platby od koncových zákazníků Odběratele, pokud bude používán vlastní přepravce Dodavatele, budou směřovány na účet Odběratele podle specifikací uvedených v Osobním účtu Dodavatele. Platba za konkrétní objednávku doručenou koncovému zákazníkovi Odběratele bude jasně identifikovatelná prostřednictvím variabilního symbolu poskytnutého Odběratelem Dodavateli v rámci zaslané objednávky dle dokumentace. Převody vybraných dobírkových částek budou vždy prováděny po jednotlivých objednávkách doručených koncovým zákazníkům Odběratele.",
+        "part8": "5.8. Dodavatel se zavazuje, že v případě vráceného zboží, které nebylo převzato koncovým zákazníkem Odběratele, vždy vystaví dobropis, jehož částka a položky budou odpovídat faktuře vystavené Odběrateli za nákup zboží, a že dobropis bude vždy vystaven následující den po vrácení zboží do skladu Dodavatele. V opačném případě Dodavatel bere na vědomí, že Odběratel má právo vystavit fakturu na náhradu škody, kterou je Odběratel oprávněn započíst proti veškerým pohledávkám Dodavatele.",
+        "part9": "5.9. Dodavatel bere na vědomí, že koncový zákazník Odběratele je oprávněn odstoupit od smlouvy bez udání důvodu do čtrnácti (14) dnů ode dne kdy převezme zboží. Dodavatel se zavazuje, že v případě takto vráceného zboží, vždy vystaví dobropis, jehož částka a položky budou odpovídat faktuře vystavené Odběrateli za nákup zboží, a že dobropis bude vždy vystaven následující den po vrácení zboží do skladu Dodavatele. V opačném případě Dodavatel bere na vědomí, že Odběratel má právo vystavit fakturu na náhradu škody, kterou je Odběratel oprávněn započíst proti veškerým pohledávkám Dodavatele.",
+        "part10": "5.10. Dodavatel odpovídá za správný přenos informací. V případech zrušení objednávek koncovými zákazníky Odběratele (storno objednávky) a/nebo v případě zaslání informace o stornu objednávky Dodavatelem (tzv. „Delivery result Cancel“) a/nebo v případě zaslání informace o nepřevzetí Zboží koncovým zákazníkem (tzv. „Delivery result Rejected“), pokud bylo Zboží přesto doručeno koncovému zákazníkovi Odběratele, se Dodavatel zavazuje plně nahradit Odběrateli veškerou vzniklou škodu (např. škodu z důvodu uhrazených nákladů na přepravu Zboží).",
+        "part11": "5.11. Dodavatel se zavazuje, že v případě nedepartace zboží a jeho předání přepravci po zaslání informace o stornu objednávky Dodavatelem (tzv. „Delivery result Cancel“), nebude požadovat úhradu kupní ceny za toto Zboží (nevznikne nárok), tj. nevystaví daňový doklad – fakturu na koupi Zboží Odběrateli.",
+        "part12": "5.12. Peněžní platby se provádějí bankovním převodem na účet druhé smluvní strany uvedený v daňovém dokladu, vždy s uvedením variabilního symbolu (VS), kterým je číslo daňového dokladu, k němuž se platba vztahuje. Peněžní částka se považuje za uhrazenou okamžikem jejího odepsání z bankovního účtu odesílatele na účet Dodavatele.",
+        "part13": "5.13. Smluvní strany se dohodly, že v případě, že vůči sobě mají určité splatné pohledávky stejného druhu, které lze uplatnit u soudu, budou tyto pohledávky primárně vyřešeny zápočtem, pokud nebude dohodnuto jinak.",
+        "part14": "5.14. Pokud jedna ze smluvních stran bude v prodlení s plněním svých finančních závazků vůči druhé smluvní straně, je oprávněná smluvní strana oprávněna požadovat a je oprávněna naúčtovat úrok z prodlení ve výši stanovené v odstavci 5.5 těchto Podmínek, který je druhá smluvní strana povinna uhradit do čtrnácti (14) kalendářních dnů od obdržení žádosti.",
+        "part15": "5.15. Smluvní strany prohlašují, že ke dni podpisu těchto Podmínek nejsou, ve smyslu zákona č. 235/2004 Sb., o dani z přidané hodnoty, ve znění pozdějších předpisů, nespolehlivými plátci DPH a že bankovní účet používaný pro všechny platby podle Smlouvy je registrován u příslušného správce daně a je rovněž správcem daně zveřejněn způsobem umožňujícím dálkový přístup. Smluvní strany jsou povinny udržovat pravdivost těchto prohlášení po celou dobu platnosti Smlouvy."
+    },
+    "fees": {
+        "title": "6. Poplatky a bonusy",
+        "part1": "6.1. Dodavatel je povinen poskytnout Odběrateli veškeré nezbytné údaje k zalistování všech produktů (tj. fotografie a parametry požadované Odběratelem). Pokud Dodavatel tyto údaje neposkytne, je Odběratel oprávněn přestat tyto produkty nabízet. Odběratel je oprávněn požádat Dodavatele o poskytnutí chybějících parametrů podle tohoto odstavce.",
+        "part2": "6.2. Dodavatel se zavazuje, že v případě, kdy příslušný dozorový orgán uloží Odběrateli pokutu z důvodu nesprávně poskytnutých údajů nebo údajů trpících právními či faktickými vadami, a dále v případě pokuty za nedodržení podmínek a požadavků o bezpečnosti výrobků dle Nařízení (EU) 2023/988, uhradí Dodavatel Odběrateli tuto škodu, včetně všech souvisejících nákladů.",
+        "part3": "6.3. Odběratel vystaví Dodavateli fakturu za poplatky a pokuty a způsobené škody podle bodů 6.1 až 6.3, která je splatná do třiceti (30) dnů ode dne doručení Dodavateli.",
+        "part4": "6.4. Odběratel vede statistiky pro každý typ dodávaného Zboží týkající se jeho míry reklamací. Pokud míra reklamací pro konkrétní produkt dosáhne ve statistice za rok 3 %, má Odběratel nárok na poplatek za reklamace ve výši 0,25 % ročního obratu tohoto produktu za každé započaté procento nad stanoveným limitem reklamací, i opakovaně, a Dodavatel je povinen tento poplatek uhradit.",
+        "part5": "6.5. Dodavatel je oprávněn jednostranně započíst svou pohledávku vyplývající ze Smlouvy proti pohledávce Odběratele a neprodleně o tom Odběratele písemně informovat.",
+        "part6": "6.6. COOP marketing je bonus za prezentaci a marketingovou podporu poskytovanou Odběratelem na podporu prodeje produktů Dodavatele. Poplatek je sjednán ve výši 3 % z realizovaného ročního čistého nákupního obratu od Dodavatele bez DPH, splatný čtvrtletně."
+    },
+    "waranty": {
+        "title": "7. Záruční podmínky",
+        "part1": "7.1. Dodavatel se zavazuje poskytnout záruku na jakost dodaného Zboží v minimální délce dvaceti čtyř (24) měsíců, která začíná běžet okamžikem doručení Zboží zákazníkovi, ledaže Zboží má stanovené datum spotřeby nebo minimální trvanlivost.",
+        "part2": "7.2. Pokud má Zboží uvedeno datum spotřeby, zavazuje se Dodavatel dodat takto označené Zboží Odběrateli v den, kdy neuplynulo více než 40 % doby uvedené na obalu jako datum spotřeby.",
+        "part3": "7.3. Dodavatel se zavazuje zajistit vizuální kontrolu Zboží před jeho předáním přepravci a na žádost Odběratele poskytne záznam o této kontrole.",
+        "part4": "7.4. Pokud je koncovým zákazníkem podnikatel nebo společnost, bude záruční doba definována podle Záručního listu Dodavatele.",
+        "part5": "7.5. V případě reklamace se Dodavatel zavazuje vyřídit reklamaci do osmnácti (18) kalendářních dnů od doručení reklamovaného produktu.",
+        "part6": "7.6. Pokud nebude reklamace vyřízena v této lhůtě, bude vyřízena vystavením dobropisu a Dodavatel uhradí vzniklé náklady.",
+        "part7": "7.7. V případě vyřízení reklamace opravou se Dodavatel zavazuje zaslat opravené Zboží zpět včetně dokumentace.",
+        "part8": "7.8. Za každou vyřízenou reklamaci se Dodavatel zavazuje dodat servisní protokol v jazyce země doručení Zboží.",
+        "part9": "7.9. Dodavatel odesílá vyřízené reklamace na adresu požadovanou Odběratelem.",
+        "part9List1": "Dodavatel se zavazuje, že vrácené reklamace budou obsahovat balicí seznam a každý produkt vlastní protokol RMA.",
+        "part9List2": "Dodavatel se zavazuje zabránit škodám způsobeným nesprávným balením.",
+        "part10": "7.10. Pokud Dodavatel nebo servis obdrží viditelně poškozenou zásilku, je povinen informovat přepravce i Odběratele a zdokumentovat rozsah poškození.",
+        "part11": "7.11. Pokud servis zjistí neopravitelnou závadu, Dodavatel vystaví dobropis a měsíční daňový doklad.",
+        "part12": "7.12. Pokud Dodavatel není autorizovaným servisem, poskytne Odběrateli podmínky svého servisního partnera.",
+        "part13": "7.13. Životnost produktu je definována výrobcem.",
+        "part14": "7.14. Limit míry reklamací je definován v bodě 6.5 těchto VOP.",
+        "part15": "7.15. Veškeré náklady spojené s reklamací nese Dodavatel."
+    },
+    "termination": {
+        "title": "8. Ukončení smlouvy",
+        "part1": "8.1. Smlouva může být ukončena odstoupením, dohodou nebo výpovědí.",
+        "part2": "8.2. Každá smluvní strana může odstoupit pouze z důvodů uvedených v těchto VOP.",
+        "part3": "8.3. Odběratel může odstoupit od Smlouvy pokud:",
+        "part3List1": "Dodavatel je v prodlení déle než 20 dnů a náprava není provedena do 10 dnů od oznámení.",
+        "part3List2": "Prohlášení Dodavatele se ukáže jako nepravdivé nebo nesprávné.",
+        "part3List3": "Dodavatel je v úpadku nebo je proti němu vedeno řízení.",
+        "part3List4": "Dodavatel podstatně poruší Smlouvu.",
+        "part4": "8.4. Dodavatel může odstoupit pokud je Odběratel v prodlení s platbou déle než 20 dnů.",
+        "part5": "8.5. Účinky odstoupení nastávají dnem doručení, odmítnutí nebo nevyzvednutí oznámení.",
+        "part6": "8.6. Každá strana může Smlouvu vypovědět bez udání důvodu s výpovědní lhůtou 3 měsíců.",
+        "part7": "8.7. Ukončení Smlouvy nemá vliv na ustanovení o licencích, odpovědnosti, pokutách a náhradách škody.",
+        "part8": "8.8. Ustanovení o ukončení se vztahují i na Dílčí smlouvy."
+    },
+    "confidentiality": {
+        "title": "9. Důvěrnost informací a mlčenlivost",
+        "part1": "9.1. Osobní údaje ve smyslu článku 4 odst. 1 nařízení (EU) 2016/679 (GDPR), které jsou poskytovány Odběratelem Dodavateli v rámci smluvních vztahů, spolupráce a komunikace, stejně jako neveřejné informace tvořící obchodní tajemství nebo důvěrné informace Odběratele, podléhají zvláštní ochraně.",
+        "part2": {
+            "title": "9.2. Důvěrné nejsou informace:",
+            "list1": "které Odběratel sám zveřejnil;",
+            "list2": "které Dodavatel získal od třetí strany zákonným způsobem;",
+            "list3": "které se týkají běžného obchodního jednání Odběratele."
+        },
+        "part3": {
+            "title": "9.3. Povinnosti Dodavatele:",
+            "list1": "chránit Důvěrné informace a Osobní údaje;",
+            "list2": "zpracovávat Osobní údaje pouze pro stanovené účely;",
+            "list3": "dodržovat GDPR a další právní předpisy."
+        },
+        "part4": {
+            "title": "9.4. Dodavatel může používat Důvěrné informace pouze pro:",
+            "list1": "plnění svých povinností ze Smlouvy;",
+            "list2": "komunikaci s Odběratelem;",
+            "list3": "komunikaci se smluvními partnery Odběratele;",
+            "list4": "komunikaci s osobami vázanými mlčenlivostí;",
+            "list5": "komunikaci s orgány veřejné moci."
+        },
+        "part5": "9.5. Dodavatel nesmí poskytovat informace o Odběrateli třetím stranám ani médiím.",
+        "part6": "9.6. Dodavatel nesmí pořizovat záznamy jednání bez souhlasu.",
+        "part7": "9.7. Ochrana důvěrných informací trvá až do písemného oznámení o jejich ukončení, nejdéle 5 let po ukončení smluvního vztahu.",
+        "part8": {
+            "title": "9.8. Osobní údaje lze zpracovávat pouze pro:",
+            "list1": "plnění povinností Dodavatele;",
+            "list2": "plnění zákonných povinností;",
+            "list3": "komunikaci se smluvními partnery;",
+            "list4": "komunikaci s orgány veřejné moci."
+        },
+        "part9": "9.9. Po splnění účelu zpracování Dodavatel Osobní údaje zničí.",
+        "part10": "9.10. Dodavatel zajistí důvěrnost informací a odpovídající technická a organizační opatření."
+    },
+    "intellectual": {
+        "title": "10. Duševní vlastnictví",
+        "part1": "10.1. Strany se zavazují neporušovat průmyslová práva ani dobrou pověst druhé strany.",
+        "part2": "10.2. Dodavatel může používat ochranné známky Odběratele pouze s jeho předchozím písemným souhlasem.",
+        "part3": {
+            "title": "10.3. Dodavatel prohlašuje, že:",
+            "list1": "Prodej zboží nebude porušovat práva třetích stran;",
+            "list2": "Marketingové použití materiálů nebude porušovat práva třetích stran;",
+            "list3": "Zboží i jeho prodej splňují právní předpisy EU a EHP."
+        },
+        "part4": "10.4. Dodavatel garantuje soulad zboží s právními předpisy EU a EHP."
+    },
+    "contractual": {
+        "title": "11. Smluvní pokuty",
+        "part1": "11.1. V případě, že Dodavatel nesplní svou povinnost včasného odeslání objednávek dopravci, přičemž včas odeslané objednávky tvoří 97 % nebo méně celkového počtu objednávek, je Dodavatel povinen zaplatit Odběrateli smluvní pokutu ve výši 4 eura za každou objednávku, která byla odeslána po termínu a tímto nedosahuje stanoveného prahu 97 %. (Smluvní pokuta č. 1.)",
+        "part2": "11.2. V případě, že vlastní dopravce Dodavatele nesplní svou povinnost včasné dodávky objednávky podle této smlouvy, přičemž včas dodané objednávky tvoří 97 % nebo méně celkového počtu objednávek, je Dodavatel povinen zaplatit Odběrateli smluvní pokutu ve výši 4 eura za každou objednávku, která byla doručena po termínu a tímto nedosahuje stanoveného prahu 97 %. (Smluvní pokuta č. 2)",
+        "part3": "11.3. V případě, že Dodavatel poruší svou povinnost řádně vyřídit reklamace zákazníků podle této smlouvy, je Dodavatel povinen zaplatit Odběrateli smluvní pokutu ve výši 4 eura za každý případ porušení povinnosti podle tohoto odstavce. (Smluvní pokuta č. 3)",
+        "part4": "11.4. V případě, že Dodavatel poruší svou povinnost včasně reagovat na komunikaci Odběratele podle této smlouvy, je Dodavatel povinen zaplatit Odběrateli smluvní pokutu ve výši 4 eura za každý případ porušení této povinnosti. (Smluvní pokuta č. 4)",
+        "part5": "11.5. Smluvní pokuta za porušení povinnosti mlčenlivosti je 200 EUR za každý případ porušení této povinnosti.",
+        "part6": "11.6. Všechny smluvní pokuty za porušení povinností Dodavatele podle této smlouvy jsou splatné na základě písemné žádosti Odběratele, bezhotovostně, a to v termínu uvedeném v žádosti. Smluvní pokuta nepředstavuje paušalizovanou náhradu škody a zaplacení smluvní pokuty neomezuje a neovlivňuje právo Odběratele požadovat plnou náhradu škody vzniklé v důsledku porušení povinností."
+    },
+    "liability": {
+        "title": "12. Odpovědnost za škody",
+        "part1": "12.1. Každá strana smlouvy odpovídá za škody způsobené v rámci platných a účinných právních předpisů a Smlouvy. Strany se zavazují vynaložit maximální úsilí k prevenci škod a k minimalizaci jakýchkoli škod, které mohou vzniknout.",
+        "part2": "12.2. Dodavatel se zavazuje plně odškodnit Odběratele za jakékoli nároky třetích stran vyplývající z porušení této Smlouvy.",
+        "part3": "12.3. Povinnost k náhradě škody bude zproštěna, pokud bude prokázáno, že došlo k mimořádné, nepředvídatelné a neodstranitelné překážce, která dočasně nebo trvale znemožnila plnění povinnosti podle Smlouvy, nezávisle na vůli porušující strany. Nicméně překážka vyplývající z osobních okolností porušující strany nebo překážka, která nastala v okamžiku, kdy již byl porušen termín plnění smluvní povinnosti, nebo překážka, kterou měla porušující strana podle Smlouvy překonat, nezbavuje porušující stranu povinnosti k náhradě škody.",
+        "part4": "12.4. Strany se dohodly, že zaplacení jakékoli smluvní pokuty dohodnuté mezi stranami neovlivní právo poškozené strany na náhradu celé škody. V případě vymáhání smluvní pokuty je strana porušující povinnost povinna tuto zaplatit bez zbytečného odkladu po doručení žádosti poškozené strany o zaplacení."
+    },
+    "conditions": {
+        "title": "13. Podmínky vzájemné komunikace a kontaktu",
+        "part1": "13.1. Smluvní strany se zavazují vzájemně spolupracovat a poskytovat si veškeré nezbytné informace pro řádné plnění svých povinností, a to zejména, nikoli však výlučně, jsou povinny informovat druhou smluvní stranu o všech skutečnostech, které jsou nebo mohou být důležité pro řádné plnění Smlouvy, včetně jakékoli spolupráce s factoringovou společností, která by mohla a/nebo měla ovlivnit řešení nároků a povinností mezi smluvními stranami Smlouvy.",
+        "part2": "13.2. Veškerá oznámení mezi smluvními stranami týkající se této Smlouvy nebo která mají být učiněna na základě této Smlouvy, musí být učiněna písemně a doručena druhé straně buď osobně, nebo doporučenou poštou či jinou formou doporučené poštovní komunikace na adresu, kterou druhá strana písemně oznámila, přičemž první adresou je adresa uvedená ve Smlouvě; v takovém případě se zásilka považuje za doručenou třetí den po jejím odeslání. Pokud komunikace nemá vliv na platnost a účinnost Smlouvy, je rovněž povoleno doručení faxem nebo e-mailem na čísla a adresy autorizovaných osob nebo případně taktéž je možné předávat informace v Osobním účtu Dodavatele.",
+        "part3": "13.3. Smluvní strany se zavazují komunikovat ohledně dohodnutých záležitostí prostřednictvím e-mailů uvedených v tomto článku: office@reli.one, storage@czech-storage.com, accounting@reli.one, support600.reli@gmail.com.",
+        "part4": "13.4. Smluvní strany se zavazují, že v případě změny své poštovní adresy, e-mailové adresy nebo jakýchkoli jiných identifikačních údajů, informují druhou smluvní stranu o této změně nejpozději do tří (3) pracovních dnů.",
+        "part5": "13.5. Dodavatel se zavazuje, že v případě svého úpadku, hrozícího úpadku, podání insolvenčního návrhu proti Dodavateli nebo návrhu na vymáhání rozhodnutí proti dodavateli, informuje o této skutečnosti Odběratele bez zbytečného odkladu, nejpozději však do tří (3) pracovních dnů."
+    },
+    "final": {
+        "title": "14. Závěrečná ustanovení",
+        "part1": "14.1. Smluvní strany se zavazují řešit všechny spory vzniklé ze Smlouvy a v souvislosti s ní především smírnou cestou. Nedojde-li k takovému řešení, rozhodne o sporu místně a věcně příslušný soud v České republice.",
+        "part2": "14.2. Smluvní strany se dohodly, že Dodavatel není oprávněn postoupit peněžité nároky vůči Odběrateli třetí osobě bez předchozího písemného souhlasu Odběratele.",
+        "part3": "14.3. Dodavatel tímto souhlasí, že Odběratel je oprávněn započíst jakýkoli svůj nárok vůči Dodavateli vzniklý ze Smlouvy a/nebo Dílčích smluv a/nebo Smlouvy proti nárokům Dodavatele vůči Odběrateli vzniklým ze Smlouvy a/nebo Dílčích smluv a/nebo Smlouvy, včetně nezaplacených nároků. Odběratel je oprávněn jednostranně změnit tyto Všeobecné obchodní podmínky. V takovém případě informuje Odběratel Dodavatele nejméně deset (10) pracovních dnů před účinností nové verze Všeobecných obchodních podmínek. Dodavatel má právo Smlouvu vypovědět z důvodu změny Všeobecných obchodních podmínek k datu účinnosti nové verze Všeobecných obchodních podmínek, tak, aby Smlouva zanikla k datu účinnosti nové verze Všeobecných obchodních podmínek. Pokud nebude Smlouva vypovězena z důvodu změny Všeobecných obchodních podmínek, tyto nové podmínky nabydou účinnosti pro další transakce mezi Odběratelem a Dodavatelem. Jednostranné změny těchto podmínek mohou zahrnovat například změny podmínek čl. 7 těchto Všeobecné obchodní podmínky.",
+        "part4": "14.4. Všechna práva a povinnosti vyplývající ze Smlouvy přecházejí, pokud povaha těchto práv a povinností nebrání jejich přechodu, na právní nástupce smluvních stran. Dodavatel však nesmí postoupit ani převést žádnou ze svých povinností vyplývajících ze Smlouvy bez předchozího písemného souhlasu Odběratele.",
+        "part5": "14.5. Práva a povinnosti smluvních stran, které nejsou výslovně upraveny Smlouvou, se řídí příslušnými obecně závaznými právními předpisy České republiky. V případě ochrany práv spotřebitelů v rámci Evropské unie a Evropského hospodářského prostoru se použijí příslušná ustanovení národních právních řádů. Smluvní strany se dohodly, že ustanovení Úmluvy OSN o smlouvách o mezinárodní koupi zboží se nepoužijí.",
+        "part6": "14.6. Tyto Všeobecné obchodní podmínky nabývají účinnosti dnem podpisu oběma smluvními stranami. Dnem uskutečnění zdanitelného plnění je den, kdy Odběratel nabude vlastnické právo k Zboží."
+    },
+    "dataProtectionContact": {
+        "title": "Kontakt pro ochranu osobních údajů",
+        "company": "Reli Group s.r.o.",
+        "id": "IČO: 280 03 896",
+        "address": "Sídlo: Na lysinách 551/34, Hodkovičky, 147 00 Praha 4",
+        "email": "E-mail: office@reli.one"
+    }
+}

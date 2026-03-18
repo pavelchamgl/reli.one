@@ -120,7 +120,7 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <Link to={"/terms"} className={cls.LinkNavigate} href="#">
+              <Link to={"/new-term"} className={cls.LinkNavigate} href="#">
                 {t("for_buyers")}
               </Link>
             </li>
@@ -260,7 +260,7 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to={"/terms"} className={cls.LinkNavigate} href="#">
+                <Link to={"/new-term"} className={cls.LinkNavigate} href="#">
                   {t("for_buyers")}
                 </Link>
               </li>

@@ -91,9 +91,9 @@ const LoginForm = () => {
                     }
                     if (nextStep === 'review') {
                         if (sellerType === 'company') {
-                            navigate("/seller/seller-review");
-                        } else {
                             navigate("/seller/seller-review-company");
+                        } else {
+                            navigate("/seller/seller-review");
                         }
                     }
                 }
