@@ -24,9 +24,7 @@ const GoodsCardNotModer = ({ item, isLoading }) => {
     return (
         <>
             <div className={styles.main}>
-                <div className={styles.imageDiv}>
-                    <img src={item?.image} alt="" />
-                </div>
+                <img className={styles.imageDiv} src={item?.image} alt="" />
                 <div className={styles.priceDiv}>
                     {/* {item ? <p>{`${item?.price}€`}</p> : <></>} */}
                 </div>

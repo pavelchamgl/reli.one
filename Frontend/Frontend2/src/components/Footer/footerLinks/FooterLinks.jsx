@@ -37,7 +37,7 @@ const FooterLinks = () => {
     const links2 = [
         {
             title: t("footer.columns.legal.links.link1"),
-            url: "/terms"
+            url: "/new-term"
         },
         {
             title: t("footer.columns.legal.links.link2"),

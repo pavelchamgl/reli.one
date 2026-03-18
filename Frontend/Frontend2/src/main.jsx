@@ -11,6 +11,7 @@ import ContactPage from './pages/ContactPage/ContactPage.jsx';
 import PricingAndCommision from './pages/PricingAndCommission/PricingAndCommision.jsx';
 import TermsPage from './pages/TermsPage/TermsPage.jsx';
 import PrivacyPage from './pages/PrivacyPage/PrivacyPage.jsx';
+import NewTermPage from './pages/NewTermPage/NewTermPage.jsx';
 
 
 const router = createBrowserRouter([
@@ -41,6 +42,10 @@ const router = createBrowserRouter([
   {
     path: "/policy",
     element: <PrivacyPage />
+  },
+  {
+    path: '/new-term',
+    element: <NewTermPage />
   }
 ])
 

@@ -21,6 +21,8 @@ import termsEn from "./en/terms.json"
 import termsCz from "./cz/terms.json"
 import policyEn from "./en/privacyPolicyEn.json"
 import policyCz from "./cz/privacyPolicyCz.json"
+import genTermEn from "./en/termsEn.json"
+import genTermCz from "./cz/termsCz.json"
 
 
 
@@ -36,7 +38,8 @@ const resources = {
         footer: footerEn,
         contact: contactEn,
         terms: termsEn,
-        policy: policyEn
+        policy: policyEn,
+        term: genTermEn
     },
     cz: {
         translation: translationCz,
@@ -48,7 +51,8 @@ const resources = {
         footer: footerCz,
         contact: contactCz,
         terms: termsCz,
-        policy: policyCz
+        policy: policyCz,
+        term: genTermCz
 
     }
 };

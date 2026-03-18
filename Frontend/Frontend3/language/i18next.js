@@ -13,7 +13,8 @@ import generalTermsEn from "../src/locales/en/generalTermsEn.json";
 import generalTermsCz from "../src/locales/cz/generalTermsCz.json";
 import claimEn from "../src/locales/en/claimEn.json";
 import claimCz from "../src/locales/cz/claimCz.json";
-
+import termsEn from "../src/locales/en/terms.json";
+import termsCz from "../src/locales/cz/terms.json";
 
 const resources = {
   en: {
@@ -22,7 +23,8 @@ const resources = {
     newSeller: newSellerEn,
     policy: privacyPolicyEn,
     terms:generalTermsEn,
-    claim:claimEn
+    claim:claimEn,
+    newTerm:termsEn
   },
   cz: {
     translation: translationCz,
@@ -30,7 +32,8 @@ const resources = {
     newSeller: newSellerCz,
     policy: privacyPolicyCz,
     terms:generalTermsCz,
-    claim:claimCz
+    claim:claimCz,
+    newTerm:termsCz
   },
 };
 
