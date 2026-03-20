@@ -11,8 +11,6 @@ load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
 SECURE_SSL_REDIRECT = False
 
 # Media files
@@ -36,7 +34,7 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 USE_X_FORWARDED_HOST = True
-SECURE_PROXY_SSL_HEADER = ('X-FORWARDED-PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
@@ -169,7 +167,7 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=20),
 }
 
-SITE_ID = 1
+SITE_ID = 2
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -197,19 +195,6 @@ REST_AUTH = {
 }
 
 REST_USE_JWT = True
-
-SOCIALACCOUNT_PROVIDERS = {
-    "facebook": {
-        "APP": {
-            "client_id": "твоя ID",
-            "secret": "твой секрет",
-            "key": ""
-        },
-        "SCOPE": ["email"],
-        "FIELDS": ["email", "name", "first_name", "last_name"],
-        "AUTH_PARAMS": {"auth_type": "reauthenticate"},
-    }
-}
 
 SOCIALACCOUNT_ADAPTER = 'allauth.socialaccount.adapter.DefaultSocialAccountAdapter'
 SOCIALACCOUNT_AUTO_SIGNUP = True
