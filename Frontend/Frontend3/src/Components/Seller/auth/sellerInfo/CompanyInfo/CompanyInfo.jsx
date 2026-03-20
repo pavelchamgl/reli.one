@@ -13,19 +13,15 @@ import UploadInp from "../uploadInp/UploadInp"
 import styles from "./CompanyInfo.module.scss"
 import { putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
+import { useLocation } from "react-router-dom"
 
 const CompanyInfo = ({ formik, onClosePreview }) => {
-
-
 
     const { companyData } = useSelector(state => state.selfEmploed)
 
     const { safeCompanyData } = useActionSafeEmploed()
 
-
-
     const [country, setCountry] = useState(companyData?.country_of_registration ?? null)
-    const [legal, setLegal] = useState(companyData?.legal_form ?? null)
 
     const isCompanyFilled = (values) => {
         return Boolean(
@@ -39,16 +35,20 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
 
     const companyRef = useRef(null)
 
+
+    const { pathname } = useLocation()
+
+
+
     const onLeaveCompanyBlock = async () => {
 
         const filled = isCompanyFilled(formik.values)
-
         if (!filled) return
 
         const payload = {
             company_name: formik.values.company_name,
-            legal_form: legal,
-            country_of_registration: country,
+            legal_form: formik.values.legal_form,
+            country_of_registration: formik.values.country_of_registration,
             business_id: formik.values.business_id,
             ico: formik.values.ico,
             tin: formik.values?.tin,
@@ -59,8 +59,9 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
             certificate_issue_date: formik.values.certificate_issue_date,
         }
 
-        safeCompanyData(payload)
-
+        if (pathname === '/seller/seller-review-company') {
+            safeCompanyData(payload)
+        }
 
 
         try {
@@ -73,8 +74,6 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         } catch (err) {
             // ErrToast(err?.message || "Failed to save personal data");
         }
-
-
     }
 
 
@@ -88,27 +87,10 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
     ];
 
 
-
-    useEffect(() => {
-        if (legal !== null) {
-            safeCompanyData({ legal_form: legal })
-            formik.setFieldValue("legal_form", legal)
-        }
-    }, [legal])
-
-    useEffect(() => {
-        if (country !== null) {
-            safeCompanyData({ country_of_registration: country })
-            formik.setFieldValue("country_of_registration", country)
-        }
-    }, [country])
-
-
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
                 formik.setFieldValue("certificate_issue_date", res.uploaded_at)
-                safeCompanyData({ certificate_issue_date: res.uploaded_at })
             })
             .catch(err => {
                 ErrToast(err.message)
@@ -153,18 +135,26 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
 
 
                 <div className={styles.twoInpWrap}>
-                    <SellerInfoSellect arr={legalArr} title={"Legal form"}
+                    <SellerInfoSellect arr={legalArr}
+                        title={"Legal form"}
                         titleSellect={"Select legal form"}
-                        value={legal} setValue={setLegal}
+                        value={formik.values.legal_form}
+                        setValue={(v) => {
+                            setCountry(v)
+                            formik.setFieldValue('legal_form', v)
+                        }}
                         errText={"Legal form is required"}
                         style={{
                             height: "auto"
                         }}
                     />
 
-                    <SellerInfoSellect arr={countriesArr} title={"Country of registration"}
+                    <SellerInfoSellect
+                        arr={countriesArr}
+                        title={"Country of registration"}
                         titleSellect={"Select country"}
-                        value={country} setValue={setCountry}
+                        value={formik.values.country_of_registration}
+                        setValue={(v) => formik.setFieldValue('country_of_registration', v)}
                         errText={"Country of registration is required"}
                     />
                 </div>
@@ -181,8 +171,8 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                 />
 
                 {(country === "cz" || country === "sk") &&
-                    <InputSeller title={"IČO"} type={"text"} 
-                    circle={true} required={true} num={true}
+                    <InputSeller title={"IČO"} type={"text"}
+                        circle={true} required={true} num={true}
                         placeholder={"123456789"}
                         name="ico"
                         value={formik.values.ico}
@@ -190,7 +180,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         onBlur={formik.handleBlur}
                         error={formik.errors.ico}
                         touched={formik.touched.ico}
-                        
+
 
                     />
                 }

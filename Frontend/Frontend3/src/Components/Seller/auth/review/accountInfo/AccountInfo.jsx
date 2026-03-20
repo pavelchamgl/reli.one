@@ -12,6 +12,11 @@ const AccountInfo = ({ data, type, isCompany, setOpen }) => {
 
     const { registerData, selfData, companyData } = useSelector(state => state.selfEmploed)
 
+    const firstName = JSON.parse(localStorage.getItem('first_name')) || ""
+    const lastName = JSON.parse(localStorage.getItem('last_name')) || ""
+    const phone = JSON.parse(localStorage.getItem('phone')) || ""
+    const email = JSON.parse(localStorage.getItem('email')) || ""
+
 
     console.log(data);
 
@@ -36,7 +41,7 @@ const AccountInfo = ({ data, type, isCompany, setOpen }) => {
             <ul className={styles.infoList}>
                 <li>
                     <p>Name</p>
-                    <span>{`${data?.first_name} ${data?.last_name}`}</span>
+                    <span>{`${firstName} ${lastName}`}</span>
                 </li>
                 <li>
                     <p>Date of birth</p>
@@ -44,7 +49,7 @@ const AccountInfo = ({ data, type, isCompany, setOpen }) => {
                 </li>
                 <li>
                     <p>Email</p>
-                    <span>{registerData?.email ? registerData?.email : "1@gmail.com"}</span>
+                    <span>{email ? email : "1@gmail.com"}</span>
                 </li>
                 {
                     isCompany &&

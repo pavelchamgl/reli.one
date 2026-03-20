@@ -13,15 +13,13 @@ import SellerDateInp from "../dateInp/DateInp"
 import { putRepresentative, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr } from "../../../../../code/seller"
 import { ErrToast } from "../../../../../ui/Toastify"
+import { useLocation } from "react-router-dom"
 
 const Representative = ({ formik, onClosePreview }) => {
 
     const { companyData } = useSelector(state => state.selfEmploed)
 
-    const { safeCompanyData, setRegisterData } = useActionSafeEmploed()
-
-    const [role, setRole] = useState(companyData?.role ?? null)
-    const [nationality, setNationality] = useState(companyData?.nationality ?? null)
+    const { safeCompanyData } = useActionSafeEmploed()
 
     const isRepresentativeFilled = (values) => {
         return Boolean(
@@ -33,32 +31,27 @@ const Representative = ({ formik, onClosePreview }) => {
 
     const representativeRef = useRef(null)
 
+    const { pathname } = useLocation()
+
     const onLeavePersonalBlock = async () => {
 
         const filled = isRepresentativeFilled(formik.values)
-
-
-
         if (!filled) return
 
         const payload = {
             first_name: formik.values.first_name,
             last_name: formik.values.last_name,
-            role: role,
+            role: formik.values.role,
             date_of_birth: formik.values.date_of_birth,
-            nationality: nationality
+            nationality: formik.values.nationality
         }
 
+        if (pathname === '/seller/seller-review-company') {
+            safeCompanyData(payload)
+        }
 
-        safeCompanyData(payload)
-
-        setRegisterData({
-            first_name: payload.first_name,
-            last_name: payload.last_name,
-        })
-
-
-
+        localStorage.setItem('first_name', JSON.stringify(payload.first_name))
+        localStorage.setItem('last_name', JSON.stringify(payload.last_name))
 
         try {
             await putRepresentative({
@@ -84,33 +77,15 @@ const Representative = ({ formik, onClosePreview }) => {
     ];
 
 
-
-    useEffect(() => {
-        if (role !== null) {
-            safeCompanyData({ role: role })
-            formik.setFieldValue("role", role)
-        }
-    }, [role])
-
-    useEffect(() => {
-        if (nationality !== null) {
-            safeCompanyData({ nationality: nationality })
-            formik.setFieldValue("nationality", nationality)
-        }
-    }, [nationality])
-
-
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
 
                 if (side === "front") {
                     formik.setFieldValue("uploadFront", res.uploaded_at)
-                    safeCompanyData({ uploadFront: res.uploaded_at })
                 }
                 if (side === "back") {
                     formik.setFieldValue("uploadBack", res.uploaded_at)
-                    safeCompanyData({ uploadBack: res.uploaded_at })
                 }
             })
             .catch(err => {
@@ -169,17 +144,23 @@ const Representative = ({ formik, onClosePreview }) => {
                     />
                 </div>
 
-                <SellerInfoSellect arr={roleArr} title={"Role"}
+                <SellerInfoSellect
+                    arr={roleArr}
+                    title={"Role"}
                     titleSellect={"Select role"}
-                    value={role} setValue={setRole}
+                    value={formik.values.role}
+                    setValue={(v) => formik.setFieldValue('role', v)}
                     errText={"Role is required"}
                 />
 
                 <div className={styles.twoInpWrap}>
                     <SellerDateInp formik={formik} />
-                    <SellerInfoSellect arr={countriesArr} title={"Nationality"}
+                    <SellerInfoSellect
+                        arr={countriesArr}
+                        title={"Nationality"}
                         titleSellect={"Select nationality"}
-                        value={nationality} setValue={setNationality}
+                        value={formik.values.nationality}
+                        setValue={(v) => formik.setFieldValue('nationality', v)}
                         errText={"Nationality is required"}
                     />
                 </div>

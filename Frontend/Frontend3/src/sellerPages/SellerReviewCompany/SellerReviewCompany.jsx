@@ -31,9 +31,10 @@ const SellerReviewCompany = () => {
 
     const { companyData, registerData } = useSelector(state => state.selfEmploed)
 
-    const { safeCompanyData } = useActionSafeEmploed()
+    const { safeCompanyData, getAllCompanyDataBD } = useActionSafeEmploed()
 
-
+    const firstName = JSON.parse(localStorage.getItem('first_name')) || ""
+    const lastName = JSON.parse(localStorage.getItem('last_name')) || ""
 
     const formik = useFormik({
         initialValues: {
@@ -51,8 +52,8 @@ const SellerReviewCompany = () => {
             certificate_issue_date: companyData?.certificate_issue_date ?? "",   // ← выглядит нормально, если это дата выдачи сертификата
 
             // representative
-            first_name: registerData?.first_name ?? "",
-            last_name: registerData?.last_name ?? "",
+            first_name: firstName,
+            last_name: lastName,
             role: companyData?.role ?? "",
             date_of_birth: companyData?.date_of_birth ?? "",
             nationality: companyData?.nationality ?? "",
@@ -69,11 +70,11 @@ const SellerReviewCompany = () => {
 
 
             // bank
-            // iban: companyData?.iban ?? "",
-            // swift_bic: companyData?.swift_bic ?? "",
-            // account_holder: companyData?.account_holder ?? "",
-            // bank_code: companyData?.bank_code ?? "",
-            // local_account_number: companyData?.local_account_number ?? "",
+            iban: companyData?.iban ?? "",
+            swift_bic: companyData?.swift_bic ?? "",
+            account_holder: companyData?.account_holder ?? "",
+            bank_code: companyData?.bank_code ?? "",
+            local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
             wStreet: companyData?.wStreet ?? "",
@@ -84,6 +85,7 @@ const SellerReviewCompany = () => {
             wProof_document_issue_date: companyData?.wProof_document_issue_date ?? "",
 
             // return
+            same_as_warehouse: companyData?.same_as_warehouse ?? false,
             rStreet: companyData?.rStreet ?? "",
             rCity: companyData?.rCity ?? "",
             rZip_code: companyData?.rZip_code ?? "",
@@ -93,8 +95,9 @@ const SellerReviewCompany = () => {
 
         },
         validationSchema: companyValidationSchema,
-        // validateOnMount: false,
+        enableReinitialize: true,
         validateOnChange: true,
+        // validateOnMount: false,
         // validateOnBlur: true,
         onSubmit: async (values) => {
             safeCompanyData({
@@ -118,9 +121,8 @@ const SellerReviewCompany = () => {
 
     useEffect(() => {
         getReviewOnboarding()
-        getBankData().then((res) => {
-            setBankData(res)
-        })
+        getAllCompanyDataBD()
+
     }, [])
 
     const navigate = useNavigate()
@@ -193,8 +195,8 @@ const SellerReviewCompany = () => {
             const requests = [
                 putCompanyInfo({
                     company_name: values.company_name,
-                    legal_form: companyData?.legal_form,
-                    country_of_registration: companyData?.country_of_registration,
+                    legal_form: values?.legal_form,
+                    country_of_registration: values?.country_of_registration,
                     business_id: values?.business_id,
                     ico: values?.ico,
                     tin: values?.tin,
@@ -207,38 +209,38 @@ const SellerReviewCompany = () => {
                 putRepresentative({
                     first_name: values?.first_name,
                     last_name: values?.last_name,
-                    role: companyData?.role,
+                    role: values?.role,
                     date_of_birth: values?.date_of_birth?.split(".")?.reverse()?.join("-"),
-                    nationality: companyData?.nationality,
+                    nationality: values?.nationality,
                 }),
                 putCompanyAddress({
                     street: values.street,
                     city: values.city,
                     zip_code: values.zip_code,
-                    country: companyData?.country,
+                    country: values?.country,
                     proof_document_issue_date: toISODate(values.proof_document_issue_date),
                 }),
                 putOnboardingBank({
-                    iban: bankData?.iban,
-                    swift_bic: bankData?.swift_bic,
-                    account_holder: bankData?.account_holder,
-                    bank_code: bankData?.bank_code,
-                    local_account_number: bankData?.local_account_number,
+                    iban: values?.iban,
+                    swift_bic: values?.swift_bic,
+                    account_holder: values?.account_holder,
+                    bank_code: values?.bank_code,
+                    local_account_number: values?.local_account_number,
                 }),
                 putWarehouse({
                     street: values.wStreet,
                     city: values.wCity,
                     zip_code: values.wZip_code,
-                    country: companyData.wCountry,
+                    country: values.wCountry,
                     contact_phone: values.contact_phone,
                     proof_document_issue_date: toISODate(values.wProof_document_issue_date),
                 }),
                 putReturnAddress({
-                    same_as_warehouse: companyData.same_as_warehouse,
+                    same_as_warehouse: values.same_as_warehouse,
                     street: values.rStreet,
                     city: values.rCity,
                     zip_code: values.rZip_code,
-                    country: companyData.rCountry,
+                    country: values.rCountry,
                     contact_phone: values.rContact_phone,
                     proof_document_issue_date: "2026-01-13",
                 }),
@@ -333,12 +335,9 @@ const SellerReviewCompany = () => {
                         <BankAccountEdit
                             onClosePreview={() => setOpenBank(false)}
                             formik={formik}
-                            data={bankData}
-                            setData={setBankData}
-                            errors={errors} setErrors={setErrors}
                         />
                         :
-                        <BankAccount setOpen={setOpenBank} data={bankData} />
+                        <BankAccount setOpen={setOpenBank} data={companyData} />
                 }
 
                 {
@@ -348,7 +347,7 @@ const SellerReviewCompany = () => {
                             <ReturnAddress formik={formik} />
                         </>
                         :
-                        <WarehouseAndReturn setOpen={setOpenWarehouse} data={companyData} />
+                        <WarehouseAndReturn setOpen={setOpenWarehouse} data={companyData} isCompany={true} />
                 }
 
                 <SubBtn onClick={handleSubmit} />

@@ -37,7 +37,7 @@ const persistConfig = {
     key: 'root',
     storage,
     version: PERSIST_VERSION,
-    whitelist: ['basket', 'payment', 'selfEmploed', "edit_goods"], // только эти слайсы сохраняются
+    whitelist: ['basket', 'payment', "edit_goods"], // только эти слайсы сохраняются
     migrate: createMigrate(migrations, { debug: false }),
 
 }

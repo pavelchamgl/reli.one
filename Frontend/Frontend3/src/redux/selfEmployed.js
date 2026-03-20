@@ -9,6 +9,7 @@ export const getAllDataFromBD = createAsyncThunk(
             getPersonalData(),
             getTaxData(),
             getSelfAddressData(),
+            getBankData(),
             getWarehouseData(),
             getReturnData(),
             getDocumentsData()
@@ -42,6 +43,7 @@ export const getAllCompanyDataBD = createAsyncThunk(
             getCompanyInfo(),
             getRepresentativeData(),
             getCompanyAddress(),
+            getBankData(),
             getWarehouseData(),
             getReturnData(),
             getDocumentsData()
@@ -110,7 +112,7 @@ const selfEmploedSlice = createSlice({
         })
         builder.addCase(getAllDataFromBD.fulfilled, (state, action) => {
             state.selfDataLoading = false
-            const [personal, tax, selfAddress, warehouse, returnAddress, documents] = action.payload
+            const [personal, tax, selfAddress, bank, warehouse, returnAddress, documents] = action.payload
 
             console.log(documents);
 
@@ -189,6 +191,7 @@ const selfEmploedSlice = createSlice({
             state.selfData = {
                 ...state.selfData,
                 ...selfAddress,
+                ...bank,
                 ...tax,
                 ...personal,
             }
@@ -201,9 +204,8 @@ const selfEmploedSlice = createSlice({
 
         builder.addCase(getAllCompanyDataBD.fulfilled, (state, action) => {
             state.companyDataLoading = false
-            const [companyInfo, representative, companyAddress, warehouse, returnAddress, documents] = action.payload
+            const [companyInfo, representative, companyAddress, bank, warehouse, returnAddress, documents] = action.payload
 
-            console.log(warehouse);
 
 
             if (documents && documents.length === 0) {
@@ -256,8 +258,6 @@ const selfEmploedSlice = createSlice({
 
 
                 if (warehouseDoc) {
-                    console.log("suck");
-
                     state.companyData.wProof_document_issue_date = warehouseDoc.uploaded_at
                     state.companyData.warehouse_name = state.companyData.warehouse_name ?? 'warehouse_address is upload at'
                 } else {
@@ -286,6 +286,7 @@ const selfEmploedSlice = createSlice({
                 ...companyInfo,
                 ...representative,
                 ...companyAddress,
+                ...bank
             }
         })
     }
