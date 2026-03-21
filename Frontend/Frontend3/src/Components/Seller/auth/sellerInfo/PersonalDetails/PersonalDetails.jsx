@@ -13,50 +13,54 @@ import { useSelector } from "react-redux";
 import { putPersonalData, uploadSingleDocument } from "../../../../../api/seller/onboarding";
 import { ErrToast } from "../../../../../ui/Toastify";
 import { countriesArr, toISODate } from "../../../../../code/seller";
+import {useLocation} from "react-router-dom"
 
 const PersonalDetails = ({ formik, onClosePreview }) => {
 
   const { selfData } = useSelector(state => state.selfEmploed)
   const { safeData, setRegisterData } = useActionSafeEmploed()
 
-
-  const [nationality, setNationality] = useState(selfData.nationality)
-
   const isPersonalDataFilled = (values) => {
     return Boolean(
       values.first_name &&
       values.last_name &&
       values.date_of_birth &&
-      values.personal_phone 
+      values.personal_phone
     )
   }
 
   const personalRef = useRef(null)
 
+  const {pathname} = useLocation()
+
+
   const onLeavePersonalBlock = async () => {
     const filled = isPersonalDataFilled(formik.values);
-    
 
-    console.log(filled);
-    
+
+
     if (!filled) return;
 
     const payload = {
       first_name: formik.values.first_name,
       last_name: formik.values.last_name,
       date_of_birth: formik.values?.date_of_birth,
-      nationality,
+      nationality: formik.values.nationality,
       personal_phone: formik.values.personal_phone,
       wProof_document_issue_date: toISODate(formik.values.uploadFront),
     };
 
-    safeData(payload);
-    setRegisterData({
-      first_name: payload.first_name,
-      last_name: payload.last_name,
-      phone: payload.personal_phone,
-    });
+    if(pathname === '/seller/seller-review'){
+      safeData(payload)
+    }
 
+
+
+
+
+    localStorage.setItem('first_name', JSON.stringify(payload.first_name))
+    localStorage.setItem('last_name', JSON.stringify(payload.last_name))
+    localStorage.setItem('phone', JSON.stringify(payload.personal_phone))
     try {
       await putPersonalData({
         date_of_birth: payload.date_of_birth?.split(".").reverse().join("-"),
@@ -70,32 +74,18 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
     }
   };
 
-
-
-
-
-
-  useEffect(() => {
-    safeData({ nationality: nationality })
-    formik.setFieldValue("nationality", nationality)
-  }, [nationality])
-
   const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
     uploadSingleDocument({ file, doc_type, scope, side })
       .then(res => {
 
         if (res.side === "front") {
           formik.setFieldValue("uploadFront", res.uploaded_at)
-          safeData({ uploadFront: res.uploaded_at })
         }
 
         if (res.side === "back") {
           formik.setFieldValue("uploadBack", res.uploaded_at)
-          safeData({ uploadBack: res.uploaded_at })
-
         }
 
-        console.log("Документ загружен", res);
       })
       .catch(err => {
         ErrToast(err.message)
@@ -163,11 +153,12 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
           />
         </div>
 
-        <SellerInfoSellect arr={countriesArr}
+        <SellerInfoSellect
+          arr={countriesArr}
           title={"Nationality"}
           titleSellect={"Select nationality"}
-          value={nationality}
-          setValue={setNationality}
+          value={formik.values.nationality}
+          setValue={(v) => formik.setFieldValue("nationality", v)}
           errText={"Nationality is required"}
         />
 

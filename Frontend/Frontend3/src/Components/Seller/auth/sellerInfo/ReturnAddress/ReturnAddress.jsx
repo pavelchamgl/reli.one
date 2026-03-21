@@ -15,146 +15,27 @@ import { countriesArr, toISODate } from "../../../../../code/seller"
 
 const ReturnAddress = ({ formik }) => {
 
-    const { pathname } = useLocation()
-
-    const companyPathname = '/seller/seller-company'
-
-    const { selfData, companyData } = useSelector(state => state.selfEmploed)
-
-    const sourceData = pathname === companyPathname ? companyData : selfData
-
-    const [isCheked, setIsChecked] = useState(
-        Boolean(sourceData?.same_as_warehouse)
-    );
-
-
-
-    const [country, setCountry] = useState(
-        isCheked
-            ? sourceData?.wCountry ?? null
-            : sourceData?.rCountry ?? null
-    )
-
-
-    const { safeData, safeCompanyData } = useActionSafeEmploed()
-
-    useEffect(() => {
-        setIsChecked(Boolean(sourceData?.same_as_warehouse));
-    }, [sourceData?.same_as_warehouse, pathname]);
-
-    // useEffect(() => {
-    //     if (pathname === companyPathname) {
-    //         safeCompanyData({ rCountry: country })
-    //         formik.setFieldValue("rCountry", country)
-
-
-    //     } else {
-    //         safeData({ rCountry: country })
-    //         formik.setFieldValue("rCountry", country)
-
-    //     }
-    // }, [country])
-
-    useEffect(() => {
-        // if (isCheked) {
-        //     setCountry(selfData.wCountry)
-        // } else {
-        //     setCountry(selfData.rCountry)
-        // }
-
-        if (pathname === companyPathname) {
-            safeCompanyData({ same_as_warehouse: isCheked })
-        } else {
-            safeData({ same_as_warehouse: isCheked })
-        }
-
-    }, [isCheked])
-
-    // const handleSameAsWarehouse = async (checked) => {
-    //     setIsChecked(checked)
-
-
-
-
-
-    //     if (!checked) {
-    //         formik.setFieldValue("rStreet", "", true)
-    //         formik.setFieldValue("rCity", "", true)
-    //         formik.setFieldValue("rZip_code", "", true)
-    //         formik.setFieldValue("rCountry", null, true)
-    //         formik.setFieldValue("rContact_phone", "", true)
-    //     } else {
-    //         formik.setFieldValue("rStreet", sourceData.wStreet, true)
-    //         formik.setFieldValue("rCity", sourceData.wCity, true)
-    //         formik.setFieldValue("rZip_code", sourceData.wZip_code, true)
-    //         formik.setFieldValue("rCountry", sourceData.wCountry, true)
-    //         formik.setFieldValue("rContact_phone", sourceData.contact_phone, true)
-    //     }
-
-    //     await formik.validateForm()
-
-    // }
-
-    useEffect(() => {
-        console.log(formik.values);
-
-    }, [formik.values])
 
     const handleSameAsWarehouse = (checked) => {
-        setIsChecked(checked)
+        formik.setFieldValue('same_as_warehouse', checked)
 
         if (!checked) {
-
             formik.setFieldValue("rStreet", "")
             formik.setFieldValue("rCity", "")
             formik.setFieldValue("rZip_code", "")
             formik.setFieldValue("rCountry", null)
             formik.setFieldValue("rContact_phone", "")
-
-
-            if (pathname === companyPathname) {
-                safeCompanyData({
-                    rStreet: '',
-                    rCity: '',
-                    rZip_code: '',
-                    rCountry: '',
-                    rContact_phone: ''
-                })
-            } else {
-                safeData({
-                    rStreet: '',
-                    rCity: '',
-                    rZip_code: '',
-                    rCountry: '',
-                    rContact_phone: ''
-                })
-            }
         } else {
+            formik.setFieldValue("rStreet", formik.values?.wStreet ?? "")
+            formik.setFieldValue("rCity", formik.values?.wCity ?? "")
+            formik.setFieldValue("rZip_code", formik.values?.wZip_code ?? "")
+            formik.setFieldValue("rCountry", formik.values?.wCountry ?? null)
+            formik.setFieldValue("rContact_phone", formik.values?.contact_phone ?? "")
 
-            formik.setFieldValue("rStreet", sourceData?.wStreet ?? "")
-            formik.setFieldValue("rCity", sourceData?.wCity ?? "")
-            formik.setFieldValue("rZip_code", sourceData?.wZip_code ?? "")
-            formik.setFieldValue("rCountry", sourceData?.wCountry ?? null)
-            formik.setFieldValue("rContact_phone", sourceData?.contact_phone ?? "")
-
-            if (pathname === companyPathname) {
-                safeCompanyData({
-                    rStreet: sourceData?.wStreet ?? '',
-                    rCity: sourceData?.wCity ?? '',
-                    rZip_code: sourceData?.wZip_code ?? '',
-                    rCountry: sourceData?.wCountry ?? '',
-                    rContact_phone: sourceData.contact_phone ?? ''
-                })
-            } else {
-                safeData({
-                    rStreet: sourceData?.wStreet ?? '',
-                    rCity: sourceData?.wCity ?? '',
-                    rZip_code: sourceData?.wZip_code ?? '',
-                    rCountry: sourceData?.wCountry ?? '',
-                    rContact_phone: sourceData.contact_phone ?? ''
-                })
-            }
         }
+        setTimeout(() => {
+            formik.validateForm()
+        }, 0)
     }
 
     const isReturnFilled = (values) => {
@@ -178,21 +59,13 @@ const ReturnAddress = ({ formik }) => {
         if (!filled) return
 
         const payload = {
-            same_as_warehouse: isCheked,
+            same_as_warehouse: formik.values.same_as_warehouse,
             street: formik.values.rStreet,
             city: formik.values.rCity,
             zip_code: formik.values.rZip_code,
             country: formik.values.rCountry,
             contact_phone: formik.values.rContact_phone,
             proof_document_issue_date: toISODate(formik.values.wProof_document_issue_date)
-        }
-
-
-
-        if (pathname === companyPathname) {
-            safeCompanyData(payload)
-        } else {
-            safeData(payload)
         }
 
 
@@ -220,7 +93,7 @@ const ReturnAddress = ({ formik }) => {
             </div>
 
             <label className={styles.checkWrap}>
-                <Checkbox checked={isCheked} onChange={(e) => handleSameAsWarehouse(e.target.checked)} />
+                <Checkbox checked={formik.values.same_as_warehouse} onChange={(e) => handleSameAsWarehouse(e.target.checked)} />
                 <p>Same as warehouse address</p>
             </label>
 

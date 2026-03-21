@@ -20,28 +20,28 @@ import { validationSchemaSelf } from "../../code/seller/validation"
 import { useEffect, useState } from "react"
 import { ErrToast } from "../../ui/Toastify"
 import { toISODate } from "../../code/seller"
-import { getBankData } from "../../api/seller/getOnboardingData"
 
 const SellerInformation = () => {
+
+    const firstName = JSON.parse(localStorage.getItem('first_name')) || ""
+    const lastName = JSON.parse(localStorage.getItem('last_name')) || ""
+    const phone = JSON.parse(localStorage.getItem('phone')) || ""
 
     const { safeData, getAllDataFromBD } = useActionSafeEmploed()
 
     const navigate = useNavigate()
 
-    const { selfData, registerData, selfDataLoading } = useSelector(state => state.selfEmploed)
-
-    const [bankData, setBankData] = useState(null)
-    const [errors, setErrors] = useState({})
+    const { selfData, selfDataLoading } = useSelector(state => state.selfEmploed)
 
     const formik = useFormik({
         initialValues: {
 
             // personal
-            first_name: registerData?.first_name ?? "",
-            last_name: registerData?.last_name ?? "",
+            first_name: firstName,
+            last_name: lastName,
             date_of_birth: selfData?.date_of_birth ?? "",
             nationality: selfData?.nationality ?? "",
-            personal_phone: registerData?.phone ?? "",
+            personal_phone: phone,
             uploadFront: selfData?.uploadFront ?? "",
             uploadBack: selfData?.uploadBack ?? "",
 
@@ -59,11 +59,11 @@ const SellerInformation = () => {
             proof_document_issue_date: selfData.proof_document_issue_date ?? "",
 
             // bank
-            // iban: selfData?.iban ?? "",
-            // swift_bic: selfData?.swift_bic ?? "",
-            // account_holder: selfData?.account_holder ?? "",
-            // bank_code: selfData?.bank_code ?? "",
-            // local_account_number: selfData?.local_account_number ?? "",
+            iban: selfData?.iban ?? "",
+            swift_bic: selfData?.swift_bic ?? "",
+            account_holder: selfData?.account_holder ?? "",
+            bank_code: selfData?.bank_code ?? "",
+            local_account_number: selfData?.local_account_number ?? "",
 
             // warehouse
             wStreet: selfData?.wStreet ?? "",
@@ -74,6 +74,7 @@ const SellerInformation = () => {
             wProof_document_issue_date: selfData?.wProof_document_issue_date ?? "",
 
             // return
+            same_as_warehouse:selfData?.same_as_warehouse ?? false,
             rStreet: selfData?.rStreet ?? "",
             rCity: selfData?.rCity ?? "",
             rZip_code: selfData?.rZip_code ?? "",
@@ -82,13 +83,16 @@ const SellerInformation = () => {
             rProof_document_issue_date: selfData?.rProof_document_issue_date ?? ""
         },
         validationSchema: validationSchemaSelf,
-        // enableReinitialize: true,
+        enableReinitialize: true,
         validateOnChange: true,
         // validateOnMount: false,
-        // validateOnChange: false,
+        validateOnChange: true,
         // validateOnBlur: true,
         onSubmit: async (values) => {
             safeData(values);
+            localStorage.setItem('first_name', JSON.stringify(values.first_name))
+            localStorage.setItem('last_name', JSON.stringify(values.last_name))
+            localStorage.setItem('phone', JSON.stringify(values.personal_phone))
 
             // массив промисов с описанием
             const requests = [
@@ -99,14 +103,14 @@ const SellerInformation = () => {
                             ?.split(".")
                             .reverse()
                             .join("-"),
-                        nationality: selfData.nationality,
+                        nationality: values.nationality,
                         personal_phone: values.personal_phone
                     })
                 },
                 {
                     name: "Tax Info",
                     promise: putTax({
-                        tax_country: selfData.tax_country,
+                        tax_country: values.tax_country,
                         tin: values.tin,
                         ico: (selfData.tax_country === "cz" || selfData.tax_country === "sk") ? "" : values.ico,
                         vat_id: values.vat_id
@@ -118,18 +122,18 @@ const SellerInformation = () => {
                         street: values.street,
                         city: values.city,
                         zip_code: values.zip_code,
-                        country: selfData.country,
+                        country: values.country,
                         proof_document_issue_date: toISODate(values.proof_document_issue_date)
                     })
                 },
                 {
                     name: "Bank Account",
                     promise: putOnboardingBank({
-                        iban: bankData?.iban,
-                        swift_bic: bankData?.swift_bic,
-                        account_holder: bankData?.account_holder,
-                        bank_code: bankData?.bank_code,
-                        local_account_number: bankData?.local_account_number
+                        iban: values?.iban,
+                        swift_bic: values?.swift_bic,
+                        account_holder: values?.account_holder,
+                        bank_code: values?.bank_code,
+                        local_account_number: values?.local_account_number
                     })
                 },
                 {
@@ -138,7 +142,7 @@ const SellerInformation = () => {
                         street: values.wStreet,
                         city: values.wCity,
                         zip_code: values.wZip_code,
-                        country: selfData.wCountry,
+                        country: values.wCountry,
                         contact_phone: values.contact_phone,
                         proof_document_issue_date: toISODate(values.wProof_document_issue_date)
                     })
@@ -146,11 +150,11 @@ const SellerInformation = () => {
                 {
                     name: "Return Address",
                     promise: putReturnAddress({
-                        same_as_warehouse: selfData.same_as_warehouse,
+                        same_as_warehouse: values.same_as_warehouse,
                         street: values.rStreet,
                         city: values.rCity,
                         zip_code: values.rZip_code,
-                        country: selfData.rCountry,
+                        country: values.rCountry,
                         contact_phone: values.rContact_phone,
                         proof_document_issue_date: "2026-01-13"
                     })
@@ -193,22 +197,7 @@ const SellerInformation = () => {
 
     useEffect(() => {
         getAllDataFromBD()
-        getBankData().then((res) => {
-            console.log(res);
-
-            setBankData(res)
-        })
     }, [])
-
-    const isBankValid = (data) => {
-        if (!data) return false
-
-        return (
-            data.iban?.trim() &&
-            data.swift_bic?.trim() &&
-            data.account_holder?.trim()
-        )
-    }
 
 
     if (!selfDataLoading) {
@@ -228,17 +217,14 @@ const SellerInformation = () => {
 
                     <AddressBlock formik={formik} />
 
-                    <BankAccount formik={formik}
-                        data={bankData} setData={setBankData}
-                        errors={errors} setErrors={setErrors}
-                    />
+                    <BankAccount formik={formik} />
 
                     <WhareHouseAddress formik={formik} />
 
                     <ReturnAddress formik={formik} />
 
                     <AuthBtnSeller
-                        disabled={!isBankValid(bankData)}
+                        disabled={!formik.isValid}
                         text={"Continue to Review"}
                         style={{ borderRadius: "16px", width: "222px" }}
                         handleClick={formik.handleSubmit}

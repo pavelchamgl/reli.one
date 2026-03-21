@@ -59,6 +59,8 @@ const LoginForm = () => {
                 const res = await login(values)
                 localStorage.setItem("token", JSON.stringify(res.data));
                 localStorage.setItem("email", JSON.stringify(values.email));
+                
+                
                 dispatch(syncBasket())
                 setIsLoading(false)
 

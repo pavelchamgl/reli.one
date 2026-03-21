@@ -11,6 +11,7 @@ import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 import styles from "./Address.module.scss"
 import { putSelfAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
+import { useLocation } from "react-router-dom"
 
 const AddressBlock = ({ formik, onClosePreview }) => {
 
@@ -18,24 +19,12 @@ const AddressBlock = ({ formik, onClosePreview }) => {
 
     const { safeData } = useActionSafeEmploed()
 
-    const [country, setCountry] = useState(formik.values.country ?? null)
-
-
-
-
-    useEffect(() => {
-        safeData({ country: country })
-        formik.setFieldValue("country", country)
-    }, [country])
 
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
-
                 formik.setFieldValue("proof_document_issue_date", res.uploaded_at)
-                safeData({ proof_document_issue_date: res.uploaded_at })
-
-
+                // safeData({ proof_document_issue_date: res.uploaded_at })
             })
             .catch(err => {
                 ErrToast(err.message)
@@ -48,16 +37,20 @@ const AddressBlock = ({ formik, onClosePreview }) => {
             values.street,
             values.city,
             values.zip_code,
-            country
+            values.country
         )
     }
 
     const addressRef = useRef(null)
 
+    const { pathname } = useLocation()
+
 
     const onLeaveAddressBlock = async () => {
 
         const filled = isAddressFilled(formik.values)
+
+
 
 
 
@@ -67,14 +60,13 @@ const AddressBlock = ({ formik, onClosePreview }) => {
             street: formik.values.street,
             city: formik.values.city,
             zip_code: formik.values.zip_code,
-            country: country,
+            country: formik.values.country,
             proof_document_issue_date: toISODate(formik.values.proof_document_issue_date)
         }
 
-
-        safeData(payload)
-
-
+        if (pathname === '/seller/seller-review') {
+            safeData(payload)
+        }
 
 
         try {
@@ -147,8 +139,11 @@ const AddressBlock = ({ formik, onClosePreview }) => {
 
                     />
 
-                    <SellerInfoSellect arr={countriesArr} value={country}
-                        setValue={setCountry} title={"Country"}
+                    <SellerInfoSellect
+                        arr={countriesArr}
+                        value={formik.values.country}
+                        setValue={(v) => formik.setFieldValue('country', v)}
+                        title={"Country"}
                         titleSellect={"Select"}
                         errText={"Country is required"}
                     />

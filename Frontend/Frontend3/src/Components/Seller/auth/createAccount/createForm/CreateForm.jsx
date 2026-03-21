@@ -78,6 +78,9 @@ const CreateForm = () => {
                 .then((res) => {
                     setRegErr("");
                     localStorage.setItem("email", JSON.stringify(values.email));
+                    localStorage.setItem('first_name', JSON.stringify(values.first_name))
+                    localStorage.setItem('last_name', JSON.stringify(values.last_name))
+                    localStorage.setItem('phone', JSON.stringify(values.phone))
                     setRegisterData({ ...values })
                     setIsLoading(false)
                     navigate("/seller/create-verify");

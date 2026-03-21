@@ -26,7 +26,6 @@ const WhareHouseAddress = ({ formik }) => {
         )
     }
 
-    const [date, setDate] = useState("")
 
     const warehouseRef = useRef(null)
 
@@ -37,14 +36,8 @@ const WhareHouseAddress = ({ formik }) => {
     const { selfData, companyData } = useSelector(state => state.selfEmploed)
    
     const resultData = companyPathname === pathname ? companyData : selfData
-
-    console.log(resultData);
     
 
-    const [country, setCountry] = useState(resultData.wCountry)
-
-
-    const { safeData, safeCompanyData } = useActionSafeEmploed()
 
     const onLeaveWarehouseBlock = () => {
 
@@ -59,12 +52,6 @@ const WhareHouseAddress = ({ formik }) => {
             wCountry: formik.values.wCountry,
             contact_phone: formik.values.contact_phone,
             wProof_document_issue_date: formik.values.wProof_document_issue_date
-        }
-
-        if (pathname === companyPathname) {
-            safeCompanyData(payload)
-        } else {
-            safeData(payload)
         }
 
         putWarehouse({
@@ -84,12 +71,7 @@ const WhareHouseAddress = ({ formik }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
                 formik.setFieldValue("wProof_document_issue_date", res.uploaded_at)
-                setDate(res?.uploaded_at)
-                if (pathname === companyPathname) {
-                    safeCompanyData({ wProof_document_issue_date: res?.uploaded_at })
-                } else {
-                    safeData({ wProof_document_issue_date: res?.uploaded_at })
-                }
+              
             })
             .catch(err => {
                 ErrToast(err.message)
@@ -154,7 +136,9 @@ const WhareHouseAddress = ({ formik }) => {
 
                     <InputSeller title={"ZIP"} type={"text"} circle={true} required={true}
                         placeholder={"602 00"}
-                        name="wZip_code" value={formik.values.wZip_code}
+                        name="wZip_code" 
+                        num={true}
+                        value={formik.values.wZip_code}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.wZip_code}
@@ -162,7 +146,8 @@ const WhareHouseAddress = ({ formik }) => {
 
                     />
 
-                    <SellerInfoSellect arr={countriesArr} value={formik.values.wCountry}
+                    <SellerInfoSellect arr={countriesArr} 
+                    value={formik.values.wCountry}
                         setValue={(t) => {
                             formik.setFieldValue("wCountry", t)
                         }} title={"Country"}

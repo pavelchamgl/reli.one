@@ -27,21 +27,25 @@ import WhareHouseAddress from "../../Components/Seller/auth/sellerInfo/WareHouse
 import ReturnAddress from "../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress"
 import { toISODate } from "../../code/seller"
 import { getBankData } from "../../api/seller/getOnboardingData"
+import { useActionSafeEmploed } from "../../hook/useActionSafeEmploed"
 
 const ReviewInfoPage = () => {
 
   const { selfData, registerData } = useSelector(state => state.selfEmploed)
+  const firstName = JSON.parse(localStorage.getItem('first_name')) || ""
+  const lastName = JSON.parse(localStorage.getItem('last_name')) || ""
+  const phone = JSON.parse(localStorage.getItem('phone')) || ""
 
 
   const formik = useFormik({
     initialValues: {
 
       // personal
-      first_name: registerData?.first_name ?? "",
-      last_name: registerData?.last_name ?? "",
+      first_name: firstName,
+      last_name: lastName,
       date_of_birth: selfData?.date_of_birth ?? "",
       nationality: selfData?.nationality ?? "",
-      personal_phone: registerData?.phone ?? "",
+      personal_phone: phone,
       uploadFront: selfData?.uploadFront ?? "",
       uploadBack: selfData?.uploadBack ?? "",
 
@@ -59,11 +63,11 @@ const ReviewInfoPage = () => {
       proof_document_issue_date: selfData.proof_document_issue_date ?? "",
 
       // bank
-      // iban: selfData?.iban ?? "",
-      // swift_bic: selfData?.swift_bic ?? "",
-      // account_holder: selfData?.account_holder ?? "",
-      // bank_code: selfData?.bank_code ?? "",
-      // local_account_number: selfData?.local_account_number ?? "",
+      iban: selfData?.iban ?? "",
+      swift_bic: selfData?.swift_bic ?? "",
+      account_holder: selfData?.account_holder ?? "",
+      bank_code: selfData?.bank_code ?? "",
+      local_account_number: selfData?.local_account_number ?? "",
 
       // warehouse
       wStreet: selfData?.wStreet ?? "",
@@ -82,7 +86,7 @@ const ReviewInfoPage = () => {
       rProof_document_issue_date: selfData?.rProof_document_issue_date ?? ""
     },
     validationSchema: validationSchemaSelf,
-    // enableReinitialize: true,
+    enableReinitialize: true,
     validateOnChange: true,
     // validateOnMount: false,
     // validateOnChange: false,
@@ -101,16 +105,14 @@ const ReviewInfoPage = () => {
   const [openBank, setOpenBank] = useState(false)
   const [openWarehouse, setOpenWarehouse] = useState(false)
 
-  const [bankData, setBankData] = useState(null)
-  const [errors, setErrors] = useState({})
+  const { getAllDataFromBD } = useActionSafeEmploed()
+
 
   const navigate = useNavigate()
 
   useEffect(() => {
     getReviewOnboarding()
-    getBankData().then((res) => {
-      setBankData(res)
-    })
+    getAllDataFromBD()
 
   }, [])
 
@@ -215,11 +217,11 @@ const ReviewInfoPage = () => {
         {
           name: "Bank Account",
           promise: putOnboardingBank({
-            iban: bankData?.iban,
-            swift_bic: bankData?.swift_bic,
-            account_holder: bankData?.account_holder,
-            bank_code: bankData?.bank_code,
-            local_account_number: bankData?.local_account_number,
+            iban: selfData?.iban,
+            swift_bic: selfData?.swift_bic,
+            account_holder: selfData?.account_holder,
+            bank_code: selfData?.bank_code,
+            local_account_number: selfData?.local_account_number,
           }),
         },
         {
@@ -283,7 +285,7 @@ const ReviewInfoPage = () => {
         } else {
           ErrToast("Failed to submit onboarding");
         }
-      }else{
+      } else {
         ErrToast('You have not filled in all the data completely.')
       }
     } catch (error) {
@@ -295,6 +297,7 @@ const ReviewInfoPage = () => {
       // navigate('/seller/seller-info')
     }
   };
+
 
 
   return (
@@ -332,14 +335,9 @@ const ReviewInfoPage = () => {
 
         {
           openBank ?
-            <BankAccountEdit 
-            data={bankData}
-              setData={setBankData}
-              errors={errors} setErrors={setErrors}
-              onClosePreview={() => setOpenBank(false)} 
-              formik={formik} />
+            <BankAccountEdit onClosePreview={() => setOpenBank(false)} formik={formik} />
             :
-            <BankAccount setOpen={setOpenBank} data={bankData} />
+            <BankAccount setOpen={setOpenBank} data={selfData} />
         }
 
         {

@@ -12,6 +12,7 @@ import styles from './TaxInfo.module.scss'
 import { putSelfAddress, putTax } from '../../../../../api/seller/onboarding'
 import { countriesArr } from '../../../../../code/seller'
 import { ErrToast } from '../../../../../ui/Toastify'
+import { useLocation } from 'react-router-dom'
 
 const TaxInfo = ({ formik, onClosePreview }) => {
 
@@ -32,6 +33,9 @@ const TaxInfo = ({ formik, onClosePreview }) => {
         )
     }
 
+    const { pathname } = useLocation()
+
+
     const onLeaveTaxBlock = async () => {
 
         const filled = isTaxDataFilled(formik.values)
@@ -41,14 +45,17 @@ const TaxInfo = ({ formik, onClosePreview }) => {
         if (!filled) return
 
         const payload = {
-            tax_country: country,
+            tax_country: formik.values.tax_country,
             tin: formik.values.tin,
             ico: formik.values.ico,
             vat_id: formik.values.vat_id
         }
 
+        if (pathname === '/seller/seller-review') {
+            safeData(payload)
+        }
 
-        safeData(payload)
+
 
 
 
@@ -72,14 +79,6 @@ const TaxInfo = ({ formik, onClosePreview }) => {
 
 
 
-    useEffect(() => {
-        safeData({ tax_country: country })
-        formik.setFieldValue("tax_country", country)
-
-    }, [country])
-
-
-
     return (
         <div className={styles.main}
             ref={taxDataRef}
@@ -98,9 +97,14 @@ const TaxInfo = ({ formik, onClosePreview }) => {
             </div>
 
             <div className={styles.inpWrapMain}>
-                <SellerInfoSellect arr={countriesArr} title={"Tax country"}
+                <SellerInfoSellect arr={countriesArr}
+                    title={"Tax country"}
                     titleSellect={"Select country of tax residency"}
-                    value={country} setValue={setCountry}
+                    value={formik.values.tax_country}
+                    setValue={(v) => {
+                        formik.setFieldValue("tax_country", v)
+                        setCountry(v)
+                    }}
                     errText={"Tax country is required"}
                 />
 

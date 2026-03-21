@@ -11,6 +11,7 @@ import styles from "./CompanyAddress.module.scss"
 import { putCompanyAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
 import { ErrToast } from "../../../../../ui/Toastify"
+import { useLocation } from "react-router-dom"
 
 const CompanyAddress = ({ formik, onClosePreview }) => {
 
@@ -18,38 +19,38 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
 
     const { safeCompanyData } = useActionSafeEmploed()
 
-    const [country, setCountry] = useState(companyData?.country ?? null)
 
     const isCompanyAddressFilled = (values) => {
         return Boolean(
             values.street,
             values.city,
             values.zip_code,
-            country,
+            values.country,
             values.proof_document_issue_date
         )
     }
 
     const companyAddressRef = useRef(null)
+    const { pathname } = useLocation()
+
+
 
     const onLeaveCompanyAddressBlock = async () => {
 
         const filled = isCompanyAddressFilled(formik.values)
-
-
-
         if (!filled) return
 
         const payload = {
             street: formik.values.street,
             city: formik.values.city,
             zip_code: formik.values.zip_code,
-            country: country,
+            country: formik.values.country,
             proof_document_issue_date: formik.values.proof_document_issue_date
         }
 
-
-        safeCompanyData(payload)
+        if (pathname === '/seller/seller-review-company') {
+            safeCompanyData(payload)
+        }
 
         try {
             await putCompanyAddress({
@@ -61,28 +62,13 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
         } catch (err) {
             // ErrToast(err?.message || "Failed to save personal data");
         }
-
-
-
-
     }
 
-
-    useEffect(() => {
-        if (country !== null) {
-            safeCompanyData({ country: country })
-            formik.setFieldValue("country", country)
-        }
-    }, [country])
 
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
-
                 formik.setFieldValue("proof_document_issue_date", res.uploaded_at)
-
-                safeCompanyData({ proof_document_issue_date: res.uploaded_at })
-
             })
             .catch(err => {
                 ErrToast(err.message)
@@ -105,7 +91,6 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
                 }
 
                 if (!e.currentTarget.contains(e.relatedTarget)) {
-
                     setTimeout(onLeaveCompanyAddressBlock, 0);
                 }
 
@@ -149,8 +134,10 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
                         touched={formik.touched.zip_code}
 
                     />
-                    <SellerInfoSellect arr={countriesArr}
-                        value={country} setValue={setCountry}
+                    <SellerInfoSellect
+                        arr={countriesArr}
+                        value={formik.values.country}
+                        setValue={(v) => formik.setFieldValue('country', v)}
                         title={"Country"} titleSellect={"Select"}
                         errText={"Country is required"}
                     />
