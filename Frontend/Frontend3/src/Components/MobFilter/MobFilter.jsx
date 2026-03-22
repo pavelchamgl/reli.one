@@ -95,6 +95,7 @@ const MobFilter = ({
     setMin(value[0]);
     setMax(value[1]);
     handleFilter(!filter);
+    setPriceOpen(false)
   };
 
   useEffect(() => {

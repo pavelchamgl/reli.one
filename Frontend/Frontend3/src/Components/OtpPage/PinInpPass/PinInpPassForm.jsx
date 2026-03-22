@@ -81,31 +81,34 @@ const PinInpPassForm = () => {
         onChange={(value, index) => {
           setValue(value);
         }}
+        onComplete={(value) => {
+          setValue(value);
+        }}
         type="numeric"
         inputMode="number"
         // style={{ padding: "16px" }}
         inputStyle={
           isMobile
             ? {
-                border: "1px solid #ced4d7",
-                borderRadius: "5px",
-                width: "35px",
-                height: "35px",
-                fontWeight: "400",
-                fontSize: "14px",
-                color: "#191d23",
-                marginRight: "10px",
-              }
+              border: "1px solid #ced4d7",
+              borderRadius: "5px",
+              width: "35px",
+              height: "35px",
+              fontWeight: "400",
+              fontSize: "14px",
+              color: "#191d23",
+              marginRight: "10px",
+            }
             : {
-                border: "1px solid #ced4d7",
-                borderRadius: "5px",
-                width: "50px",
-                height: "50px",
-                fontWeight: "400",
-                fontSize: "16px",
-                color: "#191d23",
-                marginRight: "20px",
-              }
+              border: "1px solid #ced4d7",
+              borderRadius: "5px",
+              width: "50px",
+              height: "50px",
+              fontWeight: "400",
+              fontSize: "16px",
+              color: "#191d23",
+              marginRight: "20px",
+            }
         }
         inputFocusStyle={{ borderColor: "black" }}
         regexCriteria={/^[ A-Za-z0-9_@./#&+-]*$/}
@@ -123,7 +126,7 @@ const PinInpPassForm = () => {
       </div>
       {regErr && <p className={styles.errText}>{regErr}</p>}
       <button
-        disabled={value.length !== 6}
+        disabled={value.length === 0}
         onClick={handleSubmit}
         className={styles.subBtn}
       >

@@ -337,7 +337,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
               <div
                 className={styles.selectBlock}
                 onClick={() => {
-                  if (!["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase())) return
+                  if (!dpdPointPrice) return
                   setSelectedValue("delivery_point");
                   setSelectedProviderPoint("dpd");
                   setDpdOpen(true)
@@ -349,7 +349,6 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     value="delivery_point"
                     control={<Radio color="success"
                       disabled={
-                        !["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase()) ||
                         !dpdPointPrice
                       }
                       checked={selectedProviderPoint === "dpd"}
@@ -445,7 +444,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
               <div
                 className={styles.selectBlock}
                 onClick={() => {
-                  if (!["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase())) return
+                  if (!dpdDHPrice) return
                   setSelectedValue("courier");
                   setSelectedProviderCourier("dpd");
                   // setPaketaOpen(!paketaOpen);
@@ -457,7 +456,6 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                     value="courier"
                     control={<Radio color="success"
                       disabled={
-                        !["cz", "de", "pl", "sk", "hr"].includes(country?.toLowerCase()) ||
                         !dpdDHPrice
                       }
                       checked={selectedProviderCourier === "dpd"}

@@ -55,6 +55,8 @@ const CreateNewPassForm = () => {
     },
     validationSchema: validationSchema,
     onSubmit: (values) => {
+      console.log(email, otp);
+      
       createNewPassApi({
         email: email.email,
         otp: otp,
@@ -63,7 +65,7 @@ const CreateNewPassForm = () => {
         .then((res) => {
           localStorage.removeItem("email");
           localStorage.removeItem("otp");
-          // navigate("/");
+          navigate("/");
         })
         .catch((err) => {
           if (err.response) {

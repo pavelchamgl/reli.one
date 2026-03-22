@@ -78,6 +78,7 @@ const SellerMobNav = () => {
       localStorage.removeItem("email");
       window.location.reload();
     });
+    navigate("/seller/login")
   };
 
   return (
@@ -161,7 +162,7 @@ const SellerMobNav = () => {
         <button
           className={styles.navItem}
           onClick={() => {
-            if (token) {
+            if (Object.keys(token)?.length > 0) {
               handleLogout()
             } else {
               navigate("/seller/login")
@@ -183,7 +184,7 @@ const SellerMobNav = () => {
             }}
           >
             {
-              token ?
+              Object.keys(token)?.length > 0 ?
                 "Logout" :
                 "Account"
             }
