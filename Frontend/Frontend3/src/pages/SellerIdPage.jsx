@@ -65,7 +65,7 @@ const SellerIdPage = () => {
         setProdPage(value);
     };
 
-    if (sellerResult?.length === 0 || sellerStatus === "error") {
+    if (sellerResult?.length === 0 && sellerStatus === "error") {
         return (
             <>
                 <Header />
@@ -117,7 +117,7 @@ const SellerIdPage = () => {
                     <div className={styles.likedProdWrap}>
                         {sellerStatus === "fulfilled" && productsData && productsData.length > 0 ? (
                             productsData.map((item) => (
-                                <ProductCard key={item.id} data={item} />
+                                <ProductCard key={item.id} data={item} sellerProducts={true} />
                             ))
                         ) : (
                             <NoContentText />

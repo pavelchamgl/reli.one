@@ -31,7 +31,6 @@ const PaymentPlataBlock = ({ section, setSection }) => {
   const [authEnd, setAuthEnd] = useState(false)
   const [openAgeModal, setOpenAgeModal] = useState(false)
   const [ageCheck, setAgeCheck] = useState(false)
-  const [check, setCheck] = useState(false)
 
   const { t, i18n } = useTranslation();
 
@@ -46,6 +45,10 @@ const PaymentPlataBlock = ({ section, setSection }) => {
   const selectedProducts = useSelector(
     (state) => state.basket.selectedProducts
   );
+
+  const confirmRuleLocal = JSON.parse(localStorage.getItem('confirm_rule')) || false
+  const [check, setCheck] = useState(confirmRuleLocal)
+
 
   useEffect(() => {
     if (
@@ -104,6 +107,10 @@ const PaymentPlataBlock = ({ section, setSection }) => {
   //   }
   // }
 
+  useEffect(() => {
+    setCheck(confirmRuleLocal)
+  }, [])
+
   return (
     <div className={styles.main}>
       <div>
@@ -140,7 +147,10 @@ const PaymentPlataBlock = ({ section, setSection }) => {
           <span>{t("save_info_for_future")}</span>
         </label>
         <label className={styles.checkDiv}>
-          <CheckBox check={check} onChange={() => setCheck(!check)} />
+          <CheckBox check={check} onChange={(v) => {
+            localStorage.setItem('confirm_rule', JSON.stringify(v))
+            setCheck(v)
+          }} />
           <span>
             {t("iAgreeToTerms.agreeToThe")}{" "}
             <a href={i18n.language === "en" ? "/TermsEN.pdf" : "/TermsCZ.pdf"} target="_blank" rel="noopener noreferrer">{t("iAgreeToTerms.terms")}</a>{" "}

@@ -16,6 +16,8 @@ import CustomBreadcrumbs from "../ui/CustomBreadCrumps/CustomBreadCrumps";
 import BannerCube from "../Components/bannerCube/BannerCube";
 
 import styles from "../styles/CategoryPage.module.scss";
+import Spinner from "../ui/Spiner/Spiner";
+import { getProductsByCategory } from "../api/productsApi";
 
 const CategoryPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -25,6 +27,9 @@ const CategoryPage = () => {
   const [orderingState, setOrderingState] = useState("rating");
   const [filter, setFilter] = useState(false);
   const [page, setPage] = useState(1);
+  const [isFirstLoadDone, setIsFirstLoadDone] = useState(false)
+  const [isFirstEmpty, setIsFirstEmpty] = useState(false)
+
 
   const { t } = useTranslation();
 
@@ -57,25 +62,37 @@ const CategoryPage = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(search);
     const searchText = searchParams.get("categoryValue");
+
     if (searchText) {
       setCategoryValue(searchText);
     }
-    setCategoryId(id)
-  }, [id])
+
+    setCategoryId(id);
+
+    // только проверка
+    getProductsByCategory(id).then((res) => {
+      const isEmpty = !res.data || res.data?.results?.length === 0;
+
+      setIsFirstEmpty(isEmpty);
+      setIsFirstLoadDone(true);
+    });
+
+  }, [id]);
 
   useEffect(() => {
     if (categoryId !== null) {
       setCategoryForProduct(categoryId);
       setProdPage(1)
-      fetchGetProducts();
+      fetchGetProducts()
     }
-  }, [categoryId, categoryValue, orderingState, filter, page]);
+  }, [categoryId, orderingState, filter, page]);
 
-  const { products, count } = useSelector((state) => state.products);
+  const { products, count, status } = useSelector((state) => state.products);
 
   useEffect(() => {
     setProductsData(products);
   }, [products]);
+
 
 
   const handleChange = (event, value) => {
@@ -84,12 +101,13 @@ const CategoryPage = () => {
   };
 
 
+
   return (
     <>
 
       <Container>
         {
-          productsData && productsData.length > 0 ?
+          !isFirstEmpty ?
             <>
               <div className={styles.titleDiv}>
                 <p className={styles.title}>{t(`categories.${id}`, { defaultValue: categoryValue })}</p>
@@ -132,17 +150,35 @@ const CategoryPage = () => {
             : null
         }
 
-        <div className={styles.likedProdWrap}>
-          {productsData && productsData.length > 0 ? (
-            productsData.map((item) => (
-              <ProductCard key={item.id} data={item} />
-            ))
+        <>
+          {status === "loading" || !isFirstLoadDone ? (
+            <div className={styles.spinnerWrap}>
+              <Spinner size="50px" />
+            </div>
           ) : (
-            <div>
-              <BannerCube />
+            <div className={styles.likedProdWrap}>
+
+              {/* 1. ПЕРВАЯ ЗАГРУЗКА КАТЕГОРИИ */}
+              {isFirstEmpty ? (
+                <BannerCube />
+              ) : productsData.length > 0 ? (
+
+                /* 2. ЕСТЬ ТОВАРЫ */
+                productsData.map((item) => (
+                  <ProductCard key={item.id} data={item} />
+                ))
+
+              ) : (
+
+                /* 3. ФИЛЬТРЫ ДАЛИ 0 */
+                <NoContentText />
+
+              )}
+
             </div>
           )}
-        </div>
+        </>
+
         {
           productsData && productsData.length > 0 ?
             <div className={styles.paginationDiv}>

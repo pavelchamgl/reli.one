@@ -79,6 +79,7 @@ const FilterByPrice = ({ handleFilter, filter, setMax, setMin, products }) => {
     setMin(value[0]);
     setMax(value[1]);
     handleFilter(!filter);
+    setOpen(false)
   };
 
   const handleClickOutside = (event) => {

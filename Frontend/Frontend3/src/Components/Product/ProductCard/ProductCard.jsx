@@ -21,7 +21,7 @@ import {
   plusCardCount,
 } from "../../../redux/basketSlice";
 
-const ProductCard = ({ data = null }) => {
+const ProductCard = ({ data = null, sellerProducts }) => {
   const [value, setValue] = useState(data ? data.rating : 0);
   const [hover, setHover] = useState(false);
   const [like, setLike] = useState(data ? data.is_favorite : false);
@@ -142,8 +142,10 @@ const ProductCard = ({ data = null }) => {
       getProductById(data.id)
         .then((res) => {
           const resData = res?.data;
+
           if (resData?.variants) {
             setVariants(resData.variants);
+            setVariant(resData?.variants?.[0])
             setAllData(resData);
           }
         })
@@ -198,6 +200,13 @@ const ProductCard = ({ data = null }) => {
           {
             data?.price &&
             <p className={styles.price}>{data.price}€</p>
+          }
+          {
+            sellerProducts ?
+              variant ?
+                <p className={styles.price}>{variant?.price}€</p>
+                : null
+              : null
           }
           <p className={styles.priceSale}>{data?.price_sale}</p>
         </div>

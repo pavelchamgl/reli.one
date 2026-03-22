@@ -67,3 +67,12 @@ export const getProductsBySellerId = async (id) => {
         throw error
     }
 }
+
+export const getProductsByCategory = async (category) => {
+    try {
+        const res = await mainInstance.get(`https://reli.one/api/products/categories/${category}`)
+        return res
+    } catch (error) {
+        throw error
+    }
+}
