@@ -40,7 +40,7 @@ const Withdrawal = () => {
                     </div>
                     <div className={styles.btnWrap}>
                         <button
-                            onClick={() => navigate('/terms')}
+                            onClick={() => navigate('/new-term')}
                             className={styles.yellBtn}>
                             {t('withdawal.moreInfo')}
                         </button>
