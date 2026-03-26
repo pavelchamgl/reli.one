@@ -86,6 +86,8 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
       getProductById(data.id)
         .then((res) => {
           const resData = res?.data;
+          console.log(resData);
+
           if (resData?.variants) {
             setVariants(resData.variants);
             setAllData(resData);
@@ -110,7 +112,25 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
                 })
               );
             } else {
-              console.error("Не найдено совпадений по цене");
+              if (resData?.variants?.length > 0) {
+                const firstVariant = resData?.variants?.[0]
+                setSku(firstVariant.sku);
+                setSelected(firstVariant.sku);
+                setVariant(firstVariant);
+                dispatch(
+                  addToBasket({
+                    id: resData.id,
+                    product: { ...resData, price: firstVariant?.price },
+                    count: countsBySku[firstVariant.sku] || 1,
+                    selected: false,
+                    sku: variant.sku,
+                    seller_id: resData.seller_id,
+                    price_without_vat: firstVariant.price_without_vat
+                  })
+                );
+              } else {
+                console.error("Не найдено совпадений по цене");
+              }
             }
           }
         })

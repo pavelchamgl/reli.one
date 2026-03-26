@@ -6,6 +6,7 @@
   align-items: center;
   gap: 16px;
   z-index: 1199;
+  pointer-events: none;
 
   &:hover .label {
     opacity: 1;

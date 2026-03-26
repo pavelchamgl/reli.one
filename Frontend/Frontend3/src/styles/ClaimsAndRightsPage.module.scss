@@ -61,10 +61,15 @@
     font-size: 16px;
     text-align: center;
     transition: 0.5s ease;
+    text-wrap: nowrap;
 
     @media (max-width: 500px) {
       width: 100%;
     }
+  }
+
+  & a{
+    width: 100%;
   }
 
   & button:hover {
@@ -78,6 +83,8 @@
 
 .yellBtn {
   background: #f5b80b;
+  border: 2px solid #f5b80b;
+
 }
 
 .bordBtn {

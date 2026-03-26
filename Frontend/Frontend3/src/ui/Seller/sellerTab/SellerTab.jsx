@@ -19,9 +19,9 @@ const SellerTab = () => {
       <button
         className={
           pathname === "/seller/goods-choice" ||
-          pathname === "/seller/goods-list" ||
-          pathname === "/seller/seller-preview" ||
-          pathname === "/seller/seller-create"
+            pathname === "/seller/goods-list" ||
+            pathname === "/seller/seller-preview" ||
+            pathname === "/seller/seller-create"
             ? styles.tabBtnAcc
             : styles.tabBtn
         }
@@ -36,6 +36,14 @@ const SellerTab = () => {
         onClick={() => navigate("/seller/seller-order")}
       >
         Orders
+      </button>
+      <button
+        className={
+          pathname === "/seller/seller-order" ? styles.tabBtnAcc : styles.tabBtn
+        }
+        onClick={() => navigate("/seller/seller-order")}
+      >
+        Sales analytics
       </button>
     </div>
   );

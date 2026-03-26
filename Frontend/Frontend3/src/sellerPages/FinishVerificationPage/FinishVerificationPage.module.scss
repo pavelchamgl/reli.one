@@ -1,0 +1,41 @@
+$blockBord: #e5e7eb;
+$descColor: #4a5565;
+$black: #030213;
+$blackHover: #333333;
+$blueBord: #bedbff;
+$blue: #eff6ff;
+$redBack: #fef2f2;
+$redBord: #ffc9c9;
+$redColor: #e7000b;
+$darkRed: #82181a;
+$requiredColor: #c10007;
+$hoverRed: #be0009;
+
+@mixin analytBlocks() {
+  box-shadow:
+    0 1px 2px -1px rgba(0, 0, 0, 0.1),
+    0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background: white;
+
+  border: 1.48px solid $blockBord;
+  border-radius: 14px;
+  padding: 32px;
+  width: 100%;
+
+  @media (max-width: 500px) {
+    padding: 24px;
+  }
+}
+
+@mixin blockDesc($size) {
+  font-weight: 400;
+  font-size: $size;
+  color: $descColor;
+}
+
+.pageWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 50px 0;
+}

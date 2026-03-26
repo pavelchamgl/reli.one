@@ -20,6 +20,7 @@ import Header from "../Components/Header/Header";
 import Footer from "../Components/Footer/Footer";
 import BannerCube from "../Components/bannerCube/BannerCube";
 import TelegramMeneger from "../Components/TelegramMenedgerBtn/TelegramMeneger";
+import MobNav from "../Components/MobNav/MobNav";
 
 const SellerIdPage = () => {
     const isMobile = useMediaQuery({ maxWidth: 426 });
@@ -31,6 +32,7 @@ const SellerIdPage = () => {
     const [page, setPage] = useState(1);
 
     const { t } = useTranslation();
+
 
 
     const { id } = useParams()
@@ -72,6 +74,8 @@ const SellerIdPage = () => {
 
                 <BannerCube />
                 <TelegramMeneger />
+                {isMobile && <MobNav />}
+
 
                 <Footer />
             </>
@@ -133,6 +137,7 @@ const SellerIdPage = () => {
                     </div>
                 </Container>
                 <TelegramMeneger />
+                {isMobile && <MobNav />}
                 <Footer />
             </>
         );

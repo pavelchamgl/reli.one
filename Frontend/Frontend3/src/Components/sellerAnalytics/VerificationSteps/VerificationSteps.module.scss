@@ -1,0 +1,97 @@
+@import "../../../sellerPages/FinishVerificationPage/FinishVerificationPage.module.scss";
+
+.title {
+  font-weight: 500;
+  font-size: 20px;
+  color: $black;
+}
+
+.verificationSteps {
+  @include analytBlocks();
+}
+
+.stepsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 48px;
+}
+
+.completeBlock {
+  border: 1.48px solid $blockBord;
+  border-radius: 10px;
+  padding: 15px 16px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  transition: 0.5s ease;
+
+  & p {
+    font-weight: 500;
+    font-size: 16px;
+    color: $black;
+  }
+}
+
+.completeBlock:hover {
+  background-color: $blue;
+  border: 1.48px solid $blueBord;
+}
+
+.notCompleteBlock {
+  border: 1.48px solid $blockBord;
+  border-radius: 10px;
+  padding: 15px 16px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  transition: 0.5s ease;
+
+  & p {
+    font-weight: 500;
+    font-size: 16px;
+    color: $black;
+  }
+
+  & span {
+    @include blockDesc(14px);
+  }
+
+  & button {
+    border: 1.48px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 0px 12px;
+    width: 86px;
+    height: 32px;
+    background: white;
+
+    transition: 0.5s ease;
+  }
+
+  & button:hover {
+    background-color: $black;
+    color: white;
+  }
+}
+
+.notCompleteBlock:hover {
+  background-color: $blue;
+  border: 1.48px solid $blueBord;
+
+  & button {
+    background-color: $black;
+    color: white;
+  }
+}
+
+.notCompleteImageAndText {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}

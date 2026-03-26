@@ -72,6 +72,8 @@ import ClaimsAndRightsPage from "./pages/ClaimsAndRightsPage.jsx";
 import Withdrawal from "./pages/Withdrawal.jsx";
 import ContactReturnPage from "./pages/ContactReturnPage.jsx";
 import NewTermsPage from "./pages/NewTermsPage.jsx";
+import FinishVerificationPage from "./sellerPages/FinishVerificationPage/FinishVerificationPage.jsx";
+import ActionRequiredPage from "./sellerPages/ActionRequiredPage/ActionRequiredPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -266,6 +268,14 @@ const router = createBrowserRouter([
       {
         path: "seller-review-company",
         element: <SellerReviewCompany />
+      },
+      {
+        path: 'finish-verification',
+        element: <FinishVerificationPage />
+      },
+      {
+        path: 'action-required',
+        element: <ActionRequiredPage />
       }
     ],
   },

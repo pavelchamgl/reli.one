@@ -168,7 +168,7 @@ export const validationSchemaSelf = Yup.object({
 
 /* ================= REGEX ================= */
 const icoRegex = /^[0-9]{8}$/;                          // IČO – 8 цифр
-const dicRegex = /^[0-9]{8,10}$/;                       // DIČ без префикса
+const dicRegex = /^[0-9A-Za-z]{8,10}$/;                      // DIČ без префикса
 // EU VAT (общая форма)
 const euVatRegex = /^[A-Z]{2}[A-Z0-9]{8,12}$/;
 
@@ -198,9 +198,14 @@ export const companyValidationSchema = Yup.object({
         otherwise: (schema) => schema.notRequired(),          // иначе необязательно
     }),
 
-    tin: Yup.string()
-        .matches(dicRegex, "DIČ must contain 8–10 digits")
-        .required("TIN (DIČ) is required"),
+    tin: Yup.string().when("country_of_registration", {
+        is: (val) => val === "cz" || val === "sk",
+        then: (schema) =>
+            schema
+                .matches(dicRegex, "TIN (DIČ) must contain 8–10 characters")
+                .required("TIN (DIČ) is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
     vat_id: Yup.string()
         .matches(
