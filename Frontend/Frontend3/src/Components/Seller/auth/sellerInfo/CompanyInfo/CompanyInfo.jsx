@@ -140,7 +140,6 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         titleSellect={"Select legal form"}
                         value={formik.values.legal_form}
                         setValue={(v) => {
-                            setCountry(v)
                             formik.setFieldValue('legal_form', v)
                         }}
                         errText={"Legal form is required"}
@@ -154,7 +153,10 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         title={"Country of registration"}
                         titleSellect={"Select country"}
                         value={formik.values.country_of_registration}
-                        setValue={(v) => formik.setFieldValue('country_of_registration', v)}
+                        setValue={(v) => {
+                            setCountry(v)
+                            formik.setFieldValue('country_of_registration', v)
+                        }}
                         errText={"Country of registration is required"}
                     />
                 </div>
@@ -171,30 +173,31 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                 />
 
                 {(country === "cz" || country === "sk") &&
-                    <InputSeller title={"IČO"} type={"text"}
-                        circle={true} required={true} num={true}
-                        placeholder={"123456789"}
-                        name="ico"
-                        value={formik.values.ico}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.errors.ico}
-                        touched={formik.touched.ico}
+                    <>
+                        <InputSeller title={"IČO"} type={"text"}
+                            circle={true} required={true} num={true}
+                            placeholder={"123456789"}
+                            name="ico"
+                            value={formik.values.ico}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.errors.ico}
+                            touched={formik.touched.ico}
+                        />
+                        <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} placeholder={"987654321"}
+                            name="tin"
+                            value={formik.values.tin}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            error={formik.errors.tin}
+                            touched={formik.touched.tin}
+                            num={true}
 
+                        />
 
-                    />
+                    </>
                 }
 
-                <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} placeholder={"987654321"}
-                    name="tin"
-                    value={formik.values.tin}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.tin}
-                    touched={formik.touched.tin}
-                    num={true}
-
-                />
 
                 <InputSeller title={"EORI"} type={"text"} circle={true} placeholder={"If importing into EU"}
                     name="eori_number"

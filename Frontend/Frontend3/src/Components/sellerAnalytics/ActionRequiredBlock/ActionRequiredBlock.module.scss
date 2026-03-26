@@ -1,0 +1,75 @@
+@import "../../../sellerPages/ActionRequiredPage/ActionRequiredPage.module.scss";
+
+.actionRequiredBlock {
+  @include analytBlocks();
+  border: 1.48px solid $redBord;
+  background-color: $redBack;
+}
+
+.requiredTitleBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+
+  & h2 {
+    font-weight: 500;
+    font-size: 30px;
+    color: $darkRed;
+    margin-bottom: 7px;
+  }
+
+  & img {
+    border-radius: 50%;
+  }
+
+  & p {
+    font-weight: 400;
+    font-size: 16px;
+    color: $requiredColor;
+  }
+}
+
+.fixBtn {
+  border-radius: 8px;
+  width: 172px;
+  height: 48px;
+
+  background: $redColor;
+
+  font-weight: 500;
+  font-size: 14px;
+  color: white;
+
+  transition: 0.5s ease;
+}
+
+.fixBtn:hover {
+  background-color: $hoverRed;
+}
+
+.feedbackMainBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  border: 1.48px solid $redBord;
+  border-radius: 10px;
+  padding: 25px;
+  width: 100%;
+
+  background-color: white;
+
+  & h4 {
+    font-weight: 600;
+    font-size: 18px;
+    color: $darkRed;
+  }
+}
+
+.feedbackBlock{
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    & p{}
+}

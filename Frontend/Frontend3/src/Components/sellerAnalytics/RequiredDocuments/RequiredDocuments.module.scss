@@ -1,0 +1,92 @@
+@import "../../../sellerPages/FinishVerificationPage/FinishVerificationPage.module.scss";
+
+.requiredDocuments {
+  @include analytBlocks();
+}
+
+.title {
+  font-weight: 500;
+  font-size: 20px;
+  color: $black;
+}
+
+.documentsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-top: 48px;
+}
+
+.docUpload {
+  border: 1.48px solid $blockBord;
+  border-radius: 10px;
+  padding: 16px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  & p {
+    font-weight: 500;
+    font-size: 16px;
+    color: $black;
+  }
+
+  & p:last-child {
+    @include blockDesc(14px);
+
+    & span {
+      font-family: var(--ft);
+    }
+  }
+}
+
+.requiredBlock {
+  border: 1.48px solid $redBord;
+  border-radius: 10px;
+  padding: 15px 16px;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: $redBack;
+
+  & p {
+    font-weight: 500;
+    font-size: 16px;
+    color: $black;
+  }
+
+  & span {
+    font-weight: 400;
+    font-size: 14px;
+    color: $redColor;
+  }
+
+  & button {
+    border: 1.48px solid $blockBord;
+    border-radius: 8px;
+    padding: 5px 10px;
+    width: 95px;
+    height: 32px;
+    background-color: white;
+
+    font-weight: 500;
+    font-size: 14px;
+    color: $black;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.requiredImageAndText {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
