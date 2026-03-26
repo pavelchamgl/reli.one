@@ -184,19 +184,18 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                             error={formik.errors.ico}
                             touched={formik.touched.ico}
                         />
-                        <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} placeholder={"987654321"}
-                            name="tin"
-                            value={formik.values.tin}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            error={formik.errors.tin}
-                            touched={formik.touched.tin}
-                            num={true}
-
-                        />
 
                     </>
                 }
+                <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} placeholder={"987654321"}
+                    name="tin"
+                    value={formik.values.tin}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.errors.tin}
+                    touched={formik.touched.tin}
+                    num={true}
+                />
 
 
                 <InputSeller title={"EORI"} type={"text"} circle={true} placeholder={"If importing into EU"}
