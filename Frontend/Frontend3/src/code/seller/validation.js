@@ -202,7 +202,7 @@ export const companyValidationSchema = Yup.object({
         is: (val) => val === "cz" || val === "sk",
         then: (schema) =>
             schema
-                .matches(dicRegex, "DIČ must contain 8–10 digits")
+                .matches(dicRegex, "TIN (DIČ) must contain 8–10 characters")
                 .required("TIN (DIČ) is required"),
         otherwise: (schema) => schema.notRequired(),
     }),
