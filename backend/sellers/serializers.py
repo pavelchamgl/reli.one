@@ -1,9 +1,9 @@
 import uuid
 import magic
-from rest_framework import serializers
-from drf_extra_fields.fields import Base64ImageField
 
-from .fields import CustomBase64FileField
+from rest_framework import serializers
+
+from .fields import CustomBase64FileField, RestrictedBase64ImageField
 from product.models import (
     BaseProduct,
     BaseProductImage,
@@ -46,7 +46,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
 
 class BaseProductImageSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=True)
+    image = RestrictedBase64ImageField(required=True)
     image_url = serializers.SerializerMethodField()
 
     class Meta:
@@ -66,7 +66,7 @@ class BulkBaseProductImageSerializer(serializers.Serializer):
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False, allow_null=True)
+    image = RestrictedBase64ImageField(required=False, allow_null=True)
 
     class Meta:
         model = ProductVariant

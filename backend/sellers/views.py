@@ -1,3 +1,4 @@
+from django.db import transaction
 from drf_spectacular.types import OpenApiTypes
 from rest_framework import status
 from django.shortcuts import get_object_or_404
@@ -263,7 +264,12 @@ class ProductParameterViewSet(ModelViewSet):
     ),
     create=extend_schema(
         tags=["Seller Product Images"],
-        description="Upload a new image for a given product."
+        description=(
+                "Upload a new base64-encoded image for a given product. "
+                "The `image` field must be a data URI string like "
+                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
+                "Allowed image types: JPEG, PNG, WEBP."
+        )
     ),
     retrieve=extend_schema(
         tags=["Seller Product Images"],
@@ -353,15 +359,17 @@ class BaseProductImageViewSet(ModelViewSet):
         tags=["Seller Product Images"],
         operation_id="bulk_upload_product_images",
         description=(
-            "Bulk upload multiple base64-encoded images for a product.\n\n"
-            "**Example request**:\n```\n"
-            "{\n"
-            "  \"images\": [\n"
-            "    { \"image\": \"data:image/png;base64,iVBORw0KG...\" },\n"
-            "    { \"image\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgAB...\" }\n"
-            "  ]\n"
-            "}\n"
-            "```"
+                "Bulk upload multiple base64-encoded images for a product.\n\n"
+                "Allowed image types: JPEG, PNG, WEBP.\n\n"
+                "**Example request**:\n```\n"
+                "{\n"
+                "  \"images\": [\n"
+                "    { \"image\": \"data:image/png;base64,iVBORw0KG...\" },\n"
+                "    { \"image\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgAB...\" },\n"
+                "    { \"image\": \"data:image/webp;base64,UklGR...\" }\n"
+                "  ]\n"
+                "}\n"
+                "```"
         ),
         request=BulkBaseProductImageSerializer,
         responses={
@@ -390,11 +398,15 @@ class BaseProductImageViewSet(ModelViewSet):
     def bulk_upload(self, request, product_pk=None):
         """
         Bulk upload multiple base64-encoded images for a given product.
+
+        Allowed image types: JPEG, PNG, WEBP.
+
         Example request body:
         {
           "images": [
             { "image": "data:image/png;base64,iVBORw0KG..." },
-            { "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgAB..." }
+            { "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgAB..." },
+            { "image": "data:image/webp;base64,UklGR..." }
           ]
         }
         """
@@ -407,11 +419,12 @@ class BaseProductImageViewSet(ModelViewSet):
 
         images_data = serializer.validated_data["images"]
 
-        created_images = [
-            BaseProductImage(product=product, **img_data) for img_data in images_data
-        ]
-
-        BaseProductImage.objects.bulk_create(created_images)
+        created_images = []
+        with transaction.atomic():
+            for img_data in images_data:
+                image_obj = BaseProductImage(product=product, **img_data)
+                image_obj.save()
+                created_images.append(image_obj)
 
         return Response({"message": "Images uploaded successfully."}, status=status.HTTP_201_CREATED)
 
@@ -423,7 +436,14 @@ class BaseProductImageViewSet(ModelViewSet):
     ),
     create=extend_schema(
         tags=["Seller Product Variants"],
-        description="Create a new variant for a given product."
+        description=(
+                "Create a new variant for a given product. "
+                "Variant must contain exactly one of: `text` or `image`. "
+                "Both fields cannot be filled at the same time, and both cannot be empty. "
+                "If `image` is provided, it must be a base64 data URI string like "
+                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
+                "Allowed image types: JPEG, PNG, WEBP."
+        )
     ),
     retrieve=extend_schema(
         tags=["Seller Product Variants"],
@@ -431,11 +451,23 @@ class BaseProductImageViewSet(ModelViewSet):
     ),
     update=extend_schema(
         tags=["Seller Product Variants"],
-        description="Fully update (PUT) a product variant."
+        description=(
+                "Fully update (PUT) a product variant. "
+                "Variant must contain exactly one of: `text` or `image`. "
+                "If `image` is provided, it must be a base64 data URI string like "
+                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
+                "Allowed image types: JPEG, PNG, WEBP."
+        )
     ),
     partial_update=extend_schema(
         tags=["Seller Product Variants"],
-        description="Partially update (PATCH) a product variant."
+        description=(
+                "Partially update (PATCH) a product variant. "
+                "Variant must contain exactly one of: `text` or `image`. "
+                "If `image` is provided, it must be a base64 data URI string like "
+                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
+                "Allowed image types: JPEG, PNG, WEBP."
+        )
     ),
     destroy=extend_schema(
         tags=["Seller Product Variants"],
@@ -490,22 +522,29 @@ class ProductVariantViewSet(ModelViewSet):
         tags=["Seller Product Variants"],
         operation_id="product_variant_bulk_create",
         description=(
-                "Bulk create (mass create) ProductVariants for a given product, "
-                "including Base64-encoded images. Endpoint:\n\n"
-                "**Request body**: an array of objects with `name`, `text`, `price`, "
-                "and optional base64-encoded `image`. Example:\n\n"
+                "Bulk create (mass create) ProductVariants for a given product.\n\n"
+                "Each variant must contain exactly one of: `text` or `image`. "
+                "Both fields cannot be filled at the same time, and both cannot be empty.\n\n"
+                "If `image` is provided, it must be a base64 data URI string like "
+                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
+                "Allowed image types: JPEG, PNG, WEBP.\n\n"
+                "**Request body**: an array of objects with `name`, `price`, "
+                "and exactly one of: `text` or base64-encoded `image`. Example:\n\n"
                 "```\n[\n"
                 "  {\n"
                 "    \"name\": \"Variant\",\n"
                 "    \"text\": \"Text 1\",\n"
-                "    \"price\": \"99.99\",\n"
-                "    \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...\"\n"
+                "    \"price\": \"99.99\"\n"
                 "  },\n"
                 "  {\n"
                 "    \"name\": \"Variant\",\n"
-                "    \"text\": \"Text 2\",\n"
-                "    \"price\": \"129.99\",\n"
-                "    \"image\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4...\"\n"
+                "    \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...\",\n"
+                "    \"price\": \"129.99\"\n"
+                "  },\n"
+                "  {\n"
+                "    \"name\": \"Variant\",\n"
+                "    \"image\": \"data:image/webp;base64,UklGR...\",\n"
+                "    \"price\": \"149.99\"\n"
                 "  }\n"
                 "]\n```"
         ),
@@ -513,20 +552,27 @@ class ProductVariantViewSet(ModelViewSet):
         responses={201: ProductVariantSerializer(many=True)},
         examples=[
             OpenApiExample(
-                name="Bulk create variants with base64 images",
-                description="Example of sending multiple variants (with base64 images) in a single request.",
+                name="Bulk create variants with text or image values",
+                description=(
+                        "Each variant must contain exactly one of `text` or `image`. "
+                        "Images must be base64 data URI strings. "
+                        "Allowed image types: JPEG, PNG, WEBP."
+                ),
                 value=[
                     {
                         "name": "Variant",
                         "text": "Text 1",
-                        "price": "99.99",
-                        "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4..."
+                        "price": "99.99"
                     },
                     {
                         "name": "Variant",
-                        "text": "Text 2",
-                        "price": "129.99",
-                        "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4"
+                        "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...",
+                        "price": "129.99"
+                    },
+                    {
+                        "name": "Variant",
+                        "image": "data:image/webp;base64,UklGR...",
+                        "price": "149.99"
                     }
                 ]
             ),
@@ -535,8 +581,11 @@ class ProductVariantViewSet(ModelViewSet):
     @action(methods=['post'], detail=False)
     def bulk_create(self, request, product_pk=None):
         """
-        Bulk create (mass create) product variants for a specific product,
-        generating unique SKUs manually to avoid duplicate key errors.
+        Bulk create (mass create) product variants for a specific product.
+
+        Each variant is saved through model logic:
+        - SKU is generated automatically
+        - model validation is applied
         """
         product = get_object_or_404(BaseProduct, pk=product_pk)
         if product.seller.user != request.user:
@@ -545,20 +594,12 @@ class ProductVariantViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
 
-        variants_to_create = []
-        for valid_data in serializer.validated_data:
-            # Создаём объект "вручную"
-            variant = ProductVariant(product=product, **valid_data)
-            # Генерируем SKU вручную (т.к. save() не будет вызвано при bulk_create)
-            variant.sku = variant.generate_unique_sku()
-
-            # Вызываем clean() вручную, если нужна валидация text/image/названия
-            # Исключаем 'sku', так как мы уже сами его задали
-            variant.full_clean(exclude=['sku'])
-
-            variants_to_create.append(variant)
-
-        created_variants = ProductVariant.objects.bulk_create(variants_to_create)
+        created_variants = []
+        with transaction.atomic():
+            for valid_data in serializer.validated_data:
+                variant = ProductVariant(product=product, **valid_data)
+                variant.save()
+                created_variants.append(variant)
 
         output_data = self.get_serializer(created_variants, many=True).data
         return Response(output_data, status=status.HTTP_201_CREATED)
