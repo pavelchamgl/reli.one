@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
@@ -9,6 +10,8 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
     const [newVariant, setNewVariant] = useState(variant)
     const [file, setFile] = useState(null)
     const [url, setUrl] = useState(null)
+
+    const { t } = useTranslation('sellerHome')
 
     useEffect(() => {
         setNewVariant(variant) // Обновляем локальный стейт, если изменились пропсы
@@ -70,7 +73,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                     setType("text")
                     setErr(false)
                 }}
-                placeholder="Name color"
+                placeholder={t('item.color_name')}
                 disabled={type === "image"}
             />
             <div className={styles.priceDiv}>
@@ -81,7 +84,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                         setNewVariant({ ...newVariant, price: e.target.value })
                         setErr(false)
                     }}
-                    placeholder="Price"
+                    placeholder={t('item.price')}
                     required
                 />
                 <button onClick={() => handleDeleteVariant(variant.id)}>
@@ -99,7 +102,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                         </div>
                     ) :
                     <label className={type === "text" ? styles.addPhotoDivDis : styles.addPhotoDiv} onClick={handleLabelClick}>
-                        <p>+ Add photo</p>
+                        <p>{t('goods.addPhotos')}</p>
                         <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept="image/*,video/*" />
                     </label>
             }

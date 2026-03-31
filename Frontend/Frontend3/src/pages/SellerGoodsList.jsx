@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMediaQuery } from "react-responsive"
 import { useSelector } from "react-redux";
 import { Pagination } from "@mui/material";
+import { useTranslation } from "react-i18next";
 
 import { useActionSellerList } from "../hook/useActionSellerList";
 
@@ -30,6 +31,8 @@ const SellerGoodsList = () => {
     useActionSellerList();
 
   const { count, products, status } = useSelector((state) => state.seller_goods);
+
+  const { t } = useTranslation('sellerHome')
 
 
   const handleChange = (event, value) => {
@@ -118,7 +121,7 @@ const SellerGoodsList = () => {
         ) : status === "rejected" ? (
           <div className={styles.errorDiv}>
             <p>
-              Oops! Something went wrong on our end. Please try again later.
+              {t('somethingWrong')}
             </p>
           </div>
         ) : (

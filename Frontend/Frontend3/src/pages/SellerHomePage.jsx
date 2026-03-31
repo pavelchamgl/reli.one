@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { fetchSellerStatics } from "../redux/sellerStaticsSlice";
 
@@ -8,13 +9,16 @@ import SellerHeader from "../Components/Seller/sellerHeader/SellerHeader";
 import SellerPageContainer from "../ui/Seller/SellerPageContainer/SellerPageContainer";
 import SellerStatistics from "../Components/Seller/home/SellerStatistics/SellerStatistics";
 import SellerTitle from "../ui/Seller/Home/SellerHomeTitle/SellerHomeTitle";
-
-import styles from "../styles/SellerHomePage.module.scss";
 import Spinner from "../ui/Spiner/Spiner";
 import { COOKIE_VERSION } from "../configs/cookieConfig";
 
+import styles from "../styles/SellerHomePage.module.scss";
+
 const SellerHomePage = () => {
   const dispatch = useDispatch()
+
+  const { t } = useTranslation('sellerHome')
+
 
   const [tabMain, setTabMain] = useState("curr")
   const [grapheData, setGrapheData] = useState(null)
@@ -24,18 +28,18 @@ const SellerHomePage = () => {
   }, [])
 
   useEffect(() => {
-      const cookieVersion = localStorage.getItem("COOKIE_VERSION")
-  
-      if (COOKIE_VERSION !== cookieVersion) {
-  
-        localStorage.setItem("COOKIE_VERSION", COOKIE_VERSION)
-        localStorage.removeItem("cookieSave")
-        localStorage.removeItem("token")
-      }
-  
-    }, [])
-    
-    
+    const cookieVersion = localStorage.getItem("COOKIE_VERSION")
+
+    if (COOKIE_VERSION !== cookieVersion) {
+
+      localStorage.setItem("COOKIE_VERSION", COOKIE_VERSION)
+      localStorage.removeItem("cookieSave")
+      localStorage.removeItem("token")
+    }
+
+  }, [])
+
+
 
 
 
@@ -55,7 +59,7 @@ const SellerHomePage = () => {
     return (
       <div className={styles.mainLoading}>
         <p className={styles.errorText}>
-          Oops! Something went wrong on our end. Please try again later.
+          {t('somethingWrong')}
         </p>
       </div>
     )
@@ -63,7 +67,7 @@ const SellerHomePage = () => {
 
   return (
     <>
-      <SellerTitle title={"Sales"} />
+      <SellerTitle title={"sales"} />
       <div className={styles.grapheAndStaticsWrap}>
         <SellerHomeGraphe data={statics?.chartData} tabMain={tabMain} setGrapheData={setGrapheData} />
         <SellerStatistics data={statics} setTabMain={setTabMain} grapheData={grapheData} />

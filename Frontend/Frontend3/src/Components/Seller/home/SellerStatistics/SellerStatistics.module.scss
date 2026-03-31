@@ -73,7 +73,7 @@
 
   & p {
     font-weight: 400;
-    font-size: clamp(22px, 2.5vw, 32px);
+    font-size: clamp(22px, 2.5vw, 28px);
     line-height: 66%;
     letter-spacing: -0.01em;
     text-align: center;
@@ -93,4 +93,8 @@
   display: flex;
   flex-direction: column;
   gap: clamp(15px, 2.5vw, 34px);
+}
+
+.num{
+  font-family: var(--ft);
 }

@@ -25,6 +25,9 @@ const LoginForm = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const { t: tOnb } = useTranslation('onbording')
+
+
     const validationLogin = Yup.object().shape({
         email: Yup
             .string()
@@ -59,8 +62,8 @@ const LoginForm = () => {
                 const res = await login(values)
                 localStorage.setItem("token", JSON.stringify(res.data));
                 localStorage.setItem("email", JSON.stringify(values.email));
-                
-                
+
+
                 dispatch(syncBasket())
                 setIsLoading(false)
 
@@ -110,7 +113,7 @@ const LoginForm = () => {
                 if (err.response) {
                     setIsLoading(false)
                     if (err.response.status === 500) {
-                        setRegErr("An error occurred on the server. Please try again later.");
+                        setRegErr(tOnb('auth.errorOccurredOnServer'));
                     } else if (err.response.status === 401) {
                         const errorData = err.response.data;
                         let errorMessage = "";
@@ -123,13 +126,13 @@ const LoginForm = () => {
 
                         setRegErr(
                             errorMessage.trim() ||
-                            "No active account found with the given credentials."
+                            tOnb('auth.noActiveAccountFound')
                         );
                     } else {
-                        setRegErr("An unknown error occurred.");
+                        setRegErr(tOnb('auth.unknownErrorOccurred'));
                     }
                 } else {
-                    setRegErr("Failed to connect to the server. Check your internet connection.");
+                    setRegErr(tOnb('auth.failedToConnectToServer'));
                 }
             }
         }
@@ -138,14 +141,15 @@ const LoginForm = () => {
 
     return (
         <div className={styles.main}>
-            <TitleAndDesc title={"Log in to Seller Panel"} desc={"Enter your credentials to access your dashboard"} />
+            <TitleAndDesc title={tOnb('auth.login_title')}
+                desc={tOnb('auth.login_subtitle')} />
 
             <form className={styles.form} onSubmit={(e) => {
                 e.preventDefault()
                 formik.handleSubmit()
             }}>
                 <InputSeller
-                    type={"email"} title={"Email"}
+                    type={"email"} title={t('email')}
                     placeholder={"your.email@reli.one"}
                     name="email"
                     value={formik.values.email}
@@ -153,7 +157,7 @@ const LoginForm = () => {
                     onBlur={formik.handleBlur}
                     error={formik.errors.email}
                 />
-                <InputSeller type={"password"} title={"Password"}
+                <InputSeller type={"password"} title={t('password')}
                     placeholder={"Your password"}
                     name="password"
                     value={formik.values.password}
@@ -169,16 +173,16 @@ const LoginForm = () => {
                 <AuthBtnSeller
                     loading={isLoading}
                     disabled={!formik.isValid || !formik.dirty}
-                    text={"Log in"} />
+                    text={tOnb('auth.login')} />
 
                 <FormLink
                     url={"/seller/reset"}
-                    text={"Forgot your password?"} />
+                    text={tOnb('auth.forgot_password')} />
             </form>
 
             <div className={styles.bottomLinkWrap}>
-                <p>Don't have an account?</p>
-                <FormLink url={"/seller/create-account"} text={"Sign up here"} />
+                <p>{tOnb('auth.no_account')}</p>
+                <FormLink url={"/seller/create-account"} text={tOnb('auth.signUp')} />
             </div>
 
         </div>

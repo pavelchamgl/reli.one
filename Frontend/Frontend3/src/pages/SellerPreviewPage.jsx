@@ -2,16 +2,17 @@ import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 import SellerPreviewDesktop from "../Components/Seller/preview/SellerPreviewDesctop/SellerPreviewDesktop";
 import SellerPreviewMobile from "../Components/Seller/preview/SellerPreviewMobile/SellerPreviewMobile";
 import { useActionCreatePrev } from "../hook/useActionCreatePrev";
 import Spinner from "../ui/Spiner/Spiner";
+import { getProductById } from "../api/productsApi";
 
 import arrRight from "../assets/Payment/arrRightWhite.svg"
 
 import styles from "../styles/SellerPreviewPage.module.scss";
-import { getProductById } from "../api/productsApi";
 
 const SellerPreviewPage = () => {
   const isMobile = useMediaQuery({ maxWidth: 470 });
@@ -30,8 +31,9 @@ const SellerPreviewPage = () => {
 
   const handleCreate = () => {
     fetchCreateProduct()
-
   }
+
+  const { t } = useTranslation('sellerHome')
 
   useEffect(() => {
     if (product?.status === "fulfilled") {
@@ -55,11 +57,11 @@ const SellerPreviewPage = () => {
 
   return (
     <div style={{ paddingBottom: "100px" }}>
-      <h3 className={styles.title}>Creation of goods</h3>
+      <h3 className={styles.title}>{t('goods.creation')}</h3>
       {isMobile ? <SellerPreviewMobile product={data} /> : <SellerPreviewDesktop product={data} />}
       <div className={styles.buttonDiv}>
         <button onClick={() => navigate(-1)}>
-          Cancel
+          {t('item.cancel')}
         </button>
         <button onClick={handleCreate}>
           {
@@ -69,7 +71,7 @@ const SellerPreviewPage = () => {
               (
                 <>
                   <p>
-                    Sending for moderation
+                    {t('sendingForModeration')}
                   </p>
                   <img src={arrRight} alt="" />
                 </>

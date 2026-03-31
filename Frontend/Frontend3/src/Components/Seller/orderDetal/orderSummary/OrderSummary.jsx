@@ -1,7 +1,7 @@
 
+import { useTranslation } from "react-i18next"
 import card from "../../../../assets/Seller/orderDetal/card.svg"
 import truckGr from "../../../../assets/Seller/orderDetal/truckGrey.svg"
-
 
 import styles from "./OrderSummary.module.scss"
 
@@ -14,38 +14,40 @@ const OrderSummary = ({ data }) => {
     const { summary, items, shipments, timeline, actions } = data || {}
     const { delivery, totals } = summary || {}
 
-    console.log(data);
+    const { t } = useTranslation('sellerOrder')
+
+
 
 
 
     const textElements = [
         {
-            title: "Order ID",
+            title: t("orderId"),
             desc: summary?.order_number,
             num: true
         },
         {
-            title: "Purchase excl. VAT",
+            title: t('purchaseExclVat'),
             desc: `${totals?.purchase_excl_vat} €`,
             num: true
         },
         {
-            title: "Created",
+            title: t("created"),
             desc: summary?.order_date,
             num: true
         },
         {
-            title: "Sales incl. VAT",
+            title: t('salesInclVat'),
             desc: `${totals?.sales_incl_vat} €`,
             num: true
         },
         {
-            title: "Payment Method",
+            title: t("paymentMethod"),
             desc: "Credit Card",
             url: card
         },
         {
-            title: "Total incl. Delivery",
+            title: t('totalWithDelivery'),
             desc: `${totals?.total_incl_vat_plus_delivery} €`,
             num: true
         },
@@ -58,7 +60,7 @@ const OrderSummary = ({ data }) => {
 
     return (
         <div className={styles.main}>
-            <h4 className={styles.title}>Order Summary</h4>
+            <h4 className={styles.title}>{t("orderSummary")}</h4>
 
             <div className={styles.textElementWrap}>
 

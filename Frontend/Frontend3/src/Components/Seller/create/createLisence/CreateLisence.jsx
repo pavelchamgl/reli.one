@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useMediaQuery } from "react-responsive"
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 // Импорты стилей Swiper
 import "swiper/css";
@@ -31,6 +32,7 @@ const CreateLisence = () => {
 
     const { license_file } = useSelector(state => state.create_prev)
 
+    const { t } = useTranslation('sellerHome')
 
     const arr = 1
 
@@ -96,11 +98,11 @@ const CreateLisence = () => {
 
     return (
         <div>
-            <h3 className={styles.title}>License/Certificate</h3>
+            <h3 className={styles.title}>{t('goods.license')}</h3>
             <div className={styles.btnRatioWrap}>
-                <p>Formats: docx, pdf</p>
+                <p>{t('goods.formats')}</p>
                 <label className={styles.addPhotos}>
-                    <span>+ Add file</span>
+                    <span>{t('goods.add_file')}</span>
                     <input
                         disabled={isDisabled}
                         onChange={handleChangeFile}

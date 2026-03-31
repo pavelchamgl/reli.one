@@ -1,17 +1,16 @@
 
-import { useEffect, useRef, useState } from "react"
-import { useSelector } from "react-redux"
-import { useLocation } from "react-router-dom"
+import { useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 import returnAddress from "../../../../../assets/Seller/register/returnAddress.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import Checkbox from "../../../../../ui/Seller/newOrder/checkbox/Checkbox"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
-
-import styles from "./ReturnAddress.module.scss"
 import { putReturnAddress } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
+
+import styles from "./ReturnAddress.module.scss"
 
 const ReturnAddress = ({ formik }) => {
 
@@ -50,11 +49,11 @@ const ReturnAddress = ({ formik }) => {
 
     const rAddressRef = useRef(null)
 
+    const { t } = useTranslation('onbording')
+
     const onLeaveReturnBlock = () => {
 
         const filled = isReturnFilled(formik.values)
-
-
 
         if (!filled) return
 
@@ -68,11 +67,7 @@ const ReturnAddress = ({ formik }) => {
             proof_document_issue_date: toISODate(formik.values.wProof_document_issue_date)
         }
 
-
-
         putReturnAddress(payload)
-
-
     }
 
 
@@ -86,30 +81,35 @@ const ReturnAddress = ({ formik }) => {
                 }
             }}
         >
-
             <div className={styles.titleWrap}>
                 <img src={returnAddress} alt="" />
-                <h2>Return Address</h2>
+                <h2>{t('onboard.return.title')}</h2>
             </div>
 
             <label className={styles.checkWrap}>
-                <Checkbox checked={formik.values.same_as_warehouse} onChange={(e) => handleSameAsWarehouse(e.target.checked)} />
-                <p>Same as warehouse address</p>
+                <Checkbox
+                    checked={formik.values.same_as_warehouse}
+                    onChange={(e) => handleSameAsWarehouse(e.target.checked)}
+                />
+                <p>{t('onboard.return.same_as_warehouse')}</p>
             </label>
 
             <div className={styles.inpWrapMain}>
-                <InputSeller title={"Street"} type={"text"} circle={true} required={true}
+                <InputSeller
+                    title={t('onboard.tax_address.street')}
+                    type={"text"} circle={true} required={true}
                     placeholder={"Industrial Street 456"}
                     name="rStreet" value={formik.values.rStreet}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.rStreet}
                     touched={formik.touched.rStreet}
-
                 />
 
                 <div className={styles.twoInpWrap}>
-                    <InputSeller title={"City"} type={"text"} circle={true} required={true}
+                    <InputSeller
+                        title={t('onboard.tax_address.city')}
+                        type={"text"} circle={true} required={true}
                         placeholder={"Brno"}
                         name="rCity" value={formik.values.rCity}
                         onChange={formik.handleChange}
@@ -117,7 +117,9 @@ const ReturnAddress = ({ formik }) => {
                         error={formik.errors.rCity}
                         touched={formik.touched.rCity}
                     />
-                    <InputSeller title={"ZIP"} type={"text"} circle={true} required={true}
+                    <InputSeller
+                        title={t('onboard.tax_address.zip')}
+                        type={"text"} circle={true} required={true}
                         placeholder={"602 00"}
                         name="rZip_code" value={formik.values.rZip_code}
                         onChange={formik.handleChange}
@@ -125,16 +127,20 @@ const ReturnAddress = ({ formik }) => {
                         error={formik.errors.rZip_code}
                         num={true}
                         touched={formik.touched.rZip_code}
-
                     />
-                    <SellerInfoSellect arr={countriesArr}
+                    <SellerInfoSellect
+                        arr={countriesArr}
                         value={formik.values?.rCountry}
-                        setValue={(t) => formik.setFieldValue("rCountry", t)}
-                        title={"Country"} titleSellect={"Select"}
-                        errText={"Country is required"}
+                        setValue={(v) => formik.setFieldValue("rCountry", v)}
+                        title={t('onboard.tax_address.country')}
+                        titleSellect={t('onboard.common.select')}
+                        errText={t('onboard.tax_address.country_required')}
                     />
                 </div>
-                <InputSeller title={"Contact phone"} type={"tel"} circle={true} required={true}
+
+                <InputSeller
+                    title={t('onboard.warehouse.contact_phone')}
+                    type={"tel"} circle={true} required={true}
                     placeholder={"+420 987 654 321"}
                     name="rContact_phone" value={formik.values.rContact_phone}
                     onChange={formik.handleChange}
@@ -142,14 +148,8 @@ const ReturnAddress = ({ formik }) => {
                     error={formik.errors.rContact_phone}
                     num={true}
                     touched={formik.touched.rContact_phone}
-
                 />
-
-
-
             </div>
-
-
         </div>
     )
 }

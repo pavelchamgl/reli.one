@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useMediaQuery } from "react-responsive"
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 // Импорты стилей Swiper
 import "swiper/css";
@@ -30,6 +31,8 @@ const SellerCreateImage = ({ err, setErr }) => {
   const isMobile = useMediaQuery({ maxWidth: 427 })
 
   const { setImages, setFilesMain, deleteImage } = useActionCreatePrev()
+
+  const { t } = useTranslation('sellerHome')
 
   const arr = 6
 
@@ -84,11 +87,11 @@ const SellerCreateImage = ({ err, setErr }) => {
 
   return (
     <div>
-      <h3 className={styles.title}>Photo</h3>
+      <h3 className={styles.title}>{t('goods.photo')}</h3>
       <div className={styles.btnRatioWrap}>
-        <p>Aspect ratio 1:1</p>
+        <p>{t('goods.aspectRatio')}</p>
         <label className={styles.addPhotos}>
-          <span>+ Add photos</span>
+          <span>{t('goods.addPhotos')}</span>
           <input
             onChange={handleChangeFile}
             type="file"

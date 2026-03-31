@@ -1,18 +1,19 @@
-import { useEffect, useRef, useState } from 'react'
+import {  useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
+import { useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 
 import InputSeller from '../../../../../ui/Seller/auth/inputSeller/InputSeller'
 import SellerDateInp from '../dateInp/DateInp'
 import SellerInfoSellect from '../sellerinfoSellect/SellerInfoSellect'
+import { putSelfAddress, putTax } from '../../../../../api/seller/onboarding'
+import { countriesArr } from '../../../../../code/seller'
+import { ErrToast } from '../../../../../ui/Toastify'
 
 import taxInfo from "../../../../../assets/Seller/register/taxInfo.svg"
 import { useActionSafeEmploed } from '../../../../../hook/useActionSafeEmploed'
 
 import styles from './TaxInfo.module.scss'
-import { putSelfAddress, putTax } from '../../../../../api/seller/onboarding'
-import { countriesArr } from '../../../../../code/seller'
-import { ErrToast } from '../../../../../ui/Toastify'
-import { useLocation } from 'react-router-dom'
 
 const TaxInfo = ({ formik, onClosePreview }) => {
 
@@ -22,8 +23,9 @@ const TaxInfo = ({ formik, onClosePreview }) => {
 
     const [country, setCountry] = useState(selfData.tax_country)
 
-
     const taxDataRef = useRef(null)
+
+    const { t } = useTranslation('onbording')
 
     const isTaxDataFilled = (values) => {
         return Boolean(
@@ -85,42 +87,44 @@ const TaxInfo = ({ formik, onClosePreview }) => {
             tabIndex={-1}
             onBlurCapture={(e) => {
                 if (!e.currentTarget.contains(e.relatedTarget)) {
-
                     setTimeout(onLeaveTaxBlock, 0);
                 }
             }}
         >
-
             <div className={styles.titleWrap}>
                 <img src={taxInfo} alt="" />
-                <h2>Tax Information</h2>
+                <h2>{t('onboard.tax_address.tax_info')}</h2>
             </div>
 
             <div className={styles.inpWrapMain}>
-                <SellerInfoSellect arr={countriesArr}
-                    title={"Tax country"}
-                    titleSellect={"Select country of tax residency"}
+                <SellerInfoSellect
+                    arr={countriesArr}
+                    title={t('onboard.tax_address.tax_country')}
+                    titleSellect={t('onboard.tax_address.select_tax_country')}
                     value={formik.values.tax_country}
                     setValue={(v) => {
                         formik.setFieldValue("tax_country", v)
                         setCountry(v)
                     }}
-                    errText={"Tax country is required"}
+                    errText={t('onboard.tax_address.tax_country_required')}
                 />
 
-                <InputSeller title={"TIN (Tax Identification Number)"} type={"text"} circle={true} required={true} num={true}
+                <InputSeller
+                    title={t('onboard.company.tin')}
+                    type={"text"} circle={true} required={true} num={true}
                     placeholder={"123456789"}
                     name="tin" value={formik.values.tin}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.tin}
                     touched={formik.touched.tin}
-
                 />
 
                 {
                     (country === "cz" || country === "sk") &&
-                    <InputSeller title={"IČO"} type={"text"} circle={true} required={true} num={true}
+                    <InputSeller
+                        title={t('onboard.company.business_id')}
+                        type={"text"} circle={true} required={true} num={true}
                         placeholder={"123456789"}
                         name="ico"
                         value={formik.values.ico}
@@ -128,25 +132,21 @@ const TaxInfo = ({ formik, onClosePreview }) => {
                         onBlur={formik.handleBlur}
                         error={formik.errors.ico}
                         touched={formik.touched.ico}
-
                     />
                 }
 
-
-                <InputSeller title={"VAT ID"} type={"text"} circle={true} num={true}
-                    placeholder={"If registered"} name="vat_id"
+                <InputSeller
+                    title={t('onboard.company.vat_id')}
+                    type={"text"} circle={true} num={true}
+                    placeholder={t('onboard.company.vat_placeholder')}
+                    name="vat_id"
                     value={formik.values.vat_id}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.vat_id}
                     touched={formik.touched.vat_id}
-
                 />
-
-
             </div>
-
-
         </div>
     )
 }

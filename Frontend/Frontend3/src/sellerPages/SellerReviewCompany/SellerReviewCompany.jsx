@@ -1,22 +1,22 @@
 import { useSelector } from "react-redux"
+import { useEffect, useState } from "react"
+import { useFormik } from "formik"
+import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import WarehouseAndReturn from "../../Components/Seller/auth/review/WarehouseAndReturn/WarehouseAndReturn"
 import FormWrap from "../../ui/Seller/auth/formWrap/FormWrap"
 import TitleAndDesc from "../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
 import StepWrap from "../../ui/Seller/register/stepWrap/StepWrap"
 import SubBtn from "../../ui/Seller/review/subBtn/SubBtn"
-
-import styles from "./SellerReviewCompany.module.scss"
 import BankAccount from "../../Components/Seller/auth/review/bankAccount/BankAccount"
+
 import AccountInfo from "../../Components/Seller/auth/review/accountInfo/AccountInfo"
 import BusinessAddress from "../../Components/Seller/auth/review/businessAddress/BusinessAddress"
 import CompanyInfo from "../../Components/Seller/auth/review/companyInfo/CompanyInfo"
 import { getOnboardingStatus, getReviewOnboarding, postSubmitOnboarding, putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from "../../api/seller/onboarding"
-import { useEffect, useState } from "react"
 import { ErrToast } from "../../ui/Toastify"
-import { useNavigate } from "react-router-dom"
 import { useActionSafeEmploed } from "../../hook/useActionSafeEmploed"
-import { useFormik } from "formik"
 import { companyValidationSchema } from "../../code/seller/validation"
 import Representative from "../../Components/Seller/auth/sellerInfo/Representative/Representative"
 import CompanyInfoEdit from '../../Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo';
@@ -25,7 +25,8 @@ import CompanyAddress from "../../Components/Seller/auth/sellerInfo/CompanyAddre
 import WhareHouseAddress from "../../Components/Seller/auth/sellerInfo/WareHouseAddress/WhareHouseAddress"
 import ReturnAddress from "../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress"
 import { toISODate } from "../../code/seller"
-import { getBankData } from "../../api/seller/getOnboardingData"
+
+import styles from "./SellerReviewCompany.module.scss"
 
 const SellerReviewCompany = () => {
 
@@ -115,8 +116,7 @@ const SellerReviewCompany = () => {
     const [openBank, setOpenBank] = useState(false)
     const [openWarehouse, setOpenWarehouse] = useState(false)
 
-    const [bankData, setBankData] = useState(null)
-    const [errors, setErrors] = useState({})
+    const { t } = useTranslation('onbording')
 
 
     useEffect(() => {
@@ -270,14 +270,19 @@ const SellerReviewCompany = () => {
             const statusOnboard = await getOnboardingStatus()
 
 
+            const submitRes = await postSubmitOnboarding();
 
             if (statusOnboard && statusOnboard?.can_submit === true) {
-                const submitRes = await postSubmitOnboarding();
                 if (submitRes.status === "pending_verification") {
                     navigate("/seller/application-sub");
                 } else {
-                    ErrToast("Failed to submit onboarding");
+                    ErrToast(t('onboard.errors.submit_failed'));
                 }
+            } else {
+
+                const next = submitRes.next_step
+
+                ErrToast(`${('onboard.errors.complete_fields')}: ${next}`);
             }
 
 
@@ -301,8 +306,10 @@ const SellerReviewCompany = () => {
         <FormWrap style={{ height: "100%" }}>
             <div className={styles.main}>
                 <div className={styles.titleWrap}>
-                    <TitleAndDesc title={"Review Your Information"}
-                        desc={"Please review all information before submitting your application"} />
+                    <TitleAndDesc
+                        title={t('onboard.review.title')}
+                        desc={t('onboard.review.desc')}
+                    />
 
                     <StepWrap step={5} />
 

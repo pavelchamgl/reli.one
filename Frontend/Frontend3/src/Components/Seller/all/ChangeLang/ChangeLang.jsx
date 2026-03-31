@@ -54,6 +54,9 @@ const ChangeLang = () => {
 
     const { width } = useWindowSize();
 
+    const { t } = useTranslation()
+
+
     const handleChangeLang = (lang) => {
         i18n.changeLanguage(lang);
         setOpen(false);
@@ -81,7 +84,7 @@ const ChangeLang = () => {
         <>
             <button onClick={() => setOpen(!open)} className={styles.langBtn}>
                 <img className={styles.langIcon} src={langIc} alt="" />
-                <p className={styles.langLabel}>{"Language"}</p>
+                <p className={styles.langLabel}>{t("choose_lang")}</p>
             </button>
 
             {open && (

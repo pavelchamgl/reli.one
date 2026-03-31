@@ -6,6 +6,7 @@ import styles from "./GoodsDeleteModal.module.scss";
 import { deleteSellerProduct } from "../../../../api/seller/sellerProduct";
 import { ErrToast } from "../../../Toastify";
 import { useActionSellerList } from "../../../../hook/useActionSellerList";
+import { useTranslation } from "react-i18next";
 
 const GoodsDeleteModal = ({ open, handleClose, item }) => {
   const dialogRef = useRef(null);
@@ -26,6 +27,8 @@ const GoodsDeleteModal = ({ open, handleClose, item }) => {
   };
 
   const { filterProducts } = useActionSellerList()
+  const { t } = useTranslation('sellerHome')
+
 
   const handleDelete = async () => {
     try {
@@ -54,10 +57,10 @@ const GoodsDeleteModal = ({ open, handleClose, item }) => {
         <button onClick={handleClose} className={styles.closeBtn}>
           <img src={xIcon} alt="" />
         </button>
-        <h3>Are you sure you want to remove the item?</h3>
+        <h3>{t('goods.remove_confirm')}</h3>
         <div className={styles.btnsDiv}>
-          <button onClick={() => handleDelete()}>Yes</button>
-          <button onClick={handleClose}>No</button>
+          <button onClick={() => handleDelete()}>{t('goods.yes')}</button>
+          <button onClick={handleClose}>{t('goods.no')}</button>
         </div>
       </div>
     </dialog>

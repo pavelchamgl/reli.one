@@ -3,18 +3,18 @@ import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router-dom";
 import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 import EditGoodsParameters from "../editGoodsParameters/EditGoodsParameters";
 import CreateFormInp from "../../../../ui/Seller/create/createFormInp/CreateFormInp";
 import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain";
 import SellerEditImages from "../sellerEditImage/SellerEditImages";
-
-import styles from "./EditGoodsForm.module.scss"
 import EditVariants from "../editVariants/EditVariants";
 import EditMainVariants from "../EditMainVariants/EditMainVariants";
 import { validateGoods } from "../../../../code/validation/validationGoods";
-import { ErrToast } from "../../../../ui/Toastify";
 import EditLicense from "../EditLicense/EditLicense";
+
+import styles from "./EditGoodsForm.module.scss"
 
 const EditGoodsForm = () => {
     const navigate = useNavigate();
@@ -32,6 +32,8 @@ const EditGoodsForm = () => {
     const { product, parameters, name, product_description, length, width, height, weight, category, images, variantsName, variantsServ, category_name, status, err } = useSelector(state => state.edit_goods)
 
     const { categoriesStage } = useSelector(state => state.create)
+
+    const { t } = useTranslation('sellerHome')
 
     const formik = useFormik({
         initialValues: {
@@ -128,7 +130,7 @@ const EditGoodsForm = () => {
 
     return (
         <div className={styles.main}>
-            <CreateFormInp text={"Goods name"} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
+            <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "name", value: e.target.value })
             }} titleSize={"big"} required={true} error={formik.errors.name} />
@@ -147,7 +149,7 @@ const EditGoodsForm = () => {
                     formik.handleChange(e)
                     setParameter({ name: "desc", value: e.target.value })
                 }}
-                text={"Description text"}
+                text={t('goods.description')}
                 titleSize={"small"}
                 required={true}
                 textarea={true}
@@ -157,15 +159,15 @@ const EditGoodsForm = () => {
             <EditGoodsParameters parameters={parameters} err={parametersErr} setErr={setParametersErr} />
 
 
-            <CreateFormInp text={"Barcode"} titleSize={"small"} />
-            <CreateFormInp text={"Item"} titleSize={"small"} required={true} />
+            <CreateFormInp text={t('item.barcode')} titleSize={"small"} />
+            <CreateFormInp text={t('item.name')} titleSize={"small"} required={true} />
 
-            <h4 className={styles.wightTitle}>Dimensions and weight</h4>
+            <h4 className={styles.wightTitle}>{t('item.dimensions_weight')}</h4>
 
             <CreateFormInp name={"length"} value={formik.values.length} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "length", value: e.target.value })
-            }} text={"Package length, mm"}
+            }} text={t('item.package_length')}
                 titleSize={"small"}
                 error={formik.errors.length}
                 num={true}
@@ -174,7 +176,7 @@ const EditGoodsForm = () => {
             <CreateFormInp name={"width"} value={formik.values.width} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "width", value: e.target.value })
-            }} text={"Package width, mm"}
+            }} text={t('item.package_width')}
                 titleSize={"small"}
                 error={formik.errors.width}
                 num={true}
@@ -182,7 +184,7 @@ const EditGoodsForm = () => {
             <CreateFormInp name={"height"} value={formik.values.height} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "height", value: e.target.value })
-            }} text={"Package height, mm"}
+            }} text={t('item.package_height')}
                 titleSize={"small"}
                 error={formik.errors.height}
                 num={true}
@@ -191,22 +193,22 @@ const EditGoodsForm = () => {
             <CreateFormInp name={"weight"} value={formik.values.weight} {...formik} handleChange={(e) => {
                 formik.handleChange(e)
                 setParameter({ name: "weight", value: e.target.value })
-            }} text={"Weight with package, g"} 
-            titleSize={"small"} 
-            error={formik.errors.weight} 
-            num={true}
+            }} text={t('item.package_weight')}
+                titleSize={"small"}
+                error={formik.errors.weight}
+                num={true}
             />
 
             <EditMainVariants type={type} setType={setType} err={varErr} setErr={setVarErr} errName={varNameErr} setErrName={setVarNameErr} />
 
 
             <div className={styles.footerBtnWrap}>
-                <button onClick={() => navigate(-1)}>Cancel</button>
+                <button onClick={() => navigate(-1)}>{t('item.cancel')}</button>
                 <button
                     disabled={!formik.isValid}
                     onClick={() => {
                         handlePreviewClick()
-                    }}>Preview</button>
+                    }}>{t('item.preview')}</button>
             </div>
         </div>
     )

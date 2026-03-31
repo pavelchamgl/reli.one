@@ -1,6 +1,7 @@
 
 import greenMark from "../../../assets/sellerAnalyt/greenMark.svg"
 import greyRadio from "../../../assets/sellerAnalyt/greyRadio.svg"
+import redX from "../../../assets/sellerAnalyt/redX.svg"
 
 import styles from "./VerificationSteps.module.scss"
 
@@ -26,6 +27,27 @@ const NotCompleteBlock = ({ text }) => {
             </div>
             <button>
                 Continue
+            </button>
+        </div>
+    )
+}
+
+const RequiredBlock = ({ text }) => {
+
+    return (
+        <div className={styles.requiredBlock}>
+            <div className={styles.requiredImageAndText}>
+                <img src={redX} alt="" />
+                <div>
+                    <div className={styles.requiredTitle}>
+                        <p>Personal Information</p>
+                        <span>Needs correction</span>
+                    </div>
+                    <p className={styles.requiredDesc}>Date of birth does not match the ID document</p>
+                </div>
+            </div>
+            <button>
+                Fix now
             </button>
         </div>
     )
@@ -72,8 +94,10 @@ const VerificationSteps = () => {
                                 <CompletBlock key={block.text} text={block.text} />
                             )
                         } else {
+
                             return (
-                                <NotCompleteBlock key={block.text} text={block.text} />
+                                <RequiredBlock />
+                                // <NotCompleteBlock key={block.text} text={block.text} />
                             )
                         }
                     })

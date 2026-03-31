@@ -1,17 +1,18 @@
-import { useEffect, useRef, useState } from "react"
+import { useRef } from "react"
 import { useSelector } from "react-redux"
+import { useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 import companyAddressIc from "../../../../../assets/Seller/register/companyAddress.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
-
-import styles from "./CompanyAddress.module.scss"
 import { putCompanyAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
 import { ErrToast } from "../../../../../ui/Toastify"
-import { useLocation } from "react-router-dom"
+
+import styles from "./CompanyAddress.module.scss"
 
 const CompanyAddress = ({ formik, onClosePreview }) => {
 
@@ -78,79 +79,84 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
 
     const ignoreBlurRef = useRef(false);
 
+    const { t } = useTranslation('onbording')
+
 
     return (
         <div className={styles.main}
             ref={companyAddressRef}
             tabIndex={-1}
             onBlurCapture={(e) => {
-
                 if (ignoreBlurRef.current) {
                     ignoreBlurRef.current = false;
                     return;
                 }
-
                 if (!e.currentTarget.contains(e.relatedTarget)) {
                     setTimeout(onLeaveCompanyAddressBlock, 0);
                 }
-
             }}
         >
-
             <div className={styles.titleWrap}>
                 <img src={companyAddressIc} alt="" />
-                <h2>Company Address</h2>
+                <h2>{t('onboard.tax_address.title_business')}</h2>
             </div>
 
             <div className={styles.inpWrapMain}>
-                <InputSeller title={"Street"} type={"text"} circle={true} required={true} placeholder={"Industrial Street 456"}
+                <InputSeller
+                    title={t('onboard.tax_address.street')}
+                    type={"text"} circle={true} required={true}
+                    placeholder={"Industrial Street 456"}
                     name="street"
                     value={formik.values.street}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.street}
                     touched={formik.touched.street}
-
                 />
 
                 <div className={styles.twoInpWrap}>
-                    <InputSeller title={"City"} type={"text"} circle={true} required={true} placeholder={"Brno"}
+                    <InputSeller
+                        title={t('onboard.tax_address.city')}
+                        type={"text"} circle={true} required={true}
+                        placeholder={"Brno"}
                         name="city"
                         value={formik.values.city}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.city}
                         touched={formik.touched.city}
-
                     />
 
-
-                    <InputSeller title={"ZIP"} type={"text"} circle={true} required={true} placeholder={"602 00"}
+                    <InputSeller
+                        title={t('onboard.tax_address.zip')}
+                        type={"text"} circle={true} required={true}
+                        placeholder={"602 00"}
                         name="zip_code"
                         value={formik.values.zip_code}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.zip_code}
                         touched={formik.touched.zip_code}
-
                     />
+
                     <SellerInfoSellect
                         arr={countriesArr}
                         value={formik.values.country}
                         setValue={(v) => formik.setFieldValue('country', v)}
-                        title={"Country"} titleSellect={"Select"}
-                        errText={"Country is required"}
+                        title={t('onboard.tax_address.country')}
+                        titleSellect={t('onboard.common.select')}
+                        errText={t('onboard.tax_address.country_required')}
                     />
                 </div>
                 <div>
                     <UploadInp
-                        title={"Proof of address"}
-                        description={"Not older than 3 months"}
+                        title={t('onboard.tax_address.proof_address')}
+                        description={t('onboard.company.cert_desc')} // Переиспользуем "не старше 3 месяцев"
                         scope={"company_address"}
                         docType={"proof_of_address"}
                         side={null}
                         onChange={handleSingleFrontUpload}
-                        inpText={"Upload document"}
+                        inpText={t('onboard.common.upload')}
                         stateName={companyData?.company_address_name}
                         nameTitle={"company_address_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}

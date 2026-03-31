@@ -1,7 +1,8 @@
 import { useFormik } from 'formik'
 import { useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import TitleAndDesc from '../../ui/Seller/auth/titleAndDesc/TitleAndDesc';
 import StepWrap from '../../ui/Seller/register/stepWrap/StepWrap';
@@ -14,13 +15,12 @@ import CompanyAddress from '../../Components/Seller/auth/sellerInfo/CompanyAddre
 import CompanyInfo from '../../Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo';
 import Representative from '../../Components/Seller/auth/sellerInfo/Representative/Representative';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
-import { getOnboardingStatus, putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from '../../api/seller/onboarding';
+import { putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from '../../api/seller/onboarding';
 import { companyValidationSchema } from '../../code/seller/validation';
 import { ErrToast } from '../../ui/Toastify';
 import { toISODate } from '../../code/seller';
 
 import styles from "./SellerCompanyInfo.module.scss"
-import { getBankData } from '../../api/seller/getOnboardingData';
 
 const SellerCompanyInfo = () => {
 
@@ -33,6 +33,8 @@ const SellerCompanyInfo = () => {
     const { safeCompanyData, getAllCompanyDataBD } = useActionSafeEmploed()
 
     const navigate = useNavigate()
+
+    const { t } = useTranslation('onbording')
 
     const formik = useFormik({
         initialValues: {
@@ -197,8 +199,10 @@ const SellerCompanyInfo = () => {
             <FormWrap style={{ height: "100%" }}>
                 <div className={styles.main}>
                     <div className={styles.titleWrap}>
-                        <TitleAndDesc title={"Seller Information"}
-                            desc={"Please provide all required information for verification"} />
+                        <TitleAndDesc
+                            title={t('onboard.seller_info.title')}
+                            desc={t('onboard.seller_info.provide_info_desc')}
+                        />
 
                         <StepWrap step={4} />
 
@@ -218,7 +222,7 @@ const SellerCompanyInfo = () => {
 
                     <AuthBtnSeller
                         disabled={!formik.isValid}
-                        text={"Continue to Review"}
+                        text={t('onboard.common.continue_review')}
                         style={{ borderRadius: "16px", width: "222px" }}
                         handleClick={formik.handleSubmit}
                     />

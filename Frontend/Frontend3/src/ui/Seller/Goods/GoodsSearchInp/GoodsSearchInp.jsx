@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useActionSellerList } from "../../../../hook/useActionSellerList";
+import { useTranslation } from "react-i18next";
 
 import searchIcon from "../../../../assets/Seller/goods/goodsSearch.svg";
 
@@ -19,6 +20,8 @@ const GoodsSearchInp = ({ makeSearch, setMakeSearch }) => {
     }
   };
 
+  const { t } = useTranslation('sellerHome')
+
 
   return (
     <div className={styles.main}>
@@ -27,7 +30,7 @@ const GoodsSearchInp = ({ makeSearch, setMakeSearch }) => {
           onChange={(e) => setValue(e.target.value)}
           value={value}
           type="text"
-          placeholder="search by goods list"
+          placeholder={t('goods.searchByList')}
         />
         <button type="submit">
           <img src={searchIcon} alt="search" />

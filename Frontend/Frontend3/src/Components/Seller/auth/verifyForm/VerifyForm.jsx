@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useDispatch } from "react-redux"
-
+import { useTranslation } from "react-i18next"
 
 import AuthBtnSeller from "../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller"
 import BackBtn from "../../../../ui/Seller/auth/backBtn/BackBtn"
@@ -19,6 +19,7 @@ const VerifyForm = () => {
     const [regErr, setRegErr] = useState("");
     const [isLoading, setIsLoading] = useState(false)
 
+    const { t } = useTranslation('onbording')
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -46,7 +47,7 @@ const VerifyForm = () => {
                 setTime(59);
             })
             .catch((err) => {
-                setRegErr("Failed to send OTP. Please try again later.");
+                setRegErr(t('auth.failedToSendOTP'));
             });
     };
 
@@ -67,24 +68,24 @@ const VerifyForm = () => {
             if (err.response) {
                 setIsLoading(false)
                 if (err.response.status === 500) {
-                    setRegErr("An error occurred on the server. Please try again later.");
+                    setRegErr(t('auth.errorOccurredOnServer'));
                 } else if (err.response.status === 400) {
-                    setRegErr("The specified OTP has expired or is invalid");
+                    setRegErr(t('auth.otpExpiredOrInvalid'));
                 } else if (err.response.status === 404) {
-                    setRegErr("User with the specified email address not found");
+                    setRegErr(t('auth.userWithEmailNotFound'));
                 } else {
-                    setRegErr("An unknown error occurred.");
+                    setRegErr(t('auth.unknownErrorOccurred'));
                 }
             } else {
-                setRegErr("Failed to connect to the server. Check your internet connection.");
+                setRegErr(t('auth.failedToConnectToServer'));
             }
         }
     };
 
     return (
         <div className={styles.main}>
-            <BackBtn text={"Back"} />
-            <TitleAndDesc title={"Verify your email"} desc={"A 6-digit verification code has been sent to"} />
+            <BackBtn text={t('auth.back')} />
+            <TitleAndDesc title={t('auth.verify_email')} desc={t('auth.code_sent')} />
             <p className={styles.emailText}>{email ? email : "seller@example.com"}</p>
 
             <form className={styles.form} onSubmit={(e) => {
@@ -92,26 +93,26 @@ const VerifyForm = () => {
                 handleSubmit()
             }}>
                 <div className={styles.verifyInpWrap}>
-                    <p>Enter verification code</p>
+                    <p>{t('auth.enter_code')}</p>
                     <VerifyPinInput value={value} setValue={setValue} />
                     {regErr && <p className={styles.errorText}>{regErr}</p>}
                 </div>
                 <AuthBtnSeller
                     loading={isLoading}
-                    disabled={value.length === 0} text={"Confirm"} />
+                    disabled={value.length === 0} text={t('auth.confirm')} />
                 <div className={styles.timerDiv}>
                     {time ? (
                         <p className={styles.resentText}>
-                            Resend code in <span className={styles.num}>{time}</span> s
+                            {t('auth.resendCodeIn')} <span className={styles.num}>{time}</span> s
                         </p>
                     ) : (
-                        <button onClick={handleSendAgain} type="button" className={styles.resendBtn}>Resend code</button>
+                        <button onClick={handleSendAgain} type="button" className={styles.resendBtn}>{t('auth.resendCode')}</button>
                     )}
                 </div>
             </form>
 
             <div className={styles.bottomLinkWrap}>
-                <p>Didn't receive the code? Check your spam folder or try resending.</p>
+                <p>{t('auth.didntReceiveTheCode')}</p>
             </div>
 
         </div>

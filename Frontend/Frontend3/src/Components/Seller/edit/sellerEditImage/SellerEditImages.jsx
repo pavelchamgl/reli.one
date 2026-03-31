@@ -4,6 +4,7 @@ import { useMediaQuery } from "react-responsive"
 import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
 import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 // Импорты стилей Swiper
 import "swiper/css";
@@ -32,6 +33,9 @@ const SellerEditImages = ({ err, setErr }) => {
     const { images } = useSelector(state => state.edit_goods)
 
     const arr = 6
+
+    const { t } = useTranslation('sellerHome')
+
 
     // useEffect(() => {
     //     // setFilesMain(files)
@@ -104,11 +108,11 @@ const SellerEditImages = ({ err, setErr }) => {
 
     return (
         <div>
-            <h3 className={styles.title}>Photo</h3>
+            <h3 className={styles.title}>{t('goods.photo')}</h3>
             <div className={styles.btnRatioWrap}>
-                <p>Aspect ratio 1:1</p>
+                <p>{t('goods.aspectRatio')}</p>
                 <label className={styles.addPhotos}>
-                    <span>+ Add photos</span>
+                    <span>{t('goods.addPhotos')}</span>
                     <input
                         onChange={handleChangeFile}
                         type="file"

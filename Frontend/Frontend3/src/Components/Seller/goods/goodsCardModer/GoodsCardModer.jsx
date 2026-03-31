@@ -1,5 +1,7 @@
 
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+
 import testImg from "../../../../assets/Product/ProductTestImage.svg";
 import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
 
@@ -9,6 +11,9 @@ const GoodsCardModer = ({ item, isLoading }) => {
 
     const { setPreviewProduct } = useActionCreatePrev()
     const navigate = useNavigate()
+
+      const { t } = useTranslation('sellerHome')
+
 
     if (isLoading) {
         return (
@@ -36,7 +41,7 @@ const GoodsCardModer = ({ item, isLoading }) => {
                     {/* <span>120€</span> */}
                 </div>
                 <p className={styles.name}>{item?.name}</p>
-                <p className={styles.moderDescText}>Approximate moderation time: 24 hours</p>
+                <p className={styles.moderDescText}>{t('item.approximate')}</p>
                 <button className={styles.previewBtn}
                     onClick={() => {
                         if (item && item?.id) {
@@ -44,7 +49,7 @@ const GoodsCardModer = ({ item, isLoading }) => {
                             // navigate(`/seller/seller-preview/${item?.id}`)
                         }
                     }}
-                >Preview</button>
+                >{t('item.preview')}</button>
             </div>
         </>
     );

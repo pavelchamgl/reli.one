@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
+import { useFormik } from "formik"
+import { useTranslation } from "react-i18next"
 
 import AccountInfo from "../../Components/Seller/auth/review/accountInfo/AccountInfo"
 import FormWrap from "../../ui/Seller/auth/formWrap/FormWrap"
@@ -13,12 +15,6 @@ import WarehouseAndReturn from "../../Components/Seller/auth/review/WarehouseAnd
 import SubBtn from "../../ui/Seller/review/subBtn/SubBtn"
 import { getOnboardingStatus, getReviewOnboarding, postSubmitOnboarding, putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, putTax, putWarehouse } from "../../api/seller/onboarding"
 import { ErrToast } from "../../ui/Toastify"
-
-import PersonalEdit from "../../Components/Seller/auth/sellerInfo/PersonalDetails/PersonalDetails"
-
-
-import styles from "./ReviewInfoPage.module.scss"
-import { useFormik } from "formik"
 import { validationSchemaSelf } from "../../code/seller/validation"
 import TaxInfo from "../../Components/Seller/auth/sellerInfo/TaxInfo/TaxInfo"
 import AddressBlock from "../../Components/Seller/auth/sellerInfo/address/AddressBlock"
@@ -26,8 +22,12 @@ import BankAccountEdit from "../../Components/Seller/auth/sellerInfo/BankAccount
 import WhareHouseAddress from "../../Components/Seller/auth/sellerInfo/WareHouseAddress/WhareHouseAddress"
 import ReturnAddress from "../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress"
 import { toISODate } from "../../code/seller"
-import { getBankData } from "../../api/seller/getOnboardingData"
 import { useActionSafeEmploed } from "../../hook/useActionSafeEmploed"
+
+import PersonalEdit from "../../Components/Seller/auth/sellerInfo/PersonalDetails/PersonalDetails"
+
+
+import styles from "./ReviewInfoPage.module.scss"
 
 const ReviewInfoPage = () => {
 
@@ -109,6 +109,9 @@ const ReviewInfoPage = () => {
 
 
   const navigate = useNavigate()
+
+  const { t } = useTranslation('onbording')
+
 
   useEffect(() => {
     getReviewOnboarding()
@@ -304,8 +307,10 @@ const ReviewInfoPage = () => {
     <FormWrap style={{ height: "100%" }}>
       <div className={styles.main}>
         <div className={styles.titleWrap}>
-          <TitleAndDesc title={"Review Your Information"}
-            desc={"Please review all information before submitting your application"} />
+          <TitleAndDesc
+            title={t('onboard.review.title')}
+            desc={t('onboard.review.desc')}
+          />
 
           <StepWrap step={5} />
 
@@ -350,13 +355,6 @@ const ReviewInfoPage = () => {
             <WarehouseAndReturn setOpen={setOpenWarehouse} data={selfData} />
 
         }
-
-
-
-
-
-
-
 
         <SubBtn onClick={handleSubmit} />
 

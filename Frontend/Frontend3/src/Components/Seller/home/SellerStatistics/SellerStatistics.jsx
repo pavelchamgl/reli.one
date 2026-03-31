@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import styles from "./SellerStatistics.module.scss";
 
 const SellerStatistics = ({ data, setTabMain, grapheData }) => {
@@ -8,7 +10,7 @@ const SellerStatistics = ({ data, setTabMain, grapheData }) => {
     setTabMain(tab)
   }, [tab])
 
-
+  const { t } = useTranslation('sellerHome')
 
   // ordered_period: { amount: '0', count: 0 },
   //   delivered_period: { amount: '0', count: 0 },
@@ -29,30 +31,30 @@ const SellerStatistics = ({ data, setTabMain, grapheData }) => {
           onClick={() => setTabs("curr")}
           className={tab === "curr" ? styles.btnAc : styles.btn}
         >
-          In currency
+          {t('inCurrency')}
         </button>
         <button
           onClick={() => setTabs("pie")}
           className={tab === "pie" ? styles.btnAc : styles.btn}
         >
-          In pieces
+          {t('inPieces')}
         </button>
       </div>
 
       <div className={styles.staticsWrap}>
         <div className={`${styles.statics} ${styles.orderStatic}`}>
           <div>
-            <h4>Ordered:</h4>
-            <p>as of <span>{newTodayData}</span></p>
+            <h4>{t('ordered')}:</h4>
+            <p>{t('asOf')} <span>{newTodayData}</span></p>
           </div>
-          <p>{data && data.ordered_period && tab === "curr" ? `€ ${ordered_period?.amount}` : `${ordered_period?.count} pcs.`}</p>
+          <p className={styles.num}>{data && data.ordered_period && tab === "curr" ? `€ ${ordered_period?.amount}` : `${ordered_period?.count} pcs.`}</p>
         </div>
         <div className={`${styles.statics} ${styles.deliveredStatic}`}>
           <div>
-            <h4>Delivered:</h4>
-            <p>as of <span>{newTodayData}</span></p>
+            <h4>{t('delivered')}:</h4>
+            <p>{t('asOf')} <span>{newTodayData}</span></p>
           </div>
-          <p>{data && data.ordered_period && tab === "curr" ? `€ ${delivered_period?.amount}` : `${delivered_period?.count} pcs.`}</p>
+          <p className={styles.num}>{data && data.ordered_period && tab === "curr" ? `€ ${delivered_period?.amount}` : `${delivered_period?.count} pcs.`}</p>
         </div>
       </div>
     </div>

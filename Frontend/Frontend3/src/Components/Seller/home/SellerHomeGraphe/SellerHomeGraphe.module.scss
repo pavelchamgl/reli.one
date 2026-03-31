@@ -3,6 +3,8 @@
   height: clamp(267px, 50vh, 482px);
   display: flex;
 
+  font-family: var(--ft);
+
   @media (max-width: 1000px) {
     width: 100%;
   }
@@ -13,4 +15,9 @@
     width: 600px; /* Контейнер растягивается на всю ширину */
     margin-bottom: 70px;
   }
+}
+
+
+.num{
+  font-family: var(--ft);
 }

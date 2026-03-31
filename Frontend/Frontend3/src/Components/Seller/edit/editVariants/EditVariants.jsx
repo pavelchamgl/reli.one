@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
@@ -36,6 +37,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
         handleEditVariant(variant.id, newVariant)
     }, [newVariant])
 
+    const { t } = useTranslation('sellerHome')
 
     const handleChangeFile = (e) => {
         setErr(false)
@@ -82,7 +84,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                     )
                     setErr(false)
                 }}
-                placeholder="Name color"
+                placeholder={t('item.color_name')}
                 disabled={type === "image"}
             />
             <div className={styles.priceDiv}>
@@ -93,7 +95,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                         setNewVariant({ ...newVariant, price: e.target.value })
                         setErr(false)
                     }}
-                    placeholder="Price"
+                    placeholder={t('item.price')}
                 />
                 <button onClick={() => handleDeleteVariant(variant.id, variant)}>
                     <img src={deleteIcon} alt="" />
@@ -110,7 +112,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                         </div>
                     ) :
                     <label className={type === "text" ? styles.addPhotoDivDis : styles.addPhotoDiv} onClick={handleLabelClick}>
-                        <p>+ Add photo</p>
+                        <p>{t('goods.addPhotos')}</p>
                         <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept="image/*,video/*" />
                     </label>
             }

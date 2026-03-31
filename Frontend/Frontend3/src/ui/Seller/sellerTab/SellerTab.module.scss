@@ -3,6 +3,12 @@
   border-bottom: 1px solid #d3d4d5;
   gap: 50px;
   margin-top: 34px;
+
+  @media (max-width: 620px) {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0;
+  }
 }
 
 @mixin tabs {
@@ -18,9 +24,15 @@
 
 .tabBtn {
   @include tabs;
+  @media (max-width: 620px) {
+    font-size: 20px;
+  }
 }
 
 .tabBtnAcc {
   @include tabs;
   border-bottom: 2px solid #f5b80b;
+  @media (max-width: 620px) {
+    font-size: 20px;
+  }
 }

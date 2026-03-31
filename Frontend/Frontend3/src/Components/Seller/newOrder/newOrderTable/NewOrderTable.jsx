@@ -1,67 +1,70 @@
-import React from 'react'
+import { useTranslation } from 'react-i18next'
+import { useSelector } from 'react-redux'
 
-import styles from "./NewOrderTable.module.scss"
+import { useActionNewOrder } from '../../../../hook/useActionNewOrder'
 import Checkbox from '../../../../ui/Seller/newOrder/checkbox/Checkbox'
 import TableItem from '../tableItem/TableItem'
-import { useSelector } from 'react-redux'
-import { useActionNewOrder } from '../../../../hook/useActionNewOrder'
+
+import styles from "./NewOrderTable.module.scss"
 
 const NewOrderTable = ({ data }) => {
 
+    const { t } = useTranslation('sellerOrder')
+
+
     const tableTitleTexts = [
         {
-            text: "Order ID",
+            text: t("orderId"),
             width: 168
         },
         {
-            text: "Created",
+            text: t('created'),
             width: 138
         },
         {
-            text: "Products",
+            text: t("products"),
             width: 89
         },
         {
-            text: "Purchase excl. VAT",
+            text: t('purchaseExclVat'),
             width: 151,
             break: 103,
             textAlign: "right",
             justify: "right"
         },
         {
-            text: "Sales incl. VAT",
+            text: t('salesInclVat'),
             width: 123,
             break: 83,
             textAlign: "right",
             justify: "right"
         },
         {
-            text: "Total + Delivery",
+            text: t('totalWithDelivery'),
             width: 127,
             break: 60,
             textAlign: "right",
             justify: "right"
         },
         {
-            text: "Status",
+            text: t("status"),
             width: 129,
             pad: "0 0"
         },
         {
-            text: "Dispatch Before",
+            text: t('dispatchBefore'),
             width: 133,
             break: 60,
             textAlign: "left",
         },
         {
-            text: "Actions",
+            text: t("actions"),
             width: 152,
             pad: "0 0"
         }
 
     ]
 
-    console.log(data);
 
     const { selectedIds } = useSelector(state => state.newOrder);
     const { clearAll, selectAll } = useActionNewOrder()

@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from 'react'
-import styles from './OrderStatusWrap.module.scss';
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next';
+
 import StatusText from '../../all/statusText/StatusText';
 import StatusUpdateSwitch from '../../../../ui/Seller/orderDetal/statusUpdateSwitch/StatusUpdateSwitch';
 import StatusUpdateSecond from '../../../../ui/Seller/orderDetal/statusUpdateSecond/StatusUpdateSecond';
 import Spinner from '../../../../ui/Spiner/Spiner';
 
+import styles from './OrderStatusWrap.module.scss';
+
 const OrderStatusWrap = ({ summary, statusState, setStatusState }) => {
 
     const [canUpdate, setCanUpdate] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    const { t } = useTranslation('sellerOrder')
 
 
     useEffect(() => {
@@ -20,9 +25,9 @@ const OrderStatusWrap = ({ summary, statusState, setStatusState }) => {
 
     return (
         <div className={styles.main}>
-            <h3 className={styles.title}>Order Status</h3>
+            <h3 className={styles.title}>{t('orderStatus')}</h3>
             <div className={styles.statusContentWrap}>
-                <p className={styles.currentText}>Current Status</p>
+                <p className={styles.currentText}>{t('currentStatus')}</p>
                 {
                     loading ?
                         <Spinner /> :
@@ -45,8 +50,8 @@ const OrderStatusWrap = ({ summary, statusState, setStatusState }) => {
                     <span></span>
                     <p>
                         {["Pending", "Processing"].includes(statusState)
-                            ? "Click to change status"
-                            : "Status cannot be updated"}
+                            ? t('clickToChangeStatus')
+                            : t('statusCannotBeUpdated')}
                     </p>
                     <span></span>
                 </div>

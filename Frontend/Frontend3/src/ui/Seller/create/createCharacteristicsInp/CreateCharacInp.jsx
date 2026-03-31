@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from "react";
-import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
-import styles from "./CreateCharacInp.module.scss";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+
+import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
+
+import styles from "./CreateCharacInp.module.scss";
 
 const CreateCharacInp = ({ setParameters, err, setErr }) => {
   const { product_parameters } = useSelector(state => state.create_prev)
@@ -12,6 +15,8 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
       value: "",
     }],
   );
+
+  const { t } = useTranslation('sellerHome')
 
   useEffect(() => {
     setParameters(characteristic)
@@ -51,8 +56,8 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
   return (
     <div className={styles.main}>
       <div className={styles.titleDiv}>
-        <p>Characteristics</p>
-        <button onClick={handleAdd}>+ Add an item</button>
+        <p>{t('goods.characteristics')}</p>
+        <button onClick={handleAdd}>{t('item.add')}</button>
       </div>
       {characteristic.length > 0 && characteristic?.map((item) => {
         if (item?.name === "length" || item?.name === "width" || item?.name === "height" || item?.name === "weight") {
@@ -66,7 +71,7 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
                 }}
                 type="text"
                 value={item.name}
-                placeholder="Column 1"
+                placeholder={`${t('item.column')} 1`}
               />
               <input
                 onChange={(e) => {
@@ -74,7 +79,7 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
                 }}
                 type="text"
                 value={item.value}
-                placeholder="Column 2"
+                placeholder={`${t('item.column')} 2`}
               />
               <button onClick={() => handleDelete(item.id)}>
                 <img src={deleteIcon} alt="Delete characteristic" />
@@ -84,7 +89,7 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
         }
       }
       )}
-      {err ? <p className={styles.errText}>All parameters are required to be filled in.</p> : ""}
+      {err ? <p className={styles.errText}>{t('allParametersAreRequired')}</p> : ""}
     </div>
   );
 };

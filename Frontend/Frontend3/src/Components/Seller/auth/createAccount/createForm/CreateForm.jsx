@@ -22,6 +22,7 @@ import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 const CreateForm = () => {
 
     const { t, i18n } = useTranslation();
+    const { t: tOnb } = useTranslation('onbording');
 
     const [isAgree, setIsAgree] = useState(false)
     const [regErr, setRegErr] = useState("");
@@ -93,7 +94,7 @@ const CreateForm = () => {
 
                         if (err.response.status === 500) {
                             setRegErr(
-                                "An error occurred on the server. Please try again later."
+                                tOnb('auth.errorOccurredOnServer')
                             );
                         } else if (err.response.status === 400) {
                             const errorData = err.response.data;
@@ -108,15 +109,15 @@ const CreateForm = () => {
 
                             setRegErr(
                                 errorMessage.trim() ||
-                                "An account with these details has already been registered."
+                                tOnb('reg.error_conflict')
                             );
                         } else {
-                            setRegErr("An unknown error occurred.");
+                            setRegErr(tOnb('auth.unknownErrorOccurred'));
                         }
                     } else {
                         // Обработка случаев, когда нет ответа (например, сетевые ошибки)
                         setRegErr(
-                            "Failed to connect to the server. Check your internet connection."
+                            tOnb('auth.failedToConnectToServer')
                         );
                     }
                 });
@@ -125,13 +126,14 @@ const CreateForm = () => {
 
     return (
         <div className={styles.main}>
-            <TitleAndDesc title={"Create Your Seller Account"}
-                desc={"Enter your details to get started"} />
+            <TitleAndDesc
+                title={tOnb('reg.title')}
+                desc={tOnb('reg.description')}
+            />
 
             <StepWrap step={1} />
 
-
-            <form className={styles.form} a
+            <form className={styles.form}
                 onSubmit={(e) => {
                     e.preventDefault()
                     formik.handleSubmit()
@@ -140,10 +142,10 @@ const CreateForm = () => {
                 <div className={styles.nameInpWrap}>
                     <InputSeller
                         required={true} circle={true}
-                        type={"text"} title={"First Name"}
+                        type={"text"} title={tOnb('reg.label_first_name')}
                         img={userIc}
                         name="first_name"
-                        placeholder={"Your first name"}
+                        placeholder={tOnb('reg.placeholder_first_name')}
                         value={formik.values.first_name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
@@ -152,22 +154,21 @@ const CreateForm = () => {
                     <InputSeller
                         required={true}
                         circle={true}
-                        type={"text"} title={"Last Name"}
+                        type={"text"} title={tOnb('reg.label_last_name')}
                         img={userIc}
-                        placeholder={"Your last name"}
+                        placeholder={tOnb('reg.placeholder_last_name')}
                         name="last_name"
                         value={formik.values.last_name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.last_name}
-
                     />
                 </div>
                 <InputSeller
                     required={true}
                     circle={true}
-                    type={"email"} title={"Email"}
-                    placeholder={"Your Email"}
+                    type={"email"} title={tOnb('reg.label_email')}
+                    placeholder={tOnb('reg.placeholder_email')}
                     name="email"
                     value={formik.values.email}
                     onChange={formik.handleChange}
@@ -178,9 +179,9 @@ const CreateForm = () => {
                 <InputSeller
                     required={true}
                     circle={true}
-                    type={"tel"} title={"Phone Number"}
+                    type={"tel"} title={tOnb('reg.label_phone')}
                     img={phoneIc}
-                    placeholder={"Your phone"}
+                    placeholder={tOnb('reg.placeholder_phone')}
                     num={true}
                     name="phone"
                     value={formik.values.phone}
@@ -191,8 +192,8 @@ const CreateForm = () => {
                 <InputSeller
                     required={true}
                     circle={true}
-                    type={"password"} title={"Password"}
-                    placeholder={"Your password"}
+                    type={"password"} title={tOnb('reg.label_password')}
+                    placeholder={tOnb('reg.placeholder_password')}
                     name="password"
                     value={formik.values.password}
                     onChange={formik.handleChange}
@@ -202,8 +203,8 @@ const CreateForm = () => {
                 <InputSeller
                     required={true}
                     circle={true}
-                    type={"password"} title={"Confirm Password"}
-                    placeholder={"Confirm password"}
+                    type={"password"} title={tOnb('reg.label_confirm_password')}
+                    placeholder={tOnb('reg.placeholder_confirm_password')}
                     name="confirm_password"
                     value={formik.values.confirm_password}
                     onChange={formik.handleChange}
@@ -218,10 +219,10 @@ const CreateForm = () => {
                         setIsAgree(e.target.checked)
                     }} />
                     <p>
-                        I agree with the
-                        <Link to={'https://info.reli.one/terms'}> terms & conditions </Link>
-                        and
-                        <Link to={"/privacy-policy"}> privacy policy</Link>
+                        {tOnb('reg.agree_text')}
+                        <Link to={'https://info.reli.one/terms'}> {tOnb('reg.terms_link')} </Link>
+                        {tOnb('reg.and')}
+                        <Link to={"/privacy-policy"}> {tOnb('reg.privacy_link')}</Link>
                     </p>
                 </div>
 
@@ -231,12 +232,11 @@ const CreateForm = () => {
                         !formik.isValid ||
                         !formik.dirty ||
                         !isAgree
-
-                    } style={{ borderRadius: "16px" }} text={"Sign Up"} />
+                    }
+                    style={{ borderRadius: "16px" }}
+                    text={tOnb('reg.button_signup')}
+                />
             </form>
-
-
-
         </div>
     )
 }

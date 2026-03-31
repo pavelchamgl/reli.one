@@ -16,6 +16,7 @@ import { downloadBlob } from '../../../../code/seller'
 import { ErrToast } from '../../../../ui/Toastify'
 import { useSelector } from 'react-redux'
 import { useActionNewOrder } from '../../../../hook/useActionNewOrder'
+import { useTranslation } from 'react-i18next'
 
 const InfoItem = ({ title, url, desc, style }) => {
     return (
@@ -81,6 +82,9 @@ const MobileOrderCard = ({ item }) => {
 
     const { toggleOrder } = useActionNewOrder()
 
+    const { t } = useTranslation('sellerOrder')
+
+
     return (
         <div className={styles.main}>
             <div>
@@ -97,24 +101,24 @@ const MobileOrderCard = ({ item }) => {
                 </div>
 
                 <div className={styles.infoTextMain}>
-                    <InfoItem title={"Created"} style={{ fontFamily: "var(--ft)" }} desc={item?.order_date} url={watch} />
-                    <InfoItem title={"Products"} style={{ fontFamily: "var(--ft)" }} desc={`${item?.products_count} items`} url={prod} />
-                    <InfoItem title={"Branch"} desc={item?.branch?.name} />
-                    <InfoItem title={"Dispatch Before"} style={{ fontFamily: "var(--ft)" }} desc={item?.dispatch_before ? item?.dispatch_before : "Pending"} />
+                    <InfoItem title={t("created")} style={{ fontFamily: "var(--ft)" }} desc={item?.order_date} url={watch} />
+                    <InfoItem title={t("products")} style={{ fontFamily: "var(--ft)" }} desc={`${item?.products_count} items`} url={prod} />
+                    <InfoItem title={t("branch")} desc={item?.branch?.name} />
+                    <InfoItem title={t('dispatchBefore')} style={{ fontFamily: "var(--ft)" }} desc={item?.dispatch_before ? item?.dispatch_before : "Pending"} />
                 </div>
 
                 <div className={styles.billMainBlock}>
                     <div className={styles.billBlock}>
-                        <p>Purchase excl. VAT</p>
+                        <p>{t('purchaseExclVat')}</p>
                         <p>{item?.purchase_excl_vat} €</p>
                     </div>
                     <div className={styles.billBlock}>
-                        <p>Sales incl. VAT</p>
+                        <p>{t('salesInclVat')}</p>
                         <p>{item?.sales_incl_vat} €</p>
                     </div>
 
                     <div className={styles.totalBlock}>
-                        <p>Total incl. VAT</p>
+                        <p>{t('totalWithDelivery')}</p>
                         <p>{item?.total_incl_vat_plus_delivery} €</p>
                     </div>
                 </div>
@@ -122,8 +126,7 @@ const MobileOrderCard = ({ item }) => {
                 <div className={styles.btnsWrap}>
                     <button className={styles.topBtn}>
                         <img src={truck} alt="" />
-                        Tracking
-
+                        {t("tracking")}
                     </button>
 
                     <div className={styles.bottomBtns}>
@@ -131,13 +134,13 @@ const MobileOrderCard = ({ item }) => {
                             handleDownload()
                         }} className={`${styles.bottomBtn} ${styles.leftBtn}`}>
                             <img src={tag} alt="" />
-                            Download
+                            {t("download")}
                         </button>
                         <button onClick={() => {
                             handleCancel()
                         }} className={`${styles.bottomBtn} ${styles.rightBtn}`}>
                             <img src={redX} alt="" />
-                            Cancelled
+                            {t('cancelled')}
                         </button>
                     </div>
                 </div>

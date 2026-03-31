@@ -16,6 +16,7 @@ import { passSendOtp, sendOtp } from "../../../../api/auth";
 const ResetForm = () => {
 
     const { t } = useTranslation()
+    const { t: tOnb } = useTranslation('onbording')
     const [regErr, setRegErr] = useState("");
     const [isLoading, setIsLoading] = useState(false)
 
@@ -48,7 +49,7 @@ const ResetForm = () => {
                         setIsLoading(false)
                         if (err.response.status === 500) {
                             setRegErr(
-                                "An error occurred on the server. Please try again later."
+                                tOnb('auth.errorOccurredOnServer')
                             );
                         } else if (err.response.status === 400) {
                             const errorData = err.response.data;
@@ -63,17 +64,17 @@ const ResetForm = () => {
 
                             setRegErr(
                                 errorMessage.trim() ||
-                                "No active account found with the given credentials."
+                                tOnb('auth.noActiveAccountFound')
                             );
                         } else if (err.response.status === 404) {
-                            setRegErr("User with the specified email address not found.");
+                            setRegErr(tOnb('auth.userWithEmailNotFound'));
                         } else {
-                            setRegErr("An unknown error occurred.");
+                            setRegErr(tOnb('auth.unknownErrorOccurred'));
                         }
                     } else {
                         // Обработка случаев, когда нет ответа (например, сетевые ошибки)
                         setRegErr(
-                            "Failed to connect to the server. Check your internet connection."
+                            tOnb('auth.failedToConnectToServer')
                         );
                     }
                 });
@@ -82,8 +83,9 @@ const ResetForm = () => {
 
     return (
         <div className={styles.main}>
-            <BackBtn text={"Back to login"} />
-            <TitleAndDesc title={"Reset your password"} desc={"Enter the email address you used during registration."} />
+            <BackBtn text={tOnb('auth.backToLogin')} />
+            <TitleAndDesc title={tOnb('auth.resetYourPassword')}
+                desc={tOnb('auth.enterTheEmailAddress')} />
 
             <form className={styles.form}
                 onSubmit={(e) => {
@@ -92,7 +94,7 @@ const ResetForm = () => {
                 }}
             >
                 <InputSeller
-                    type={"email"} title={"Email"}
+                    type={"email"} title={t("email")}
                     placeholder={"your.email@reli.one"}
                     name="email"
                     value={formik.values.email}
@@ -104,12 +106,12 @@ const ResetForm = () => {
                 <AuthBtnSeller
                     loading={isLoading}
                     disabled={!formik.isValid || !formik.dirty}
-                    text={"Send code"} />
+                    text={tOnb('auth.sendCode')} />
             </form>
 
             <div className={styles.bottomLinkWrap}>
-                <p>Remember your password?</p>
-                <FormLink url={"/seller/login"} text={"Log in instead"} />
+                <p>{tOnb('auth.rememberYourPassword')}</p>
+                <FormLink url={"/seller/login"} text={tOnb('auth.logInInstead')} />
             </div>
 
         </div>

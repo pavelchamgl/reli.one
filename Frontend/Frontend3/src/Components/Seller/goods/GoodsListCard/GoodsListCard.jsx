@@ -1,6 +1,7 @@
 import { Rating } from "@mui/material";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import testImg from "../../../../assets/Product/ProductTestImage.svg";
 import GoodsDeleteModal from "../../../../ui/Seller/Goods/GoodsDeleteModal/GoodsDeleteModal";
@@ -13,14 +14,8 @@ const GoodsListCard = ({ item, isLoading }) => {
 
   const [open, setOpen] = useState(false);
 
-
-  console.log(item);
+    const { t } = useTranslation('sellerHome')
   
-
-
-
-
-
 
   if (isLoading) {
     return (
@@ -54,10 +49,10 @@ const GoodsListCard = ({ item, isLoading }) => {
           <Rating name="read-only" size="small" value={item ? item?.rating : 0} readOnly />
           <span className={styles.rateText}>{item ? item?.rating : 0}</span>
         </div>
-        <p className={styles.orderCountText}>Ordered: {item && item?.ordered_count ? item?.ordered_count : 0}</p>
+        <p className={styles.orderCountText}>{t('ordered')}: {item && item?.ordered_count ? item?.ordered_count : 0}</p>
         <div className={styles.btnsDiv}>
-          <button onClick={()=> navigate(`/seller/seller-edit/${item?.id}`)}>Edit</button>
-          <button onClick={() => setOpen(!open)}>Del</button>
+          <button onClick={()=> navigate(`/seller/seller-edit/${item?.id}`)}>{t('edit')}</button>
+          <button onClick={() => setOpen(!open)}>{t('del')}</button>
         </div>
       </div>
       <GoodsDeleteModal item={item} open={open} handleClose={() => setOpen(!open)} />
