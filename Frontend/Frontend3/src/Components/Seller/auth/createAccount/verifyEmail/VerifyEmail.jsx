@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import AuthBtnSeller from "../../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller"
 import TitleAndDesc from "../../../../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
@@ -21,6 +22,8 @@ const VeriFyEmail = () => {
     const [isLoading, setIsLoading] = useState(false)
 
     const navigate = useNavigate()
+
+    const { t: tOnb } = useTranslation('onbording')
 
     let interval;
 
@@ -53,16 +56,16 @@ const VeriFyEmail = () => {
             if (err.response) {
                 setIsLoading(false)
                 if (err.response.status === 500) {
-                    setRegErr("An error occurred on the server. Please try again later.");
+                    setRegErr(tOnb('auth.errorOccurredOnServer'));
                 } else if (err.response.status === 400) {
-                    setRegErr("The specified OTP has expired or is invalid");
+                    setRegErr(tOnb('auth.otpExpiredOrInvalid'));
                 } else if (err.response.status === 404) {
-                    setRegErr("User with the specified email address not found");
+                    setRegErr(tOnb('auth.userWithEmailNotFound'));
                 } else {
-                    setRegErr("An unknown error occurred.");
+                    setRegErr(tOnb('auth.unknownErrorOccurred'));
                 }
             } else {
-                setRegErr("Failed to connect to the server. Check your internet connection.");
+                setRegErr(tOnb('auth.failedToConnectToServer'));
             }
         }
     };
@@ -73,16 +76,18 @@ const VeriFyEmail = () => {
                 setTime(59);
             })
             .catch((err) => {
-                setRegErr("Failed to send OTP. Please try again later.");
+                setRegErr(tOnb('auth.failedToSendOTP'));
             });
     };
 
     return (
         <div className={styles.main}>
-
             <img className={styles.emailImg} src={emailIc} alt="" />
 
-            <TitleAndDesc title={"Verify Your Email"} desc={"A 6-digit verification code was sent to"} />
+            <TitleAndDesc
+                title={tOnb('onboard.verification.verify_email')}
+                desc={tOnb('onboard.verification.code_sent')}
+            />
             <p className={styles.emailText}>{email ? email : "1@gmail.com"}</p>
 
             <StepWrap step={2} />
@@ -94,24 +99,28 @@ const VeriFyEmail = () => {
                 }}
             >
                 <VerifyPinInput setValue={setValue} value={value} />
-                {regErr && <p className={styles.errorText}>{regErr}</p>}
+
+                {regErr && <p className={styles.errorText}>{tOnb(regErr)}</p>}
+
                 <AuthBtnSeller
-                loading={isLoading}
-                disabled={value.length === 0} style={{ borderRadius: "16px" }} text={"Confirm"} />
+                    loading={isLoading}
+                    disabled={value.length === 0}
+                    style={{ borderRadius: "16px" }}
+                    text={tOnb('onboard.common.confirm')}
+                />
 
                 <div className={styles.timerDiv}>
                     {time ? (
                         <p className={styles.resentText}>
-                            Resend code in <span className={styles.num}>{time}</span> s
+                            {tOnb('onboard.verification.resend_code')} <span className={styles.num}>{time}</span> s
                         </p>
                     ) : (
-                        <button onClick={handleSendAgain} type="button" className={styles.resendBtn}>Resend code</button>
+                        <button onClick={handleSendAgain} type="button" className={styles.resendBtn}>
+                            {tOnb('auth.resendCode')}
+                        </button>
                     )}
                 </div>
             </form>
-
-
-
         </div>
     )
 }

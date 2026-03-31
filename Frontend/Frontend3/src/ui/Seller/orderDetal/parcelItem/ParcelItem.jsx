@@ -1,7 +1,12 @@
+import { useTranslation } from "react-i18next";
 import prodIc from "../../../../assets/Seller/newOrder/productIc.svg"
 import styles from './ParcelItem.module.scss';
 
 const ParcelItem = ({ item }) => {
+
+    const { t } = useTranslation('sellerOrder')
+
+
     return (
         <div className={styles.main}>
             <div className={styles.nameAndImg}>
@@ -12,7 +17,7 @@ const ParcelItem = ({ item }) => {
                 </div>
 
             </div>
-            <p className={styles.quant}>Qty: {item?.quantity}</p>
+            <p className={styles.quant}>{t('quantity')}: {item?.quantity}</p>
         </div>
     )
 }

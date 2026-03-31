@@ -1,14 +1,16 @@
 
 import { useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
+import { useLocation } from "react-router-dom"
+
 import { putOnboardingBank } from "../../../../../api/seller/onboarding"
 import bankAcc from "../../../../../assets/Seller/register/bankAcc.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
+import { ErrToast } from "../../../../../ui/Toastify"
 
 import styles from "./BankAccount.module.scss"
-import { useLocation } from "react-router-dom"
-import { ErrToast } from "../../../../../ui/Toastify"
 
 const BankAccount = ({ formik, onClosePreview }) => {
 
@@ -16,8 +18,9 @@ const BankAccount = ({ formik, onClosePreview }) => {
 
     const { safeData, safeCompanyData } = useActionSafeEmploed()
 
-
     const bankRef = useRef(null)
+
+    const { t } = useTranslation('onbording')
 
     const isBankDataFilled = (values) => {
         return Boolean(
@@ -44,8 +47,8 @@ const BankAccount = ({ formik, onClosePreview }) => {
 
         if (pathname === '/seller/seller-review') {
             safeData(payload)
-        } 
-        if(pathname === '/seller/seller-review-company'){
+        }
+        if (pathname === '/seller/seller-review-company') {
             safeCompanyData(payload)
         }
 
@@ -53,10 +56,27 @@ const BankAccount = ({ formik, onClosePreview }) => {
             await putOnboardingBank(payload)
             onClosePreview?.()
         } catch (err) {
-            ErrToast(err?.message || "Failed to save bank data")
+            ErrToast(err?.message || t('onboard.common.error_save'))
         }
 
     }
+
+    useEffect(() => {
+
+        if (pathname === '/seller/seller-company'
+            // || pathname === '/seller/seller-review-company'
+        ) {
+            formik.setFieldValue('account_holder', `${formik.values.company_name + " "}${formik.values.legal_form}`)
+        } else if (pathname === '/seller/seller-info') {
+            formik.setFieldValue('account_holder', `${formik.values.first_name + " "}${formik.values.last_name}`)
+        }
+
+    }, [
+        formik.values.company_name,
+        formik.values.first_name,
+        formik.values.legal_form,
+        formik.values.last_name
+    ])
 
     return (
         <div className={styles.main}
@@ -68,19 +88,18 @@ const BankAccount = ({ formik, onClosePreview }) => {
                 }
             }}
         >
-
             <div className={styles.titleWrap}>
                 <img src={bankAcc} alt="" />
-                <h2>Bank Account</h2>
+                <h2>{t('onboard.bank.title')}</h2>
             </div>
 
             <div className={styles.inpWrapMain}>
                 <InputSeller
-                    title={"IBAN"}
+                    title={t('onboard.bank.iban')}
                     type={"text"}
                     circle={true}
                     required={true}
-                    afterText={"Up to 34 characters, letters and digits only"}
+                    afterText={t('onboard.bank.iban_hint')}
                     placeholder={"CZ65 0800 0000 1920 0014 5399"}
                     num={true}
                     name="iban"
@@ -92,11 +111,11 @@ const BankAccount = ({ formik, onClosePreview }) => {
                 />
 
                 <InputSeller
-                    title={"SWIFT/BIC"}
+                    title={t('onboard.bank.swift')}
                     type={"text"}
                     circle={true}
                     required={true}
-                    afterText={"8–11 characters"}
+                    afterText={t('onboard.bank.swift_hint')}
                     placeholder={"GIBACZPX"}
                     name="swift_bic"
                     value={formik.values.swift_bic}
@@ -107,11 +126,11 @@ const BankAccount = ({ formik, onClosePreview }) => {
                 />
 
                 <InputSeller
-                    title={"Account holder"}
+                    title={t('onboard.bank.holder')}
                     type={"text"}
                     circle={true}
                     required={true}
-                    placeholder={"Must match seller's full name"}
+                    placeholder={t('onboard.bank.holder_placeholder')}
                     name="account_holder"
                     value={formik.values.account_holder}
                     onChange={formik.handleChange}
@@ -120,14 +139,12 @@ const BankAccount = ({ formik, onClosePreview }) => {
                     touched={formik.touched.account_holder}
                 />
 
-
                 {
                     formik.values.country ?
                         (formik.values.country === "cz" || formik.values.country === "sk") ?
                             <div className={styles.twoInpWrap}>
-
                                 <InputSeller
-                                    title={"Bank code"}
+                                    title={t('onboard.bank.bank_code')}
                                     type={"text"}
                                     circle={true}
                                     required={true}
@@ -142,7 +159,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
                                 />
 
                                 <InputSeller
-                                    title={"Local account number"}
+                                    title={t('onboard.bank.local_acc')}
                                     type={"text"}
                                     circle={true}
                                     required={true}
@@ -159,13 +176,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
                             : null
                         : null
                 }
-
-
-
-
             </div>
-
-
         </div>
     )
 }

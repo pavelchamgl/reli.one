@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
+
 import arrBottom from "../../../../../assets/Seller/register/arrowBottom.svg"
 
 import styles from "./SellerInfoSelect.module.scss"
@@ -15,6 +17,7 @@ const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required
 
     const blockRef = useRef(null)
 
+    const { t } = useTranslation('onbording')
 
     const selectText = arr?.find((item) => item?.value === value)
 
@@ -65,7 +68,10 @@ const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required
                         borderRadius: open ? "16px 16px 0 0" : "16px"
                     }}
                 >
-                    <p>{value ? selectText?.text : titleSellect}</p>
+                    <p>{value ?
+                        selectText?.key ?
+                            t(selectText?.key) :
+                            selectText?.text : titleSellect}</p>
                     <img className={!open ? styles.activeArrow : ""} src={arrBottom} alt="" />
                 </button>
 
@@ -80,7 +86,7 @@ const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required
                                     setValue(item?.value)
                                     setOpen(false)
                                     setTouched(false)
-                                }} className={styles.selectItem}>{item?.text}</button>
+                                }} className={styles.selectItem}>{item?.key ? t(item.key) : item?.text}</button>
                         ))}
                     </div>
                 }

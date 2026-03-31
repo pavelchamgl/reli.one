@@ -1,8 +1,12 @@
 import { useMediaQuery } from "react-responsive"
+import { useTranslation } from "react-i18next"
 
 import styles from "./StatusText.module.scss"
 
 const StatusText = ({ status, big }) => {
+
+    const { t } = useTranslation('sellerOrder')
+
 
     const statuses = [
         {

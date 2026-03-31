@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import styles from "./SellerHomeTitle.module.scss";
 
-const SellerTitle = ({title}) => {
+const SellerTitle = ({ title }) => {
   const [day, setDay] = useState(null);
   const [month, setMonth] = useState(null);
+
+  const { t } = useTranslation('sellerHome')
+
 
   const months = {
     1: "January",
@@ -47,9 +51,9 @@ const SellerTitle = ({title}) => {
 
   return (
     <div className={styles.main}>
-      <h3>{title}</h3>
+      <h3>{t(title)}</h3>
       <span>
-        Today is {month && month} {day && day}
+        {t('todayIs')} {month && month} <span className={styles.num}>{day && day}</span>
       </span>
     </div>
   );

@@ -4,6 +4,13 @@
   @include analytBlocks();
   border: 1.48px solid $redBord;
   background-color: $redBack;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+
+  @media (max-width:500px) {
+    align-items: center;
+  }
 }
 
 .requiredTitleBlock {
@@ -66,10 +73,20 @@
   }
 }
 
-.feedbackBlock{
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
+.feedbackBlock {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
 
-    & p{}
+  & p {
+    font-weight: 500;
+    font-size: 14px;
+    color: $black;
+  }
+
+  & span {
+    font-weight: 400;
+    font-size: 14px;
+    color: #364153;
+  }
 }

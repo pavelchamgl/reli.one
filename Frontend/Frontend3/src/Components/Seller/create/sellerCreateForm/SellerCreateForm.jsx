@@ -2,10 +2,11 @@ import { useFormik } from "formik";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+
 import { postSellerProduct, postSellerImages, postSellerParameters, postSellerVariants } from "../../../../api/seller/sellerProduct";
 import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
 import { validateGoods } from "../../../../code/validation/validationGoods";
-
 import CreateFormInp from "../../../../ui/Seller/create/createFormInp/CreateFormInp";
 import CreateCharacInp from "../../../../ui/Seller/create/createCharacteristicsInp/CreateCharacInp";
 import SellerCreateImage from "../sellerCreateImages/SellerCreateImage";
@@ -36,6 +37,7 @@ const
 
     const { categoriesStage } = useSelector(state => state.create)
 
+    const { t } = useTranslation('sellerHome')
 
 
 
@@ -119,7 +121,7 @@ const
 
     return (
       <div className={styles.main}>
-        <CreateFormInp text={"Goods name"} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
+        <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
           setName({ name: e.target.value })
           formik.handleChange(e)
         }} titleSize={"big"} required={true} error={formik.errors.name} />
@@ -137,7 +139,7 @@ const
             setDescription(e.target.value)
             formik.handleChange(e)
           }}
-          text={"Description text"}
+          text={t('goods.description')}
           titleSize={"small"}
           required={true}
           textarea={true}
@@ -146,8 +148,8 @@ const
 
         <CreateCharacInp err={parametersErr} setErr={setParametersErr} setParameters={setParameters} />
 
-        <CreateFormInp text={"Barcode"} titleSize={"small"} />
-        <CreateFormInp text={"Item"} titleSize={"small"}  />
+        <CreateFormInp text={t('item.barcode')} titleSize={"small"} />
+        <CreateFormInp text={t('item.name')} titleSize={"small"} />
         {/* <div className={styles.priceDiv}>
         <CreateFormInp
           text={"Your price"}
@@ -162,61 +164,61 @@ const
         />
       </div> */}
 
-        <h4 className={styles.wightTitle}>Dimensions and weight</h4>
+        <h4 className={styles.wightTitle}>{t('item.dimensions_weight')}</h4>
 
         <CreateFormInp name={"length"}
           value={formik.values.length}
           {...formik} handleChange={(e) => {
             formik.handleChange(e)
             setLength({ length: e.target.value })
-          }} text={"Package length, mm"} 
-          titleSize={"small"} 
-          error={formik.errors.length} 
+          }} text={t('item.package_length')}
+          titleSize={"small"}
+          error={formik.errors.length}
           num={true}
-          />
+        />
 
         <CreateFormInp name={"width"}
           value={formik.values.width} {
           ...formik} handleChange={(e) => {
             formik.handleChange(e)
             setWidth({ width: e.target.value })
-          }} text={"Package width, mm"} 
-          titleSize={"small"} 
-          error={formik.errors.width} 
+          }} text={t('item.package_width')}
+          titleSize={"small"}
+          error={formik.errors.width}
           num={true}
-          />
+        />
 
         <CreateFormInp name={"height"}
           value={formik.values.height}
           {...formik} handleChange={(e) => {
             formik.handleChange(e)
             setHeigth({ height: e.target.value })
-          }} text={"Package height, mm"} 
-          titleSize={"small"} 
+          }} text={t('item.package_height')}
+          titleSize={"small"}
           error={formik.errors.height}
           num={true}
-          />
+        />
 
         <CreateFormInp name={"weight"}
           value={formik.values.weight}
           {...formik} handleChange={(e) => {
             formik.handleChange(e)
             setWeight({ weight: e.target.value })
-          }} text={"Weight with package, g"} 
-          titleSize={"small"} 
+          }} text={t('item.package_weight')}
+          titleSize={"small"}
           error={formik.errors.weight}
-          
-          num={true}/>
+
+          num={true} />
 
 
         <SellerCreateVariants err={varErr} setErr={setVarErr} type={type} setType={setType} errName={varNameErr} setErrName={setVarNameErr} setMainVariants={setVariants} />
 
         <div className={styles.footerBtnWrap}>
-          <button onClick={() => navigate(-1)}>Cancel</button>
+          <button onClick={() => navigate(-1)}>{t('item.cancel')}</button>
 
           <button
             disabled={!formik.isValid || !variantsName?.trim() || variantsMain.length === 0}
-            onClick={handlePreviewClick}>Preview</button>
+            onClick={handlePreviewClick}>{t('item.preview')}</button>
         </div >
       </div >
     );

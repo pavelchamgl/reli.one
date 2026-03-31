@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import InputMask from "react-input-mask";
 
 import dayjs from "dayjs";
@@ -24,8 +25,7 @@ const greenTheme = createTheme({
 
 const SellerDateInp = ({ formik }) => {
 
-  console.log(formik.values);
-  
+  const { t } = useTranslation('onbording')
 
   const masks = "99.99.9999";
 
@@ -48,7 +48,7 @@ const SellerDateInp = ({ formik }) => {
 
   return (
     <div className={styles.dateWrap}>
-      <p className={styles.dateTitle}>Date of birth</p>
+      <p className={styles.dateTitle}>{t('onboard.seller_info.date_of_birth')}</p>
 
       <div className={`${styles.inpWrap} ${showError ? styles.error : ""}`}>
         <IconButton

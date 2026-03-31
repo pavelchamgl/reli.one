@@ -1,37 +1,41 @@
 import { useMediaQuery } from "react-responsive"
-import styles from "./ProductsTable.module.scss"
+import { useTranslation } from "react-i18next"
+
 import ProductTableCard from "../productTableCard/ProductTableCard"
+
+import styles from "./ProductsTable.module.scss"
 
 const ProductsTable = ({ data }) => {
 
     const { summary, items, shipments, timeline, actions } = data || {}
 
-
     const isPlanshet = useMediaQuery({ maxWidth: 1150 })
+
+    const { t } = useTranslation('sellerOrder')
 
     const tableTitles = [
         {
-            text: "Product",
+            text: t("product"),
             minWidth: 200
         },
         {
-            text: "SKU",
+            text: t("sku"),
             minWidth: 161
         },
         {
-            text: "Variant",
+            text: t('variant'),
             minWidth: 146
         },
         {
-            text: "Qty",
+            text: t('quantity'),
             minWidth: 60
         },
         {
-            text: "Unit Price",
+            text: t('unitPrice'),
             minWidth: 103
         },
         {
-            text: "Total",
+            text: t("total"),
             minWidth: 87
         },
     ]
@@ -74,7 +78,7 @@ const ProductsTable = ({ data }) => {
 
     return (
         <div className={styles.main}>
-            <h4 className={styles.title}>Product Items</h4>
+            <h4 className={styles.title}>{t('productItems')}</h4>
 
 
             {

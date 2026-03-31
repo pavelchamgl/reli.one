@@ -1,17 +1,18 @@
 
-import { useEffect, useRef, useState } from "react"
+import {  useRef } from "react"
 import { useSelector } from "react-redux"
+import { useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import addressIc from "../../../../../assets/Seller/register/addressIc.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
-
-import styles from "./Address.module.scss"
 import { putSelfAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
-import { useLocation } from "react-router-dom"
+
+import styles from "./Address.module.scss"
 
 const AddressBlock = ({ formik, onClosePreview }) => {
 
@@ -50,10 +51,6 @@ const AddressBlock = ({ formik, onClosePreview }) => {
 
         const filled = isAddressFilled(formik.values)
 
-
-
-
-
         if (!filled) return
 
         const payload = {
@@ -76,102 +73,94 @@ const AddressBlock = ({ formik, onClosePreview }) => {
         } catch (err) {
             // ErrToast(err?.message || "Failed to save personal data");
         }
-
-
-
     }
 
     const ignoreBlurRef = useRef(false);
 
-
+    const { t } = useTranslation('onbording')
 
     return (
         <div className={styles.main}
             ref={addressRef}
             tabIndex={-1}
             onBlurCapture={(e) => {
-
                 if (ignoreBlurRef.current) {
                     ignoreBlurRef.current = false;
                     return;
                 }
-
                 if (!e.currentTarget.contains(e.relatedTarget)) {
                     setTimeout(onLeaveAddressBlock, 0);
                 }
             }}
         >
-
             <div className={styles.titleWrap}>
                 <img src={addressIc} alt="" />
-                <h2>Address</h2>
+                <h2>{t('onboard.tax_address.address')}</h2>
             </div>
 
             <div className={styles.inpWrapMain}>
-                <InputSeller title={"Street"} type={"text"} circle={true} required={true}
+                <InputSeller
+                    title={t('onboard.tax_address.street')}
+                    type={"text"} circle={true} required={true}
                     placeholder={"Main street 123"}
                     name="street" value={formik.values.street}
                     onChange={formik.handleChange}
                     onBlur={formik.handleBlur}
                     error={formik.errors.street}
                     touched={formik.touched.street}
-
                 />
 
                 <div className={styles.twoInpWrap}>
-                    <InputSeller title={"City"} type={"text"} circle={true} required={true}
+                    <InputSeller
+                        title={t('onboard.tax_address.city')}
+                        type={"text"} circle={true} required={true}
                         placeholder={"Prague"}
                         name="city" value={formik.values.city}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.city}
                         touched={formik.touched.city}
-
                     />
 
-                    <InputSeller title={"ZIP"} type={"text"} circle={true} required={true}
+                    <InputSeller
+                        title={t('onboard.tax_address.zip')}
+                        type={"text"} circle={true} required={true}
                         placeholder={"11000"} num={true}
                         name="zip_code" value={formik.values.zip_code}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.zip_code}
                         touched={formik.touched.zip_code}
-
                     />
 
                     <SellerInfoSellect
                         arr={countriesArr}
                         value={formik.values.country}
                         setValue={(v) => formik.setFieldValue('country', v)}
-                        title={"Country"}
-                        titleSellect={"Select"}
-                        errText={"Country is required"}
+                        title={t('onboard.tax_address.country')}
+                        titleSellect={t('onboard.common.select')}
+                        errText={t('onboard.tax_address.country_required')}
                     />
                 </div>
 
                 <div>
                     <UploadInp
-                        title={"Proof of address"}
-                        description={"Not older than 3 months (utility bill, bank statement, etc.)"}
+                        title={t('onboard.tax_address.proof_address')}
+                        description={t('onboard.tax_address.proof_desc')}
                         side={null}
                         docType={"proof_of_address"}
-                        inpText={"Upload document"}
+                        inpText={t('onboard.tax_address.upload_doc')}
                         scope={"self_employed_address"}
                         onChange={handleSingleFrontUpload}
                         stateName={selfData?.self_address_name}
                         nameTitle={"self_address_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
                     />
-                    {formik.errors.proof_document_issue_date && <p className={styles.errorText}>Upload document is required</p>}
+                    {formik.errors.proof_document_issue_date &&
+                        <p className={styles.errorText}>{t('onboard.tax_address.upload_required')}</p>
+                    }
                 </div>
-
-
-
-
-
             </div>
-
-
         </div>
     )
 }

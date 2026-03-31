@@ -12,6 +12,7 @@ import { useActionNewOrder } from '../../hook/useActionNewOrder'
 import NoContentText from '../../ui/NoContentText/NoContentText'
 
 import styles from "./NewSellerOrder.module.scss"
+import { useTranslation } from 'react-i18next'
 
 const NewSellerOrder = () => {
 
@@ -20,14 +21,15 @@ const NewSellerOrder = () => {
 
     const { getOrdersByFilters } = useActionNewOrder()
     const { data } = useSelector(state => state.newOrder)
+    const { t } = useTranslation('sellerOrder')
 
     const linkArr = [
         {
-            name: "Home",
+            name: t("home"),
             link: "/seller/seller-home"
         },
         {
-            name: "Orders",
+            name: t("orders"),
             link: "/seller/seller-order"
         }
     ]
@@ -40,7 +42,7 @@ const NewSellerOrder = () => {
     return (
         <div className={styles.wrap}>
             <SellerBread arr={linkArr} />
-            <h2 className={styles.title}>Orders</h2>
+            <h2 className={styles.title}>{t('orders')}</h2>
             <FilterBlock />
             {
                 data ?

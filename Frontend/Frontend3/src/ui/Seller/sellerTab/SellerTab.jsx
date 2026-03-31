@@ -1,10 +1,12 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next"
 
 import styles from "./SellerTab.module.scss";
 
 const SellerTab = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation('sellerOrder')
 
   return (
     <div className={styles.main}>
@@ -14,7 +16,7 @@ const SellerTab = () => {
         }
         onClick={() => navigate("/seller/seller-home")}
       >
-        Home
+        {t('home')}
       </button>
       <button
         className={
@@ -27,7 +29,7 @@ const SellerTab = () => {
         }
         onClick={() => navigate("/seller/goods-choice")}
       >
-        Goods
+        {t("goods")}
       </button>
       <button
         className={
@@ -35,7 +37,7 @@ const SellerTab = () => {
         }
         onClick={() => navigate("/seller/seller-order")}
       >
-        Orders
+        {t('orders')}
       </button>
       <button
         className={
@@ -43,7 +45,7 @@ const SellerTab = () => {
         }
         onClick={() => navigate("/seller/seller-order")}
       >
-        Sales analytics
+        {t('salesAnalytics')}
       </button>
     </div>
   );

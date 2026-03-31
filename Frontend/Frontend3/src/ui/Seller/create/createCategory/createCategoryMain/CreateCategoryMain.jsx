@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { useActions } from "../../../../../hook/useAction";
 
 import arrDown from "../../../../../assets/Seller/create/arrDown.svg";
+import CreateCategoryParent from "../createCategoryParent/CreateCategoryParent";
 
 import styles from "./CreateCategoryMain.module.scss";
-import CreateCategoryParent from "../createCategoryParent/CreateCategoryParent";
 
 const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
     const [selectText, setSelectText] = useState("Select a category");
@@ -19,6 +20,8 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
 
     // Ref для обёртки select
     const selectRef = useRef(null);
+
+    const { t } = useTranslation('sellerHome')
 
     // Закрытие при клике вне select
     useEffect(() => {
@@ -58,8 +61,8 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
 
     return (
         <div>
-            <h3 className={styles.mainTitle}>Goods Information</h3>
-            <p className={styles.selectTitle}>Category and type</p>
+            <h3 className={styles.mainTitle}>{t('goods.info')}</h3>
+            <p className={styles.selectTitle}>{t('goods.category')}</p>
 
             <div className={err ? styles.errWrap : ""} ref={selectRef}>
                 <button onClick={() => {
@@ -111,7 +114,7 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
                     </div>
                 )}
             </div>
-            {err ? <p className={styles.errText}>Category is required</p> : ""}
+            {err ? <p className={styles.errText}>{t('goods.categoryIsRequired')}</p> : ""}
         </div>
     );
 };

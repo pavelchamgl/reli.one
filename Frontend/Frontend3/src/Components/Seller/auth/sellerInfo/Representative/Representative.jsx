@@ -1,19 +1,20 @@
 
-import { useEffect, useRef, useState } from "react"
+import { useRef } from "react"
 import { useSelector } from "react-redux"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
+import { useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import representativeIc from "../../../../../assets/Seller/register/representativeIc.svg"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
-
-import styles from "./Representative.module.scss"
 import SellerDateInp from "../dateInp/DateInp"
 import { putRepresentative, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr } from "../../../../../code/seller"
 import { ErrToast } from "../../../../../ui/Toastify"
-import { useLocation } from "react-router-dom"
+
+import styles from "./Representative.module.scss"
 
 const Representative = ({ formik, onClosePreview }) => {
 
@@ -30,6 +31,8 @@ const Representative = ({ formik, onClosePreview }) => {
     }
 
     const representativeRef = useRef(null)
+
+    const { t } = useTranslation('onbording')
 
     const { pathname } = useLocation()
 
@@ -69,11 +72,11 @@ const Representative = ({ formik, onClosePreview }) => {
 
 
     const roleArr = [
-        { text: "Owner", value: "Owner" },
-        { text: "Director", value: "Director" },
-        { text: "Managing Director", value: "Managing Director" },
-        { text: "CEO", value: "CEO" },
-        { text: "Authorized Signatory", value: "Authorized Signatory" },
+        { text: t('onboard.representative.role_owner'), value: "Owner" },
+        { text: t('onboard.representative.role_director'), value: "Director" },
+        { text: t('onboard.representative.role_managing'), value: "Managing Director" },
+        { text: t('onboard.representative.role_ceo'), value: "CEO" },
+        { text: t('onboard.representative.role_signatory'), value: "Authorized Signatory" },
     ];
 
 
@@ -97,114 +100,101 @@ const Representative = ({ formik, onClosePreview }) => {
     const ignoreBlurRef = useRef(false);
 
 
+
     return (
         <div className={styles.main}
             ref={representativeRef}
             tabIndex={-1}
             onBlurCapture={(e) => {
-
                 if (ignoreBlurRef.current) {
                     ignoreBlurRef.current = false;
                     return;
                 }
-
                 if (!e.currentTarget.contains(e.relatedTarget)) {
                     setTimeout(onLeavePersonalBlock, 0);
                 }
             }}
         >
-
             <div className={styles.titleWrap}>
                 <img src={representativeIc} alt="" />
-                <h2>Representative (Authorized Person)</h2>
+                <h2>{t('onboard.representative.title')}</h2>
             </div>
 
             <div className={styles.inpWrapMain}>
-
-
-
                 <div className={styles.twoInpWrap}>
-                    <InputSeller title={"First name"} type={"text"} circle={true} required={true} placeholder={"Jane"}
+                    <InputSeller
+                        title={t('onboard.reg.first_name')}
+                        type={"text"} circle={true} required={true} placeholder={"Jane"}
                         name="first_name"
                         value={formik.values.first_name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.first_name}
                         touched={formik.touched.first_name}
-
                     />
-                    <InputSeller title={"Last name"} type={"text"} circle={true} required={true} placeholder={"Smith"}
+                    <InputSeller
+                        title={t('onboard.reg.last_name')}
+                        type={"text"} circle={true} required={true} placeholder={"Smith"}
                         name="last_name"
                         value={formik.values.last_name}
                         onChange={formik.handleChange}
                         onBlur={formik.handleBlur}
                         error={formik.errors.last_name}
                         touched={formik.touched.last_name}
-
                     />
                 </div>
 
                 <SellerInfoSellect
                     arr={roleArr}
-                    title={"Role"}
-                    titleSellect={"Select role"}
+                    title={t('onboard.review.role')}
+                    titleSellect={t('onboard.representative.select_role')}
                     value={formik.values.role}
                     setValue={(v) => formik.setFieldValue('role', v)}
-                    errText={"Role is required"}
+                    errText={t('onboard.representative.role_required')}
                 />
 
                 <div className={styles.twoInpWrap}>
                     <SellerDateInp formik={formik} />
                     <SellerInfoSellect
                         arr={countriesArr}
-                        title={"Nationality"}
-                        titleSellect={"Select nationality"}
+                        title={t('onboard.seller_info.nationality')}
+                        titleSellect={t('onboard.representative.select_nat')}
                         value={formik.values.nationality}
                         setValue={(v) => formik.setFieldValue('nationality', v)}
-                        errText={"Nationality is required"}
+                        errText={t('onboard.representative.nat_required')}
                     />
                 </div>
 
                 <div>
                     <UploadInp
-                        title={"Identity document"}
-                        description={"Passport or National ID"}
+                        title={t('onboard.review.identity_doc')}
+                        description={t('onboard.representative.doc_desc')}
                         scope={"company_representative"}
                         docType={"identity_document"}
                         side={"front"}
                         onChange={handleSingleFrontUpload}
-                        inpText={"Upload front side"}
+                        inpText={t('onboard.representative.upload_front')}
                         stateName={companyData?.front}
                         nameTitle={"front"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
-
                     />
                     <UploadInp
                         scope={"company_representative"}
                         docType={"identity_document"}
                         side={"back"}
                         onChange={handleSingleFrontUpload}
-                        inpText={"Upload back side"}
+                        inpText={t('onboard.representative.upload_back')}
                         stateName={companyData?.back}
                         nameTitle={"back"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
-
                     />
-                    {
-                        (formik.errors.uploadFront || formik.errors.uploadBack) && (
-                            <p className={styles.errorText}>
-                                {formik.errors.uploadFront || formik.errors.uploadBack}
-                            </p>
-                        )}
-
+                    {(formik.errors.uploadFront || formik.errors.uploadBack) && (
+                        <p className={styles.errorText}>
+                            {formik.errors.uploadFront || formik.errors.uploadBack}
+                        </p>
+                    )}
                 </div>
-
-
-
-
             </div>
-
-
         </div>
     )
 }

@@ -10,6 +10,7 @@ import {
 
 import styles from "./SellerHomeGraphe.module.scss"
 import { useMediaQuery } from "react-responsive";
+import { useTranslation } from "react-i18next";
 
 // Пример данных
 // const data = [
@@ -33,6 +34,10 @@ import { useMediaQuery } from "react-responsive";
 
 // Кастомный Tooltip
 const CustomTooltip = ({ active, payload, label }) => {
+
+    const { t } = useTranslation('sellerHome')
+  
+
   if (active && payload && payload.length) {
     return (
       <div
@@ -44,18 +49,18 @@ const CustomTooltip = ({ active, payload, label }) => {
           fontSize: "14px",
         }}
       >
-        <p>{`Date: ${label}`}</p>
+        <p>{t('date')}: <span className={styles.num}>{label}</span></p>
         <p>
           <span style={{ color: payload[0].fill, fontWeight: "bold" }}>
-            Orders:
+            {t('orders')}:
           </span>{" "}
-          {payload[0].value} pcs.
+          <span className={styles.num}>{payload[0].value}</span> pcs.
         </p>
         <p>
           <span style={{ color: payload[1].fill, fontWeight: "bold" }}>
-            Delivered:
+            {t('delivered')}:
           </span>{" "}
-          {payload[1].value} pcs.
+          <span className={styles.num}>{payload[1].value}</span> pcs.
         </p>
       </div>
     );
@@ -121,7 +126,7 @@ const SellerHomeGraphe = ({ data, tabMain, setGrapheData }) => {
 
   return (
     <div className={styles.chartContainer}>
-      <ResponsiveContainer width={isMobile ? 600 : 837} height="100%">
+      <ResponsiveContainer style={{fontFamily:"var(--ft)"}} width={isMobile ? 600 : 837} height="100%">
         <BarChart
           data={transformedData}
           margin={{ top: 20, right: 30, left: 0, bottom: 20 }}

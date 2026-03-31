@@ -57,8 +57,6 @@ export const validationSchemaSelf = Yup.object({
     // ico: Yup.string()
     //     .required("ico is required"),
 
-    vat_id: Yup.string()
-        .nullable(),
 
     // ================= ADDRESS =================
     street: Yup.string()
@@ -207,12 +205,6 @@ export const companyValidationSchema = Yup.object({
         otherwise: (schema) => schema.notRequired(),
     }),
 
-    vat_id: Yup.string()
-        .matches(
-            euVatRegex,
-            "Invalid VAT ID format. It must start with a country code followed by numbers or letters."
-        )
-        .nullable(),
 
     eori_number: Yup.string()
         .matches(

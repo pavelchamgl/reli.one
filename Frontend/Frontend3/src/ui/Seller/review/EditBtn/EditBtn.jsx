@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import editIc from "../../../../assets/Seller/register/editIc.svg"
 
@@ -6,12 +6,14 @@ import styles from "./EditBtn.module.scss"
 
 const EditBtn = ({ setOpen }) => {
 
-    const navigate = useNavigate()
+
+        const { t } = useTranslation('onbording')
+
 
     return (
         <button onClick={() => setOpen(true)} className={styles.editBtn}>
             <img src={editIc} alt="" />
-            Edit
+            {t('onboard.review.edit')}
         </button>
     )
 }

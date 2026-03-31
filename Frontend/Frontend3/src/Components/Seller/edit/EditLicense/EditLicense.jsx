@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { useMediaQuery } from "react-responsive"
 import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // Импорты стилей Swiper
 import "swiper/css";
@@ -11,13 +13,12 @@ import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
 
 import createMaskImg from "../../../../assets/Seller/create/fileIcon.svg";
+import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
 import arrRight from "../../../../assets/Seller/create/arrRight.svg";
 import deleteCommentImage from "../../../../assets/Product/deleteCommentImage.svg";
 
 import styles from "./EditLicense.module.scss"
-import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
-import { useParams } from "react-router-dom";
 
 const EditLicense = () => {
     const [imageUrls, setImageUrls] = useState([]);
@@ -31,6 +32,8 @@ const EditLicense = () => {
     const { deleteLicense, setLicense, fetchDeleteLicense } = useActionSellerEdit()
 
     const { id } = useParams()
+
+    const { t } = useTranslation('sellerHome')
 
 
     useEffect(() => {
@@ -99,11 +102,11 @@ const EditLicense = () => {
 
     return (
         <div>
-            <h3 className={styles.title}>License/Certificate</h3>
+            <h3 className={styles.title}>{t('goods.license')}</h3>
             <div className={styles.btnRatioWrap}>
-                <p>Formats: docx, pdf</p>
+                <p>{t('goods.formats')}</p>
                 <label className={isDisabled ? styles.addPhotosDisabled : styles.addPhotos}>
-                    <span >+ Add file</span>
+                    <span>{t('goods.add_file')}</span>
                     <input
                         onChange={handleChangeFile}
                         type="file"

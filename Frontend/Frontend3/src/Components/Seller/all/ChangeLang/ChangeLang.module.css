@@ -132,6 +132,12 @@
     display: flex;
     align-items: center;
     gap: 7px;
+
+    
+}
+
+.langInfo span{
+    cursor: pointer;
 }
 
 .radio {

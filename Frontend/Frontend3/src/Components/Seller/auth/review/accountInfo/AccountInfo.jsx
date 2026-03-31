@@ -1,12 +1,13 @@
 
+import { useTranslation } from "react-i18next"
 import { useSelector } from "react-redux"
 
 import accountInfo from "../../../../../assets/Seller/register/accountInfoIc.svg"
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
-
-import styles from "./AccountInfo.module.scss"
 import { countriesArr } from "../../../../../code/seller"
 import PrevDocBtn from "../../../newOrder/prevDocBtn/PrevDocBtn"
+
+import styles from "./AccountInfo.module.scss"
 
 const AccountInfo = ({ data, type, isCompany, setOpen }) => {
 
@@ -17,11 +18,9 @@ const AccountInfo = ({ data, type, isCompany, setOpen }) => {
     const phone = JSON.parse(localStorage.getItem('phone')) || ""
     const email = JSON.parse(localStorage.getItem('email')) || ""
 
-
-    console.log(data);
-
-
     const storeData = isCompany ? companyData : selfData
+
+    const { t } = useTranslation('onbording')
 
 
     const nationality = countriesArr.find((item) => item.value === data?.nationality)
@@ -32,7 +31,11 @@ const AccountInfo = ({ data, type, isCompany, setOpen }) => {
             <div className={styles.titleWrap}>
                 <div>
                     <img src={accountInfo} alt="" />
-                    <h3>{isCompany ? "Representative" : "Account Information"}</h3>
+                    <h3>
+                        {isCompany
+                            ? t('onboard.review.representative')
+                            : t('onboard.review.account_info')}
+                    </h3>
                 </div>
 
                 <EditBtn setOpen={setOpen} />
@@ -40,50 +43,47 @@ const AccountInfo = ({ data, type, isCompany, setOpen }) => {
 
             <ul className={styles.infoList}>
                 <li>
-                    <p>Name</p>
+                    <p>{t('onboard.review.name')}</p>
                     <span>{`${firstName} ${lastName}`}</span>
                 </li>
                 <li>
-                    <p>Date of birth</p>
+                    <p>{t('onboard.review.dob')}</p>
                     <span className={styles.num}>{`${data?.date_of_birth}`}</span>
                 </li>
                 <li>
-                    <p>Email</p>
-                    <span>{email ? email : "1@gmail.com"}</span>
+                    <p>{t('onboard.review.email')}</p>
+                    <span>{email ? email : "—"}</span>
                 </li>
                 {
                     isCompany &&
                     <li>
-                        <p>Role</p>
+                        <p>{t('onboard.review.role')}</p>
                         <span>{data?.role}</span>
                     </li>
-
                 }
                 <li>
-                    <p>Phone</p>
+                    <p>{t('onboard.review.phone')}</p>
                     <span className={styles.num}>{data?.personal_phone || data?.company_phone}</span>
                 </li>
-                {/* <li>
-                    <p>Nationality</p>
-                    <span>{nationality?.text}</span>
-                </li> */}
                 <li>
-                    <p>Seller Type</p>
-                    <span>{type === "company" ? "Company / Legal entity" : "Self-employed / Sole proprietor"}</span>
+                    <p>{t('onboard.review.seller_type')}</p>
+                    <span>
+                        {type === "company"
+                            ? t('onboard.review.type_company')
+                            : t('onboard.review.type_self')}
+                    </span>
                 </li>
             </ul>
             {
                 storeData?.front && storeData?.back &&
-
-                <div >
-                    <p className={styles.docTitle}>Identity document</p>
+                <div>
+                    <p className={styles.docTitle}>{t('onboard.review.identity_doc')}</p>
                     <div className={styles.twoDocWrap}>
                         <PrevDocBtn setOpen={setOpen} text={storeData?.front} />
                         <PrevDocBtn setOpen={setOpen} text={storeData?.back} />
                     </div>
                 </div>
             }
-
         </div>
     )
 }

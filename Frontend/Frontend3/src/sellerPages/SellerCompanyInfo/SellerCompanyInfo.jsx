@@ -1,7 +1,8 @@
 import { useFormik } from 'formik'
 import { useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import TitleAndDesc from '../../ui/Seller/auth/titleAndDesc/TitleAndDesc';
 import StepWrap from '../../ui/Seller/register/stepWrap/StepWrap';
@@ -14,13 +15,12 @@ import CompanyAddress from '../../Components/Seller/auth/sellerInfo/CompanyAddre
 import CompanyInfo from '../../Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo';
 import Representative from '../../Components/Seller/auth/sellerInfo/Representative/Representative';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
-import { getOnboardingStatus, putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from '../../api/seller/onboarding';
+import { putCompanyAddress, putCompanyInfo, putOnboardingBank, putRepresentative, putReturnAddress, putWarehouse } from '../../api/seller/onboarding';
 import { companyValidationSchema } from '../../code/seller/validation';
 import { ErrToast } from '../../ui/Toastify';
 import { toISODate } from '../../code/seller';
 
 import styles from "./SellerCompanyInfo.module.scss"
-import { getBankData } from '../../api/seller/getOnboardingData';
 
 const SellerCompanyInfo = () => {
 
@@ -34,6 +34,8 @@ const SellerCompanyInfo = () => {
 
     const navigate = useNavigate()
 
+    const { t } = useTranslation('onbording')
+
     const formik = useFormik({
         initialValues: {
             // company info
@@ -43,7 +45,6 @@ const SellerCompanyInfo = () => {
             business_id: companyData?.business_id ?? "",     // IČO (8-значный номер компании)
             ico: companyData?.ico ?? "",             // То же самое, что и business_id (IČO)
             tin: companyData?.tin ?? "",             // Daňové identifikační číslo (DIČ) без префикса
-            vat_id: companyData?.vat_id ?? "",          // DIČ с префиксом → CZ + 8-10 цифр
             eori_number: companyData?.eori_number ?? "",     // Только если реально есть (CZ + IČО обычно)
             company_phone: companyData?.company_phone ?? "",
             imports_to_eu: true,
@@ -116,7 +117,6 @@ const SellerCompanyInfo = () => {
                         business_id: values?.business_id,
                         ico: values?.ico,
                         tin: values?.tin,
-                        vat_id: values?.vat_id,
                         imports_to_eu: true,
                         eori_number: values?.eori_number,
                         company_phone: values?.company_phone,
@@ -197,8 +197,10 @@ const SellerCompanyInfo = () => {
             <FormWrap style={{ height: "100%" }}>
                 <div className={styles.main}>
                     <div className={styles.titleWrap}>
-                        <TitleAndDesc title={"Seller Information"}
-                            desc={"Please provide all required information for verification"} />
+                        <TitleAndDesc
+                            title={t('onboard.seller_info.title')}
+                            desc={t('onboard.seller_info.provide_info_desc')}
+                        />
 
                         <StepWrap step={4} />
 
@@ -218,7 +220,7 @@ const SellerCompanyInfo = () => {
 
                     <AuthBtnSeller
                         disabled={!formik.isValid}
-                        text={"Continue to Review"}
+                        text={t('onboard.common.continue_review')}
                         style={{ borderRadius: "16px", width: "222px" }}
                         handleClick={formik.handleSubmit}
                     />

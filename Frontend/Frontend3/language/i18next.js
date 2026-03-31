@@ -15,6 +15,13 @@ import claimEn from "../src/locales/en/claimEn.json";
 import claimCz from "../src/locales/cz/claimCz.json";
 import termsEn from "../src/locales/en/terms.json";
 import termsCz from "../src/locales/cz/terms.json";
+import sellerOrderEn from "../src/locales/en/sellerOrderEn.json";
+import sellerOrderCz from "../src/locales/cz/sellerOrderCz.json";
+import sellerHomeEn from "../src/locales/en/sellerHomeEn.json";
+import sellerHomeCz from "../src/locales/cz/sellerHomeCz.json";
+import onbordingEn from "../src/locales/en/onbordingEn.json";
+import onbordingCz from "../src/locales/cz/onbordingCz.json";
+
 
 const resources = {
   en: {
@@ -22,18 +29,24 @@ const resources = {
     contact: contactEn,
     newSeller: newSellerEn,
     policy: privacyPolicyEn,
-    terms:generalTermsEn,
-    claim:claimEn,
-    newTerm:termsEn
+    terms: generalTermsEn,
+    claim: claimEn,
+    newTerm: termsEn,
+    sellerOrder: sellerOrderEn,
+    sellerHome: sellerHomeEn,
+    onbording: onbordingEn
   },
   cz: {
     translation: translationCz,
     contact: contactCz,
     newSeller: newSellerCz,
     policy: privacyPolicyCz,
-    terms:generalTermsCz,
-    claim:claimCz,
-    newTerm:termsCz
+    terms: generalTermsCz,
+    claim: claimCz,
+    newTerm: termsCz,
+    sellerOrder: sellerOrderCz,
+    sellerHome: sellerHomeCz,
+    onbording: onbordingCz
   },
 };
 

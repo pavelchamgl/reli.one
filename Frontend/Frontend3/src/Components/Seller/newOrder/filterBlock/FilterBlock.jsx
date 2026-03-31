@@ -8,6 +8,7 @@ import searchWhite from "../../../../assets/Seller/newOrder/searchWhite.svg"
 import styles from './FilterBlock.module.scss';
 import { useActionNewOrder } from '../../../../hook/useActionNewOrder'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 
 const FilterBlock = () => {
 
@@ -24,25 +25,28 @@ const FilterBlock = () => {
     const { clearFilter } = useSelector(state => state.newOrder)
     const { setClearFilter, getOrdersByFilters } = useActionNewOrder()
 
+    const { t } = useTranslation('sellerOrder')
+
+
     const statuses = [
         {
-            text: "Cancelled",
+            text: t("cancelled"),
             value: "Cancelled"
         },
         {
-            text: "Completed",
+            text: t("completed"),
             value: "Completed"
         },
         {
-            text: "Pending",
+            text: t("pending"),
             value: "Pending"
         },
         {
-            text: "Processing",
+            text: t("processing"),
             value: "Processing"
         },
         {
-            text: "Shipped",
+            text: t("shipped"),
             value: "Shipped"
         },
     ]
@@ -61,11 +65,11 @@ const FilterBlock = () => {
 
     const deliveries = [
         {
-            text: "Pickup Point",
+            text: t("pickupPoint"),
             value: 1
         },
         {
-            text: "Home Delivery",
+            text: t("homeDelivery"),
             value: 2
         },
     ]
@@ -83,24 +87,24 @@ const FilterBlock = () => {
         <div className={styles.filterBlock}>
             <div className={styles.filterWrap}>
                 <SearchInp />
-                <FilterSelect title={"Status"} btnText={"All Statuses"} itemsArr={statuses} openSelect={statusOpen} setOpenSelect={setStatusOpen} value={status} setValue={setStatus} />
-                <FilterSelect title={"Couriers"} btnText={"All Couriers"} itemsArr={carriers} openSelect={carrierOpen} setOpenSelect={setCarrierOpen} value={carrier} setValue={setCarrier} />
-                <FilterSelect title={"Delivery Method"} btnText={"All Methods"} itemsArr={deliveries} openSelect={deliveryOpen} setOpenSelect={setDeliveryOpen} value={delivery} setValue={setDelivery} />
-                <DateInp title={"Date From"} />
-                <DateInp title={"Date To"} />
+                <FilterSelect title={t("status")} btnText={t("allStatuses")} itemsArr={statuses} openSelect={statusOpen} setOpenSelect={setStatusOpen} value={status} setValue={setStatus} />
+                <FilterSelect title={t("carrier")} btnText={t("allCouriers")} itemsArr={carriers} openSelect={carrierOpen} setOpenSelect={setCarrierOpen} value={carrier} setValue={setCarrier} />
+                <FilterSelect title={t('deliveryMethod')} btnText={t("allMethods")} itemsArr={deliveries} openSelect={deliveryOpen} setOpenSelect={setDeliveryOpen} value={delivery} setValue={setDelivery} />
+                <DateInp title={t('dateFrom')} />
+                <DateInp title={t("dateTo")} />
             </div>
             <div className={styles.btnsWrap}>
                 <button onClick={() => {
                     getOrdersByFilters()
                 }}>
                     <img src={searchWhite} alt="" />
-                    <p>Search</p>
+                    <p>{t('search')}</p>
                 </button>
                 <button onClick={() => {
                     setClearFilter()
                     getOrdersByFilters()
                 }}>
-                    Clear Filters
+                    {t('clearFilters')}
                 </button>
             </div>
         </div>

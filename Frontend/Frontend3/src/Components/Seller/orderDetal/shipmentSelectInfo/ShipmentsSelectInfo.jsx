@@ -1,21 +1,25 @@
+import { useTranslation } from "react-i18next"
+import { useState } from "react"
+
 import truck from "../../../../assets/Seller/orderDetal/truck.svg"
 import selectArr from "../../../../assets/Seller/all/selectArr.svg"
 import track from "../../../../assets/Seller/orderDetal/track.svg"
 import downWh from "../../../../assets/Seller/orderDetal/downWh.svg"
-
-
-import styles from "./ShipmentSelectInfo.module.scss"
-import { useState } from "react"
 import ParcelItem from "../../../../ui/Seller/orderDetal/parcelItem/ParcelItem"
 import mainInstance from "../../../../api"
 import { getShipmentLabel } from "../../../../api/seller/orders"
 import { ErrToast } from "../../../../ui/Toastify"
 import { downloadBlob } from "../../../../code/seller"
 
+import styles from "./ShipmentSelectInfo.module.scss"
+
 
 const ShipmentsSelectInfo = ({ shipment }) => {
 
     const [open, setOpen] = useState(false)
+
+    const { t } = useTranslation('sellerOrder')
+
 
     const handleDownloadUrl = async () => {
         try {
@@ -33,7 +37,7 @@ const ShipmentsSelectInfo = ({ shipment }) => {
             const message =
                 error?.response?.data?.message ||
                 error?.response?.data?.detail ||
-                "Failed to download your label";
+                t('failedDown');
 
             ErrToast(message);
 
@@ -49,7 +53,7 @@ const ShipmentsSelectInfo = ({ shipment }) => {
                     </div>
                     <div>
                         <p>{shipment?.carrier?.name}</p>
-                        <p>Tracking: {shipment?.tracking_number}</p>
+                        <p>{t('tracking')}: {shipment?.tracking_number}</p>
                     </div>
                 </div>
                 <img className={`${styles.arrow} ${open ? styles.arrActive : ""}`} src={selectArr} alt="" />
@@ -60,13 +64,13 @@ const ShipmentsSelectInfo = ({ shipment }) => {
                 <div className={styles.shipContentWrap}>
                     <div className={styles.dateAndBtnsWrap}>
                         <div>
-                            <p>Shipment Date</p>
+                            <p>{t('shipmentDate')}</p>
                             <p>{shipment?.created_at}</p>
                         </div>
                         <div>
                             <button>
                                 <img src={track} alt="" />
-                                Track
+                                {t('track')}
                             </button>
                             <a
                                 onClick={() => {
@@ -75,18 +79,18 @@ const ShipmentsSelectInfo = ({ shipment }) => {
                                 download="label.pdf"
                             >
                                 <img src={downWh} alt="" />
-                                Label
+                                {t('label')}
                             </a>
                         </div>
                     </div>
 
-                    <h4 className={styles.itemsParcelsTitle}>Items in this parcel</h4>
+                    <h4 className={styles.itemsParcelsTitle}>{t('itemsInParcel')}</h4>
                     <div className={styles.itemsParcelWrap}>
                         {
                             shipment?.items?.map((item, index) => (
                                 <ParcelItem item={item} key={index} />
                             ))
-                            
+
                         }
                     </div>
                 </div>

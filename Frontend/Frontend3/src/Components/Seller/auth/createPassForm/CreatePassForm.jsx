@@ -16,6 +16,7 @@ import styles from "./CreatePassForm.module.scss"
 
 const CreatePassForm = () => {
     const { t } = useTranslation();
+    const { t: tOnb } = useTranslation('onbording');
     const [regErr, setRegErr] = useState("");
     const [isLoading, setIsLoading] = useState(false)
 
@@ -81,7 +82,7 @@ const CreatePassForm = () => {
 
                         if (err.response.status === 500) {
                             setRegErr(
-                                "An error occurred on the server. Please try again later."
+                                tOnb('auth.errorOccurredOnServer')
                             );
                         } else if (err.response.status === 400) {
                             const errorData = err.response.data;
@@ -95,17 +96,17 @@ const CreatePassForm = () => {
                             }
 
                             setRegErr(
-                                errorMessage.trim() || "OTP has expired or is invalid."
+                                errorMessage.trim() || tOnb('auth.otpExpiredOrInvalid')
                             );
                         } else if (err.response.status === 404) {
-                            setRegErr("User with this email does not exist.");
+                            setRegErr(tOnb('auth.userWithEmailNotFound'));
                         } else {
-                            setRegErr("An unknown error occurred.");
+                            setRegErr(tOnb('auth.unknownErrorOccurred'));
                         }
                     } else {
                         // Обработка случаев, когда нет ответа (например, сетевые ошибки)
                         setRegErr(
-                            "Failed to connect to the server. Check your internet connection."
+                            tOnb('auth.failedToConnectToServer')
                         );
                     }
                 });
@@ -124,15 +125,15 @@ const CreatePassForm = () => {
 
     return (
         <div className={styles.main}>
-            <TitleAndDesc title={"Create a new password"}
-                desc={"Your new password must meet the requirements below"} />
+            <TitleAndDesc title={tOnb('auth.title')}
+                desc={tOnb('auth.description')} />
 
             <form className={styles.form} onSubmit={(e) => {
                 e.preventDefault()
                 formik.handleSubmit()
             }}>
                 <InputSeller
-                    type={"password"} title={"New password"}
+                    type={"password"} title={tOnb('auth.label_password')}
                     placeholder={"Your password"}
                     name="password"
                     value={formik.values.password}
@@ -141,28 +142,28 @@ const CreatePassForm = () => {
                     error={formik.errors.password}
                 />
                 <div className={styles.validationBlock}>
-                    <p>Password requirements:</p>
+                    <p>{tOnb('auth.requirements_title')}</p>
                     <ul>
                         <li className={password.length > 8 ? styles.greenText : styles.greyList}>
                             <img src={password.length > 8 ? mark : xIc} alt="" />
-                            At least 8 characters long
+                            {tOnb('auth.req_length')}
                         </li>
                         <li className={password.match(/[A-ZА-Я]/g)?.length > 0 ? styles.greenText : styles.greyList}>
                             <img src={password.match(/[A-ZА-Я]/g)?.length > 0 ? mark : xIc} alt="" />
-                            Contains 1 uppercase letter
+                            {tOnb('auth.req_uppercase')}
                         </li>
                         <li className={password.match(/\d/g)?.length > 0 ? styles.greenText : styles.greyList}>
                             <img src={password.match(/\d/g)?.length > 0 ? mark : xIc} alt="" />
-                            Contains 1 digit
+                            {tOnb('auth.req_digit')}
                         </li>
                         <li className={password.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g)?.length > 0 ? styles.greenText : styles.greyList}>
                             <img src={password.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g)?.length > 0 ? mark : xIc} alt="" />
-                            Contains 1 special character (!@#$%^&*)
+                            {tOnb('auth.req_special')}
                         </li>
                     </ul>
                 </div>
                 <InputSeller
-                    type={"password"} title={"Confirm password"}
+                    type={"password"} title={tOnb('auth.label_confirm_password')}
                     placeholder={"Confirm password"}
                     name="confirm_password"
                     value={formik.values.confirm_password}
@@ -174,12 +175,12 @@ const CreatePassForm = () => {
                     regErr && <p className={styles.errorText}>{regErr}</p>
                 }
                 <AuthBtnSeller
-                loading={isLoading}
-                disabled={!formik.isValid || !formik.dirty} text={"Save new password"} />
+                    loading={isLoading}
+                    disabled={!formik.isValid || !formik.dirty} text={tOnb('auth.button_save')} />
             </form>
 
             <div className={styles.bottomLinkWrap}>
-                <p>Make sure to save your new password in a secure location</p>
+                <p>{tOnb('auth.footer_note')}</p>
             </div>
 
         </div>

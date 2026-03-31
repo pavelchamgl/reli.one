@@ -25,7 +25,7 @@
   width: 100%;
 
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
 
   & p {
@@ -89,4 +89,104 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.rejectedBlock {
+  border: 1.48px solid $redBord;
+  border-radius: 10px;
+  padding: 15px 16px;
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  background: $redBack;
+
+  & button {
+    border: 1.48px solid $redBord;
+    border-radius: 8px;
+    padding: 5px 10px;
+    height: 32px;
+    background-color: white;
+
+    font-weight: 500;
+    font-size: 14px;
+    color: $requiredColor;
+
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    text-wrap: nowrap;
+  }
+
+  @media (max-width:500px) {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+.rejectedImageAndText {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rejectedTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  & p {
+    font-weight: 500;
+    font-size: 16px;
+    color: $black;
+  }
+
+  & span {
+    background: #d4183d;
+    border: 1.48px solid rgba(0, 0, 0, 0);
+    border-radius: 8px;
+    padding: 2px 8px;
+    width: 69px;
+    height: 22px;
+
+    font-weight: 500;
+    font-size: 12px;
+    color: white;
+  }
+}
+
+.rejectedDate {
+  @include blockDesc(14px);
+
+  & span {
+    font-family: var(--ft);
+  }
+}
+.rejectedDesc {
+  font-weight: 400;
+  font-size: 14px;
+  color: $requiredColor;
+
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.documApprovedWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  & span {
+    border: 1.48px solid $greenBord;
+    border-radius: 8px;
+    padding: 2px 8px;
+    background-color: $greenBack;
+
+    font-weight: 500;
+    font-size: 12px;
+    color: $greenColor;
+  }
 }

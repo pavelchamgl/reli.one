@@ -1,4 +1,5 @@
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 import down from "../../../../assets/Seller/newOrder/down.svg"
 import exp from "../../../../assets/Seller/newOrder/export.svg"
@@ -13,6 +14,8 @@ import styles from './DownLabelsBlock.module.scss';
 const DownLabelsBlock = () => {
 
     const { selectedIds } = useSelector(state => state.newOrder);
+    const { t } = useTranslation('sellerOrder')
+
 
     const handleDownload = async () => {
         try {
@@ -57,7 +60,7 @@ const DownLabelsBlock = () => {
 
     return (
         <div className={styles.block}>
-            <p className={styles.countText}>{selectedIds?.length ? selectedIds?.length : "No orders"} selected</p>
+            <p className={styles.countText}>{selectedIds?.length ? selectedIds?.length : t("noOrders")} {t('selected')}</p>
             <span className={styles.devidor}></span>
 
             <div className={styles.btnsWrap}>
@@ -65,11 +68,11 @@ const DownLabelsBlock = () => {
                     if (selectedIds?.length > 0) {
                         handleDownload()
                     } else {
-                        ErrToast("No orders selected")
+                        ErrToast(t("noSelected"))
                     }
                 }} className={styles.downloadAndExportBtn}>
                     <img src={down} alt="" />
-                    Download Labels
+                    {t("downloadLabels")}
                 </button>
 
                 <button
@@ -77,13 +80,13 @@ const DownLabelsBlock = () => {
                         if (selectedIds?.length > 0) {
                             handleExport()
                         } else {
-                            ErrToast("No orders selected")
+                            ErrToast(t("noSelected"))
                         }
                     }}
 
                     className={styles.downloadAndExportBtn}>
                     <img src={exp} alt="" />
-                    Export
+                    {t('export')}
                 </button>
 
                 <button className={styles.closeBtn}>

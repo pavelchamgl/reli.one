@@ -1,6 +1,8 @@
 import { useFormik } from "formik"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
+import { useEffect } from "react"
 
 import AddressBlock from "../../Components/Seller/auth/sellerInfo/address/AddressBlock"
 import BankAccount from "../../Components/Seller/auth/sellerInfo/BankAccount/BankAccount"
@@ -14,12 +16,11 @@ import TitleAndDesc from "../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
 import StepWrap from "../../ui/Seller/register/stepWrap/StepWrap"
 import { useActionSafeEmploed } from "../../hook/useActionSafeEmploed"
 import { putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, putTax, putWarehouse } from "../../api/seller/onboarding"
-
-import styles from "./SellerInformation.module.scss"
 import { validationSchemaSelf } from "../../code/seller/validation"
-import { useEffect, useState } from "react"
 import { ErrToast } from "../../ui/Toastify"
 import { toISODate } from "../../code/seller"
+
+import styles from "./SellerInformation.module.scss"
 
 const SellerInformation = () => {
 
@@ -49,7 +50,6 @@ const SellerInformation = () => {
             tax_country: selfData?.tax_country ?? "",
             tin: selfData?.tin ?? "",
             ico: selfData?.ico ?? "",
-            vat_id: selfData?.vat_id ?? "",
 
             // address
             street: selfData?.street ?? "",
@@ -74,7 +74,7 @@ const SellerInformation = () => {
             wProof_document_issue_date: selfData?.wProof_document_issue_date ?? "",
 
             // return
-            same_as_warehouse:selfData?.same_as_warehouse ?? false,
+            same_as_warehouse: selfData?.same_as_warehouse ?? false,
             rStreet: selfData?.rStreet ?? "",
             rCity: selfData?.rCity ?? "",
             rZip_code: selfData?.rZip_code ?? "",
@@ -86,7 +86,6 @@ const SellerInformation = () => {
         enableReinitialize: true,
         validateOnChange: true,
         // validateOnMount: false,
-        validateOnChange: true,
         // validateOnBlur: true,
         onSubmit: async (values) => {
             safeData(values);
@@ -113,7 +112,6 @@ const SellerInformation = () => {
                         tax_country: values.tax_country,
                         tin: values.tin,
                         ico: (selfData.tax_country === "cz" || selfData.tax_country === "sk") ? "" : values.ico,
-                        vat_id: values.vat_id
                     })
                 },
                 {
@@ -199,14 +197,16 @@ const SellerInformation = () => {
         getAllDataFromBD()
     }, [])
 
+    const { t } = useTranslation('onbording')
+
 
     if (!selfDataLoading) {
         return (
             <FormWrap style={{ height: "100%" }}>
                 <div className={styles.main}>
                     <div className={styles.titleWrap}>
-                        <TitleAndDesc title={"Seller Information"}
-                            desc={"Please provide all required information for verification"} />
+                        <TitleAndDesc title={t('onboard.seller_info.title')}
+                            desc={t('onboard.seller_info.provide_info_desc')} />
                         <StepWrap step={4} />
 
                     </div>
@@ -225,7 +225,7 @@ const SellerInformation = () => {
 
                     <AuthBtnSeller
                         disabled={!formik.isValid}
-                        text={"Continue to Review"}
+                        text={t('onboard.common.continue_review')}
                         style={{ borderRadius: "16px", width: "222px" }}
                         handleClick={formik.handleSubmit}
                     />

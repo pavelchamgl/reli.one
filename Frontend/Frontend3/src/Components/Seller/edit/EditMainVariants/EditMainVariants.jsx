@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import { useParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
 import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit"
 
@@ -16,6 +17,7 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
 
     const { variantsName, variantsServ } = useSelector(state => state.edit_goods)
 
+    const { t } = useTranslation('sellerHome')
 
     const [variants, setVariants] = useState(variantsServ ? variantsServ : [
         {
@@ -62,7 +64,7 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
         setVariants((prev) => [
             ...prev,
             {
-                id:  Date.now(),
+                id: Date.now(),
                 text: "",
                 price: "",
                 image: null,
@@ -90,9 +92,11 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
 
     return (
         <div>
-            <h4 className={styles.wightTitle}>Addition styles</h4>
+            <h4 className={styles.wightTitle}>{t('item.add_styles')}</h4>
             <p className={styles.descText}>
-                1.Specify the name (title) to the styles. 2. Add the style itself and be sure to specify its cost 3. Optionally add the name and photo of the style
+                1. {t('item.style_name')}
+                2. {t('item.style_add')}
+                3. {t('item.optional_style')}
             </p>
 
             <div className={styles.addStyleWrap}>
@@ -101,10 +105,10 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
                     if (e.target.value.length > 0) {
                         setErrName(false)
                     }
-                }} type="text" placeholder="Color, size, style" />
-                <button onClick={handleAddVariant}>+ Add style</button>
+                }} type="text" placeholder={t('item.placeholderColorSizeStyle')} />
+                <button onClick={handleAddVariant}>{t('item.addStyle')}</button>
             </div>
-            {errName ? <p className={styles.errText}>Variant name is required</p> : <></>}
+            {errName ? <p className={styles.errText}>{t('item.variantNameIsRequired')}</p> : <></>}
 
 
             <div className={styles.variantsWrap}>
@@ -122,7 +126,7 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
                         />
                     ))}
             </div>
-            {err ? <p className={styles.errText}>Data error: The price must be a number. Each variant must include either text or an image.</p> : <></>}
+            {err ? <p className={styles.errText}>{t('item.dataError')}</p> : <></>}
         </div>
     )
 }
