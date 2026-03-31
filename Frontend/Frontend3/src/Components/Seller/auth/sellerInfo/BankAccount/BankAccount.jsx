@@ -1,5 +1,5 @@
 
-import { useRef } from "react"
+import { useEffect, useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { useLocation } from "react-router-dom"
 
@@ -60,6 +60,23 @@ const BankAccount = ({ formik, onClosePreview }) => {
         }
 
     }
+
+    useEffect(() => {
+
+        if (pathname === '/seller/seller-company'
+            // || pathname === '/seller/seller-review-company'
+        ) {
+            formik.setFieldValue('account_holder', `${formik.values.company_name + " "}${formik.values.legal_form}`)
+        } else if (pathname === '/seller/seller-info') {
+            formik.setFieldValue('account_holder', `${formik.values.first_name + " "}${formik.values.last_name}`)
+        }
+
+    }, [
+        formik.values.company_name,
+        formik.values.first_name,
+        formik.values.legal_form,
+        formik.values.last_name
+    ])
 
     return (
         <div className={styles.main}

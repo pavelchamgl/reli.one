@@ -15,9 +15,9 @@ import GoodsCardNotModer from "../Components/Seller/goods/goodsCardNotModer/Good
 import FilterByPrice from "../ui/FilterByPrice/FilterByPrice";
 import MobFilter from "../Components/MobFilter/MobFilter";
 import Spinner from "../ui/Spiner/Spiner";
+import NoContentText from "../ui/NoContentText/NoContentText";
 
 import styles from "../styles/SellerGoodsListPage.module.scss";
-import NoContentText from "../ui/NoContentText/NoContentText";
 
 const SellerGoodsList = () => {
   const [orderingState, setOrderingState] = useState("rating");

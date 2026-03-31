@@ -50,7 +50,6 @@ const SellerInformation = () => {
             tax_country: selfData?.tax_country ?? "",
             tin: selfData?.tin ?? "",
             ico: selfData?.ico ?? "",
-            vat_id: selfData?.vat_id ?? "",
 
             // address
             street: selfData?.street ?? "",
@@ -87,7 +86,6 @@ const SellerInformation = () => {
         enableReinitialize: true,
         validateOnChange: true,
         // validateOnMount: false,
-        validateOnChange: true,
         // validateOnBlur: true,
         onSubmit: async (values) => {
             safeData(values);
@@ -114,7 +112,6 @@ const SellerInformation = () => {
                         tax_country: values.tax_country,
                         tin: values.tin,
                         ico: (selfData.tax_country === "cz" || selfData.tax_country === "sk") ? "" : values.ico,
-                        vat_id: values.vat_id
                     })
                 },
                 {

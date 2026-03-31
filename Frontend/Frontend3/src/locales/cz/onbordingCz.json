@@ -163,7 +163,7 @@
             "select_country": "Vyberte zemi",
             "business_id": "IČO",
             "trade_reg_num": "Číslo zápisu v obchodním rejstříku",
-            "tin": "Daňové identifikační číslo (DIČ)",
+            "tin": "DIČ",
             "eori": "EORI (při dovozu do EU)",
             "vat_id": "DIČ (pokud je registrováno)",
             "reg_certificate": "Registrační osvědčení",
@@ -204,7 +204,7 @@
             "upload_required": "Nahrání dokumentu je povinné",
             "title_simple": "Adresa",
             "title_business": "Obchodní adresa",
-            "tin_full": "DIČ (Daňové identifikační číslo)"
+            "tin_full": "DIČ"
         },
         "warehouse_bank": {
             "business_address": "Adresa podnikání",

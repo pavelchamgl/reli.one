@@ -53,7 +53,6 @@ const ReviewInfoPage = () => {
       tax_country: selfData?.tax_country ?? "",
       tin: selfData?.tin ?? "",
       ico: selfData?.ico ?? "",
-      vat_id: selfData?.vat_id ?? "",
 
       // address
       street: selfData?.street ?? "",
@@ -204,7 +203,6 @@ const ReviewInfoPage = () => {
                 selfData.tax_country === "sk"
                 ? ""
                 : values.ico,
-            vat_id: values.vat_id,
           }),
         },
         {

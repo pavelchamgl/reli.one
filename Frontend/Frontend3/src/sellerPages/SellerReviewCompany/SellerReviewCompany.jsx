@@ -46,7 +46,6 @@ const SellerReviewCompany = () => {
             business_id: companyData?.business_id ?? "",     // IČO (8-значный номер компании)
             ico: companyData?.ico ?? "",             // То же самое, что и business_id (IČO)
             tin: companyData?.tin ?? "",             // Daňové identifikační číslo (DIČ) без префикса
-            vat_id: companyData?.vat_id ?? "",          // DIČ с префиксом → CZ + 8-10 цифр
             eori_number: companyData?.eori_number ?? "",     // Только если реально есть (CZ + IČО обычно)
             company_phone: companyData?.company_phone ?? "",
             imports_to_eu: true,
@@ -200,7 +199,6 @@ const SellerReviewCompany = () => {
                     business_id: values?.business_id,
                     ico: values?.ico,
                     tin: values?.tin,
-                    vat_id: values?.vat_id,
                     imports_to_eu: true,
                     eori_number: values?.eori_number,
                     company_phone: values?.company_phone,

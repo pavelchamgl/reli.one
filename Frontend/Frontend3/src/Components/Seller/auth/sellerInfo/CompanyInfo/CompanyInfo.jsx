@@ -52,7 +52,6 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
             business_id: formik.values.business_id,
             ico: formik.values.ico,
             tin: formik.values?.tin,
-            vat_id: formik.values?.vat_id,
             eori_number: formik.values?.eori_number,
             imports_to_eu: Boolean(formik.values?.eori_number),
             company_phone: formik.values?.company_phone,
@@ -219,17 +218,6 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                     touched={formik.touched.eori_number}
                 />
 
-                <InputSeller
-                    title={"VAT ID"}
-                    type={"text"} circle={true}
-                    placeholder={t('onboard.company.vat_placeholder')}
-                    name="vat_id"
-                    value={formik.values.vat_id}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.vat_id}
-                    touched={formik.touched.vat_id}
-                />
 
                 <div>
                     <UploadInp

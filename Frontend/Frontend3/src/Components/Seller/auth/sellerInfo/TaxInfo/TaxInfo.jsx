@@ -135,17 +135,6 @@ const TaxInfo = ({ formik, onClosePreview }) => {
                     />
                 }
 
-                <InputSeller
-                    title={t('onboard.company.vat_id')}
-                    type={"text"} circle={true} num={true}
-                    placeholder={t('onboard.company.vat_placeholder')}
-                    name="vat_id"
-                    value={formik.values.vat_id}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.vat_id}
-                    touched={formik.touched.vat_id}
-                />
             </div>
         </div>
     )
