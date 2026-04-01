@@ -1,5 +1,6 @@
 import json
 import uuid
+import copy
 from typing import Optional, Union
 
 import requests
@@ -483,42 +484,22 @@ class CreateStripePaymentView(APIView):
 
         logger.info("Stripe session creation request received", extra={"data": data})
 
-        # --- базовые поля ---
-        required_fields = ["email", "first_name", "last_name", "phone", "delivery_address", "groups"]
-        for field in required_fields:
-            if field not in data:
-                return Response({"error": f"Missing required field: {field}"}, status=400)
-
-        email = data["email"]
-        first_name = data["first_name"]
-        last_name = data["last_name"]
-        phone = data["phone"]
-        delivery_address = data["delivery_address"]
-
-        # ZIP root level normalize
-        if "zip" in delivery_address and delivery_address["zip"] is not None:
-            delivery_address["zip"] = uppercase_zip(delivery_address["zip"])
-
-        groups = data["groups"]
-
-        # ZIP normalize inside groups
-        for g in groups:
-            gaddr = g.get("delivery_address")
-            if gaddr and ("zip" in gaddr) and (gaddr["zip"] is not None):
-                gaddr["zip"] = uppercase_zip(gaddr["zip"])
-
+        delivery_address = data.get("delivery_address") or {}
         root_country = (delivery_address.get("country") or "").upper()
 
-        # Проверка адреса
-        required_subfields = ["street", "city", "zip", "country"]
-        for field in required_subfields:
-            if field not in delivery_address:
-                return Response({"error": f"Missing '{field}' in delivery_address"}, status=400)
+        input_serializer = SessionInputSerializer(
+            data=data,
+            context={"root_country": root_country},
+        )
+        input_serializer.is_valid(raise_exception=True)
+        validated = input_serializer.validated_data
 
-        # Проверка групп (resolve_country_code_from_group)
-        validation_response = PaymentSessionValidator.validate_groups(groups, root_country=root_country)
-        if validation_response:
-            return validation_response
+        email = validated["email"]
+        first_name = validated["first_name"]
+        last_name = validated["last_name"]
+        phone = validated["phone"]
+        delivery_address = copy.deepcopy(validated["delivery_address"])
+        groups = copy.deepcopy(validated["groups"])
 
         logger.info(f"Validated {len(groups)} groups for user {user.id}. Starting calculation.")
 
@@ -537,6 +518,13 @@ class CreateStripePaymentView(APIView):
             )
         )
         variant_map = {v.sku: v for v in variants_qs}
+
+        missing_skus = sorted(all_skus - set(variant_map.keys()))
+        if missing_skus:
+            return Response(
+                {"error": f"ProductVariant not found: {', '.join(missing_skus)}"},
+                status=400,
+            )
 
         # DPD check of required weight/dimensions
         dpd_skus = {
@@ -574,24 +562,15 @@ class CreateStripePaymentView(APIView):
             delivery_type = group["delivery_type"]  # 1=PUDO, 2=HD
             products = group["products"]
             seller_id = group["seller_id"]
-            courier_code = _get_courier_code(group.get("courier_service"))
+            courier_code = group.get("courier_code")
 
             # --- GLS SHOP / BOX ---
             delivery_mode = None
             if courier_code == "gls" and delivery_type == 1:
-                g_serializer = GroupSerializer(
-                    data=group,
-                    context={"root_country": root_country},
-                )
-                g_serializer.is_valid(raise_exception=True)
-                raw_mode = group.get("delivery_mode")
-                if raw_mode:
-                    delivery_mode = str(raw_mode).lower().strip()
-                else:
-                    delivery_mode = "shop"   # fallback
+                delivery_mode = str(group.get("delivery_mode", "shop")).lower().strip()
 
             # --- DPD PUDO: additional ZIP validation for pickup point ---
-            if courier_code == "dpd" and group.get("delivery_type") == 1:
+            if courier_code == "dpd" and delivery_type == 1:
                 pickup_zip = group.get("delivery_address", {}).get("zip")
                 pickup_country = group.get("delivery_address", {}).get("country")
 
@@ -632,9 +611,7 @@ class CreateStripePaymentView(APIView):
             # Принадлежность товаров продавцу
             for product in products:
                 sku = product["sku"]
-                variant = variant_map.get(sku)
-                if not variant:
-                    return Response({"error": f"Group {idx}: ProductVariant not found: {sku}"}, status=400)
+                variant = variant_map[sku]
                 if variant.product.seller.id != seller_id:
                     return Response(
                         {"error": f"Group {idx}: Product {sku} does not belong to seller {seller_id}."},
@@ -678,7 +655,12 @@ class CreateStripePaymentView(APIView):
                     currency="EUR",
                     address_bundle=address_bundle,
                 )
-                logger.info(f"[GLS] Shipping result for group {idx}: {shipping_result}")
+                logger.info(
+                    "[GLS] group=%s seller=%s result=%s",
+                    idx,
+                    seller_id,
+                    shipping_result,
+                )
 
             elif courier_code == "dpd":
                 shipping_result = calculate_order_shipping_dpd(
@@ -734,8 +716,15 @@ class CreateStripePaymentView(APIView):
                 )
 
             raw_total_parcels = shipping_result.get("total_parcels", 1)
+
             if isinstance(raw_total_parcels, dict):
-                num_parcels = max(raw_total_parcels.values()) if raw_total_parcels else 1
+                if courier_code == "gls" and delivery_type == 1:
+                    # для GLS PUDO берём именно выбранный сервис: SHOP или BOX
+                    selected_key = delivery_mode.upper()
+                    num_parcels = int(raw_total_parcels.get(selected_key, 1) or 1)
+                else:
+                    # для остальных берём по каналу: HD / PUDO
+                    num_parcels = int(raw_total_parcels.get(channel, 1) or 1)
             else:
                 num_parcels = int(raw_total_parcels or 1)
 
@@ -795,29 +784,27 @@ class CreateStripePaymentView(APIView):
         session_key = str(uuid.uuid4())
         invoice_number, variable_symbol = next_invoice_identifiers()
 
-        # сохраняем StripeMetadata
-        StripeMetadata.objects.create(
-            session_key=session_key,
-            custom_data={
-                "user_id": str(user.id),
-                "email": email,
-                "first_name": first_name,
-                "last_name": last_name,
-                "phone": phone,
-                "delivery_address": delivery_address,
-            },
-            invoice_data={
-                "groups": groups,
-                "invoice_number": invoice_number,
-            },
-            description_data={
-                "gross_total": str(gross_total),
-                "delivery_total": str(total_delivery),
-                "variable_symbol": variable_symbol,
-            },
-        )
-
-        logger.info(f"Stripe metadata saved with session_key: {session_key}")
+        with transaction.atomic():
+            StripeMetadata.objects.create(
+                session_key=session_key,
+                custom_data={
+                    "user_id": str(user.id),
+                    "email": email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "phone": phone,
+                    "delivery_address": delivery_address,
+                },
+                invoice_data={
+                    "groups": groups,
+                    "invoice_number": invoice_number,
+                },
+                description_data={
+                    "gross_total": str(gross_total),
+                    "delivery_total": str(total_delivery),
+                    "variable_symbol": variable_symbol,
+                },
+            )
 
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -830,6 +817,7 @@ class CreateStripePaymentView(APIView):
                     "session_key": session_key,
                     "invoice_number": invoice_number,
                 },
+                idempotency_key=session_key,
             )
 
             logger.info(
@@ -839,6 +827,11 @@ class CreateStripePaymentView(APIView):
                 session_key,
             )
 
+            logger.info(
+                "Stripe metadata saved session_key=%s user=%s",
+                session_key,
+                user.id,
+            )
             return Response(
                 {
                     "checkout_url": checkout_session.url,
@@ -847,8 +840,13 @@ class CreateStripePaymentView(APIView):
                 },
                 status=200,
             )
+
         except Exception as e:
-            logger.exception("Stripe session creation failed")
+            logger.exception(
+                "Stripe session creation failed for user=%s session_key=%s",
+                user.id,
+                session_key,
+                )
             return Response({"error": str(e)}, status=500)
 
 

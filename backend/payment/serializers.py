@@ -7,6 +7,7 @@ from delivery.helpers import (
     DELIVERY_TYPE_PUDO,
     DELIVERY_TYPE_HD,
 )
+from delivery.validators.zip_utils import uppercase_zip
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,10 @@ class DeliveryAddressSerializer(serializers.Serializer):
         help_text="ISO 3166-1 alpha-2 code (e.g., 'SK', 'CZ')"
     )
 
+    def validate_zip(self, value):
+        if value is None:
+            return value
+        return uppercase_zip(value)
 
 class ProductItemSerializer(serializers.Serializer):
     sku = serializers.CharField()
