@@ -1,6 +1,8 @@
 import os
+import json
 import base64
 import logging
+from copy import deepcopy
 from decimal import Decimal
 
 from django.conf import settings
@@ -43,6 +45,13 @@ from delivery.services.dpd_rates import (
 from delivery.services.dpd_split import split_items_into_parcels_dpd
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_json_for_log(data):
+    try:
+        return json.dumps(data, ensure_ascii=False, default=str, indent=2)
+    except Exception:
+        return str(data)
 
 
 def format_zip(zip_code: str, country_code: str) -> str:
@@ -120,6 +129,24 @@ def generate_parcels_for_order(order_id: int):
             .prefetch_related("order_products__product__product__seller__default_warehouse")
             .get(pk=order_id)
         )
+        logger.info(
+            "GLS/GEN order snapshot order_id=%s courier=%s delivery_type_name=%s pickup_point_id=%s",
+            order.id,
+            getattr(order.courier_service, "code", None) if getattr(order, "courier_service", None) else None,
+            getattr(order.delivery_type, "name", None) if getattr(order, "delivery_type", None) else None,
+            getattr(order, "pickup_point_id", None),
+        )
+
+        logger.info(
+            "GLS/GEN order delivery_address order_id=%s address=%s",
+            order.id,
+            _safe_json_for_log({
+                "street": getattr(order.delivery_address, "street", None) if order.delivery_address else None,
+                "city": getattr(order.delivery_address, "city", None) if order.delivery_address else None,
+                "zip_code": getattr(order.delivery_address, "zip_code", None) if order.delivery_address else None,
+                "country": getattr(order.delivery_address, "country", None) if order.delivery_address else None,
+            }),
+        )
     except Order.DoesNotExist:
         logger.error("Order with ID %s does not exist.", order_id)
         return
@@ -129,6 +156,11 @@ def generate_parcels_for_order(order_id: int):
         for op in order.order_products.filter(status="awaiting_shipment")
         if hasattr(op, "product") and hasattr(op.product, "sku")
     ]
+    logger.info(
+        "GLS/GEN order items order_id=%s items=%s",
+        order.id,
+        _safe_json_for_log(raw_items),
+    )
 
     # Один продавец на заказ (группы уже разнесены ранее)
     if (
@@ -176,6 +208,13 @@ def generate_parcels_for_order(order_id: int):
 
         parcels = split_items_into_parcels_gls(raw_items)
         logger.debug("Order %s → %d GLS parcels", order_id, len(parcels))
+        logger.info(
+            "GLS/GEN split result order_id=%s requested_delivery_type=%s country=%s parcels=%s",
+            order.id,
+            requested_delivery_type,
+            country_code,
+            _safe_json_for_log(parcels),
+        )
 
         sender_addr = build_pickup_address_from_settings()
         gls = MyGlsService.from_settings()
@@ -204,6 +243,13 @@ def generate_parcels_for_order(order_id: int):
                 (sku_to_op[u["sku"]].product.weight_grams or 0) * u["quantity"]
                 for u in items_block
                 if u.get("sku") in sku_to_op
+            )
+            logger.info(
+                "GLS/GEN parcel block order_id=%s parcel_index=%s items_block=%s weight_grams=%s",
+                order.id,
+                idx,
+                _safe_json_for_log(items_block),
+                wt,
             )
 
             # расчёт стоимости именно для этого блока
@@ -237,6 +283,12 @@ def generate_parcels_for_order(order_id: int):
                 contact_phone=str(order.phone_number or ""),
                 contact_email=getattr(order, "customer_email", ""),
             )
+            logger.info(
+                "GLS/GEN delivery address built order_id=%s parcel_index=%s delivery_address=%s",
+                order.id,
+                idx,
+                _safe_json_for_log(deliv_addr),
+            )
 
             props = build_parcel_properties(
                 content=f"Order {order.order_number}",
@@ -245,12 +297,26 @@ def generate_parcels_for_order(order_id: int):
                 height_cm=1,
                 weight_kg=max(0.01, (wt or 0) / 1000.0),
             )
+            logger.info(
+                "GLS/GEN parcel properties order_id=%s parcel_index=%s properties=%s",
+                order.id,
+                idx,
+                _safe_json_for_log(props),
+            )
 
             services = []
             if not is_hd:
                 if not order.pickup_point_id:
                     raise RuntimeError(f"pickup_point_id required for GLS PUDO (order {order_id})")
                 services.append(build_service_psd(str(order.pickup_point_id)))
+            logger.info(
+                "GLS/GEN services order_id=%s parcel_index=%s is_hd=%s pickup_point_id=%s services=%s",
+                order.id,
+                idx,
+                is_hd,
+                order.pickup_point_id,
+                _safe_json_for_log(services),
+            )
 
             parcel_payload = build_parcel(
                 client_reference=f"{order.order_number}-p{idx}",
@@ -259,6 +325,12 @@ def generate_parcels_for_order(order_id: int):
                 delivery_address=deliv_addr,
                 properties=props,
                 services=services or None,
+            )
+            logger.info(
+                "GLS/GEN final parcel payload order_id=%s parcel_index=%s payload=%s",
+                order.id,
+                idx,
+                _safe_json_for_log(parcel_payload),
             )
 
             res = gls.create_print_and_store(

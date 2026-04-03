@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import os
 import time
+import json
 import base64
 import logging
 
+from copy import deepcopy
 from datetime import datetime
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
@@ -14,6 +16,27 @@ from django.utils.timezone import now
 from .client import MyGlsClient
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_json_for_log(data):
+    try:
+        return json.dumps(data, ensure_ascii=False, default=str, indent=2)
+    except Exception:
+        return str(data)
+
+
+def _mask_gls_payload_for_log(data):
+    masked = deepcopy(data)
+    try:
+        for parcel in masked.get("ParcelList", []):
+            addr = parcel.get("DeliveryAddress", {}) or {}
+            if addr.get("ContactPhone"):
+                addr["ContactPhone"] = "***"
+            if addr.get("ContactEmail"):
+                addr["ContactEmail"] = "***"
+    except Exception:
+        pass
+    return masked
 
 
 @dataclass
@@ -137,10 +160,32 @@ class MyGlsService:
                 continue
 
             # flow == "print"
-            status, resp = self.client._post("PrintLabels", {
+            body = {
                 "ParcelList": sh.parcel.get("ParcelList", []),
                 "TypeOfPrinter": sh.type_of_printer,
-            }, corr_id=corr_id)
+            }
+
+            logger.info(
+                "GLS/SVC PrintLabels request id=%s printer=%s parcel_count=%s",
+                corr_id,
+                sh.type_of_printer,
+                len(body.get("ParcelList", [])),
+            )
+
+            logger.info(
+                "GLS/SVC PrintLabels payload id=%s payload=%s",
+                corr_id,
+                _safe_json_for_log(_mask_gls_payload_for_log(body)),
+            )
+
+            status, resp = self.client._post("PrintLabels", body, corr_id=corr_id)
+
+            logger.info(
+                "GLS/SVC PrintLabels raw response id=%s response=%s",
+                corr_id,
+                _safe_json_for_log(resp),
+            )
+
             last_status = status
             errors = self._collect_errors(resp)
             all_errors.extend(errors)
