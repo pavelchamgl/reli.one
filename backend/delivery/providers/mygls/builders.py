@@ -5,6 +5,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from django.conf import settings
 
+from delivery.utils_phone import normalize_phone_number
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +56,7 @@ def build_address(
         "CountryIsoCode": (country_iso or "").upper(),
         # Для PSD(PUDO) эти контакты обязательны
         "ContactName": (contact_name or name or ""),
-        "ContactPhone": contact_phone or "",
+        "ContactPhone": normalize_phone_number(contact_phone) or "",
         "ContactEmail": contact_email or "",
     }
 
