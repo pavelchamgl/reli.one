@@ -2,7 +2,6 @@ import os
 import json
 import base64
 import logging
-from copy import deepcopy
 from decimal import Decimal
 
 from django.conf import settings

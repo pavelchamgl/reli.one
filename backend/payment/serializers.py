@@ -7,6 +7,7 @@ from delivery.helpers import (
     DELIVERY_TYPE_PUDO,
     DELIVERY_TYPE_HD,
 )
+from delivery.utils_phone import normalize_phone_number
 from delivery.validators.zip_utils import uppercase_zip
 
 logger = logging.getLogger(__name__)
@@ -148,6 +149,22 @@ class SessionInputSerializer(serializers.Serializer):
             "and one order per group will be created after successful payment."
         )
     )
+
+    def validate_phone(self, value):
+        normalized = normalize_phone_number(value)
+
+        if normalized.startswith("+"):
+            digits_only = normalized[1:]
+        else:
+            digits_only = normalized
+
+        if not digits_only.isdigit():
+            raise serializers.ValidationError("Phone number contains invalid characters.")
+
+        if len(digits_only) < 9 or len(digits_only) > 15:
+            raise serializers.ValidationError("Phone number must contain between 9 and 15 digits.")
+
+        return normalized
 
 
 class StripeSessionOutputSerializer(serializers.Serializer):
