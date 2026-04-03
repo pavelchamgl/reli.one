@@ -1,13 +1,42 @@
 from __future__ import annotations
 
 import time
+import json
 import requests
 import base64, binascii, hashlib, logging
 
+from copy import deepcopy
 from typing import Any, Dict, Optional, Tuple
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_json_for_log(data):
+    try:
+        return json.dumps(data, ensure_ascii=False, default=str, indent=2)
+    except Exception:
+        return str(data)
+
+
+def _mask_final_payload_for_log(data):
+    masked = deepcopy(data)
+    if "Password" in masked:
+        masked["Password"] = "<masked>"
+    if "Username" in masked:
+        masked["Username"] = "<masked>"
+
+    try:
+        for parcel in masked.get("ParcelList", []):
+            addr = parcel.get("DeliveryAddress", {}) or {}
+            if addr.get("ContactPhone"):
+                addr["ContactPhone"] = "***"
+            if addr.get("ContactEmail"):
+                addr["ContactEmail"] = "***"
+    except Exception:
+        pass
+
+    return masked
 
 
 def _as_sha512_bytes(value: str) -> bytes:
@@ -142,6 +171,13 @@ class MyGlsClient:
         """
         url = f"{self.base_json}/{method}"
         payload = {**self._auth_payload(), **(body or {})}
+        logger.debug(
+            "GLS/CLIENT prepared request id=%s method=%s url=%s payload=%s",
+            corr_id or "-",
+            method,
+            url,
+            _safe_json_for_log(_mask_final_payload_for_log(payload)),
+        )
         last_exc: Optional[Exception] = None
 
         for attempt in range(1, self.retries + 1):

@@ -1,9 +1,21 @@
 import re
+import json
+import logging
 from typing import Any, Dict, List, Optional, Tuple
 
 from django.conf import settings
 
+
+logger = logging.getLogger(__name__)
+
 _HOUSE_RE = re.compile(r"^\s*(\d+)\s*([A-Za-z/_\-]*)\s*$")
+
+
+def _safe_json_for_log(data):
+    try:
+        return json.dumps(data, ensure_ascii=False, default=str, indent=2)
+    except Exception:
+        return str(data)
 
 
 def _split_house(house_number: str) -> Tuple[str, str]:
@@ -32,7 +44,7 @@ def build_address(
 ) -> Dict[str, Any]:
     """Универсальный билдер адреса (и для Pickup, и для Delivery)."""
     num, info = _split_house(house_number)
-    return {
+    payload = {
         "Name": name or "",
         "Street": street or "",
         "HouseNumber": num,
@@ -45,6 +57,9 @@ def build_address(
         "ContactPhone": contact_phone or "",
         "ContactEmail": contact_email or "",
     }
+
+    logger.info("GLS/BUILD address payload=%s", _safe_json_for_log(payload))
+    return payload
 
 
 def build_pickup_address_from_settings() -> Dict[str, Any]:
@@ -88,9 +103,12 @@ def build_parcel_properties(
 def build_service_psd(pickup_point_id: str) -> Dict[str, Any]:
     pid = (pickup_point_id or "").strip()
     if pid.isdigit():
-        return {"Code": "PSD", "PSDParameter": {"IntegerValue": int(pid)}}
-    return {"Code": "PSD", "PSDParameter": {"StringValue": pid}}
+        payload = {"Code": "PSD", "PSDParameter": {"IntegerValue": int(pid)}}
+    else:
+        payload = {"Code": "PSD", "PSDParameter": {"StringValue": pid}}
 
+    logger.info("GLS/BUILD PSD service payload=%s", _safe_json_for_log(payload))
+    return payload
 
 # === Универсальный билдер посылки (новый + legacy) ===
 
