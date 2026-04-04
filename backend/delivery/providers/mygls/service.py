@@ -25,6 +25,19 @@ def _safe_json_for_log(data):
         return str(data)
 
 
+def _compact_gls_response_for_log(response: dict) -> dict:
+    if not isinstance(response, dict):
+        return response
+
+    compact = dict(response)
+
+    labels = compact.get("Labels")
+    if isinstance(labels, list):
+        compact["Labels"] = f"<{len(labels)} bytes PDF>"
+
+    return compact
+
+
 def _mask_gls_payload_for_log(data):
     masked = deepcopy(data)
     try:
@@ -183,7 +196,7 @@ class MyGlsService:
             logger.info(
                 "GLS/SVC PrintLabels raw response id=%s response=%s",
                 corr_id,
-                _safe_json_for_log(resp),
+                _safe_json_for_log(_compact_gls_response_for_log(resp)),
             )
 
             last_status = status
