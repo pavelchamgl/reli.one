@@ -27,6 +27,7 @@ from delivery.providers.dpd.builders import build_single_shipment
 
 from delivery.services.gls_rates import calculate_gls_shipping_options
 from delivery.services.gls_split import split_items_into_parcels_gls
+from delivery.providers.mygls.parcelshops import get_parcelshop_delivery_address_data
 from delivery.providers.mygls.service import MyGlsService, SimpleShipment
 from delivery.providers.mygls.builders import (
     build_pickup_address_from_settings,
@@ -205,7 +206,15 @@ def generate_parcels_for_order(order_id: int):
     if courier_code == "gls":
         logger.info("Order %s: using myGLS provider", order_id)
 
-        parcels = split_items_into_parcels_gls(raw_items)
+        sku_to_op = {op.product.sku: op for op in order.order_products.all()}
+        variant_map = {sku: op.product for sku, op in sku_to_op.items()}
+
+        parcels = split_items_into_parcels_gls(
+            raw_items,
+            variant_map=variant_map,
+            service=requested_delivery_type,
+            country=country_code,
+        )
         logger.debug("Order %s → %d GLS parcels", order_id, len(parcels))
         logger.info(
             "GLS/GEN split result order_id=%s requested_delivery_type=%s country=%s parcels=%s",
@@ -218,7 +227,6 @@ def generate_parcels_for_order(order_id: int):
         sender_addr = build_pickup_address_from_settings()
         gls = MyGlsService.from_settings()
         printer = getattr(settings, "MYGLS_PRINTER_TYPE", "A4_2x2")
-        sku_to_op = {op.product.sku: op for op in order.order_products.all()}
 
         for idx, block in enumerate(parcels, start=1):
             """
@@ -271,17 +279,41 @@ def generate_parcels_for_order(order_id: int):
                 if phone_err:
                     raise RuntimeError(f"Invalid phone number for destination country: {phone_err}")
 
-            deliv_addr = build_address(
-                name=f"{order.first_name} {order.last_name}",
-                street=getattr(order.delivery_address, "street", ""),
-                house_number="",
-                city=getattr(order.delivery_address, "city", ""),
-                zip_code=format_zip(getattr(order.delivery_address, "zip_code", ""), country_code),
-                country_iso=country_code,
-                contact_name=f"{order.first_name} {order.last_name}",
-                contact_phone=str(order.phone_number or ""),
-                contact_email=getattr(order, "customer_email", ""),
-            )
+                deliv_addr = build_address(
+                    name=f"{order.first_name} {order.last_name}",
+                    street=getattr(order.delivery_address, "street", ""),
+                    house_number="",
+                    city=getattr(order.delivery_address, "city", ""),
+                    zip_code=format_zip(getattr(order.delivery_address, "zip_code", ""), country_code),
+                    country_iso=country_code,
+                    contact_name=f"{order.first_name} {order.last_name}",
+                    contact_phone=str(order.phone_number or ""),
+                    contact_email=getattr(order, "customer_email", ""),
+                )
+            else:
+                if not order.pickup_point_id:
+                    raise RuntimeError(f"pickup_point_id required for GLS PUDO (order {order_id})")
+
+                point_addr = get_parcelshop_delivery_address_data(
+                    str(order.pickup_point_id),
+                    country_code,
+                )
+                if not point_addr:
+                    raise RuntimeError(
+                        f"GLS pickup point address not found for point {order.pickup_point_id} in {country_code}"
+                    )
+
+                deliv_addr = build_address(
+                    name=point_addr["name"],
+                    street=point_addr["street"],
+                    house_number=point_addr["house_number"],
+                    city=point_addr["city"],
+                    zip_code=format_zip(point_addr["zip_code"], point_addr["country_iso"]),
+                    country_iso=point_addr["country_iso"],
+                    contact_name=f"{order.first_name} {order.last_name}",
+                    contact_phone=str(order.phone_number or ""),
+                    contact_email=getattr(order, "customer_email", ""),
+                )
             logger.info(
                 "GLS/GEN delivery address built order_id=%s parcel_index=%s delivery_address=%s",
                 order.id,
