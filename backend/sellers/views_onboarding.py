@@ -1693,6 +1693,26 @@ class SellerDocumentUploadAPIView(AuditAPIView):
 
         return validated_items
 
+    def _validate_file(self, file):
+        """
+        Валидация физического загружаемого файла.
+
+        Оставляем её на уровне view, потому что:
+        - здесь уже есть доступ к upload-specific константам
+        - эта проверка нужна и для single, и для batch режима
+        - сериализатор сейчас отвечает за бизнес-валидацию метаданных документа,
+          а не за MIME/size бинарного файла
+        """
+        if not file:
+            raise ValidationError("File is required")
+
+        if file.content_type not in ALLOWED_MIME_TYPES:
+            raise ValidationError(f"Unsupported file type: {file.content_type}")
+
+        max_size_bytes = MAX_FILE_SIZE_MB * 1024 * 1024
+        if file.size > max_size_bytes:
+            raise ValidationError(f"File size exceeds {MAX_FILE_SIZE_MB} MB limit")
+
     def _validate_batch_duplicates(self, items):
         """
         Запрещаем присылать в одном batch два документа с одинаковым ключом:
