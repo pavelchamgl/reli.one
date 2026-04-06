@@ -1,4 +1,4 @@
-import {  useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
@@ -109,17 +109,6 @@ const TaxInfo = ({ formik, onClosePreview }) => {
                     errText={t('onboard.tax_address.tax_country_required')}
                 />
 
-                <InputSeller
-                    title={t('onboard.company.tin')}
-                    type={"text"} circle={true} required={true} num={true}
-                    placeholder={"123456789"}
-                    name="tin" value={formik.values.tin}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.tin}
-                    touched={formik.touched.tin}
-                />
-
                 {
                     (country === "cz" || country === "sk") &&
                     <InputSeller
@@ -134,6 +123,18 @@ const TaxInfo = ({ formik, onClosePreview }) => {
                         touched={formik.touched.ico}
                     />
                 }
+                
+                <InputSeller
+                    title={t('onboard.company.tin')}
+                    type={"text"} circle={true} required={true} num={true}
+                    placeholder={"123456789"}
+                    name="tin" value={formik.values.tin}
+                    onChange={formik.handleChange}
+                    onBlur={formik.handleBlur}
+                    error={formik.errors.tin}
+                    touched={formik.touched.tin}
+                />
+
 
             </div>
         </div>

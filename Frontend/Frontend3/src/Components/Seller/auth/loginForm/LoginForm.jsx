@@ -158,7 +158,7 @@ const LoginForm = () => {
                     error={formik.errors.email}
                 />
                 <InputSeller type={"password"} title={t('password')}
-                    placeholder={"Your password"}
+                    placeholder={tOnb('auth.placeholder_password')}
                     name="password"
                     value={formik.values.password}
                     onChange={formik.handleChange}

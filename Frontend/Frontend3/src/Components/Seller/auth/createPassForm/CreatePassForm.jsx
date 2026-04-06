@@ -134,7 +134,7 @@ const CreatePassForm = () => {
             }}>
                 <InputSeller
                     type={"password"} title={tOnb('auth.label_password')}
-                    placeholder={"Your password"}
+                    placeholder={tOnb('auth.placeholder_password')}
                     name="password"
                     value={formik.values.password}
                     onChange={formik.handleChange}
@@ -164,7 +164,7 @@ const CreatePassForm = () => {
                 </div>
                 <InputSeller
                     type={"password"} title={tOnb('auth.label_confirm_password')}
-                    placeholder={"Confirm password"}
+                    placeholder={tOnb('auth.placeholder_confirm_password')}
                     name="confirm_password"
                     value={formik.values.confirm_password}
                     onChange={formik.handleChange}

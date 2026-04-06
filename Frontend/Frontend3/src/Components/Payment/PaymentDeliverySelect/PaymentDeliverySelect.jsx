@@ -151,20 +151,20 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
     }
 
     // --- GLS ---
-    const gls = group.couriers.gls;
-    if (gls?.options?.length) {
-      const box = gls.options.find(item => item.service === "BOX");
-      const shop = gls.options.find(item => item.service === "SHOP");
-      const hd = gls.options.find(item => item.channel === "HD");
-      if (box) setGlsBoxPointPrice(box);
-      if (shop) setGlsShopPointPrice(shop);
-      if (hd) setGlsDHPrice(hd);
-    } else if (gls?.error) {
-      console.error("GLS error:", gls.error);
-      setGlsBoxPointPrice(null);
-      setGlsShopPointPrice(null);
-      setGlsDHPrice(null);
-    }
+    // const gls = group.couriers.gls;
+    // if (gls?.options?.length) {
+    //   const box = gls.options.find(item => item.service === "BOX");
+    //   const shop = gls.options.find(item => item.service === "SHOP");
+    //   const hd = gls.options.find(item => item.channel === "HD");
+    //   if (box) setGlsBoxPointPrice(box);
+    //   if (shop) setGlsShopPointPrice(shop);
+    //   if (hd) setGlsDHPrice(hd);
+    // } else if (gls?.error) {
+    //   console.error("GLS error:", gls.error);
+    //   setGlsBoxPointPrice(null);
+    //   setGlsShopPointPrice(null);
+    //   setGlsDHPrice(null);
+    // }
 
 
     const dpd = group.couriers.dpd;
@@ -274,7 +274,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
               </div>
 
               {/* GLS */}
-              <div
+              {/* <div
                 className={styles.selectBlock}
                 onClick={() => {
                   if (!glsBoxPointPrice) return
@@ -330,7 +330,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   />
                 </div>
                 <p className={styles.price}>{glsShopPointPrice ? `${glsShopPointPrice?.priceWithVat} €` : "Delivery not available"}</p>
-              </div>
+              </div> */}
 
               {/* DPD */}
 
@@ -416,7 +416,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
               </div>
 
               {/* GLS */}
-              <div
+              {/* <div
                 className={styles.selectBlock}
                 onClick={() => {
                   if (!glsDHPrice) return
@@ -438,7 +438,7 @@ const PaymentDeliverySelect = ({ sellerId, group }) => {
                   />
                 </div>
                 <p className={styles.price}>{glsDHPrice ? `${glsDHPrice?.priceWithVat} €` : "Delivery not available"} </p>
-              </div>
+              </div> */}
 
               {/* dpd */}
               <div

@@ -73,10 +73,6 @@ const CompanyInfo = ({ data, setOpen }) => {
                     <span className={styles.num}>{data?.business_id}</span>
                 </li>
                 <li>
-                    <p>VAT ID (DIČ)</p>
-                    <span className={styles.num}>{data?.vat_id ? data?.vat_id : "N/A"}</span>
-                </li>
-                <li>
                     <p>{t('onboard.company.phone')}</p>
                     <span className={styles.num}>{data?.company_phone ? data?.company_phone : "N/A"}</span>
                 </li>
