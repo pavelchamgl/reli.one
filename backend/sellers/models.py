@@ -121,6 +121,12 @@ class SellerDocumentType(models.TextChoices):
     REGISTRATION_CERTIFICATE = "registration_certificate", "Registration certificate"
 
 
+class SellerIdentityDocumentSubtype(models.TextChoices):
+    PASSPORT = "passport", "Passport"
+    ID_CARD = "id_card", "ID card"
+    DRIVING_LICENSE = "driving_license", "Driving license"
+
+
 class SellerDocumentScope(models.TextChoices):
     SELF_EMPLOYED_PERSONAL = "self_employed_personal", "Self-employed / Personal"
     SELF_EMPLOYED_ADDRESS = "self_employed_address", "Self-employed / Address"
@@ -191,6 +197,13 @@ class SellerDocument(models.Model):
 
     doc_type = models.CharField(max_length=64, choices=SellerDocumentType.choices)
     scope = models.CharField(max_length=64, choices=SellerDocumentScope.choices)
+
+    identity_document_subtype = models.CharField(
+        max_length=32,
+        choices=SellerIdentityDocumentSubtype.choices,
+        null=True,
+        blank=True,
+    )
 
     # если документ двусторонний: front/back
     side = models.CharField(max_length=16, blank=True, null=True)

@@ -349,6 +349,7 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
         satisfied_by: str | None,
         uploaded_sides: list[str | None],
         document_ids: list[int],
+        identity_document_subtypes: list[str] | None = None,
     ) -> dict:
         return {
             "doc_type": doc_type,
@@ -357,6 +358,7 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
             "satisfied_by": satisfied_by,
             "uploaded_sides": uploaded_sides,
             "document_ids": document_ids,
+            "identity_document_subtypes": identity_document_subtypes or [],
         }
 
     requirements: list[dict] = []

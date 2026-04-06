@@ -10,7 +10,7 @@ class NewsImage(models.Model):
 class News(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()
-    image = models.ManyToManyField(NewsImage, null=True, blank=True)
+    image = models.ManyToManyField(NewsImage, blank=True)
 
     class Meta:
         verbose_name = 'News'

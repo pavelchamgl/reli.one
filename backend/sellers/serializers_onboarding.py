@@ -4,6 +4,7 @@ from .models import (
     SellerOnboardingApplication,
     SellerType,
     SellerDocument,
+    SellerIdentityDocumentSubtype,
     SellerSelfEmployedPersonalDetails,
     SellerSelfEmployedTaxInfo,
     SellerSelfEmployedAddress,
@@ -41,6 +42,10 @@ class OnboardingCompletenessSerializer(serializers.Serializer):
 class DocumentsRequirementSerializer(serializers.Serializer):
     doc_type = serializers.CharField()
     scope = serializers.CharField()
+    identity_document_subtypes = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+    )
     status = serializers.ChoiceField(choices=["satisfied", "missing"])
     satisfied_by = serializers.ChoiceField(
         choices=["double_sided", "single_sided"],
@@ -104,13 +109,13 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
 
     Поведение:
     - side="" -> None (важно для multipart/form-data)
-    - passport:
-        side=None или side="front"
-    - ID / residence:
-        side="front" или "back"
+    - identity_document:
+        - passport: side=None или side="front"
+        - id_card: side="front" или side="back"
+        - driving_license: side="front" или side="back"
     - proof_of_address, registration_certificate:
         только односторонние (side=None / front)
-    - корректность количества сторон проверяется в compute_completeness
+    - корректность набора сторон для completeness проверяется в compute_completeness
     """
 
     # Разрешённые scope для каждого типа документа
@@ -135,20 +140,23 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
         "registration_certificate",
     }
 
+    identity_document_subtype = serializers.ChoiceField(
+        choices=SellerIdentityDocumentSubtype.choices,
+        required=False,
+        allow_null=True,
+    )
+
     class Meta:
         model = SellerDocument
         fields = [
             "doc_type",
             "scope",
+            "identity_document_subtype",
             "side",
             "file",
         ]
 
     def validate_side(self, value):
-        """
-        Postman multipart:
-        - пустое поле приходит как ""
-        """
         if value in ("", None):
             return None
 
@@ -163,6 +171,7 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
         doc_type = attrs.get("doc_type")
         scope = attrs.get("scope")
         side = attrs.get("side")
+        subtype = attrs.get("identity_document_subtype")
 
         # --- doc_type -> scope ---
         allowed_scopes = self.ALLOWED_SCOPES.get(doc_type)
@@ -181,7 +190,38 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
                 }
             )
 
-        # --- односторонние документы ---
+        # subtype допустим только для identity_document
+        if doc_type != "identity_document" and subtype is not None:
+            raise serializers.ValidationError(
+                {
+                    "identity_document_subtype": (
+                        "identity_document_subtype can be used only with identity_document."
+                    )
+                }
+            )
+
+        # для identity_document subtype желателен, но не обязателен,
+        # чтобы не сломать старых клиентов
+        if doc_type == "identity_document":
+            if subtype == SellerIdentityDocumentSubtype.PASSPORT:
+                if side == "back":
+                    raise serializers.ValidationError(
+                        {
+                            "side": "Passport is a single-sided document. Side 'back' is not allowed."
+                        }
+                    )
+
+            elif subtype in {
+                SellerIdentityDocumentSubtype.ID_CARD,
+                SellerIdentityDocumentSubtype.DRIVING_LICENSE,
+            }:
+                if side is None:
+                    raise serializers.ValidationError(
+                        {
+                            "side": "For id_card and driving_license, side must be 'front' or 'back'."
+                        }
+                    )
+
         if doc_type in self.SINGLE_SIDED_DOCS and side == "back":
             raise serializers.ValidationError(
                 {
@@ -201,6 +241,7 @@ class SellerDocumentReadSerializer(serializers.ModelSerializer):
             "id",
             "doc_type",
             "scope",
+            "identity_document_subtype",
             "side",
             "file",
             "uploaded_at",
