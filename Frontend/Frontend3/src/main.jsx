@@ -74,6 +74,7 @@ import ContactReturnPage from "./pages/ContactReturnPage.jsx";
 import NewTermsPage from "./pages/NewTermsPage.jsx";
 import FinishVerificationPage from "./sellerPages/FinishVerificationPage/FinishVerificationPage.jsx";
 import ActionRequiredPage from "./sellerPages/ActionRequiredPage/ActionRequiredPage.jsx";
+import UnderReviewPage from "./sellerPages/UnderReviewPage/UnderReviewPage.jsx";
 
 const router = createBrowserRouter([
   {
@@ -276,6 +277,10 @@ const router = createBrowserRouter([
       {
         path: 'action-required',
         element: <ActionRequiredPage />
+      },
+      {
+        path: 'under-review',
+        element: <UnderReviewPage />
       }
     ],
   },

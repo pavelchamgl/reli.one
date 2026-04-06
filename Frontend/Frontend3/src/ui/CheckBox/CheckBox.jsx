@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import checkBoxAccImg from "../../assets/checkbox/checkboxAcc.svg";
 import styles from "./checkBox.module.scss";
 
-const CheckBox = ({ check, onChange }) => {
+const CheckBox = ({ check, onChange, style }) => {
   const [isChecked, setIsChecked] = useState(false);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const CheckBox = ({ check, onChange }) => {
 
   return (
     <label>
-      <div className={isChecked ? styles.mainChecked : styles.main}>
+      <div style={style} className={isChecked ? styles.mainChecked : styles.main}>
         {isChecked && <img src={checkBoxAccImg} alt="Checked" />}
       </div>
       <input

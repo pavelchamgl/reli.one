@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import homeIcon from "../../../assets/Seller/mobNav/home.svg"
 import homeAccIcon from "../../../assets/Seller/mobNav/homeAcc.svg"
@@ -23,6 +24,8 @@ const SellerMobNav = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  const { t } = useTranslation('sellerOrder')
 
 
   useEffect(() => {
@@ -101,7 +104,7 @@ const SellerMobNav = () => {
                 location.pathname === "/seller/seller-home" && !open ? "#2BAE91" : "#a09e96",
             }}
           >
-            Home
+            {t('home')}
           </p>
         </button>
         <button
@@ -132,7 +135,7 @@ const SellerMobNav = () => {
                   : "#a09e96",
             }}
           >
-            Goods
+            {t('goods')}
           </p>
         </button>
         <button
@@ -156,7 +159,7 @@ const SellerMobNav = () => {
                   : "#a09e96",
             }}
           >
-            Orders
+            {t('orders')}
           </p>
         </button>
         <button
@@ -185,8 +188,8 @@ const SellerMobNav = () => {
           >
             {
               Object.keys(token)?.length > 0 ?
-                "Logout" :
-                "Account"
+                t('logout') :
+                t("account")
             }
           </p>
         </button>
