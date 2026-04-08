@@ -260,7 +260,7 @@ class SelfEmployedPersonalSerializer(serializers.ModelSerializer):
 class SelfEmployedTaxSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerSelfEmployedTaxInfo
-        fields = ["tax_country", "tin", "ico", "vat_id"]
+        fields = ["tax_country", "tin", "business_id", "vat_id"]
 
 
 class SelfEmployedAddressSerializer(serializers.ModelSerializer):
@@ -277,7 +277,6 @@ class CompanyInfoSerializer(serializers.ModelSerializer):
             "legal_form",
             "country_of_registration",
             "business_id",
-            "ico",
             "tin",
             "vat_id",
             "imports_to_eu",

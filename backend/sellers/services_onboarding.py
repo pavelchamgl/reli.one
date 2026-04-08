@@ -200,14 +200,16 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
     if app.seller_type == SellerType.SELF_EMPLOYED:
         documents_complete = (
             has_identity_document("self_employed_personal") and
-            has_single_sided("proof_of_address", "self_employed_address")
+            has_single_sided("proof_of_address", "self_employed_address") and
+            has_single_sided("proof_of_address", "warehouse_address")
         )
 
     elif app.seller_type == SellerType.COMPANY:
         documents_complete = (
             has_single_sided("registration_certificate", "company_info") and
             has_identity_document("company_representative") and
-            has_single_sided("proof_of_address", "company_address")
+            has_single_sided("proof_of_address", "company_address") and
+            has_single_sided("proof_of_address", "warehouse_address")
         )
 
     else:
@@ -410,6 +412,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "missing_sides": [None],
             })
 
+        # proof_of_address for warehouse address (single-sided)
+        ok, sides, ids = pick_single_sided("proof_of_address", "warehouse_address")
+        requirements.append(
+            requirement_entry(
+                "proof_of_address",
+                "warehouse_address",
+                "single_sided" if ok else None,
+                sides,
+                ids,
+            )
+        )
+        used_doc_ids.update(ids)
+
+        if not ok:
+            missing.append({
+                "doc_type": "proof_of_address",
+                "scope": "warehouse_address",
+                "rule": "single_sided",
+                "missing_sides": [None],
+            })
+
     elif app.seller_type == SellerType.COMPANY:
         # registration_certificate for company_info (single-sided)
         ok, sides, ids = pick_single_sided("registration_certificate", "company_info")
@@ -471,6 +494,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
             missing.append({
                 "doc_type": "proof_of_address",
                 "scope": "company_address",
+                "rule": "single_sided",
+                "missing_sides": [None],
+            })
+
+        # proof_of_address for warehouse address (single-sided)
+        ok, sides, ids = pick_single_sided("proof_of_address", "warehouse_address")
+        requirements.append(
+            requirement_entry(
+                "proof_of_address",
+                "warehouse_address",
+                "single_sided" if ok else None,
+                sides,
+                ids,
+            )
+        )
+        used_doc_ids.update(ids)
+
+        if not ok:
+            missing.append({
+                "doc_type": "proof_of_address",
+                "scope": "warehouse_address",
                 "rule": "single_sided",
                 "missing_sides": [None],
             })

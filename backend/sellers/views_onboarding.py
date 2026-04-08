@@ -470,7 +470,7 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
                         value={
                             "tax_country": "PL",
                             "tin": "1234567890",
-                            "ico": None,
+                            "business_id": None,
                             "vat_id": "PL1234567890",
                         },
                         response_only=True,
@@ -508,7 +508,7 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
                         value={
                             "tax_country": "PL",
                             "tin": "1234567890",
-                            "ico": None,
+                            "business_id": None,
                             "vat_id": "PL1234567890",
                         },
                         response_only=True,
@@ -672,7 +672,6 @@ class SellerCompanyInfoAPIView(AuditAPIView):
                             "legal_form": "s.r.o.",
                             "country_of_registration": "CZ",
                             "business_id": "12345678",
-                            "ico": "12345678",
                             "tin": "CZ12345678",
                             "vat_id": "CZ12345678",
                             "imports_to_eu": True,
@@ -719,7 +718,6 @@ class SellerCompanyInfoAPIView(AuditAPIView):
                             "legal_form": "s.r.o.",
                             "country_of_registration": "CZ",
                             "business_id": "12345678",
-                            "ico": "12345678",
                             "tin": "CZ12345678",
                             "vat_id": "CZ12345678",
                             "imports_to_eu": True,
