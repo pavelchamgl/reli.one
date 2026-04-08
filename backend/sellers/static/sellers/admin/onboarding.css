@@ -8,7 +8,7 @@
 }
 
 .onb-panel{
-  max-width: 520px;
+  max-width: 920px;
 }
 
 .onb-table{
@@ -17,8 +17,9 @@
 }
 
 .onb-table td{
-  padding: 6px 8px;
+  padding: 8px 10px;
   border-bottom: 1px solid var(--hairline-color, #e5e5e5);
+  vertical-align: top;
 }
 
 .onb-pill{
@@ -41,7 +42,7 @@
 
 .onb-summary{
   margin-top: 10px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-radius: 10px;
   font-weight: 600;
 }
@@ -54,13 +55,6 @@
 .onb-summary.warn{
   background: #fff3cd;
   color: #664d03;
-}
-
-.onb-actions{
-  display:flex;
-  gap: 8px;
-  align-items:center;
-  flex-wrap: wrap;
 }
 
 .onb-btn{
@@ -107,5 +101,236 @@
 }
 
 .onb-reasons li {
+  margin-bottom: 6px;
+}
+
+.onb-errors {
+  margin-top: 8px;
+  padding-left: 18px;
+}
+
+.onb-errors li {
   margin-bottom: 4px;
+}
+
+.onb-section-title{
+  margin-top: 14px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .02em;
+  color: #445;
+}
+
+.onb-subsection-title{
+  margin-top: 10px;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #556;
+}
+
+.onb-doc-group{
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.onb-doc-group-title{
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #223;
+}
+
+.onb-decision{
+  max-width: 920px;
+  margin: 4px 0 12px 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+}
+
+.onb-decision-good{
+  background: #e7f6ec;
+  border-color: #c7ead4;
+  color: #0f5132;
+}
+
+.onb-decision-warn{
+  background: #fff3cd;
+  border-color: #ffe69c;
+  color: #664d03;
+}
+
+.onb-decision-bad{
+  background: #f8d7da;
+  border-color: #f1aeb5;
+  color: #842029;
+}
+
+.onb-decision-title{
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.onb-decision-text{
+  margin-bottom: 6px;
+}
+
+.onb-decision-meta{
+  font-size: 12px;
+  opacity: .9;
+}
+
+.onb-activity-list{
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+
+.onb-activity-list li{
+  margin-bottom: 8px;
+}
+
+.onb-readonly-inline-group .inline-related h3 {
+  display: none !important;
+}
+
+.onb-readonly-inline-group .form-row label {
+  font-weight: 600;
+}
+
+.onb-readonly-inline-group .readonly {
+  padding-top: 2px;
+}
+
+.onb-inline-errors {
+  margin-bottom: 10px;
+}
+
+/* Compact readonly inline accordion headers */
+.onb-readonly-inline-group .onb-inline-details {
+  margin: 0;
+}
+
+.onb-readonly-inline-group .onb-inline-summary {
+  padding: 4px 10px !important;
+  min-height: 0 !important;
+  line-height: 1.15 !important;
+  cursor: pointer;
+  list-style: none;
+}
+
+.onb-readonly-inline-group .onb-inline-summary::-webkit-details-marker {
+  display: none;
+}
+
+.onb-readonly-inline-group .onb-inline-summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 11px;
+  transform: translateY(-1px);
+}
+
+.onb-readonly-inline-group .onb-inline-details[open] > .onb-inline-summary::before {
+  content: "▾";
+}
+
+.onb-readonly-inline-group .onb-inline-title {
+  display: inline-block;
+  font-size: 12px !important;
+  line-height: 1.15 !important;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  margin: 0 !important;
+}
+
+.onb-readonly-inline-group fieldset.module {
+  margin-bottom: 6px;
+}
+
+.onb-readonly-inline-group .inline-related {
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+
+.onb-readonly-inline-group .form-row {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* =========================
+   Moderation actions — hard layout override
+========================= */
+
+/* Сам row moderation_tools */
+.form-row.field-moderation_tools,
+div.field-moderation_tools {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Убираем стандартный label "Moderation:" */
+.form-row.field-moderation_tools label,
+div.field-moderation_tools label {
+  display: none !important;
+}
+
+/* Django readonly container */
+.form-row.field-moderation_tools .readonly,
+div.field-moderation_tools .readonly {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* Внутренний flex/grid контейнер Django admin */
+.form-row.field-moderation_tools .flex-container,
+div.field-moderation_tools .flex-container {
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* На случай если row завернут в controls */
+.form-row.field-moderation_tools .fieldBox,
+.form-row.field-moderation_tools .field-box,
+div.field-moderation_tools .fieldBox,
+div.field-moderation_tools .field-box {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Наша moderation grid */
+.onb-moderation-force-root {
+  width: 100% !important;
+  max-width: 980px !important;
+}
+
+.onb-moderation-force-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(280px, 1fr)) !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+@media (max-width: 900px) {
+  .onb-moderation-force-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
