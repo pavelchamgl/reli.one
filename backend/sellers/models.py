@@ -286,7 +286,6 @@ class SellerCompanyInfo(models.Model):
     country_of_registration = models.CharField(max_length=2, null=True, blank=True)
 
     business_id = models.CharField(max_length=64, null=True, blank=True)
-    ico = models.CharField(max_length=32, null=True, blank=True)  # CZ/SK only
     tin = models.CharField(max_length=64, null=True, blank=True)
 
     vat_id = models.CharField(max_length=64, null=True, blank=True)
