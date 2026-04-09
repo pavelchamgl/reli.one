@@ -1,6 +1,6 @@
 {
     "banner1": {
-        "title": "Orders made simple",
+        "title": "Manage orders with ease",
         "desc": "We notify you of every sale and help manage fulfillment smoothly."
     },
     "banner2": {
@@ -12,11 +12,11 @@
         "desc": "Early sellers get free banners and featured spots on Reli."
     },
     "banner4": {
-        "title": "We’re here for you",
-        "desc": "Dedicated manager + 24/7 support whenever you need help."
+        "title": "Start selling today - your seller dashboard is ready",
+        "desc": "Everything you need to manage products, orders, and sales in one place"
     },
     "banner5": {
-        "title": "Grow with us from day one",
+        "title": "Build your success with us from day one",
         "desc": "Be among the first sellers and enjoy maximum exposure."
     },
     "startSelling": "Start Selling"

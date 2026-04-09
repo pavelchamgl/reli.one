@@ -190,11 +190,6 @@ export const companyValidationSchema = Yup.object({
     business_id: Yup.string()
         .required("Business ID (IČO) is required"),
 
-    ico: Yup.string().when("country_of_registration", {
-        is: (val) => val === "cz" || val === "sk", // условие
-        then: (schema) => schema.required("IČO is required"), // обязательно
-        otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    }),
 
     tin: Yup.string().when("country_of_registration", {
         is: (val) => val === "cz" || val === "sk",

@@ -13,24 +13,24 @@ const AskedQuestions = () => {
     const accArr = [
         {
             title: t("faq_section.questions.ques1"),
-            desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
+            desc: t("faq_section.answer.ans1")
         },
         {
             title: t("faq_section.questions.ques2"),
-            desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
+            desc: t("faq_section.answer.ans2")
         },
         {
             title: t("faq_section.questions.ques3"),
-            desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
+            desc: t("faq_section.answer.ans3")
         },
         {
             title: t("faq_section.questions.ques4"),
-            desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
+            desc: t("faq_section.answer.ans4")
         },
-        {
-            title: t("faq_section.questions.ques5"),
-            desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
-        },
+        // {
+        //     title: t("faq_section.questions.ques5"),
+        //     desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."
+        // },
     ]
     return (
         <Container>
