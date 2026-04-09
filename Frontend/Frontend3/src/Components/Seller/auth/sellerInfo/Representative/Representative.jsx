@@ -15,6 +15,7 @@ import { countriesArr } from "../../../../../code/seller"
 import { ErrToast } from "../../../../../ui/Toastify"
 
 import styles from "./Representative.module.scss"
+import IdentDocumInp from "../../identDocumInp/IdentDocumInp"
 
 const Representative = ({ formik, onClosePreview }) => {
 
@@ -165,35 +166,8 @@ const Representative = ({ formik, onClosePreview }) => {
                     />
                 </div>
 
-                <div>
-                    <UploadInp
-                        title={t('onboard.review.identity_doc')}
-                        description={t('onboard.representative.doc_desc')}
-                        scope={"company_representative"}
-                        docType={"identity_document"}
-                        side={"front"}
-                        onChange={handleSingleFrontUpload}
-                        inpText={t('onboard.representative.upload_front')}
-                        stateName={companyData?.front}
-                        nameTitle={"front"}
-                        onMouseDown={() => (ignoreBlurRef.current = true)}
-                    />
-                    <UploadInp
-                        scope={"company_representative"}
-                        docType={"identity_document"}
-                        side={"back"}
-                        onChange={handleSingleFrontUpload}
-                        inpText={t('onboard.representative.upload_back')}
-                        stateName={companyData?.back}
-                        nameTitle={"back"}
-                        onMouseDown={() => (ignoreBlurRef.current = true)}
-                    />
-                    {(formik.errors.uploadFront || formik.errors.uploadBack) && (
-                        <p className={styles.errorText}>
-                            {formik.errors.uploadFront || formik.errors.uploadBack}
-                        </p>
-                    )}
-                </div>
+                <IdentDocumInp scopeProp={"company_representative"} selfData={companyData} formik={formik} ref={ignoreBlurRef} />
+
             </div>
         </div>
     )

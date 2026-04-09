@@ -5,7 +5,7 @@ import UploadInp from '../sellerInfo/uploadInp/UploadInp';
 import { useTranslation } from 'react-i18next';
 import { uploadSingleDocument } from '../../../../api/seller/onboarding';
 
-const IdentDocumInp = ({ selfData, ref, formik }) => {
+const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
 
     const style = {
         borderRadius: '6px',
@@ -93,7 +93,7 @@ const IdentDocumInp = ({ selfData, ref, formik }) => {
                         <UploadInp
                             // title={t('onboard.seller_info.identity_doc')}
                             // description={t('onboard.seller_info.passport_id')}
-                            scope={"self_employed_personal"}
+                            scope={scopeProp}
                             docType={"identity_document"}
                             side={"front"}
                             onChange={handleSingleFrontUpload}
@@ -107,7 +107,7 @@ const IdentDocumInp = ({ selfData, ref, formik }) => {
                             <UploadInp
                                 // title={t('onboard.seller_info.identity_doc')}
                                 // description={t('onboard.seller_info.passport_id')}
-                                scope={"self_employed_personal"}
+                                scope={scopeProp}
                                 docType={"identity_document"}
                                 side={"front"}
                                 onChange={handleSingleFrontUpload}
@@ -118,7 +118,7 @@ const IdentDocumInp = ({ selfData, ref, formik }) => {
                             />
 
                             <UploadInp
-                                scope={"self_employed_personal"}
+                                scope={scopeProp}
                                 docType={"identity_document"}
                                 side={"back"}
                                 onChange={handleSingleFrontUpload}

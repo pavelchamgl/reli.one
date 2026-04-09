@@ -168,7 +168,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
           errText={t('onboard.seller_info.nationality_required')}
         />
 
-        <IdentDocumInp selfData={selfData} ref={ignoreBlurRef} formik={formik} />
+        <IdentDocumInp scopeProp={"self_employed_personal"} selfData={selfData} ref={ignoreBlurRef} formik={formik} />
 
         {/* <div>
           <UploadInp
