@@ -26,11 +26,14 @@ from .serializers import (
     ProductListSerializer,
     ProductDetailSerializer,
     ProductUpdateSerializer,
+    ProductPatchSerializer,
     ProductCreateSerializer,
     ProductParameterSerializer,
     BaseProductImageSerializer,
     BulkBaseProductImageSerializer,
     ProductVariantSerializer,
+    ProductVariantSwaggerSerializer,
+    ProductVariantPatchSwaggerSerializer,
     LicenseFileReadSerializer,
     LicenseFileWriteSerializer,
 )
@@ -49,32 +52,71 @@ from product.serializers import BaseProductListSerializer
 @extend_schema_view(
     list=extend_schema(
         tags=["Seller Product"],
-        description="Retrieve a list of products belonging to the authenticated seller.",
+        description=(
+            "Retrieve a list of products belonging to the authenticated seller."
+        ),
         responses={status.HTTP_200_OK: ProductListSerializer(many=True)},
     ),
     retrieve=extend_schema(
         tags=["Seller Product"],
-        description="Retrieve detail of a single product belonging to the seller.",
+        description=(
+            "Retrieve full details of a single product belonging to the authenticated seller. "
+            "Response includes the main product fields, category, barcode, article, VAT rate, "
+            "age restriction flag, parameters, license file, images, variants, status, "
+            "and rejected reason."
+        ),
         responses={status.HTTP_200_OK: ProductDetailSerializer},
     ),
     create=extend_schema(
         tags=["Seller Product"],
-        description="Create a new product. Only available for the seller role.",
+        description=(
+            "Create a new product for the authenticated seller. "
+            "The product supports the main description fields together with the additional "
+            "business fields required by the current seller flow: "
+            "`additional_details`, `barcode`, `article`, `vat_rate`, and `is_age_restricted`.\n\n"
+            "Important notes:\n"
+            "- `name` is required\n"
+            "- `product_description` is required\n"
+            "- `category` is required\n"
+            "- `article` is required\n"
+            "- `vat_rate` is required\n"
+            "- `barcode` is optional\n"
+            "- `additional_details` is optional\n"
+            "- `is_age_restricted` is optional\n\n"
+            "The response returns the full product representation via `ProductDetailSerializer`."
+        ),
+        request=ProductCreateSerializer,
         responses={status.HTTP_201_CREATED: ProductDetailSerializer},
     ),
     update=extend_schema(
         tags=["Seller Product"],
-        description="Fully update (PUT) a product belonging to the seller.",
+        description=(
+            "Fully update (PUT) a product belonging to the authenticated seller.\n\n"
+            "This endpoint updates the seller product using the current business fields: "
+            "`name`, `product_description`, `additional_details`, `category`, `barcode`, "
+            "`article`, `vat_rate`, and `is_age_restricted`.\n\n"
+            "For full update, provide the complete product payload required by "
+            "`ProductUpdateSerializer`."
+        ),
+        request=ProductUpdateSerializer,
         responses={status.HTTP_200_OK: ProductDetailSerializer},
     ),
     partial_update=extend_schema(
         tags=["Seller Product"],
-        description="Partially update (PATCH) a product belonging to the seller.",
+        description=(
+            "Partially update (PATCH) a product belonging to the authenticated seller.\n\n"
+            "Only the fields that need to be changed may be sent in the request, "
+            "while the final saved product remains validated by the backend business rules.\n\n"
+            "Supports partial changes for the current seller product fields, including: "
+            "`additional_details`, `barcode`, `article`, `vat_rate`, and `is_age_restricted`.\n\n"
+            "The response returns the full updated product via `ProductDetailSerializer`."
+        ),
+        request=ProductPatchSerializer,
         responses={status.HTTP_200_OK: ProductDetailSerializer},
     ),
     destroy=extend_schema(
         tags=["Seller Product"],
-        description="Delete a product belonging to the seller.",
+        description="Delete a product belonging to the authenticated seller.",
         responses={status.HTTP_204_NO_CONTENT: OpenApiResponse(description="Successfully deleted.")},
     )
 )
@@ -91,8 +133,10 @@ class BaseProductViewSet(ModelViewSet):
             return ProductListSerializer
         elif self.action == 'retrieve':
             return ProductDetailSerializer
-        elif self.action in ['update', 'partial_update']:
+        elif self.action == 'update':
             return ProductUpdateSerializer
+        elif self.action == 'partial_update':
+            return ProductPatchSerializer
         elif self.action == 'create':
             return ProductCreateSerializer
         return ProductDetailSerializer
@@ -114,16 +158,45 @@ class BaseProductViewSet(ModelViewSet):
         """
         user = self.request.user
         if not user.is_seller():
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only sellers can create a product.")
 
         try:
             seller_profile = user.seller_profile
         except SellerProfile.DoesNotExist:
-            from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("No seller profile found for this user.")
 
         serializer.save(seller=seller_profile)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        instance = serializer.instance
+        output_serializer = ProductDetailSerializer(
+            instance,
+            context=self.get_serializer_context()
+        )
+        headers = self.get_success_headers(serializer.data)
+        return Response(output_serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        output_serializer = ProductDetailSerializer(
+            serializer.instance,
+            context=self.get_serializer_context()
+        )
+        return Response(output_serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
 
 
 @extend_schema_view(
@@ -432,46 +505,135 @@ class BaseProductImageViewSet(ModelViewSet):
 @extend_schema_view(
     list=extend_schema(
         tags=["Seller Product Variants"],
-        description="List all variants for a given product."
+        description=(
+            "List all variants for a given product belonging to the authenticated seller."
+        ),
+        responses={status.HTTP_200_OK: ProductVariantSwaggerSerializer(many=True)},
     ),
     create=extend_schema(
         tags=["Seller Product Variants"],
         description=(
-                "Create a new variant for a given product. "
-                "Variant must contain exactly one of: `text` or `image`. "
-                "Both fields cannot be filled at the same time, and both cannot be empty. "
-                "If `image` is provided, it must be a base64 data URI string like "
-                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
-                "Allowed image types: JPEG, PNG, WEBP."
-        )
+            "Create a new variant for a given product.\n\n"
+            "Current business rules:\n"
+            "- `name` is required\n"
+            "- `price` is required\n"
+            "- `weight_grams` is required and must be greater than 0\n"
+            "- `width_mm` is required and must be greater than 0\n"
+            "- `height_mm` is required and must be greater than 0\n"
+            "- `length_mm` is required and must be greater than 0\n"
+            "- variant must contain exactly one of: `text` or `image`\n"
+            "- `text` and `image` cannot be sent together\n"
+            "- `text` and `image` cannot both be empty\n\n"
+            "If `image` is provided, it must be a base64 data URI string like "
+            "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
+            "Allowed image types: JPEG, PNG, WEBP."
+        ),
+        request=ProductVariantSwaggerSerializer,
+        responses={status.HTTP_201_CREATED: ProductVariantSwaggerSerializer},
+        examples=[
+            OpenApiExample(
+                name="Create variant with text",
+                value={
+                    "name": "Color",
+                    "text": "Black",
+                    "price": "99.99",
+                    "weight_grams": 450,
+                    "width_mm": 120,
+                    "height_mm": 80,
+                    "length_mm": 200
+                },
+                request_only=True,
+            ),
+            OpenApiExample(
+                name="Create variant with image",
+                value={
+                    "name": "Color",
+                    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...",
+                    "price": "129.99",
+                    "weight_grams": 470,
+                    "width_mm": 125,
+                    "height_mm": 82,
+                    "length_mm": 205
+                },
+                request_only=True,
+            ),
+        ],
     ),
     retrieve=extend_schema(
         tags=["Seller Product Variants"],
-        description="Retrieve detail of a single product variant."
+        description="Retrieve detail of a single product variant.",
+        responses={status.HTTP_200_OK: ProductVariantSwaggerSerializer},
     ),
     update=extend_schema(
         tags=["Seller Product Variants"],
         description=(
-                "Fully update (PUT) a product variant. "
-                "Variant must contain exactly one of: `text` or `image`. "
-                "If `image` is provided, it must be a base64 data URI string like "
-                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
-                "Allowed image types: JPEG, PNG, WEBP."
-        )
+            "Fully update (PUT) a product variant.\n\n"
+            "Current business rules:\n"
+            "- `name` is required\n"
+            "- `price` is required\n"
+            "- `weight_grams` is required and must be greater than 0\n"
+            "- `width_mm` is required and must be greater than 0\n"
+            "- `height_mm` is required and must be greater than 0\n"
+            "- `length_mm` is required and must be greater than 0\n"
+            "- variant must contain exactly one of: `text` or `image`\n"
+            "- `text` and `image` cannot be sent together\n"
+            "- `text` and `image` cannot both be empty\n\n"
+            "If `image` is provided, it must be a base64 data URI string like "
+            "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
+            "Allowed image types: JPEG, PNG, WEBP."
+        ),
+        request=ProductVariantSwaggerSerializer,
+        responses={status.HTTP_200_OK: ProductVariantSwaggerSerializer},
+        examples=[
+            OpenApiExample(
+                name="Full update variant",
+                value={
+                    "name": "Color",
+                    "text": "Black",
+                    "price": "99.99",
+                    "weight_grams": 450,
+                    "width_mm": 120,
+                    "height_mm": 80,
+                    "length_mm": 200
+                },
+                request_only=True,
+            ),
+        ],
     ),
     partial_update=extend_schema(
         tags=["Seller Product Variants"],
         description=(
-                "Partially update (PATCH) a product variant. "
-                "Variant must contain exactly one of: `text` or `image`. "
-                "If `image` is provided, it must be a base64 data URI string like "
-                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
-                "Allowed image types: JPEG, PNG, WEBP."
-        )
+            "Partially update (PATCH) a product variant.\n\n"
+            "Only the fields that need to be changed may be sent in the request, "
+            "but the final saved variant must still satisfy the same business rules:\n"
+            "- `name` must remain present\n"
+            "- `price` must remain present\n"
+            "- `weight_grams` must remain present and be greater than 0\n"
+            "- `width_mm` must remain present and be greater than 0\n"
+            "- `height_mm` must remain present and be greater than 0\n"
+            "- `length_mm` must remain present and be greater than 0\n"
+            "- variant must contain exactly one of: `text` or `image`\n\n"
+            "If `image` is provided, it must be a base64 data URI string like "
+            "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
+            "Allowed image types: JPEG, PNG, WEBP."
+        ),
+        request=ProductVariantPatchSwaggerSerializer,
+        responses={status.HTTP_200_OK: ProductVariantSwaggerSerializer},
+        examples=[
+            OpenApiExample(
+                name="Partial update variant",
+                value={
+                    "price": "109.99",
+                    "weight_grams": 460
+                },
+                request_only=True,
+            ),
+        ],
     ),
     destroy=extend_schema(
         tags=["Seller Product Variants"],
-        description="Delete a product variant."
+        description="Delete a product variant.",
+        responses={status.HTTP_204_NO_CONTENT: OpenApiResponse(description="Successfully deleted.")},
     )
 )
 class ProductVariantViewSet(ModelViewSet):
@@ -522,59 +684,48 @@ class ProductVariantViewSet(ModelViewSet):
         tags=["Seller Product Variants"],
         operation_id="product_variant_bulk_create",
         description=(
-                "Bulk create (mass create) ProductVariants for a given product.\n\n"
-                "Each variant must contain exactly one of: `text` or `image`. "
-                "Both fields cannot be filled at the same time, and both cannot be empty.\n\n"
-                "If `image` is provided, it must be a base64 data URI string like "
-                "`data:image/png;base64,...` or `data:image/webp;base64,...`. "
-                "Allowed image types: JPEG, PNG, WEBP.\n\n"
-                "**Request body**: an array of objects with `name`, `price`, "
-                "and exactly one of: `text` or base64-encoded `image`. Example:\n\n"
-                "```\n[\n"
-                "  {\n"
-                "    \"name\": \"Variant\",\n"
-                "    \"text\": \"Text 1\",\n"
-                "    \"price\": \"99.99\"\n"
-                "  },\n"
-                "  {\n"
-                "    \"name\": \"Variant\",\n"
-                "    \"image\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...\",\n"
-                "    \"price\": \"129.99\"\n"
-                "  },\n"
-                "  {\n"
-                "    \"name\": \"Variant\",\n"
-                "    \"image\": \"data:image/webp;base64,UklGR...\",\n"
-                "    \"price\": \"149.99\"\n"
-                "  }\n"
-                "]\n```"
+            "Bulk create (mass create) product variants for a given product.\n\n"
+            "Current business rules for each variant:\n"
+            "- `name` is required\n"
+            "- `price` is required\n"
+            "- `weight_grams` is required and must be greater than 0\n"
+            "- `width_mm` is required and must be greater than 0\n"
+            "- `height_mm` is required and must be greater than 0\n"
+            "- `length_mm` is required and must be greater than 0\n"
+            "- each variant must contain exactly one of: `text` or `image`\n"
+            "- `text` and `image` cannot be sent together\n"
+            "- `text` and `image` cannot both be empty\n\n"
+            "If `image` is provided, it must be a base64 data URI string like "
+            "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
+            "Allowed image types: JPEG, PNG, WEBP.\n\n"
+            "**Request body**: an array of variant objects."
         ),
-        request=ProductVariantSerializer(many=True),
-        responses={201: ProductVariantSerializer(many=True)},
+        request=ProductVariantSwaggerSerializer(many=True),
+        responses={201: ProductVariantSwaggerSerializer(many=True)},
         examples=[
             OpenApiExample(
-                name="Bulk create variants with text or image values",
-                description=(
-                        "Each variant must contain exactly one of `text` or `image`. "
-                        "Images must be base64 data URI strings. "
-                        "Allowed image types: JPEG, PNG, WEBP."
-                ),
+                name="Bulk create variants",
                 value=[
                     {
-                        "name": "Variant",
-                        "text": "Text 1",
-                        "price": "99.99"
+                        "name": "Color",
+                        "text": "Black",
+                        "price": "99.99",
+                        "weight_grams": 450,
+                        "width_mm": 120,
+                        "height_mm": 80,
+                        "length_mm": 200
                     },
                     {
-                        "name": "Variant",
+                        "name": "Color",
                         "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...",
-                        "price": "129.99"
-                    },
-                    {
-                        "name": "Variant",
-                        "image": "data:image/webp;base64,UklGR...",
-                        "price": "149.99"
+                        "price": "129.99",
+                        "weight_grams": 470,
+                        "width_mm": 125,
+                        "height_mm": 82,
+                        "length_mm": 205
                     }
-                ]
+                ],
+                request_only=True,
             ),
         ]
     )
