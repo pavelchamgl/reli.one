@@ -44,7 +44,6 @@ const SellerReviewCompany = () => {
             legal_form: companyData?.legal_form ?? "",
             country_of_registration: companyData?.country_of_registration ?? "",          // Чехия (Czech Republic)
             business_id: companyData?.business_id ?? "",     // IČO (8-значный номер компании)
-            ico: companyData?.ico ?? "",             // То же самое, что и business_id (IČO)
             tin: companyData?.tin ?? "",             // Daňové identifikační číslo (DIČ) без префикса
             eori_number: companyData?.eori_number ?? "",     // Только если реально есть (CZ + IČО обычно)
             company_phone: companyData?.company_phone ?? "",

@@ -43,7 +43,6 @@ const SellerCompanyInfo = () => {
             legal_form: companyData?.legal_form ?? "",
             country_of_registration: companyData?.country_of_registration ?? "",          // Чехия (Czech Republic)
             business_id: companyData?.business_id ?? "",     // IČO (8-значный номер компании)
-            ico: companyData?.ico ?? "",             // То же самое, что и business_id (IČO)
             tin: companyData?.tin ?? "",             // Daňové identifikační číslo (DIČ) без префикса
             eori_number: companyData?.eori_number ?? "",     // Только если реально есть (CZ + IČО обычно)
             company_phone: companyData?.company_phone ?? "",
@@ -115,7 +114,6 @@ const SellerCompanyInfo = () => {
                         legal_form: values?.legal_form,
                         country_of_registration: values?.country_of_registration,
                         business_id: values?.business_id,
-                        ico: values?.ico,
                         tin: values?.tin,
                         imports_to_eu: true,
                         eori_number: values?.eori_number,

@@ -15,6 +15,7 @@ import { ErrToast } from "../../../../../ui/Toastify";
 import { countriesArr, toISODate } from "../../../../../code/seller";
 
 import styles from './PersonalDetails.module.scss';
+import IdentDocumInp from "../../identDocumInp/IdentDocumInp";
 
 const PersonalDetails = ({ formik, onClosePreview }) => {
 
@@ -167,7 +168,9 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
           errText={t('onboard.seller_info.nationality_required')}
         />
 
-        <div>
+        <IdentDocumInp selfData={selfData} ref={ignoreBlurRef} formik={formik} />
+
+        {/* <div>
           <UploadInp
             title={t('onboard.seller_info.identity_doc')}
             description={t('onboard.seller_info.passport_id')}
@@ -198,7 +201,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
                 {formik.errors.uploadFront || formik.errors.uploadBack}
               </p>
             )}
-        </div>
+        </div> */}
       </div>
     </div>
   )

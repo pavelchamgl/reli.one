@@ -50,7 +50,6 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
             legal_form: formik.values.legal_form,
             country_of_registration: formik.values.country_of_registration,
             business_id: formik.values.business_id,
-            ico: formik.values.ico,
             tin: formik.values?.tin,
             eori_number: formik.values?.eori_number,
             imports_to_eu: Boolean(formik.values?.eori_number),
@@ -180,19 +179,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                     num={true}
                 />
 
-                {(country === "cz" || country === "sk") &&
-                    <InputSeller
-                        title={"IČO"} type={"text"}
-                        circle={true} required={true} num={true}
-                        placeholder={"123456789"}
-                        name="ico"
-                        value={formik.values.ico}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        error={formik.errors.ico}
-                        touched={formik.touched.ico}
-                    />
-                }
+
 
                 <InputSeller
                     title={t('onboard.tax_address.tin_full')}

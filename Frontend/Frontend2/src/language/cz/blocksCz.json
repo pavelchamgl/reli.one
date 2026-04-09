@@ -20,12 +20,12 @@
         }
     },
     "selling": {
-        "title": "Prodej na Reli je jednoduchý",
-        "description": "Stačí nám poslat detaily vašich produktů – my je nahrajeme a propagujeme za vás.",
+        "title": "Vše, co potřebujete k prodeji – na jednom místě",
+        "description": "Spravujte produkty, objednávky i prodeje ve svém panelu",
         "steps": {
-            "step1": "Pošlete produkt",
-            "step2": "My nahrajeme",
-            "step3": "Vy prodáváte",
+            "step1": "Přidávejte produkty",
+            "step2": "Spravujte objednávky",
+            "step3": "Rozvíjejte prodej",
             "step4": "Reli"
         },
         "button_start": "Začít prodávat dnes",
@@ -78,20 +78,20 @@
         "main_title": "Držíme to jednoduché. Vy se soustřeďte na výrobu – my se postaráme o nastavení prodeje",
         "steps": {
             "step1": {
-                "label": "Kontaktujte našeho manažera",
-                "text": "Pošlete nám e-mail a sdílejte detaily vašeho podnikání."
+                "label": "Vytvořte si prodejní účet",
+                "text": "Zaregistrujte se a získejte přístup do prodejního panelu"
             },
             "step2": {
-                "label": "Podepište smlouvu",
-                "text": "Jednoduché a transparentní podmínky."
+                "label": "Dokončete ověření",
+                "text": "Vyplňte požadované údaje a získejte schválení"
             },
             "step3": {
-                "label": "Pošlete informace o produktech",
-                "text": "Sdílejte katalog produktů, fotky a ceny. Naši moderátoři nahrají a optimalizují vaše nabídky."
+                "label": "Přidejte své produkty",
+                "text": "Nahrajte a spravujte svůj produktový katalog"
             },
             "step4": {
-                "label": "Začněte prodávat a dostávejte výplaty",
-                "text": "Vaše produkty jdou do prodeje a vy dostáváte výplaty."
+                "label": "Začněte prodávat a vydělávat",
+                "text": "Vaše produkty se zobrazí online a začnete přijímat objednávky"
             }
         },
         "final_text": "Připraveni začít?",
@@ -154,11 +154,18 @@
         "subtitle": "Získejte odpovědi na běžné otázky ohledně prodeje na Reli.one.",
         "description": "Získejte odpovědi na běžné otázky ohledně prodeje na Reli.one.",
         "questions": {
-            "ques1": "Musím produkty nahrávat sám?",
-            "ques2": "Kolik stojí start?",
-            "ques3": "Mohu prodávat, pokud už mám vlastní obchod nebo distributora?",
-            "ques4": "Mohu propagovat své produkty sám?",
+            "ques1": "Jak začít prodávat na Reli?",
+            "ques2": "Jak přidám produkty?",
+            "ques3": "Je registrace opravdu zdarma?",
+            "ques4": "Mohu prodávat, i když už mám vlastní e-shop nebo distributora?",
             "ques5": "Jaké kategorie produktů přijímáte?"
+        },
+        "answer": {
+            "ans1": "Začít je jednoduché. Vytvořte si prodejní účet, projděte procesem ověření a nahrajte své produkty do prodejního panelu. Po schválení budou vaše produkty zveřejněny a můžete začít přijímat objednávky. ",
+            "ans2": "Produkty můžete snadno nahrávat a spravovat přímo ve svém prodejním panelu včetně popisů, fotografií a cen.",
+            "ans3": "Ano. Registrace je zcela zdarma a nabízíme první rok bez poplatků a bez vstupních nákladů.",
+            "ans4": "Ano. Reli můžete využít jako další prodejní kanál vedle vašeho stávajícího podnikání.",
+            "ans5": ""
         },
         "bottom_text": "Máte ještě otázky?",
         "bottom_link": "Číst více"

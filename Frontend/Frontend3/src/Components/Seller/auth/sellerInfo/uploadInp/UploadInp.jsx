@@ -26,13 +26,6 @@ const UploadInp = ({
 
     const [name, setName] = useState(stateName ?? "")
 
-    useEffect(() => {
-        console.log(stateName);
-        
-    }, [stateName]);
-
-
-
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
 

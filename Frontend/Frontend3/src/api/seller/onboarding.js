@@ -187,7 +187,7 @@ export const putCompanyAddress = async (obj) => {
 // =================================================
 export const uploadSingleDocument = async (doc) => {
     try {
-        const { doc_type, scope, side, file } = doc;
+        const { doc_type, scope, side, file, identity_document_subtype } = doc;
 
         const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
         if (!allowedTypes.includes(file.type)) {
@@ -200,6 +200,9 @@ export const uploadSingleDocument = async (doc) => {
         const formData = new FormData();
         formData.append("doc_type", doc_type);
         formData.append("scope", scope);
+        if (doc_type === 'identity_document') {
+            formData.append("identity_document_subtype", identity_document_subtype);
+        }
         if (side) {
             formData.append("side", side);
         }

@@ -3,8 +3,9 @@ import CheckBox from '../../../../ui/CheckBox/CheckBox'
 import styles from './IdentDocumInp.module.scss';
 import UploadInp from '../sellerInfo/uploadInp/UploadInp';
 import { useTranslation } from 'react-i18next';
+import { uploadSingleDocument } from '../../../../api/seller/onboarding';
 
-const IdentDocumInp = () => {
+const IdentDocumInp = ({ selfData, ref, formik }) => {
 
     const style = {
         borderRadius: '6px',
@@ -12,10 +13,43 @@ const IdentDocumInp = () => {
     }
 
     // types = pass/driv/nati
-
     const [type, setType] = useState('pass')
 
     const { t } = useTranslation('onbording')
+
+    const documSubType = {
+        pass: "passport",
+        driv: "driving_license",
+        nati: "id_card"
+    }
+
+    // В нем изменилась структура запроса (form-data) для загрузки identity_document. 
+    // Теперь необходимо дополнительно передавать поле identity_document_subtype со значением 
+    // типа документа: passport, id_card или driving_license.
+
+    const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
+        uploadSingleDocument({
+            file, doc_type, scope, side,
+            identity_document_subtype: documSubType[type]
+        })
+            .then(res => {
+
+                if (res.side === "front") {
+                    formik.setFieldValue("uploadFront", res.uploaded_at)
+                }
+
+                if (res.side === "back") {
+                    formik.setFieldValue("uploadBack", res.uploaded_at)
+                }
+
+            })
+            .catch(err => {
+                ErrToast(err.message)
+            });
+    };
+
+
+
 
 
     return (
@@ -62,11 +96,11 @@ const IdentDocumInp = () => {
                             scope={"self_employed_personal"}
                             docType={"identity_document"}
                             side={"front"}
-                            // onChange={handleSingleFrontUpload}
+                            onChange={handleSingleFrontUpload}
                             inpText={'Uploud document'}
-                            // stateName={selfData?.front}
+                            stateName={selfData?.front}
                             nameTitle={"front"}
-                        // onMouseDown={() => (ignoreBlurRef.current = true)}
+                            onMouseDown={() => (ref.current = true)}
                         />
                         :
                         <>
@@ -76,24 +110,31 @@ const IdentDocumInp = () => {
                                 scope={"self_employed_personal"}
                                 docType={"identity_document"}
                                 side={"front"}
-                                // onChange={handleSingleFrontUpload}
+                                onChange={handleSingleFrontUpload}
                                 inpText={t('onboard.seller_info.upload_front')}
-                                // stateName={selfData?.front}
+                                stateName={selfData?.front}
                                 nameTitle={"front"}
-                            // onMouseDown={() => (ignoreBlurRef.current = true)}
+                                onMouseDown={() => (ref.current = true)}
                             />
 
                             <UploadInp
                                 scope={"self_employed_personal"}
                                 docType={"identity_document"}
                                 side={"back"}
-                                // onChange={handleSingleFrontUpload}
+                                onChange={handleSingleFrontUpload}
                                 inpText={t('onboard.seller_info.upload_back')}
-                                // stateName={selfData?.back}
+                                stateName={selfData?.back}
                                 nameTitle={"back"}
-                            // onMouseDown={() => (ignoreBlurRef.current = true)}
+                                onMouseDown={() => (ref.current = true)}
                             />
+                            {(formik.touched.uploadFront || formik.touched.uploadBack) &&
+                                (formik.errors.uploadFront || formik.errors.uploadBack) && (
+                                    <p className={styles.errorText}>
+                                        {formik.errors.uploadFront || formik.errors.uploadBack}
+                                    </p>
+                                )}
                         </>
+
                 }
 
             </div>

@@ -111,7 +111,7 @@ const SellerInformation = () => {
                     promise: putTax({
                         tax_country: values.tax_country,
                         tin: values.tin,
-                        ico: (selfData.tax_country === "cz" || selfData.tax_country === "sk") ? "" : values.ico,
+                        business_id: (selfData.tax_country === "cz" || selfData.tax_country === "sk") ? "" : values.ico,
                     })
                 },
                 {

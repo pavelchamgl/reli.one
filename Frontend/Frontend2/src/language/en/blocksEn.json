@@ -20,12 +20,12 @@
         }
     },
     "selling": {
-        "title": "Selling with Reli is easy",
-        "description": "Just send us your product details - we upload and promote them for you.",
+        "title": "Everything you need to sell",
+        "description": "Manage products, orders, and sales from your dashboard",
         "steps": {
-            "step1": "Send product",
-            "step2": "We upload",
-            "step3": "You sell"
+            "step1": "Add products",
+            "step2": "Manage products",
+            "step3": "Grow your sales"
         },
         "button_start": "Start Selling Today",
         "button_goto": "Go To Marketplace"
@@ -77,20 +77,20 @@
         "main_title": "We keep it simple. You focus on production - we handle the sales setup",
         "steps": {
             "step1": {
-                "label": "Contact Our Manager",
-                "text": "Send us an email and share your business details."
+                "label": "Create your seller account",
+                "text": "Sign up and access your seller dashboard"
             },
             "step2": {
-                "label": "Sign Agreement",
-                "text": "Simple, transparent terms."
+                "label": "Complete verification",
+                "text": "Provide your business details and get approved"
             },
             "step3": {
-                "label": "Send Product Info",
-                "text": "Share your product catalog, photos, and prices. Our moderators upload and optimize your listings."
+                "label": "Add your products",
+                "text": "Upload and manage your catalogue"
             },
             "step4": {
-                "label": "Start Selling and Get Paid",
-                "text": "Your products go live, and you receive payouts."
+                "label": "Start selling and get paid",
+                "text": "Your products go live and you receive payouts"
             }
         },
         "final_text": "Ready to get started?",
@@ -145,11 +145,18 @@
         "subtitle": "Get answers to common questions about selling on Reli.one.",
         "description": "Get answers to common questions about selling on Reli.one.",
         "questions": {
-            "ques1": "Do I need to upload products myself?",
-            "ques2": "How much does it cost to start?",
-            "ques3": "Can I sell if I already have a shop or distributor?",
-            "ques4": "Can I promote my products?",
+            "ques1": "How do I start selling on Reli?",
+            "ques2": "How do I add products?",
+            "ques3": "Is it really free to start?",
+            "ques4": "Can I sell if I already have a store or distributor?",
             "ques5": "What product categories do you accept?"
+        },
+        "answer": {
+            "ans1": "Getting started is simple. Create your seller account, complete a short verification process, and upload your products through your dashboard. Once approved, your products go live and you can start receiving orders.",
+            "ans2": "You can easily upload and manage your products directly in your seller dashoboard, including descriptions, photos, and pricing.",
+            "ans3": "Yes. Registration is completely free, and we offer a one-year-free start with no setup costs.",
+            "ans4": "Absolutely. You can sell alongside your existing business and use Reli as an additional sales channel.",
+            "ans5": ""
         },
         "bottom_text": "Still have questions?",
         "bottom_link": "Read more"
