@@ -68,7 +68,11 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
                 text: "",
                 price: "",
                 image: null,
-                status: "local"
+                status: "local",
+                weight: "",
+                width: "",
+                length: "",
+                height: ""
             }
         ])
     }

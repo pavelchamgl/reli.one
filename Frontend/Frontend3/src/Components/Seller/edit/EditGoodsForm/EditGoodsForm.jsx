@@ -15,6 +15,7 @@ import { validateGoods } from "../../../../code/validation/validationGoods";
 import EditLicense from "../EditLicense/EditLicense";
 
 import styles from "./EditGoodsForm.module.scss"
+import CheckBox from "../../../../ui/CheckBox/CheckBox";
 
 const EditGoodsForm = () => {
     const navigate = useNavigate();
@@ -27,9 +28,9 @@ const EditGoodsForm = () => {
     const [varErr, setVarErr] = useState(false)
     const [type, setType] = useState(null)
 
-    const { fetchSellerProductById, setParameter, setCategory } = useActionSellerEdit()
+    const { fetchSellerProductById, setParameter, setCategory, setValues } = useActionSellerEdit()
 
-    const { product, parameters, name, product_description, length, width, height, weight, category, images, variantsName, variantsServ, category_name, status, err } = useSelector(state => state.edit_goods)
+    const { product, parameters, name, product_description, length, width, height, weight, category, images, variantsName, variantsServ, category_name, status, err, item, barcode, additional_details, vat_rate, is_age } = useSelector(state => state.edit_goods)
 
     const { categoriesStage } = useSelector(state => state.create)
 
@@ -42,10 +43,19 @@ const EditGoodsForm = () => {
             length: "",
             width: "",
             height: "",
-            weight: ""
+            weight: "",
+
+            item: item,
+            barcode: barcode,
+            additional_details: additional_details,
+            vat_rate: vat_rate,
+            is_age: is_age
         },
         validationSchema: validateGoods,
         onSubmit: (values) => {
+
+            setValues({ ...values })
+
 
             navigate(`/seller/edit-preview/${id}`)
 
@@ -115,7 +125,12 @@ const EditGoodsForm = () => {
                 length: length ?? "", // Используем значение length, если параметр найден
                 width: width ?? "",  // Используем значение width, если параметр найден
                 height: height ?? "", // Используем значение height, если параметр найден
-                weight: weight ?? ""  // Используем значение weight, если параметр найден
+                weight: weight ?? "",  // Используем значение weight, если параметр найден
+                item: item ?? "",
+                barcode: barcode ?? "",
+                additional_details: additional_details ?? "",
+                vat_rate: vat_rate ?? "",
+                is_age: is_age ?? ""
             });
         }
     }, [product]);
@@ -159,8 +174,58 @@ const EditGoodsForm = () => {
             <EditGoodsParameters parameters={parameters} err={parametersErr} setErr={setParametersErr} />
 
 
-            <CreateFormInp text={t('item.barcode')} titleSize={"small"} />
-            <CreateFormInp text={t('item.name')} titleSize={"small"} required={true} />
+            <CreateFormInp
+                name='barcode'
+                value={formik.values.barcode}
+                text={t('item.barcode')}
+                titleSize={"small"}
+                {...formik}
+                handleChange={(e) => {
+                    setDescription(e.target.value)
+                    formik.handleChange(e)
+                }}
+
+            />
+            <CreateFormInp
+                name='item'
+                value={formik.values.item}
+                text={t('item.name')}
+                titleSize={"small"}
+                {...formik}
+                handleChange={formik.handleChange}
+                required={true}
+                error={formik.errors.item}
+            />
+
+            <CreateFormInp
+                name="additional_details"
+                value={formik.values.additional_details}
+                {...formik}
+                handleChange={(e) => {
+                    formik.handleChange(e)
+                }}
+                text={"Additional details"}
+                // text={t('goods.description')}
+                titleSize={"small"}
+                textarea={true}
+            />
+
+            <CreateFormInp
+                name='vat_rate'
+                value={formik.values.vat_rate}
+                // text={t('item.name')}
+                text={'Vat rate'}
+                titleSize={"small"}
+                {...formik}
+                handleChange={formik.handleChange}
+                required={true}
+                error={formik.errors.vat_rate}
+            />
+
+            <label className={styles.isAgeLabel}>
+                <CheckBox check={is_age} onChange={(v) => setValues({ is_age: v })} style={{ borderRadius: "4px" }} />
+                Is age restricted (18+)
+            </label>
 
             <h4 className={styles.wightTitle}>{t('item.dimensions_weight')}</h4>
 

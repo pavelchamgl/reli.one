@@ -1,5 +1,6 @@
 
-import {  useRef } from "react"
+import { useRef } from "react"
+import { useState } from "react"
 import { useSelector } from "react-redux"
 import { useTranslation } from "react-i18next"
 import { useLocation } from "react-router-dom"
@@ -13,9 +14,10 @@ import { putWarehouse, uploadSingleDocument } from "../../../../../api/seller/on
 import { countriesArr, toISODate } from "../../../../../code/seller"
 
 import styles from "./WareHouseAddress.module.scss"
+import { ErrToast } from "../../../../../ui/Toastify"
 
 const WhareHouseAddress = ({ formik }) => {
-    
+
     const isWarehouseFilled = (values) => {
         return Boolean(
             values.wStreet &&
@@ -24,6 +26,8 @@ const WhareHouseAddress = ({ formik }) => {
             values.contact_phone
         )
     }
+
+    const [uploadStatus, setUploadStatus] = useState("")
 
 
     const warehouseRef = useRef(null)
@@ -70,9 +74,10 @@ const WhareHouseAddress = ({ formik }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
                 formik.setFieldValue("wProof_document_issue_date", res.uploaded_at)
-
+                setUploadStatus('full')
             })
             .catch(err => {
+                setUploadStatus('rej')
                 ErrToast(err.message)
                 console.log("Ошибка загрузки", err);
             });
@@ -164,6 +169,7 @@ const WhareHouseAddress = ({ formik }) => {
 
                 <div>
                     <UploadInp
+                    
                         title={t('onboard.tax_address.proof_address')}
                         description={t('onboard.tax_address.proof_desc')}
                         side={null}
@@ -174,6 +180,8 @@ const WhareHouseAddress = ({ formik }) => {
                         stateName={resultData?.warehouse_name}
                         nameTitle={"warehouse_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
+                        uploadStatus={uploadStatus}
+                        
                     />
                 </div>
             </div>

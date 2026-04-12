@@ -127,6 +127,14 @@ const selfEmploedSlice = createSlice({
                 state.selfData.wProof_document_issue_date = ''
                 state.selfData.warehouse_name = ''
             } else {
+
+                const passportDoc = documents?.find((item) => item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'passport')
+                const driveLisFront = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'driving_license')
+                const driveLisBack = documents?.find((item) => item?.side === 'back' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'driving_license')
+                const idFront = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'id_card')
+                const idBack = documents?.find((item) => item?.side === 'back' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'id_card')
+
+
                 const backDocument = documents?.find((item) => item?.side === 'back' && item?.doc_type === 'identity_document')
                 const frontDocument = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document')
                 const selfAddressDoc = documents?.find((item) => item?.scope === 'self_employed_address' && item?.doc_type === 'proof_of_address')
@@ -134,6 +142,45 @@ const selfEmploedSlice = createSlice({
 
                 console.log(backDocument, frontDocument, selfAddressDoc, warehouseDoc);
 
+                if (passportDoc) {
+                    state.selfData.uploadPassport = passportDoc.uploaded_at
+                    state.selfData.passport = state.selfData?.passport ?? 'Passport is upload at'
+                } else {
+                    state.selfData.uploadPassport = ''
+                    state.selfData.passport = ''
+                }
+
+                if (driveLisFront) {
+                    state.selfData.uploadDrivFront = driveLisFront.uploaded_at
+                    state.selfData.drivFront = state.selfData?.drivFront ?? "Driver's license front uploaded."
+                } else {
+                    state.selfData.uploadDrivFront = ''
+                    state.selfData.drivFront = ''
+                }
+
+                if (driveLisBack) {
+                    state.selfData.uploadDrivBack = driveLisBack.uploaded_at
+                    state.selfData.drivBack = state.selfData?.drivBack ?? "Driver's license back uploaded."
+                } else {
+                    state.selfData.uploadDrivBack = ''
+                    state.selfData.drivBack = ''
+                }
+
+                if (idFront) {
+                    state.selfData.uploadIdFront = idFront.uploaded_at
+                    state.selfData.idFront = state.selfData?.idFront ?? "Id card front uploaded."
+                } else {
+                    state.selfData.uploadIdFront = ''
+                    state.selfData.idFront = ''
+                }
+
+                if (idBack) {
+                    state.selfData.uploadIdBack = idBack.uploaded_at
+                    state.selfData.idBack = state.selfData?.idBack ?? "Id card back uploaded."
+                } else {
+                    state.selfData.uploadIdBack = ''
+                    state.selfData.idBack = ''
+                }
 
 
                 if (backDocument) {
@@ -206,6 +253,7 @@ const selfEmploedSlice = createSlice({
             state.companyDataLoading = false
             const [companyInfo, representative, companyAddress, bank, warehouse, returnAddress, documents] = action.payload
 
+            console.log(documents);
 
 
             if (documents && documents.length === 0) {
@@ -218,11 +266,60 @@ const selfEmploedSlice = createSlice({
                 state.selfData.wProof_document_issue_date = ''
                 state.selfData.warehouse_name = ''
             } else {
+
+                const passportDoc = documents?.find((item) => item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'passport')
+                const driveLisFront = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'driving_license')
+                const driveLisBack = documents?.find((item) => item?.side === 'back' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'driving_license')
+                const idFront = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'id_card')
+                const idBack = documents?.find((item) => item?.side === 'back' && item?.doc_type === 'identity_document' && item?.identity_document_subtype === 'id_card')
+
+
                 const backDocument = documents?.find((item) => item?.side === 'back' && item?.doc_type === 'identity_document')
                 const frontDocument = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document')
+
                 const companyAddressDoc = documents?.find((item) => item?.scope === 'company_address' && item?.doc_type === 'proof_of_address')
                 const warehouseDoc = documents?.find((item) => item?.scope === 'warehouse_address' && item?.doc_type === 'proof_of_address')
                 const certifikate = documents?.find((item) => item?.scope === 'company_info' && item?.doc_type === 'registration_certificate')
+
+                if (passportDoc) {
+                    state.companyData.uploadPassport = passportDoc.uploaded_at
+                    state.companyData.passport = state.companyData?.passport ?? 'Passport is upload at'
+                } else {
+                    state.companyData.uploadPassport = ''
+                    state.companyData.passport = ''
+                }
+
+                if (driveLisFront) {
+                    state.companyData.uploadDrivFront = driveLisFront.uploaded_at
+                    state.companyData.drivFront = state.companyData?.drivFront ?? "Driver's license front uploaded."
+                } else {
+                    state.companyData.uploadDrivFront = ''
+                    state.companyData.drivFront = ''
+                }
+
+                if (driveLisBack) {
+                    state.companyData.uploadDrivBack = driveLisBack.uploaded_at
+                    state.companyData.drivBack = state.companyData?.drivBack ?? "Driver's license back uploaded."
+                } else {
+                    state.companyData.uploadDrivBack = ''
+                    state.companyData.drivBack = ''
+                }
+
+                if (idFront) {
+                    state.companyData.uploadIdFront = idFront.uploaded_at
+                    state.companyData.idFront = state.companyData?.idFront ?? "Id card front uploaded."
+                } else {
+                    state.companyData.uploadIdFront = ''
+                    state.companyData.idFront = ''
+                }
+
+                if (idBack) {
+                    state.companyData.uploadIdBack = idBack.uploaded_at
+                    state.companyData.idBack = state.companyData?.idBack ?? "Id card back uploaded."
+                } else {
+                    state.companyData.uploadIdBack = ''
+                    state.companyData.idBack = ''
+                }
 
                 if (backDocument) {
                     state.companyData.uploadBack = backDocument.uploaded_at
@@ -231,6 +328,7 @@ const selfEmploedSlice = createSlice({
                     state.companyData.uploadBack = ''
                     state.companyData.back = ''
                 }
+
 
                 if (frontDocument) {
                     state.companyData.uploadFront = frontDocument.uploaded_at

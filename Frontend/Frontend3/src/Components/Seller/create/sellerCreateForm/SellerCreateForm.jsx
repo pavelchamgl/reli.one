@@ -15,6 +15,7 @@ import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/crea
 import CreateLisence from "../createLisence/CreateLisence"
 
 import styles from "./SellerCreateForm.module.scss";
+import CheckBox from "../../../../ui/CheckBox/CheckBox";
 
 const
   SellerCreateForm = () => {
@@ -31,9 +32,9 @@ const
     const [type, setType] = useState(null)
 
 
-    const { name, lengthMain, product_description, widthMain, heightMain, weightMain, category, variantsName, variantsMain, images, product_parameters } = useSelector(state => state.create_prev)
+    const { name, lengthMain, product_description, widthMain, heightMain, weightMain, category, variantsName, variantsMain, images, product_parameters, item, barcode, additional_details, vat_rate, is_age } = useSelector(state => state.create_prev)
 
-    const { setName, setDescription, setCategory, setParametersPrev, setLength, setWidth, setHeigth, setWeight } = useActionCreatePrev()
+    const { setName, setDescription, setCategory, setParametersPrev, setLength, setWidth, setHeigth, setWeight, setValues } = useActionCreatePrev()
 
     const { categoriesStage } = useSelector(state => state.create)
 
@@ -48,10 +49,17 @@ const
         length: lengthMain ? lengthMain : "",
         width: widthMain ? widthMain : "",
         height: heightMain ? heightMain : "",
-        weight: weightMain ? weightMain : ""
+        weight: weightMain ? weightMain : "",
+        item: item,
+        barcode: barcode,
+        additional_details: additional_details,
+        vat_rate: vat_rate,
+        is_age: is_age
       },
       validationSchema: validateGoods,
       onSubmit: (values) => {
+
+        setValues({ ...values })
 
 
 
@@ -148,8 +156,59 @@ const
 
         <CreateCharacInp err={parametersErr} setErr={setParametersErr} setParameters={setParameters} />
 
-        <CreateFormInp text={t('item.barcode')} titleSize={"small"} />
-        <CreateFormInp text={t('item.name')} titleSize={"small"} />
+        <CreateFormInp
+          name='barcode'
+          value={formik.values.barcode}
+          text={t('item.barcode')}
+          titleSize={"small"}
+          {...formik}
+          handleChange={(e) => {
+            setDescription(e.target.value)
+            formik.handleChange(e)
+          }}
+
+        />
+        <CreateFormInp
+          name='item'
+          value={formik.values.item}
+          text={t('item.name')}
+          titleSize={"small"}
+          {...formik}
+          handleChange={formik.handleChange}
+          required={true}
+          error={formik.errors.item}
+        />
+
+        <CreateFormInp
+          name="additional_details"
+          value={formik.values.additional_details}
+          {...formik}
+          handleChange={(e) => {
+            formik.handleChange(e)
+          }}
+          text={"Additional details"}
+          // text={t('goods.description')}
+          titleSize={"small"}
+          textarea={true}
+        />
+
+        <CreateFormInp
+          name='vat_rate'
+          value={formik.values.vat_rate}
+          // text={t('item.name')}
+          text={'Vat rate'}
+          titleSize={"small"}
+          {...formik}
+          handleChange={formik.handleChange}
+          required={true}
+          error={formik.errors.vat_rate}
+        />
+
+        <label className={styles.isAgeLabel}>
+          <CheckBox check={is_age} onChange={(v) => setValues({ is_age: v })} style={{ borderRadius: "4px" }} />
+          Is age restricted (18+)
+        </label>
+
         {/* <div className={styles.priceDiv}>
         <CreateFormInp
           text={"Your price"}

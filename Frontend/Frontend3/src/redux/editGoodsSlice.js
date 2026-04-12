@@ -139,7 +139,7 @@ export const fetchEditProduct = createAsyncThunk(
                     category: categoryId
                 })
             ];
-            
+
             if (license_file && license_file?.status === "local") {
                 requests.push(
                     postSellerLisence(id, license_file)
@@ -174,8 +174,9 @@ const editGoodsSlice = createSlice({
         rating: "1.0",
         total_reviews: 0,
         license_file: null,
-        name: "",
         product_description: "",
+
+
         length: "",
         lengthId: "",
 
@@ -194,7 +195,14 @@ const editGoodsSlice = createSlice({
         categoryId: null,
         // filesMain: null,
         status: null,
-        err: null
+        err: null,
+
+        // ! Nurzhan вот тут новое
+        item: "",
+        barcode: "",
+        additional_details: "",
+        vat_rate: "",
+        is_age: false
 
     },
     reducers: {
@@ -299,6 +307,12 @@ const editGoodsSlice = createSlice({
             return {
                 ...state,
                 license_file: null
+            }
+        },
+        setValues:(state, action)=>{
+            return {
+                ...state, 
+                ...action.payload
             }
         }
 
@@ -405,5 +419,5 @@ const editGoodsSlice = createSlice({
 })
 
 
-export const { deleteParameter, setNewParameters, setImages, deleteImage, setParameter, setCategory, setNewVariants, deleteVariant, setLicense, deleteLicense, } = editGoodsSlice.actions
+export const { deleteParameter, setNewParameters, setImages, deleteImage, setParameter, setCategory, setNewVariants, deleteVariant, setLicense, deleteLicense, setValues } = editGoodsSlice.actions
 export const { reducer } = editGoodsSlice

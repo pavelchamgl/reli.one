@@ -141,7 +141,7 @@ const SellerEditImages = ({ err, setErr }) => {
                                 {Array.from({ length: arr }, (_, index) => (
                                     <SwiperSlide key={index} className={styles.swiperSlide}>
 
-                                        <div className={err ? styles.maskErr : styles.maskk}>
+                                        <div className={err ? styles.maskErr : styles.mask}>
                                             <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="mask" />
                                         </div>
 

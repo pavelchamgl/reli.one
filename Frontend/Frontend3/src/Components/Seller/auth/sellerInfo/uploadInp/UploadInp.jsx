@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
+import { useLocation } from "react-router-dom";
+
 import uploadIc from "../../../../../assets/Seller/register/uploadIc.svg"
+import uploadIcErr from "../../../../../assets/Seller/register/uploadIcErr.svg"
+import uploadInpErrIc from "../../../../../assets/Seller/register/uploadInpErrIc.svg"
+import greenMarkIc from "../../../../../assets/Seller/register/markGreenSmall.svg"
+import grayX from "../../../../../assets/Seller/preview/xGreyIc.svg"
 
 import styles from './UploadInp.module.scss';
-import { useLocation } from "react-router-dom";
 
 const UploadInp = ({
     title,
@@ -15,7 +20,9 @@ const UploadInp = ({
     inpText,
     stateName,
     nameTitle,
-    onMouseDown
+    onMouseDown,
+    uploadStatus,
+    identTwo
 }) => {
 
     const { pathname } = useLocation()
@@ -64,6 +71,12 @@ const UploadInp = ({
         });
     };
 
+    const statusClasses = {
+        full: styles.fileInpContentSucc,
+        rej: styles.fileInpContentErr,
+    };
+
+
     return (
         <div>
             {
@@ -77,12 +90,43 @@ const UploadInp = ({
                 className={styles.fileLabel}>
                 <input type="file" hidden onChange={handleFileChange} />
 
-                <div className={styles.fileInpContent}>
-                    <img src={uploadIc} alt="" />
-                    <p>{inpText}</p>
-                    <span>{name ? name : "(PDF, JPG, PNG - Max 10MB)"}</span>
+                <div className={`
+    ${styles.fileInpContent} 
+    ${(Boolean(stateName) && uploadStatus !== 'rej') ? styles.fileInpContentSucc : ""} 
+    ${statusClasses[uploadStatus] || ''}
+                `}>
+                    {
+                        // Если статус "успех" ИЛИ (есть имя И нет ошибки)
+                        (uploadStatus === 'full' || (Boolean(stateName) && uploadStatus !== 'rej')) ? (
+                            <>
+                                <div>
+                                    <img src={greenMarkIc} alt="" />
+                                    <p className={styles.truncatedText}>{name}</p> {/* Добавил класс для троеточия */}
+                                </div>
+                                <img src={grayX} alt="" />
+                            </>
+                        ) : (
+                            <>
+                                <img src={uploadStatus === 'rej' ? uploadIcErr : uploadIc} alt="" />
+                                <p>{inpText}</p>
+                                <span>{name ? name : "(PDF, JPG, PNG - Max 10MB)"}</span>
+                            </>
+                        )
+                    }
+
+
+
                 </div>
             </label>
+
+            {
+                uploadStatus === 'rej' && identTwo !== 'ident' &&
+
+                <div className={styles.uploadErrorTextBlock}>
+                    <img src={uploadInpErrIc} alt="" />
+                    Failed to upload document
+                </div>
+            }
         </div>
     );
 };

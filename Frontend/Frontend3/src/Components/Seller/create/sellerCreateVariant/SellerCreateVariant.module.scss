@@ -1,13 +1,28 @@
 .main {
-  width: clamp(139px, 2.5vw, 200px);
+  max-width: 272px;
+  min-width: 143px;
+  width: 100%;
+
   display: flex;
   flex-direction: column;
+  gap: 10px;
+
+  border: 1.6px solid #ced4d7;
+  padding: 18px;
+  background-color: white;
 }
 
 .mainErr {
-  width: clamp(139px, 2.5vw, 200px);
+  max-width: 272px;
+  min-width: 143px;
+  width: 100%;
+
   display: flex;
   flex-direction: column;
+
+  border: 1.6px solid #ced4d7;
+  padding: 18px;
+  background-color: white;
   border: 1px solid #dc2626;
 }
 
@@ -34,6 +49,16 @@
   background: #f0f0f0;
 }
 
+.inpLabel {
+  & p {
+    margin-bottom: 10px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 150%;
+    color: #7d7d7d;
+  }
+}
+
 .addPhotoDiv {
   background: #64748b;
   font-weight: 400;
@@ -43,6 +68,7 @@
   justify-content: center;
   align-items: center;
   width: 100%;
+  cursor: pointer;
 
   & p {
     margin: 6px 0;
@@ -73,20 +99,21 @@
 }
 .variantImageWrap {
   position: relative;
-  width: 139px;
-  height: 88px;
+  width: 100%;
+  height: 150px;
 
   & img {
-    width: 139px;
-    height: 88px;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     border: 1px solid #ced4d7;
   }
 
   & button {
     position: absolute;
-    top: 9px;
-    right: 9px;
+    top: 15px;
+    right: 15px;
+    z-index: 5;
     background-color: transparent;
     opacity: 0;
     transition: opacity 0.5s ease;
@@ -142,4 +169,25 @@
 
 .priceDiv:focus-within {
   background: #f0f0f0;
+}
+
+.deleteVariantBtn {
+  background: #d55b5b;
+
+  font-weight: 400;
+  font-size: clamp(14px, 2.5vw, 18px);
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: 100%;
+  height: 34px;
+  cursor: pointer;
+
+  & img{
+    width: 15px;
+  }
 }
