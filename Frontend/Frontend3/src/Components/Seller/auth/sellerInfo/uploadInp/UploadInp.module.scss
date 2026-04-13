@@ -21,35 +21,94 @@
   margin-block: 8px;
 }
 
-.fileInpContent {
-  border: 1.28px solid #d1d5dc;
+@mixin file-input-base(
+  $border-color: #d1d5dc,
+  $text-p-color: #4a5565,
+  $text-span-color: #99a1af,
+  $back-color: #f9fafb
+) {
+  border: 1.28px solid $border-color;
   border-radius: 16px;
   height: 48px;
-  background: #f9fafb;
+  background: $back-color;
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
   padding: 0 12px;
   margin-top: 8px;
+  cursor: pointer; // добавил для лучшего UX
 
-  & p {
+  p {
     font-weight: 500;
     font-size: 13px;
-    color: #4a5565;
+    color: $text-p-color;
+    margin: 0; // убираем лишние отступы
   }
 
-  & span {
+  span {
     font-weight: 500;
     font-size: 12px;
-    color: #99a1af;
+    color: $text-span-color;
 
     @media (max-width: 600px) {
-      display: inline-block; /* или block, flex — важно, чтобы был контейнер */
-      width: 75px; /* фиксированная ширина */
-      white-space: nowrap; /* запрет переноса текста */
-      overflow: hidden; /* скрываем всё, что не помещается */
+      display: inline-block;
+      width: 75px;
+      white-space: nowrap;
+      overflow: hidden;
       text-overflow: ellipsis;
+    }
+  }
+}
+
+.fileInpContent {
+  @include file-input-base();
+}
+.fileInpContentErr {
+  @include file-input-base(#d55b5b, #d55b5b, #da9090, #fff6f6);
+}
+
+.fileInpContentSucc {
+  border: 1.28px solid #3f7f6d;
+  border-radius: 16px;
+  height: 48px;
+  background: #f6fff9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  margin-top: 8px;
+  cursor: pointer; // добавил для лучшего UX
+
+  & div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    & img {
+      width: 20px;
+    }
+
+    & p {
+      font-weight: 400;
+      font-size: 14px;
+      line-height: 143%;
+      color: #364153;
+
+      @media (max-width: 500px) {
+        max-width: 200px;
+        white-space: nowrap; /* Запрещаем перенос строки */
+        overflow: hidden; /* Скрываем текст, который не влез */
+        text-overflow: ellipsis; /* Добавляем то самое троеточие */
+      }
+
+      @media (max-width: 380px) {
+        max-width: 140px;
+        white-space: nowrap; /* Запрещаем перенос строки */
+        overflow: hidden; /* Скрываем текст, который не влез */
+        text-overflow: ellipsis; /* Добавляем то самое троеточие */
+      }
     }
   }
 }
@@ -72,4 +131,15 @@
   & input {
     display: none;
   }
+}
+
+.uploadErrorTextBlock {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 20px;
+
+  font-weight: 400;
+  font-size: 14px;
+  color: #d55b5b;
 }

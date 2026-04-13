@@ -23,6 +23,8 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
 
     const [country, setCountry] = useState(companyData?.country_of_registration ?? null)
 
+    const [uploadStatus, setUploadStatus] = useState("")
+
     const isCompanyFilled = (values) => {
         return Boolean(
             values.company_name &&
@@ -100,8 +102,10 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
                 formik.setFieldValue("certificate_issue_date", res.uploaded_at)
+                setUploadStatus('full')
             })
             .catch(err => {
+                setUploadStatus('rej')
                 ErrToast(err.message)
                 console.log("Ошибка загрузки", err);
             });
@@ -218,6 +222,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         stateName={companyData?.company_file_date}
                         nameTitle={"company_file_date"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
+                        uploadStatus={uploadStatus}
                     />
                 </div>
 

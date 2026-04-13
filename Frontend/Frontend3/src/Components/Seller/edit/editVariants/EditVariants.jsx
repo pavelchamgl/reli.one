@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
+import closeWhIc from "../../../../assets/Product/closeWhIcon.svg"
 
 import styles from "./EditVariants.module.scss"
 
@@ -75,19 +76,95 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
 
     return (
         <div className={err ? styles.mainErr : styles.main}>
-            <input
-                className={styles.nameInp}
-                type="text"
-                value={newVariant.text || ""}
-                onChange={(e) => {
-                    setNewVariant({ ...newVariant, text: e.target.value }
-                    )
-                    setErr(false)
-                }}
-                placeholder={t('item.color_name')}
-                disabled={type === "image"}
-            />
-            <div className={styles.priceDiv}>
+            <label className={styles.inpLabel}>
+                <p>Name color</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.text}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, text: e.target.value }
+                        )
+                        setType("text")
+                        setErr(false)
+                    }}
+                    placeholder={t('item.color_name')}
+                    disabled={type === "image"}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Price</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.price}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, price: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                    placeholder={t('item.price')}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Weight grams</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.weight}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, weight: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Width mm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.width}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, width: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Height mm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.height}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, height: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Length mm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.length}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, length: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            {/* <div className={styles.priceDiv}>
                 <input
                     type="text"
                     value={newVariant.price || ""}
@@ -100,7 +177,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                 <button onClick={() => handleDeleteVariant(variant.id, variant)}>
                     <img src={deleteIcon} alt="" />
                 </button>
-            </div>
+            </div> */}
             {
                 url ?
                     (
@@ -116,6 +193,11 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                         <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept="image/*,video/*" />
                     </label>
             }
+
+            <button className={styles.deleteVariantBtn} onClick={() => handleDeleteVariant(variant.id, variant)}>
+                <img src={closeWhIc} alt="" />
+                Delete
+            </button>
         </div>
     )
 }

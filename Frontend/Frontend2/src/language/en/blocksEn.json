@@ -93,7 +93,8 @@
                 "text": "Your products go live and you receive payouts"
             }
         },
-        "final_text": "Ready to get started?",
+        "final_text1": "Prefer assistance?",
+        "final_text2": "Contact our manager and we’ll help you get started",
         "button_contact": "Contact Our Manager"
     },
     "testimonials_section": {

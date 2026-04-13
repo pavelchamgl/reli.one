@@ -1,5 +1,5 @@
 
-import {  useRef } from "react"
+import { useRef, useState } from "react"
 import { useSelector } from "react-redux"
 import { useLocation } from "react-router-dom"
 import { useTranslation } from "react-i18next"
@@ -20,14 +20,17 @@ const AddressBlock = ({ formik, onClosePreview }) => {
 
     const { safeData } = useActionSafeEmploed()
 
+    const [uploadStatus, setUploadStatus] = useState("")
 
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
                 formik.setFieldValue("proof_document_issue_date", res.uploaded_at)
                 // safeData({ proof_document_issue_date: res.uploaded_at })
+                setUploadStatus('full')
             })
             .catch(err => {
+                setUploadStatus('rej')
                 ErrToast(err.message)
                 console.log("Ошибка загрузки", err);
             });
@@ -155,6 +158,7 @@ const AddressBlock = ({ formik, onClosePreview }) => {
                         stateName={selfData?.self_address_name}
                         nameTitle={"self_address_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
+                        uploadStatus={uploadStatus}
                     />
                     {formik.errors.proof_document_issue_date &&
                         <p className={styles.errorText}>{t('onboard.tax_address.upload_required')}</p>

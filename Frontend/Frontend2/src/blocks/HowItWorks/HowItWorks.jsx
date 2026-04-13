@@ -16,7 +16,12 @@ const HowItWorks = () => {
                     <h3 className={styles.title}>{t("how_it_works.title_small")}</h3>
                     <p className={styles.desc}>{t("how_it_works.main_title")}</p>
                     <Steps />
-                    <p className={styles.readyToStart}>{t("how_it_works.final_text")}</p>
+                    <div>
+                        <p className={styles.readyToStartTitle}>{t("how_it_works.final_text1")}</p>
+                        <p className={styles.readyToStart}>
+                            {t("how_it_works.final_text2")}
+                        </p>
+                    </div>
                     <div className={styles.btnWrap}>
                         <a href="#get-in-touch">{t("how_it_works.button_contact")}</a>
                     </div>

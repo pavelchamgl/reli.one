@@ -93,7 +93,13 @@ const createProdPrevSlice = createSlice({
         product_parameters: null,
         status: null,
         err: null,
-        previewProduct: null
+        previewProduct: null,
+        // ! Nurzhan вот тут новое
+        item: "",
+        barcode: "",
+        additional_details: "",
+        vat_rate: "",
+        is_age: false
     },
     reducers: {
         setName: (state, action) => {
@@ -188,6 +194,12 @@ const createProdPrevSlice = createSlice({
         },
         setPreviewProduct: (state, action) => {
             state.previewProduct = action.payload
+        },
+        setValues: (state, action) =>{
+            return {
+                ...state,
+                ...action.payload
+            }
         }
     },
     extraReducers: build => {
@@ -208,5 +220,5 @@ const createProdPrevSlice = createSlice({
     }
 })
 
-export const { addLicense, deleteLicense, setName, setDescription, setCategory, setParametersPrev, setImages, setVariantsPrev, setLength, setWidth, setHeigth, setWeight, setFilesMain, deleteImage, setVariantsName, setPreviewProduct } = createProdPrevSlice.actions
+export const { addLicense, deleteLicense, setName, setDescription, setCategory, setParametersPrev, setImages, setVariantsPrev, setLength, setWidth, setHeigth, setWeight, setFilesMain, deleteImage, setVariantsName, setPreviewProduct, setValues } = createProdPrevSlice.actions
 export const { reducer } = createProdPrevSlice

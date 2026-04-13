@@ -55,7 +55,11 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
                 id: prev.length ? prev[prev.length - 1].id + 1 : 1,
                 text: "",
                 price: "",
-                image: null
+                image: null,
+                weight:"",
+                width:"",
+                length:"",
+                height:""
             }
         ])
     }

@@ -15,6 +15,12 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
     // types = pass/driv/nati
     const [type, setType] = useState('pass')
 
+    const [uploadPass, setUploadPass] = useState('')
+    const [uploadDrivFront, setUploadDrivFront] = useState('')
+    const [uploadDrivBack, setUploadDrivBack] = useState('')
+    const [uploadIdFront, setUploadIdFront] = useState('')
+    const [uploadIdBack, setUploadIdBack] = useState('')
+
     const { t } = useTranslation('onbording')
 
     const documSubType = {
@@ -34,6 +40,38 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
         })
             .then(res => {
 
+                if (type === 'pass') {
+                    formik.setFieldValue("uploadPassport", res.uploaded_at)
+                    setUploadPass('full')
+                }
+
+
+                if (type === 'driv') {
+                    if (res.side === "front") {
+                        formik.setFieldValue("uploadDrivFront", res.uploaded_at)
+                        setUploadDrivFront('full')
+                    }
+
+                    if (res.side === "back") {
+                        formik.setFieldValue("uploadDrivBack", res.uploaded_at)
+                        setUploadDrivBack('full')
+                    }
+                }
+
+
+                if (type === 'nati') {
+                    if (res.side === "front") {
+                        formik.setFieldValue("uploadIdFront", res.uploaded_at)
+                        setUploadIdFront('full')
+                    }
+
+                    if (res.side === "back") {
+                        formik.setFieldValue("uploadIdBack", res.uploaded_at)
+                        setUploadIdBack('full')
+                    }
+                }
+
+
                 if (res.side === "front") {
                     formik.setFieldValue("uploadFront", res.uploaded_at)
                 }
@@ -44,6 +82,27 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
 
             })
             .catch(err => {
+                if (type === 'pass') {
+                    setUploadPass('rej')
+                }
+                if (type === 'driv') {
+                    if (side === "front") {
+                        setUploadDrivFront('rej')
+                    }
+
+                    if (side === "back") {
+                        setUploadDrivBack('rej')
+                    }
+                }
+                if (type === 'nati') {
+                    if (side === "front") {
+                        setUploadIdFront('rej')
+                    }
+
+                    if (side === "back") {
+                        setUploadIdBack('rej')
+                    }
+                }
                 ErrToast(err.message)
             });
     };
@@ -89,7 +148,24 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
 
             <div className={styles.documInpWrap}>
                 {
-                    type === 'pass' ?
+                    type === 'pass' &&
+                    <UploadInp
+                        // title={t('onboard.seller_info.identity_doc')}
+                        // description={t('onboard.seller_info.passport_id')}
+                        scope={scopeProp}
+                        docType={"identity_document"}
+                        side={"front"}
+                        onChange={handleSingleFrontUpload}
+                        inpText={'Uploud document'}
+                        stateName={selfData?.passport}
+                        nameTitle={"front"}
+                        onMouseDown={() => (ref.current = true)}
+                        uploadStatus={uploadPass}
+                    />
+                }
+                {
+                    type === 'driv' &&
+                    <>
                         <UploadInp
                             // title={t('onboard.seller_info.identity_doc')}
                             // description={t('onboard.seller_info.passport_id')}
@@ -97,45 +173,73 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
                             docType={"identity_document"}
                             side={"front"}
                             onChange={handleSingleFrontUpload}
-                            inpText={'Uploud document'}
-                            stateName={selfData?.front}
+                            inpText={t('onboard.seller_info.upload_front')}
+                            stateName={selfData?.drivFront}
                             nameTitle={"front"}
                             onMouseDown={() => (ref.current = true)}
+                            uploadStatus={uploadDrivFront}
+                            identTwo={'ident'}
                         />
-                        :
-                        <>
-                            <UploadInp
-                                // title={t('onboard.seller_info.identity_doc')}
-                                // description={t('onboard.seller_info.passport_id')}
-                                scope={scopeProp}
-                                docType={"identity_document"}
-                                side={"front"}
-                                onChange={handleSingleFrontUpload}
-                                inpText={t('onboard.seller_info.upload_front')}
-                                stateName={selfData?.front}
-                                nameTitle={"front"}
-                                onMouseDown={() => (ref.current = true)}
-                            />
 
-                            <UploadInp
-                                scope={scopeProp}
-                                docType={"identity_document"}
-                                side={"back"}
-                                onChange={handleSingleFrontUpload}
-                                inpText={t('onboard.seller_info.upload_back')}
-                                stateName={selfData?.back}
-                                nameTitle={"back"}
-                                onMouseDown={() => (ref.current = true)}
-                            />
-                            {(formik.touched.uploadFront || formik.touched.uploadBack) &&
-                                (formik.errors.uploadFront || formik.errors.uploadBack) && (
-                                    <p className={styles.errorText}>
-                                        {formik.errors.uploadFront || formik.errors.uploadBack}
-                                    </p>
-                                )}
-                        </>
-
+                        <UploadInp
+                            scope={scopeProp}
+                            docType={"identity_document"}
+                            side={"back"}
+                            onChange={handleSingleFrontUpload}
+                            inpText={t('onboard.seller_info.upload_back')}
+                            stateName={selfData?.drivBack}
+                            nameTitle={"back"}
+                            onMouseDown={() => (ref.current = true)}
+                            uploadStatus={uploadDrivBack}
+                        />
+                        {(formik.touched.uploadFront || formik.touched.uploadBack) &&
+                            (formik.errors.uploadFront || formik.errors.uploadBack) && (
+                                <p className={styles.errorText}>
+                                    {formik.errors.uploadFront || formik.errors.uploadBack}
+                                </p>
+                            )}
+                    </>
                 }
+                {
+                    type === 'nati' &&
+                    <>
+                        <UploadInp
+                            // title={t('onboard.seller_info.identity_doc')}
+                            // description={t('onboard.seller_info.passport_id')}
+                            scope={scopeProp}
+                            docType={"identity_document"}
+                            side={"front"}
+                            onChange={handleSingleFrontUpload}
+                            inpText={t('onboard.seller_info.upload_front')}
+                            stateName={selfData?.idFront}
+                            nameTitle={"front"}
+                            onMouseDown={() => (ref.current = true)}
+                            uploadStatus={uploadIdFront}
+                            identTwo={'ident'}
+                        />
+
+                        <UploadInp
+                            scope={scopeProp}
+                            docType={"identity_document"}
+                            side={"back"}
+                            onChange={handleSingleFrontUpload}
+                            inpText={t('onboard.seller_info.upload_back')}
+                            stateName={selfData?.idBack}
+                            nameTitle={"back"}
+                            onMouseDown={() => (ref.current = true)}
+                            uploadStatus={uploadIdBack}
+                        />
+                        {(formik.touched.uploadFront || formik.touched.uploadBack) &&
+                            (formik.errors.uploadFront || formik.errors.uploadBack) && (
+                                <p className={styles.errorText}>
+                                    {formik.errors.uploadFront || formik.errors.uploadBack}
+                                </p>
+                            )}
+                    </>
+                }
+
+
+
 
             </div>
         </div>
