@@ -1,24 +1,94 @@
 import os
-
-from io import BytesIO
-from PIL import Image
 from decimal import Decimal, ROUND_HALF_UP
+from io import BytesIO
+
+from PIL import Image
 from django.conf import settings
-from reportlab.lib import colors
-from reportlab.pdfgen import canvas
-from reportlab.pdfbase import pdfmetrics
-from reportlab.platypus import Table, TableStyle
-from reportlab.lib.units import mm
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase.ttfonts import TTFont
 from django.core.files.base import ContentFile
+from reportlab.lib import colors
+from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.platypus import (
+    Flowable,
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+)
 
 from .invoice_data import prepare_invoice_data
-
 
 font_dir = os.path.join(settings.BASE_DIR, "order", "fonts")
 pdfmetrics.registerFont(TTFont("Roboto", os.path.join(font_dir, "Roboto-Regular.ttf")))
 pdfmetrics.registerFont(TTFont("Roboto-Bold", os.path.join(font_dir, "Roboto-Bold.ttf")))
+
+
+class NumberedCanvas(Canvas):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._saved_page_states = []
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        total_pages = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self.draw_page_number(total_pages)
+            super().showPage()
+        super().save()
+
+    def draw_page_number(self, total_pages):
+        page_width, _ = A4
+        self.setFont("Roboto", 8)
+        self.setFillColor(colors.black)
+        self.drawRightString(
+            page_width - 20 * mm,
+            10 * mm,
+            f"Page {self._pageNumber} of {total_pages}"
+        )
+
+
+class BottomAlignedBlock(Flowable):
+    """
+    Занимает оставшуюся высоту страницы и рисует вложенные flowables
+    у нижнего края, но с безопасным нижним отступом.
+    """
+
+    def __init__(self, flowables, top_padding_mm=0, bottom_padding_mm=6):
+        super().__init__()
+        self.flowables = flowables
+        self.top_padding = top_padding_mm * mm
+        self.bottom_padding = bottom_padding_mm * mm
+        self._child_sizes = []
+        self._content_height = 0
+
+    def wrap(self, availWidth, availHeight):
+        self._child_sizes = []
+        total_h = 0
+
+        for flowable in self.flowables:
+            w, h = flowable.wrap(availWidth, availHeight)
+            self._child_sizes.append((flowable, w, h))
+            total_h += h
+
+        total_h += self.top_padding + self.bottom_padding
+        self._content_height = total_h
+        return availWidth, availHeight
+
+    def draw(self):
+        y = self._content_height - self.top_padding - self.bottom_padding
+        for flowable, w, h in self._child_sizes:
+            y -= h
+            flowable.drawOn(self.canv, 0, y)
 
 
 def format_currency(value, symbol='€'):
@@ -27,7 +97,178 @@ def format_currency(value, symbol='€'):
     return f"{symbol} {val_str}"
 
 
-def draw_logo_and_header(c, width, height):
+def build_styles():
+    styles = getSampleStyleSheet()
+
+    return {
+        "normal": ParagraphStyle(
+            "InvoiceNormal",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=9,
+            leading=11,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "small": ParagraphStyle(
+            "InvoiceSmall",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=8,
+            leading=10,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "small_bold": ParagraphStyle(
+            "InvoiceSmallBold",
+            parent=styles["Normal"],
+            fontName="Roboto-Bold",
+            fontSize=8,
+            leading=10,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "bold": ParagraphStyle(
+            "InvoiceBold",
+            parent=styles["Normal"],
+            fontName="Roboto-Bold",
+            fontSize=9,
+            leading=11,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "title": ParagraphStyle(
+            "InvoiceTitle",
+            parent=styles["Normal"],
+            fontName="Roboto-Bold",
+            fontSize=18,
+            leading=22,
+            alignment=TA_CENTER,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "cell_left": ParagraphStyle(
+            "InvoiceCellLeft",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=8.5,
+            leading=10,
+            alignment=TA_LEFT,
+            textColor=colors.black,
+            wordWrap="LTR",
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "cell_center": ParagraphStyle(
+            "InvoiceCellCenter",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=8.5,
+            leading=10,
+            alignment=TA_CENTER,
+            textColor=colors.black,
+            wordWrap="LTR",
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "cell_right": ParagraphStyle(
+            "InvoiceCellRight",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=8.5,
+            leading=10,
+            alignment=TA_RIGHT,
+            textColor=colors.black,
+            wordWrap="LTR",
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "header_cell": ParagraphStyle(
+            "InvoiceHeaderCell",
+            parent=styles["Normal"],
+            fontName="Roboto-Bold",
+            fontSize=9,
+            leading=11,
+            alignment=TA_CENTER,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "customer_name": ParagraphStyle(
+            "InvoiceCustomerName",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=10,
+            leading=12,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "meta_block": ParagraphStyle(
+            "InvoiceMetaBlock",
+            parent=styles["Normal"],
+            fontName="Roboto-Bold",
+            fontSize=10,
+            leading=12,
+            textColor=colors.black,
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "totals_label": ParagraphStyle(
+            "InvoiceTotalsLabel",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=8.5,
+            leading=10,
+            alignment=TA_LEFT,
+            wordWrap="LTR",
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "totals_label_bold": ParagraphStyle(
+            "InvoiceTotalsLabelBold",
+            parent=styles["Normal"],
+            fontName="Roboto-Bold",
+            fontSize=9,
+            leading=11,
+            alignment=TA_LEFT,
+            wordWrap="LTR",
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "totals_value": ParagraphStyle(
+            "InvoiceTotalsValue",
+            parent=styles["Normal"],
+            fontName="Roboto",
+            fontSize=9,
+            leading=11,
+            alignment=TA_RIGHT,
+            wordWrap="LTR",
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+        "totals_value_bold": ParagraphStyle(
+            "InvoiceTotalsValueBold",
+            parent=styles["Normal"],
+            fontName="Roboto-Bold",
+            fontSize=10,
+            leading=12,
+            alignment=TA_RIGHT,
+            wordWrap="LTR",
+            spaceAfter=0,
+            spaceBefore=0,
+        ),
+    }
+
+
+def draw_first_page(canvas, doc):
+    page_width, page_height = A4
+
     top_margin = 15 * mm
     right_margin = 25 * mm
     logo_height = 18 * mm
@@ -37,182 +278,293 @@ def draw_logo_and_header(c, width, height):
         im = Image.open(logo_path)
         aspect = im.width / im.height
         logo_width = logo_height * aspect
-        logo_x = width - right_margin - logo_width
-        logo_y = height - top_margin - logo_height
-        c.drawImage(logo_path, logo_x, logo_y, width=logo_width, height=logo_height, mask='auto')
+        logo_x = page_width - right_margin - logo_width
+        logo_y = page_height - top_margin - logo_height
+        canvas.drawImage(
+            logo_path,
+            logo_x,
+            logo_y,
+            width=logo_width,
+            height=logo_height,
+            mask='auto'
+        )
         logo_bottom = logo_y
     else:
-        logo_bottom = height - top_margin - logo_height
+        logo_bottom = page_height - top_margin - logo_height
 
     stripe_offset = 3 * mm
     bar_height = 5 * mm
     bar_y = logo_bottom - stripe_offset - bar_height
-    c.setFillColor(colors.HexColor('#FFC107'))
-    c.rect(0, bar_y, width, bar_height, stroke=0, fill=1)
+    canvas.setFillColor(colors.HexColor('#FFC107'))
+    canvas.rect(0, bar_y, page_width, bar_height, stroke=0, fill=1)
 
-    green_text = "Reli Group s.r.o. - Na lysinách 551/34, Hodkovičky, 14700 Praha 4, Czech Republic"
-    green_font_size = 10
-    c.setFont('Roboto', green_font_size)
-    c.setFillColor(colors.black)
-    text_width = c.stringWidth(green_text, 'Roboto', green_font_size)
-    text_y = bar_y + (bar_height - green_font_size) / 2 + 1
-    c.drawString((width - text_width) / 2, text_y, green_text)
-    c.setFillColor(colors.black)
-
-    return bar_y - 8 * mm
+    header_text = "Reli Group s.r.o. - Na lysinách 551/34, Hodkovičky, 14700 Praha 4, Czech Republic"
+    font_size = 10
+    canvas.setFont("Roboto", font_size)
+    canvas.setFillColor(colors.black)
+    text_width = canvas.stringWidth(header_text, "Roboto", font_size)
+    text_y = bar_y + (bar_height - font_size) / 2 + 1
+    canvas.drawString((page_width - text_width) / 2, text_y, header_text)
 
 
-def draw_company_and_customer_info(c, data, width, y):
-    left_x = 20 * mm
-    right_x = width - 75 * mm
-
-    company_text = c.beginText()
-    company_text.setFont('Roboto-Bold', 12)
-    company_text.setTextOrigin(left_x, y)
-    company_text.textLine(data['company_name'])
-    company_text.setFont('Roboto', 9)
-    for line in data['company_address'].split(', '):
-        company_text.textLine(line)
-    company_text.textLine(f"Company Identification Number: {data['tax_id']}")
-    company_text.textLine(f"IBAN: {data['iban']}")
-    company_text.textLine(f"Account number/bank code: {data['account number']}")
-    company_text.textLine(f"SWIFT (BIC): {data['swift']}")
-    company_text.textLine("VAT: Not VAT registered")
-    c.drawText(company_text)
-
-    customer = data['customer']
-    customer_text = c.beginText()
-    customer_text.setFont('Roboto-Bold', 11)
-    customer_text.setTextOrigin(right_x, y)
-    customer_text.textLine("Bill To:")
-    customer_text.setFont('Roboto', 9)
-    customer_text.textLine(customer['full_name'])
-    customer_text.textLine(customer['address'])
-    customer_text.textLine(f"{customer['zip_code']} {customer['city']}")
-    customer_text.textLine(customer['country'])
-    c.drawText(customer_text)
-
-    return y - 30 * mm
+def draw_later_pages(canvas, doc):
+    pass
 
 
-def draw_invoice_meta(c, data, width, y):
-    text = c.beginText()
-    text.setFont('Roboto-Bold', 10)
-    x0 = width - 75 * mm
-    text.setTextOrigin(x0, y)
-    text.textLine(f"Invoice Number: {data['invoice_number']}")
-    text.textLine(f"Variable Symbol: {data.get('variable_symbol', data['invoice_number'])}")
-    text.textLine(f"Invoice Date: {data['order_date']}")
-    text.textLine(f"Payment Method: {data.get('payment_method', '-')}")
-    c.drawText(text)
-    return y - 20 * mm
+def build_company_customer_table(data, styles, page_width):
+    content_width = page_width - 40 * mm
+
+    company_lines = [
+        f"<font name='Roboto-Bold' size='12'>{data['company_name']}</font>",
+        "Na lysinách 551/34",
+        "Hodkovičky",
+        "14700 Praha 4",
+        "Czech Republic",
+        f"Company Identification Number: {data['tax_id']}",
+        f"IBAN: {data['iban']}",
+        f"Account number/bank code: {data['account_number']}",
+        f"SWIFT (BIC): {data['swift']}",
+        "VAT: VAT registered",
+    ]
+
+    customer = data["customer"]
+    customer_lines = [
+        "<font name='Roboto-Bold' size='11'>Bill To:</font>",
+        f"{customer.get('full_name', '') or ''}",
+    ]
+
+    if customer.get("address"):
+        customer_lines.append(customer["address"])
+
+    zip_city = f"{customer.get('zip_code', '')} {customer.get('city', '')}".strip()
+    if zip_city:
+        customer_lines.append(zip_city)
+
+    if customer.get("country"):
+        customer_lines.append(customer["country"])
+
+    left_cell = Paragraph("<br/>".join(company_lines), styles["normal"])
+    right_cell = Paragraph("<br/>".join(customer_lines), styles["customer_name"])
+
+    table = Table(
+        [[left_cell, right_cell]],
+        colWidths=[content_width * 0.58, content_width * 0.42],
+    )
+    table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    return table
 
 
-def draw_invoice_title(c, y):
-    c.setFont("Roboto-Bold", 18)
-    text = "INVOICE"
-    text_width = c.stringWidth(text, "Roboto-Bold", 18)
-    x = (c._pagesize[0] - text_width) / 2
-    c.drawString(x, y, text)
-    return y - 5 * mm
+def build_invoice_meta_table(data, styles, page_width):
+    content_width = page_width - 40 * mm
+
+    meta_lines = [
+        f"Invoice Number: {data['invoice_number']}",
+        f"Variable Symbol: {data.get('variable_symbol', data['invoice_number'])}",
+        f"Invoice Date: {data['order_date']}",
+        f"Payment Method: {data.get('payment_method', '-')}",
+    ]
+
+    meta_paragraph = Paragraph("<br/>".join(meta_lines), styles["meta_block"])
+
+    table = Table(
+        [['', meta_paragraph]],
+        colWidths=[content_width * 0.58, content_width * 0.42],
+    )
+    table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    return table
 
 
-def draw_products_table(c, data, y, page_width):
+def build_products_table(data, styles, page_width):
     table_data = [[
-        'Qty', 'SKU', 'Description', 'Unit Price (incl. VAT)', 'Total (incl. VAT)', 'VAT Rate'
+        Paragraph('No.', styles["header_cell"]),
+        Paragraph('Qty', styles["header_cell"]),
+        Paragraph('SKU', styles["header_cell"]),
+        Paragraph('Description', styles["header_cell"]),
+        Paragraph('Unit Price<br/><font name="Roboto" size="8">(incl. VAT)</font>', styles["header_cell"]),
+        Paragraph('Total<br/><font name="Roboto" size="8">(incl. VAT)</font>', styles["header_cell"]),
+        Paragraph('VAT Rate', styles["header_cell"]),
     ]]
-    for p in data['products']:
+
+    for index, product in enumerate(data["products"], start=1):
+        vat_rate = product.get("vat_rate", 0)
+        vat_text = f"{vat_rate:.0f}%" if float(vat_rate).is_integer() else f"{vat_rate}%"
+
         table_data.append([
-            str(p['qty']), p['sku'], p['name'],
-            format_currency(p['unit_price']), format_currency(p['total']), f"{p.get('vat_rate', 0)}%"
+            Paragraph(str(index), styles["cell_center"]),
+            Paragraph(str(product["qty"]), styles["cell_center"]),
+            Paragraph(str(product["sku"]), styles["cell_center"]),
+            Paragraph(product["name"], styles["cell_left"]),
+            Paragraph(format_currency(product["unit_price"]), styles["cell_right"]),
+            Paragraph(format_currency(product["total"]), styles["cell_right"]),
+            Paragraph(vat_text, styles["cell_center"]),
         ])
-    col_widths = [15 * mm, 25 * mm, page_width - (20 * mm + 15 * mm + 25 * mm + 35 * mm + 35 * mm + 15 * mm + 20 * mm),
-                  35 * mm, 35 * mm, 15 * mm]
-    tbl = Table(table_data, colWidths=col_widths, repeatRows=1)
-    tbl.setStyle(TableStyle([
+
+    content_width = page_width - 40 * mm
+
+    # Сохраняем ту же общую геометрию, но делаем колонки Unit Price / Total
+    # достаточно широкими для двухстрочного заголовка.
+    col_widths = [
+        10 * mm,  # No.
+        11 * mm,  # Qty
+        22 * mm,  # SKU
+        content_width - (10 * mm + 11 * mm + 22 * mm + 26 * mm + 26 * mm + 18 * mm),  # Description
+        26 * mm,  # Unit Price
+        26 * mm,  # Total
+        18 * mm,  # VAT Rate
+    ]
+
+    table = Table(
+        table_data,
+        colWidths=col_widths,
+        repeatRows=1,
+        splitByRow=1,
+    )
+    table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#FFC107')),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
-        ('FONT', (0, 0), (-1, 0), 'Roboto-Bold', 9),
-        ('FONT', (0, 1), (-1, -1), 'Roboto', 9),
-        ('ALIGN', (0, 0), (1, -1), 'CENTER'),
-        ('ALIGN', (3, 0), (4, -1), 'RIGHT'),
-        ('ALIGN', (5, 0), (5, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+
+        ('LEFTPADDING', (0, 0), (-1, -1), 3),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+
+        ('ALIGN', (0, 0), (2, -1), 'CENTER'),
+        ('ALIGN', (4, 0), (5, -1), 'RIGHT'),
+        ('ALIGN', (6, 0), (6, -1), 'CENTER'),
     ]))
-    avail_w = page_width - 40 * mm
-    w, h = tbl.wrap(avail_w, y)
-    tbl.drawOn(c, 20 * mm, y - h)
-    return y - h - 10 * mm
+    return table
 
 
-def draw_totals(c, data, y_top, page_width):
-    c.setStrokeColor(colors.HexColor("#CCCCCC"))
-    c.setLineWidth(0.5)
-    c.line(20 * mm, y_top + 5 * mm, page_width - 20 * mm, y_top + 5 * mm)
-
-    total = Decimal(str(data.get('grand_total', 0)))
-    vat_amount = sum(Decimal(str(v)) for v in data.get('vat_summary', {}).values())
+def build_totals_table(data, styles, page_width):
+    total = Decimal(str(data.get('grand_total', 0))).quantize(Decimal('0.01'), ROUND_HALF_UP)
     delivery_total = Decimal(str(data.get('delivery_total', '0.00'))).quantize(Decimal('0.01'), ROUND_HALF_UP)
-    net_amount = (total - vat_amount).quantize(Decimal('0.01'), ROUND_HALF_UP)
+    vat_amount = sum(
+        Decimal(str(v)) for v in data.get('vat_summary', {}).values()
+    ).quantize(Decimal('0.01'), ROUND_HALF_UP)
 
-    x0 = page_width - 20 * mm - 70 * mm
-    y = y_top
-    line_height = 5 * mm
+    # ВАЖНО:
+    # Net Amount = сумма товаров без VAT и без доставки.
+    # Иначе доставка попадает и сюда, и отдельной строкой Delivery Total.
+    net_amount = (total - vat_amount - delivery_total).quantize(Decimal('0.01'), ROUND_HALF_UP)
 
-    c.setFont('Roboto', 9)
-    c.drawString(x0, y, 'Net Amount (incl. VAT, EUR):')
-    c.drawRightString(page_width - 20 * mm, y, format_currency(net_amount))
-    y -= line_height
+    content_width = page_width - 40 * mm
 
-    c.drawString(x0, y, f'VAT Amount (EUR):')
-    c.drawRightString(page_width - 20 * mm, y, format_currency(vat_amount))
-    y -= line_height
+    left_spacer = 95 * mm
+    label_col_width = 40 * mm
+    value_col_width = content_width - left_spacer - label_col_width
 
-    c.drawString(x0, y, 'Delivery Total (EUR):')
-    c.drawRightString(page_width - 20 * mm, y, format_currency(delivery_total))
-    y -= line_height + 2 * mm
+    rows = [
+        [
+            '',
+            Paragraph("Net&nbsp;Amount&nbsp;(EUR):", styles["totals_label"]),
+            Paragraph(format_currency(net_amount), styles["totals_value"]),
+        ],
+        [
+            '',
+            Paragraph("VAT&nbsp;Amount&nbsp;(EUR):", styles["totals_label"]),
+            Paragraph(format_currency(vat_amount), styles["totals_value"]),
+        ],
+        [
+            '',
+            Paragraph("Delivery&nbsp;Total&nbsp;(EUR):", styles["totals_label"]),
+            Paragraph(format_currency(delivery_total), styles["totals_value"]),
+        ],
+        [
+            '',
+            Paragraph("Total&nbsp;Amount&nbsp;Due&nbsp;(EUR):", styles["totals_label_bold"]),
+            Paragraph(format_currency(total), styles["totals_value_bold"]),
+        ],
+    ]
 
-    c.setFont('Roboto-Bold', 10)
-    c.drawString(x0, y, 'Total Amount Due (EUR):')
-    c.drawRightString(page_width - 20 * mm, y, format_currency(total))
+    table = Table(
+        rows,
+        colWidths=[
+            left_spacer,
+            label_col_width,
+            value_col_width,
+        ],
+    )
 
-    return y - 10 * mm
+    table.setStyle(TableStyle([
+        ('LINEABOVE', (0, 0), (-1, 0), 0.5, colors.HexColor('#CCCCCC')),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+    ]))
+
+    return table
 
 
-def draw_terms_block(c, page_width):
-    c.setFont("Roboto", 8)
-    c.setFillColor(colors.black)
-    x = 20 * mm
-    y = 31 * mm
+def build_bottom_footer_block(data, styles):
+    items = []
 
     terms = [
-        "Order paid in advance. Returns accepted within 14 days from delivery. No VAT deduction possible (B2C transaction).",
+        "Order paid in advance. Returns accepted within 14 days from delivery. VAT may be deductible subject to applicable law.",
         "Contact: info@reli.one",
     ]
-
     for line in terms:
-        c.drawString(x, y, line)
-        y -= 4 * mm
+        items.append(Paragraph(line, styles["small"]))
+        items.append(Spacer(1, 2 * mm))
 
-    return y
+    items.append(Spacer(1, 2 * mm))
 
-
-def draw_footer(c, data, page_width):
-    c.setFont("Roboto-Bold", 8)
-    c.setFillColor(colors.black)
-    x = 20 * mm
-    y = 22 * mm
-    lines = data.get('footer_lines') or [
+    footer_lines = data.get('footer_lines') or [
         "Order paid. Invoice issued.",
-        "For return inquiries, contact: office@reli.one"
+        "For return inquiries, contact: office@reli.one",
     ]
-    for line in lines:
-        c.drawString(x, y, line)
-        y -= 4 * mm
+    for line in footer_lines:
+        items.append(Paragraph(line, styles["small_bold"]))
+        items.append(Spacer(1, 2 * mm))
 
     method = data.get("payment_method")
     if method:
-        c.setFont("Roboto", 8)
-        c.drawString(x, y - 1 * mm, f"Paid via {method.title()}")
+        items.append(Paragraph(f"Paid via {method.title()}", styles["small"]))
+
+    return BottomAlignedBlock(items, top_padding_mm=3)
+
+
+def build_story(data, styles, page_width):
+    story = []
+
+    story.append(Spacer(1, 22 * mm))
+
+    story.append(build_company_customer_table(data, styles, page_width))
+    story.append(Spacer(1, 4 * mm))
+
+    story.append(build_invoice_meta_table(data, styles, page_width))
+    story.append(Spacer(1, 4 * mm))
+
+    story.append(Paragraph("INVOICE", styles["title"]))
+    story.append(Spacer(1, 5 * mm))
+
+    story.append(build_products_table(data, styles, page_width))
+    story.append(Spacer(1, 5 * mm))
+
+    story.append(build_totals_table(data, styles, page_width))
+    story.append(Spacer(1, 5 * mm))
+
+    story.append(build_bottom_footer_block(data, styles))
+
+    return story
 
 
 def generate_invoice_pdf(data_or_session_id) -> ContentFile:
@@ -221,7 +573,6 @@ def generate_invoice_pdf(data_or_session_id) -> ContentFile:
     else:
         data = prepare_invoice_data(data_or_session_id)
 
-    # Проверка обязательных ключей
     if 'invoice_number' not in data:
         raise ValueError("Missing 'invoice_number' in invoice data")
 
@@ -229,25 +580,31 @@ def generate_invoice_pdf(data_or_session_id) -> ContentFile:
         data['variable_symbol'] = data['invoice_number']
 
     buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=A4)
-    page_w, page_h = A4
+    page_w, _ = A4
 
-    y = draw_logo_and_header(c, page_w, page_h)
-    y = draw_company_and_customer_info(c, data, page_w, y)
-    y = draw_invoice_meta(c, data, page_w, y)
-    y = draw_invoice_title(c, y)
-    y = draw_products_table(c, data, y, page_w)
-    y = draw_totals(c, data, y, page_w)
-    y = draw_terms_block(c, page_w)
-    draw_footer(c, data, page_w)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=20 * mm,
+        rightMargin=20 * mm,
+        topMargin=20 * mm,
+        bottomMargin=20 * mm,
+        allowSplitting=1,
+    )
 
-    c.showPage()
-    c.save()
+    styles = build_styles()
+    story = build_story(data, styles, page_w)
+
+    doc.build(
+        story,
+        onFirstPage=draw_first_page,
+        onLaterPages=draw_later_pages,
+        canvasmaker=NumberedCanvas,
+    )
+
     buffer.seek(0)
-
     filename = f"Invoice_{data['invoice_number']}.pdf"
 
-    # Логгирование (опционально)
     logger = getattr(settings, "INVOICE_LOGGER", None)
     if logger:
         logger.info(f"[INVOICE] PDF generated for invoice {data['invoice_number']}")
