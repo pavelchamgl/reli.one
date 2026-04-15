@@ -1,10 +1,16 @@
+import { useTranslation } from "react-i18next"
 import styles from "./FinishVerificationBlock.module.scss"
 
 const FinishVerificationBlock = () => {
+
+    // const {t} = useTranslation('onbordStatus')
+
     return (
         <div className={styles.finishVerificationBlock}>
             <div>
                 <h3 className={styles.title}>Finish your verification</h3>
+                {/* <h3 className={styles.title}>{t('hello')}</h3> */}
+                
                 <p className={styles.desc}>You need to complete onboarding to activate your account</p>
             </div>
 

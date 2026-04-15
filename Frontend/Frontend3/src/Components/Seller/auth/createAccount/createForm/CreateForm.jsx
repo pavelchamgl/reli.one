@@ -40,7 +40,11 @@ const CreateForm = () => {
             .typeError(t("validation.email.typeError"))
             .email(t("validation.email.email"))
             .required(t("validation.email.required")),
-        phone: yup.string().required(t("validation.phone.required")),
+        phone: yup
+            .string()
+            .transform((value) => value?.replace(/\D/g, "") || "")
+            .matches(/^\d{10,15}$/, t("validation.phone.invalid"))
+            .required(t("validation.phone.required")),
         password: yup
             .string()
             .test("password", t("validation.password.passwordCriteria"), (value) => {
@@ -185,10 +189,30 @@ const CreateForm = () => {
                     num={true}
                     name="phone"
                     value={formik.values.phone}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.phone}
-                />
+                    onChange={(e) => {
+                        let val = e.target.value;
+
+                        // Если пользователь стер всё или стер плюс, возвращаем "+" обратно
+                        if (val === "" || val === " ") {
+                            formik.setFieldValue("phone", "+");
+                            return;
+                        }
+
+                        // Разрешаем ввод только если это плюс и далее цифры
+                        if (/^\+\d*$/.test(val)) {
+                            formik.setFieldValue("phone", val);
+                        }
+                    }}
+                    onFocus={(e) => {
+                        if (!formik.values.phone) {
+                            formik.setFieldValue("phone", "+");
+                        }
+                    }}
+                        // onChange={formik.handleChange}
+                        onBlur = { formik.handleBlur }
+                        error = { formik.errors.phone }
+                            />
+                            
                 <InputSeller
                     required={true}
                     circle={true}
@@ -212,7 +236,7 @@ const CreateForm = () => {
                     error={formik.errors.confirm_password}
                 />
 
-                {regErr && <p className={styles.errText}>{regErr}</p>}
+                        { regErr && <p className={styles.errText}>{regErr}</p> }
 
                 <div className={styles.checkWrap}>
                     <Checkbox checked={isAgree} onChange={(e) => {
@@ -220,7 +244,7 @@ const CreateForm = () => {
                     }} />
                     <p>
                         {tOnb('reg.agree_text')}
-                        <Link to={'https://info.reli.one/terms'}> {tOnb('reg.terms_link')} </Link>
+                        <Link to={'https://info.reli.one/new-terms'}> {tOnb('reg.terms_link')} </Link>
                         {tOnb('reg.and')}
                         <Link to={"/privacy-policy"}> {tOnb('reg.privacy_link')}</Link>
                     </p>
