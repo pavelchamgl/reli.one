@@ -21,6 +21,8 @@ import sellerHomeEn from "../src/locales/en/sellerHomeEn.json";
 import sellerHomeCz from "../src/locales/cz/sellerHomeCz.json";
 import onbordingEn from "../src/locales/en/onbordingEn.json";
 import onbordingCz from "../src/locales/cz/onbordingCz.json";
+import onbordStatusEn from "../src/locales/en/onbordingStatusEn.json";
+import onbordStatusCz from "../src/locales/cz/onbordingStatusCz.json";
 
 
 const resources = {
@@ -34,7 +36,8 @@ const resources = {
     newTerm: termsEn,
     sellerOrder: sellerOrderEn,
     sellerHome: sellerHomeEn,
-    onbording: onbordingEn
+    onbording: onbordingEn,
+    onbordStatus: onbordStatusEn
   },
   cz: {
     translation: translationCz,
@@ -46,7 +49,8 @@ const resources = {
     newTerm: termsCz,
     sellerOrder: sellerOrderCz,
     sellerHome: sellerHomeCz,
-    onbording: onbordingCz
+    onbording: onbordingCz,
+    onbordStatus:onbordStatusCz
   },
 };
 

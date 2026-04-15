@@ -27,6 +27,14 @@ const AskedQuestions = () => {
             title: t("faq_section.questions.ques4"),
             desc: t("faq_section.answer.ans4")
         },
+        {
+            title: t("faq_section.questions.ques5"),
+            desc: t("faq_section.answer.ans5")
+        },
+        {
+            title: t("faq_section.questions.ques6"),
+            desc: t("faq_section.answer.ans6")
+        },
         // {
         //     title: t("faq_section.questions.ques5"),
         //     desc: "No – our managers handle everything. You just send us all the information about your products and we take care of the rest."

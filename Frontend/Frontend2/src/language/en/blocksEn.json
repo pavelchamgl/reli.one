@@ -150,14 +150,16 @@
             "ques2": "How do I add products?",
             "ques3": "Is it really free to start?",
             "ques4": "Can I sell if I already have a store or distributor?",
-            "ques5": "What product categories do you accept?"
+            "ques5": "Can I promote my products?",
+            "ques6": "What product categories do you accept?"
         },
         "answer": {
             "ans1": "Getting started is simple. Create your seller account, complete a short verification process, and upload your products through your dashboard. Once approved, your products go live and you can start receiving orders.",
             "ans2": "You can easily upload and manage your products directly in your seller dashoboard, including descriptions, photos, and pricing.",
             "ans3": "Yes. Registration is completely free, and we offer a one-year-free start with no setup costs.",
             "ans4": "Absolutely. You can sell alongside your existing business and use Reli as an additional sales channel.",
-            "ans5": ""
+            "ans5": "Yes, during our launch period we offer free promotions and banner placements.",
+            "ans6": "We accept s wide range of products. Each product is reviewed individually to maintain high quality standards"
         },
         "bottom_text": "Still have questions?",
         "bottom_link": "Read more"
