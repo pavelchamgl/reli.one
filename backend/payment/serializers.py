@@ -1,14 +1,13 @@
 import logging
 
-from rest_framework import serializers
-
 from delivery.helpers import (
     validate_gls_pickup_point_type,
     DELIVERY_TYPE_PUDO,
     DELIVERY_TYPE_HD,
 )
-from delivery.utils_phone import normalize_phone_number
+from delivery.utils_phone import normalize_and_validate_phone
 from delivery.validators.zip_utils import uppercase_zip
+from rest_framework import serializers
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +24,20 @@ class DeliveryAddressSerializer(serializers.Serializer):
         if value is None:
             return value
         return uppercase_zip(value)
+
+    def validate_country(self, value):
+        country = (value or "").strip().upper()
+
+        if not country:
+            raise serializers.ValidationError("Country is required.")
+
+        if len(country) != 2 or not country.isalpha():
+            raise serializers.ValidationError(
+                "Country must be a valid ISO 3166-1 alpha-2 code."
+            )
+
+        return country
+
 
 class ProductItemSerializer(serializers.Serializer):
     sku = serializers.CharField()
@@ -151,20 +164,21 @@ class SessionInputSerializer(serializers.Serializer):
     )
 
     def validate_phone(self, value):
-        normalized = normalize_phone_number(value)
+        root_country = None
 
-        if normalized.startswith("+"):
-            digits_only = normalized[1:]
-        else:
-            digits_only = normalized
+        try:
+            root_country = self.initial_data.get("delivery_address", {}).get("country")
+        except Exception:
+            root_country = None
 
-        if not digits_only.isdigit():
-            raise serializers.ValidationError("Phone number contains invalid characters.")
-
-        if len(digits_only) < 9 or len(digits_only) > 15:
-            raise serializers.ValidationError("Phone number must contain between 9 and 15 digits.")
-
-        return normalized
+        try:
+            return normalize_and_validate_phone(
+                value,
+                root_country,
+                strict_region_match=True,
+            )
+        except Exception as exc:
+            raise serializers.ValidationError(str(exc)) from exc
 
 
 class StripeSessionOutputSerializer(serializers.Serializer):
