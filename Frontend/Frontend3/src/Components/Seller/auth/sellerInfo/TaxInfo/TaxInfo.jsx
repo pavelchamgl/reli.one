@@ -57,16 +57,12 @@ const TaxInfo = ({ formik, onClosePreview }) => {
             safeData(payload)
         }
 
-
-
-
-
-
         try {
             await putTax({
                 tax_country: country,
                 tin: payload.tin,
-                business_id: (country === "cz" || country === "sk") ? payload.ico : "",
+                // business_id: (country === "cz" || country === "sk") ? payload.ico : "",
+                business_id: payload.ico,
                 vat_id: payload.vat_id
             })
 
@@ -110,7 +106,7 @@ const TaxInfo = ({ formik, onClosePreview }) => {
                 />
 
                 {
-                    (country === "cz" || country === "sk") &&
+                    // (country === "cz" || country === "sk") &&
                     <InputSeller
                         title={t('onboard.company.business_id')}
                         type={"text"} circle={true} required={true} num={true}

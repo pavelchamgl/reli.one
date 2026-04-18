@@ -244,7 +244,7 @@ const CreateForm = () => {
                     }} />
                     <p>
                         {tOnb('reg.agree_text')}
-                        <Link to={'https://info.reli.one/new-terms'}> {tOnb('reg.terms_link')} </Link>
+                        <Link to={'/new-term'}> {tOnb('reg.terms_link')} </Link>
                         {tOnb('reg.and')}
                         <Link to={"/privacy-policy"}> {tOnb('reg.privacy_link')}</Link>
                     </p>

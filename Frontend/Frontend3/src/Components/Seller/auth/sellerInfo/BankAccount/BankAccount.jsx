@@ -62,13 +62,22 @@ const BankAccount = ({ formik, onClosePreview }) => {
     }
 
     useEffect(() => {
-
+        const cleanName = (str) =>
+            str
+                ?.replace(/[^\p{L}\s-]/gu, "") // только буквы, пробелы, дефис
+                .replace(/\s+/g, " ")          // убрать двойные пробелы
+                .trim()
         if (pathname === '/seller/seller-company'
             // || pathname === '/seller/seller-review-company'
         ) {
-            formik.setFieldValue('account_holder', `${formik.values.company_name + " "}${formik.values.legal_form}`)
+            const cleanLegalForm = formik.values.legal_form?.replace(/\s*\(.*?\)/, "")
+            // const cleanCompany = cleanName(formik.values.company_name)
+            formik.setFieldValue('account_holder', `${formik.values.company_name + " "}${cleanLegalForm}`)
         } else if (pathname === '/seller/seller-info') {
-            formik.setFieldValue('account_holder', `${formik.values.first_name + " "}${formik.values.last_name}`)
+            const first = cleanName(formik.values.first_name)
+            const last = cleanName(formik.values.last_name)
+
+            formik.setFieldValue('account_holder', `${first + " "}${last}`)
         }
 
     }, [
@@ -137,6 +146,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
                     onBlur={formik.handleBlur}
                     error={formik.errors.account_holder}
                     touched={formik.touched.account_holder}
+                    readOnly
                 />
 
                 {
