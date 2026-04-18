@@ -14,10 +14,43 @@ import CatalogCardSimple from "../CatalogCardSimple/CatalogCardSimple";
 import styles from "./CatalogDrawer.module.scss";
 
 const CatalogDrawer = ({ open, handleClose }) => {
+
   const isPlanshet = useMediaQuery({ maxWidth: 950 });
   const isMobile = useMediaQuery({ maxWidth: 500 });
   const [catalogCategory, setCatalogCategory] = useState("");
 
+  const hiddenIds = [
+    "Beauty and health",
+    "Car parts",
+    "Children's goods",
+    "Clothes and shoes",
+    "Electronics",
+    "Equipment",
+    "Hiking",
+    "Hobbies and creativity",
+    "Hiking, fishing, hunting",
+    "Jewelery",
+    "Luggage",
+    "Office",
+    "Pet products",
+    "Photovoltaics",
+    "Services",
+    "Watches",
+  ]; // 👈 ВОТ СЮДА
+
+  const hiddenSubCategories = [
+    153,
+    154,
+    155,
+    146,
+    150,
+    149,
+    151,
+    148,
+    160,
+    147,
+    123, 122, 126, 178, 125, 72, 77, 73, 74, 75, 76, 159, 162
+  ];
 
   const navigate = useNavigate();
 
@@ -53,34 +86,36 @@ const CatalogDrawer = ({ open, handleClose }) => {
         <div className={styles.main}>
           <div className={styles.catalogItemWrapMain}>
             <div className={styles.catalogItemWrap}>
-              {categories.map((item) => {
-                if (item?.children) {
-                  return (
-                    <CatalogItem
-                      key={item.id}
-                      catalogCategory={catalogCategory}
-                      setCatalogCategory={setCatalogCategory}
-                      data={item}
-                      handleClose={handleClose}
-                    />
-                  );
-                } else {
-                  return (
-                    <button
-                      key={item.id}
-                      className={styles.catalogItemBtn}
-                      onClick={() => handleCategoryClick(item?.name, item?.id)}
-                    >
+              {categories
+                .filter(item => !hiddenIds.includes(item.name))
+                .map((item) => {
+                  if (item?.children) {
+                    return (
                       <CatalogItem
+                        key={item.id}
                         catalogCategory={catalogCategory}
                         setCatalogCategory={setCatalogCategory}
                         data={item}
                         handleClose={handleClose}
                       />
-                    </button>
-                  );
-                }
-              })}
+                    );
+                  } else {
+                    return (
+                      <button
+                        key={item.id}
+                        className={styles.catalogItemBtn}
+                        onClick={() => handleCategoryClick(item?.name, item?.id)}
+                      >
+                        <CatalogItem
+                          catalogCategory={catalogCategory}
+                          setCatalogCategory={setCatalogCategory}
+                          data={item}
+                          handleClose={handleClose}
+                        />
+                      </button>
+                    );
+                  }
+                })}
             </div>
           </div>
           {!isMobile && (
@@ -90,7 +125,9 @@ const CatalogDrawer = ({ open, handleClose }) => {
                 <h4 className={styles.catalogTitle}>{t(`categories.${category.id}`, { defaultValue: category.name })}</h4>
               }
               <div className={styles.categoryCardWrap}>
-                {categoryItem?.children?.map((item, index) => {
+                {categoryItem?.children
+                ?.filter(sub => !hiddenSubCategories.includes(sub.id))
+                .map((item, index) => {
                   if (!item?.children) {
                     return (
                       <CatalogCardSimple
@@ -119,7 +156,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
                                   className={styles.categoryText}
                                   key={child.id}
                                 >
-                                  {t(`categories.${ child.id }`, { defaultValue: child.name })}
+                                  {t(`categories.${child.id}`, { defaultValue: child.name })}
                                 </p>
                               ))}
                             </div>

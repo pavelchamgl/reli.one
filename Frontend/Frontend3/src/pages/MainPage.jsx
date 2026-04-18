@@ -15,9 +15,13 @@ import { useMediaQuery } from "react-responsive";
 
 const MainPage = () => {
   const productsData = useSelector((state) => state.products.products || []);
+  
   const mainCategories = useSelector(
     (state) => state.category.mainCategories || []
   );
+
+const mainCategoriesIdArr = [68,67,69,146,150,149,151,148,160,147,70,71,85,84,87]
+const visibleIds = [145, 156, 127, 170, 161];
 
   const isMobile = useMediaQuery({ maxWidth: 500 })
 
@@ -33,10 +37,13 @@ const MainPage = () => {
   }, [i18n.language]);
 
   useEffect(() => {
+    const filtered = mainCategories?.filter(
+    (item) => visibleIds.includes(item.id)
+  );
     if (isMobile) {
-      setCategories(mainCategories?.slice(0, 18))
+      setCategories(filtered?.slice(0, 18))
     } else {
-      setCategories(mainCategories?.slice(0, 20))
+      setCategories(filtered?.slice(0, 20))
     }
   }, [mainCategories, isMobile])
 
