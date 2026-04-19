@@ -185,7 +185,6 @@ const SellerCompanyInfo = () => {
 
     })
 
-
     useEffect(() => {
         getAllCompanyDataBD()
     }, [])

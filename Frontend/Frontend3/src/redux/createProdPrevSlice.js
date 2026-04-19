@@ -18,6 +18,11 @@ export const fetchCreateProduct = createAsyncThunk(
             const res = await postSellerProduct({
                 name: state.name,
                 product_description: state.product_description,
+                // barcode: state.barcode,
+                // item : state.article,
+                // additional_details : state.additional_details,
+                // vat_rate :state.vat_rate,
+                // is_age_restricted : state.is_age_restricted,
                 category: state.category?.id || null,
             });
 

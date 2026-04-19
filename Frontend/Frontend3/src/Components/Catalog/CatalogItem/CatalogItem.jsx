@@ -25,7 +25,7 @@ const CatalogItem = ({
 
 
 
- 
+
 
 
   const handleClick = () => {
