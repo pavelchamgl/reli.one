@@ -1,9 +1,10 @@
-import os
 import json
-from pathlib import Path
-from dotenv import load_dotenv
-from decimal import Decimal
+import os
 from datetime import timedelta
+from decimal import Decimal
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Import .env.dev vars
 load_dotenv()
@@ -39,7 +40,6 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
-
 
 ALLOWED_HOSTS = ['*']
 
@@ -266,17 +266,14 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
 }
 
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIRECT_DOMAIN = 'https://reli.one/'
-
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "https://reli.one",
     "http://45.147.248.21:8081",
 ]
-
 
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
@@ -291,13 +288,11 @@ STRIPE_API_PUBLISHABLE_KEY = os.getenv("STRIPE_API_PUBLISHABLE_KEY")
 STRIPE_API_SECRET_KEY = os.getenv("STRIPE_API_SECRET_KEY")
 STRIPE_WEBHOOK_ENDPOINT_SECRET = os.getenv("STRIPE_WEBHOOK_ENDPOINT_SECRET")
 
-
 PACKETA_API_KEY = os.getenv("PACKETA_API_KEY")
 PACKETA_API_PASSWORD = os.getenv("PACKETA_API_PASSWORD")
 PACKETA_ESHOP_CODE = os.getenv("PACKETA_ESHOP_CODE")
 PACKETA_API_LOCALE = os.getenv("PACKETA_API_LOCALE", "en_GB")
 PACKETA_INVOICE_LOCALE = os.getenv("PACKETA_INVOICE_LOCALE", "cs_CZ")
-
 
 MYGLS_API_BASE = os.getenv("MYGLS_API_BASE")
 MYGLS_USERNAME = os.getenv("MYGLS_USERNAME")
@@ -311,25 +306,24 @@ MYGLS_HTTP_RETRIES = os.getenv("MYGLS_HTTP_RETRIES")
 FUEL_DIESEL_AVG_CZ = os.getenv("FUEL_DIESEL_AVG_CZ")
 SEASONAL_SURCHARGE_ENABLED = os.getenv("SEASONAL_SURCHARGE_ENABLED")
 # Опции на случай «капризного» стенда
-MYGLS_PASSWORD_FORMAT = "bytes"         # или base64
+MYGLS_PASSWORD_FORMAT = "bytes"  # или base64
 MYGLS_INCLUDE_CLIENT_NUMBER_LIST = False
 
 MYGLS_PICKUP_NAME = os.getenv("MYGLS_PICKUP_NAME", "Reli Group s.r.o.")
-MYGLS_PICKUP_STREET = os.getenv("MYGLS_PICKUP_STREET", "Hlavni")
-MYGLS_PICKUP_HOUSE_NUMBER = os.getenv("MYGLS_PICKUP_HOUSE_NUMBER", "1")
-MYGLS_PICKUP_CITY = os.getenv("MYGLS_PICKUP_CITY", "Praha")
-MYGLS_PICKUP_ZIP = os.getenv("MYGLS_PICKUP_ZIP", "11000")
+MYGLS_PICKUP_STREET = os.getenv("MYGLS_PICKUP_STREET", "Na Lysinách")
+MYGLS_PICKUP_HOUSE_NUMBER = os.getenv("MYGLS_PICKUP_HOUSE_NUMBER", "551/34")
+MYGLS_PICKUP_CITY = os.getenv("MYGLS_PICKUP_CITY", "Prague")
+MYGLS_PICKUP_ZIP = os.getenv("MYGLS_PICKUP_ZIP", " 14700")
 MYGLS_PICKUP_COUNTRY_ISO = os.getenv("MYGLS_PICKUP_COUNTRY_ISO", "CZ")
-MYGLS_PICKUP_EMAIL = os.getenv("MYGLS_PICKUP_EMAIL", "warehouse@example.cz")
-MYGLS_PICKUP_PHONE = os.getenv("MYGLS_PICKUP_PHONE", "+420123456789")
+MYGLS_PICKUP_EMAIL = os.getenv("MYGLS_PICKUP_EMAIL", "office@reli.one")
+MYGLS_PICKUP_PHONE = os.getenv("MYGLS_PICKUP_PHONE", "+420797837856")
 # --- MyGLS dev helpers ---
 MYGLS_AUTHCHECK_CACHE_SECONDS = int(os.getenv("MYGLS_AUTHCHECK_CACHE_SECONDS", 600))
 
-GLS_FUEL_PCT = Decimal("0.011")          # 1.1% (статично на время тестов)
+GLS_FUEL_PCT = Decimal("0.011")  # 1.1% (статично на время тестов)
 GLS_TOLL_PER_KG_DOMESTIC = Decimal("1.47")
 GLS_TOLL_PER_KG_EXPORT = Decimal("3.00")
 GLS_PUDO_EXPORT_DISCOUNT_CZK = Decimal("27")  # скидка к HD базе
-
 
 # ========= DPD: базовые флаги/URLs =========
 DPD_ENABLED = os.getenv("DPD_ENABLED", "true").lower() == "true"
@@ -342,8 +336,8 @@ DPD_SENDER_ADDRESS_ID = os.getenv("DPD_SENDER_ADDRESS_ID", "")
 DPD_BU_CODE = os.getenv("DPD_BU_CODE", "015")  # CZ
 
 # ========= DPD: печать ярлыков =========
-DPD_PRINT_FORMAT = os.getenv("DPD_PRINT_FORMAT", "PDF")   # "PDF" | "ZPL"
-DPD_LABEL_SIZE = os.getenv("DPD_LABEL_SIZE", "A6")        # "A4" | "A6"
+DPD_PRINT_FORMAT = os.getenv("DPD_PRINT_FORMAT", "PDF")  # "PDF" | "ZPL"
+DPD_LABEL_SIZE = os.getenv("DPD_LABEL_SIZE", "A6")  # "A4" | "A6"
 DPD_LABEL_DIR = os.getenv("DPD_LABEL_DIR", "dpd_labels")  # подпапка в MEDIA_ROOT
 DPD_LABEL_START_POSITION = int(os.getenv("DPD_LABEL_START_POSITION", "1"))  # A4 1..4
 
@@ -361,7 +355,6 @@ DPD_COD_CURRENCY = os.getenv("DPD_COD_CURRENCY", "EUR")
 # Гарантируем наличие папки для ярлыков
 os.makedirs(os.path.join(MEDIA_ROOT, DPD_LABEL_DIR), exist_ok=True)
 
-
 # Простейший in-memory кэш для дев-окружения
 CACHES = {
     "default": {
@@ -376,7 +369,6 @@ CACHES = {
         "TIMEOUT": 60 * 60 * 24,  # час, можно None
     },
 }
-
 
 LOGGING = {
     'version': 1,
