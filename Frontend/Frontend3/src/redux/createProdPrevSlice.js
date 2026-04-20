@@ -18,12 +18,17 @@ export const fetchCreateProduct = createAsyncThunk(
             const res = await postSellerProduct({
                 name: state.name,
                 product_description: state.product_description,
-                // barcode: state.barcode,
-                // item : state.article,
-                // additional_details : state.additional_details,
-                // vat_rate :state.vat_rate,
-                // is_age_restricted : state.is_age_restricted,
+                barcode: state.barcode,
+                article: state.item,
+                additional_details: state.additional_details,
+                vat_rate: state.vat_rate,
+                is_age_restricted: state.is_age_restricted,
                 category: state.category?.id || null,
+                length_mm: state.lengthMain,
+                weight_grams: state.weightMain,
+                height_mm: state.heightMain,
+                width_mm: state.widthtMain
+
             });
 
             if (!res || !res.id) {
@@ -200,7 +205,7 @@ const createProdPrevSlice = createSlice({
         setPreviewProduct: (state, action) => {
             state.previewProduct = action.payload
         },
-        setValues: (state, action) =>{
+        setValues: (state, action) => {
             return {
                 ...state,
                 ...action.payload

@@ -240,11 +240,11 @@ const CreateForm = () => {
 
                 <div className={styles.checkWrap}>
                     <Checkbox checked={isAgree} onChange={(e) => {
-                        setIsAgree(e.target.checked)
+                        setIsAgree(e.target.checked)пше
                     }} />
                     <p>
                         {tOnb('reg.agree_text')}
-                        <Link to={'/new-term'}> {tOnb('reg.terms_link')} </Link>
+                        <Link to={'https://info.reli.one/new-term'}> {tOnb('reg.terms_link')} </Link>
                         {tOnb('reg.and')}
                         <Link to={"/privacy-policy"}> {tOnb('reg.privacy_link')}</Link>
                     </p>
