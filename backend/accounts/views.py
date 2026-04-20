@@ -32,6 +32,20 @@ class UserRegistrationView(APIView):
     @extend_schema(
         description="Register a new user.",
         request=UserRegistrationSerializer,
+        examples=[
+            OpenApiExample(
+                "Request Example",
+                value={
+                    'first_name': 'John',
+                    'last_name': 'Doe',
+                    'email': 'user@example.com',
+                    'phone_number': '+380501234567',
+                    'password': 'StrongP@ss1',
+                    'confirm_password': 'StrongP@ss1',
+                },
+                request_only=True,
+            )
+        ],
         responses={
             status.HTTP_201_CREATED: OpenApiResponse(
                 response={
@@ -39,6 +53,7 @@ class UserRegistrationView(APIView):
                     'email': 'string',
                     'first_name': 'string',
                     'last_name': 'string',
+                    'phone_number': 'string',
                     'role': 'string',
                 },
                 description="User registered successfully.",
@@ -50,6 +65,7 @@ class UserRegistrationView(APIView):
                             'email': 'user@example.com',
                             'first_name': 'John',
                             'last_name': 'Doe',
+                            'phone_number': '+380501234567',
                             'role': 'customer',
                         },
                         response_only=True,
@@ -85,6 +101,7 @@ class UserRegistrationView(APIView):
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
+                'phone_number': str(user.phone_number),
                 'role': user.role,
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
@@ -97,6 +114,20 @@ class CustomerRegistrationView(UserRegistrationView):
     @extend_schema(
         description="Register a new customer.",
         request=UserRegistrationSerializer,
+        examples=[
+            OpenApiExample(
+                "Request Example",
+                value={
+                    'first_name': 'Jane',
+                    'last_name': 'Doe',
+                    'email': 'customer@example.com',
+                    'phone_number': '+380501234567',
+                    'password': 'StrongP@ss1',
+                    'confirm_password': 'StrongP@ss1',
+                },
+                request_only=True,
+            )
+        ],
         responses={
             status.HTTP_201_CREATED: OpenApiResponse(
                 response={
@@ -104,6 +135,7 @@ class CustomerRegistrationView(UserRegistrationView):
                     'email': 'string',
                     'first_name': 'string',
                     'last_name': 'string',
+                    'phone_number': 'string',
                 },
                 description="Customer registered successfully.",
                 examples=[
@@ -114,6 +146,7 @@ class CustomerRegistrationView(UserRegistrationView):
                             'email': 'customer@example.com',
                             'first_name': 'Jane',
                             'last_name': 'Doe',
+                            'phone_number': '+380501234567',
                         },
                         response_only=True,
                         status_codes=["201"]
@@ -131,6 +164,7 @@ class CustomerRegistrationView(UserRegistrationView):
                                 'first_name': ['This field is required.'],
                                 'last_name': ['This field is required.'],
                                 'email': ['This field is required.'],
+                                'phone_number': ['This field is required.'],
                                 'password': ['This field is required.'],
                                 'confirm_password': ['This field is required.'],
                             }
@@ -153,6 +187,20 @@ class SellerRegistrationView(UserRegistrationView):
     @extend_schema(
         description="Register a new seller.",
         request=UserRegistrationSerializer,
+        examples=[
+            OpenApiExample(
+                "Request Example",
+                value={
+                    'first_name': 'Jane',
+                    'last_name': 'Doe',
+                    'email': 'seller@example.com',
+                    'phone_number': '+380501234567',
+                    'password': 'StrongP@ss1',
+                    'confirm_password': 'StrongP@ss1',
+                },
+                request_only=True,
+            )
+        ],
         responses={
             status.HTTP_201_CREATED: OpenApiResponse(
                 response={
@@ -160,6 +208,7 @@ class SellerRegistrationView(UserRegistrationView):
                     'email': 'string',
                     'first_name': 'string',
                     'last_name': 'string',
+                    'phone_number': 'string',
                 },
                 description="Seller registered successfully.",
                 examples=[
@@ -170,6 +219,7 @@ class SellerRegistrationView(UserRegistrationView):
                             'email': 'customer@example.com',
                             'first_name': 'Jane',
                             'last_name': 'Doe',
+                            'phone_number': '+380501234567',
                         },
                         response_only=True,
                         status_codes=["201"]
@@ -187,6 +237,7 @@ class SellerRegistrationView(UserRegistrationView):
                                 'first_name': ['This field is required.'],
                                 'last_name': ['This field is required.'],
                                 'email': ['This field is required.'],
+                                'phone_number': ['This field is required.'],
                                 'password': ['This field is required.'],
                                 'confirm_password': ['This field is required.'],
                             }
