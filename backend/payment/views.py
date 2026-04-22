@@ -1,36 +1,31 @@
-import json
-import uuid
 import copy
+import json
+import logging
+import uuid
+from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional, Union
 
 import requests
 import stripe
-import logging
-
-from decimal import Decimal, ROUND_HALF_UP
-
-from django.db import transaction
-from django.utils.decorators import method_decorator
-from rest_framework import status, serializers
-from django.conf import settings
-from django.utils import timezone
-from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, OpenApiParameter, inline_serializer
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.exceptions import ValidationError
-from django.core.cache import caches
-from django.views.decorators.csrf import csrf_exempt
-
-from .models import Payment, PayPalMetadata, StripeMetadata
-from .mixins import PayPalMixin
-from .services import get_orders_by_payment_session_id
-from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer, GroupSerializer
-from .services_async import async_send_client_email
 from accounts.models import CustomUser
+from delivery.helpers import resolve_country_code_from_group
 from delivery.models import DeliveryAddress
-from product.models import BaseProduct, ProductVariant
-from promocode.models import PromoCode
+from delivery.services.dpd_rates import calculate_order_shipping_dpd
+from delivery.services.gls_rates import calculate_gls_shipping_options
+from delivery.services.gls_split import split_items_into_parcels_gls
+from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
+from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
+from delivery.utils_async import async_parcels_and_seller_email
+from delivery.validators.validators import validate_phone_matches_country
+from delivery.validators.zip_utils import uppercase_zip
+from delivery.validators.zip_validator import ZipCodeValidator
+from django.conf import settings
+from django.core.cache import caches
+from django.db import transaction
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, OpenApiParameter, inline_serializer
 from order.models import (
     CourierService,
     Order,
@@ -41,20 +36,23 @@ from order.models import (
     Invoice,
     OrderEvent,
 )
-from warehouses.models import Warehouse, WarehouseItem
-from delivery.helpers import resolve_country_code_from_group
-from delivery.utils_async import async_parcels_and_seller_email
 from order.services.invoice_data import prepare_invoice_data
+from order.services.invoice_generator import generate_invoice_pdf
 from order.services.invoice_numbers import next_invoice_identifiers
-from order.services.invoice_generator_without_vat import generate_invoice_pdf
-from delivery.services.gls_split import split_items_into_parcels_gls
-from delivery.services.gls_rates import calculate_gls_shipping_options
-from delivery.services.dpd_rates import calculate_order_shipping_dpd
-from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
-from delivery.validators.zip_utils import uppercase_zip
-from delivery.validators.zip_validator import ZipCodeValidator
-from delivery.validators.validators import validate_phone_matches_country
-from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
+from product.models import BaseProduct, ProductVariant
+from promocode.models import PromoCode
+from rest_framework import status, serializers
+from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from warehouses.models import Warehouse, WarehouseItem
+
+from .mixins import PayPalMixin
+from .models import Payment, PayPalMetadata, StripeMetadata
+from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
+from .services import get_orders_by_payment_session_id
+from .services_async import async_send_client_email
 
 conv_cache = caches["conv"]
 CONV_CACHE_TTL = 60 * 60 * 24  # 24h
@@ -70,8 +68,8 @@ endpoint_secret = settings.STRIPE_WEBHOOK_ENDPOINT_SECRET
 
 # карта delivery_type -> carrier channel для options
 CHANNEL_MAP = {
-    1: 'PUDO',       # пункт выдачи
-    2: 'HD',         # доставка на дом
+    1: 'PUDO',  # пункт выдачи
+    2: 'HD',  # доставка на дом
 }
 
 # --- GLS-specific delivery modes ---
@@ -176,11 +174,11 @@ def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Res
 
 
 def _set_conv_cache_after_commit(
-    session_id: str,
-    amount: Decimal,
-    currency: str = "EUR",
-    logger=None,
-    source: str = "StripeWebhook",
+        session_id: str,
+        amount: Decimal,
+        currency: str = "EUR",
+        logger=None,
+        source: str = "StripeWebhook",
 ):
     """
     Универсальный метод записи conversion-кэша после успешной оплаты.
@@ -234,6 +232,7 @@ class PaymentSessionValidator:
       - наличие country / pickup_point_id / адреса
       - resolve_country_code_from_group
     """
+
     @staticmethod
     def validate_groups(groups, root_country: Optional[str] = None):
         for idx, group in enumerate(groups, start=1):
@@ -416,9 +415,9 @@ class PaymentSessionValidator:
                 "groups": [
                     {
                         "seller_id": 7,
-                        "delivery_type": 1,        # PUDO
-                        "delivery_mode": "box",    # REQUIRED for GLS PUDO
-                        "courier_service": 3,      # GLS
+                        "delivery_type": 1,  # PUDO
+                        "delivery_mode": "box",  # REQUIRED for GLS PUDO
+                        "courier_service": 3,  # GLS
                         "pickup_point_id": "RO032534-PLOCKER001",
                         "products": [
                             {"sku": "240819709", "quantity": 4}
@@ -446,8 +445,8 @@ class PaymentSessionValidator:
                 "groups": [
                     {
                         "seller_id": 2,
-                        "delivery_type": 1,      # PUDO
-                        "courier_service": 4,    # DPD
+                        "delivery_type": 1,  # PUDO
+                        "courier_service": 4,  # DPD
                         "pickup_point_id": "35862",
                         "delivery_address": {
                             "street": "Bílá 158",
@@ -459,8 +458,8 @@ class PaymentSessionValidator:
                     },
                     {
                         "seller_id": 1,
-                        "delivery_type": 2,      # HD
-                        "courier_service": 2,    # Packeta
+                        "delivery_type": 2,  # HD
+                        "courier_service": 2,  # Packeta
                         "delivery_address": {
                             "street": "Na Lysinách 551/34",
                             "city": "Praha",
@@ -846,7 +845,7 @@ class CreateStripePaymentView(APIView):
                 "Stripe session creation failed for user=%s session_key=%s",
                 user.id,
                 session_key,
-                )
+            )
             return Response({"error": str(e)}, status=500)
 
 
@@ -854,21 +853,21 @@ class CreateStripePaymentView(APIView):
 @extend_schema(
     summary="Handle Stripe Webhook for Completed Payment",
     description=(
-        "Processes Stripe successful checkout events and creates orders.\n\n"
-        "**Business Logic:**\n"
-        "- Verifies the Stripe webhook signature.\n"
-        "- Supports `checkout.session.completed` and `checkout.session.async_payment_succeeded`.\n"
-        "- Idempotent: if Payment for this session already exists, returns 200 immediately.\n"
-        "- Restores saved metadata (customer, groups, delivery info).\n"
-        "- Creates one or more orders grouped by seller.\n"
-        "- Creates associated order items, delivery addresses, and single Payment per session.\n"
-        "- Generates invoice and sends email (async) when possible.\n"
-        "- 🔒 Re-checks CZ-origin rule: if any SKU seller's default_warehouse is not in CZ, "
-        "orders/payments are created, but parcel generation is **skipped**.\n\n"
-        "**Responses:**\n"
-        "- 200: Orders and payments created successfully (or already processed).\n"
-        "- 400: Invalid payload, signature verification failure, or missing session metadata.\n"
-        "- 500: Error during order processing."
+            "Processes Stripe successful checkout events and creates orders.\n\n"
+            "**Business Logic:**\n"
+            "- Verifies the Stripe webhook signature.\n"
+            "- Supports `checkout.session.completed` and `checkout.session.async_payment_succeeded`.\n"
+            "- Idempotent: if Payment for this session already exists, returns 200 immediately.\n"
+            "- Restores saved metadata (customer, groups, delivery info).\n"
+            "- Creates one or more orders grouped by seller.\n"
+            "- Creates associated order items, delivery addresses, and single Payment per session.\n"
+            "- Generates invoice and sends email (async) when possible.\n"
+            "- 🔒 Re-checks CZ-origin rule: if any SKU seller's default_warehouse is not in CZ, "
+            "orders/payments are created, but parcel generation is **skipped**.\n\n"
+            "**Responses:**\n"
+            "- 200: Orders and payments created successfully (or already processed).\n"
+            "- 400: Invalid payload, signature verification failure, or missing session metadata.\n"
+            "- 500: Error during order processing."
     ),
     responses={
         200: OpenApiResponse(description="Orders and payments created successfully"),
@@ -1084,8 +1083,8 @@ class StripeWebhookView(APIView):
                         delivery_cost=delivery_cost,
                         courier_service=cs,
                         phone_number=meta.custom_data.get("phone"),
-                        total_amount=amount, # сумма по всей сессии
-                        group_subtotal=group_total, # сумма только по этой группе
+                        total_amount=amount,  # сумма по всей сессии
+                        group_subtotal=group_total,  # сумма только по этой группе
                         order_status=pending_status,
                     )
 
@@ -1222,59 +1221,59 @@ class StripeWebhookView(APIView):
 @extend_schema(
     summary="Create PayPal Payment Session (Packeta / DPD / GLS)",
     description=(
-        "Creates a PayPal payment session by validating customer data and seller-grouped products, "
-        "normalizing ZIP codes, and calculating delivery prices using Packeta (Zásilkovna), DPD, or GLS.\n\n"
+            "Creates a PayPal payment session by validating customer data and seller-grouped products, "
+            "normalizing ZIP codes, and calculating delivery prices using Packeta (Zásilkovna), DPD, or GLS.\n\n"
 
-        "**Processing Flow:**\n"
-        "1) Validates required input fields and ensures a valid customer delivery address.\n"
-        "2) Converts all ZIP codes to **uppercase** and performs postal validation:\n"
-        "   • Local ZIP dataset checks (per-country rules)\n"
-        "   • DPD GeoRouting checks for supported countries\n"
-        "   • If DPD returns a normalized ZIP, it is written back to the group data.\n"
-        "3) Enforces the **CZ-origin rule**: all products must originate from sellers whose default warehouse "
-        "is located in the Czech Republic.\n"
-        "4) Confirms seller ownership of each SKU in every group.\n"
-        "5) Resolves group-level destination country from either pickup point or delivery address.\n"
-        "6) Courier logic by `courier_service` value:\n"
-        "   • `2` = Packeta (Zásilkovna) — aggregator pricing\n"
-        "   • `3` = GLS — GLS parcel-split + address-bundle based pricing\n"
-        "   • `4` = DPD — volumetric weight, per-country price tables, strict parcel dimension limits\n\n"
+            "**Processing Flow:**\n"
+            "1) Validates required input fields and ensures a valid customer delivery address.\n"
+            "2) Converts all ZIP codes to **uppercase** and performs postal validation:\n"
+            "   • Local ZIP dataset checks (per-country rules)\n"
+            "   • DPD GeoRouting checks for supported countries\n"
+            "   • If DPD returns a normalized ZIP, it is written back to the group data.\n"
+            "3) Enforces the **CZ-origin rule**: all products must originate from sellers whose default warehouse "
+            "is located in the Czech Republic.\n"
+            "4) Confirms seller ownership of each SKU in every group.\n"
+            "5) Resolves group-level destination country from either pickup point or delivery address.\n"
+            "6) Courier logic by `courier_service` value:\n"
+            "   • `2` = Packeta (Zásilkovna) — aggregator pricing\n"
+            "   • `3` = GLS — GLS parcel-split + address-bundle based pricing\n"
+            "   • `4` = DPD — volumetric weight, per-country price tables, strict parcel dimension limits\n\n"
 
-        "**DPD-specific checks:**\n"
-        "- All product variants used in a DPD group must have defined: `weight_grams`, `length_mm`, `width_mm`, `height_mm`.\n"
-        "- Parcel limits are enforced (≤31.5 kg, ≤120 cm longest side, ≤300 cm combined dimensions).\n\n"
+            "**DPD-specific checks:**\n"
+            "- All product variants used in a DPD group must have defined: `weight_grams`, `length_mm`, `width_mm`, `height_mm`.\n"
+            "- Parcel limits are enforced (≤31.5 kg, ≤120 cm longest side, ≤300 cm combined dimensions).\n\n"
 
-        "**Delivery Cost Selection:**\n"
-        "- `delivery_type` determines channel:\n"
-        "   `1` → PUDO (Pickup Point)\n"
-        "   `2` → HD (Home Delivery)\n"
-        "- The matching rate is selected from courier pricing results.\n"
-        "- If multiple parcel counts appear (e.g., GLS/DPD splits), `total_parcels` is normalized to a single integer.\n\n"
+            "**Delivery Cost Selection:**\n"
+            "- `delivery_type` determines channel:\n"
+            "   `1` → PUDO (Pickup Point)\n"
+            "   `2` → HD (Home Delivery)\n"
+            "- The matching rate is selected from courier pricing results.\n"
+            "- If multiple parcel counts appear (e.g., GLS/DPD splits), `total_parcels` is normalized to a single integer.\n\n"
 
-        "**PayPal Session Construction:**\n"
-        "- Product costs and delivery costs are added to `purchase_units` items.\n"
-        "- Computed group-level shipping data is written into `PayPalMetadata`, "
-        "to be restored by the webhook upon successful payment.\n"
-        "- COD is **always disabled** for PayPal payments.\n"
-        "- Currency is **EUR** throughout the calculation.\n\n"
+            "**PayPal Session Construction:**\n"
+            "- Product costs and delivery costs are added to `purchase_units` items.\n"
+            "- Computed group-level shipping data is written into `PayPalMetadata`, "
+            "to be restored by the webhook upon successful payment.\n"
+            "- COD is **always disabled** for PayPal payments.\n"
+            "- Currency is **EUR** throughout the calculation.\n\n"
 
-        "**Post-Payment Workflow:**\n"
-        "- PayPal webhook reads stored metadata, creates 1..N orders (one per seller-group), "
-        "generates invoice(s), and sends emails to:\n"
-        "   • Customer\n"
-        "   • Seller(s)\n"
-        "   • Managers\n\n"
+            "**Post-Payment Workflow:**\n"
+            "- PayPal webhook reads stored metadata, creates 1..N orders (one per seller-group), "
+            "generates invoice(s), and sends emails to:\n"
+            "   • Customer\n"
+            "   • Seller(s)\n"
+            "   • Managers\n\n"
 
-        "**Redirect Behavior:**\n"
-        "- Success: `REDIRECT_DOMAIN/payment_end/?session_id=<session_key>`\n"
-        "- Cancel:  `REDIRECT_DOMAIN/basket/`\n\n"
+            "**Redirect Behavior:**\n"
+            "- Success: `REDIRECT_DOMAIN/payment_end/?session_id=<session_key>`\n"
+            "- Cancel:  `REDIRECT_DOMAIN/basket/`\n\n"
 
-        "**Example of Multi-Courier Flow:**\n"
-        "Two seller groups in one checkout:\n"
-        "- Group 1 (GLS HD): Standard home delivery within CZ or EU, parcel split via GLS logic.\n"
-        "- Group 2 (DPD PUDO): Pickup Point delivery abroad with strict volumetric and weight checks.\n"
-        "→ Both groups are validated, delivery is calculated individually, totals are aggregated, "
-        "and one unified PayPal session is created."
+            "**Example of Multi-Courier Flow:**\n"
+            "Two seller groups in one checkout:\n"
+            "- Group 1 (GLS HD): Standard home delivery within CZ or EU, parcel split via GLS logic.\n"
+            "- Group 2 (DPD PUDO): Pickup Point delivery abroad with strict volumetric and weight checks.\n"
+            "→ Both groups are validated, delivery is calculated individually, totals are aggregated, "
+            "and one unified PayPal session is created."
     ),
     request=SessionInputSerializer,
     responses={
@@ -1345,8 +1344,8 @@ class StripeWebhookView(APIView):
                 "groups": [
                     {
                         "seller_id": 2,
-                        "delivery_type": 2,         # HD
-                        "courier_service": 3,       # GLS
+                        "delivery_type": 2,  # HD
+                        "courier_service": 3,  # GLS
                         "delivery_address": {
                             "street": "Na Lysinách 551/34",
                             "city": "Praha",
@@ -1359,8 +1358,8 @@ class StripeWebhookView(APIView):
                     },
                     {
                         "seller_id": 1,
-                        "delivery_type": 1,         # PUDO
-                        "courier_service": 4,       # DPD
+                        "delivery_type": 1,  # PUDO
+                        "courier_service": 4,  # DPD
                         "delivery_address": {
                             "street": "Na Lysinách 551/34",
                             "city": "Praha",
@@ -1737,7 +1736,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 "PayPal session creation failed for user=%s session_key=%s",
                 user.id,
                 session_key,
-                )
+            )
             return Response({"error": str(e)}, status=500)
 
 
@@ -1745,10 +1744,10 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 @extend_schema(
     summary="Handle PayPal Webhook for Successful Payment",
     description=(
-        "Processes PayPal payment webhooks. Accepts PAYMENT.CAPTURE.COMPLETED and CHECKOUT.ORDER.COMPLETED.\n"
-        "If CHECKOUT.ORDER.APPROVED is received, captures the order and then proceeds.\n\n"
-        "Creates orders grouped by seller, a single Payment per order, generates invoice, "
-        "sends emails and updates the conversion cache (session_key) after commit."
+            "Processes PayPal payment webhooks. Accepts PAYMENT.CAPTURE.COMPLETED and CHECKOUT.ORDER.COMPLETED.\n"
+            "If CHECKOUT.ORDER.APPROVED is received, captures the order and then proceeds.\n\n"
+            "Creates orders grouped by seller, a single Payment per order, generates invoice, "
+            "sends emails and updates the conversion cache (session_key) after commit."
     ),
     responses={
         200: OpenApiResponse(description="Orders and payments created successfully (or already processed)"),
@@ -2104,12 +2103,12 @@ class PayPalWebhookView(PayPalMixin, APIView):
 @extend_schema(
     summary="Get conversion payload for thank-you page",
     description=(
-        "Returns the minimal payload required to fire Google Ads/GA4 purchase events on the client side.\n\n"
-        "**Contract**:\n"
-        "- `transaction_id` — unique ID used for deduplication (we use the payment session id).\n"
-        "- `value` — total order amount in EUR (number).\n"
-        "- `currency` — always `EUR` in our setup.\n"
-        "- If the webhook hasn’t finished yet, the endpoint returns `{ ready: false }` and the client may retry."
+            "Returns the minimal payload required to fire Google Ads/GA4 purchase events on the client side.\n\n"
+            "**Contract**:\n"
+            "- `transaction_id` — unique ID used for deduplication (we use the payment session id).\n"
+            "- `value` — total order amount in EUR (number).\n"
+            "- `currency` — always `EUR` in our setup.\n"
+            "- If the webhook hasn’t finished yet, the endpoint returns `{ ready: false }` and the client may retry."
     ),
     parameters=[
         OpenApiParameter(
@@ -2189,7 +2188,7 @@ class ConversionPayloadView(APIView):
         payload = {
             "ready": True,
             "transaction_id": session_id,  # используем session_id как уникальный ID транзакции
-            "value": float(value),          # возвращаем числом
+            "value": float(value),  # возвращаем числом
             "currency": "EUR",
         }
 
