@@ -207,7 +207,6 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
     elif app.seller_type == SellerType.COMPANY:
         documents_complete = (
             has_single_sided("registration_certificate", "company_info") and
-            has_identity_document("company_representative") and
             has_single_sided("proof_of_address", "company_address") and
             has_single_sided("proof_of_address", "warehouse_address")
         )
@@ -265,6 +264,7 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
           passport (1 сторона: side=None или side="front")
           или ID/residence (2 стороны: front+back)
       - proof_of_address / registration_certificate: 1 сторона (None или front)
+      - для company identity_document в scope=company_representative больше не требуется
 
     Формат documents_summary:
 
@@ -453,28 +453,6 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "scope": "company_info",
                 "rule": "single_sided",
                 "missing_sides": [None],
-            })
-
-        # identity_document for company_representative
-        satisfied_by, sides, ids = pick_identity("company_representative")
-        requirements.append(
-            requirement_entry(
-                "identity_document",
-                "company_representative",
-                satisfied_by,
-                sides,
-                ids,
-            )
-        )
-        used_doc_ids.update(ids)
-
-        if not satisfied_by:
-            missing.append({
-                "doc_type": "identity_document",
-                "scope": "company_representative",
-                "rule": "identity_document",
-                "missing_sides": ["front", "back"],
-                "accepts_single_side": True,
             })
 
         # proof_of_address for company_address (single-sided)

@@ -228,6 +228,13 @@ class SellerDocumentInline(ReadOnlyInline):
             obj.file.url,
         )
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.exclude(
+            doc_type="identity_document",
+            scope="company_representative",
+        )
+
 
 @admin.register(SellerDocument)
 class SellerDocumentAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin):
@@ -770,7 +777,13 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
     @admin.display(description="Documents review")
     def documents_panel(self, obj: SellerOnboardingApplication) -> str:
         documents_summary, documents_missing = compute_documents_summary_and_missing(obj)
-        docs = list(obj.documents.all().order_by("scope", "doc_type", "side", "-uploaded_at"))
+        docs_qs = obj.documents.all()
+        if obj.seller_type == SellerType.COMPANY:
+            docs_qs = docs_qs.exclude(
+                doc_type="identity_document",
+                scope="company_representative",
+            )
+        docs = list(docs_qs.order_by("scope", "doc_type", "side", "-uploaded_at"))
 
         docs_by_key: dict[tuple[str, str], list[SellerDocument]] = defaultdict(list)
         for doc in docs:
