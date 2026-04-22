@@ -122,7 +122,6 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
     ALLOWED_SCOPES = {
         "identity_document": {
             "self_employed_personal",
-            "company_representative",
         },
         "proof_of_address": {
             "self_employed_address",

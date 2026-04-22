@@ -193,14 +193,6 @@ class SellerOnboardingStateAPIView(AuditAPIView):
                                         "document_ids": [10]
                                     },
                                     {
-                                        "doc_type": "identity_document",
-                                        "scope": "company_representative",
-                                        "status": "satisfied",
-                                        "satisfied_by": "double_sided",
-                                        "uploaded_sides": ["front", "back"],
-                                        "document_ids": [11, 12]
-                                    },
-                                    {
                                         "doc_type": "proof_of_address",
                                         "scope": "company_address",
                                         "status": "satisfied",
@@ -1306,20 +1298,20 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                         value=[
                             {
                                 "id": 46,
-                                "doc_type": "identity_document",
-                                "scope": "company_representative",
-                                "identity_document_subtype": "driving_license",
-                                "side": "front",
-                                "file": "/media/seller_onboarding_documents/driving_license_front.jpg",
+                                "doc_type": "registration_certificate",
+                                "scope": "company_info",
+                                "identity_document_subtype": None,
+                                "side": None,
+                                "file": "/media/seller_onboarding_documents/company_registration.pdf",
                                 "uploaded_at": "2025-01-15T12:31:00Z",
                             },
                             {
                                 "id": 47,
-                                "doc_type": "identity_document",
-                                "scope": "company_representative",
-                                "identity_document_subtype": "driving_license",
-                                "side": "back",
-                                "file": "/media/seller_onboarding_documents/driving_license_back.jpg",
+                                "doc_type": "proof_of_address",
+                                "scope": "company_address",
+                                "identity_document_subtype": None,
+                                "side": None,
+                                "file": "/media/seller_onboarding_documents/company_address.pdf",
                                 "uploaded_at": "2025-01-15T12:31:01Z",
                             },
                         ],
@@ -1376,7 +1368,7 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                 "- For `identity_document`, all entries for the same scope within one batch must use the same subtype\n\n"
 
                 "Allowed scopes by document type:\n"
-                "- `identity_document`: `self_employed_personal`, `company_representative`\n"
+                "- `identity_document`: `self_employed_personal`\n"
                 "- `proof_of_address`: `self_employed_address`, `company_address`, `warehouse_address`, `return_address`\n"
                 "- `registration_certificate`: `company_info`\n\n"
 
@@ -1416,14 +1408,13 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                         "type": "string",
                         "enum": [
                             "self_employed_personal",
-                            "company_representative",
                             "self_employed_address",
                             "company_address",
                             "warehouse_address",
                             "return_address",
                             "company_info",
                         ],
-                        "example": "company_representative",
+                        "example": "company_info",
                     },
                     "identity_document_subtype": {
                         "type": "string",
@@ -1458,10 +1449,8 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                         "type": "string",
                         "description": "JSON array of document metadata for batch upload.",
                         "example": (
-                                '[{"doc_type":"identity_document","scope":"company_representative",'
-                                '"identity_document_subtype":"driving_license","side":"front"},'
-                                '{"doc_type":"identity_document","scope":"company_representative",'
-                                '"identity_document_subtype":"driving_license","side":"back"}]'
+                                '[{"doc_type":"registration_certificate","scope":"company_info","side":null},'
+                                '{"doc_type":"proof_of_address","scope":"company_address","side":null}]'
                         ),
                     },
                     "files": {
@@ -1490,43 +1479,6 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                             "file": "/media/seller_onboarding_documents/passport_front.jpg",
                             "uploaded_at": "2025-01-15T12:30:00Z",
                         },
-                        response_only=True,
-                    ),
-                    OpenApiExample(
-                        name="Single driving license side uploaded",
-                        value={
-                            "id": 46,
-                            "doc_type": "identity_document",
-                            "scope": "company_representative",
-                            "identity_document_subtype": "driving_license",
-                            "side": "front",
-                            "file": "/media/seller_onboarding_documents/driving_license_front.jpg",
-                            "uploaded_at": "2025-01-15T12:31:00Z",
-                        },
-                        response_only=True,
-                    ),
-                    OpenApiExample(
-                        name="Batch driving license uploaded",
-                        value=[
-                            {
-                                "id": 46,
-                                "doc_type": "identity_document",
-                                "scope": "company_representative",
-                                "identity_document_subtype": "driving_license",
-                                "side": "front",
-                                "file": "/media/seller_onboarding_documents/driving_license_front.jpg",
-                                "uploaded_at": "2025-01-15T12:31:00Z",
-                            },
-                            {
-                                "id": 47,
-                                "doc_type": "identity_document",
-                                "scope": "company_representative",
-                                "identity_document_subtype": "driving_license",
-                                "side": "back",
-                                "file": "/media/seller_onboarding_documents/driving_license_back.jpg",
-                                "uploaded_at": "2025-01-15T12:31:01Z",
-                            },
-                        ],
                         response_only=True,
                     ),
                     OpenApiExample(
@@ -1585,7 +1537,7 @@ class SellerDocumentUploadAPIView(AuditAPIView):
                         value={
                             "documents": (
                                     "Batch contains conflicting identity_document_subtype values "
-                                    "for scope 'company_representative'. All identity_document entries for the same scope "
+                                    "for scope 'self_employed_personal'. All identity_document entries for the same scope "
                                     "must use the same subtype, including null."
                             )
                         },
