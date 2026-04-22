@@ -82,7 +82,7 @@ const EditGoodsForm = () => {
                 variantsServ?.length > 0 &&
                 variantsServ.every(
                     (item) =>
-                        item.price?.trim() &&+
+                        item.price?.trim() &&
                         !isNaN(Number(item.price)) &&
                         item.text?.trim()
                 );

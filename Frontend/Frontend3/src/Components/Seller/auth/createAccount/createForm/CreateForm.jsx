@@ -240,7 +240,7 @@ const CreateForm = () => {
 
                 <div className={styles.checkWrap}>
                     <Checkbox checked={isAgree} onChange={(e) => {
-                        setIsAgree(e.target.checked)пше
+                        setIsAgree(e.target.checked)
                     }} />
                     <p>
                         {tOnb('reg.agree_text')}
