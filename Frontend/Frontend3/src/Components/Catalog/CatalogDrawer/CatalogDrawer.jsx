@@ -36,6 +36,10 @@ const CatalogDrawer = ({ open, handleClose }) => {
     "Photovoltaics",
     "Services",
     "Watches",
+    "Food",
+    "Medical supplies and pharmacy",
+    "Sport and relaxation",
+    "Toys/games"
   ]; // 👈 ВОТ СЮДА
 
   const hiddenSubCategories = [
@@ -49,7 +53,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
     148,
     160,
     147,
-    123, 122, 126, 178, 125, 72, 77, 73, 74, 75, 76, 159, 162
+    123, 122, 126, 178, 125, 72, 77, 73, 74, 75, 76, 159, 162, 145
   ];
 
   const navigate = useNavigate();
@@ -61,7 +65,7 @@ const CatalogDrawer = ({ open, handleClose }) => {
   useEffect(() => {
 
     fetchGetCategory();
-
+    ""
   }, [open]);
 
   const categories = useSelector((state) => state.category.categories);
@@ -70,6 +74,12 @@ const CatalogDrawer = ({ open, handleClose }) => {
   const category = useSelector((state) => state.category.category);
 
   const handleCategoryClick = (name, id) => {
+    if (id === 143) {
+      navigate(
+        `/product_category/145?categoryValue=Paintings&categoryID=145`)
+      handleClose();
+      return
+    }
     navigate(
       `/product_category/${id}?categoryValue=${encodeURIComponent(
         name
@@ -89,7 +99,9 @@ const CatalogDrawer = ({ open, handleClose }) => {
               {categories
                 .filter(item => !hiddenIds.includes(item.name))
                 .map((item) => {
-                  if (item?.children) {
+                  const isPaintingsParent = item.id === 143;
+                  if (item?.children?.length > 0 && !isPaintingsParent) {
+                    // if (item?.children) {
                     return (
                       <CatalogItem
                         key={item.id}
@@ -120,52 +132,57 @@ const CatalogDrawer = ({ open, handleClose }) => {
           </div>
           {!isMobile && (
             <div>
-              {
+              {/* {
                 Object.keys(category).length > 0 &&
                 <h4 className={styles.catalogTitle}>{t(`categories.${category.id}`, { defaultValue: category.name })}</h4>
-              }
+              } */}
+              {Object.keys(category).length > 0 && category.id !== 143 && (
+                <h4 className={styles.catalogTitle}>
+                  {t(`categories.${category.id}`, { defaultValue: category.name })}
+                </h4>
+              )}
               <div className={styles.categoryCardWrap}>
                 {categoryItem?.children
-                ?.filter(sub => !hiddenSubCategories.includes(sub.id))
-                .map((item, index) => {
-                  if (!item?.children) {
-                    return (
-                      <CatalogCardSimple
-                        item={item}
-                        key={item.id}
-                        handleClose={handleClose}
-                      />
-                    );
-                  } else {
-                    // Для первого элемента создаем обертку, в которую добавляем CatalogCard и дополнительные элементы
-                    return (
-                      <React.Fragment key={item.id}>
-                        {index === 0 && (
-                          <div className={styles.categoryCardBtnWrap}>
-                            <div className={styles.categoryCardDiv}>
-                              {categoryItem?.children?.map((subItem) => (
-                                <CatalogCard item={subItem} key={subItem.id} />
-                              ))}
+                  ?.filter(sub => !hiddenSubCategories.includes(sub.id))
+                  .map((item, index) => {
+                    if (!item?.children) {
+                      return (
+                        <CatalogCardSimple
+                          item={item}
+                          key={item.id}
+                          handleClose={handleClose}
+                        />
+                      );
+                    } else {
+                      // Для первого элемента создаем обертку, в которую добавляем CatalogCard и дополнительные элементы
+                      return (
+                        <React.Fragment key={item.id}>
+                          {index === 0 && (
+                            <div className={styles.categoryCardBtnWrap}>
+                              <div className={styles.categoryCardDiv}>
+                                {categoryItem?.children?.map((subItem) => (
+                                  <CatalogCard item={subItem} key={subItem.id} />
+                                ))}
+                              </div>
+                              <div className={styles.categoryTextDiv}>
+                                {podCategory?.children?.map((child) => (
+                                  <p
+                                    onClick={() =>
+                                      handleCategoryClick(child?.name, child?.id)
+                                    }
+                                    className={styles.categoryText}
+                                    key={child.id}
+                                  >
+                                    {t(`categories.${child.id}`, { defaultValue: child.name })}
+                                  </p>
+                                ))}
+                              </div>
                             </div>
-                            <div className={styles.categoryTextDiv}>
-                              {podCategory?.children?.map((child) => (
-                                <p
-                                  onClick={() =>
-                                    handleCategoryClick(child?.name, child?.id)
-                                  }
-                                  className={styles.categoryText}
-                                  key={child.id}
-                                >
-                                  {t(`categories.${child.id}`, { defaultValue: child.name })}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </React.Fragment>
-                    );
-                  }
-                })}
+                          )}
+                        </React.Fragment>
+                      );
+                    }
+                  })}
               </div>
             </div>
           )}

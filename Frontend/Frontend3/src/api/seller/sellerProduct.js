@@ -82,9 +82,13 @@ export const postSellerVariants = async (id, obj) => {
         throw new Error("Некорректные входные данные: отсутствует ID или список вариантов");
     }
 
-    const queryData = obj.variants.map(({ price, image, text }) => ({
+    const queryData = obj.variants.map(({ price, image, text, weight, width, length, height }) => ({
         price,
         name: obj.name,
+        weight_grams: weight,
+        width_mm: width,
+        length_mm: length,
+        height_mm: height,
         ...(image ? { image } : { text }),
     }));
 
