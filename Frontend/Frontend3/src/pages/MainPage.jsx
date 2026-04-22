@@ -21,7 +21,7 @@ const MainPage = () => {
   );
 
 const mainCategoriesIdArr = [68,67,69,146,150,149,151,148,160,147,70,71,85,84,87]
-const visibleIds = [145, 156, 127, 170, 161];
+const visibleIds = [145, 44];
 
   const isMobile = useMediaQuery({ maxWidth: 500 })
 
