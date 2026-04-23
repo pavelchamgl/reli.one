@@ -1,6 +1,7 @@
 import re
 
 from django.contrib.auth.hashers import make_password
+from phonenumber_field.serializerfields import PhoneNumberField
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -38,7 +39,7 @@ class UserRegistrationSerializer(PasswordValidateMixin, serializers.ModelSeriali
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
-    phone_number = serializers.CharField()
+    phone_number = PhoneNumberField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
@@ -46,12 +47,21 @@ class UserRegistrationSerializer(PasswordValidateMixin, serializers.ModelSeriali
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'phone_number', 'password', 'confirm_password']
 
+    def to_internal_value(self, data):
+        data = data.copy()
+        if data.get('phone_number') == '':
+            data['phone_number'] = None
+        return super().to_internal_value(data)
+
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("user with this email already exists.")
         return value
 
     def validate_phone_number(self, value):
+        if value in (None, ''):
+            return None
+
         if CustomUser.objects.filter(phone_number=value).exists():
             raise serializers.ValidationError("user with this phone number already exists.")
         return value
@@ -59,6 +69,10 @@ class UserRegistrationSerializer(PasswordValidateMixin, serializers.ModelSeriali
     def create(self, validated_data):
         role_name = self.context.get('role_name', UserRole.CUSTOMER)
         validated_data.pop('confirm_password')
+
+        if not validated_data.get('phone_number'):
+            validated_data['phone_number'] = None
+
         user = CustomUser.objects.create_user(role=role_name, **validated_data)
         return user
 

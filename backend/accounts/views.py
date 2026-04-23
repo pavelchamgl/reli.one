@@ -1,21 +1,20 @@
 from datetime import timedelta
 
-from django.utils import timezone
-from rest_framework import status
-from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiTypes, OpenApiExample
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
-from rest_framework_simplejwt.tokens import RefreshToken
-from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from allauth.socialaccount.providers.facebook.views import FacebookOAuth2Adapter
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from dj_rest_auth.registration.views import SocialLoginView
+from django.utils import timezone
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiTypes, OpenApiExample
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .choices import UserRole
-from .utils import create_and_send_otp
-from .models import CustomUser, OTP
 from .mixins import SocialLoginResponseMixin
+from .models import CustomUser, OTP
 from .serializers import (
     UserRegistrationSerializer,
     EmailSerializer,
@@ -24,6 +23,7 @@ from .serializers import (
     CustomTokenObtainPairSerializer,
     UserProfileSerializer,
 )
+from .utils import create_and_send_otp
 
 
 class UserRegistrationView(APIView):
@@ -101,7 +101,7 @@ class UserRegistrationView(APIView):
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'phone_number': str(user.phone_number),
+                'phone_number': str(user.phone_number) if user.phone_number else None,
                 'role': user.role,
             }
             return Response(response_data, status=status.HTTP_201_CREATED)
@@ -693,13 +693,13 @@ class CheckingOTPPasswordResetAPIView(APIView):
 class PasswordResetConfirmationAPIView(APIView):
     @extend_schema(
         description=(
-            "Confirm password reset using OTP. "
-            "Requirements for the new password:\n"
-            "- Password fields must match.\n"
-            "- Password must be at least 8 characters long.\n"
-            "- Password must contain at least one uppercase letter (A-Z).\n"
-            "- Password must contain at least one digit (0-9).\n"
-            "- Password must contain at least one special character (!@#$%^&*).\n"
+                "Confirm password reset using OTP. "
+                "Requirements for the new password:\n"
+                "- Password fields must match.\n"
+                "- Password must be at least 8 characters long.\n"
+                "- Password must contain at least one uppercase letter (A-Z).\n"
+                "- Password must contain at least one digit (0-9).\n"
+                "- Password must contain at least one special character (!@#$%^&*).\n"
         ),
         request=PasswordResetConfirmSerializer,
         responses={
@@ -955,7 +955,6 @@ class UserProfileUpdateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 @extend_schema(
     description="Authenticate user with Google OAuth2 access token.\n\n"
                 "This endpoint accepts a Google `access_token` and returns both "
@@ -1052,15 +1051,14 @@ class GoogleLogin(SocialLoginResponseMixin, SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
 
-
 @extend_schema(
     operation_id="facebook_social_login",
     description=(
-        "Authenticate user using Facebook OAuth2 access token.\n\n"
-        "This endpoint accepts a Facebook `access_token` and returns a JWT access and refresh token.\n\n"
-        "**Error cases:**\n"
-        "- 400: access_token is missing or invalid\n"
-        "- 500: Error fetching user info from Facebook"
+            "Authenticate user using Facebook OAuth2 access token.\n\n"
+            "This endpoint accepts a Facebook `access_token` and returns a JWT access and refresh token.\n\n"
+            "**Error cases:**\n"
+            "- 400: access_token is missing or invalid\n"
+            "- 500: Error fetching user info from Facebook"
     ),
     request={
         "application/json": {
