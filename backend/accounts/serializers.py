@@ -1,8 +1,8 @@
 import re
 
+from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from django.contrib.auth.hashers import make_password
 
 from .choices import UserRole
 from .models import CustomUser
@@ -38,7 +38,7 @@ class UserRegistrationSerializer(PasswordValidateMixin, serializers.ModelSeriali
     first_name = serializers.CharField(required=True)
     last_name = serializers.CharField(required=True)
     email = serializers.EmailField(required=True)
-    phone_number = serializers.CharField(required=True)
+    phone_number = serializers.CharField()
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
