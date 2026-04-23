@@ -98,7 +98,6 @@ const EditGoodsForm = () => {
         }
 
 
-
         setCategoryErr(!isCategoryValid);
         setImageErr(!isImagesValid);
         setParametersErr(!isParametersValid)

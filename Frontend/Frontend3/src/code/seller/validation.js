@@ -295,19 +295,19 @@ export const companyValidationSchema = Yup.object({
     account_holder: Yup.string()
         .required("Account holder is required"),
 
-    bank_code: Yup.string().when("country", {
-        is: (val) => val === "cz" || val === "sk", // условие
-        then: (schema) => schema.required("Bank code is required"), // обязательно
-        otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    }),
+    // bank_code: Yup.string().when("country", {
+    //     is: (val) => val === "cz" || val === "sk", // условие
+    //     then: (schema) => schema.required("Bank code is required"), // обязательно
+    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
+    // }),
 
     // bank_code: Yup.string()
     //     .required("Bank code is required"),
-    local_account_number: Yup.string().when("country", {
-        is: (val) => val === "cz" || val === "sk", // условие
-        then: (schema) => schema.required("Local account is required"), // обязательно
-        otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    }),
+    // local_account_number: Yup.string().when("country", {
+    //     is: (val) => val === "cz" || val === "sk", // условие
+    //     then: (schema) => schema.required("Local account is required"), // обязательно
+    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
+    // }),
 
     /* ========= WAREHOUSE ========= */
     wStreet: Yup.string()

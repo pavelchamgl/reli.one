@@ -24,7 +24,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
 
   const isPersonalDataFilled = (values) => {
     return Boolean(
-      values.first_name &&
+      values.first_name &&   
       values.last_name &&
       values.date_of_birth &&
       values.personal_phone

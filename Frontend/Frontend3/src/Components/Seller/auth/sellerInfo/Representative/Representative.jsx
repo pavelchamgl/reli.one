@@ -15,7 +15,7 @@ import { countriesArr } from "../../../../../code/seller"
 import { ErrToast } from "../../../../../ui/Toastify"
 
 import styles from "./Representative.module.scss"
-import IdentDocumInp from "../../identDocumInp/IdentDocumInp"
+// import IdentDocumInp from "../../identDocumInp/IdentDocumInp"
 
 const Representative = ({ formik, onClosePreview }) => {
 
@@ -81,22 +81,22 @@ const Representative = ({ formik, onClosePreview }) => {
     ];
 
 
-    const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
-        uploadSingleDocument({ file, doc_type, scope, side })
-            .then(res => {
+    // const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
+    //     uploadSingleDocument({ file, doc_type, scope, side })
+    //         .then(res => {
 
-                if (side === "front") {
-                    formik.setFieldValue("uploadFront", res.uploaded_at)
-                }
-                if (side === "back") {
-                    formik.setFieldValue("uploadBack", res.uploaded_at)
-                }
-            })
-            .catch(err => {
-                ErrToast(err.message)
-                console.log("Ошибка загрузки", err);
-            });
-    };
+    //             if (side === "front") {
+    //                 formik.setFieldValue("uploadFront", res.uploaded_at)
+    //             }
+    //             if (side === "back") {
+    //                 formik.setFieldValue("uploadBack", res.uploaded_at)
+    //             }
+    //         })
+    //         .catch(err => {
+    //             ErrToast(err.message)
+    //             console.log("Ошибка загрузки", err);
+    //         });
+    // };
 
     const ignoreBlurRef = useRef(false);
 
@@ -166,7 +166,7 @@ const Representative = ({ formik, onClosePreview }) => {
                     />
                 </div>
 
-                <IdentDocumInp scopeProp={"company_representative"} selfData={companyData} formik={formik} ref={ignoreBlurRef} />
+                {/* <IdentDocumInp scopeProp={"company_representative"}  selfData={companyData} formik={formik} ref={ignoreBlurRef} /> */}
 
             </div>
         </div>
