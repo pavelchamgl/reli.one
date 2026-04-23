@@ -55,8 +55,8 @@ const SellerCompanyInfo = () => {
             role: companyData?.role ?? "",
             date_of_birth: companyData?.date_of_birth ?? "",
             nationality: companyData?.nationality ?? "",
-            uploadFront: companyData?.uploadFront ?? "",
-            uploadBack: companyData?.uploadBack ?? "",
+            // uploadFront: companyData?.uploadFront ?? "",
+            // uploadBack: companyData?.uploadBack ?? "",
 
 
             // company address
@@ -188,7 +188,7 @@ const SellerCompanyInfo = () => {
     useEffect(() => {
         getAllCompanyDataBD()
     }, [])
-
+    console.log(formik);
     if (!companyDataLoading) {
         return (
             <FormWrap style={{ height: "100%" }}>
