@@ -46,6 +46,25 @@ def _is_blank(value: Any) -> bool:
     return value is None or (isinstance(value, str) and value.strip() == "")
 
 
+def _normalize_spaces(value: str) -> str:
+    return " ".join(value.split())
+
+
+def _clean_legal_form(legal_form: str | None) -> str:
+    if _is_blank(legal_form):
+        return ""
+    without_parentheses = re.sub(r"\s*\([^)]*\)", "", legal_form or "")
+    return _normalize_spaces(without_parentheses)
+
+
+def get_expected_company_account_holder(company_name: str | None, legal_form: str | None) -> str:
+    parts = [
+        _normalize_spaces(company_name or ""),
+        _clean_legal_form(legal_form),
+    ]
+    return _normalize_spaces(" ".join(part for part in parts if part))
+
+
 @dataclass
 class Completeness:
     seller_type_selected: bool
@@ -535,7 +554,7 @@ def validate_before_submit(app: SellerOnboardingApplication) -> None:
 
     # account_holder rule from TZ:
     # - self-employed: holder должен совпадать с ФИО
-    # - company: holder должен совпадать с названием компании
+    # - company: holder должен совпадать с названием компании + legal form
     if bank and app.seller_type == SellerType.SELF_EMPLOYED:
         full_name = f"{app.seller_profile.user.first_name} {app.seller_profile.user.last_name}".strip()
         if full_name and bank.account_holder and bank.account_holder.strip() != full_name:
@@ -543,8 +562,13 @@ def validate_before_submit(app: SellerOnboardingApplication) -> None:
 
     if bank and app.seller_type == SellerType.COMPANY:
         ci = getattr(app, "company_info", None)
-        if ci and ci.company_name and bank.account_holder and bank.account_holder.strip() != ci.company_name.strip():
-            errors["account_holder"] = "For company, account holder must match company name."
+        expected_holder = get_expected_company_account_holder(
+            getattr(ci, "company_name", None),
+            getattr(ci, "legal_form", None),
+        ) if ci else ""
+        actual_holder = _normalize_spaces(bank.account_holder or "")
+        if expected_holder and actual_holder and actual_holder != expected_holder:
+            errors["account_holder"] = "For company, account holder must match company name and legal form."
 
     wh = getattr(app, "warehouse_address", None)
     if not wh or _is_blank(wh.street) or _is_blank(wh.city) or _is_blank(wh.zip_code) or _is_blank(wh.country) or _is_blank(wh.contact_phone):
