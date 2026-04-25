@@ -184,25 +184,15 @@ const BankAccount = ({ formik, onClosePreview }) => {
 
         }
 
-
-
-
         if (pathname === '/seller/seller-review') safeData(payload);
 
-        if (pathname === '/seller/seller-review-company') safeCompanyData(payload);
-
-        console.log("ОТПРАВКА НА БЭКЕНД:", payload);
+        // if (pathname === '/seller/seller-review-company') safeCompanyData(payload);
 
         try {
-
             await putOnboardingBank(payload);
-
             onClosePreview?.();
-
         } catch (err) {
-
             ErrToast(err?.message || t('onboard.common.error_save'));
-
         }
 
     }
@@ -210,9 +200,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
 
 
     useEffect(() => {
-
         if (!isCzSk) {
-
             formik.setFieldValue('bank_code', '', false)
 
             formik.setFieldValue('local_account_number', '', false)
