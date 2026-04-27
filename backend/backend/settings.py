@@ -41,7 +41,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['reli.one', 'www.reli.one', 'info.reli.one', '45.147.248.21', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -186,7 +186,7 @@ REST_AUTH = {
     'REGISTER_SERIALIZER': 'accounts.serializers.UserRegistrationSerializer',
 
     'USE_JWT': True,
-    'JWT_AUTH_SECURE': False,  # True если только через HTTPS
+    'JWT_AUTH_SECURE': True,
     'JWT_AUTH_SAMESITE': 'Lax',
 
     'TOKEN_MODEL': None,
@@ -269,9 +269,10 @@ SPECTACULAR_SETTINGS = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIRECT_DOMAIN = 'https://reli.one/'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "https://reli.one",
+    "https://www.reli.one",
     "http://45.147.248.21:8081",
 ]
 

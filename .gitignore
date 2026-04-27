@@ -6,8 +6,25 @@ Frontend/node_modules
 Frontend/Frontend1/node_modules
 Frontend/Frontend2/node_modules
 Frontend/Frontend3/node_modules
+
+# TLS / сертификаты и приватные ключи
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
 Frontend/nginx/reli.crt
 Frontend/nginx/reli.key
+
+# Env-файлы сервисов (реальные значения, не .example)
+envs/*
+!envs/*.example
+
+# Временные файлы редакторов
+*.swp
+*.swo
+*.orig
+*~
 Frontend/dist
 */__pycache__
 */migrations

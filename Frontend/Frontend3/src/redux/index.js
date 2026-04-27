@@ -72,5 +72,3 @@ export const store = configureStore({
 
 export const persistor = persistStore(store)
 
-// email - dastanalmazbekuulu9@gmail.com
-// password - dastan555666$
