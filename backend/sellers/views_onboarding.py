@@ -2,18 +2,19 @@ from __future__ import annotations
 
 import json
 
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.utils import timezone
-from rest_framework import status
 from drf_spectacular.utils import (
     extend_schema,
     OpenApiResponse,
     OpenApiExample,
 )
-from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from django.core.files.storage import default_storage
+from rest_framework.response import Response
 
+from .drf_hooks import AuditAPIView
 from .models import (
     OnboardingStatus,
     SellerOnboardingApplication,
@@ -28,7 +29,6 @@ from .models import (
     SellerReturnAddress,
     SellerDocument,
 )
-from .drf_hooks import AuditAPIView
 from .permissions_onboarding import IsSeller
 from .serializers_onboarding import (
     SellerTypeSerializer,
@@ -54,7 +54,6 @@ from .services_onboarding import (
     compute_next_step,
     compute_documents_summary_and_missing,
 )
-
 
 ALLOWED_MIME_TYPES = {
     "image/jpeg",
@@ -259,15 +258,15 @@ class SellerSetSellerTypeAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Set seller type for onboarding",
         description=(
-            "Sets the seller type for the current onboarding application.\n\n"
-            "This is the first mandatory step of seller onboarding. "
-            "Seller type determines which data blocks and documents "
-            "are required in subsequent steps.\n\n"
-            "Allowed values:\n"
-            "- `self_employed` — self-employed / sole proprietor\n"
-            "- `company` — company / legal entity\n\n"
-            "Seller type can only be changed while the onboarding application "
-            "is in `draft` or `rejected` status."
+                "Sets the seller type for the current onboarding application.\n\n"
+                "This is the first mandatory step of seller onboarding. "
+                "Seller type determines which data blocks and documents "
+                "are required in subsequent steps.\n\n"
+                "Allowed values:\n"
+                "- `self_employed` — self-employed / sole proprietor\n"
+                "- `company` — company / legal entity\n\n"
+                "Seller type can only be changed while the onboarding application "
+                "is in `draft` or `rejected` status."
         ),
         request=SellerTypeSerializer,
         responses={
@@ -343,6 +342,14 @@ def _get_one_to_one_or_none(app: SellerOnboardingApplication, related_name: str)
     return getattr(app, related_name, None)
 
 
+def _self_employed_personal_user_data(app: SellerOnboardingApplication) -> dict:
+    user = app.seller_profile.user
+    return {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+    }
+
+
 class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
@@ -350,19 +357,28 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get self-employed personal details",
         description=(
-            "Returns saved personal details for a self-employed seller.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved personal details for a self-employed seller.\n\n"
+                "If the block is not filled yet, returns the seller account name fields.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
                 response=SelfEmployedPersonalSerializer,
-                description="Existing data or empty object",
+                description="Existing data or account name fields",
                 examples=[
-                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Name fields only",
+                        value={
+                            "first_name": "Jan",
+                            "last_name": "Kowalski",
+                        },
+                        response_only=True,
+                    ),
                     OpenApiExample(
                         name="Existing data",
                         value={
+                            "first_name": "Jan",
+                            "last_name": "Kowalski",
                             "date_of_birth": "1990-05-12",
                             "nationality": "PL",
                             "personal_phone": "+48123123123",
@@ -378,18 +394,18 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         obj = _get_one_to_one_or_none(app, "self_employed_personal")
         if not obj:
-            return Response({}, status=status.HTTP_200_OK)
+            return Response(_self_employed_personal_user_data(app), status=status.HTTP_200_OK)
         return Response(SelfEmployedPersonalSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         tags=["Seller Onboarding"],
         summary="Update self-employed personal details",
         description=(
-            "Updates personal details for a self-employed seller during onboarding.\n\n"
-            "This endpoint stores personal identification data required for KYC verification, "
-            "such as date of birth and nationality.\n\n"
-            "The data is saved in a draft/rejected state and can be updated multiple times "
-            "until the onboarding application is submitted."
+                "Updates personal details for a self-employed seller during onboarding.\n\n"
+                "This endpoint stores personal identification data required for KYC verification, "
+                "such as date of birth and nationality.\n\n"
+                "The data is saved in a draft/rejected state and can be updated multiple times "
+                "until the onboarding application is submitted."
         ),
         request=SelfEmployedPersonalSerializer,
         responses={
@@ -400,6 +416,8 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
                     OpenApiExample(
                         name="Personal details updated",
                         value={
+                            "first_name": "Jan",
+                            "last_name": "Kowalski",
                             "date_of_birth": "1990-05-12",
                             "nationality": "PL",
                             "personal_phone": "+48123123123",
@@ -447,9 +465,9 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get self-employed tax information",
         description=(
-            "Returns saved tax-related information for a self-employed seller.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved tax-related information for a self-employed seller.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -483,11 +501,11 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update self-employed tax information",
         description=(
-            "Updates tax-related information for a self-employed seller during onboarding.\n\n"
-            "This endpoint stores tax identification data required for KYB/KYC compliance, "
-            "including tax country and tax identification number (TIN).\n\n"
-            "The data can be updated multiple times while the onboarding application "
-            "remains in draft/rejected status."
+                "Updates tax-related information for a self-employed seller during onboarding.\n\n"
+                "This endpoint stores tax identification data required for KYB/KYC compliance, "
+                "including tax country and tax identification number (TIN).\n\n"
+                "The data can be updated multiple times while the onboarding application "
+                "remains in draft/rejected status."
         ),
         request=SelfEmployedTaxSerializer,
         responses={
@@ -546,9 +564,9 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get self-employed address",
         description=(
-            "Returns saved residential address of a self-employed seller.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved residential address of a self-employed seller.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -583,11 +601,11 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update self-employed address",
         description=(
-            "Updates the residential address of a self-employed seller during onboarding.\n\n"
-            "This address is used for KYC verification and must correspond "
-            "to the proof of address document uploaded later.\n\n"
-            "The information can be updated multiple times while the onboarding "
-            "application remains in draft/rejected status."
+                "Updates the residential address of a self-employed seller during onboarding.\n\n"
+                "This address is used for KYC verification and must correspond "
+                "to the proof of address document uploaded later.\n\n"
+                "The information can be updated multiple times while the onboarding "
+                "application remains in draft/rejected status."
         ),
         request=SelfEmployedAddressSerializer,
         responses={
@@ -647,9 +665,9 @@ class SellerCompanyInfoAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get company information",
         description=(
-            "Returns saved company identification and registration details.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved company identification and registration details.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -689,13 +707,13 @@ class SellerCompanyInfoAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update company information",
         description=(
-            "Updates company identification and registration details during seller onboarding.\n\n"
-            "This endpoint is applicable only for sellers with seller type `company` "
-            "(legal entities).\n\n"
-            "The provided information is used for KYB verification and must match "
-            "the uploaded company registration documents.\n\n"
-            "Data can be updated multiple times while the onboarding application "
-            "is in draft/rejected status."
+                "Updates company identification and registration details during seller onboarding.\n\n"
+                "This endpoint is applicable only for sellers with seller type `company` "
+                "(legal entities).\n\n"
+                "The provided information is used for KYB verification and must match "
+                "the uploaded company registration documents.\n\n"
+                "Data can be updated multiple times while the onboarding application "
+                "is in draft/rejected status."
         ),
         request=CompanyInfoSerializer,
         responses={
@@ -760,9 +778,9 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get company representative details",
         description=(
-            "Returns saved personal details of the company representative.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved personal details of the company representative.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -797,14 +815,14 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update company representative details",
         description=(
-            "Updates personal details of the company representative during seller onboarding.\n\n"
-            "This endpoint is applicable only for sellers with seller type `company`.\n\n"
-            "The representative is a natural person authorized to act on behalf of the company "
-            "(e.g. owner, director, or authorized signatory). "
-            "The provided information is used for KYC verification and must match "
-            "the uploaded identity document.\n\n"
-            "Data can be updated multiple times while the onboarding application "
-            "remains in draft/rejected status."
+                "Updates personal details of the company representative during seller onboarding.\n\n"
+                "This endpoint is applicable only for sellers with seller type `company`.\n\n"
+                "The representative is a natural person authorized to act on behalf of the company "
+                "(e.g. owner, director, or authorized signatory). "
+                "The provided information is used for KYC verification and must match "
+                "the uploaded identity document.\n\n"
+                "Data can be updated multiple times while the onboarding application "
+                "remains in draft/rejected status."
         ),
         request=CompanyRepresentativeSerializer,
         responses={
@@ -862,9 +880,9 @@ class SellerCompanyAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get company registered address",
         description=(
-            "Returns saved registered legal address of the company.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved registered legal address of the company.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -899,12 +917,12 @@ class SellerCompanyAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update company registered address",
         description=(
-            "Updates the registered legal address of the company during seller onboarding.\n\n"
-            "This endpoint is applicable only for sellers with seller type `company`.\n\n"
-            "The address must correspond to the company registration details and "
-            "must match the uploaded proof of address document.\n\n"
-            "Data can be updated multiple times while the onboarding application "
-            "remains in draft/rejected status."
+                "Updates the registered legal address of the company during seller onboarding.\n\n"
+                "This endpoint is applicable only for sellers with seller type `company`.\n\n"
+                "The address must correspond to the company registration details and "
+                "must match the uploaded proof of address document.\n\n"
+                "Data can be updated multiple times while the onboarding application "
+                "remains in draft/rejected status."
         ),
         request=CompanyAddressSerializer,
         responses={
@@ -962,9 +980,9 @@ class SellerBankAccountAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get seller bank account details",
         description=(
-            "Returns saved bank account information used for seller payouts.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved bank account information used for seller payouts.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -999,14 +1017,14 @@ class SellerBankAccountAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update seller bank account details",
         description=(
-            "Updates bank account information used for seller payouts during onboarding.\n\n"
-            "This endpoint is mandatory for all sellers, regardless of seller type "
-            "(self-employed or company).\n\n"
-            "The bank account holder name must match:\n"
-            "- seller full name for self-employed sellers\n"
-            "- company name for company sellers\n\n"
-            "The provided information is validated before onboarding submission "
-            "and is required to complete the onboarding process."
+                "Updates bank account information used for seller payouts during onboarding.\n\n"
+                "This endpoint is mandatory for all sellers, regardless of seller type "
+                "(self-employed or company).\n\n"
+                "The bank account holder name must match:\n"
+                "- seller full name for self-employed sellers\n"
+                "- company name for company sellers\n\n"
+                "The provided information is validated before onboarding submission "
+                "and is required to complete the onboarding process."
         ),
         request=BankAccountSerializer,
         responses={
@@ -1064,9 +1082,9 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get warehouse address",
         description=(
-            "Returns saved warehouse (shipping origin) address.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved warehouse (shipping origin) address.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -1102,12 +1120,12 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update warehouse address",
         description=(
-            "Updates the warehouse (shipping origin) address used by the seller.\n\n"
-            "This address is required for logistics, shipping calculations, "
-            "and courier integrations. It may also be subject to compliance "
-            "and address verification.\n\n"
-            "This endpoint is mandatory for all sellers and must be completed "
-            "before onboarding submission."
+                "Updates the warehouse (shipping origin) address used by the seller.\n\n"
+                "This address is required for logistics, shipping calculations, "
+                "and courier integrations. It may also be subject to compliance "
+                "and address verification.\n\n"
+                "This endpoint is mandatory for all sellers and must be completed "
+                "before onboarding submission."
         ),
         request=WarehouseAddressSerializer,
         responses={
@@ -1166,9 +1184,9 @@ class SellerReturnAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Get return address",
         description=(
-            "Returns saved return address used for customer returns.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
-            "Frontend should use this endpoint to prefill onboarding forms."
+                "Returns saved return address used for customer returns.\n\n"
+                "If the block is not filled yet, returns an empty object `{}`.\n"
+                "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
@@ -1205,13 +1223,13 @@ class SellerReturnAddressAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Update return address",
         description=(
-            "Updates the return address used for customer returns during seller onboarding.\n\n"
-            "If `same_as_warehouse` is set to `true`, the warehouse address "
-            "will be used automatically as the return address.\n\n"
-            "If `same_as_warehouse` is set to `false`, a separate return address "
-            "must be provided.\n\n"
-            "This endpoint is mandatory for all sellers and must be completed "
-            "before onboarding submission."
+                "Updates the return address used for customer returns during seller onboarding.\n\n"
+                "If `same_as_warehouse` is set to `true`, the warehouse address "
+                "will be used automatically as the return address.\n\n"
+                "If `same_as_warehouse` is set to `false`, a separate return address "
+                "must be provided.\n\n"
+                "This endpoint is mandatory for all sellers and must be completed "
+                "before onboarding submission."
         ),
         request=ReturnAddressSerializer,
         responses={
@@ -1284,9 +1302,9 @@ class SellerDocumentUploadAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="List uploaded documents",
         description=(
-            "Returns list of uploaded documents for the current onboarding application.\n\n"
-            "Frontend should use this endpoint to display already uploaded documents "
-            "and allow replacing them when onboarding is editable."
+                "Returns list of uploaded documents for the current onboarding application.\n\n"
+                "Frontend should use this endpoint to display already uploaded documents "
+                "and allow replacing them when onboarding is editable."
         ),
         responses={
             200: OpenApiResponse(
@@ -1814,12 +1832,12 @@ class SellerOnboardingReviewAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Review onboarding application before submission",
         description=(
-            "Returns a full review of the current seller onboarding application.\n\n"
-            "This endpoint **does not modify any data**. It is used to:\n"
-            "- Check whether the onboarding application is complete\n"
-            "- Determine if the application can be submitted for verification\n"
-            "- Inspect completeness of each required block (data & documents)\n\n"
-            "Typically called before invoking the submit endpoint."
+                "Returns a full review of the current seller onboarding application.\n\n"
+                "This endpoint **does not modify any data**. It is used to:\n"
+                "- Check whether the onboarding application is complete\n"
+                "- Determine if the application can be submitted for verification\n"
+                "- Inspect completeness of each required block (data & documents)\n\n"
+                "Typically called before invoking the submit endpoint."
         ),
         responses={
             200: OpenApiResponse(
@@ -1882,13 +1900,13 @@ class SellerOnboardingSubmitAPIView(AuditAPIView):
         tags=["Seller Onboarding"],
         summary="Submit onboarding application for verification",
         description=(
-            "Submits the seller onboarding application for verification.\n\n"
-            "This endpoint:\n"
-            "- Performs **strict validation** of all required onboarding blocks\n"
-            "- Validates documents, bank account, addresses and seller type\n"
-            "- Changes application status to `pending_verification`\n\n"
-            "Submission is only allowed when the application is complete.\n"
-            "If validation fails, a detailed error structure is returned."
+                "Submits the seller onboarding application for verification.\n\n"
+                "This endpoint:\n"
+                "- Performs **strict validation** of all required onboarding blocks\n"
+                "- Validates documents, bank account, addresses and seller type\n"
+                "- Changes application status to `pending_verification`\n\n"
+                "Submission is only allowed when the application is complete.\n"
+                "If validation fails, a detailed error structure is returned."
         ),
         responses={
             200: OpenApiResponse(
@@ -1931,7 +1949,7 @@ class SellerOnboardingSubmitAPIView(AuditAPIView):
                     ),
                 ],
             ),
-            403: OpenApiResponse(description="User is not a seller",),
+            403: OpenApiResponse(description="User is not a seller", ),
         },
     )
     def post(self, request):

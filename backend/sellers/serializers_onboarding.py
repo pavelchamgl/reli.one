@@ -233,6 +233,7 @@ class SellerDocumentCreateSerializer(serializers.ModelSerializer):
 
         return attrs
 
+
 class SellerDocumentReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerDocument
@@ -251,9 +252,19 @@ class SellerDocumentReadSerializer(serializers.ModelSerializer):
 # ----- Block serializers -----
 
 class SelfEmployedPersonalSerializer(serializers.ModelSerializer):
+    first_name = serializers.SerializerMethodField()
+    last_name = serializers.SerializerMethodField()
+
     class Meta:
         model = SellerSelfEmployedPersonalDetails
-        fields = ["date_of_birth", "nationality", "personal_phone"]
+        fields = ["first_name", "last_name", "date_of_birth", "nationality", "personal_phone"]
+        read_only_fields = ["first_name", "last_name"]
+
+    def get_first_name(self, obj):
+        return obj.application.seller_profile.user.first_name
+
+    def get_last_name(self, obj):
+        return obj.application.seller_profile.user.last_name
 
 
 class SelfEmployedTaxSerializer(serializers.ModelSerializer):
@@ -312,4 +323,5 @@ class WarehouseAddressSerializer(serializers.ModelSerializer):
 class ReturnAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerReturnAddress
-        fields = ["same_as_warehouse", "street", "city", "zip_code", "country", "contact_phone", "proof_document_issue_date"]
+        fields = ["same_as_warehouse", "street", "city", "zip_code", "country", "contact_phone",
+                  "proof_document_issue_date"]
