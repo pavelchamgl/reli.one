@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any
-
-from django.db import transaction
-from django.conf import settings
-from django.utils import timezone
-from django.core.mail import send_mail
-from rest_framework.exceptions import ValidationError
+from typing import Any, Set, Tuple
 
 from accounts.choices import UserRole
+from django.conf import settings
+from django.core.mail import send_mail
+from django.db import transaction
+from django.utils import timezone
+from rest_framework.exceptions import ValidationError
+
 from .models import (
     SellerOnboardingApplication,
     SellerType,
@@ -20,7 +20,6 @@ from .models import (
     OnboardingEventType,
 )
 from .services_onboarding_audit import log_onboarding_event
-
 
 IBAN_RE = re.compile(r"^[A-Z0-9]{15,34}$")
 SWIFT_RE = re.compile(r"^[A-Z0-9]{8,11}$")
@@ -180,6 +179,7 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         return_complete = bool(
             ra.street and ra.city and ra.zip_code and ra.country and ra.contact_phone
         )
+    return_address_requires_document = bool(ra and not ra.same_as_warehouse)
 
     # DOCUMENTS
     docs: Set[Tuple[str, str, str | None]] = {
@@ -192,8 +192,8 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         Проверка одностороннего документа (passport, proof_of_address).
         """
         return (
-            (doc_type, scope, None) in docs or
-            (doc_type, scope, "front") in docs
+                (doc_type, scope, None) in docs or
+                (doc_type, scope, "front") in docs
         )
 
     def has_double_sided(doc_type: str, scope: str) -> bool:
@@ -201,8 +201,8 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         Проверка двустороннего документа (ID / residence).
         """
         return (
-            (doc_type, scope, "front") in docs and
-            (doc_type, scope, "back") in docs
+                (doc_type, scope, "front") in docs and
+                (doc_type, scope, "back") in docs
         )
 
     def has_identity_document(scope: str) -> bool:
@@ -212,22 +212,30 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         - ID / residence (2 стороны)
         """
         return (
-            has_single_sided("identity_document", scope) or
-            has_double_sided("identity_document", scope)
+                has_single_sided("identity_document", scope) or
+                has_double_sided("identity_document", scope)
         )
 
     if app.seller_type == SellerType.SELF_EMPLOYED:
         documents_complete = (
-            has_identity_document("self_employed_personal") and
-            has_single_sided("proof_of_address", "self_employed_address") and
-            has_single_sided("proof_of_address", "warehouse_address")
+                has_identity_document("self_employed_personal") and
+                has_single_sided("proof_of_address", "self_employed_address") and
+                has_single_sided("proof_of_address", "warehouse_address") and
+                (
+                        not return_address_requires_document or
+                        has_single_sided("proof_of_address", "return_address")
+                )
         )
 
     elif app.seller_type == SellerType.COMPANY:
         documents_complete = (
-            has_single_sided("registration_certificate", "company_info") and
-            has_single_sided("proof_of_address", "company_address") and
-            has_single_sided("proof_of_address", "warehouse_address")
+                has_single_sided("registration_certificate", "company_info") and
+                has_single_sided("proof_of_address", "company_address") and
+                has_single_sided("proof_of_address", "warehouse_address") and
+                (
+                        not return_address_requires_document or
+                        has_single_sided("proof_of_address", "return_address")
+                )
         )
 
     else:
@@ -365,12 +373,12 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
         return None, [], []
 
     def requirement_entry(
-        doc_type: str,
-        scope: str,
-        satisfied_by: str | None,
-        uploaded_sides: list[str | None],
-        document_ids: list[int],
-        identity_document_subtypes: list[str] | None = None,
+            doc_type: str,
+            scope: str,
+            satisfied_by: str | None,
+            uploaded_sides: list[str | None],
+            document_ids: list[int],
+            identity_document_subtypes: list[str] | None = None,
     ) -> dict:
         return {
             "doc_type": doc_type,
@@ -386,6 +394,10 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
     used_doc_ids: set[int] = set()
 
     missing: list[dict] = []
+    return_address = getattr(app, "return_address", None)
+    return_address_requires_document = bool(
+        return_address and not return_address.same_as_warehouse
+    )
 
     if app.seller_type == SellerType.SELF_EMPLOYED:
         # identity_document for self-employed personal
@@ -452,6 +464,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "missing_sides": [None],
             })
 
+        if return_address_requires_document:
+            ok, sides, ids = pick_single_sided("proof_of_address", "return_address")
+            requirements.append(
+                requirement_entry(
+                    "proof_of_address",
+                    "return_address",
+                    "single_sided" if ok else None,
+                    sides,
+                    ids,
+                )
+            )
+            used_doc_ids.update(ids)
+
+            if not ok:
+                missing.append({
+                    "doc_type": "proof_of_address",
+                    "scope": "return_address",
+                    "rule": "single_sided",
+                    "missing_sides": [None],
+                })
+
     elif app.seller_type == SellerType.COMPANY:
         # registration_certificate for company_info (single-sided)
         ok, sides, ids = pick_single_sided("registration_certificate", "company_info")
@@ -516,6 +549,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "missing_sides": [None],
             })
 
+        if return_address_requires_document:
+            ok, sides, ids = pick_single_sided("proof_of_address", "return_address")
+            requirements.append(
+                requirement_entry(
+                    "proof_of_address",
+                    "return_address",
+                    "single_sided" if ok else None,
+                    sides,
+                    ids,
+                )
+            )
+            used_doc_ids.update(ids)
+
+            if not ok:
+                missing.append({
+                    "doc_type": "proof_of_address",
+                    "scope": "return_address",
+                    "rule": "single_sided",
+                    "missing_sides": [None],
+                })
+
     # counts
     used_for_requirements = len(used_doc_ids)
     extra_unused = max(total_uploaded - used_for_requirements, 0)
@@ -571,7 +625,8 @@ def validate_before_submit(app: SellerOnboardingApplication) -> None:
             errors["account_holder"] = "For company, account holder must match company name and legal form."
 
     wh = getattr(app, "warehouse_address", None)
-    if not wh or _is_blank(wh.street) or _is_blank(wh.city) or _is_blank(wh.zip_code) or _is_blank(wh.country) or _is_blank(wh.contact_phone):
+    if not wh or _is_blank(wh.street) or _is_blank(wh.city) or _is_blank(wh.zip_code) or _is_blank(
+            wh.country) or _is_blank(wh.contact_phone):
         errors["warehouse_address"] = "Warehouse address is incomplete."
 
     ra = getattr(app, "return_address", None)
@@ -644,7 +699,8 @@ def approve_application(app: SellerOnboardingApplication, reviewer: CustomUser) 
 
 
 @transaction.atomic
-def reject_application(app: SellerOnboardingApplication, reviewer: CustomUser, reason: str) -> SellerOnboardingApplication:
+def reject_application(app: SellerOnboardingApplication, reviewer: CustomUser,
+                       reason: str) -> SellerOnboardingApplication:
     if reviewer.role not in [UserRole.MANAGER, UserRole.ADMIN]:
         raise ValidationError({"detail": "Only manager/admin can reject."})
     if _is_blank(reason):
