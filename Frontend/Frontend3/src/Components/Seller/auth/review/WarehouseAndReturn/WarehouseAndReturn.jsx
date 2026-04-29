@@ -17,7 +17,7 @@ const WarehouseAndReturn = ({ data, setOpen, isCompany }) => {
     const rCountry = countriesArr.find((item) => item.value === data?.rCountry)
 
     const storeData = isCompany ? companyData : selfData
-
+console.log(storeData)
     const { t } = useTranslation('onbording')
 
     return (
@@ -49,6 +49,7 @@ const WarehouseAndReturn = ({ data, setOpen, isCompany }) => {
                     <PrevDocBtn setOpen={setOpen} text={storeData?.warehouse_name} />
                 </div>
             }
+        
 
             <span className={styles.devider}></span>
 
@@ -75,6 +76,19 @@ const WarehouseAndReturn = ({ data, setOpen, isCompany }) => {
                         </>
                 }
             </div>
+            {storeData && storeData?.return_address_name && (
+                <div className={styles.docWrap}>
+                    <p className={styles.docTitle}>
+                        {t('onboard.return.proof_address')}
+                    </p>
+
+                    <PrevDocBtn
+                        setOpen={setOpen}
+                        text={storeData?.return_address_name}
+                    />
+                </div>
+                
+            )}
         </div>
     )
 }

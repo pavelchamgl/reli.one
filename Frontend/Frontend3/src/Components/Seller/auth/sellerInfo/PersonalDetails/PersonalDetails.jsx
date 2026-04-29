@@ -58,10 +58,6 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
       safeData(payload)
     }
 
-
-
-
-
     localStorage.setItem('first_name', JSON.stringify(payload.first_name))
     localStorage.setItem('last_name', JSON.stringify(payload.last_name))
     localStorage.setItem('phone', JSON.stringify(payload.personal_phone))

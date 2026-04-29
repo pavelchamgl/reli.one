@@ -1,5 +1,5 @@
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import returnAddress from "../../../../../assets/Seller/register/returnAddress.svg"
@@ -7,14 +7,15 @@ import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import Checkbox from "../../../../../ui/Seller/newOrder/checkbox/Checkbox"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
-import { putReturnAddress } from "../../../../../api/seller/onboarding"
+import { putReturnAddress, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
 
 import styles from "./ReturnAddress.module.scss"
+import UploadInp from "../uploadInp/UploadInp"
 
 const ReturnAddress = ({ formik }) => {
 
-
+    const isLinked = formik.values.same_as_warehouse
     const handleSameAsWarehouse = (checked) => {
         formik.setFieldValue('same_as_warehouse', checked)
 
@@ -24,6 +25,7 @@ const ReturnAddress = ({ formik }) => {
             formik.setFieldValue("rZip_code", "")
             formik.setFieldValue("rCountry", null)
             formik.setFieldValue("rContact_phone", "")
+            formik.setFieldValue("rProof_document_issue_date", "")
         } else {
             formik.setFieldValue("rStreet", formik.values?.wStreet ?? "")
             formik.setFieldValue("rCity", formik.values?.wCity ?? "")
@@ -46,10 +48,13 @@ const ReturnAddress = ({ formik }) => {
             values.rContact_phone
         )
     }
+    const [uploadStatus, setUploadStatus] = useState("")
+
 
     const rAddressRef = useRef(null)
 
     const { t } = useTranslation('onbording')
+
 
     const onLeaveReturnBlock = () => {
 
@@ -64,11 +69,27 @@ const ReturnAddress = ({ formik }) => {
             zip_code: formik.values.rZip_code,
             country: formik.values.rCountry,
             contact_phone: formik.values.rContact_phone,
-            proof_document_issue_date: toISODate(formik.values.wProof_document_issue_date)
+            proof_document_issue_date: toISODate(formik.values.rProof_document_issue_date)
+            
         }
+        console.log(formik.values.rProof_document_issue_date)
 
         putReturnAddress(payload)
     }
+    const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
+                console.log("UPLOAD SCOPE:", scope)   // 👈 ВОТ ЭТО
+
+        uploadSingleDocument({ file, doc_type, scope, side })   
+            .then(res => {
+                formik.setFieldValue("rProof_document_issue_date", res.uploaded_at)
+                setUploadStatus('full')
+            })
+            .catch(err => {
+                setUploadStatus('rej')
+                ErrToast(err.message)
+                console.log("Ошибка загрузки", err);
+            });
+    };
 
 
     return (
@@ -149,6 +170,21 @@ const ReturnAddress = ({ formik }) => {
                     num={true}
                     touched={formik.touched.rContact_phone}
                 />
+                {!isLinked && (
+                    <UploadInp
+                        title={t('onboard.tax_address.proof_address')}
+                        description={t('onboard.tax_address.proof_desc')}
+                        side={null}
+                        docType={"proof_of_address"}
+                        scope={"return_address"}
+                        onChange={handleSingleFrontUpload}
+                        inpText={t('onboard.tax_address.upload_doc')}
+                        stateName={formik.values.rProof_document_name}
+                        nameTitle={"return_address"}
+                        // onMouseDown={() => (ignoreBlurRef.current = true)}
+                        uploadStatus={uploadStatus}
+                    />
+                )}
             </div>
         </div>
     )
