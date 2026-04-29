@@ -203,6 +203,7 @@
             "warehouse_address": "Warehouse address",
             "return_address": "Return address",
             "same_as_warehouse": "Same as warehouse address",
+            "same_as_the_primary_address": "Same as the primary address",
             "required_cz_sk": "Required for CZ/ SK",
             "bank_account": "Bank account",
             "bank_name": "Bank name",

@@ -12,11 +12,43 @@ import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 import UploadInp from "../uploadInp/UploadInp"
 import { putWarehouse, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
+import Checkbox from "../../../../../ui/Seller/newOrder/checkbox/Checkbox"
 
 import styles from "./WareHouseAddress.module.scss"
 import { ErrToast } from "../../../../../ui/Toastify"
 
 const WhareHouseAddress = ({ formik }) => {
+    const { pathname } = useLocation()
+
+    const isCompany = pathname.includes("seller-company")
+    const handleSameAsPrimaryAddress= (checked) => {
+        formik.setFieldValue('same_as_warehouse', checked)
+
+        if (!checked) {
+            formik.setFieldValue("wStreet", "")
+            formik.setFieldValue("wCity", "")
+            formik.setFieldValue("wZip_code", "")
+            formik.setFieldValue("wCountry", null)
+            formik.setFieldValue("wContact_phone", "")
+            return
+        }
+
+        const source = {
+            street: formik.values.street,
+            city: formik.values.city,
+            zip: formik.values.zip_code,
+            country: formik.values.country,
+            phone: formik.values.contact_phone
+        }
+
+        formik.setFieldValue("wStreet", source.street || "")
+        formik.setFieldValue("wCity", source.city || "")
+        formik.setFieldValue("wZip_code", source.zip || "")
+        formik.setFieldValue("wCountry", source.country || null)
+        formik.setFieldValue("wContact_phone", source.phone || "")
+
+        setTimeout(() => formik.validateForm(), 0)
+    }
 
     const isWarehouseFilled = (values) => {
         return Boolean(
@@ -32,7 +64,6 @@ const WhareHouseAddress = ({ formik }) => {
 
     const warehouseRef = useRef(null)
 
-    const { pathname } = useLocation()
 
     const companyPathname = '/seller/seller-company'
 
@@ -106,6 +137,13 @@ const WhareHouseAddress = ({ formik }) => {
                 <h2>{t('onboard.warehouse.title')}</h2>
             </div>
 
+            <label className={styles.checkWrap}>
+                <Checkbox
+                    checked={formik.values.same_as_warehouse}
+                    onChange={(e) => handleSameAsPrimaryAddress(e.target.checked)}
+                />
+                <p>Same as the primary address</p>
+            </label>
             <div className={styles.inpWrapMain}>
                 <InputSeller
                     title={t('onboard.tax_address.street')}
@@ -169,7 +207,7 @@ const WhareHouseAddress = ({ formik }) => {
 
                 <div>
                     <UploadInp
-                    
+
                         title={t('onboard.tax_address.proof_address')}
                         description={t('onboard.tax_address.proof_desc')}
                         side={null}
@@ -181,7 +219,7 @@ const WhareHouseAddress = ({ formik }) => {
                         nameTitle={"warehouse_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
                         uploadStatus={uploadStatus}
-                        
+
                     />
                 </div>
             </div>
