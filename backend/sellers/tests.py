@@ -1,8 +1,10 @@
-from django.test import TestCase
-from rest_framework.exceptions import ValidationError
-
 from accounts.choices import UserRole
 from accounts.models import CustomUser
+from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.exceptions import ValidationError
+from rest_framework.test import APIClient
 from sellers.models import (
     SellerBankAccount,
     SellerCompanyInfo,
@@ -66,3 +68,40 @@ class CompanyAccountHolderValidationTests(TestCase):
             account_holder=account_holder,
         )
         return app
+
+
+class SelfEmployedPersonalEndpointTests(TestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            email="self-employed@example.com",
+            password="password",
+            role=UserRole.SELLER,
+            first_name="Jan",
+            last_name="Kowalski",
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.url = reverse("seller-onboarding-se-personal")
+
+    def test_get_returns_account_name_fields_when_personal_block_is_empty(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["first_name"], "Jan")
+        self.assertEqual(response.data["last_name"], "Kowalski")
+
+    def test_put_returns_account_name_fields_with_saved_personal_details(self):
+        response = self.client.put(
+            self.url,
+            {
+                "date_of_birth": "1990-05-12",
+                "nationality": "PL",
+                "personal_phone": "+48123123123",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["first_name"], "Jan")
+        self.assertEqual(response.data["last_name"], "Kowalski")
+        self.assertEqual(response.data["nationality"], "PL")
