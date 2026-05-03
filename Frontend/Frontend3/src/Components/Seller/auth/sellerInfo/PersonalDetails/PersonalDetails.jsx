@@ -16,6 +16,7 @@ import { countriesArr, toISODate } from "../../../../../code/seller";
 
 import styles from './PersonalDetails.module.scss';
 import IdentDocumInp from "../../identDocumInp/IdentDocumInp";
+import { patchProfileUpdate } from "../../../../../api/seller/getOnboardingData";
 
 const PersonalDetails = ({ formik, onClosePreview }) => {
 
@@ -24,7 +25,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
 
   const isPersonalDataFilled = (values) => {
     return Boolean(
-      values.first_name &&   
+      values.first_name &&
       values.last_name &&
       values.date_of_birth &&
       values.personal_phone
@@ -42,7 +43,7 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
     const filled = isPersonalDataFilled(formik.values);
 
 
-
+console.log("Is filled:", filled); // Проверьте, true ли здесь
     if (!filled) return;
 
     const payload = {
@@ -58,18 +59,26 @@ const PersonalDetails = ({ formik, onClosePreview }) => {
       safeData(payload)
     }
 
-    localStorage.setItem('first_name', JSON.stringify(payload.first_name))
-    localStorage.setItem('last_name', JSON.stringify(payload.last_name))
+    // localStorage.setItem('first_name', JSON.stringify(payload.first_name))
+    // localStorage.setItem('last_name', JSON.stringify(payload.last_name))
     localStorage.setItem('phone', JSON.stringify(payload.personal_phone))
     try {
-      await putPersonalData({
-        date_of_birth: payload.date_of_birth?.split(".").reverse().join("-"),
-        nationality: payload.nationality,
-        personal_phone: payload.personal_phone,
-      });
+      const res = await patchProfileUpdate({
+        first_name: formik.values.first_name,
+        last_name: formik.values.last_name
+      })
+console.log("Patch response:", res); // Добавьте это
+      if (res?.status === 200 || res?.status === 204) {
+        await putPersonalData({
+          date_of_birth: payload.date_of_birth?.split(".").reverse().join("-"),
+          nationality: payload.nationality,
+          personal_phone: payload.personal_phone,
+        });
 
-      onClosePreview?.();
+        onClosePreview?.();
+      }
     } catch (err) {
+      console.error("Ошибка при сохранении:", err);
       // ErrToast(err?.message || "Failed to save personal data");
     }
   };

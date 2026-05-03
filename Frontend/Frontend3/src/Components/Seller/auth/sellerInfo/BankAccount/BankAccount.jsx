@@ -8,6 +8,7 @@ import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 import { ErrToast } from "../../../../../ui/Toastify"
 // import { useSelector } from "react-redux";
 import styles from "./BankAccount.module.scss"
+import { getAccountData } from "../../../../../api/seller/getOnboardingData"
 
 const BankAccount = ({ formik, onClosePreview }) => {
     // const { selfData, companyData } = useSelector(state => state.selfEmploed)
@@ -41,15 +42,17 @@ const BankAccount = ({ formik, onClosePreview }) => {
             const companyName = formik.values.company_name || "";
             return `${companyName} ${cleanLegalForm}`.trim();
             // return (formik.values.company_name || "").trim();
+        } else {
+            const first = cleanName(formik.values.first_name);
+            const last = cleanName(formik.values.last_name);
+            console.log(first, last, "что приходит с фио");
+
+            // const first = JSON.parse(localStorage.getItem('first_name') || '""');
+            // const last = JSON.parse(localStorage.getItem('last_name') || '""');
+
+            return `${first} ${last}`.trim();
         }
-        const first = cleanName(formik.values.first_name);
-        const last = cleanName(formik.values.last_name);
-        console.log(first, last, "что приходит с фио");
 
-        // const first = JSON.parse(localStorage.getItem('first_name') || '""');
-        // const last = JSON.parse(localStorage.getItem('last_name') || '""');
-
-        return `${first} ${last}`.trim();
     };
 
     // 2. Эффект для автоматической подстановки значения (Company Info -> Bank Account)
@@ -65,7 +68,21 @@ const BankAccount = ({ formik, onClosePreview }) => {
         formik.values.last_name,
         pathname
     ]);
+    useEffect(() => {
+        if (!pathname.includes('company')) {
+            getAccountData().then((res) => {
+                console.log(res, "resssss");
 
+                // if (res.status === 200) {
+                    // проверить нетворк на правильность статуса
+                    formik.setFieldValue("first_name", res.first_name)
+                    formik.setFieldValue("last_name", res.last_name)
+                // }
+            }).catch(err => {
+                console.error("Ошибка при получении данных:", err);
+            })
+        }
+    }, [pathname])
 
     const isBankDataFilled = (values) => {
         return Boolean(values.iban && values.swift_bic && values.account_holder);
@@ -154,6 +171,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
                     // Ошибка из setFieldError отобразится здесь автоматически
                     error={formik.errors.account_holder}
                     touched={formik.touched.account_holder}
+                    disabled={true}
                     required
                 />
 

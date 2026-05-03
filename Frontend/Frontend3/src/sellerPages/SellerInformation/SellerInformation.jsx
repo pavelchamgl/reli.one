@@ -24,8 +24,8 @@ import styles from "./SellerInformation.module.scss"
 
 const SellerInformation = () => {
 
-    const firstName = JSON.parse(localStorage.getItem('first_name')) || ""
-    const lastName = JSON.parse(localStorage.getItem('last_name')) || ""
+    // const firstName = JSON.parse(localStorage.getItem('first_name')) || ""
+    // const lastName = JSON.parse(localStorage.getItem('last_name')) || ""
     const phone = JSON.parse(localStorage.getItem('phone')) || ""
 
     const { safeData, getAllDataFromBD } = useActionSafeEmploed()
@@ -38,8 +38,10 @@ const SellerInformation = () => {
         initialValues: {
 
             // personal
-            first_name: firstName,
-            last_name: lastName,
+            // first_name: firstName,
+            // last_name: lastName, 
+            first_name: "",
+            last_name: "",
             date_of_birth: selfData?.date_of_birth ?? "",
             nationality: selfData?.nationality ?? "",
             personal_phone: phone,
@@ -89,8 +91,8 @@ const SellerInformation = () => {
         // validateOnBlur: true,
         onSubmit: async (values) => {
             safeData(values);
-            localStorage.setItem('first_name', JSON.stringify(values.first_name))
-            localStorage.setItem('last_name', JSON.stringify(values.last_name))
+            // localStorage.setItem('first_name', JSON.stringify(values.first_name))
+            // localStorage.setItem('last_name', JSON.stringify(values.last_name))
             localStorage.setItem('phone', JSON.stringify(values.personal_phone))
 
             // массив промисов с описанием

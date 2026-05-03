@@ -89,3 +89,23 @@ export const getCompanyAddress = async () => {
         throw error
     }
 }
+export const getAccountData = async () => {
+    try {
+        const res = await mainInstance.get('/sellers/onboarding/self-employed/personal/')
+        return res.data
+    } catch (error) {
+        throw error
+    }
+}
+
+export const patchProfileUpdate = async (data) => {
+    try {
+        const res = await mainInstance.patch(
+            '/accounts/profile/update/',
+            data
+        )
+        return res
+    } catch (error) {
+        throw error
+    }
+}
