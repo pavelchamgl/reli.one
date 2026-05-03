@@ -77,7 +77,7 @@ const ReturnAddress = ({ formik }) => {
         putReturnAddress(payload)
     }
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
-                console.log("UPLOAD SCOPE:", scope)   // 👈 ВОТ ЭТО
+                // console.log("UPLOAD SCOPE:", scope)   // 👈 ВОТ ЭТО
 
         uploadSingleDocument({ file, doc_type, scope, side })   
             .then(res => {

@@ -139,6 +139,7 @@ const selfEmploedSlice = createSlice({
                 const frontDocument = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document')
                 const selfAddressDoc = documents?.find((item) => item?.scope === 'self_employed_address' && item?.doc_type === 'proof_of_address')
                 const warehouseDoc = documents?.find((item) => item?.scope === 'warehouse_address' && item?.doc_type === 'proof_of_address')
+                const returnDoc = documents?.find((item) => item?.scope === 'return_address' && item?.doc_type === 'proof_of_address')
 
                 console.log(backDocument, frontDocument, selfAddressDoc, warehouseDoc);
 
@@ -216,6 +217,16 @@ const selfEmploedSlice = createSlice({
                     state.selfData.wProof_document_issue_date = ''
                     state.selfData.warehouse_name = ''
                 }
+
+                console.log(returnDoc, "returndocccc");
+
+                if (returnDoc) {
+                    state.selfData.rProof_document_issue_date = returnDoc.uploaded_at
+                    state.selfData.return_address_name = state.selfData.return_name ?? 'return_address is upload at'
+                } else {
+                    state.selfData.rProof_document_issue_date = ''
+                    state.selfData.return_address_name = ''
+                }
             }
 
 
@@ -280,6 +291,7 @@ const selfEmploedSlice = createSlice({
                 const companyAddressDoc = documents?.find((item) => item?.scope === 'company_address' && item?.doc_type === 'proof_of_address')
                 const warehouseDoc = documents?.find((item) => item?.scope === 'warehouse_address' && item?.doc_type === 'proof_of_address')
                 const certifikate = documents?.find((item) => item?.scope === 'company_info' && item?.doc_type === 'registration_certificate')
+                const returnDoc = documents?.find((item) => item?.scope === 'return_address' && item?.doc_type === 'proof_of_address')
 
                 if (passportDoc) {
                     state.companyData.uploadPassport = passportDoc.uploaded_at
@@ -362,6 +374,15 @@ const selfEmploedSlice = createSlice({
                     state.companyData.wProof_document_issue_date = ''
                     state.companyData.warehouse_name = ''
                 }
+
+                if (returnDoc) {
+                    state.companyData.rProof_document_issue_date = returnDoc.uploaded_at
+                    state.companyData.return_address_name = state.companyData.return_name ?? 'return_address is upload at'
+                } else {
+                    state.companyData.rProof_document_issue_date = ''
+                    state.companyData.return_address_name = ''
+                }
+
             }
 
             state.companyData.wStreet = warehouse?.street ?? ''
