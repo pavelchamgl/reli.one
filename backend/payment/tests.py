@@ -1,12 +1,12 @@
 """
-Unit-тесты для payment.services.paypal_checkout.
-
-Все внешние зависимости (HTTP, кеш, settings) мокируются.
+Unit-тесты для:
+  - payment.services.paypal_checkout
+  - payment.services.webhook_processing
 """
 from __future__ import annotations
 
 from decimal import Decimal
-from unittest.mock import MagicMock, patch, patch as mock_patch
+from unittest.mock import MagicMock, patch, call
 
 from django.test import SimpleTestCase
 
@@ -228,3 +228,179 @@ class TestCreatePayPalCheckoutSession(SimpleTestCase):
         _, kwargs = mock_post.call_args
         amount = kwargs["json"]["purchase_units"][0]["amount"]
         self.assertEqual(amount["currency_code"], "EUR")
+
+
+# ===========================================================================
+# payment.services.webhook_processing
+# ===========================================================================
+
+from payment.services.webhook_processing import (
+    WebhookPaymentData,
+    WebhookProcessingResult,
+    create_orders_and_payment,
+    set_conv_cache_after_commit,
+)
+
+
+def _make_webhook_data(**overrides) -> WebhookPaymentData:
+    """Минимально валидный WebhookPaymentData для тестов."""
+    base = dict(
+        payment_system="stripe",
+        payment_method="stripe",
+        session_id="cs_test_123",
+        session_key="uuid-abc",
+        conv_cache_id="cs_test_123",
+        amount=Decimal("100.00"),
+        currency="EUR",
+        customer_id="cus_123",
+        payment_intent_id="pi_123",
+        custom_data={
+            "user_id": "42",
+            "email": "test@example.com",
+            "first_name": "Jan",
+            "last_name": "Novak",
+            "phone": "+420123456789",
+            "delivery_address": {"country": "CZ"},
+        },
+        invoice_data={
+            "groups": [
+                {
+                    "delivery_type": 1,
+                    "courier_service": 1,
+                    "calculated_delivery_cost": "5.00",
+                    "calculated_group_total": "105.00",
+                    "products": [{"sku": "SKU-001", "quantity": 2}],
+                }
+            ],
+            "invoice_number": "INV-2026-001",
+        },
+        description_data={"variable_symbol": "2026001"},
+    )
+    base.update(overrides)
+    return WebhookPaymentData(**base)
+
+
+class TestSetConvCacheAfterCommit(SimpleTestCase):
+    """set_conv_cache_after_commit — формат payload и запись через on_commit."""
+
+    @patch("payment.services.webhook_processing.transaction.on_commit")
+    @patch("payment.services.webhook_processing._conv_cache")
+    def test_payload_structure(self, mock_cache, mock_on_commit):
+        set_conv_cache_after_commit("sess-001", Decimal("99.50"), "EUR", source="Test")
+
+        # on_commit должен быть поставлен в очередь
+        mock_on_commit.assert_called_once()
+
+        # Вызываем колбэк вручную
+        callback = mock_on_commit.call_args[0][0]
+        callback()
+
+        mock_cache.set.assert_called_once()
+        args = mock_cache.set.call_args
+        key = args[0][0]
+        payload = args[0][1]
+
+        self.assertEqual(key, "conv:sess-001")
+        self.assertTrue(payload["ready"])
+        self.assertEqual(payload["transaction_id"], "sess-001")
+        self.assertAlmostEqual(payload["value"], 99.5)
+        self.assertEqual(payload["currency"], "EUR")
+
+    @patch("payment.services.webhook_processing.transaction.on_commit")
+    @patch("payment.services.webhook_processing._conv_cache")
+    def test_currency_uppercased(self, mock_cache, mock_on_commit):
+        set_conv_cache_after_commit("s", Decimal("1"), "eur")
+        callback = mock_on_commit.call_args[0][0]
+        callback()
+        payload = mock_cache.set.call_args[0][1]
+        self.assertEqual(payload["currency"], "EUR")
+
+
+class TestCreateOrdersIdempotency(SimpleTestCase):
+    """create_orders_and_payment — idempotent replay."""
+
+    @patch("payment.services.webhook_processing.set_conv_cache_after_commit")
+    @patch("payment.services.webhook_processing.Payment")
+    def test_returns_replay_result_when_payment_exists(self, mock_payment_cls, mock_cache_fn):
+        existing = MagicMock()
+        existing.amount_total = Decimal("100.00")
+        existing.currency = "EUR"
+        mock_payment_cls.objects.filter.return_value.only.return_value.first.return_value = existing
+
+        result = create_orders_and_payment(_make_webhook_data())
+
+        self.assertIsNotNone(result)
+        self.assertTrue(result.is_replay)
+        self.assertEqual(result.orders, [])
+        mock_cache_fn.assert_called_once_with(
+            "cs_test_123",  # conv_cache_id
+            Decimal("100.00"),
+            "EUR",
+            source="StripeWebhook",
+        )
+
+    @patch("payment.services.webhook_processing.set_conv_cache_after_commit")
+    @patch("payment.services.webhook_processing.Payment")
+    def test_paypal_replay_uses_conv_cache_id(self, mock_payment_cls, mock_cache_fn):
+        existing = MagicMock()
+        existing.amount_total = Decimal("50.00")
+        existing.currency = "EUR"
+        mock_payment_cls.objects.filter.return_value.only.return_value.first.return_value = existing
+
+        data = _make_webhook_data(
+            payment_system="paypal",
+            payment_method="paypal",
+            session_id="PP-ORDER-999",
+            conv_cache_id="my-uuid-key",
+        )
+        result = create_orders_and_payment(data)
+
+        self.assertTrue(result.is_replay)
+        mock_cache_fn.assert_called_once()
+        call_args = mock_cache_fn.call_args[0]
+        self.assertEqual(call_args[0], "my-uuid-key")  # conv_cache_id, не session_id
+
+
+class TestCreateOrdersEarlyExits(SimpleTestCase):
+    """create_orders_and_payment — ранние выходы при отсутствии данных."""
+
+    def _no_existing_payment(self):
+        m = MagicMock()
+        m.objects.filter.return_value.only.return_value.first.return_value = None
+        return m
+
+    @patch("payment.services.webhook_processing.CustomUser")
+    @patch("payment.services.webhook_processing.Payment")
+    def test_returns_none_when_user_not_found(self, mock_payment_cls, mock_user_cls):
+        mock_payment_cls.objects.filter.return_value.only.return_value.first.return_value = None
+        # Создаём реальный подкласс Exception для DoesNotExist, чтобы except-клауза его поймала
+        mock_user_cls.DoesNotExist = type("DoesNotExist", (Exception,), {})
+        mock_user_cls.objects.get.side_effect = mock_user_cls.DoesNotExist("not found")
+
+        result = create_orders_and_payment(_make_webhook_data())
+        self.assertIsNone(result)
+
+    @patch("payment.services.webhook_processing.CustomUser")
+    @patch("payment.services.webhook_processing.Payment")
+    def test_returns_none_when_no_groups(self, mock_payment_cls, mock_user_cls):
+        mock_payment_cls.objects.filter.return_value.only.return_value.first.return_value = None
+        mock_user_cls.objects.get.return_value = MagicMock()
+
+        data = _make_webhook_data(invoice_data={"groups": [], "invoice_number": "INV-X"})
+        result = create_orders_and_payment(data)
+        self.assertIsNone(result)
+
+    @patch("payment.services.webhook_processing.OrderStatus")
+    @patch("payment.services.webhook_processing.ProductVariant")
+    @patch("payment.services.webhook_processing.CustomUser")
+    @patch("payment.services.webhook_processing.Payment")
+    def test_returns_none_when_pending_status_missing(
+        self, mock_payment_cls, mock_user_cls, mock_variant_cls, mock_status_cls
+    ):
+        mock_payment_cls.objects.filter.return_value.only.return_value.first.return_value = None
+        mock_user_cls.objects.get.return_value = MagicMock()
+        mock_variant_cls.objects.filter.return_value.select_related.return_value = []
+        mock_status_cls.objects.get.side_effect = mock_status_cls.DoesNotExist
+
+        result = create_orders_and_payment(_make_webhook_data())
+        self.assertIsNone(result)
