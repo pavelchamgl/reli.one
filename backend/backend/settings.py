@@ -6,11 +6,16 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Import .env.dev vars
-load_dotenv()
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths inside this folder: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Корень репозитория (родитель каталога backend/, где лежит manage.py).
+REPO_ROOT = BASE_DIR.parent
+
+# Переменные окружения: сначала общие файлы в repo/envs/ (как на проде), затем локальный backend/.env.
+# По умолчанию load_dotenv не перезаписывает уже заданные в процессе переменные (systemd/Docker).
+load_dotenv(REPO_ROOT / "envs" / "database.env")
+load_dotenv(REPO_ROOT / "envs" / "backend.env")
+load_dotenv(BASE_DIR / ".env")
 
 SECURE_SSL_REDIRECT = False
 
@@ -370,6 +375,8 @@ CACHES = {
         "TIMEOUT": 60 * 60 * 24,  # час, можно None
     },
 }
+
+os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
 
 LOGGING = {
     'version': 1,

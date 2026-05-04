@@ -43,6 +43,12 @@ class UserRegistrationSerializer(PasswordValidateMixin, serializers.ModelSeriali
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        role = (self.context or {}).get("role_name")
+        if role in (UserRole.CUSTOMER, UserRole.SELLER):
+            self.fields["phone_number"] = PhoneNumberField(required=True, allow_null=False)
+
     class Meta:
         model = CustomUser
         fields = ['first_name', 'last_name', 'email', 'phone_number', 'password', 'confirm_password']

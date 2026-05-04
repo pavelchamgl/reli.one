@@ -140,7 +140,7 @@ class CreateStripeSessionTests(CheckoutCatalogMixin, TestCase):
             ],
         }
 
-    @patch("payment.views.stripe.checkout.Session.create")
+    @patch("payment.services.stripe_checkout.stripe.checkout.Session.create")
     @patch("payment.views.calculate_order_shipping")
     @patch("payment.views.validate_phone_matches_country", return_value=None)
     @patch("payment.views.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
@@ -246,7 +246,7 @@ class DpdBranchTests(CheckoutCatalogMixin, TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.customer)
 
-    @patch("payment.views.stripe.checkout.Session.create")
+    @patch("payment.services.stripe_checkout.stripe.checkout.Session.create")
     @patch("payment.views.calculate_order_shipping_dpd")
     @patch("payment.views.validate_phone_matches_country", return_value=None)
     @patch("payment.views.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
