@@ -51,7 +51,11 @@ from warehouses.models import Warehouse, WarehouseItem
 from .mixins import PayPalMixin
 from .models import Payment, PayPalMetadata, StripeMetadata
 from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
-from .services import create_stripe_checkout_session, get_orders_by_payment_session_id
+from .services import (
+    create_stripe_checkout_session,
+    create_paypal_checkout_session,
+    get_orders_by_payment_session_id,
+)
 from .services_async import async_send_client_email
 
 conv_cache = caches["conv"]
@@ -1704,7 +1708,7 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 
         # --- PAYPAL CALL ---
         try:
-            approval_url, order_id = self.create_paypal_order(
+            approval_url, order_id = create_paypal_checkout_session(
                 line_items=line_items,
                 total_price=gross_total,
                 session_key=session_key,
