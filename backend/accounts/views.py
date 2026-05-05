@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -530,8 +531,12 @@ class CustomLogoutView(APIView):
     def post(self, request):
         refresh_token = request.data.get('refresh_token')
         if refresh_token:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except TokenError:
+                # Token already invalid or expired — logout is still successful.
+                pass
             return Response({"message": "User successfully logged out."})
         else:
             return Response(

@@ -1,6 +1,7 @@
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser
 
@@ -68,3 +69,52 @@ class CustomerRegistrationPhoneNumberTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("email", response.data)
+
+
+class LogoutViewTests(APITestCase):
+    """BE-4: CustomLogoutView должен возвращать 200, а не 500, при невалидном токене."""
+
+    def setUp(self):
+        self.url = reverse("logout")
+        self.user = CustomUser.objects.create_user(
+            first_name="Test",
+            last_name="User",
+            email="logout@example.com",
+            password="StrongP@ss1",
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_logout_with_valid_token_returns_200(self):
+        refresh = RefreshToken.for_user(self.user)
+        response = self.client.post(self.url, {"refresh_token": str(refresh)}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("message", response.data)
+
+    def test_logout_with_invalid_token_returns_200_not_500(self):
+        """Невалидный токен не должен вызывать 500 (BE-4)."""
+        response = self.client.post(
+            self.url,
+            {"refresh_token": "this.is.not.a.valid.token"},
+            format="json",
+        )
+        # Logout всегда успешен — даже если токен уже невалиден.
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("message", response.data)
+
+    def test_logout_with_expired_token_returns_200_not_500(self):
+        """Истёкший (blacklisted) токен не должен вызывать 500."""
+        refresh = RefreshToken.for_user(self.user)
+        token_str = str(refresh)
+        # Blacklist токен напрямую, чтобы имитировать второй logout.
+        refresh.blacklist()
+
+        response = self.client.post(
+            self.url, {"refresh_token": token_str}, format="json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_logout_without_token_returns_400(self):
+        response = self.client.post(self.url, {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("error", response.data)

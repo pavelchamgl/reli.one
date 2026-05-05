@@ -51,9 +51,10 @@ export const getProductById = async (id) => {
     }
 }
 
-export const getSearchProducts = async () => {
+export const getSearchProducts = async (query = "") => {
     try {
-        const res = await mainInstance.get("")
+        const res = await mainInstance.get(`/products/search/?q=${encodeURIComponent(query)}`)
+        return res
     } catch (error) {
         throw error
     }
