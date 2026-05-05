@@ -189,7 +189,7 @@ pip install sentry-sdk[django]
 
 ### Статус
 - [x] Django Sentry configured — `settings.py` строки 550–589, PII-фильтр `_sentry_before_send`, активируется только при DEBUG=False
-- [x] React Sentry configured — `main.jsx` строки 1–22, `beforeSend` удаляет token/access_token/refresh_token
+- [x] React Sentry configured — `main.jsx` строки 1–22, `beforeSend` удаляет token/access_token/refresh_token; `@sentry/react` установлен 2026-05-05
 - [x] SENTRY_DSN in env.example — оба файла: `envs/backend.env.example` и `Frontend/Frontend3/.env.example`
 
 ---
