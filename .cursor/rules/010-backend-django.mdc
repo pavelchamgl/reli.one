@@ -1,0 +1,25 @@
+---
+description: Django backend rules
+globs:
+  - "backend/**/*.py"
+alwaysApply: false
+---
+
+# Django backend rules
+
+Architecture:
+- Views should stay thin and handle HTTP concerns.
+- Serializers should validate input/output shape.
+- Business actions should live in services.
+- Complex read/query logic should live in selectors.
+- Reusable business validation should live in validators.
+- Use database transactions for multi-model writes in order/payment/delivery flows.
+- Preserve idempotency for payment webhooks.
+- Avoid duplicating external provider logic.
+
+When editing backend code:
+- Read the full file before changing it.
+- Check related models, serializers, urls, and tests.
+- Do not change API contracts without documenting the change.
+- Do not create migrations unless the task explicitly asks for model changes.
+- Prefer incremental refactoring over large rewrites.

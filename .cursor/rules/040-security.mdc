@@ -1,0 +1,12 @@
+---
+description: Security rules
+alwaysApply: true
+---
+
+# Security rules
+
+- Never commit secrets, API keys, private keys, certificates, passwords, real tokens, or production credentials.
+- Do not log sensitive payment, user, or seller KYC data.
+- Do not expose full error details to users for payment/delivery/provider failures.
+- Treat env files as local-only unless explicitly using .env.example.
+- If a secret-looking value is found in code, stop and report it before editing.
