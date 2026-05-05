@@ -546,3 +546,44 @@ GMC_ONLY_SELLER_IDS = [43]
 GMC_STATIC_BRANDS = {
     43: "Nutristar",
 }
+
+# ---------------------------------------------------------------------------
+# Sentry — error monitoring
+# Активируется только при наличии SENTRY_DSN и DEBUG=False.
+# DSN никогда не хардкодится; PII не передаётся.
+# ---------------------------------------------------------------------------
+_SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+
+if _SENTRY_DSN and not DEBUG:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    _SENSITIVE_KEYS = frozenset(
+        {
+            "password", "token", "access_token", "refresh_token",
+            "card_number", "cvv", "iban", "secret", "api_key",
+        }
+    )
+
+    def _sentry_before_send(event, hint):  # noqa: ARG001
+        """Strip sensitive fields from request body before sending to Sentry."""
+        request = event.get("request", {})
+        data = request.get("data")
+        if isinstance(data, dict):
+            request["data"] = {
+                k: "[Filtered]" if k.lower() in _SENSITIVE_KEYS else v
+                for k, v in data.items()
+            }
+        return event
+
+    sentry_sdk.init(
+        dsn=_SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(transaction_style="url"),
+            LoggingIntegration(level=None, event_level="ERROR"),
+        ],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        before_send=_sentry_before_send,
+    )

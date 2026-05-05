@@ -1,7 +1,25 @@
+import * as Sentry from "@sentry/react";
 import i18n from "../language/i18next.js";
 import { I18nextProvider } from "react-i18next";
 import React from "react";
 import ReactDOM from "react-dom/client";
+
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: 0.1,
+    beforeSend(event) {
+      // Strip auth tokens from extra data — never send PII to Sentry
+      if (event.extra) {
+        delete event.extra.token;
+        delete event.extra.access_token;
+        delete event.extra.refresh_token;
+      }
+      return event;
+    },
+  });
+}
 import App from "./App.jsx";
 import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
