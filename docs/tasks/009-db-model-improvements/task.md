@@ -30,7 +30,7 @@
 
 ## Зависимости
 
-- **Task 002 (testing-foundation)** — нужны тесты для warehouse перед правками
+- **Task 002 (testing-foundation)** — Core завершён; конкурентные тесты склада (`decrease_stock`) входят в эту задачу (Extended из 002)
 - Task 003 (payment-refactor) — webhook processing использует warehouse.decrease_stock
 
 ## Риски

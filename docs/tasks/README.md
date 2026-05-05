@@ -46,7 +46,7 @@ graph TD
 | # | Задача | Priority | Complexity | Зависит от | GO/NO-GO |
 |---|--------|----------|------------|------------|----------|
 | 001 | [system-stabilization](./001-system-stabilization/task.md) | **P0** | Medium | — | GO |
-| 002 | [testing-foundation](./002-testing-foundation/task.md) | **P0** | High | 001 | GO |
+| 002 | [testing-foundation](./002-testing-foundation/task.md) | **P0** | High | 001 | **DONE (Core)**; Extended → 009, 010, 012 |
 | 003 | [payment-refactor](./003-payment-refactor/task.md) | **P0/P1** | High | **002** | NO-GO без 002 |
 | 004 | [order-consistency](./004-order-consistency/task.md) | P1 | Medium | 002 | NO-GO без 002 |
 | 005 | [delivery-cleanup](./005-delivery-cleanup/task.md) | P1 | Medium | 002 | NO-GO без 002 |
@@ -55,6 +55,8 @@ graph TD
 | 008 | [seller-onboarding-stabilization](./008-seller-onboarding-stabilization/task.md) | P1 | High | 002 | NO-GO без 002 |
 | 009 | [db-model-improvements](./009-db-model-improvements/task.md) | **P0**/P2 | Medium | 002 | NO-GO без 002 |
 | 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | GO параллельно |
+| 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | GO |
+| 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | перенос Extended из 002 |
 
 ---
 

@@ -7,7 +7,7 @@
 - Перечислены приоритеты и критические сценарии, согласованные с P0.
 - Разделены уровни unit / integration (API).
 - Указаны порядок покрытия apps, моки, фикстуры, локальный запуск и CI.
-- Учтено **фактическое** состояние: backend использует `django.test` / `APITestCase` / `APIClient`; осмысленные тесты есть в `accounts`, `sellers`; у многих apps файлы `tests.py` пустые; `pytest.ini` нет; в активном frontend (`Frontend3`) нет скрипта тестов в `package.json`.
+- Учтено **фактическое** состояние: backend использует `django.test` / `APITestCase` / `APIClient` и **pytest-django** (тот же тестовый набор можно гнать и через `manage.py test`, и через `pytest`); осмысленные тесты есть в `accounts`, `sellers`, `payment`, `order`, `product`, `delivery`, `promocode`; `backend/pytest.ini` и `backend/conftest.py` есть; `warehouses/tests.py` пока пустой; в активном frontend (`Frontend3`) нет скрипта тестов в `package.json`.
 
 ---
 
@@ -15,10 +15,10 @@
 
 | Область | Состояние |
 |---------|-----------|
-| Backend | Точечные тесты: регистрация покупателя (`accounts`), валидация онбординга и API-блок персональных данных (`sellers`). |
+| Backend | Покрытие P0-цепочки расширено: `payment` (webhook, checkout), `order` (базовые доменные тесты), `product` (каталог API), `delivery` (shipping options с моками перевозчиков), `sellers` (валидация + **submit/approve/reject**), `accounts`, `promocode` (модель/сигналы). См. **Task 002** (DONE). |
 | Frontend | Тестовый раннер не подключён. |
-| Инфра | При отсутствии переменных БД в `settings` включается SQLite `:memory:` — удобно для быстрых прогонов без Postgres. |
-| CI | Автоматический прогон тестов в pipeline нужно зафиксировать как целевое требование (см. раздел CI). |
+| Инфра | `pytest-django` в зависимостях; `pytest.ini` указывает `DJANGO_SETTINGS_MODULE`. При отсутствии переменных Postgres в окружении — SQLite `:memory:` (как в `settings`). Локально при загруженном `envs/database.env` может подключаться Postgres — для быстрых прогонов без БД задайте пустые `DB_NAME`, `DB_HOST` и т.д. |
+| CI | `.github/workflows/ci.yml`: `makemigrations --check`, `migrate`, **`python manage.py test`**, затем **`pytest`**, плюс сборки фронтов. |
 
 ---
 
@@ -97,9 +97,9 @@ flowchart LR
 4. **delivery** — расчёты и публичные/продавец-эндпоинты.
 5. **payment** — сессии и webhooks (максимальный риск денег и дубликатов).
 6. **order** — итоговая модель после оплаты и ручных потоков.
-7. **sellers** — онбординг submit/review (уже частично покрыт — расширять).
+7. **sellers** — онбординг: валидация, API, переходы **submit / approve / reject** (покрыто).
 
-Остальные apps (**promocode**, **favorites**, **reviews**, …) — после стабилизации P0.
+Остальные apps: **promocode** — базовые тесты есть; **атомарность счётчика использований** — **Task 010**. **warehouses** — тесты склада / конкурентности — **Task 009**. **Расширенный order lifecycle** (переходы статусов продавцом, отмена, parcel) — **Task 012**. **favorites**, **reviews** — после стабилизации P0.
 
 ---
 
@@ -144,7 +144,7 @@ flowchart LR
 
 ## 7. Factories / fixtures
 
-Рекомендуемый стек: **factory_boy** (+ при желании `pytest-django`, если перейдёте на pytest). Минимальный набор фабрик:
+Рекомендуемый стек: **`pytest-django`** (уже в проекте) + по желанию **factory_boy** для массовой генерации объектов. Сейчас часть сценариев использует **фикстуры в `backend/conftest.py`** и `setUpTestData` в `TestCase`. Минимальный набор фабрик (целевой):
 
 - `CustomUser` (роли customer / seller / staff).
 - `SellerProfile` и связанные сущности онбординга.
@@ -163,17 +163,20 @@ flowchart LR
 Из каталога `backend` (активировано venv с зависимостями проекта):
 
 ```bash
-# все тесты
-python manage.py test
+# все тесты (Django runner)
+DB_NAME= DB_HOST= SECRET_KEY=<достаточно-длинный-ключ-для-JWT> DEBUG=1 python manage.py test
+
+# все тесты (pytest; эквивалентный набор)
+DB_NAME= DB_HOST= SECRET_KEY=<...> DEBUG=1 pytest --ignore=.venv
 
 # один app
-python manage.py test accounts sellers delivery payment order product
+python manage.py test order sellers
 
 # один класс/тест (пример)
 python manage.py test sellers.tests.CompanyAccountHolderValidationTests
 ```
 
-Без заданных переменных Postgres в окружении тесты используют SQLite in-memory (см. `backend/settings.py`). Для проверки ближе к продакшену — задать `DB_*` на локальную пустую БД и прогнать миграции.
+Если в окружении не заданы `DB_NAME` / `NAME` для default БД, в `settings` включается SQLite in-memory. Если подхватывается `envs/database.env` с Postgres — для прогона без живой БД обнулите `DB_NAME`, `DB_HOST` (и при необходимости остальные `DB_*`) в командной строке, как в примерах выше. Для проверки ближе к продакшену — задать `DB_*` на локальную БД и прогнать миграции.
 
 **Frontend (`Frontend3`):** после подключения Vitest/Jest команды добавить в `package.json`; до этого — ручной и E2E позже.
 
@@ -185,20 +188,23 @@ python manage.py test sellers.tests.CompanyAccountHolderValidationTests
 
 Минимум для merge:
 
-1. **Backend:** `python manage.py test` с окружением без продакшен-секретов (in-memory SQLite или сервис Postgres в job).
-2. **Lint** для backend (ruff/flake8/pep8 — что принят в проекте) и **eslint** для `Frontend3` (`npm run lint`).
-3. Опционально порог **coverage** по apps P0 (нарастающим итогом).
+1. **Backend:** `python manage.py test` **и** `pytest` с окружением без продакшен-секретов (в CI по умолчанию SQLite после `migrate` — без `DB_*` в job).
+2. **Lint** для **eslint** фронтов (`Frontend2`, `Frontend3`: `npm run lint`).
+3. Порог **coverage** по apps P0 — опционально (можно ввести в **Task 010**).
 
 Не запускать в CI реальные webhook к Stripe/PayPal; не использовать продакшен ключи.
 
 ```mermaid
-flowchart LR
-  subgraph ci [CI pipeline]
-    L[Lint BE + FE]
+flowchart TB
+  subgraph backend [Job backend]
+    M[makemigrations --check + migrate]
     T[manage.py test]
-    M[Migrations check optional]
+    P[pytest]
+    M --> T --> P
   end
-  L --> T --> M
+  subgraph fe [Jobs frontend2 и frontend3]
+    F[npm ci, lint, build]
+  end
 ```
 
 > **Skills:** стабильный PR и починка CI по комментариям — см. `/find-skills` (например babysit/skill про цикл «тесты — правки»).
@@ -209,8 +215,8 @@ flowchart LR
 
 | Этап | Действия | Skills (подобрать через `/find-skills`) |
 |------|-----------|----------------------------------------|
-| 0 | Зафиксировать CI job с `manage.py test` + lint | CI, babysit |
-| 1 | Дотянуть P0 API-тесты в `accounts`, `product`, `delivery`, `payment`, `order` | pytest-django, factory |
+| 0 | CI: `manage.py test` + `pytest` + lint FE (см. workflow) | CI, babysit |
+| 1 | P0 backend: `accounts`, `product`, `delivery`, `payment`, `order` (базовый домен), `sellers` — **Task 002 DONE (Core)**; Extended: **Task 009** (warehouse), **Task 010** (promocode atomic / при желании coverage), **Task 012** (order lifecycle extended) | pytest-django, factory |
 | 2 | Unit-пакет для `delivery/services/*` и критичных валидаторов | — |
 | 3 | Подключить frontend unit (Vitest + RTL) для auth и checkout-форм | — |
 | 4 | Поздний слой: E2E (Playwright) для 1–2 happy-path | E2E skill при наличии |
@@ -219,5 +225,36 @@ flowchart LR
 
 ## Связанные документы
 
+- `docs/tasks/002-testing-foundation/task.md` — **DONE (Testing Foundation Complete)**; Core vs Extended; Extended → Task 009, 010, 012.
+- `docs/tasks/012-order-lifecycle-extended-tests/task.md` — расширенные тесты lifecycle заказа (перенос из 002 Extended).
 - `docs/09-architecture-debt.md` — замечания по текущему объёму тестов и tooling.
 - `docs/02-user-flows.md`, `docs/01-business-domains.md` — сценарии для расширения P1/P2.
+
+---
+
+## Актуальное состояние (обновление)
+
+**Task 002 (Testing Foundation)** закрыт по **Core**: в репозитории есть `backend/pytest.ini`, `backend/conftest.py`, в `requirements.txt` — `pytest-django`; регрессии по Stripe webhook (идемпотентность), базовому домену `order`, онбордингу продавца (submit / approve / reject), каталогу, доставке с моками провайдеров; CI выполняет `manage.py test` и `pytest`.
+
+**Extended** (официальный перенос из Definition of Done Task 002):
+
+| Тема | Задача |
+|------|--------|
+| Конкурентность склада / `decrease_stock` | **Task 009** |
+| Атомарность `PromoCode.increment_used_count` | **Task 010** |
+| Расширенный order lifecycle (статусы, отмена, parcel и т.д.) | **Task 012** |
+
+**Task 011** (`order-product-received-at-timezone`) — только исправление naive datetime для `OrderProduct.received_at`; **не** заменяет Task 012.
+
+**Заметки по запуску:** короткий `SECRET_KEY` даёт предупреждения PyJWT о длине HMAC-ключа — для чистого вывода используйте ключ ≥ 32 символов. Фразы в `docs/09-architecture-debt.md` вроде «нет pytest» считать устаревшими; источник правды по тестам — этот документ и `docs/tasks/002-testing-foundation/task.md`.
+
+---
+
+## Снимок на 2026-05-05 (синхронизация с репозиторием)
+
+- **Оценка объёма backend-тестов:** порядка **80+** тестов при полном прогоне (`manage.py test` / `pytest` без `--ignore=.venv` из каталога `backend`).
+- **Переменные БД:** в CI backend-job **нет** `DB_*` → после `migrate` используется ветка SQLite из `settings`. Локально при загрузке `envs/database.env` нужно обнулять `DB_NAME` и `DB_HOST` (и при необходимости остальные `DB_*`) для такого же режима, либо поднимать Postgres.
+- **Дублирование раннеров в CI:** выполняются и `python manage.py test`, и `pytest` — один и тот же набор тестов, два способа поймать регрессии раннера/плагинов.
+- **Покрытие (coverage):** порог в CI не зафиксирован; опционально — в рамках **Task 010** вместе с тестом промокода.
+- **Frontend:** `Frontend3` по-прежнему без unit-скрипта в `package.json`; только lint/build в CI.
+- **Следующие документы для правок при изменении тестов:** этот файл, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.

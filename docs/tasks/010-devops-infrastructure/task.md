@@ -27,6 +27,10 @@
 - Проверка `DEBUG=False` при запуске
 - Обновление GitHub Actions CI
 
+### Качество backend (перенос Extended из Task 002)
+
+- **PromoCode:** regression-тест на **атомарность / отсутствие гонок** при инкременте `used_count` (см. `promocode/models.py::increment_used_count`). При доработке CI — опционально `pytest-cov` и порог по P0 apps в том же треке.
+
 ## Не входит в задачу
 
 - Настройка Prometheus/Grafana (долгосрочно)
@@ -50,7 +54,8 @@
 - [x] Sentry DSN настроен для Django и React — settings.py (только при DEBUG=False + SENTRY_DSN), main.jsx (только при VITE_SENTRY_DSN)
 - [ ] Документирована backup стратегия в `docs/07-deployment.md` — раздел содержит только TODO
 - [ ] Миграции включены в git (`.gitignore` обновлён) — `.gitignore` строка 30: `*/migrations` по-прежнему исключает миграции
-- [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test`
+- [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
+- [ ] PromoCode: тест атомарности / гонок `used_count` — перенос из Task 002 Extended (см. Scope выше)
 - [x] `DEBUG` корректно парсится как bool — `settings.py` строка 32 исправлена (2026-05-05): `os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`. Startup validation остаётся pending.
 
 ---
@@ -272,7 +277,7 @@ jobs:
 ```
 
 ### Статус
-- [x] CI pipeline updated — `.github/workflows/ci.yml`: backend (migration check, `manage.py test`), frontend2 (lint, build), frontend3 (lint, build). Без coverage threshold — добавить в Task 002.
+- [x] CI pipeline updated — `.github/workflows/ci.yml`: backend (migration check, `manage.py test`, `pytest`), frontend2 (lint, build), frontend3 (lint, build). Порог coverage — см. Scope (опционально в этой задаче).
 
 ---
 

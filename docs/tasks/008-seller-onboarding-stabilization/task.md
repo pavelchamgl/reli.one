@@ -33,7 +33,7 @@ Seller onboarding — критическая бизнес-функция. Тек
 
 ## Зависимости
 
-- **Task 002 (testing-foundation)** — нужна инфраструктура pytest + factory-boy
+- **Task 002 (testing-foundation)** — **Core DONE**; pytest + CI доступны; factory-boy по желанию позже
 
 ## Риски
 
