@@ -29,7 +29,7 @@ CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
+DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")
 
 CSRF_TRUSTED_ORIGINS = [
     'https://reli.one',

@@ -3,8 +3,6 @@ import { getProductById, getProducts, getProductsBySellerId } from "../api/produ
 import axios from "axios";
 import mainInstance from "../api";
 
-const token = JSON.parse(localStorage.getItem("token"));
-
 export const fetchGetProducts = createAsyncThunk(
     "products/fetchGetProducts",
     async (_, { rejectWithValue, getState }) => {
@@ -44,9 +42,6 @@ export const fetchSearchProducts = createAsyncThunk(
                     q: text,
                     page_size: 35
                 },
-                headers: {
-                    Authorization: token ? `Bearer ${token.access}` : ''
-                }
             });
             return res.data
         } catch (error) {
@@ -69,9 +64,6 @@ export const fetchSellerProducts = createAsyncThunk(
                     page: state.searchPage,
                     page_size: 35
                 },
-                headers: {
-                    Authorization: token ? `Bearer ${token.access}` : ''
-                }
             });
             return res.data
 

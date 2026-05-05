@@ -91,7 +91,7 @@ export const getInfoForG = async (token) => {
         })
         return data
     } catch (error) {
-        console.log(error);
+        // intentionally silent — caller handles undefined return
     }
 }
 
