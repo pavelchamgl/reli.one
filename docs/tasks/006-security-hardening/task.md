@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** Medium  
-**Status:** Pending
+**Status:** In Progress (Iteration 2 частично, Iteration 3 не начата)
 
 ## Цель
 
@@ -45,10 +45,10 @@
 
 ## Definition of Done
 
-- [ ] `Frontend/Frontend3/src/code/test.js` удалён
+- [x] `Frontend/Frontend3/src/code/test.js` удалён
 - [ ] Git-история очищена от секретов (или задокументирован план)
-- [ ] Google clientId читается из `VITE_GOOGLE_CLIENT_ID`
-- [ ] `Frontend/Frontend3/.env.example` создан
+- [x] Google clientId читается из `VITE_GOOGLE_CLIENT_ID`
+- [x] `Frontend/Frontend3/.env.example` создан
 - [ ] DRF throttling настроен для OTP endpoint
 - [ ] Все ротированные credentials обновлены в production
 
@@ -152,10 +152,12 @@ class OTPResendView(APIView):
 | `envs/backend.env.example` | Проверить полноту |
 
 ### Статус
-- [ ] test.js deleted
-- [ ] Google clientId in env
-- [ ] .env.example created
-- [ ] DRF throttling configured
+- [x] test.js deleted — подтверждено в коде, файл удалён
+- [x] Google clientId in env — `import.meta.env.VITE_GOOGLE_CLIENT_ID` в main.jsx
+- [x] .env.example created — `Frontend/Frontend3/.env.example` с VITE_API_URL, VITE_GOOGLE_CLIENT_ID, VITE_SENTRY_DSN
+- [ ] DRF throttling configured — НЕ реализовано: в settings.py нет DEFAULT_THROTTLE_CLASSES, OTPRateThrottle не создан
+
+**Аудит 2026-05-05:** Три из четырёх пунктов Iteration 2 выполнены в коде. DRF throttling пропущен.
 
 ---
 
@@ -203,10 +205,12 @@ git clone <repo> (fresh clone, НЕ git pull)
 - Дата ротации credentials
 
 ### Статус
-- [ ] Plan documented
+- [ ] Plan documented — процедура описана в этом файле, но `docs/security-incident-response.md` не создан
 - [ ] Team notified
 - [ ] History cleaned (координация с ops)
 - [ ] All credentials rotated
+
+**Аудит 2026-05-05:** SEC-1 остаётся открытым P0. Git-история не очищена, credentials не ротированы.
 
 ---
 
@@ -230,6 +234,8 @@ pytest backend/accounts/ -k "otp" -v
 
 ### Статус
 - [ ] Validation complete
+
+**Аудит 2026-05-05:** Валидация не проводилась. Throttling не реализован — тест 429 невозможен.
 
 ---
 

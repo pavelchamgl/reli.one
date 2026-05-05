@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Pending
+**Status:** In Progress (Iterations 2–4 выполнены, 5–6 не начаты)
 
 ## Цель
 
@@ -46,12 +46,12 @@
 
 ## Definition of Done
 
-- [ ] `GET /health/` → `{"status": "ok", "db": "ok"}` в production
-- [ ] Sentry DSN настроен для Django и React
-- [ ] Документирована backup стратегия в `docs/07-deployment.md`
-- [ ] Миграции включены в git (`.gitignore` обновлён)
-- [ ] CI запускает тесты и проверку миграций
-- [ ] `DEBUG=False` проверяется при запуске gunicorn
+- [x] `GET /health/` → `{"status": "ok", "db": "ok"}` в production — реализован в `backend/backend/urls.py`
+- [x] Sentry DSN настроен для Django и React — settings.py (только при DEBUG=False + SENTRY_DSN), main.jsx (только при VITE_SENTRY_DSN)
+- [ ] Документирована backup стратегия в `docs/07-deployment.md` — раздел содержит только TODO
+- [ ] Миграции включены в git (`.gitignore` обновлён) — `.gitignore` строка 30: `*/migrations` по-прежнему исключает миграции
+- [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test`
+- [x] `DEBUG` корректно парсится как bool — `settings.py` строка 32 исправлена (2026-05-05): `os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`. Startup validation остаётся pending.
 
 ---
 
@@ -115,7 +115,7 @@ urlpatterns = [
 - `backend/backend/urls.py`
 
 ### Статус
-- [ ] Health check added
+- [x] Health check added — `backend/backend/urls.py` строки 10–27, path `health/`
 
 ---
 
@@ -188,9 +188,9 @@ pip install sentry-sdk[django]
 ```
 
 ### Статус
-- [ ] Django Sentry configured
-- [ ] React Sentry configured
-- [ ] SENTRY_DSN in env.example
+- [x] Django Sentry configured — `settings.py` строки 550–589, PII-фильтр `_sentry_before_send`, активируется только при DEBUG=False
+- [x] React Sentry configured — `main.jsx` строки 1–22, `beforeSend` удаляет token/access_token/refresh_token
+- [x] SENTRY_DSN in env.example — оба файла: `envs/backend.env.example` и `Frontend/Frontend3/.env.example`
 
 ---
 
@@ -272,7 +272,7 @@ jobs:
 ```
 
 ### Статус
-- [ ] CI pipeline updated
+- [x] CI pipeline updated — `.github/workflows/ci.yml`: backend (migration check, `manage.py test`), frontend2 (lint, build), frontend3 (lint, build). Без coverage threshold — добавить в Task 002.
 
 ---
 
@@ -310,8 +310,8 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 ```
 
 ### Статус
-- [ ] Migrations in git
-- [ ] DEBUG check added
+- [ ] Migrations in git — НЕ сделано. `.gitignore` строка 30: `*/migrations` по-прежнему исключает все миграции. CI-шаг `makemigrations --check` пройдёт только если в БД уже применены миграции (в CI используется SQLite fallback — проблема)
+- [ ] DEBUG check added — НЕ сделано. `settings.py` строка 32: `DEBUG = os.getenv("DEBUG")` возвращает строку. Если в `.env` задано `DEBUG=False`, Python получит truthy-строку. Нужно: `DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`
 
 ---
 
@@ -344,7 +344,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 ```
 
 ### Статус
-- [ ] Backup strategy documented
+- [ ] Backup strategy documented — `docs/07-deployment.md` строка 135: `> TODO: Описать стратегию резервного копирования`. Шаблон из Iteration 6 не добавлен.
 
 ---
 
@@ -359,6 +359,8 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 
 ### Статус
 - [ ] Validation complete
+
+**Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iterations 5–6 не начаты (миграции в git, DEBUG bool, backup docs).
 
 ---
 
