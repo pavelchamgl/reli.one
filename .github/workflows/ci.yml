@@ -37,8 +37,11 @@ jobs:
       - name: Apply migrations
         run: python manage.py migrate --noinput
 
-      - name: Run tests
+      - name: Run tests (Django runner)
         run: python manage.py test
+
+      - name: Run tests (pytest)
+        run: pytest
 
   frontend2:
     runs-on: ubuntu-latest

@@ -31,3 +31,4 @@ pandas==2.2.3
 reportlab==4.4.1
 premailer==3.10.0
 sentry-sdk[django]>=2.0,<3
+pytest-django>=4.9
