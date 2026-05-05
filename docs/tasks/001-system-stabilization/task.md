@@ -2,7 +2,7 @@
 
 **Priority:** P0  
 **Complexity:** Medium  
-**Status:** In Progress — Iteration 3 applied, Iteration 4 in validation
+**Status:** Done
 
 ## Цель
 
