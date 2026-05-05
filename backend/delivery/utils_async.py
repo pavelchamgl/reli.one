@@ -5,8 +5,6 @@ from django.db import transaction
 
 from .utils import generate_parcels_for_order, fetch_and_store_labels_for_order
 from payment.async_pool import executor
-from payment.services import send_seller_emails_by_session, send_merged_manager_email_from_session
-
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +18,12 @@ def async_parcels_and_seller_email(order_ids, session_id: str):
       3) **потом** рассылает письмо менеджеру (чтобы в нём уже были посылки).
     """
     def _target():
+        # Ленивый импорт: иначе цикл payment.services → webhook_processing → utils_async → payment.services
+        from payment.services import (
+            send_merged_manager_email_from_session,
+            send_seller_emails_by_session,
+        )
+
         try:
             # 1) Генерируем парсели для каждого заказа
             for oid in order_ids:

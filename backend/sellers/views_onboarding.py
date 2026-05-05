@@ -343,6 +343,14 @@ def _get_one_to_one_or_none(app: SellerOnboardingApplication, related_name: str)
     return getattr(app, related_name, None)
 
 
+def _self_employed_personal_user_data(app: SellerOnboardingApplication) -> dict:
+    user = app.seller_profile.user
+    return {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+    }
+
+
 class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
@@ -351,18 +359,27 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
         summary="Get self-employed personal details",
         description=(
             "Returns saved personal details for a self-employed seller.\n\n"
-            "If the block is not filled yet, returns an empty object `{}`.\n"
+            "If the block is not filled yet, returns the seller account name fields.\n"
             "Frontend should use this endpoint to prefill onboarding forms."
         ),
         responses={
             200: OpenApiResponse(
                 response=SelfEmployedPersonalSerializer,
-                description="Existing data or empty object",
+                description="Existing data or account name fields",
                 examples=[
-                    OpenApiExample(name="Empty", value={}, response_only=True),
+                    OpenApiExample(
+                        name="Name fields only",
+                        value={
+                            "first_name": "Jan",
+                            "last_name": "Kowalski",
+                        },
+                        response_only=True,
+                    ),
                     OpenApiExample(
                         name="Existing data",
                         value={
+                            "first_name": "Jan",
+                            "last_name": "Kowalski",
                             "date_of_birth": "1990-05-12",
                             "nationality": "PL",
                             "personal_phone": "+48123123123",
@@ -378,7 +395,7 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         obj = _get_one_to_one_or_none(app, "self_employed_personal")
         if not obj:
-            return Response({}, status=status.HTTP_200_OK)
+            return Response(_self_employed_personal_user_data(app), status=status.HTTP_200_OK)
         return Response(SelfEmployedPersonalSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -400,6 +417,8 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
                     OpenApiExample(
                         name="Personal details updated",
                         value={
+                            "first_name": "Jan",
+                            "last_name": "Kowalski",
                             "date_of_birth": "1990-05-12",
                             "nationality": "PL",
                             "personal_phone": "+48123123123",

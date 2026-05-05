@@ -180,6 +180,7 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         return_complete = bool(
             ra.street and ra.city and ra.zip_code and ra.country and ra.contact_phone
         )
+    return_address_requires_document = bool(ra and not ra.same_as_warehouse)
 
     # DOCUMENTS
     docs: Set[Tuple[str, str, str | None]] = {
@@ -220,14 +221,22 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         documents_complete = (
             has_identity_document("self_employed_personal") and
             has_single_sided("proof_of_address", "self_employed_address") and
-            has_single_sided("proof_of_address", "warehouse_address")
+            has_single_sided("proof_of_address", "warehouse_address") and
+            (
+                not return_address_requires_document or
+                has_single_sided("proof_of_address", "return_address")
+            )
         )
 
     elif app.seller_type == SellerType.COMPANY:
         documents_complete = (
             has_single_sided("registration_certificate", "company_info") and
             has_single_sided("proof_of_address", "company_address") and
-            has_single_sided("proof_of_address", "warehouse_address")
+            has_single_sided("proof_of_address", "warehouse_address") and
+            (
+                not return_address_requires_document or
+                has_single_sided("proof_of_address", "return_address")
+            )
         )
 
     else:
@@ -386,6 +395,10 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
     used_doc_ids: set[int] = set()
 
     missing: list[dict] = []
+    return_address = getattr(app, "return_address", None)
+    return_address_requires_document = bool(
+        return_address and not return_address.same_as_warehouse
+    )
 
     if app.seller_type == SellerType.SELF_EMPLOYED:
         # identity_document for self-employed personal
@@ -452,6 +465,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "missing_sides": [None],
             })
 
+        if return_address_requires_document:
+            ok, sides, ids = pick_single_sided("proof_of_address", "return_address")
+            requirements.append(
+                requirement_entry(
+                    "proof_of_address",
+                    "return_address",
+                    "single_sided" if ok else None,
+                    sides,
+                    ids,
+                )
+            )
+            used_doc_ids.update(ids)
+
+            if not ok:
+                missing.append({
+                    "doc_type": "proof_of_address",
+                    "scope": "return_address",
+                    "rule": "single_sided",
+                    "missing_sides": [None],
+                })
+
     elif app.seller_type == SellerType.COMPANY:
         # registration_certificate for company_info (single-sided)
         ok, sides, ids = pick_single_sided("registration_certificate", "company_info")
@@ -515,6 +549,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "rule": "single_sided",
                 "missing_sides": [None],
             })
+
+        if return_address_requires_document:
+            ok, sides, ids = pick_single_sided("proof_of_address", "return_address")
+            requirements.append(
+                requirement_entry(
+                    "proof_of_address",
+                    "return_address",
+                    "single_sided" if ok else None,
+                    sides,
+                    ids,
+                )
+            )
+            used_doc_ids.update(ids)
+
+            if not ok:
+                missing.append({
+                    "doc_type": "proof_of_address",
+                    "scope": "return_address",
+                    "rule": "single_sided",
+                    "missing_sides": [None],
+                })
 
     # counts
     used_for_requirements = len(used_doc_ids)
