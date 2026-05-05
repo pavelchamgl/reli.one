@@ -114,9 +114,6 @@ const selfEmploedSlice = createSlice({
             state.selfDataLoading = false
             const [personal, tax, selfAddress, bank, warehouse, returnAddress, documents] = action.payload
 
-            console.log(documents);
-
-
             if (documents.length === 0) {
                 state.selfData.uploadFront = ''
                 state.selfData.uploadBack = ''
@@ -139,8 +136,6 @@ const selfEmploedSlice = createSlice({
                 const frontDocument = documents?.find((item) => item?.side === 'front' && item?.doc_type === 'identity_document')
                 const selfAddressDoc = documents?.find((item) => item?.scope === 'self_employed_address' && item?.doc_type === 'proof_of_address')
                 const warehouseDoc = documents?.find((item) => item?.scope === 'warehouse_address' && item?.doc_type === 'proof_of_address')
-
-                console.log(backDocument, frontDocument, selfAddressDoc, warehouseDoc);
 
                 if (passportDoc) {
                     state.selfData.uploadPassport = passportDoc.uploaded_at

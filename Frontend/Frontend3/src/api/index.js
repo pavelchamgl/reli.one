@@ -1,7 +1,7 @@
 import axios from "axios"
 import { ErrToast } from "../ui/Toastify";
 
-export const BaseURL = "" || "https://reli.one/api"
+export const BaseURL = import.meta.env.VITE_API_URL || "https://reli.one/api"
 
 
 // Создание axios экземпляра
@@ -129,7 +129,7 @@ const responseInterceptor = async (err) => {
       const parsedToken = JSON.parse(tokenData);
 
       const { data } = await axios.post(
-        "https://reli.one/api/accounts/token/refresh/",
+        `${BaseURL}/accounts/token/refresh/`,
         { refresh: parsedToken.refresh }
       );
 

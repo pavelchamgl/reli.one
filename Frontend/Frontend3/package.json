@@ -21,7 +21,6 @@
     "dayjs": "^1.11.19",
     "formik": "^2.4.6",
     "i18next": "^23.11.5",
-    "node-sass": "^9.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-facebook-login-lite": "^1.0.0",

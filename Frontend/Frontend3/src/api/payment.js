@@ -24,8 +24,6 @@ export const createPayPalSession = async (obj) => {
 export const calculateDelivery = async (obj) => {
     try {
         const res = await mainInstance.post("/delivery/seller-shipping-options/", obj)
-        console.log(res.data);
-
         return res.data
 
     } catch (error) {
@@ -40,8 +38,6 @@ export const calculateDelivery = async (obj) => {
 export const getIsValidZipCode = async (obj) => {
     try {
         const res = await mainInstance.post("/delivery/validate-address/", obj)
-        console.log(res.data);
-
         return res.data
 
     } catch (error) {
@@ -79,11 +75,8 @@ export const getDataFromSessionId = async (id, retries = 3, delay = 500) => {
             const res = await apiRetry.get(`/conversion-payload/?session_id=${id}`);
 
             if (res.data?.ready) {
-                console.log(res.data);
-                const data = res.data
                 return res // готово — возвращаем
             } else {
-                console.log(`Попытка ${attempt + 1}: данные еще не готовы, ждем ${delay}ms...`);
                 await new Promise(r => setTimeout(r, delay)); // polling delay
             }
         } catch (error) {

@@ -3,7 +3,7 @@ import { I18nextProvider } from "react-i18next";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { persistor, store } from "./redux/index.js";
 
@@ -75,6 +75,13 @@ import NewTermsPage from "./pages/NewTermsPage.jsx";
 import FinishVerificationPage from "./sellerPages/FinishVerificationPage/FinishVerificationPage.jsx";
 import ActionRequiredPage from "./sellerPages/ActionRequiredPage/ActionRequiredPage.jsx";
 import UnderReviewPage from "./sellerPages/UnderReviewPage/UnderReviewPage.jsx";
+const ProtectedRoute = ({ children }) => {
+    const tokenData = JSON.parse(localStorage.getItem("token") || "null")
+    if (!tokenData?.access) {
+        return <Navigate to="/seller/login" replace />
+    }
+    return children
+}
 
 const router = createBrowserRouter([
   {
@@ -175,48 +182,48 @@ const router = createBrowserRouter([
     element: <SellerPage />,
     children: [
       {
-        path: "goods-choice", // Уберите начальный слэш
-        element: <SellerGoodPage />,
+        path: "goods-choice",
+        element: <ProtectedRoute><SellerGoodPage /></ProtectedRoute>,
       },
       {
         path: "goods-list",
-        element: <SellerGoodsList />,
+        element: <ProtectedRoute><SellerGoodsList /></ProtectedRoute>,
       },
       {
         path: "seller-home",
-        element: <SellerHomePage />,
+        element: <ProtectedRoute><SellerHomePage /></ProtectedRoute>,
       },
       {
         path: "seller-orders",
-        element: <SellerOrdersPage />,
+        element: <ProtectedRoute><SellerOrdersPage /></ProtectedRoute>,
       },
       {
         path: "seller-order",
-        element: <NewSellerOrder />
+        element: <ProtectedRoute><NewSellerOrder /></ProtectedRoute>,
       },
       {
         path: "seller-order-detal/:id",
-        element: <NewSellerOrderDetal />
+        element: <ProtectedRoute><NewSellerOrderDetal /></ProtectedRoute>,
       },
       {
         path: "seller-create",
-        element: <SellerCreatePage />,
+        element: <ProtectedRoute><SellerCreatePage /></ProtectedRoute>,
       },
       {
         path: "seller-preview",
-        element: <SellerPreviewPage />,
+        element: <ProtectedRoute><SellerPreviewPage /></ProtectedRoute>,
       },
       {
         path: "seller-preview/:id",
-        element: <SellerPreviewPage />,
+        element: <ProtectedRoute><SellerPreviewPage /></ProtectedRoute>,
       },
       {
         path: "seller-edit/:id",
-        element: <EditGoodsPage />
+        element: <ProtectedRoute><EditGoodsPage /></ProtectedRoute>,
       },
       {
         path: "edit-preview/:id",
-        element: <SellerEditPreview />
+        element: <ProtectedRoute><SellerEditPreview /></ProtectedRoute>,
       },
       {
         path: "login",

@@ -187,9 +187,6 @@ export const postCalculateDelivery = createAsyncThunk(
                 items: obj.items,
             });
 
-            console.log(res);
-
-
             return {
                 ...res,
                 seller_id: obj.seller_id,
@@ -250,8 +247,6 @@ const paymentSlice = createSlice({
             })
         },
         setDeliveryType: (state, action) => {
-            console.log(action.payload);
-
             state.groups = state.groups?.map((item) => {
                 if (item.seller_id === action.payload.sellerId) {
                     return {

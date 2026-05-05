@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Low  
-**Status:** Pending
+**Status:** Done
 
 ## Цель
 
