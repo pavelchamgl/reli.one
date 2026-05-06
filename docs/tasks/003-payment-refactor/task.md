@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** Pending
+**Status:** In Progress — Iteration 4 (Step 1 done)
 
 ## Цель
 
@@ -277,6 +277,27 @@ backend/payment/
 - Не менять поведение — только переносить код
 - После каждого переноса запускать полный набор тестов payment
 - Делать маленькими шагами: 1 сервис = 1 PR
+
+### Прогресс
+
+| Шаг | Статус | Файлы |
+|-----|--------|-------|
+| Step 1 — Stripe session extraction | ✅ Done (2026-05-06) | `services/stripe_session.py`, `views.py`, `test_checkout_flow.py` |
+| Step 2 — PayPal session extraction | ⬜ Pending | |
+| Step 3 — Metadata isolation | ⬜ Pending | |
+| Step 4 — Webhook isolation | ⬜ Pending | |
+| Step 5 — Order creation separation | ⬜ Pending | |
+
+#### Step 1 — итоги и техдолг
+
+- `build_stripe_checkout_context` вынесен в `payment/services/stripe_session.py`
+- `CreateStripePaymentView.post` сведён к десериализации + вызову сервиса + Response
+- API контракт сохранён (все HTTP-коды и форматы ответа идентичны оригиналу)
+- Тесты payment: **23/23 passed**
+- Техдолг до Step 2/3:
+  - `CHANNEL_MAP`, `_D()`, логика CZ-origin продублированы в `views.py` (для PayPal) и `stripe_session.py`
+  - Orphan metadata risk (StripeMetadata создана, но Stripe API упал) **сохранён намеренно** — устраняется отдельной задачей
+  - Webhook и order creation не трогались
 
 ### Статус
 - [ ] order_factory.py extracted

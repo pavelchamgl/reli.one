@@ -102,15 +102,15 @@
 
 ## 2. Пошаговый план декомпозиции (после Task 003 Iteration 2+)
 
-### Step 1 — Stripe extraction
+### Step 1 — Stripe extraction ✅ Done (2026-05-06)
 
 | Поле | Содержание |
 |------|------------|
-| **Файлы** | Новый модуль, напр. `payment/services/stripe_session.py` (или `checkout_stripe.py`); урезать [views.py](../../../backend/payment/views.py) `CreateStripePaymentView.post` до тонкого слоя. |
-| **Функции вынести** | Логику построения `line_items`, цикла по `groups`, вызовов DPD/GLS/Packeta, валидаций ZIP/телефона, подготовки payload для `StripeMetadata` → одна или несколько чистых функций/класса «build stripe checkout context». |
-| **Тесты** | [payment/test_checkout_flow.py](../../../backend/payment/test_checkout_flow.py): `CreateStripeSessionTests`, `DpdBranchTests`, `StripeWebhookFlowTests`; [payment/tests.py](../../../backend/payment/tests.py) (checkout + webhook). |
-| **Риски** | Регрессии по суммам и line items; OpenAPI примеры в `@extend_schema` должны остаться синхронны. |
-| **Что может сломаться** | CZ-origin, DPD-only ветки, нормализация ZIP, ответ 500 при Stripe API. |
+| **Файлы** | Создан [`payment/services/stripe_session.py`](../../../backend/payment/services/stripe_session.py); [`views.py`](../../../backend/payment/views.py) `CreateStripePaymentView.post` сведён к тонкому слою (~60 строк). |
+| **Вынесено** | `build_stripe_checkout_context` — вся логика: загрузка вариантов, DPD-check, CZ-origin, цикл по группам (ZIP/phone/доставка/line_items), итоговые суммы, `StripeMetadata.objects.create`. Исключение `StripeSessionBuildError` вместо `Response`. |
+| **Тесты** | **23/23 passed**: `CreateStripeSessionTests`, `DpdBranchTests`, `StripeWebhookFlowTests`, `payment/tests.py`. `@patch`-пути обновлены на `payment.services.stripe_session.*`. |
+| **API контракт** | Сохранён полностью: HTTP-коды 200/400/500, форматы `{"error":…}` и `{"origin":[…]}` идентичны оригиналу. |
+| **Техдолг** | `CHANNEL_MAP`, `_D()`, CZ-origin задублированы (views.py для PayPal / stripe_session.py) — устраняется в Step 2/3. Orphan metadata risk сохранён намеренно. Лог-предупреждение CZ-origin (`logger.warning`) потерян — minor. |
 
 ---
 
