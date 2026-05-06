@@ -502,13 +502,13 @@ class CreateStripePaymentView(APIView):
                 status=200,
             )
 
-        except Exception:
+        except Exception as e:
             logger.exception(
                 "Stripe session creation failed for user=%s session_key=%s",
                 user.id,
                 ctx.session_key,
             )
-            return Response({"error": "Stripe session creation failed."}, status=500)
+            return Response({"error": str(e)}, status=500)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
