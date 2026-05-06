@@ -18,8 +18,6 @@ from dataclasses import dataclass, field
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional
 
-from django.db import transaction
-
 from delivery.helpers import resolve_country_code_from_group
 from delivery.services.dpd_rates import calculate_order_shipping_dpd
 from delivery.services.gls_rates import calculate_gls_shipping_options
@@ -31,7 +29,12 @@ from delivery.validators.zip_validator import ZipCodeValidator
 from order.services.invoice_numbers import next_invoice_identifiers
 from product.models import ProductVariant
 
-from payment.models import PayPalMetadata
+from payment.services.checkout_metadata import (
+    build_checkout_custom_data,
+    build_checkout_description_data,
+    build_checkout_invoice_data,
+    save_paypal_metadata_atomic,
+)
 from payment.services.checkout_shared import CheckoutSessionBuildError, _CHANNEL_MAP, _D
 
 logger = logging.getLogger(__name__)
@@ -399,27 +402,29 @@ def build_paypal_checkout_context(
     # ------------------------------------------------------------------
     # 6. Сохранение метаданных
     # ------------------------------------------------------------------
-    with transaction.atomic():
-        PayPalMetadata.objects.create(
-            session_key=session_key,
-            custom_data={
-                "user_id": str(user.id),
-                "email": email,
-                "first_name": first_name,
-                "last_name": last_name,
-                "phone": phone,
-                "delivery_address": delivery_address,
-            },
-            invoice_data={
-                "groups": groups,
-                "invoice_number": invoice_number,
-            },
-            description_data={
-                "gross_total": str(gross_total),
-                "delivery_total": str(total_delivery),
-                "variable_symbol": variable_symbol,
-            },
-        )
+    custom_data = build_checkout_custom_data(
+        user=user,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        phone=phone,
+        delivery_address=delivery_address,
+    )
+    invoice_data = build_checkout_invoice_data(
+        groups=groups,
+        invoice_number=invoice_number,
+    )
+    description_data = build_checkout_description_data(
+        gross_total=gross_total,
+        delivery_total=total_delivery,
+        variable_symbol=variable_symbol,
+    )
+    save_paypal_metadata_atomic(
+        session_key=session_key,
+        custom_data=custom_data,
+        invoice_data=invoice_data,
+        description_data=description_data,
+    )
 
     logger.info(
         "PayPal metadata saved session_key=%s user=%s",

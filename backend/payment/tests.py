@@ -5,6 +5,7 @@ Unit-тесты для:
 """
 from __future__ import annotations
 
+import copy
 from decimal import Decimal
 from unittest.mock import MagicMock, patch, call
 
@@ -416,6 +417,8 @@ from payment.services.paypal_session import (
 )
 
 _PP_SESSION_MOD = "payment.services.paypal_session"
+_CHECKOUT_META_MOD = "payment.services.checkout_metadata"
+_ST_SESSION_MOD = "payment.services.stripe_session"
 
 
 def _make_variant_mock(
@@ -486,8 +489,8 @@ def _happy_paypal_ctx():
     user.id = 42
 
     with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-         patch(f"{_PP_SESSION_MOD}.PayPalMetadata"), \
-         patch(f"{_PP_SESSION_MOD}.transaction") as tx_mock, \
+         patch(f"{_CHECKOUT_META_MOD}.PayPalMetadata"), \
+         patch(f"{_CHECKOUT_META_MOD}.transaction") as tx_mock, \
          patch(f"{_PP_SESSION_MOD}.next_invoice_identifiers", return_value=("INV-2026-001", "2026001")), \
          patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
          patch(f"{_PP_SESSION_MOD}.validate_phone_matches_country", return_value=None), \
@@ -552,8 +555,8 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
         user.id = 42
 
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.PayPalMetadata") as meta_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction") as tx_mock, \
+             patch(f"{_CHECKOUT_META_MOD}.PayPalMetadata") as meta_mock, \
+             patch(f"{_CHECKOUT_META_MOD}.transaction") as tx_mock, \
              patch(f"{_PP_SESSION_MOD}.next_invoice_identifiers", return_value=("INV-X", "VS-X")), \
              patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
              patch(f"{_PP_SESSION_MOD}.validate_phone_matches_country", return_value=None), \
@@ -574,7 +577,14 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
 
         meta_mock.objects.create.assert_called_once()
         kw = meta_mock.objects.create.call_args[1]
-        for key in ("user_id", "email", "phone", "delivery_address"):
+        for key in (
+            "user_id",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "delivery_address",
+        ):
             self.assertIn(key, kw["custom_data"], f"custom_data missing '{key}'")
         for key in ("groups", "invoice_number"):
             self.assertIn(key, kw["invoice_data"], f"invoice_data missing '{key}'")
@@ -583,7 +593,7 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
 
     def test_missing_sku_raises(self):
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction"):
+             patch(f"{_CHECKOUT_META_MOD}.transaction"):
             qs = MagicMock()
             qs.select_related.return_value.only.return_value = []
             pv_mock.objects.filter.return_value = qs
@@ -603,7 +613,7 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
     def test_dpd_missing_dims_raises(self):
         variant = _make_variant_mock(weight_grams=0)
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction"):
+             patch(f"{_CHECKOUT_META_MOD}.transaction"):
             _patch_variants_pp(pv_mock, [variant])
 
             with self.assertRaises(PayPalSessionBuildError) as ctx:
@@ -620,7 +630,7 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
     def test_cz_origin_not_cz_raises(self):
         variant = _make_variant_mock(warehouse_country="DE")
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction"):
+             patch(f"{_CHECKOUT_META_MOD}.transaction"):
             _patch_variants_pp(pv_mock, [variant])
 
             with self.assertRaises(PayPalSessionBuildError) as ctx:
@@ -639,7 +649,7 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
         groups = _base_groups_pp(courier_code="dpd", delivery_type=1)
 
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction"):
+             patch(f"{_CHECKOUT_META_MOD}.transaction"):
             _patch_variants_pp(pv_mock, [variant])
 
             with self.assertRaises(PayPalSessionBuildError) as ctx:
@@ -656,7 +666,7 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
     def test_seller_ownership_raises(self):
         variant = _make_variant_mock(seller_id=99)
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction"), \
+             patch(f"{_CHECKOUT_META_MOD}.transaction"), \
              patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"):
             _patch_variants_pp(pv_mock, [variant])
 
@@ -676,7 +686,7 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
         groups = _base_groups_pp(delivery_type=99)
 
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction"), \
+             patch(f"{_CHECKOUT_META_MOD}.transaction"), \
              patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
              patch(f"{_PP_SESSION_MOD}.calculate_order_shipping",
                    return_value=_make_shipping_result_pp()):
@@ -703,7 +713,7 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
         bad_zip.normalized_postcode = None
 
         with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
-             patch(f"{_PP_SESSION_MOD}.transaction"), \
+             patch(f"{_CHECKOUT_META_MOD}.transaction"), \
              patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
              patch(f"{_PP_SESSION_MOD}.ZipCodeValidator") as zip_mock, \
              patch(f"{_PP_SESSION_MOD}.calculate_order_shipping",
@@ -721,6 +731,161 @@ class TestBuildPayPalCheckoutContext(SimpleTestCase):
                     root_country="CZ",
                 )
         self.assertIn("Invalid ZIP", str(ctx.exception.detail))
+
+
+# ===========================================================================
+# payment.services.checkout_metadata — builders
+# ===========================================================================
+
+from payment.services.checkout_metadata import (
+    build_checkout_custom_data,
+    build_checkout_description_data,
+    build_checkout_invoice_data,
+)
+
+
+class TestCheckoutMetadataBuilders(SimpleTestCase):
+    """Чистые функции сборки JSON (общие для Stripe и PayPal)."""
+
+    def test_description_data_stringifies_decimals(self):
+        d = build_checkout_description_data(
+            gross_total=Decimal("10.00"),
+            delivery_total=Decimal("0"),
+            variable_symbol="VS9",
+        )
+        self.assertEqual(d["gross_total"], "10.00")
+        self.assertEqual(d["delivery_total"], "0")
+        self.assertEqual(d["variable_symbol"], "VS9")
+
+    def test_custom_and_invoice_shape(self):
+        user = MagicMock()
+        user.id = 7
+        c = build_checkout_custom_data(
+            user=user,
+            email="e@e.com",
+            first_name="A",
+            last_name="B",
+            phone="+1",
+            delivery_address={"country": "CZ"},
+        )
+        self.assertEqual(c["user_id"], "7")
+        inv = build_checkout_invoice_data(groups=[{"x": 1}], invoice_number="N1")
+        self.assertEqual(inv["invoice_number"], "N1")
+        self.assertEqual(inv["groups"], [{"x": 1}])
+
+
+# ===========================================================================
+# payment.services.stripe_session — build_stripe_checkout_context
+# ===========================================================================
+
+from payment.services.stripe_session import build_stripe_checkout_context
+
+
+class TestBuildStripeCheckoutContext(SimpleTestCase):
+    """build_stripe_checkout_context() — metadata keys (симметрия с PayPal)."""
+
+    def test_metadata_saved_with_correct_keys(self):
+        variant = _make_variant_mock()
+        user = MagicMock()
+        user.id = 42
+
+        with patch(f"{_ST_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_CHECKOUT_META_MOD}.StripeMetadata") as meta_mock, \
+             patch(f"{_CHECKOUT_META_MOD}.transaction") as tx_mock, \
+             patch(f"{_ST_SESSION_MOD}.next_invoice_identifiers", return_value=("INV-X", "VS-X")), \
+             patch(f"{_ST_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
+             patch(f"{_ST_SESSION_MOD}.validate_phone_matches_country", return_value=None), \
+             patch(f"{_ST_SESSION_MOD}.ZipCodeValidator"), \
+             patch(f"{_ST_SESSION_MOD}.calculate_order_shipping",
+                   return_value=_make_shipping_result_pp()):
+            _patch_variants_pp(pv_mock, [variant])
+            _patch_atomic_pp(tx_mock)
+            build_stripe_checkout_context(
+                user=user,
+                email="e@e.com",
+                first_name="A", last_name="B",
+                phone="+420111222333",
+                delivery_address={"country": "CZ"},
+                groups=_base_groups_pp(),
+                root_country="CZ",
+            )
+
+        meta_mock.objects.create.assert_called_once()
+        kw = meta_mock.objects.create.call_args[1]
+        for key in (
+            "user_id",
+            "email",
+            "first_name",
+            "last_name",
+            "phone",
+            "delivery_address",
+        ):
+            self.assertIn(key, kw["custom_data"], f"custom_data missing '{key}'")
+        for key in ("groups", "invoice_number"):
+            self.assertIn(key, kw["invoice_data"], f"invoice_data missing '{key}'")
+        for key in ("gross_total", "delivery_total", "variable_symbol"):
+            self.assertIn(key, kw["description_data"], f"description_data missing '{key}'")
+
+    def test_stripe_paypal_metadata_payload_symmetric(self):
+        """Одинаковые входные данные и моки — одинаковый JSON metadata (кроме session_key)."""
+        variant_st = _make_variant_mock()
+        variant_pp = _make_variant_mock()
+        user = MagicMock()
+        user.id = 42
+        groups_st = copy.deepcopy(_base_groups_pp())
+        groups_pp = copy.deepcopy(_base_groups_pp())
+
+        with patch(f"{_ST_SESSION_MOD}.ProductVariant") as pv_st, \
+             patch(f"{_CHECKOUT_META_MOD}.StripeMetadata") as meta_st, \
+             patch(f"{_CHECKOUT_META_MOD}.transaction") as tx_st, \
+             patch(f"{_ST_SESSION_MOD}.next_invoice_identifiers", return_value=("INV-X", "VS-X")), \
+             patch(f"{_ST_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
+             patch(f"{_ST_SESSION_MOD}.validate_phone_matches_country", return_value=None), \
+             patch(f"{_ST_SESSION_MOD}.ZipCodeValidator"), \
+             patch(f"{_ST_SESSION_MOD}.calculate_order_shipping",
+                   return_value=_make_shipping_result_pp()):
+            _patch_variants_pp(pv_st, [variant_st])
+            _patch_atomic_pp(tx_st)
+            build_stripe_checkout_context(
+                user=user,
+                email="e@e.com",
+                first_name="A", last_name="B",
+                phone="+420111222333",
+                delivery_address={"country": "CZ"},
+                groups=groups_st,
+                root_country="CZ",
+            )
+            stripe_kw = meta_st.objects.create.call_args[1]
+
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_pp, \
+             patch(f"{_CHECKOUT_META_MOD}.PayPalMetadata") as meta_pp, \
+             patch(f"{_CHECKOUT_META_MOD}.transaction") as tx_pp, \
+             patch(f"{_PP_SESSION_MOD}.next_invoice_identifiers", return_value=("INV-X", "VS-X")), \
+             patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
+             patch(f"{_PP_SESSION_MOD}.validate_phone_matches_country", return_value=None), \
+             patch(f"{_PP_SESSION_MOD}.ZipCodeValidator"), \
+             patch(f"{_PP_SESSION_MOD}.calculate_order_shipping",
+                   return_value=_make_shipping_result_pp()):
+            _patch_variants_pp(pv_pp, [variant_pp])
+            _patch_atomic_pp(tx_pp)
+            build_paypal_checkout_context(
+                user=user,
+                email="e@e.com",
+                first_name="A", last_name="B",
+                phone="+420111222333",
+                delivery_address={"country": "CZ"},
+                groups=groups_pp,
+                root_country="CZ",
+            )
+            paypal_kw = meta_pp.objects.create.call_args[1]
+
+        self.assertEqual(stripe_kw["custom_data"], paypal_kw["custom_data"])
+        self.assertEqual(
+            stripe_kw["invoice_data"]["invoice_number"],
+            paypal_kw["invoice_data"]["invoice_number"],
+        )
+        self.assertEqual(stripe_kw["description_data"], paypal_kw["description_data"])
+        self.assertEqual(stripe_kw["invoice_data"]["groups"], paypal_kw["invoice_data"]["groups"])
 
 
 # ===========================================================================
