@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** In Progress — Iteration 4 (Step 1 done)
+**Status:** In Progress — Iteration 4 (Steps 1–2 done; code review Step 2 passed)
 
 ## Цель
 
@@ -282,22 +282,38 @@ backend/payment/
 
 | Шаг | Статус | Файлы |
 |-----|--------|-------|
-| Step 1 — Stripe session extraction | ✅ Done (2026-05-06) | `services/stripe_session.py`, `views.py`, `test_checkout_flow.py` |
-| Step 2 — PayPal session extraction | ⬜ Pending | |
-| Step 3 — Metadata isolation | ⬜ Pending | |
+| Step 1 — Stripe session extraction | ✅ Done (2026-05-06) | `services/stripe_session.py`, `views.py`, тесты в `payment/tests.py` |
+| Step 2 — PayPal session extraction | ✅ Done (2026-05-06) | `services/paypal_session.py`, `services/checkout_shared.py`, `views.py`, `payment/tests.py`, отчёт `step-2-paypal-plan.md` |
+| Step 3 — Metadata isolation | ⬜ Pending (см. carry-over из CR Step 2 ниже) | |
 | Step 4 — Webhook isolation | ⬜ Pending | |
 | Step 5 — Order creation separation | ⬜ Pending | |
 
-#### Step 1 — итоги и техдолг
+#### Step 1 — итоги
 
 - `build_stripe_checkout_context` вынесен в `payment/services/stripe_session.py`
 - `CreateStripePaymentView.post` сведён к десериализации + вызову сервиса + Response
 - API контракт сохранён (все HTTP-коды и форматы ответа идентичны оригиналу)
-- Тесты payment: **23/23 passed**
-- Техдолг до Step 2/3:
-  - `CHANNEL_MAP`, `_D()`, логика CZ-origin продублированы в `views.py` (для PayPal) и `stripe_session.py`
-  - Orphan metadata risk (StripeMetadata создана, но Stripe API упал) **сохранён намеренно** — устраняется отдельной задачей
-  - Webhook и order creation не трогались
+- Orphan metadata risk (метаданные сохранены, внешний API упал) **сохранён намеренно** — устраняется отдельной задачей
+- Webhook и order creation не трогались
+
+#### Step 2 — итоги
+
+- `build_paypal_checkout_context` вынесен в `payment/services/paypal_session.py`
+- Общие `_D`, `_CHANNEL_MAP`, базовый `CheckoutSessionBuildError` — в `payment/services/checkout_shared.py` (Stripe/PayPal используют один источник)
+- `CreatePayPalPaymentView.post` сведён к тонкому HTTP-слою
+- **Code review Step 2:** пройден; критических замечаний нет
+- **`payment/tests.py`:** **34/34 passed**
+- Отчёт: [step-2-paypal-plan.md](./step-2-paypal-plan.md)
+
+#### Step 3 — carry-over из code review Step 2 (low-risk, вне scope критики)
+
+Следующие пункты намеренно отложены в Step 3 (Metadata isolation / консолидация):
+
+- **Дублирование `_check_cz_origin`:** отдельные копии в `stripe_session.py` и `paypal_session.py` — вынести в общий модуль при изоляции metadata/checkout helpers
+- **Metadata builders:** единые функции сборки `custom_data` / `invoice_data` / `description_data` и атомарного сохранения (см. план Step 3 в `plan.md`)
+- **`variable_symbol` в контексте checkout:** поле есть в `StripeCheckoutContext` / `PayPalCheckoutContext`, но во view не используется (уже записано в metadata внутри сервиса) — убрать из dataclass или явно задокументировать при рефакторе Step 3
+
+После Step 1 в отчётах фигурировало **23/23** по stripe-срезу; после Step 2 полный прогон `payment/tests.py` = **34/34**.
 
 ### Статус
 - [ ] order_factory.py extracted
