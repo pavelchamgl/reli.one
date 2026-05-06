@@ -35,7 +35,12 @@ from payment.services.checkout_metadata import (
     build_checkout_invoice_data,
     save_paypal_metadata_atomic,
 )
-from payment.services.checkout_shared import CheckoutSessionBuildError, _CHANNEL_MAP, _D
+from payment.services.checkout_shared import (
+    CheckoutSessionBuildError,
+    _CHANNEL_MAP,
+    _D,
+    check_cz_origin_for_checkout,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,53 +63,6 @@ class PayPalCheckoutContext:
     variable_symbol: str
     gross_total: Decimal
     groups: list = field(default_factory=list)
-
-
-# ---------------------------------------------------------------------------
-# Приватные хелперы
-# ---------------------------------------------------------------------------
-
-def _check_cz_origin(variant_map: dict, groups: list) -> None:
-    """
-    Проверяет CZ-origin правило: все SKU должны иметь
-    seller.default_warehouse.country == 'CZ'.
-    Бросает PayPalSessionBuildError вместо возврата Response.
-    """
-    skus_in_payload = [
-        str(p["sku"])
-        for g in groups
-        for p in g.get("products", [])
-    ]
-
-    missing = []
-    not_cz = []
-
-    for sku in skus_in_payload:
-        v = variant_map.get(sku)
-        if not v:
-            missing.append(sku)
-            continue
-        seller = getattr(v.product, "seller", None)
-        dw = getattr(seller, "default_warehouse", None) if seller else None
-        if not (dw and getattr(dw, "country", None) == "CZ"):
-            not_cz.append(sku)
-
-    if missing:
-        raise PayPalSessionBuildError(
-            {"error": f"Unknown SKU(s): {', '.join(missing)}"},
-        )
-    if not_cz:
-        raise PayPalSessionBuildError(
-            {
-                "origin": [
-                    (
-                        "Только отправка из Чехии. Продавец(ы) SKU "
-                        f"{', '.join(not_cz)} не имеют чешского склада "
-                        "(default_warehouse.country != 'CZ')."
-                    )
-                ]
-            },
-        )
 
 
 # ---------------------------------------------------------------------------
@@ -185,7 +143,7 @@ def build_paypal_checkout_context(
     # ------------------------------------------------------------------
     # 3. CZ-origin
     # ------------------------------------------------------------------
-    _check_cz_origin(variant_map, groups)
+    check_cz_origin_for_checkout(variant_map, groups, error_cls=PayPalSessionBuildError)
 
     # ------------------------------------------------------------------
     # 4. Цикл по группам
