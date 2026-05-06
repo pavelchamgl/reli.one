@@ -13,17 +13,6 @@ services:
       - envs/database.env
     restart: always
 
-  frontend1:
-    build: ./Frontend
-    depends_on:
-    - backend
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - static_volume:/data/www/static
-      - /home/reli/reli.one/backend/media:/data/www/media
-
   backend:
     container_name: backend
     build:
@@ -38,7 +27,7 @@ services:
     volumes:
       - ./backend/:/app
       - static_volume:/app/static
-      - /home/reli/reli.one/backend/media:/app/media
+      - /opt/reli/reli.one/backend/media:/app/media
     ports:
       - "8081:8081"
     depends_on:
@@ -48,6 +37,17 @@ services:
       - envs/backend.env
     restart: always
 
+  frontend1:
+    container_name: frontend1
+    build: ./Frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    volumes:
+      - static_volume:/data/www/static
+      - /opt/reli/reli.one/backend/media:/data/www/media
+    restart: always
+
 volumes:
   static_volume:
-  media_volume:
