@@ -7,6 +7,11 @@ from .base import (
 )
 from .paypal_checkout import create_paypal_checkout_session
 from .stripe_checkout import create_stripe_checkout_session
+from .stripe_session import (
+    StripeCheckoutContext,
+    StripeSessionBuildError,
+    build_stripe_checkout_context,
+)
 from .webhook_processing import (
     WebhookPaymentData,
     WebhookProcessingResult,
@@ -15,6 +20,7 @@ from .webhook_processing import (
 )
 
 __all__ = [
+    "build_stripe_checkout_context",
     "create_orders_and_payment",
     "create_paypal_checkout_session",
     "create_stripe_checkout_session",
@@ -24,6 +30,8 @@ __all__ = [
     "send_merged_manager_email_from_session",
     "send_seller_emails_by_session",
     "set_conv_cache_after_commit",
+    "StripeCheckoutContext",
+    "StripeSessionBuildError",
     "WebhookPaymentData",
     "WebhookProcessingResult",
 ]

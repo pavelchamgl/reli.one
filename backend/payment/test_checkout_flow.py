@@ -141,9 +141,9 @@ class CreateStripeSessionTests(CheckoutCatalogMixin, TestCase):
         }
 
     @patch("payment.services.stripe_checkout.stripe.checkout.Session.create")
-    @patch("payment.views.calculate_order_shipping")
-    @patch("payment.views.validate_phone_matches_country", return_value=None)
-    @patch("payment.views.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
+    @patch("payment.services.stripe_session.calculate_order_shipping")
+    @patch("payment.services.stripe_session.validate_phone_matches_country", return_value=None)
+    @patch("payment.services.stripe_session.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
     @patch(
         "payment.serializers.normalize_and_validate_phone",
         return_value="+420777123456",
@@ -247,9 +247,9 @@ class DpdBranchTests(CheckoutCatalogMixin, TestCase):
         self.client.force_authenticate(user=self.customer)
 
     @patch("payment.services.stripe_checkout.stripe.checkout.Session.create")
-    @patch("payment.views.calculate_order_shipping_dpd")
-    @patch("payment.views.validate_phone_matches_country", return_value=None)
-    @patch("payment.views.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
+    @patch("payment.services.stripe_session.calculate_order_shipping_dpd")
+    @patch("payment.services.stripe_session.validate_phone_matches_country", return_value=None)
+    @patch("payment.services.stripe_session.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
     @patch(
         "payment.serializers.normalize_and_validate_phone",
         return_value="+420777123456",
@@ -307,7 +307,7 @@ class DpdBranchTests(CheckoutCatalogMixin, TestCase):
             ],
         }
 
-        with patch("payment.views.calculate_order_shipping") as mock_packeta:
+        with patch("payment.services.stripe_session.calculate_order_shipping") as mock_packeta:
             url = reverse("create_checkout_session")
             response = self.client.post(url, payload, format="json")
 
