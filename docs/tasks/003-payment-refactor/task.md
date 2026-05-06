@@ -284,7 +284,7 @@ backend/payment/
 |-----|--------|-------|
 | Step 1 — Stripe session extraction | ✅ Done (2026-05-06) | `services/stripe_session.py`, `views.py`, тесты в `payment/tests.py` |
 | Step 2 — PayPal session extraction | ✅ Done (2026-05-06) | `services/paypal_session.py`, `services/checkout_shared.py`, `views.py`, `payment/tests.py`, отчёт `step-2-paypal-plan.md` |
-| Step 3 — Metadata isolation | ⬜ Pending (см. carry-over из CR Step 2 ниже) | |
+| Step 3 — Metadata isolation | ⬜ Pending (см. carry-over из CR Step 2 ниже) | План: [step-3-metadata-plan.md](./step-3-metadata-plan.md) |
 | Step 4 — Webhook isolation | ⬜ Pending | |
 | Step 5 — Order creation separation | ⬜ Pending | |
 
@@ -310,7 +310,7 @@ backend/payment/
 Следующие пункты намеренно отложены в Step 3 (Metadata isolation / консолидация):
 
 - **Дублирование `_check_cz_origin`:** отдельные копии в `stripe_session.py` и `paypal_session.py` — вынести в общий модуль при изоляции metadata/checkout helpers
-- **Metadata builders:** единые функции сборки `custom_data` / `invoice_data` / `description_data` и атомарного сохранения (см. план Step 3 в `plan.md`)
+- **Metadata builders:** единые функции сборки `custom_data` / `invoice_data` / `description_data` и атомарного сохранения (см. [step-3-metadata-plan.md](./step-3-metadata-plan.md); обзор шагов — [plan.md](./plan.md))
 - **`variable_symbol` в контексте checkout:** поле есть в `StripeCheckoutContext` / `PayPalCheckoutContext`, но во view не используется (уже записано в metadata внутри сервиса) — убрать из dataclass или явно задокументировать при рефакторе Step 3
 
 После Step 1 в отчётах фигурировало **23/23** по stripe-срезу; после Step 2 полный прогон `payment/tests.py` = **34/34**.
