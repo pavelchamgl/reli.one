@@ -404,3 +404,432 @@ class TestCreateOrdersEarlyExits(SimpleTestCase):
 
         result = create_orders_and_payment(_make_webhook_data())
         self.assertIsNone(result)
+
+
+# ===========================================================================
+# payment.services.paypal_session — build_paypal_checkout_context
+# ===========================================================================
+
+from payment.services.paypal_session import (
+    PayPalSessionBuildError,
+    build_paypal_checkout_context,
+)
+
+_PP_SESSION_MOD = "payment.services.paypal_session"
+
+
+def _make_variant_mock(
+    sku="SKU-001",
+    price=Decimal("50.00"),
+    seller_id=1,
+    warehouse_country="CZ",
+    weight_grams=500,
+    length_mm=200,
+    width_mm=150,
+    height_mm=100,
+):
+    v = MagicMock()
+    v.sku = sku
+    v.price = price
+    v.price_with_acquiring = price
+    v.weight_grams = weight_grams
+    v.length_mm = length_mm
+    v.width_mm = width_mm
+    v.height_mm = height_mm
+    v.product.seller.id = seller_id
+    dw = MagicMock()
+    dw.country = warehouse_country
+    v.product.seller.default_warehouse = dw
+    return v
+
+
+def _base_groups_pp(
+    sku="SKU-001",
+    seller_id=1,
+    delivery_type=1,
+    courier_code=None,
+):
+    return [
+        {
+            "seller_id": seller_id,
+            "delivery_type": delivery_type,
+            "courier_code": courier_code,
+            "products": [{"sku": sku, "quantity": 2}],
+        }
+    ]
+
+
+def _make_shipping_result_pp(price="5.00", channel="PUDO"):
+    return {
+        "options": [{"channel": channel, "service": "STD", "priceWithVat": price}],
+        "total_parcels": 1,
+    }
+
+
+def _patch_variants_pp(mock_pv, variants):
+    qs = MagicMock()
+    qs.select_related.return_value.only.return_value = variants
+    mock_pv.objects.filter.return_value = qs
+
+
+def _patch_atomic_pp(mock_tx):
+    cm = MagicMock()
+    cm.__enter__ = MagicMock(return_value=None)
+    cm.__exit__ = MagicMock(return_value=False)
+    mock_tx.atomic.return_value = cm
+
+
+def _happy_paypal_ctx():
+    """Возвращает PayPalCheckoutContext из вспомогательного запуска с патчами."""
+    variant = _make_variant_mock()
+    user = MagicMock()
+    user.id = 42
+
+    with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+         patch(f"{_PP_SESSION_MOD}.PayPalMetadata"), \
+         patch(f"{_PP_SESSION_MOD}.transaction") as tx_mock, \
+         patch(f"{_PP_SESSION_MOD}.next_invoice_identifiers", return_value=("INV-2026-001", "2026001")), \
+         patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
+         patch(f"{_PP_SESSION_MOD}.validate_phone_matches_country", return_value=None), \
+         patch(f"{_PP_SESSION_MOD}.ZipCodeValidator"), \
+         patch(f"{_PP_SESSION_MOD}.calculate_order_shipping",
+               return_value=_make_shipping_result_pp()):
+        _patch_variants_pp(pv_mock, [variant])
+        _patch_atomic_pp(tx_mock)
+        ctx = build_paypal_checkout_context(
+            user=user,
+            email="test@example.com",
+            first_name="Jan",
+            last_name="Novak",
+            phone="+420123456789",
+            delivery_address={"country": "CZ"},
+            groups=_base_groups_pp(),
+            root_country="CZ",
+        )
+    return ctx
+
+
+class TestBuildPayPalCheckoutContext(SimpleTestCase):
+    """build_paypal_checkout_context() — unit-тесты без БД."""
+
+    def test_returns_context_with_expected_fields(self):
+        ctx = _happy_paypal_ctx()
+        self.assertEqual(ctx.invoice_number, "INV-2026-001")
+        self.assertEqual(ctx.variable_symbol, "2026001")
+        self.assertIsInstance(ctx.gross_total, Decimal)
+
+    def test_line_items_paypal_format(self):
+        """unit_amount.value — строка EUR, quantity — строка."""
+        ctx = _happy_paypal_ctx()
+        product_items = [i for i in ctx.line_items if i.get("sku") != "delivery"]
+        self.assertTrue(len(product_items) > 0)
+        for item in product_items:
+            self.assertIn("unit_amount", item)
+            self.assertIsInstance(item["unit_amount"]["value"], str)
+            self.assertIsInstance(item["quantity"], str)
+            self.assertEqual(item["unit_amount"]["currency_code"], "EUR")
+
+    def test_delivery_appended_to_line_items(self):
+        """При total_delivery > 0 delivery-позиция добавлена в line_items."""
+        ctx = _happy_paypal_ctx()
+        delivery_items = [i for i in ctx.line_items if i.get("sku") == "delivery"]
+        self.assertEqual(len(delivery_items), 1)
+        self.assertEqual(delivery_items[0]["quantity"], "1")
+        self.assertEqual(delivery_items[0]["unit_amount"]["currency_code"], "EUR")
+
+    def test_gross_total_equals_item_total(self):
+        """sum(line_items) == gross_total (инвариант PayPal item_total)."""
+        ctx = _happy_paypal_ctx()
+        item_total = sum(
+            Decimal(i["unit_amount"]["value"]) * Decimal(str(i["quantity"]))
+            for i in ctx.line_items
+        )
+        self.assertEqual(item_total, ctx.gross_total)
+
+    def test_metadata_saved_with_correct_keys(self):
+        variant = _make_variant_mock()
+        user = MagicMock()
+        user.id = 42
+
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.PayPalMetadata") as meta_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction") as tx_mock, \
+             patch(f"{_PP_SESSION_MOD}.next_invoice_identifiers", return_value=("INV-X", "VS-X")), \
+             patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
+             patch(f"{_PP_SESSION_MOD}.validate_phone_matches_country", return_value=None), \
+             patch(f"{_PP_SESSION_MOD}.ZipCodeValidator"), \
+             patch(f"{_PP_SESSION_MOD}.calculate_order_shipping",
+                   return_value=_make_shipping_result_pp()):
+            _patch_variants_pp(pv_mock, [variant])
+            _patch_atomic_pp(tx_mock)
+            build_paypal_checkout_context(
+                user=user,
+                email="e@e.com",
+                first_name="A", last_name="B",
+                phone="+420111222333",
+                delivery_address={"country": "CZ"},
+                groups=_base_groups_pp(),
+                root_country="CZ",
+            )
+
+        meta_mock.objects.create.assert_called_once()
+        kw = meta_mock.objects.create.call_args[1]
+        for key in ("user_id", "email", "phone", "delivery_address"):
+            self.assertIn(key, kw["custom_data"], f"custom_data missing '{key}'")
+        for key in ("groups", "invoice_number"):
+            self.assertIn(key, kw["invoice_data"], f"invoice_data missing '{key}'")
+        for key in ("gross_total", "delivery_total", "variable_symbol"):
+            self.assertIn(key, kw["description_data"], f"description_data missing '{key}'")
+
+    def test_missing_sku_raises(self):
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction"):
+            qs = MagicMock()
+            qs.select_related.return_value.only.return_value = []
+            pv_mock.objects.filter.return_value = qs
+
+            with self.assertRaises(PayPalSessionBuildError) as ctx:
+                build_paypal_checkout_context(
+                    user=MagicMock(id=1),
+                    email="e@e.com",
+                    first_name="A", last_name="B", phone="+420111222333",
+                    delivery_address={"country": "CZ"},
+                    groups=_base_groups_pp(),
+                    root_country="CZ",
+                )
+        self.assertIn("ProductVariant not found", str(ctx.exception.detail))
+        self.assertEqual(ctx.exception.http_status, 400)
+
+    def test_dpd_missing_dims_raises(self):
+        variant = _make_variant_mock(weight_grams=0)
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction"):
+            _patch_variants_pp(pv_mock, [variant])
+
+            with self.assertRaises(PayPalSessionBuildError) as ctx:
+                build_paypal_checkout_context(
+                    user=MagicMock(id=1),
+                    email="e@e.com",
+                    first_name="A", last_name="B", phone="+420111222333",
+                    delivery_address={"country": "CZ"},
+                    groups=_base_groups_pp(courier_code="dpd"),
+                    root_country="CZ",
+                )
+        self.assertIn("weight/dimensions", str(ctx.exception.detail))
+
+    def test_cz_origin_not_cz_raises(self):
+        variant = _make_variant_mock(warehouse_country="DE")
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction"):
+            _patch_variants_pp(pv_mock, [variant])
+
+            with self.assertRaises(PayPalSessionBuildError) as ctx:
+                build_paypal_checkout_context(
+                    user=MagicMock(id=1),
+                    email="e@e.com",
+                    first_name="A", last_name="B", phone="+420111222333",
+                    delivery_address={"country": "CZ"},
+                    groups=_base_groups_pp(),
+                    root_country="CZ",
+                )
+        self.assertIn("origin", ctx.exception.detail)
+
+    def test_dpd_pudo_missing_zip_raises(self):
+        variant = _make_variant_mock()
+        groups = _base_groups_pp(courier_code="dpd", delivery_type=1)
+
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction"):
+            _patch_variants_pp(pv_mock, [variant])
+
+            with self.assertRaises(PayPalSessionBuildError) as ctx:
+                build_paypal_checkout_context(
+                    user=MagicMock(id=1),
+                    email="e@e.com",
+                    first_name="A", last_name="B", phone="+420111222333",
+                    delivery_address={"country": "CZ"},
+                    groups=groups,
+                    root_country="CZ",
+                )
+        self.assertIn("DPD PUDO", str(ctx.exception.detail))
+
+    def test_seller_ownership_raises(self):
+        variant = _make_variant_mock(seller_id=99)
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction"), \
+             patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"):
+            _patch_variants_pp(pv_mock, [variant])
+
+            with self.assertRaises(PayPalSessionBuildError) as ctx:
+                build_paypal_checkout_context(
+                    user=MagicMock(id=1),
+                    email="e@e.com",
+                    first_name="A", last_name="B", phone="+420111222333",
+                    delivery_address={"country": "CZ"},
+                    groups=_base_groups_pp(seller_id=1),
+                    root_country="CZ",
+                )
+        self.assertIn("does not belong to seller", str(ctx.exception.detail))
+
+    def test_unknown_delivery_type_raises(self):
+        variant = _make_variant_mock()
+        groups = _base_groups_pp(delivery_type=99)
+
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction"), \
+             patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
+             patch(f"{_PP_SESSION_MOD}.calculate_order_shipping",
+                   return_value=_make_shipping_result_pp()):
+            _patch_variants_pp(pv_mock, [variant])
+
+            with self.assertRaises(PayPalSessionBuildError) as ctx:
+                build_paypal_checkout_context(
+                    user=MagicMock(id=1),
+                    email="e@e.com",
+                    first_name="A", last_name="B", phone="+420111222333",
+                    delivery_address={"country": "CZ"},
+                    groups=groups,
+                    root_country="CZ",
+                )
+        self.assertIn("Unknown delivery_type", str(ctx.exception.detail))
+
+    def test_hd_invalid_zip_raises(self):
+        variant = _make_variant_mock()
+        groups = _base_groups_pp(delivery_type=2)
+        groups[0]["delivery_address"] = {"zip": "00000", "country": "CZ"}
+
+        bad_zip = MagicMock()
+        bad_zip.valid = False
+        bad_zip.normalized_postcode = None
+
+        with patch(f"{_PP_SESSION_MOD}.ProductVariant") as pv_mock, \
+             patch(f"{_PP_SESSION_MOD}.transaction"), \
+             patch(f"{_PP_SESSION_MOD}.resolve_country_code_from_group", return_value="CZ"), \
+             patch(f"{_PP_SESSION_MOD}.ZipCodeValidator") as zip_mock, \
+             patch(f"{_PP_SESSION_MOD}.calculate_order_shipping",
+                   return_value=_make_shipping_result_pp(channel="HD")):
+            _patch_variants_pp(pv_mock, [variant])
+            zip_mock.validate_and_resolve.return_value = bad_zip
+
+            with self.assertRaises(PayPalSessionBuildError) as ctx:
+                build_paypal_checkout_context(
+                    user=MagicMock(id=1),
+                    email="e@e.com",
+                    first_name="A", last_name="B", phone="+420111222333",
+                    delivery_address={"country": "CZ"},
+                    groups=groups,
+                    root_country="CZ",
+                )
+        self.assertIn("Invalid ZIP", str(ctx.exception.detail))
+
+
+# ===========================================================================
+# CreatePayPalPaymentView — интеграционные тесты
+# ===========================================================================
+
+from rest_framework.test import APIClient
+
+
+class TestCreatePayPalPaymentView(SimpleTestCase):
+    """CreatePayPalPaymentView.post — тонкий HTTP-слой поверх сервиса."""
+
+    _VIEW_MOD = "payment.views"
+
+    def setUp(self):
+        self.user = MagicMock()
+        self.user.id = 42
+        self.user.is_authenticated = True
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.url = "/api/create-paypal-payment/"
+
+        self._valid_payload = {
+            "email": "pp@test.com",
+            "first_name": "Jan",
+            "last_name": "Novak",
+            "phone": "+420123456789",
+            "delivery_address": {
+                "country": "CZ", "city": "Praha",
+                "street": "Main 1", "zip": "11000",
+            },
+            "groups": [
+                {
+                    "seller_id": 1,
+                    "delivery_type": 1,
+                    "products": [{"sku": "SKU-001", "quantity": 1}],
+                }
+            ],
+        }
+
+    def _make_ctx(self):
+        from payment.services.paypal_session import PayPalCheckoutContext
+        return PayPalCheckoutContext(
+            line_items=[],
+            session_key="test-session-uuid",
+            invoice_number="INV-2026-001",
+            variable_symbol="2026001",
+            gross_total=Decimal("55.00"),
+        )
+
+    def _mock_serializer(self, validated_override=None):
+        """Возвращает мок SessionInputSerializer с valid данными."""
+        validated = {
+            "email": "pp@test.com",
+            "first_name": "Jan",
+            "last_name": "Novak",
+            "phone": "+420123456789",
+            "delivery_address": {"country": "CZ", "city": "Praha", "street": "Main 1", "zip": "11000"},
+            "groups": [{"seller_id": 1, "delivery_type": 1, "products": [{"sku": "SKU-001", "quantity": 1}]}],
+        }
+        if validated_override:
+            validated.update(validated_override)
+        m = MagicMock()
+        m.return_value.is_valid.return_value = True
+        m.return_value.validated_data = validated
+        return m
+
+    def test_post_returns_approval_url(self):
+        ctx = self._make_ctx()
+        serializer_mock = self._mock_serializer()
+        with patch(f"{self._VIEW_MOD}.SessionInputSerializer", serializer_mock), \
+             patch(f"{self._VIEW_MOD}.build_paypal_checkout_context", return_value=ctx), \
+             patch(f"{self._VIEW_MOD}.create_paypal_checkout_session",
+                   return_value=("https://paypal.com/approve?t=XYZ", "PP-ORDER-001")):
+            resp = self.client.post(self.url, self._valid_payload, format="json")
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.data["approval_url"], "https://paypal.com/approve?t=XYZ")
+        self.assertEqual(resp.data["order_id"], "PP-ORDER-001")
+        self.assertEqual(resp.data["session_key"], "test-session-uuid")
+        self.assertEqual(resp.data["session_id"], "test-session-uuid")
+
+    def test_post_400_on_missing_sku(self):
+        serializer_mock = self._mock_serializer()
+        with patch(f"{self._VIEW_MOD}.SessionInputSerializer", serializer_mock), \
+             patch(
+                 f"{self._VIEW_MOD}.build_paypal_checkout_context",
+                 side_effect=PayPalSessionBuildError(
+                     {"error": "ProductVariant not found: SKU-UNKNOWN"}
+                 ),
+             ):
+            resp = self.client.post(self.url, self._valid_payload, format="json")
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertIn("ProductVariant not found", resp.data["error"])
+
+    def test_post_500_on_paypal_api_failure(self):
+        ctx = self._make_ctx()
+        serializer_mock = self._mock_serializer()
+        with patch(f"{self._VIEW_MOD}.SessionInputSerializer", serializer_mock), \
+             patch(f"{self._VIEW_MOD}.build_paypal_checkout_context", return_value=ctx), \
+             patch(f"{self._VIEW_MOD}.create_paypal_checkout_session",
+                   side_effect=RuntimeError("PayPal API unreachable")):
+            resp = self.client.post(self.url, self._valid_payload, format="json")
+
+        self.assertEqual(resp.status_code, 500)
+        self.assertIn("error", resp.data)
+
+    def test_unauthenticated_returns_401(self):
+        unauth_client = APIClient()
+        resp = unauth_client.post(self.url, self._valid_payload, format="json")
+        self.assertIn(resp.status_code, [401, 403])

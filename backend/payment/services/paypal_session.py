@@ -1,12 +1,12 @@
 """
-Stripe Checkout context builder.
+PayPal Checkout context builder.
 
-Выносит из CreateStripePaymentView.post всю бизнес-логику:
+Выносит из CreatePayPalPaymentView.post всю бизнес-логику:
 - загрузку вариантов и DPD-валидацию размеров
 - CZ-origin проверку
-- цикл по группам: ZIP, phone, расчёт доставки, построение line_items
-- расчёт итоговых сумм
-- сохранение StripeMetadata
+- цикл по группам: ZIP, phone, расчёт доставки, построение line_items (PayPal-формат)
+- расчёт итоговых сумм (gross_total == item_total — инвариант PayPal)
+- сохранение PayPalMetadata
 
 HTTP-уровень (Response) остаётся во view.
 """
@@ -31,24 +31,29 @@ from delivery.validators.zip_validator import ZipCodeValidator
 from order.services.invoice_numbers import next_invoice_identifiers
 from product.models import ProductVariant
 
-from payment.models import StripeMetadata
+from payment.models import PayPalMetadata
 from payment.services.checkout_shared import CheckoutSessionBuildError, _CHANNEL_MAP, _D
 
 logger = logging.getLogger(__name__)
 
 
-class StripeSessionBuildError(CheckoutSessionBuildError):
-    """Бизнес-ошибка при построении Stripe-сессии."""
+# ---------------------------------------------------------------------------
+# Публичные исключения и типы
+# ---------------------------------------------------------------------------
+
+class PayPalSessionBuildError(CheckoutSessionBuildError):
+    """Бизнес-ошибка при построении PayPal-сессии."""
 
 
 @dataclass
-class StripeCheckoutContext:
-    """Результат build_stripe_checkout_context — всё необходимое для вызова Stripe API."""
+class PayPalCheckoutContext:
+    """Результат build_paypal_checkout_context — всё необходимое для вызова PayPal API."""
 
     line_items: list
     session_key: str
     invoice_number: str
     variable_symbol: str
+    gross_total: Decimal
     groups: list = field(default_factory=list)
 
 
@@ -58,8 +63,9 @@ class StripeCheckoutContext:
 
 def _check_cz_origin(variant_map: dict, groups: list) -> None:
     """
-    Проверяет CZ-origin правило (все SKU → default_warehouse.country == 'CZ').
-    Аналог _check_cz_origin_for_groups из views.py, но бросает исключение вместо Response.
+    Проверяет CZ-origin правило: все SKU должны иметь
+    seller.default_warehouse.country == 'CZ'.
+    Бросает PayPalSessionBuildError вместо возврата Response.
     """
     skus_in_payload = [
         str(p["sku"])
@@ -81,11 +87,11 @@ def _check_cz_origin(variant_map: dict, groups: list) -> None:
             not_cz.append(sku)
 
     if missing:
-        raise StripeSessionBuildError(
+        raise PayPalSessionBuildError(
             {"error": f"Unknown SKU(s): {', '.join(missing)}"},
         )
     if not_cz:
-        raise StripeSessionBuildError(
+        raise PayPalSessionBuildError(
             {
                 "origin": [
                     (
@@ -102,7 +108,7 @@ def _check_cz_origin(variant_map: dict, groups: list) -> None:
 # Основная функция
 # ---------------------------------------------------------------------------
 
-def build_stripe_checkout_context(
+def build_paypal_checkout_context(
     *,
     user,
     email: str,
@@ -112,16 +118,20 @@ def build_stripe_checkout_context(
     delivery_address: dict,
     groups: list,
     root_country: str,
-) -> StripeCheckoutContext:
+) -> PayPalCheckoutContext:
     """
-    Строит контекст Stripe Checkout Session:
+    Строит контекст PayPal Checkout Session:
     - валидирует SKU, размеры DPD, CZ-origin
     - рассчитывает доставку по группам
-    - собирает line_items
-    - сохраняет StripeMetadata в atomic-транзакции
+    - собирает line_items в PayPal-формате (unit_amount.value — строка EUR)
+    - сохраняет PayPalMetadata в atomic-транзакции
+
+    Критический инвариант PayPal: sum(line_items) == gross_total.
+    Delivery добавляется в line_items до расчёта gross_total,
+    чтобы item_total в purchase_units совпал с total_price.
 
     Raises:
-        StripeSessionBuildError: при любой бизнес-ошибке (400).
+        PayPalSessionBuildError: при любой бизнес-ошибке (400).
     """
     # ------------------------------------------------------------------
     # 1. Загрузка вариантов
@@ -143,7 +153,7 @@ def build_stripe_checkout_context(
 
     missing_skus = sorted(all_skus - set(variant_map.keys()))
     if missing_skus:
-        raise StripeSessionBuildError(
+        raise PayPalSessionBuildError(
             {"error": f"ProductVariant not found: {', '.join(missing_skus)}"},
         )
 
@@ -165,7 +175,7 @@ def build_stripe_checkout_context(
             if any(x is None or x == 0 for x in [v.weight_grams, v.length_mm, v.width_mm, v.height_mm]):
                 missing_dims.append(sku)
         if missing_dims:
-            raise StripeSessionBuildError(
+            raise PayPalSessionBuildError(
                 {"error": f"Missing weight/dimensions for SKU(s): {', '.join(missing_dims)}"},
             )
 
@@ -177,7 +187,7 @@ def build_stripe_checkout_context(
     # ------------------------------------------------------------------
     # 4. Цикл по группам
     # ------------------------------------------------------------------
-    line_items = []
+    line_items: list = []
     total_delivery = Decimal("0.00")
 
     for idx, group in enumerate(groups, start=1):
@@ -196,7 +206,7 @@ def build_stripe_checkout_context(
             pickup_country = group.get("delivery_address", {}).get("country")
 
             if not pickup_zip or not pickup_country:
-                raise StripeSessionBuildError(
+                raise PayPalSessionBuildError(
                     {"error": f"Group {idx}: DPD PUDO requires pickup point ZIP and country in delivery_address."},
                 )
 
@@ -204,7 +214,7 @@ def build_stripe_checkout_context(
                 pickup_zip, pickup_country, prefer_remote=True
             )
             if not resolved_zip.valid:
-                raise StripeSessionBuildError(
+                raise PayPalSessionBuildError(
                     {"error": f"Group {idx}: Invalid ZIP '{pickup_zip}' for pickup point in country {pickup_country}."},
                 )
 
@@ -213,7 +223,7 @@ def build_stripe_checkout_context(
             group, idx, logger=logger, root_country=root_country, courier_code=courier_code,
         )
         if not country_code:
-            raise StripeSessionBuildError(
+            raise PayPalSessionBuildError(
                 {"error": f"Group {idx}: Invalid delivery address or pickup point."},
             )
 
@@ -222,7 +232,7 @@ def build_stripe_checkout_context(
             sku = product["sku"]
             variant = variant_map[sku]
             if variant.product.seller.id != seller_id:
-                raise StripeSessionBuildError(
+                raise PayPalSessionBuildError(
                     {"error": f"Group {idx}: Product {sku} does not belong to seller {seller_id}."},
                 )
 
@@ -231,13 +241,13 @@ def build_stripe_checkout_context(
             gaddr = group.get("delivery_address", {}) or {}
             zip_code = gaddr.get("zip")
             if not zip_code:
-                raise StripeSessionBuildError(
+                raise PayPalSessionBuildError(
                     {"error": f"Group {idx}: ZIP code is missing."},
                 )
 
             resolved_zip = ZipCodeValidator.validate_and_resolve(zip_code, country_code, prefer_remote=True)
             if not resolved_zip.valid:
-                raise StripeSessionBuildError(
+                raise PayPalSessionBuildError(
                     {"error": f"Group {idx}: Invalid ZIP '{zip_code}' for country {country_code}."},
                 )
 
@@ -246,7 +256,7 @@ def build_stripe_checkout_context(
 
             phone_error = validate_phone_matches_country(phone, country_code)
             if phone_error:
-                raise StripeSessionBuildError(
+                raise PayPalSessionBuildError(
                     {"error": f"Group {idx}: {phone_error}"},
                 )
 
@@ -288,7 +298,7 @@ def build_stripe_checkout_context(
         # Канал доставки
         channel = _CHANNEL_MAP.get(delivery_type)
         if channel is None:
-            raise StripeSessionBuildError(
+            raise PayPalSessionBuildError(
                 {"error": f"Group {idx}: Unknown delivery_type {delivery_type}."},
             )
 
@@ -309,7 +319,7 @@ def build_stripe_checkout_context(
             available = [f"{o['service']} ({o['channel']})" for o in shipping_result.get("options", [])]
 
             if courier_code == "gls" and delivery_type == 1:
-                raise StripeSessionBuildError(
+                raise PayPalSessionBuildError(
                     {
                         "error": (
                             f"Group {idx}: GLS does not support '{delivery_mode.upper()}' "
@@ -318,7 +328,7 @@ def build_stripe_checkout_context(
                     },
                 )
 
-            raise StripeSessionBuildError(
+            raise PayPalSessionBuildError(
                 {"error": f"Group {idx}: No option for channel {channel}. Available: {', '.join(available)}"},
             )
 
@@ -339,7 +349,7 @@ def build_stripe_checkout_context(
         group["calculated_delivery_cost"] = str(delivery_cost)
         group["calculated_total_parcels"] = num_parcels
 
-        # Товарные позиции
+        # Товарные позиции (PayPal-формат: value — строка EUR, quantity — строка)
         group_total = Decimal("0.00")
         for product in products:
             variant = variant_map[product["sku"]]
@@ -347,38 +357,32 @@ def build_stripe_checkout_context(
             quantity = int(product["quantity"])
             group_total += unit_price * quantity
 
-            line_items.append(
-                {
-                    "price_data": {
-                        "currency": "eur",
-                        "product_data": {"name": product["sku"]},
-                        "unit_amount": int(
-                            (unit_price * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-                        ),
-                    },
-                    "quantity": quantity,
-                }
-            )
+            line_items.append({
+                "name": product["sku"],
+                "sku": product["sku"],
+                "unit_amount": {"currency_code": "EUR", "value": str(unit_price)},
+                "quantity": str(quantity),
+            })
 
         group_total += delivery_cost
         group["calculated_group_total"] = str(group_total.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
     # ------------------------------------------------------------------
-    # 5. Итоги + строка доставки
+    # 5. Delivery-позиция в line_items + итоги
+    #
+    # ВАЖНО: delivery добавляется ДО вычисления gross_total,
+    # чтобы sum(line_items) == gross_total (инвариант PayPal item_total).
     # ------------------------------------------------------------------
     if total_delivery > 0:
-        line_items.append(
-            {
-                "price_data": {
-                    "currency": "eur",
-                    "product_data": {"name": f"Delivery ({total_delivery} EUR)"},
-                    "unit_amount": int(
-                        (total_delivery * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-                    ),
-                },
-                "quantity": 1,
-            }
-        )
+        line_items.append({
+            "name": "Delivery",
+            "sku": "delivery",
+            "unit_amount": {
+                "currency_code": "EUR",
+                "value": str(total_delivery.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
+            },
+            "quantity": "1",
+        })
 
     gross_total = sum(_D(g["calculated_group_total"]) for g in groups).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
@@ -396,7 +400,7 @@ def build_stripe_checkout_context(
     # 6. Сохранение метаданных
     # ------------------------------------------------------------------
     with transaction.atomic():
-        StripeMetadata.objects.create(
+        PayPalMetadata.objects.create(
             session_key=session_key,
             custom_data={
                 "user_id": str(user.id),
@@ -418,15 +422,16 @@ def build_stripe_checkout_context(
         )
 
     logger.info(
-        "Stripe metadata saved session_key=%s user=%s",
+        "PayPal metadata saved session_key=%s user=%s",
         session_key,
         user.id,
     )
 
-    return StripeCheckoutContext(
+    return PayPalCheckoutContext(
         line_items=line_items,
         session_key=session_key,
         invoice_number=invoice_number,
         variable_symbol=variable_symbol,
+        gross_total=gross_total,
         groups=groups,
     )
