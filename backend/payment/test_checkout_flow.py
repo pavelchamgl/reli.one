@@ -1,6 +1,9 @@
 """
-Минимальные регрессионные тесты цепочки checkout → Stripe session → webhook → order.
-Внешние API (Stripe, тарифы перевозчиков, DPD ZIP) мокируются.
+Минимальные регрессионные тесты цепочки checkout → Stripe/PayPal session → webhook → order.
+Внешние API (Stripe, PayPal verify, тарифы перевозчиков, DPD ZIP) мокируются.
+
+Интеграционные классы (*WebhookFlowTests, CreateStripeSessionTests, …) требуют PostgreSQL
+согласно `DATABASES` в settings (локально часто Docker-хост `postgres_db`).
 """
 from __future__ import annotations
 
@@ -18,7 +21,8 @@ from rest_framework.test import APIClient
 from accounts.choices import UserRole
 from accounts.models import CustomUser
 from order.models import CourierService, DeliveryType, Order, OrderStatus, OrderProduct
-from payment.models import Payment, StripeMetadata
+from payment.mixins import PayPalMixin
+from payment.models import Payment, PayPalMetadata, StripeMetadata
 from product.models import BaseProduct, ProductStatus, ProductVariant
 from sellers.models import SellerProfile
 from warehouses.models import Warehouse, WarehouseItem
@@ -523,3 +527,219 @@ class StripeWebhookFlowTests(CheckoutCatalogMixin, TestCase):
 
         pay = Payment.objects.get(session_id=session_id)
         self.assertEqual(pay.amount_total, group_total)
+
+
+class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.setUpCatalog()
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def _make_paypal_order_completed_payload(
+        self, paypal_order_id: str, session_key: str, amount: Decimal
+    ):
+        amt = str(amount.quantize(Decimal("0.01")))
+        return {
+            "event_type": "CHECKOUT.ORDER.COMPLETED",
+            "resource": {
+                "id": paypal_order_id,
+                "purchase_units": [
+                    {
+                        "reference_id": session_key,
+                        "amount": {"value": amt, "currency_code": "EUR"},
+                    }
+                ],
+            },
+        }
+
+    @patch("payment.views.async_parcels_and_seller_email")
+    @patch("payment.views.async_send_client_email")
+    @patch("payment.views.generate_invoice_pdf", return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"))
+    @patch.object(PayPalMixin, "verify_webhook", return_value=True)
+    def test_paypal_webhook_idempotent_no_duplicate_orders(
+        self,
+        _mock_verify,
+        _mock_pdf,
+        _mock_email_client,
+        _mock_parcels,
+    ):
+        delivery_opt = Decimal("5.21")
+        unit_acq = self.variant.price_with_acquiring
+        qty = 2
+        line_net = (unit_acq * qty).quantize(Decimal("0.01"))
+        group_total = (line_net + delivery_opt).quantize(Decimal("0.01"))
+        gross_total = group_total
+
+        session_key = "paypal-session-key-webhook-1"
+        paypal_order_id = "PP-ORDER-WH-1"
+
+        PayPalMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                "user_id": str(self.customer.id),
+                "email": self.customer.email,
+                "first_name": "Buyer",
+                "last_name": "Test",
+                "phone": "+420777123456",
+                "delivery_address": {
+                    "street": "Test 9",
+                    "city": "Praha",
+                    "zip": "11000",
+                    "country": "CZ",
+                },
+            },
+            invoice_data={
+                "invoice_number": "2026001999",
+                "groups": [
+                    {
+                        "seller_id": self.seller_profile.id,
+                        "delivery_type": 2,
+                        "courier_service": 2,
+                        "delivery_address": {
+                            "street": "Test 9",
+                            "city": "Praha",
+                            "zip": "11000",
+                            "country": "CZ",
+                        },
+                        "products": [{"sku": self.variant.sku, "quantity": qty}],
+                        "calculated_delivery_cost": str(delivery_opt),
+                        "calculated_total_parcels": 1,
+                        "calculated_group_total": str(group_total),
+                    }
+                ],
+            },
+            description_data={
+                "gross_total": str(gross_total),
+                "delivery_total": str(delivery_opt),
+                "variable_symbol": "2026001999",
+            },
+        )
+
+        payload = self._make_paypal_order_completed_payload(
+            paypal_order_id, session_key, gross_total
+        )
+        body = json.dumps(payload).encode("utf-8")
+        url = reverse("paypal_webhook")
+
+        r1 = self.client.post(
+            url,
+            data=body,
+            content_type="application/json",
+        )
+        self.assertEqual(r1.status_code, status.HTTP_200_OK, r1.data)
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(
+            Payment.objects.filter(
+                payment_system="paypal", session_id=paypal_order_id
+            ).count(),
+            1,
+        )
+
+        r2 = self.client.post(
+            url,
+            data=body,
+            content_type="application/json",
+        )
+        self.assertEqual(r2.status_code, status.HTTP_200_OK, r2.data)
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(
+            Payment.objects.filter(
+                payment_system="paypal", session_id=paypal_order_id
+            ).count(),
+            1,
+        )
+        self.assertEqual(
+            r2.data.get("status"),
+            "0 order(s) created successfully",
+        )
+
+    @patch("payment.views.async_parcels_and_seller_email")
+    @patch("payment.views.async_send_client_email")
+    @patch("payment.views.generate_invoice_pdf", return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"))
+    @patch.object(PayPalMixin, "verify_webhook", return_value=True)
+    def test_paypal_webhook_order_products_and_totals(
+        self,
+        _mock_verify,
+        _mock_pdf,
+        _mock_email_client,
+        _mock_parcels,
+    ):
+        delivery_opt = Decimal("5.21")
+        unit_acq = self.variant.price_with_acquiring
+        qty = 3
+        line_net = (unit_acq * qty).quantize(Decimal("0.01"))
+        group_total = (line_net + delivery_opt).quantize(Decimal("0.01"))
+
+        session_key = "paypal-session-key-totals"
+        paypal_order_id = "PP-ORDER-TOTALS"
+
+        PayPalMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                "user_id": str(self.customer.id),
+                "email": self.customer.email,
+                "first_name": "Buyer",
+                "last_name": "Test",
+                "phone": "+420777123456",
+                "delivery_address": {
+                    "street": "Main 1",
+                    "city": "Praha",
+                    "zip": "12000",
+                    "country": "CZ",
+                },
+            },
+            invoice_data={
+                "invoice_number": "2026001888",
+                "groups": [
+                    {
+                        "seller_id": self.seller_profile.id,
+                        "delivery_type": 2,
+                        "courier_service": 2,
+                        "delivery_address": {
+                            "street": "Main 1",
+                            "city": "Praha",
+                            "zip": "12000",
+                            "country": "CZ",
+                        },
+                        "products": [{"sku": self.variant.sku, "quantity": qty}],
+                        "calculated_delivery_cost": str(delivery_opt),
+                        "calculated_total_parcels": 1,
+                        "calculated_group_total": str(group_total),
+                    }
+                ],
+            },
+            description_data={
+                "gross_total": str(group_total),
+                "delivery_total": str(delivery_opt),
+                "variable_symbol": "2026001888",
+            },
+        )
+
+        payload = self._make_paypal_order_completed_payload(
+            paypal_order_id, session_key, group_total
+        )
+        body = json.dumps(payload).encode("utf-8")
+        url = reverse("paypal_webhook")
+
+        response = self.client.post(
+            url,
+            data=body,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+
+        order = Order.objects.get()
+        self.assertEqual(order.group_subtotal, group_total)
+        self.assertEqual(order.delivery_cost, delivery_opt)
+
+        op = OrderProduct.objects.get(order=order)
+        self.assertEqual(op.quantity, qty)
+        self.assertEqual(op.product_price, unit_acq)
+        self.assertEqual(op.product_id, self.variant.id)
+
+        pay = Payment.objects.get(session_id=paypal_order_id, payment_system="paypal")
+        self.assertEqual(pay.amount_total, group_total)
+        desc = PayPalMetadata.objects.get(session_key=session_key).description_data
+        self.assertEqual(Decimal(str(desc["gross_total"])), group_total)
