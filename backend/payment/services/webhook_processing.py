@@ -108,6 +108,19 @@ class WebhookProcessingResult:
     origin_blocked: bool = False
 
 
+@dataclass
+class PreparedOrderCreationContext:
+    """Снимок данных для `transaction.atomic()` — только pre-flight, без записи заказов."""
+
+    user: CustomUser
+    groups: list
+    vmap: dict
+    origin_blocked: bool
+    not_cz: list[str]
+    pending_status: OrderStatus
+    root_country: str
+
+
 # ---------------------------------------------------------------------------
 # Публичные утилиты
 # ---------------------------------------------------------------------------
@@ -183,36 +196,14 @@ def _replay_if_payment_exists(
     return WebhookProcessingResult(orders=[], is_replay=True)
 
 
-# ---------------------------------------------------------------------------
-# Основная функция обработки
-# ---------------------------------------------------------------------------
-
-
-def create_orders_and_payment(
+def _prepare_order_creation_context(
     data: WebhookPaymentData,
-) -> WebhookProcessingResult | None:
+    source: str,
+) -> PreparedOrderCreationContext | None:
     """
-    Атомарно создаёт Order(s), Payment и Invoice по данным webhook.
-
-    Идемпотентность: если Payment с (payment_system, session_id) уже существует,
-    функция обновляет conversion-кэш и возвращает ``WebhookProcessingResult(orders=[],
-    is_replay=True)`` без создания дублей.
-
-    Транзакционность: Orders + OrderProducts + Payment создаются в одном
-    ``transaction.atomic()`` блоке. Invoice создаётся best-effort внутри той же
-    транзакции — ошибки логируются, но НЕ откатывают заказ.
-
-    Возвращает:
-        WebhookProcessingResult — при успехе или idempotent-повторе.
-        None — при невосстановимой ошибке (метаданные не найдены, статус не настроен
-                и т.п.).
+    Pre-atomic: user, группы, варианты, CZ-origin, Pending status, root country.
+    Те же early return None и логи, что при инлайн-логике до ``transaction.atomic()``.
     """
-    source = f"{data.payment_system.capitalize()}Webhook"
-
-    replay = _replay_if_payment_exists(data, source)
-    if replay is not None:
-        return replay
-
     # ------------------------------------------------------------------
     # 2. Загружаем пользователя
     # ------------------------------------------------------------------
@@ -271,6 +262,59 @@ def create_orders_and_payment(
 
     root_addr = data.custom_data.get("delivery_address") or {}
     root_country = (root_addr.get("country") or "").upper()
+
+    return PreparedOrderCreationContext(
+        user=user,
+        groups=groups,
+        vmap=vmap,
+        origin_blocked=origin_blocked,
+        not_cz=not_cz,
+        pending_status=pending_status,
+        root_country=root_country,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Основная функция обработки
+# ---------------------------------------------------------------------------
+
+
+def create_orders_and_payment(
+    data: WebhookPaymentData,
+) -> WebhookProcessingResult | None:
+    """
+    Атомарно создаёт Order(s), Payment и Invoice по данным webhook.
+
+    Идемпотентность: если Payment с (payment_system, session_id) уже существует,
+    функция обновляет conversion-кэш и возвращает ``WebhookProcessingResult(orders=[],
+    is_replay=True)`` без создания дублей.
+
+    Транзакционность: Orders + OrderProducts + Payment создаются в одном
+    ``transaction.atomic()`` блоке. Invoice создаётся best-effort внутри той же
+    транзакции — ошибки логируются, но НЕ откатывают заказ.
+
+    Возвращает:
+        WebhookProcessingResult — при успехе или idempotent-повторе.
+        None — при невосстановимой ошибке (метаданные не найдены, статус не настроен
+                и т.п.).
+    """
+    source = f"{data.payment_system.capitalize()}Webhook"
+
+    replay = _replay_if_payment_exists(data, source)
+    if replay is not None:
+        return replay
+
+    ctx = _prepare_order_creation_context(data, source)
+    if ctx is None:
+        return None
+
+    user = ctx.user
+    groups = ctx.groups
+    vmap = ctx.vmap
+    origin_blocked = ctx.origin_blocked
+    not_cz = ctx.not_cz
+    pending_status = ctx.pending_status
+    root_country = ctx.root_country
 
     orders_created: list[Order] = []
     invoice_created = False
