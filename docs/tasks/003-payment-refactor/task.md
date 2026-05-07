@@ -2,7 +2,14 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 + **Step 5 done** — behavior-preserving декомпозиция `create_orders_and_payment`; план: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md); **pytest** `payment/tests.py` + `payment/test_checkout_flow.py`: **61 passed** в Docker/PostgreSQL, см. `docker-compose.test.yml`)
+**Status:** **Завершена (ядро)** — 2026-05-07. Реализованы P0-пункты: составной unique на `Payment`, replay/идемпотентность (+ `IntegrityError`), `PromoCode` `F()`, регрессия PAY-4, декомпозиция Steps 1–5. Дальнейшее — см. блок **Вне scope / follow-up** ниже.
+
+**Итоговые автотесты (Docker PostgreSQL, `backend_test`):**
+```bash
+docker compose -f docker-compose.test.yml run --rm backend_test \
+  pytest payment/ promocode/ order/tests.py --tb=no --disable-warnings
+```
+**88 passed** (54 `payment/tests.py` + 7 `payment/test_checkout_flow.py` + 21 `order/tests.py` + 6 `promocode/tests.py`).
 
 ## Цель
 
@@ -12,7 +19,7 @@
 
 Payment flow — самая критическая часть системы. Сейчас в ней:
 - ~~`Payment`: дубль по парам `(payment_system, session_id)`~~ — закрыто: **`UniqueConstraint` в БД + `IntegrityError` → replay** в `webhook_processing` (DB-1)
-- ~~DB-6 PromoCode~~ — `increment_used_count` переведён на `F()` + регрессия в `promocode/tests.py`
+- ~~`PromoCode` / DB-6~~ — `increment_used_count` переведён на `F()` + регрессия в `promocode/tests.py`
 - **PAY-4 (закрыто кодом):** в `order/services/invoice_numbers.py` уже используются `transaction.atomic`, `select_for_update()` и `F()` для счётчика — дубликаты номеров снимаются на уровне реализации; остаётся **регрессионное покрытие** (см. `order/tests.py`: `NextInvoiceIdentifiersTests`, `NextInvoiceIdentifiersConcurrencyTests`).
 - `payment/views.py` — исторически до рефактора порядка **~2198** строк (BE-2); **после Steps 1–4 фактически ≈ 973 строки** (актуально на 2026-05-07)
 - Фоновые задачи (посылки, email) через `ThreadPoolExecutor` без retry → потеря при падении процесса (PAY-2)
@@ -22,9 +29,9 @@ Payment flow — самая критическая часть системы. С
 ## Scope (область)
 
 - ~~`Payment`: уникальность~~ — **`UniqueConstraint(payment_system, session_id)`** + миграция `payment.0004_…` + обработка гонки (`IntegrityError` → replay)
-- Исправление `PromoCode.increment_used_count` через `F()`-выражение
+- ~~Исправление `PromoCode.increment_used_count` через `F()`~~ — сделано
 - ~~Добавление `select_for_update` в `InvoiceSequence`~~ — уже есть в `next_invoice_identifiers()`; поддерживать тестами
-- Декомпозиция `payment/views.py` в сервисный слой `payment/services/`
+- ~~Декомпозиция `payment/views.py` → `payment/services/` (Steps 1–5)~~ — checkout / webhook сведены к тонкому HTTP-слою + сервисы; см. таблицу прогресса; доп. вынос (`order_factory` и т.д.) не обязателен
 - Оценка и план перехода с `ThreadPoolExecutor` на Celery (реализация опционально)
 
 ## Не входит в задачу
@@ -51,9 +58,20 @@ Payment flow — самая критическая часть системы. С
 - [x] Повторная доставка / гонка: второй webhook не создаёт второй `Payment` и не оставляет «осиротевшие» заказы после отката (регрессия: `TestCreateOrdersIntegrityReplayCheckout`)
 - [x] `PromoCode.increment_used_count` использует `F()` выражение
 - [x] PAY-4 / `next_invoice_identifiers()`: `transaction.atomic` + `select_for_update()` + `F()` уже в коде (`order/services/invoice_numbers.py`); регрессия — тесты уникальности в `order/tests.py`
-- [ ] `payment/views.py` разбит на сервисы в `payment/services/`
-- [x] Все существующие тесты payment проходят (Docker PostgreSQL)
-- [x] Тест на ветку `IntegrityError` / replay (`payment/tests.py::TestCreateOrdersIntegrityReplayCheckout`); доп. идемпотентность webhooks — по мере расширения suite
+- [x] Идемпотентность Stripe/PayPal webhook: `_replay_if_payment_exists` + `IntegrityError` → replay, HTTP-контракты без изменений; при необходимости — расширить отдельными E2E на дубль payload
+- [x] Автотесты: **88 passed** (срез `payment/` + `promocode/` + `order/tests.py`, см. команду выше)
+- [x] Регрессия `IntegrityError` / replay: `payment/tests.py::TestCreateOrdersIntegrityReplayCheckout`
+
+### Вне scope Task 003 (follow-up, не блокирует закрытие)
+
+| Тема | Примечание |
+|------|------------|
+| **Celery вместо ThreadPoolExecutor** | PAY-2: инфраструктура, retry-модель для посылок/email |
+| **decrease_stock / склад** | Списание остатков в цепочке оплаты — не реализовывалось в Task 003 |
+| **Fragile PayPal errors** | Хрупкие ветки payload/API → явные HTTP-ответы; см. Follow-up в Iteration 4 |
+| **views cleanup** | Импорты, dead code, уменьшение «шума» в `views.py` без смены поведения |
+| **`OrderProduct.received_at` naive datetime** | RuntimeWarning в `order/tests.py`; правка timezone — отдельная задача (например `docs/tasks/011-order-product-received-at-timezone/`) |
+| **Опциональный вынос** | `order_factory.py` / `invoice_service.py` / `notification.py` из `webhook_processing` — техдолг Iteration 4 |
 
 ---
 
@@ -98,9 +116,9 @@ sequenceDiagram
     Stripe->>Backend: POST /stripe-webhook/ (checkout.session.completed)
     Backend->>DB: Load StripeMetadata by session_key
     Backend->>DB: BEGIN TRANSACTION
-    Backend->>DB: Create Payment + Orders + OrderProducts
-    Backend->>DB: Decrement warehouse stock
-    Backend->>DB: Increment PromoCode.used_count (РИСК: не атомарно)
+    Backend->>DB: Create Payment + Orders + OrderProducts (уникальность пары payment_system+session_id)
+    Backend->>DB: Decrement warehouse stock (вне scope Task 003 / follow-up)
+    Backend->>DB: PromoCode — increment атомарный (F()) где используется
     Backend->>DB: InvoiceSequence / next_invoice_identifiers (atomic + row lock + F()) — PAY-4 снят в коде; регрессия тестами
     Backend->>DB: COMMIT
     Backend->>Delivery: async generate_parcels (РИСК: нет retry)
@@ -108,7 +126,7 @@ sequenceDiagram
 ```
 
 ### Статус
-- [ ] Analysis complete
+- [x] Analysis complete (по итогам реализации и ревью)
 
 ---
 
@@ -156,7 +174,7 @@ class PromoCodeConcurrentTest(TestCase):
 - `send_seller_emails_by_session` → mock
 
 ### Статус
-- [ ] Tests written and passing
+- [x] Ключевые регрессии и расширения suite внедрены; см. **88 passed** и чеклист DoD
 
 ---
 
@@ -167,21 +185,19 @@ class PromoCodeConcurrentTest(TestCase):
 
 ### Что менять
 
-**1. `payment/models.py` — уникальный session_id:**
+**1. `payment/models.py` (итог по факту):** ~~черновик «unique только session_id» ниже устарел~~ — в проде **`UniqueConstraint(payment_system, session_id)`** + см. миграция `0004_…`.
 
 ```python
-# ДО:
-session_id = models.CharField(max_length=255)
-
-# ПОСЛЕ:
-session_id = models.CharField(max_length=255, unique=True)
+# УСТАРЕЛО — черновик:
+# session_id = models.CharField(max_length=255, unique=True)
 ```
 
 **Migration strategy:**
-1. Сначала проверить дубли: `SELECT session_id, COUNT(*) FROM payment_payment GROUP BY session_id HAVING COUNT(*) > 1`
-2. Если дубли есть — удалить вручную перед применением миграции
-3. Применить миграцию `unique=True`
-4. Обновить код в `webhook_processing.py` на `get_or_create`
+1. Сначала проверить дубли по паре: `GROUP BY payment_system, session_id HAVING COUNT(*) > 1`
+2. Устранить дубли перед `AddConstraint`
+3. Применить миграцию `payment.0004_payment_system_session_id_uniq`  
+
+Подробнее: [payment-unique-constraint-plan.md](./payment-unique-constraint-plan.md).
 
 **2. `promocode/models.py` — атомарный increment:**
 
@@ -201,20 +217,14 @@ def increment_used_count(self):
 
 **3. `order/services/invoice_numbers.py` — PAY-4:** правка **не требуется** — уже `transaction.atomic`, `select_for_update().get_or_create(...)`, инкремент через `F("last_number") + 1`. Менять только при смене бизнес-правил или по результатам регрессии.
 
-**4. `payment/services/webhook_processing.py` — idempotency check:**
+**4. `payment/services/webhook_processing.py` — idempotency:** фактически — `_replay_if_payment_exists` + `UniqueConstraint` + ветка `IntegrityError` → replay (не `get_or_create` из черновика ниже).
 
 ```python
-# В начале create_orders_and_payment:
-payment, created = Payment.objects.get_or_create(
-    session_id=session_id,
-    defaults={...}
-)
-if not created:
-    logger.info(f"Duplicate webhook for session {session_id}, skipping")
-    return payment
+# УСТАРЕЛО (черновик Iteration 3):
+# payment, created = Payment.objects.get_or_create(session_id=..., defaults={...})
 ```
 
-### Ограничения
+### Ограничения (Iteration 3)
 - Не менять API-контракты webhook endpoint
 - Не менять структуру `StripeMetadata` / `PayPalMetadata`
 
@@ -224,13 +234,11 @@ if not created:
 | `backend/payment/models.py` | `UniqueConstraint(payment_system, session_id)` + обработка в `webhook_processing` |
 | `backend/promocode/models.py` | `F()` в increment_used_count |
 | `backend/order/services/invoice_numbers.py` | PAY-4: уже atomic + `select_for_update` + `F()`; регрессия в `order/tests.py` |
-| `backend/payment/services/webhook_processing.py` | `get_or_create` idempotency |
+| `backend/payment/services/webhook_processing.py` | `_replay_if_payment_exists` + `IntegrityError` → `_CONCURRENT_PAYMENT_REPLAY` / replay semantics |
 | `backend/payment/migrations/0004_payment_system_session_id_uniq.py` | `UniqueConstraint(payment_system, session_id)` |
 
 ### Статус
-- [ ] Atomic fixes applied
-
----
+- [x] Atomic fixes applied
 
 ## Iteration 4 — Service Layer Decomposition
 
@@ -319,7 +327,7 @@ backend/payment/
 - **Step 5.3** ✅ `_persist_checkout_in_atomic` + `PersistCheckoutResult` — один `transaction.atomic()`, прежний порядок Order → OrderProduct → Payment → события → `set_conv_cache_after_commit` → invoice best-effort; те же `ValidationError` / `Exception` и логи.
 - **Step 5.4** ✅ `_schedule_post_commit_side_effects` — после успешного commit: client email, затем parcels/seller (те же условия и аргументы async).
 - **`create_orders_and_payment`:** тонкий оркестратор; публичные контракты для views (`WebhookPaymentData`, `WebhookProcessingResult`, сигнатура функции) **не менялись**.
-- **Регрессия:** `pytest payment/` — **60 passed** в контейнере `backend_test` с PostgreSQL (`docker-compose.test.yml`).
+- **Регрессия:** см. блок **Итоговые автотесты** (88 passed для среза с `promocode/` и `order/tests.py`).
 
 #### Step 5 — план и границы (исторический scope)
 
@@ -327,15 +335,17 @@ backend/payment/
 - **Реализация:** завершена (5.1–5.4); **поведение не изменялось** (code review: OK).
 - **Scope Step 5:** только **декомпозиция** `create_orders_and_payment` в `payment/services/webhook_processing.py`, **без изменения публичных прикладных контрактов** (`WebhookPaymentData`, `WebhookProcessingResult`, HTTP-слой).
 
-**Явно вне scope Step 5** (отдельные задачи / итерации; не смешивать с декомпозицией без явного решения):
+**Явно вне scope Step 5** (отдельные задачи; пересекается с закрытием Task 003 по части уже сделанного):
 
-- уникальность `Payment` по паре `(payment_system, session_id)` (`UniqueConstraint`, миграция, `IntegrityError` → replay);
-- атомарный инкремент промокода (`PromoCode` + `F()` и связанная оркестрация в вебхуке);
-- списание склада (`warehouses.services.decrease_stock` или аналог в потоке оплаты);
+- ~~уникальность `Payment`…~~ ✅ (сделано после Step 5)
+- ~~атомарный инкремент промокода…~~ ✅ (`F()` в модели)
+- списание склада (`warehouses.services.decrease_stock` или аналог в потоке оплаты) — **ещё актуально**
 - перепроектирование границ транзакций для инвойса (savepoint, вынос за пределы внешнего `atomic` и т.п.);
 - замена `ThreadPoolExecutor` на Celery (инфраструктура, retry-модель).
 
-### Follow-up (вне scope Steps 1–4 / Step 5)
+### Follow-up вне Task 003 (расшифровка)
+
+Сводка уже в **Definition of Done → Вне scope**. Дубли для поиска в backlog:
 
 - **PayPal webhook branch coverage:** расширить unit-тесты — `CHECKOUT.ORDER.APPROVED` / `CHECKOUT.ORDER.COMPLETED`, ошибки capture и смежные ветки.
 - **Fragile PayPal payload/API errors:** хрупкие ветки (битый payload, необработанные HTTP/исключения от PayPal API) — отдельная задача с явным маппированием в HTTP.
@@ -357,20 +367,16 @@ backend/payment/
 
 ### Тесты для запуска
 ```bash
-pytest backend/payment/ -v
-pytest backend/promocode/ -v
-pytest backend/order/tests_invoice.py -v
+docker compose -f docker-compose.test.yml run --rm backend_test \
+  pytest payment/ promocode/ order/tests.py -v --tb=short
 ```
 
 ### Сценарии для проверки
-- [ ] Stripe webhook дважды → 1 заказ в БД
-- [ ] PayPal webhook дважды → 1 заказ в БД
-- [ ] PromoCode при max_usage → не превышает лимит
-- [ ] Два параллельных инвойса → разные номера
-- [ ] Все существующие тесты `payment/tests.py` проходят
+- [x] Автоматические регрессии (см. 88 passed)
+- [ ] Ручная валидация в sandbox: дважды Stripe/PayPal webhook для одной оплаты — при необходимости
 
 ### Статус
-- [ ] Validation complete
+- [x] Validation complete (automated); ручные сценарии — опционально
 
 ---
 
