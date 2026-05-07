@@ -829,9 +829,14 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
             "sends emails and updates the conversion cache (session_key) after commit."
     ),
     responses={
-        200: OpenApiResponse(description="Orders and payments created successfully (or already processed)"),
+        200: OpenApiResponse(
+            description=(
+                "Success: created orders (or idempotent replay with 0..N orders), "
+                "or unhandled `event_type` acknowledged with `{\"status\": \"ignored\"}`."
+            )
+        ),
         403: OpenApiResponse(description="Invalid webhook signature"),
-        400: OpenApiResponse(description="Invalid payload or unsupported event type"),
+        400: OpenApiResponse(description="Invalid JSON or incomplete/invalid payment payload after verification"),
         500: OpenApiResponse(description="Order creation failed"),
     },
     tags=['PayPal']
