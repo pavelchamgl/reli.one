@@ -121,6 +121,15 @@ class PreparedOrderCreationContext:
     root_country: str
 
 
+@dataclass
+class PersistCheckoutResult:
+    """Результат успешного `transaction.atomic()` в вебхук-checkout."""
+
+    orders_created: list
+    payment: Payment
+    invoice_created: bool
+
+
 # ---------------------------------------------------------------------------
 # Публичные утилиты
 # ---------------------------------------------------------------------------
@@ -274,54 +283,24 @@ def _prepare_order_creation_context(
     )
 
 
-# ---------------------------------------------------------------------------
-# Основная функция обработки
-# ---------------------------------------------------------------------------
-
-
-def create_orders_and_payment(
+def _persist_checkout_in_atomic(
     data: WebhookPaymentData,
-) -> WebhookProcessingResult | None:
+    ctx: PreparedOrderCreationContext,
+    source: str,
+) -> PersistCheckoutResult | None:
     """
-    Атомарно создаёт Order(s), Payment и Invoice по данным webhook.
-
-    Идемпотентность: если Payment с (payment_system, session_id) уже существует,
-    функция обновляет conversion-кэш и возвращает ``WebhookProcessingResult(orders=[],
-    is_replay=True)`` без создания дублей.
-
-    Транзакционность: Orders + OrderProducts + Payment создаются в одном
-    ``transaction.atomic()`` блоке. Invoice создаётся best-effort внутри той же
-    транзакции — ошибки логируются, но НЕ откатывают заказ.
-
-    Возвращает:
-        WebhookProcessingResult — при успехе или idempotent-повторе.
-        None — при невосстановимой ошибке (метаданные не найдены, статус не настроен
-                и т.п.).
+    Один ``transaction.atomic()`` — заказы, продукты, платёж, события, conv cache, инвойс (best-effort).
+    При ValidationError / неожиданной ошибке — те же логи и ``return None``, что при инлайн-коде.
     """
-    source = f"{data.payment_system.capitalize()}Webhook"
-
-    replay = _replay_if_payment_exists(data, source)
-    if replay is not None:
-        return replay
-
-    ctx = _prepare_order_creation_context(data, source)
-    if ctx is None:
-        return None
-
     user = ctx.user
     groups = ctx.groups
     vmap = ctx.vmap
-    origin_blocked = ctx.origin_blocked
-    not_cz = ctx.not_cz
     pending_status = ctx.pending_status
     root_country = ctx.root_country
 
     orders_created: list[Order] = []
     invoice_created = False
 
-    # ------------------------------------------------------------------
-    # 6. Атомарный блок: Orders + Payment + Invoice (best-effort)
-    # ------------------------------------------------------------------
     try:
         with transaction.atomic():
             for idx, group in enumerate(groups, start=1):
@@ -454,6 +433,57 @@ def create_orders_and_payment(
     except Exception as exc:
         logger.exception("[%s] Unexpected error during order creation: %s", source, exc)
         return None
+
+    return PersistCheckoutResult(
+        orders_created=orders_created,
+        payment=payment,
+        invoice_created=invoice_created,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Основная функция обработки
+# ---------------------------------------------------------------------------
+
+
+def create_orders_and_payment(
+    data: WebhookPaymentData,
+) -> WebhookProcessingResult | None:
+    """
+    Атомарно создаёт Order(s), Payment и Invoice по данным webhook.
+
+    Идемпотентность: если Payment с (payment_system, session_id) уже существует,
+    функция обновляет conversion-кэш и возвращает ``WebhookProcessingResult(orders=[],
+    is_replay=True)`` без создания дублей.
+
+    Транзакционность: Orders + OrderProducts + Payment создаются в одном
+    ``transaction.atomic()`` блоке. Invoice создаётся best-effort внутри той же
+    транзакции — ошибки логируются, но НЕ откатывают заказ.
+
+    Возвращает:
+        WebhookProcessingResult — при успехе или idempotent-повторе.
+        None — при невосстановимой ошибке (метаданные не найдены, статус не настроен
+                и т.п.).
+    """
+    source = f"{data.payment_system.capitalize()}Webhook"
+
+    replay = _replay_if_payment_exists(data, source)
+    if replay is not None:
+        return replay
+
+    ctx = _prepare_order_creation_context(data, source)
+    if ctx is None:
+        return None
+
+    origin_blocked = ctx.origin_blocked
+    not_cz = ctx.not_cz
+
+    persist = _persist_checkout_in_atomic(data, ctx, source)
+    if persist is None:
+        return None
+
+    orders_created = persist.orders_created
+    invoice_created = persist.invoice_created
 
     # ------------------------------------------------------------------
     # 7. Post-commit async tasks (используют on_commit внутри себя)
