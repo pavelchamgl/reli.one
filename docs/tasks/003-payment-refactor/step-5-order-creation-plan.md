@@ -1,10 +1,23 @@
-# Task 003 — Step 5: Order creation separation (план декомпозиции)
+# Task 003 — Step 5: Order creation separation
 
-**Режим:** только план. Код в этом шаге **не меняется**.
+**Статус реализации:** ✅ **Завершено** (behavior-preserving decomposition, 2026-05-07).
 
-**Контекст:** `create_orders_and_payment` и связанные типы живут в `backend/payment/services/webhook_processing.py`. Цель Step 5 — описать **безопасную декомпозицию** функции на осмысленные единицы **с сохранением текущего поведения** (идемпотентность, границы транзакций, side-effects после коммита).
+**Исходный документ:** план декомпозиции и чеклисты рисков; описанная ниже логика **реализована** в `backend/payment/services/webhook_processing.py` без изменения поведения.
 
-**Исходная функция:** `create_orders_and_payment(data: WebhookPaymentData) -> WebhookProcessingResult | None`
+**Проверка:** `pytest payment/` — **60 passed** в Docker (`docker-compose.test.yml`, сервис `backend_test`, PostgreSQL). Поведение replay / atomic / post-commit совпадает с эталоном (code review: OK).
+
+**Контекст:** `create_orders_and_payment` и связанные типы в `webhook_processing.py`. Цель Step 5 — **безопасная декомпозиция** с сохранением идемпотентности, одной транзакции checkout и side-effects после коммита.
+
+**Реализованные подшаги:**
+
+| Подшаг | Функция / тип | Назначение |
+|--------|---------------|------------|
+| **5.1** | `_replay_if_payment_exists` | Pre-atomic: lookup Payment, conv cache при replay |
+| **5.2** | `_prepare_order_creation_context`, `PreparedOrderCreationContext` | Pre-atomic: user, groups, variants, CZ-origin, Pending, root_country |
+| **5.3** | `_persist_checkout_in_atomic`, `PersistCheckoutResult` | Один `transaction.atomic()`: заказы, Payment, события, conv cache, invoice best-effort |
+| **5.4** | `_schedule_post_commit_side_effects` | После commit: client email, parcels/seller |
+
+**Исходная сигнатура (без изменений):** `create_orders_and_payment(data: WebhookPaymentData) -> WebhookProcessingResult | None`
 
 ---
 
@@ -54,7 +67,7 @@ flowchart TD
 | Replay | `set_conv_cache_after_commit(conv_cache_id, existing.amount_total, existing.currency)` + `WebhookProcessingResult(orders=[], is_replay=True)` | Callback **должен** регистрироваться в той же «логической» точке: после подтверждения, что платёж уже есть. Сейчас при replay **нет** активной `atomic()` — `on_commit` при отсутствии открытой транзакции выполняется **сразу** (Django): это текущее поведение, сохранять. |
 | Будущее | В Task 003 заявлен `unique=True` на `Payment.session_id` | После миграции второй параллельный вставщик получит `IntegrityError`; понадобится **явная** ветка «считаем replay» или повторный read (отдельная подзадача, не смешивать с чистым рефакторингом без изменения контракта). |
 
-**Рекомендация:** вынести в приватную функцию `_idempotency_replay_if_exists(data) -> WebhookProcessingResult | None` (возврат `None` = продолжить основной поток). Логика построчно та же, без переноса внутрь `atomic`.
+**Рекомендация (реализовано):** вынесено в `_replay_if_payment_exists(data, source) -> WebhookProcessingResult | None`.
 
 ---
 
@@ -182,7 +195,21 @@ flowchart TD
 
 ---
 
-## 13. Предлагаемая безопасная декомпозиция (без смены поведения)
+## 13. Реализованная декомпозиция (`webhook_processing.py`)
+
+Фактическая структура совпадает с планом ниже; вместо «`PreparedContext`» используется имя **`PreparedOrderCreationContext`**, возврат из atomic — **`PersistCheckoutResult`** (dataclass с `orders_created`, `payment`, `invoice_created`).
+
+1. **`_replay_if_payment_exists(data, source)`** — только lookup + conv cache + `is_replay`.
+2. **`_prepare_order_creation_context(data, source) -> PreparedOrderCreationContext | None`** — user, groups, `vmap`, `origin_blocked`, `not_cz`, `pending_status`, `root_country`.
+3. **`_persist_checkout_in_atomic(data, ctx, source) -> PersistCheckoutResult | None`** — один `with transaction.atomic():` … (как в п. 1 карты потока).
+4. **`_schedule_post_commit_side_effects(data, orders_created, invoice_created, origin_blocked, not_cz, source)`** — email и parcels/seller.
+5. **`create_orders_and_payment`** — оркестратор: replay → prepare → persist → side-effects → `WebhookProcessingResult`.
+
+**Приватные хелперы** `_build_delivery_address`, `_payment_event_meta` — без изменения сигнатур.
+
+---
+
+## 13a. Исходный план декомпозиции (архив формулировок)
 
 Структура файла `webhook_processing.py` (или `webhook_processing/` пакет, если раздуется):
 
@@ -190,17 +217,16 @@ flowchart TD
    - Только lookup + conv cache + `is_replay`.  
    - `None` означает «продолжаем».
 
-2. **`_prepare_order_creation_context(data, source) -> PreparedContext | None`**  
-   - User, groups, `vmap`, `origin_blocked`, `pending_status`, `root_country`.  
+2. **`_prepare_order_creation_context(data, source) -> PreparedOrderCreationContext | None`**  
+   - User, groups, `vmap`, `origin_blocked`, `not_cz`, `pending_status`, `root_country`.  
    - Ранние `return None` с теми же логами, что сейчас.
 
-3. **`_persist_checkout_in_atomic(data, ctx, source) -> tuple[list[Order], Payment, bool]`**  
+3. **`_persist_checkout_in_atomic(data, ctx, source) -> PersistCheckoutResult | None`**  
    - Один `with transaction.atomic():`  
    - Внутри: цикл групп (адрес, заказ, продукты), проверка непустого списка, создание Payment, линковка, `set_conv_cache_after_commit`, invoice best-effort.  
-   - Возврат: `orders_created`, `payment` (или только факты для результата), `invoice_created`.  
-   - Альтернатива: оставить возврат через маленький `@dataclass PersistResult`.
+   - Возврат: `PersistCheckoutResult(orders_created, payment, invoice_created)`.
 
-4. **`_schedule_post_commit_side_effects(...)`**  
+4. **`_schedule_post_commit_side_effects(data, orders_created, invoice_created, origin_blocked, not_cz, source)`**  
    - Условия `invoice_created` и `origin_blocked`; вызовы `async_send_client_email` / `async_parcels_and_seller_email`.
 
 5. **`create_orders_and_payment`**  
@@ -212,7 +238,9 @@ flowchart TD
 
 ## 14. Тесты / регрессия
 
-Перед/после рефакторинга опираться на:
+**Фактически после Step 5.1–5.4:** `pytest payment/` — **60 passed** (Docker + PostgreSQL, `docker-compose.test.yml`).
+
+Опора на:
 
 - `payment/tests.py` — кейсы `create_orders_and_payment`, idempotent replay, ранние выходы.  
 - `payment/test_checkout_flow.py` — интеграционные вебхук-цепочки на PostgreSQL.
@@ -231,9 +259,9 @@ flowchart TD
 
 ---
 
-## 16. Definition of Done (для будущей реализации Step 5)
+## 16. Definition of Done — Step 5
 
-- [ ] Поведение идемпотентности, порядок записей в БД, conv cache и async-хуки **совпадает** с эталоном до рефакторинга (сверка по тестам и ручной чеклист из разделов 2–12).  
-- [ ] Нет новых публичных контрактов для Stripe/PayPal views.  
-- [ ] Крупные куски снабжены короткими docstring «граница транзакции / side-effect».  
-- [ ] Документ обновлён ссылкой на фактический PR (опционально).
+- [x] Поведение идемпотентности, порядок записей в БД, conv cache и async-хуки **совпадает** с эталоном до рефакторинга (тесты + code review).  
+- [x] Нет новых публичных **HTTP/API** контрактов для Stripe/PayPal views; сигнатура `create_orders_and_payment` и типы `WebhookPaymentData` / `WebhookProcessingResult` **не менялись**.  
+- [x] Крупные куски снабжены короткими docstring «граница транзакции / side-effect».  
+- [x] Регрессия: **`pytest payment/` — 60 passed** (Docker/PostgreSQL, `docker-compose.test.yml`).

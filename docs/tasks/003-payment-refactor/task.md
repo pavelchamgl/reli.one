@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 done; **Step 5:** план готов — [step-5-order-creation-plan.md](./step-5-order-creation-plan.md); **реализация Step 5 не начата**)
+**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 + **Step 5 done** — behavior-preserving декомпозиция `create_orders_and_payment`; план: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md); **pytest `payment/`:** 60 passed в Docker/PostgreSQL, см. `docker-compose.test.yml`)
 
 ## Цель
 
@@ -287,7 +287,7 @@ backend/payment/
 | Step 3 — Metadata isolation | ✅ Done (2026-05-06) | `services/checkout_metadata.py`, `stripe_session.py` / `paypal_session.py`, тесты `TestCheckoutMetadataBuilders` в `payment/tests.py`; план: [step-3-metadata-plan.md](./step-3-metadata-plan.md) |
 | Step 3.1 — CZ-origin shared cleanup | ✅ Done (2026-05-06) | Общая `check_cz_origin_for_checkout` в `services/checkout_shared.py`; вызовы из `stripe_session.py` и `paypal_session.py` |
 | Step 4 — Webhook isolation | ✅ Done (2026-05-07) | `services/stripe_webhook.py`, `services/paypal_webhook.py`, `views.py`, OpenAPI уточнение для PayPal `ignored`; план: [step-4-webhook-plan.md](./step-4-webhook-plan.md) |
-| Step 5 — Order creation separation | 📋 **Plan done** · ⬜ **Execution not started** | План: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md). **Scope:** только декомпозиция `create_orders_and_payment` без изменения поведения. **Вне scope Step 5:** `unique` на `Payment.session_id`, `PromoCode` + `F()`, `decrease_stock`, перестройка транзакций инвойса, Celery — см. раздел «Step 5 — план и границы» ниже. |
+| Step 5 — Order creation separation | ✅ **Done** (2026-05-07) | Декомпозиция в `webhook_processing.py`: 5.1 `_replay_if_payment_exists`, 5.2 `_prepare_order_creation_context` + `PreparedOrderCreationContext`, 5.3 `_persist_checkout_in_atomic` + `PersistCheckoutResult`, 5.4 `_schedule_post_commit_side_effects`. **Поведение без изменений.** **Тесты:** `pytest payment/` — **60 passed** (Docker + PostgreSQL, `docker-compose.test.yml`). План/границы: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md). **Вне scope Step 5** (не делалось): `unique` на `Payment.session_id`, `PromoCode` + `F()`, `decrease_stock`, перестройка транзакций инвойса, Celery. |
 
 #### Step 1 — итоги
 
@@ -328,11 +328,20 @@ backend/payment/
 - **Code review Step 4:** пройден; критических регрессий по контракту не выявлено.
 - **Документация:** в `@extend_schema` для PayPal webhook зафиксировано фактическое поведение для неподдерживаемых `event_type` — **200** `{"status": "ignored"}` (не 400).
 
-#### Step 5 — план и границы
+#### Step 5 — итоги (order creation decomposition, behavior-preserving)
 
-- **План создан:** [step-5-order-creation-plan.md](./step-5-order-creation-plan.md).
-- **Реализация (execution):** не начата.
-- **Scope Step 5:** только **декомпозиция** `create_orders_and_payment` в `payment/services/webhook_processing.py` (приватные хелперы и/или тонкий оркестратор), **с сохранением текущего поведения** и без изменения публичных контрактов (`WebhookPaymentData`, `WebhookProcessingResult`, HTTP-слой).
+- **Step 5.1** ✅ `_replay_if_payment_exists` — pre-atomic idempotency / replay + conv cache.
+- **Step 5.2** ✅ `_prepare_order_creation_context` + `PreparedOrderCreationContext` — user, groups, variants, CZ-origin, `Pending`, `root_country` до `atomic`.
+- **Step 5.3** ✅ `_persist_checkout_in_atomic` + `PersistCheckoutResult` — один `transaction.atomic()`, прежний порядок Order → OrderProduct → Payment → события → `set_conv_cache_after_commit` → invoice best-effort; те же `ValidationError` / `Exception` и логи.
+- **Step 5.4** ✅ `_schedule_post_commit_side_effects` — после успешного commit: client email, затем parcels/seller (те же условия и аргументы async).
+- **`create_orders_and_payment`:** тонкий оркестратор; публичные контракты для views (`WebhookPaymentData`, `WebhookProcessingResult`, сигнатура функции) **не менялись**.
+- **Регрессия:** `pytest payment/` — **60 passed** в контейнере `backend_test` с PostgreSQL (`docker-compose.test.yml`).
+
+#### Step 5 — план и границы (исторический scope)
+
+- **План:** [step-5-order-creation-plan.md](./step-5-order-creation-plan.md).
+- **Реализация:** завершена (5.1–5.4); **поведение не изменялось** (code review: OK).
+- **Scope Step 5:** только **декомпозиция** `create_orders_and_payment` в `payment/services/webhook_processing.py`, **без изменения публичных прикладных контрактов** (`WebhookPaymentData`, `WebhookProcessingResult`, HTTP-слой).
 
 **Явно вне scope Step 5** (отдельные задачи / итерации; не смешивать с декомпозицией без явного решения):
 
@@ -396,4 +405,4 @@ pytest backend/order/tests_invoice.py -v
 - DB-6: `PromoCode.increment_used_count` неатомарный P0
 - PAY-4: `InvoiceSequence` без `select_for_update` P1
 - PAY-2: Нет retry при ошибке генерации посылок P1
-- BE-2: `payment/views.py` было ~2198 строк → **≈ 973** после Steps 1–4 (остаётся техдолг: Step 5, cleanup)
+- BE-2: `payment/views.py` было ~2198 строк → **≈ 973** после Steps 1–4; **Step 5** — декомпозиция `create_orders_and_payment` в `webhook_processing.py` **завершена**; опциональный вынос в отдельные модули (`order_factory` и т.д.) — техдолг
