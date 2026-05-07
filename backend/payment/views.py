@@ -49,7 +49,7 @@ from rest_framework.views import APIView
 from warehouses.models import Warehouse, WarehouseItem
 
 from .mixins import PayPalMixin
-from .models import Payment, PayPalMetadata, StripeMetadata
+from .models import Payment, StripeMetadata
 from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
 from .services import (
     create_stripe_checkout_session,
@@ -68,10 +68,11 @@ from .services.paypal_session import (
     PayPalSessionBuildError,
     build_paypal_checkout_context,
 )
-from .services.webhook_processing import (
-    WebhookPaymentData,
-    create_orders_and_payment,
+from .services.paypal_webhook import (
+    parse_paypal_webhook_body,
+    paypal_payload_to_webhook_payment_data,
 )
+from .services.webhook_processing import create_orders_and_payment
 from .services_async import async_send_client_email
 
 conv_cache = caches["conv"]
@@ -838,131 +839,21 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
 class PayPalWebhookView(PayPalMixin, APIView):
     permission_classes = [AllowAny]
 
-    # --- утилиты для REST PayPal API (используются только для routing/capture) ---
-    def _paypal_api_get(self, path: str):
-        token = self.get_paypal_access_token()
-        resp = requests.get(
-            f"{PAYPAL_API_URL}{path}",
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            timeout=10,
-        )
-        resp.raise_for_status()
-        return resp.json()
-
-    def _paypal_api_capture(self, order_id: str):
-        token = self.get_paypal_access_token()
-        resp = requests.post(
-            f"{PAYPAL_API_URL}/v2/checkout/orders/{order_id}/capture",
-            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-            json={}, timeout=10,
-        )
-        resp.raise_for_status()
-        return resp.json()
-
-    # --- вход webhook ---
     def post(self, request):
         body = request.body.decode("utf-8")
 
-        # Валидация JSON
-        try:
-            payload = json.loads(body)
-        except json.JSONDecodeError:
-            return Response({"error": "Invalid JSON"}, status=400)
+        parsed = parse_paypal_webhook_body(body)
+        if parsed.early_status is not None:
+            return Response(parsed.early_body, status=parsed.early_status)
 
-        event_type = payload.get("event_type")
-        if event_type not in {
-            "PAYMENT.CAPTURE.COMPLETED",
-            "CHECKOUT.ORDER.COMPLETED",
-            "CHECKOUT.ORDER.APPROVED",
-        }:
-            logger.info("Ignored PayPal event: %s", event_type)
-            return Response({"status": "ignored"}, status=200)
-
-        # Проверка подписи
         if not self.verify_webhook(request, body):
             return Response({"error": "Invalid webhook signature"}, status=403)
 
-        # Извлекаем order_id, session_key, amount, currency из payload
-        resource = payload.get("resource", {})
-        order_id = session_key = amount = currency = None
+        built = paypal_payload_to_webhook_payment_data(parsed.payload)
+        if built.early_status is not None:
+            return Response(built.early_body, status=built.early_status)
 
-        if event_type == "PAYMENT.CAPTURE.COMPLETED":
-            related = (resource.get("supplementary_data") or {}).get("related_ids") or {}
-            order_id = related.get("order_id")
-            if not order_id:
-                logger.error("No order_id in capture.supplementary_data.related_ids")
-                return Response({"error": "No order_id in capture"}, status=400)
-
-            order_details = self._paypal_api_get(f"/v2/checkout/orders/{order_id}")
-            pu = (order_details.get("purchase_units") or [{}])[0]
-            session_key = pu.get("reference_id")
-            if not session_key:
-                logger.error("No reference_id (session_key) in order %s", order_id)
-                return Response({"error": "No reference_id in order"}, status=400)
-
-            amount = Decimal(resource["amount"]["value"]).quantize(Decimal("0.01"), ROUND_HALF_UP)
-            currency = resource["amount"]["currency_code"]
-
-        elif event_type == "CHECKOUT.ORDER.COMPLETED":
-            order_id = resource.get("id")
-            pu = (resource.get("purchase_units") or [{}])[0]
-            session_key = pu.get("reference_id")
-            if not session_key:
-                logger.error("No reference_id in order.completed")
-                return Response({"error": "No reference_id"}, status=400)
-            amt = pu.get("amount") or {}
-            amount = Decimal(amt.get("value", "0")).quantize(Decimal("0.01"), ROUND_HALF_UP)
-            currency = amt.get("currency_code", "EUR")
-
-        elif event_type == "CHECKOUT.ORDER.APPROVED":
-            order_id = resource.get("id")
-            try:
-                capture_res = self._paypal_api_capture(order_id)
-                purchase_units = capture_res.get("purchase_units") or []
-                if not purchase_units:
-                    logger.error("Unexpected capture response (no purchase_units)")
-                    return Response({"error": "Bad capture response"}, status=400)
-                pu = purchase_units[0]
-                session_key = pu.get("reference_id")
-                captures = (((pu.get("payments") or {}).get("captures")) or [])
-                cap = next((c for c in captures if c.get("status") == "COMPLETED"), None)
-                if not cap:
-                    logger.error("No COMPLETED capture in capture response for order %s", order_id)
-                    return Response({"error": "Capture not completed"}, status=400)
-                amount = Decimal(cap["amount"]["value"]).quantize(Decimal("0.01"), ROUND_HALF_UP)
-                currency = cap["amount"]["currency_code"]
-            except Exception as e:
-                logger.exception("Failed to capture PayPal order %s: %s", order_id, e)
-                return Response({"error": "Capture failed"}, status=500)
-
-        if not all([order_id, session_key, amount, currency]):
-            logger.error(
-                "Incomplete PayPal data: order_id=%s, session_key=%s, amount=%s, currency=%s",
-                order_id, session_key, amount, currency,
-            )
-            return Response({"error": "Incomplete data"}, status=400)
-
-        # Загружаем метаданные для построения WebhookPaymentData
-        try:
-            meta = PayPalMetadata.objects.get(session_key=session_key)
-        except PayPalMetadata.DoesNotExist:
-            logger.error("[PayPalWebhook] PayPalMetadata not found for session_key=%s", session_key)
-            return Response({"error": "Metadata not found"}, status=400)
-
-        webhook_data = WebhookPaymentData(
-            payment_system="paypal",
-            payment_method="paypal",
-            session_id=order_id,
-            session_key=session_key,
-            conv_cache_id=session_key,   # PayPal: frontend получает session_key в URL
-            amount=amount,
-            currency=currency,
-            customer_id=str(meta.custom_data.get("user_id", "")),
-            payment_intent_id=order_id,
-            custom_data=meta.custom_data or {},
-            invoice_data=meta.invoice_data or {},
-            description_data=meta.description_data,
-        )
+        webhook_data = built.data
 
         # Делегируем бизнес-логику в сервис
         result = create_orders_and_payment(webhook_data)
@@ -971,7 +862,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
             return Response({"error": "Order creation failed"}, status=500)
 
         if result.is_replay:
-            logger.info("[PayPalWebhook] Idempotent replay for order %s", order_id)
+            logger.info("[PayPalWebhook] Idempotent replay for order %s", webhook_data.session_id)
 
         return Response(
             {"status": f"{len(result.orders)} order(s) created successfully"},

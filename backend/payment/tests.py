@@ -11,6 +11,7 @@ from unittest.mock import MagicMock, patch, call
 
 from django.test import SimpleTestCase
 
+from payment.models import PayPalMetadata
 from payment.services.paypal_checkout import (
     create_paypal_checkout_session,
     get_paypal_access_token,
@@ -1072,3 +1073,79 @@ class TestStripeWebhookService(SimpleTestCase):
         self.assertEqual(data.currency, "EUR")
         self.assertEqual(data.conv_cache_id, "cs_test")
         self.assertEqual(data.payment_intent_id, "pi_x")
+
+
+# ===========================================================================
+# payment.services.paypal_webhook
+# ===========================================================================
+
+from payment.services.paypal_webhook import (
+    parse_paypal_webhook_body,
+    paypal_payload_to_webhook_payment_data,
+)
+
+
+class TestPayPalWebhookService(SimpleTestCase):
+    def test_parse_invalid_json_returns_400(self):
+        r = parse_paypal_webhook_body("not-json")
+        self.assertEqual(r.early_status, 400)
+        self.assertEqual(r.early_body, {"error": "Invalid JSON"})
+
+    def test_parse_unknown_event_returns_ignored(self):
+        r = parse_paypal_webhook_body('{"event_type": "OTHER"}')
+        self.assertEqual(r.early_status, 200)
+        self.assertEqual(r.early_body, {"status": "ignored"})
+
+    def test_parse_handled_event_returns_payload(self):
+        r = parse_paypal_webhook_body(
+            '{"event_type": "CHECKOUT.ORDER.COMPLETED", "resource": {}}'
+        )
+        self.assertIsNone(r.early_status)
+        self.assertEqual(r.payload["event_type"], "CHECKOUT.ORDER.COMPLETED")
+
+    def test_build_capture_completed_happy_path(self):
+        def api_get(path):
+            self.assertIn("ORD-1", path)
+            return {"purchase_units": [{"reference_id": "sk-uuid"}]}
+
+        payload = {
+            "event_type": "PAYMENT.CAPTURE.COMPLETED",
+            "resource": {
+                "supplementary_data": {"related_ids": {"order_id": "ORD-1"}},
+                "amount": {"value": "12.30", "currency_code": "EUR"},
+            },
+        }
+        meta = MagicMock()
+        meta.custom_data = {"user_id": 42}
+        meta.invoice_data = {}
+        meta.description_data = {}
+        with patch(
+            "payment.services.paypal_webhook.PayPalMetadata.objects.get",
+            return_value=meta,
+        ):
+            br = paypal_payload_to_webhook_payment_data(payload, api_get=api_get)
+
+        self.assertIsNone(br.early_status)
+        self.assertEqual(br.data.session_id, "ORD-1")
+        self.assertEqual(br.data.session_key, "sk-uuid")
+        self.assertEqual(br.data.amount, Decimal("12.30"))
+        self.assertEqual(br.data.conv_cache_id, "sk-uuid")
+
+    def test_build_metadata_missing_returns_400(self):
+        payload = {
+            "event_type": "CHECKOUT.ORDER.COMPLETED",
+            "resource": {
+                "id": "ORD-X",
+                "purchase_units": [
+                    {"reference_id": "sk-miss", "amount": {"value": "1", "currency_code": "EUR"}}
+                ],
+            },
+        }
+        with patch(
+            "payment.services.paypal_webhook.PayPalMetadata.objects.get",
+            side_effect=PayPalMetadata.DoesNotExist,
+        ):
+            br = paypal_payload_to_webhook_payment_data(payload, api_get=lambda p: {})
+
+        self.assertEqual(br.early_status, 400)
+        self.assertEqual(br.early_body, {"error": "Metadata not found"})
