@@ -150,6 +150,40 @@ def set_conv_cache_after_commit(
 
 
 # ---------------------------------------------------------------------------
+# Pre-flight helpers (private)
+# ---------------------------------------------------------------------------
+
+
+def _replay_if_payment_exists(
+    data: WebhookPaymentData,
+    source: str,
+) -> WebhookProcessingResult | None:
+    """
+    Pre-atomic idempotency: if Payment already exists for (payment_system, session_id),
+    schedule conversion cache write and return replay result; otherwise None.
+
+    When no active transaction is open, ``set_conv_cache_after_commit`` schedules
+    an immediate write (Django ``on_commit`` behavior) — unchanged from inline logic.
+    """
+    existing = Payment.objects.filter(
+        payment_system=data.payment_system,
+        session_id=data.session_id,
+    ).only("amount_total", "currency").first()
+
+    if not existing:
+        return None
+
+    logger.info("[%s] Idempotent replay for session_id=%s", source, data.session_id)
+    set_conv_cache_after_commit(
+        data.conv_cache_id,
+        existing.amount_total,
+        existing.currency,
+        source=source,
+    )
+    return WebhookProcessingResult(orders=[], is_replay=True)
+
+
+# ---------------------------------------------------------------------------
 # Основная функция обработки
 # ---------------------------------------------------------------------------
 
@@ -175,23 +209,9 @@ def create_orders_and_payment(
     """
     source = f"{data.payment_system.capitalize()}Webhook"
 
-    # ------------------------------------------------------------------
-    # 1. Idempotency — единая точка для Stripe и PayPal
-    # ------------------------------------------------------------------
-    existing = Payment.objects.filter(
-        payment_system=data.payment_system,
-        session_id=data.session_id,
-    ).only("amount_total", "currency").first()
-
-    if existing:
-        logger.info("[%s] Idempotent replay for session_id=%s", source, data.session_id)
-        set_conv_cache_after_commit(
-            data.conv_cache_id,
-            existing.amount_total,
-            existing.currency,
-            source=source,
-        )
-        return WebhookProcessingResult(orders=[], is_replay=True)
+    replay = _replay_if_payment_exists(data, source)
+    if replay is not None:
+        return replay
 
     # ------------------------------------------------------------------
     # 2. Загружаем пользователя
