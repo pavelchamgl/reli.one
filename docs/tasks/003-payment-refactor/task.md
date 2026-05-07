@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 + **Step 5 done** — behavior-preserving декомпозиция `create_orders_and_payment`; план: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md); **pytest `payment/`:** 60 passed в Docker/PostgreSQL, см. `docker-compose.test.yml`)
+**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 + **Step 5 done** — behavior-preserving декомпозиция `create_orders_and_payment`; план: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md); **pytest** `payment/tests.py` + `payment/test_checkout_flow.py`: **61 passed** в Docker/PostgreSQL, см. `docker-compose.test.yml`)
 
 ## Цель
 
@@ -11,8 +11,8 @@
 ## Контекст
 
 Payment flow — самая критическая часть системы. Сейчас в ней:
-- `Payment.session_id` не уникален → дублирование заказов при повторной доставке webhook (DB-1)
-- `PromoCode.increment_used_count` — `self.used_count += 1; self.save()` без `F()` → гонка при параллельных webhook'ах (DB-6)
+- ~~`Payment`: дубль по парам `(payment_system, session_id)`~~ — закрыто: **`UniqueConstraint` в БД + `IntegrityError` → replay** в `webhook_processing` (DB-1)
+- ~~DB-6 PromoCode~~ — `increment_used_count` переведён на `F()` + регрессия в `promocode/tests.py`
 - **PAY-4 (закрыто кодом):** в `order/services/invoice_numbers.py` уже используются `transaction.atomic`, `select_for_update()` и `F()` для счётчика — дубликаты номеров снимаются на уровне реализации; остаётся **регрессионное покрытие** (см. `order/tests.py`: `NextInvoiceIdentifiersTests`, `NextInvoiceIdentifiersConcurrencyTests`).
 - `payment/views.py` — исторически до рефактора порядка **~2198** строк (BE-2); **после Steps 1–4 фактически ≈ 973 строки** (актуально на 2026-05-07)
 - Фоновые задачи (посылки, email) через `ThreadPoolExecutor` без retry → потеря при падении процесса (PAY-2)
@@ -21,7 +21,7 @@ Payment flow — самая критическая часть системы. С
 
 ## Scope (область)
 
-- Добавление `unique=True` на `Payment.session_id` + миграция
+- ~~`Payment`: уникальность~~ — **`UniqueConstraint(payment_system, session_id)`** + миграция `payment.0004_…` + обработка гонки (`IntegrityError` → replay)
 - Исправление `PromoCode.increment_used_count` через `F()`-выражение
 - ~~Добавление `select_for_update` в `InvoiceSequence`~~ — уже есть в `next_invoice_identifiers()`; поддерживать тестами
 - Декомпозиция `payment/views.py` в сервисный слой `payment/services/`
@@ -41,19 +41,19 @@ Payment flow — самая критическая часть системы. С
 
 ## Риски
 
-- Миграция `unique=True` на `session_id`: если в БД уже есть дубли — миграция упадёт → нужно проверить данные перед применением
+- Миграция `UniqueConstraint(payment_system, session_id)`: при дубликатах пара в БД миграция упадёт → проверить `GROUP BY payment_system, session_id` перед выкладкой
 - Декомпозиция `views.py` без тестов — неприемлемый риск → строгий запрет Iteration 3 без Iteration 2
 - `ThreadPoolExecutor` → Celery — требует инфраструктурных изменений (Redis, Celery worker)
 
 ## Definition of Done
 
-- [ ] `Payment.session_id` имеет `unique=True` (миграция применена)
-- [ ] Повторная доставка Stripe/PayPal webhook не создаёт второй заказ
-- [ ] `PromoCode.increment_used_count` использует `F()` выражение
+- [x] `Payment`: составной уникальный ключ `(payment_system, session_id)` — `UniqueConstraint` + миграция применены; конфликт insert обрабатывается как replay
+- [x] Повторная доставка / гонка: второй webhook не создаёт второй `Payment` и не оставляет «осиротевшие» заказы после отката (регрессия: `TestCreateOrdersIntegrityReplayCheckout`)
+- [x] `PromoCode.increment_used_count` использует `F()` выражение
 - [x] PAY-4 / `next_invoice_identifiers()`: `transaction.atomic` + `select_for_update()` + `F()` уже в коде (`order/services/invoice_numbers.py`); регрессия — тесты уникальности в `order/tests.py`
 - [ ] `payment/views.py` разбит на сервисы в `payment/services/`
-- [ ] Все существующие тесты payment проходят
-- [ ] Написаны новые тесты для идемпотентности
+- [x] Все существующие тесты payment проходят (Docker PostgreSQL)
+- [x] Тест на ветку `IntegrityError` / replay (`payment/tests.py::TestCreateOrdersIntegrityReplayCheckout`); доп. идемпотентность webhooks — по мере расширения suite
 
 ---
 
@@ -221,11 +221,11 @@ if not created:
 ### Затрагиваемые файлы
 | Файл | Изменение |
 |------|-----------|
-| `backend/payment/models.py` | `unique=True` на session_id |
+| `backend/payment/models.py` | `UniqueConstraint(payment_system, session_id)` + обработка в `webhook_processing` |
 | `backend/promocode/models.py` | `F()` в increment_used_count |
 | `backend/order/services/invoice_numbers.py` | PAY-4: уже atomic + `select_for_update` + `F()`; регрессия в `order/tests.py` |
 | `backend/payment/services/webhook_processing.py` | `get_or_create` idempotency |
-| `backend/payment/migrations/XXXX_payment_session_unique.py` | новая миграция |
+| `backend/payment/migrations/0004_payment_system_session_id_uniq.py` | `UniqueConstraint(payment_system, session_id)` |
 
 ### Статус
 - [ ] Atomic fixes applied
@@ -271,7 +271,7 @@ backend/payment/
 | Step 3 — Metadata isolation | ✅ Done (2026-05-06) | `services/checkout_metadata.py`, `stripe_session.py` / `paypal_session.py`, тесты `TestCheckoutMetadataBuilders` в `payment/tests.py`; план: [step-3-metadata-plan.md](./step-3-metadata-plan.md) |
 | Step 3.1 — CZ-origin shared cleanup | ✅ Done (2026-05-06) | Общая `check_cz_origin_for_checkout` в `services/checkout_shared.py`; вызовы из `stripe_session.py` и `paypal_session.py` |
 | Step 4 — Webhook isolation | ✅ Done (2026-05-07) | `services/stripe_webhook.py`, `services/paypal_webhook.py`, `views.py`, OpenAPI уточнение для PayPal `ignored`; план: [step-4-webhook-plan.md](./step-4-webhook-plan.md) |
-| Step 5 — Order creation separation | ✅ **Done** (2026-05-07) | Декомпозиция в `webhook_processing.py`: 5.1 `_replay_if_payment_exists`, 5.2 `_prepare_order_creation_context` + `PreparedOrderCreationContext`, 5.3 `_persist_checkout_in_atomic` + `PersistCheckoutResult`, 5.4 `_schedule_post_commit_side_effects`. **Поведение без изменений.** **Тесты:** `pytest payment/` — **60 passed** (Docker + PostgreSQL, `docker-compose.test.yml`). План/границы: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md). **Вне scope Step 5** (не делалось): `unique` на `Payment.session_id`, `PromoCode` + `F()`, `decrease_stock`, перестройка транзакций инвойса, Celery. |
+| Step 5 — Order creation separation | ✅ **Done** (2026-05-07) | Декомпозиция в `webhook_processing.py`: 5.1 `_replay_if_payment_exists`, … **Тесты:** см. актуальный счётчик в шапке задачи. **Пост Step 5:** составной unique на `Payment`, `PromoCode` + `F()`, `IntegrityError` replay — см. текущий DoD. |
 
 #### Step 1 — итоги
 
@@ -329,7 +329,7 @@ backend/payment/
 
 **Явно вне scope Step 5** (отдельные задачи / итерации; не смешивать с декомпозицией без явного решения):
 
-- уникальность `Payment.session_id` (`unique=True`, миграция, обработка гонок / `IntegrityError`);
+- уникальность `Payment` по паре `(payment_system, session_id)` (`UniqueConstraint`, миграция, `IntegrityError` → replay);
 - атомарный инкремент промокода (`PromoCode` + `F()` и связанная оркестрация в вебхуке);
 - списание склада (`warehouses.services.decrease_stock` или аналог в потоке оплаты);
 - перепроектирование границ транзакций для инвойса (savepoint, вынос за пределы внешнего `atomic` и т.п.);
@@ -379,14 +379,14 @@ pytest backend/order/tests_invoice.py -v
 | Тип | Файлы |
 |-----|-------|
 | **Backend** | `payment/models.py`, `payment/views.py` (**≈973 строки** после Steps 1–4), `payment/services/webhook_processing.py`, `payment/services/checkout_metadata.py`, `payment/services/checkout_shared.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `promocode/models.py`, `order/services/invoice_numbers.py` |
-| **Модели** | `Payment` (unique session_id), `PromoCode` (increment method), `InvoiceSequence` |
+| **Модели** | `Payment` (`UniqueConstraint` на `payment_system` + `session_id`), `PromoCode`, `InvoiceSequence` |
 | **API** | `POST /stripe-webhook/`, `POST /paypal-webhook/` (контракты не меняются) |
 | **Интеграции** | Stripe Webhook SDK, PayPal Webhook SDK |
 
 ## Связанные проблемы из docs/09-architecture-debt.md
 
-- DB-1: `Payment.session_id` не уникален P0
-- DB-6: `PromoCode.increment_used_count` неатомарный P0
+- DB-1: ~~`Payment.session_id` не уникален~~ — **закрыто** составным `UniqueConstraint` + `IntegrityError` → replay
+- DB-6: ~~`PromoCode.increment_used_count` неатомарный~~ — **закрыто** (`F()` + тесты)
 - PAY-4: ~~`InvoiceSequence` без `select_for_update`~~ — **снято в коде** (`invoice_numbers.py`); приоритет — **регрессионные тесты** (добавлены в `order/tests.py`)
 - PAY-2: Нет retry при ошибке генерации посылок P1
 - BE-2: `payment/views.py` было ~2198 строк → **≈ 973** после Steps 1–4; **Step 5** — декомпозиция `create_orders_and_payment` в `webhook_processing.py` **завершена**; опциональный вынос в отдельные модули (`order_factory` и т.д.) — техдолг

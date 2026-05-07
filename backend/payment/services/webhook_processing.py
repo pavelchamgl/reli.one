@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal, ROUND_HALF_UP
 
 from django.core.cache import caches
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from rest_framework.exceptions import ValidationError
 
 from accounts.models import CustomUser
@@ -96,7 +96,8 @@ class WebhookProcessingResult:
 
     Атрибуты:
         orders         — список созданных Order-объектов; [] при idempotent-повторе
-        is_replay      — True если Payment с таким session_id уже существовал
+        is_replay      — True если Payment с такой парой (payment_system, session_id) уже существовал
+                         или вставка проиграла гонку (IntegrityError → обработано как replay)
         invoice_created— True если Invoice был создан успешно
         origin_blocked — True если CZ-origin check выявил не-чешские SKU
                          (посылки не генерируются, но заказ создаётся)
@@ -128,6 +129,13 @@ class PersistCheckoutResult:
     orders_created: list
     payment: Payment
     invoice_created: bool
+
+
+class _ConcurrentPaymentReplay:
+    """Внутренний маркер: insert Payment проиграл гонку по unique (payment_system, session_id)."""
+
+
+_CONCURRENT_PAYMENT_REPLAY = _ConcurrentPaymentReplay()
 
 
 # ---------------------------------------------------------------------------
@@ -287,7 +295,7 @@ def _persist_checkout_in_atomic(
     data: WebhookPaymentData,
     ctx: PreparedOrderCreationContext,
     source: str,
-) -> PersistCheckoutResult | None:
+) -> PersistCheckoutResult | None | _ConcurrentPaymentReplay:
     """
     Один ``transaction.atomic()`` — заказы, продукты, платёж, события, conv cache, инвойс (best-effort).
     При ValidationError / неожиданной ошибке — те же логи и ``return None``, что при инлайн-коде.
@@ -430,6 +438,31 @@ def _persist_checkout_in_atomic(
     except ValidationError as exc:
         logger.warning("[%s] Validation error: %s", source, exc)
         return None
+    except IntegrityError as exc:
+        logger.warning(
+            "[%s] IntegrityError during checkout (likely concurrent Payment duplicate): %s",
+            source,
+            exc,
+        )
+        existing = Payment.objects.filter(
+            payment_system=data.payment_system,
+            session_id=data.session_id,
+        ).only("amount_total", "currency").first()
+        if existing:
+            logger.info(
+                "[%s] Treating IntegrityError as idempotent replay for session_id=%s",
+                source,
+                data.session_id,
+            )
+            set_conv_cache_after_commit(
+                data.conv_cache_id,
+                existing.amount_total,
+                existing.currency,
+                source=source,
+            )
+            return _CONCURRENT_PAYMENT_REPLAY
+        logger.exception("[%s] IntegrityError without existing Payment row", source)
+        return None
     except Exception as exc:
         logger.exception("[%s] Unexpected error during order creation: %s", source, exc)
         return None
@@ -486,7 +519,9 @@ def create_orders_and_payment(
 
     Идемпотентность: если Payment с (payment_system, session_id) уже существует,
     функция обновляет conversion-кэш и возвращает ``WebhookProcessingResult(orders=[],
-    is_replay=True)`` без создания дублей.
+    is_replay=True)`` без создания дублей. При гонке два webhook'а: вставка второго `Payment`
+    даёт ``IntegrityError`` — после отката транзакции применяется тот же replay-путь
+    (conv cache + ``is_replay=True``), без ``_schedule_post_commit_side_effects``.
 
     Транзакционность: Orders + OrderProducts + Payment создаются в одном
     ``transaction.atomic()`` блоке. Invoice создаётся best-effort внутри той же
@@ -513,6 +548,8 @@ def create_orders_and_payment(
     persist = _persist_checkout_in_atomic(data, ctx, source)
     if persist is None:
         return None
+    if persist is _CONCURRENT_PAYMENT_REPLAY:
+        return WebhookProcessingResult(orders=[], is_replay=True)
 
     orders_created = persist.orders_created
     invoice_created = persist.invoice_created

@@ -19,6 +19,14 @@ class Payment(models.Model):
     currency = models.CharField(max_length=10)
     customer_email = models.EmailField()
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["payment_system", "session_id"],
+                name="payment_payment_system_session_id_uniq",
+            ),
+        ]
+
     def __str__(self):
         return f"Payment {self.session_id}"
 

@@ -11,9 +11,11 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch, call
 
 import requests
-from django.test import SimpleTestCase
+from django.core.files.base import ContentFile
+from django.test import SimpleTestCase, TestCase
 
-from payment.models import PayPalMetadata
+from order.models import Order
+from payment.models import PayPalMetadata, Payment
 from payment.services.paypal_checkout import (
     create_paypal_checkout_session,
     get_paypal_access_token,
@@ -408,6 +410,162 @@ class TestCreateOrdersEarlyExits(SimpleTestCase):
 
         result = create_orders_and_payment(_make_webhook_data())
         self.assertIsNone(result)
+
+
+class TestCreateOrdersIntegrityReplayCheckout(TestCase):
+    """
+    При дубликате (payment_system, session_id) insert бросает IntegrityError:
+    после отката транзакции — replay + conv cache как при обычном replay (без side-effects).
+    """
+
+    SESSION_ID = "cs_integrity_race_01"
+
+    @classmethod
+    def setUpTestData(cls):
+        from accounts.choices import UserRole
+        from accounts.models import CustomUser
+        from order.models import CourierService, DeliveryType, OrderStatus
+        from product.models import BaseProduct, ProductStatus, ProductVariant
+        from sellers.models import SellerProfile
+        from warehouses.models import Warehouse, WarehouseItem
+
+        slug = cls.__name__
+        h = abs(hash(slug))
+
+        cls.warehouse = Warehouse.objects.create(
+            name=f"WH-{slug}",
+            street="I 1",
+            city="Praha",
+            zip_code="10000",
+            country="CZ",
+        )
+        cls.seller_user = CustomUser.objects.create_user(
+            email=f"s{h}@integ-pay.example.com",
+            password="pass12345",
+            first_name="S",
+            last_name="L",
+            role=UserRole.SELLER,
+            phone_number=f"+420811{h % 1000000:06d}",
+        )
+        cls.seller_profile = SellerProfile.objects.get(user=cls.seller_user)
+        cls.seller_profile.default_warehouse = cls.warehouse
+        cls.seller_profile.save(update_fields=["default_warehouse"])
+
+        cls.customer = CustomUser.objects.create_user(
+            email=f"c{h}@integ-pay.example.com",
+            password="pass12345",
+            first_name="Buyer",
+            last_name="T",
+            role=UserRole.CUSTOMER,
+            phone_number=f"+420822{h % 1000000:06d}",
+        )
+
+        OrderStatus.objects.get_or_create(name="Pending")
+        cls.dt = DeliveryType.objects.create(name=f"DTL-{slug}")
+        cls.cs = CourierService.objects.create(
+            code=f"cs{h % 10_000_000:07d}",
+            name=f"CSL-{slug}"[:100],
+            active=True,
+        )
+
+        cls.base_product = BaseProduct.objects.create(
+            name="Integrity Product",
+            product_description="T",
+            seller=cls.seller_profile,
+            article=str(h)[:10],
+            vat_rate=Decimal("21.00"),
+            status=ProductStatus.APPROVED,
+        )
+        cls.variant = ProductVariant.objects.create(
+            product=cls.base_product,
+            name="V",
+            text="x",
+            price=Decimal("100.00"),
+            weight_grams=500,
+            length_mm=200,
+            width_mm=150,
+            height_mm=100,
+            sku="SKU-001",
+        )
+        WarehouseItem.objects.create(
+            warehouse=cls.warehouse,
+            product_variant=cls.variant,
+            quantity_in_stock=50,
+        )
+
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch("payment.services.webhook_processing.set_conv_cache_after_commit")
+    @patch("payment.services.webhook_processing._replay_if_payment_exists", return_value=None)
+    @patch("payment.services.webhook_processing.generate_invoice_pdf")
+    @patch("payment.services.webhook_processing.prepare_invoice_data")
+    def test_duplicate_payment_integrity_returns_replay_and_no_orders(
+        self,
+        mock_prep,
+        mock_pdf,
+        mock_skip_replay_precheck,
+        mock_conv_cache,
+        mock_async_email,
+        mock_async_parcels,
+    ):
+        """Simulate TOCTOU: строка Payment уже есть, _replay короткий путь выключен патчем."""
+        mock_prep.return_value = {}
+        mock_pdf.return_value = ContentFile(b"%PDF-test", name="stub.pdf")
+
+        Payment.objects.create(
+            payment_system="stripe",
+            session_id=self.SESSION_ID,
+            session_key="pre",
+            customer_id="cus_pre",
+            payment_intent_id="pi_pre",
+            payment_method="stripe",
+            amount_total=Decimal("100.00"),
+            currency="EUR",
+            customer_email=self.customer.email,
+        )
+
+        data = _make_webhook_data(
+            session_id=self.SESSION_ID,
+            conv_cache_id=self.SESSION_ID,
+            session_key="new-key",
+            custom_data={
+                "user_id": str(self.customer.pk),
+                "email": self.customer.email,
+                "first_name": "Jan",
+                "last_name": "Novak",
+                "phone": "+420123456789",
+                "delivery_address": {"country": "CZ"},
+            },
+            invoice_data={
+                "groups": [
+                    {
+                        "delivery_type": self.dt.id,
+                        "courier_service": self.cs.id,
+                        "calculated_delivery_cost": "5.00",
+                        "calculated_group_total": "105.00",
+                        "products": [{"sku": "SKU-001", "quantity": 2}],
+                    },
+                ],
+                "invoice_number": "INV-I-001",
+            },
+        )
+
+        result = create_orders_and_payment(data)
+
+        self.assertIsNotNone(result)
+        self.assertTrue(result.is_replay)
+        self.assertEqual(result.orders, [])
+        self.assertEqual(Payment.objects.filter(session_id=self.SESSION_ID).count(), 1)
+        self.assertEqual(Order.objects.count(), 0)
+
+        mock_conv_cache.assert_called_once_with(
+            self.SESSION_ID,
+            Decimal("100.00"),
+            "EUR",
+            source="StripeWebhook",
+        )
+        mock_async_parcels.assert_not_called()
+        mock_async_email.assert_not_called()
 
 
 # ===========================================================================
