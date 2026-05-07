@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** In Progress — Iteration 4 (Steps 1–2 done; code review Step 2 passed)
+**Status:** In Progress — Iteration 4 (Steps 1–2 + Step 4 webhook isolation done; code review Step 4 passed)
 
 ## Цель
 
@@ -285,7 +285,7 @@ backend/payment/
 | Step 1 — Stripe session extraction | ✅ Done (2026-05-06) | `services/stripe_session.py`, `views.py`, тесты в `payment/tests.py` |
 | Step 2 — PayPal session extraction | ✅ Done (2026-05-06) | `services/paypal_session.py`, `services/checkout_shared.py`, `views.py`, `payment/tests.py`, отчёт `step-2-paypal-plan.md` |
 | Step 3 — Metadata isolation | ⬜ Pending (см. carry-over из CR Step 2 ниже) | План: [step-3-metadata-plan.md](./step-3-metadata-plan.md) |
-| Step 4 — Webhook isolation | ⬜ Pending | |
+| Step 4 — Webhook isolation | ✅ Done (2026-05-07) | `services/stripe_webhook.py`, `services/paypal_webhook.py`, `views.py`, OpenAPI уточнение для PayPal `ignored`; план: [step-4-webhook-plan.md](./step-4-webhook-plan.md) |
 | Step 5 — Order creation separation | ⬜ Pending | |
 
 #### Step 1 — итоги
@@ -314,6 +314,21 @@ backend/payment/
 - **`variable_symbol` в контексте checkout:** поле есть в `StripeCheckoutContext` / `PayPalCheckoutContext`, но во view не используется (уже записано в metadata внутри сервиса) — убрать из dataclass или явно задокументировать при рефакторе Step 3
 
 После Step 1 в отчётах фигурировало **23/23** по stripe-срезу; после Step 2 полный прогон `payment/tests.py` = **34/34**.
+
+#### Step 4 — итоги (webhook isolation)
+
+- **Stripe:** верификация события и сборка `WebhookPaymentData` вынесены в [`payment/services/stripe_webhook.py`](../../../backend/payment/services/stripe_webhook.py); `StripeWebhookView` остаётся тонким HTTP-слоем + `create_orders_and_payment`.
+- **PayPal:** разбор JSON, whitelist `event_type`, извлечение полей (в т.ч. capture/order API) и сборка `WebhookPaymentData` вынесены в [`payment/services/paypal_webhook.py`](../../../backend/payment/services/paypal_webhook.py); `PayPalWebhookView` вызывает `PayPalMixin.verify_webhook` без изменения реализации verify.
+- **HTTP-контракты webhook’ов** (статусы, тела ответов, тексты ошибок) **сохранены**; различие Stripe vs PayPal при idempotent replay **сохранено** (Stripe — пустой 200; PayPal — 200 JSON с числом заказов, в т.ч. `"0 order(s)..."`).
+- **Идемпотентность** по-прежнему в `create_orders_and_payment`; поведение повторных webhook не менялось.
+- **Code review Step 4:** пройден; критических регрессий по контракту не выявлено.
+- **Документация:** в `@extend_schema` для PayPal webhook зафиксировано фактическое поведение для неподдерживаемых `event_type` — **200** `{"status": "ignored"}` (не 400).
+
+**Оставшиеся follow-up’ы (вне scope Step 4):**
+
+- Расширить unit-тесты PayPal webhook: `CHECKOUT.ORDER.APPROVED` / `CHECKOUT.ORDER.COMPLETED`, ошибки capture и смежные ветки.
+- Обработку «хрупких» веток (битый payload, необработанные HTTP/KeyError от PayPal API) — отдельная задача / явное маппирование в HTTP.
+- Cleanup импортов и дальнейшее истончение `views.py` — отдельным шагом без смешения с бизнес-логикой.
 
 ### Статус
 - [ ] order_factory.py extracted
@@ -348,7 +363,7 @@ pytest backend/order/tests_invoice.py -v
 
 | Тип | Файлы |
 |-----|-------|
-| **Backend** | `payment/models.py`, `payment/views.py`, `payment/services/webhook_processing.py`, `promocode/models.py`, `order/services/invoice_numbers.py` |
+| **Backend** | `payment/models.py`, `payment/views.py`, `payment/services/webhook_processing.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `promocode/models.py`, `order/services/invoice_numbers.py` |
 | **Модели** | `Payment` (unique session_id), `PromoCode` (increment method), `InvoiceSequence` |
 | **API** | `POST /stripe-webhook/`, `POST /paypal-webhook/` (контракты не меняются) |
 | **Интеграции** | Stripe Webhook SDK, PayPal Webhook SDK |

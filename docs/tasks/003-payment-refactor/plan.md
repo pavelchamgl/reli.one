@@ -55,7 +55,7 @@
 
 ### 1.4 Блок: Webhook HTTP (Stripe + PayPal)
 
-**Stripe:** `StripeWebhookView` ~835–917. **PayPal:** `PayPalWebhookView` ~1460–1601 (+ вспомогательные `_paypal_api_get` / `_paypal_api_capture` ~1464–1482).
+**Stripe:** `StripeWebhookView` — тонкий HTTP-слой; верификация/фильтр события и сборка `WebhookPaymentData` в [`stripe_webhook.py`](../../../backend/payment/services/stripe_webhook.py). **PayPal:** `PayPalWebhookView` — parse + `PayPalMixin.verify_webhook`, затем [`paypal_webhook.py`](../../../backend/payment/services/paypal_webhook.py) (REST get order / capture по умолчанию); view — dispatch, `create_orders_and_payment`.
 
 | Аспект | Содержание |
 |--------|------------|
@@ -138,15 +138,21 @@
 
 ---
 
-### Step 4 — Webhook isolation
+### Step 4 — Webhook isolation ✅ Done (2026-05-07)
 
 | Поле | Содержание |
 |------|------------|
-| **Файлы** | `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py` (parse + verify + `WebhookPaymentData`); views — dispatch только. |
-| **Функции** | `parse_stripe_checkout_event`, `verify_and_extract_stripe_session`; PayPal: `route_paypal_event`, `extract_payment_context`, существующие API calls. |
-| **Тесты** | Те же `StripeWebhookFlowTests` + мок `construct_event`; для PayPal — расширить покрытие сценариев `event_type`. |
-| **Риски** | Смена кодов ответа (400 vs 403) — контракт для Stripe/PayPal retry. |
-| **Что может сломаться** | Idempotency, подпись, порядок capture vs COMPLETED. |
+| **Файлы** | [`payment/services/stripe_webhook.py`](../../../backend/payment/services/stripe_webhook.py), [`payment/services/paypal_webhook.py`](../../../backend/payment/services/paypal_webhook.py); [`views.py`](../../../backend/payment/views.py) — только HTTP + вызов сервисов + `create_orders_and_payment`. PayPal verify остаётся в [`mixins.py`](../../../backend/payment/mixins.py) (`verify_webhook`), без дублирования контракта с PayPal API. |
+| **Сделано** | Stripe: `verify_and_resolve_stripe_checkout_event`, `stripe_checkout_session_to_webhook_payment_data`. PayPal: `parse_paypal_webhook_body`, `paypal_payload_to_webhook_payment_data` (+ дефолтные `api_get` / `api_capture`). |
+| **Контракты** | HTTP request/response webhook’ов не менялись; идемпотентность/replay — как до Step 4 (`create_orders_and_payment`). |
+| **Проверки** | Code review Step 4 пройден. `payment/tests.py` — зелёный прогон; интеграции в `test_checkout_flow.py` требуют доступной БД (напр. хост `postgres_db` в Docker). |
+| **Документация** | Уточнён `@extend_schema` PayPal webhook: неподдерживаемые `event_type` → **200** `{"status": "ignored"}`. Детальный план: [step-4-webhook-plan.md](./step-4-webhook-plan.md). |
+
+**Follow-up (отдельно от Step 4):**
+
+- Расширить unit-тесты PayPal webhook: `APPROVED` / `COMPLETED`, ошибки capture и смежные ветки.
+- Явно обработать хрупкие ветки (битый payload, ошибки PayPal API / «протекающие» исключения) — отдельная задача.
+- Cleanup импортов и дальнейшее упрощение `views.py` — отдельным PR.
 
 ---
 
