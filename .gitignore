@@ -195,3 +195,10 @@ cython_debug/
 
 # User-generated media files
 backend/media/
+
+# PostgreSQL integration tests (docker-compose.test.yml)
+.reli_test_db/
+
+# Локальные дампы БД (не коммитить)
+*.pgdump
+*.dump

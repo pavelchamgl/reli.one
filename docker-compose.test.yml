@@ -1,0 +1,41 @@
+# Интеграционные тесты backend с PostgreSQL (отдельно от production docker-compose.yml).
+# Не использует production volume, production env и хосты medиа на сервере.
+#
+# Подготовка:
+#   cp envs/database.test.env.example envs/database.test.env
+#   cp envs/backend.test.env.example envs/backend.test.env
+# Запуск (поднимет postgres_test при необходимости):
+#   docker compose -f docker-compose.test.yml run --rm backend_test
+#
+# Свой сценарий pytest:
+#   docker compose -f docker-compose.test.yml run --rm backend_test pytest payment/ -v
+
+services:
+  postgres_test:
+    image: postgres:17
+    container_name: reli_postgres_test
+    env_file:
+      - envs/database.test.env
+    volumes:
+      - ./.reli_test_db/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reli_test -d reli_test"]
+      interval: 3s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+  backend_test:
+    build:
+      context: ./backend
+    container_name: reli_backend_test
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    env_file:
+      - envs/database.test.env
+      - envs/backend.test.env
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    command: ["pytest", "payment/test_checkout_flow.py", "-v"]
