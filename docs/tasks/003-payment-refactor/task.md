@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** In Progress — Iteration 4 (Steps 1–2 + Step 4 webhook isolation done; code review Step 4 passed)
+**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 done; Step 5 order/payment orchestration — pending)
 
 ## Цель
 
@@ -14,7 +14,7 @@ Payment flow — самая критическая часть системы. С
 - `Payment.session_id` не уникален → дублирование заказов при повторной доставке webhook (DB-1)
 - `PromoCode.increment_used_count` — `self.used_count += 1; self.save()` без `F()` → гонка при параллельных webhook'ах (DB-6)
 - `InvoiceSequence` без `select_for_update` → дублирующиеся номера инвойсов (PAY-4)
-- `payment/views.py` — 2198 строк, весь критический путь в одном файле (BE-2)
+- `payment/views.py` — исторически до рефактора порядка **~2198** строк (BE-2); **после Steps 1–4 фактически ≈ 973 строки** (актуально на 2026-05-07)
 - Фоновые задачи (посылки, email) через `ThreadPoolExecutor` без retry → потеря при падении процесса (PAY-2)
 
 Этот рефакторинг **нельзя начинать до завершения Task 002** (regression tests должны быть написаны первыми).
@@ -251,7 +251,7 @@ if not created:
 ## Iteration 4 — Service Layer Decomposition
 
 ### Цель
-Декомпозировать `payment/views.py` (2198 строк) в сервисный слой.
+Декомпозировать `payment/views.py` (исторически ~2198 строк; **сейчас ≈ 973**) в сервисный слой.
 
 ### Целевая структура
 
@@ -284,9 +284,10 @@ backend/payment/
 |-----|--------|-------|
 | Step 1 — Stripe session extraction | ✅ Done (2026-05-06) | `services/stripe_session.py`, `views.py`, тесты в `payment/tests.py` |
 | Step 2 — PayPal session extraction | ✅ Done (2026-05-06) | `services/paypal_session.py`, `services/checkout_shared.py`, `views.py`, `payment/tests.py`, отчёт `step-2-paypal-plan.md` |
-| Step 3 — Metadata isolation | ⬜ Pending (см. carry-over из CR Step 2 ниже) | План: [step-3-metadata-plan.md](./step-3-metadata-plan.md) |
+| Step 3 — Metadata isolation | ✅ Done (2026-05-06) | `services/checkout_metadata.py`, `stripe_session.py` / `paypal_session.py`, тесты `TestCheckoutMetadataBuilders` в `payment/tests.py`; план: [step-3-metadata-plan.md](./step-3-metadata-plan.md) |
+| Step 3.1 — CZ-origin shared cleanup | ✅ Done (2026-05-06) | Общая `check_cz_origin_for_checkout` в `services/checkout_shared.py`; вызовы из `stripe_session.py` и `paypal_session.py` |
 | Step 4 — Webhook isolation | ✅ Done (2026-05-07) | `services/stripe_webhook.py`, `services/paypal_webhook.py`, `views.py`, OpenAPI уточнение для PayPal `ignored`; план: [step-4-webhook-plan.md](./step-4-webhook-plan.md) |
-| Step 5 — Order creation separation | ⬜ Pending | |
+| Step 5 — Order creation separation | ⬜ Pending | Декомпозиция `create_orders_and_payment` / оркестрация в `webhook_processing.py` (и при необходимости новые модули сервиса) |
 
 #### Step 1 — итоги
 
@@ -305,15 +306,18 @@ backend/payment/
 - **`payment/tests.py`:** **34/34 passed**
 - Отчёт: [step-2-paypal-plan.md](./step-2-paypal-plan.md)
 
-#### Step 3 — carry-over из code review Step 2 (low-risk, вне scope критики)
+#### Step 3 — итоги (metadata isolation)
 
-Следующие пункты намеренно отложены в Step 3 (Metadata isolation / консолидация):
+- Билдеры metadata и согласованное использование в checkout — `payment/services/checkout_metadata.py`; контексты Stripe/PayPal записывают метаданные через общий слой.
+- **Тесты:** `TestCheckoutMetadataBuilders` в `payment/tests.py`.
+- План: [step-3-metadata-plan.md](./step-3-metadata-plan.md).
 
-- **Дублирование `_check_cz_origin`:** отдельные копии в `stripe_session.py` и `paypal_session.py` — вынести в общий модуль при изоляции metadata/checkout helpers
-- **Metadata builders:** единые функции сборки `custom_data` / `invoice_data` / `description_data` и атомарного сохранения (см. [step-3-metadata-plan.md](./step-3-metadata-plan.md); обзор шагов — [plan.md](./plan.md))
-- **`variable_symbol` в контексте checkout:** поле есть в `StripeCheckoutContext` / `PayPalCheckoutContext`, но во view не используется (уже записано в metadata внутри сервиса) — убрать из dataclass или явно задокументировать при рефакторе Step 3
+#### Step 3.1 — итоги (CZ-origin shared cleanup)
 
-После Step 1 в отчётах фигурировало **23/23** по stripe-срезу; после Step 2 полный прогон `payment/tests.py` = **34/34**.
+- Единая проверка CZ-origin для checkout: **`check_cz_origin_for_checkout`** в `payment/services/checkout_shared.py`.
+- `build_stripe_checkout_context` и `build_paypal_checkout_context` используют общую функцию (не дублируют логику в двух файлах).
+
+После Step 1 в отчётах фигурировало **23/23** по stripe-срезу; после Step 2 полный прогон `payment/tests.py` = **34/34**; после Step 4 — расширенный набор (см. актуальный `pytest payment/tests.py`).
 
 #### Step 4 — итоги (webhook isolation)
 
@@ -324,13 +328,14 @@ backend/payment/
 - **Code review Step 4:** пройден; критических регрессий по контракту не выявлено.
 - **Документация:** в `@extend_schema` для PayPal webhook зафиксировано фактическое поведение для неподдерживаемых `event_type` — **200** `{"status": "ignored"}` (не 400).
 
-**Оставшиеся follow-up’ы (вне scope Step 4):**
+### Follow-up (вне scope Steps 1–4 / Step 5)
 
-- Расширить unit-тесты PayPal webhook: `CHECKOUT.ORDER.APPROVED` / `CHECKOUT.ORDER.COMPLETED`, ошибки capture и смежные ветки.
-- Обработку «хрупких» веток (битый payload, необработанные HTTP/KeyError от PayPal API) — отдельная задача / явное маппирование в HTTP.
-- Cleanup импортов и дальнейшее истончение `views.py` — отдельным шагом без смешения с бизнес-логикой.
+- **PayPal webhook branch coverage:** расширить unit-тесты — `CHECKOUT.ORDER.APPROVED` / `CHECKOUT.ORDER.COMPLETED`, ошибки capture и смежные ветки.
+- **Fragile PayPal payload/API errors:** хрупкие ветки (битый payload, необработанные HTTP/исключения от PayPal API) — отдельная задача с явным маппированием в HTTP.
+- **`views.py` import / dead-code cleanup:** чистка импортов и остаточного «шума» без изменения бизнес-поведения — отдельным PR.
+- **Integration tests:** стабильный прогон `payment/test_checkout_flow.py` и полный `pytest payment/` — **PostgreSQL-compatible** БД (резолв хоста из настроек, напр. Docker `postgres_db` vs локальный `localhost`).
 
-### Статус
+### Статус (целевая структура Iteration 4 — Step 5+)
 - [ ] order_factory.py extracted
 - [ ] invoice_service.py extracted
 - [ ] notification.py extracted
@@ -363,7 +368,7 @@ pytest backend/order/tests_invoice.py -v
 
 | Тип | Файлы |
 |-----|-------|
-| **Backend** | `payment/models.py`, `payment/views.py`, `payment/services/webhook_processing.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `promocode/models.py`, `order/services/invoice_numbers.py` |
+| **Backend** | `payment/models.py`, `payment/views.py` (**≈973 строки** после Steps 1–4), `payment/services/webhook_processing.py`, `payment/services/checkout_metadata.py`, `payment/services/checkout_shared.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `promocode/models.py`, `order/services/invoice_numbers.py` |
 | **Модели** | `Payment` (unique session_id), `PromoCode` (increment method), `InvoiceSequence` |
 | **API** | `POST /stripe-webhook/`, `POST /paypal-webhook/` (контракты не меняются) |
 | **Интеграции** | Stripe Webhook SDK, PayPal Webhook SDK |
@@ -374,4 +379,4 @@ pytest backend/order/tests_invoice.py -v
 - DB-6: `PromoCode.increment_used_count` неатомарный P0
 - PAY-4: `InvoiceSequence` без `select_for_update` P1
 - PAY-2: Нет retry при ошибке генерации посылок P1
-- BE-2: `payment/views.py` 2198 строк P1
+- BE-2: `payment/views.py` было ~2198 строк → **≈ 973** после Steps 1–4 (остаётся техдолг: Step 5, cleanup)
