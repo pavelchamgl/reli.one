@@ -441,6 +441,38 @@ def _persist_checkout_in_atomic(
     )
 
 
+def _schedule_post_commit_side_effects(
+    data: WebhookPaymentData,
+    orders_created: list,
+    invoice_created: bool,
+    origin_blocked: bool,
+    not_cz: list[str],
+    source: str,
+) -> None:
+    """
+    После успешного commit checkout-транзакции: клиентское письмо, затем посылки/продавцы.
+    Async-функции сами используют transaction.on_commit; здесь только планирование вызовов.
+    """
+    # ------------------------------------------------------------------
+    # 7. Post-commit async tasks (используют on_commit внутри себя)
+    # ------------------------------------------------------------------
+    if invoice_created:
+        async_send_client_email(data.session_id)
+        logger.info("[%s] Planned async customer email for session %s", source, data.session_id)
+    else:
+        logger.warning("[%s] Skipped customer email — invoice not ready for session %s", source, data.session_id)
+
+    if origin_blocked:
+        logger.warning(
+            "[%s] Parcel generation skipped for session %s (non-CZ SKUs: %s)",
+            source, data.session_id, not_cz,
+        )
+    else:
+        order_ids = [o.id for o in orders_created]
+        async_parcels_and_seller_email(order_ids, data.session_id)
+        logger.info("[%s] Planned async parcels+seller_email for orders %s", source, order_ids)
+
+
 # ---------------------------------------------------------------------------
 # Основная функция обработки
 # ---------------------------------------------------------------------------
@@ -485,24 +517,14 @@ def create_orders_and_payment(
     orders_created = persist.orders_created
     invoice_created = persist.invoice_created
 
-    # ------------------------------------------------------------------
-    # 7. Post-commit async tasks (используют on_commit внутри себя)
-    # ------------------------------------------------------------------
-    if invoice_created:
-        async_send_client_email(data.session_id)
-        logger.info("[%s] Planned async customer email for session %s", source, data.session_id)
-    else:
-        logger.warning("[%s] Skipped customer email — invoice not ready for session %s", source, data.session_id)
-
-    if origin_blocked:
-        logger.warning(
-            "[%s] Parcel generation skipped for session %s (non-CZ SKUs: %s)",
-            source, data.session_id, not_cz,
-        )
-    else:
-        order_ids = [o.id for o in orders_created]
-        async_parcels_and_seller_email(order_ids, data.session_id)
-        logger.info("[%s] Planned async parcels+seller_email for orders %s", source, order_ids)
+    _schedule_post_commit_side_effects(
+        data,
+        orders_created,
+        invoice_created,
+        origin_blocked,
+        not_cz,
+        source,
+    )
 
     return WebhookProcessingResult(
         orders=orders_created,
