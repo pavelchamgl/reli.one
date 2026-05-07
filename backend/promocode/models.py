@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import F
 from django.utils import timezone
 
 
@@ -21,9 +22,14 @@ class PromoCode(models.Model):
             raise ValidationError("End date should be greater than start date.")
 
     def increment_used_count(self):
-        if self.used_count is not None:
+        if self.used_count is None:
+            return
+        if self.pk is None:
             self.used_count += 1
             self.save()
+            return
+        PromoCode.objects.filter(pk=self.pk).update(used_count=F("used_count") + 1)
+        self.refresh_from_db(fields=["used_count"])
 
     def stripePromoCode(self):
         # TODO (task-003): метод не используется, синхронизация перенесена в signal.py.

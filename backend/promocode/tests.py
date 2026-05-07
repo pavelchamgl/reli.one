@@ -36,6 +36,35 @@ class PromoCodeModelTests(TestCase):
         promo = self._make_promo()
         promo.clean()
 
+    def test_increment_used_count_increments_by_one(self):
+        promo = PromoCode.objects.create(
+            code="INCR1",
+            discount_percentage=10,
+            valid_from=timezone.now(),
+            valid_until=timezone.now() + timezone.timedelta(days=30),
+            max_usage=100,
+            used_count=0,
+        )
+        promo.increment_used_count()
+        self.assertEqual(
+            PromoCode.objects.get(pk=promo.pk).used_count,
+            1,
+        )
+
+    def test_increment_used_count_twice_sequential(self):
+        promo = PromoCode.objects.create(
+            code="INCR2",
+            discount_percentage=5,
+            valid_from=timezone.now(),
+            valid_until=timezone.now() + timezone.timedelta(days=30),
+            max_usage=100,
+            used_count=3,
+        )
+        promo.increment_used_count()
+        promo.increment_used_count()
+        promo.refresh_from_db(fields=["used_count"])
+        self.assertEqual(promo.used_count, 5)
+
 
 class PromoCodeSignalTests(TestCase):
     """BE-1: сигнал не должен вызывать AttributeError при сохранении PromoCode."""
