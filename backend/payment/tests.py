@@ -6,9 +6,11 @@ Unit-тесты для:
 from __future__ import annotations
 
 import copy
+import json
 from decimal import Decimal
 from unittest.mock import MagicMock, patch, call
 
+import requests
 from django.test import SimpleTestCase
 
 from payment.models import PayPalMetadata
@@ -1149,3 +1151,180 @@ class TestPayPalWebhookService(SimpleTestCase):
 
         self.assertEqual(br.early_status, 400)
         self.assertEqual(br.early_body, {"error": "Metadata not found"})
+
+    def test_build_order_completed_happy_path(self):
+        payload = {
+            "event_type": "CHECKOUT.ORDER.COMPLETED",
+            "resource": {
+                "id": "ORD-COMP",
+                "purchase_units": [
+                    {
+                        "reference_id": "sk-completed",
+                        "amount": {"value": "15.50", "currency_code": "EUR"},
+                    }
+                ],
+            },
+        }
+        meta = MagicMock()
+        meta.custom_data = {"user_id": 7}
+        meta.invoice_data = {}
+        meta.description_data = {}
+        with patch(
+            "payment.services.paypal_webhook.PayPalMetadata.objects.get",
+            return_value=meta,
+        ):
+            br = paypal_payload_to_webhook_payment_data(payload)
+
+        self.assertIsNone(br.early_status)
+        self.assertEqual(br.data.session_id, "ORD-COMP")
+        self.assertEqual(br.data.session_key, "sk-completed")
+        self.assertEqual(br.data.amount, Decimal("15.50"))
+        self.assertEqual(br.data.currency, "EUR")
+        self.assertEqual(br.data.conv_cache_id, "sk-completed")
+
+    def test_build_order_approved_capture_success(self):
+        def api_capture(order_id):
+            self.assertEqual(order_id, "ORD-APP")
+            return {
+                "purchase_units": [
+                    {
+                        "reference_id": "sk-app",
+                        "payments": {
+                            "captures": [
+                                {
+                                    "status": "COMPLETED",
+                                    "amount": {"value": "9.99", "currency_code": "EUR"},
+                                }
+                            ]
+                        },
+                    }
+                ]
+            }
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.APPROVED",
+            "resource": {"id": "ORD-APP"},
+        }
+        meta = MagicMock()
+        meta.custom_data = {"user_id": 1}
+        meta.invoice_data = {}
+        meta.description_data = {}
+        with patch(
+            "payment.services.paypal_webhook.PayPalMetadata.objects.get",
+            return_value=meta,
+        ):
+            br = paypal_payload_to_webhook_payment_data(
+                payload, api_capture=api_capture
+            )
+
+        self.assertIsNone(br.early_status)
+        self.assertEqual(br.data.session_id, "ORD-APP")
+        self.assertEqual(br.data.session_key, "sk-app")
+        self.assertEqual(br.data.amount, Decimal("9.99"))
+
+    def test_build_order_approved_capture_failed_returns_500(self):
+        def api_capture(order_id):
+            raise RuntimeError("capture network down")
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.APPROVED",
+            "resource": {"id": "ORD-BAD"},
+        }
+        br = paypal_payload_to_webhook_payment_data(
+            payload, api_capture=api_capture
+        )
+        self.assertEqual(br.early_status, 500)
+        self.assertEqual(br.early_body, {"error": "Capture failed"})
+
+    def test_build_capture_completed_api_get_propagates_http_error(self):
+        """Текущее поведение: ошибка api_get не перехватывается — исключение уходит наверх."""
+
+        def api_get(path):
+            raise requests.HTTPError("upstream 502")
+
+        payload = {
+            "event_type": "PAYMENT.CAPTURE.COMPLETED",
+            "resource": {
+                "supplementary_data": {"related_ids": {"order_id": "ORD-H"}},
+                "amount": {"value": "1.00", "currency_code": "EUR"},
+            },
+        }
+        with self.assertRaises(requests.HTTPError):
+            paypal_payload_to_webhook_payment_data(payload, api_get=api_get)
+
+
+# ===========================================================================
+# PayPalWebhookView — HTTP-контракт (без реального PayPal verify)
+# ===========================================================================
+
+from payment.mixins import PayPalMixin
+from payment.services.webhook_processing import WebhookProcessingResult
+
+
+class TestPayPalWebhookViewHttp(SimpleTestCase):
+    """Тонкий слой view: 403 при verify=False; replay 200 + 0 orders."""
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_verify_failure_returns_403(self):
+        body = json.dumps(
+            {
+                "event_type": "CHECKOUT.ORDER.COMPLETED",
+                "resource": {
+                    "id": "O1",
+                    "purchase_units": [
+                        {
+                            "reference_id": "sk-403",
+                            "amount": {"value": "1", "currency_code": "EUR"},
+                        }
+                    ],
+                },
+            }
+        )
+        with patch.object(PayPalMixin, "verify_webhook", return_value=False):
+            resp = self.client.post(
+                "/api/paypal-webhook/",
+                data=body,
+                content_type="application/json",
+            )
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.data["error"], "Invalid webhook signature")
+
+    def test_replay_returns_200_zero_orders_message(self):
+        body = json.dumps(
+            {
+                "event_type": "CHECKOUT.ORDER.COMPLETED",
+                "resource": {
+                    "id": "O-REPLAY",
+                    "purchase_units": [
+                        {
+                            "reference_id": "sk-replay",
+                            "amount": {"value": "3.00", "currency_code": "EUR"},
+                        }
+                    ],
+                },
+            }
+        )
+        meta = MagicMock()
+        meta.custom_data = {"user_id": 99}
+        meta.invoice_data = {}
+        meta.description_data = {}
+        replay = WebhookProcessingResult(orders=[], is_replay=True)
+        with patch.object(PayPalMixin, "verify_webhook", return_value=True), patch(
+            "payment.services.paypal_webhook.PayPalMetadata.objects.get",
+            return_value=meta,
+        ), patch(
+            "payment.views.create_orders_and_payment",
+            return_value=replay,
+        ):
+            resp = self.client.post(
+                "/api/paypal-webhook/",
+                data=body,
+                content_type="application/json",
+            )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(
+            resp.data["status"],
+            "0 order(s) created successfully",
+        )
