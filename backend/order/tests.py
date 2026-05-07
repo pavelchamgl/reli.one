@@ -6,13 +6,17 @@ Covers:
 - OrderProduct.save() — received_at set/cleared on received flag change
 - generate_order_number() — format and uniqueness
 - OrderEvent — creation and FK integrity
+- next_invoice_identifiers() — PAY-4: uniqueness under concurrency
 """
 from __future__ import annotations
 
 import re
+from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
 
-from django.test import TestCase
+from django.db import close_old_connections
+from django.test import TestCase, TransactionTestCase
+from django.utils import timezone
 
 from accounts.choices import UserRole
 from accounts.models import CustomUser
@@ -20,12 +24,14 @@ from delivery.models import DeliveryAddress
 from order.models import (
     CourierService,
     DeliveryType,
+    InvoiceSequence,
     Order,
     OrderEvent,
     OrderProduct,
     OrderStatus,
     generate_order_number,
 )
+from order.services.invoice_numbers import INVOICE_NUMBER_PAD, next_invoice_identifiers
 from payment.models import Payment
 from product.models import BaseProduct, ProductStatus, ProductVariant
 from sellers.models import SellerProfile
@@ -67,7 +73,7 @@ class OrderTestMixin:
             name="Order Test Product",
             product_description="T",
             seller=cls.seller_profile,
-            article="ORDER-TEST-001",
+            article="OT001",
             vat_rate=Decimal("21.00"),
             status=ProductStatus.APPROVED,
         )
@@ -241,6 +247,57 @@ class OrderProductReceivedAtTests(OrderTestMixin, TestCase):
         op.save()
         op.refresh_from_db()
         self.assertEqual(op.received_at, ts_before)
+
+
+# ---------------------------------------------------------------------------
+# next_invoice_identifiers() — InvoiceSequence (PAY-4)
+# ---------------------------------------------------------------------------
+
+
+class NextInvoiceIdentifiersTests(TestCase):
+    """PAY-4: sequence реализована через atomic + select_for_update + F() — регрессия."""
+
+    def test_sequential_calls_return_distinct_invoice_numbers(self):
+        inv1, vs1 = next_invoice_identifiers()
+        inv2, vs2 = next_invoice_identifiers()
+        self.assertNotEqual(inv1, inv2)
+        self.assertEqual(inv1, vs1)
+        self.assertEqual(inv2, vs2)
+
+    def test_sequential_calls_use_expected_prefix_and_width(self):
+        series = timezone.now().strftime("%Y")
+        before = InvoiceSequence.objects.filter(series=series).values_list(
+            "last_number", flat=True
+        ).first()
+        start = before or 0
+        inv, _ = next_invoice_identifiers()
+        self.assertTrue(inv.startswith(series))
+        suffix = inv[len(series) :]
+        self.assertEqual(len(suffix), INVOICE_NUMBER_PAD)
+        self.assertEqual(int(suffix), start + 1)
+
+
+class NextInvoiceIdentifiersConcurrencyTests(TransactionTestCase):
+    """Параллельные вызовы — отдельные коммиты; обычный TestCase держит транзакцию и мешает потокам."""
+
+    def test_concurrent_calls_produce_unique_identifiers(self):
+        n = 25
+
+        def _call():
+            try:
+                return next_invoice_identifiers()
+            finally:
+                close_old_connections()
+
+        with ThreadPoolExecutor(max_workers=10) as pool:
+            pairs = list(pool.map(lambda _: _call(), range(n)))
+
+        invoice_nums = [p[0] for p in pairs]
+        var_symbols = [p[1] for p in pairs]
+        self.assertEqual(len(invoice_nums), len(set(invoice_nums)))
+        self.assertEqual(len(var_symbols), len(set(var_symbols)))
+        for inv, vs in pairs:
+            self.assertEqual(inv, vs)
 
 
 # ---------------------------------------------------------------------------

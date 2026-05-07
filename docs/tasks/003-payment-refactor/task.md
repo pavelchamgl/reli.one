@@ -13,7 +13,7 @@
 Payment flow — самая критическая часть системы. Сейчас в ней:
 - `Payment.session_id` не уникален → дублирование заказов при повторной доставке webhook (DB-1)
 - `PromoCode.increment_used_count` — `self.used_count += 1; self.save()` без `F()` → гонка при параллельных webhook'ах (DB-6)
-- `InvoiceSequence` без `select_for_update` → дублирующиеся номера инвойсов (PAY-4)
+- **PAY-4 (закрыто кодом):** в `order/services/invoice_numbers.py` уже используются `transaction.atomic`, `select_for_update()` и `F()` для счётчика — дубликаты номеров снимаются на уровне реализации; остаётся **регрессионное покрытие** (см. `order/tests.py`: `NextInvoiceIdentifiersTests`, `NextInvoiceIdentifiersConcurrencyTests`).
 - `payment/views.py` — исторически до рефактора порядка **~2198** строк (BE-2); **после Steps 1–4 фактически ≈ 973 строки** (актуально на 2026-05-07)
 - Фоновые задачи (посылки, email) через `ThreadPoolExecutor` без retry → потеря при падении процесса (PAY-2)
 
@@ -23,7 +23,7 @@ Payment flow — самая критическая часть системы. С
 
 - Добавление `unique=True` на `Payment.session_id` + миграция
 - Исправление `PromoCode.increment_used_count` через `F()`-выражение
-- Добавление `select_for_update` в `InvoiceSequence`
+- ~~Добавление `select_for_update` в `InvoiceSequence`~~ — уже есть в `next_invoice_identifiers()`; поддерживать тестами
 - Декомпозиция `payment/views.py` в сервисный слой `payment/services/`
 - Оценка и план перехода с `ThreadPoolExecutor` на Celery (реализация опционально)
 
@@ -50,7 +50,7 @@ Payment flow — самая критическая часть системы. С
 - [ ] `Payment.session_id` имеет `unique=True` (миграция применена)
 - [ ] Повторная доставка Stripe/PayPal webhook не создаёт второй заказ
 - [ ] `PromoCode.increment_used_count` использует `F()` выражение
-- [ ] `InvoiceSequence` использует `select_for_update()` внутри `transaction.atomic()`
+- [x] PAY-4 / `next_invoice_identifiers()`: `transaction.atomic` + `select_for_update()` + `F()` уже в коде (`order/services/invoice_numbers.py`); регрессия — тесты уникальности в `order/tests.py`
 - [ ] `payment/views.py` разбит на сервисы в `payment/services/`
 - [ ] Все существующие тесты payment проходят
 - [ ] Написаны новые тесты для идемпотентности
@@ -101,7 +101,7 @@ sequenceDiagram
     Backend->>DB: Create Payment + Orders + OrderProducts
     Backend->>DB: Decrement warehouse stock
     Backend->>DB: Increment PromoCode.used_count (РИСК: не атомарно)
-    Backend->>DB: Create InvoiceSequence (РИСК: нет lock)
+    Backend->>DB: InvoiceSequence / next_invoice_identifiers (atomic + row lock + F()) — PAY-4 снят в коде; регрессия тестами
     Backend->>DB: COMMIT
     Backend->>Delivery: async generate_parcels (РИСК: нет retry)
     Backend->>Backend: async send emails (РИСК: нет retry)
@@ -145,15 +145,9 @@ class PromoCodeConcurrentTest(TestCase):
         # assert PromoCode.used_count <= 5
 ```
 
-**InvoiceSequence (до правки PAY-4):**
-```python
-# order/tests_invoice.py
-
-class InvoiceSequenceTest(TestCase):
-    def test_concurrent_invoice_creation_produces_unique_numbers(self):
-        # Параллельно создать 5 инвойсов
-        # assert len(invoice_numbers) == len(set(invoice_numbers))
-```
+**InvoiceSequence / PAY-4 (регрессия, код уже целевой):**
+- `order/tests.py` — `NextInvoiceIdentifiersTests` (последовательные вызовы: уникальность, префикс года, ширина суффикса)
+- `order/tests.py` — `NextInvoiceIdentifiersConcurrencyTests` (`TransactionTestCase`, параллельные вызовы `next_invoice_identifiers`)
 
 ### Моки необходимые
 - `stripe.Webhook.construct_event` → mock valid event
@@ -205,17 +199,7 @@ def increment_used_count(self):
     self.refresh_from_db(fields=["used_count"])
 ```
 
-**3. `order/services/invoice_numbers.py` — select_for_update:**
-
-```python
-# ПОСЛЕ:
-def get_next_invoice_number(year: int) -> int:
-    with transaction.atomic():
-        seq = InvoiceSequence.objects.select_for_update().get_or_create(series=year)[0]
-        seq.last_number += 1
-        seq.save(update_fields=["last_number"])
-        return seq.last_number
-```
+**3. `order/services/invoice_numbers.py` — PAY-4:** правка **не требуется** — уже `transaction.atomic`, `select_for_update().get_or_create(...)`, инкремент через `F("last_number") + 1`. Менять только при смене бизнес-правил или по результатам регрессии.
 
 **4. `payment/services/webhook_processing.py` — idempotency check:**
 
@@ -239,7 +223,7 @@ if not created:
 |------|-----------|
 | `backend/payment/models.py` | `unique=True` на session_id |
 | `backend/promocode/models.py` | `F()` в increment_used_count |
-| `backend/order/services/invoice_numbers.py` | `select_for_update` |
+| `backend/order/services/invoice_numbers.py` | PAY-4: уже atomic + `select_for_update` + `F()`; регрессия в `order/tests.py` |
 | `backend/payment/services/webhook_processing.py` | `get_or_create` idempotency |
 | `backend/payment/migrations/XXXX_payment_session_unique.py` | новая миграция |
 
@@ -403,6 +387,6 @@ pytest backend/order/tests_invoice.py -v
 
 - DB-1: `Payment.session_id` не уникален P0
 - DB-6: `PromoCode.increment_used_count` неатомарный P0
-- PAY-4: `InvoiceSequence` без `select_for_update` P1
+- PAY-4: ~~`InvoiceSequence` без `select_for_update`~~ — **снято в коде** (`invoice_numbers.py`); приоритет — **регрессионные тесты** (добавлены в `order/tests.py`)
 - PAY-2: Нет retry при ошибке генерации посылок P1
 - BE-2: `payment/views.py` было ~2198 строк → **≈ 973** после Steps 1–4; **Step 5** — декомпозиция `create_orders_and_payment` в `webhook_processing.py` **завершена**; опциональный вынос в отдельные модули (`order_factory` и т.д.) — техдолг
