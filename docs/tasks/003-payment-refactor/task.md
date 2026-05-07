@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 done; Step 5 order/payment orchestration — pending)
+**Status:** In Progress — Iteration 4 (Steps 1–4 + Step 3.1 done; **Step 5:** план готов — [step-5-order-creation-plan.md](./step-5-order-creation-plan.md); **реализация Step 5 не начата**)
 
 ## Цель
 
@@ -287,7 +287,7 @@ backend/payment/
 | Step 3 — Metadata isolation | ✅ Done (2026-05-06) | `services/checkout_metadata.py`, `stripe_session.py` / `paypal_session.py`, тесты `TestCheckoutMetadataBuilders` в `payment/tests.py`; план: [step-3-metadata-plan.md](./step-3-metadata-plan.md) |
 | Step 3.1 — CZ-origin shared cleanup | ✅ Done (2026-05-06) | Общая `check_cz_origin_for_checkout` в `services/checkout_shared.py`; вызовы из `stripe_session.py` и `paypal_session.py` |
 | Step 4 — Webhook isolation | ✅ Done (2026-05-07) | `services/stripe_webhook.py`, `services/paypal_webhook.py`, `views.py`, OpenAPI уточнение для PayPal `ignored`; план: [step-4-webhook-plan.md](./step-4-webhook-plan.md) |
-| Step 5 — Order creation separation | ⬜ Pending | Декомпозиция `create_orders_and_payment` / оркестрация в `webhook_processing.py` (и при необходимости новые модули сервиса) |
+| Step 5 — Order creation separation | 📋 **Plan done** · ⬜ **Execution not started** | План: [step-5-order-creation-plan.md](./step-5-order-creation-plan.md). **Scope:** только декомпозиция `create_orders_and_payment` без изменения поведения. **Вне scope Step 5:** `unique` на `Payment.session_id`, `PromoCode` + `F()`, `decrease_stock`, перестройка транзакций инвойса, Celery — см. раздел «Step 5 — план и границы» ниже. |
 
 #### Step 1 — итоги
 
@@ -328,18 +328,35 @@ backend/payment/
 - **Code review Step 4:** пройден; критических регрессий по контракту не выявлено.
 - **Документация:** в `@extend_schema` для PayPal webhook зафиксировано фактическое поведение для неподдерживаемых `event_type` — **200** `{"status": "ignored"}` (не 400).
 
+#### Step 5 — план и границы
+
+- **План создан:** [step-5-order-creation-plan.md](./step-5-order-creation-plan.md).
+- **Реализация (execution):** не начата.
+- **Scope Step 5:** только **декомпозиция** `create_orders_and_payment` в `payment/services/webhook_processing.py` (приватные хелперы и/или тонкий оркестратор), **с сохранением текущего поведения** и без изменения публичных контрактов (`WebhookPaymentData`, `WebhookProcessingResult`, HTTP-слой).
+
+**Явно вне scope Step 5** (отдельные задачи / итерации; не смешивать с декомпозицией без явного решения):
+
+- уникальность `Payment.session_id` (`unique=True`, миграция, обработка гонок / `IntegrityError`);
+- атомарный инкремент промокода (`PromoCode` + `F()` и связанная оркестрация в вебхуке);
+- списание склада (`warehouses.services.decrease_stock` или аналог в потоке оплаты);
+- перепроектирование границ транзакций для инвойса (savepoint, вынос за пределы внешнего `atomic` и т.п.);
+- замена `ThreadPoolExecutor` на Celery (инфраструктура, retry-модель).
+
 ### Follow-up (вне scope Steps 1–4 / Step 5)
 
 - **PayPal webhook branch coverage:** расширить unit-тесты — `CHECKOUT.ORDER.APPROVED` / `CHECKOUT.ORDER.COMPLETED`, ошибки capture и смежные ветки.
 - **Fragile PayPal payload/API errors:** хрупкие ветки (битый payload, необработанные HTTP/исключения от PayPal API) — отдельная задача с явным маппированием в HTTP.
 - **`views.py` import / dead-code cleanup:** чистка импортов и остаточного «шума» без изменения бизнес-поведения — отдельным PR.
-- **Integration tests:** стабильный прогон `payment/test_checkout_flow.py` и полный `pytest payment/` — **PostgreSQL-compatible** БД (резолв хоста из настроек, напр. Docker `postgres_db` vs локальный `localhost`).
+- **Integration tests:** стабильный прогон `payment/test_checkout_flow.py` и полный `pytest payment/` на PostgreSQL — см. `docker-compose.test.yml` и `docs/testing/postgres-integration-tests.md`.
 
-### Статус (целевая структура Iteration 4 — Step 5+)
-- [ ] order_factory.py extracted
-- [ ] invoice_service.py extracted
-- [ ] notification.py extracted
-- [ ] views.py cleaned up
+### Статус (целевая структура Iteration 4+ / после Step 5)
+
+*Отдельные файлы ниже **не обязательны** в рамках Step 5: по плану Step 5 достаточно декомпозиции внутри `webhook_processing.py`. Вынос в отдельные модули — по последующим шагам.*
+
+- [ ] `order_factory.py` extracted (опционально, после Step 5)
+- [ ] `invoice_service.py` extracted (опционально)
+- [ ] `notification.py` extracted (опционально)
+- [ ] `views.py` cleaned up (dead-code / импорты)
 
 ---
 
