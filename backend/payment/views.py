@@ -56,6 +56,10 @@ from .services import (
     create_paypal_checkout_session,
     get_orders_by_payment_session_id,
 )
+from .services.stripe_webhook import (
+    stripe_checkout_session_to_webhook_payment_data,
+    verify_and_resolve_stripe_checkout_event,
+)
 from .services.stripe_session import (
     StripeSessionBuildError,
     build_stripe_checkout_context,
@@ -549,18 +553,15 @@ class StripeWebhookView(APIView):
         payload = request.body.decode("utf-8")
         sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")
 
-        # 1. Проверка подписи
-        try:
-            event = stripe.Webhook.construct_event(payload, sig_header, endpoint_secret)
-        except (ValueError, stripe.error.SignatureVerificationError) as e:
-            logger.error("Stripe webhook verification failed: %s", e)
-            return Response(status=400)
+        verify = verify_and_resolve_stripe_checkout_event(
+            payload, sig_header, secret=endpoint_secret,
+        )
+        if verify.early_status is not None:
+            if verify.early_no_body:
+                return Response(status=verify.early_status)
+            return Response(verify.early_body, status=verify.early_status)
 
-        handled_types = {"checkout.session.completed", "checkout.session.async_payment_succeeded"}
-        if event.get("type") not in handled_types:
-            logger.info("Unhandled Stripe event: %s", event.get("type"))
-            return Response(status=200)
-
+        event = verify.event
         session = event["data"]["object"]
         session_id = session["id"]
         session_key = (session.get("metadata") or {}).get("session_key")
@@ -569,49 +570,18 @@ class StripeWebhookView(APIView):
             logger.error("Missing session_key in Stripe webhook metadata.")
             return Response({"error": "Missing session_key"}, status=400)
 
-        # 2. Загружаем метаданные
         try:
             meta = StripeMetadata.objects.get(session_key=session_key)
         except StripeMetadata.DoesNotExist:
             logger.error("No StripeMetadata found for session_key: %s", session_key)
             return Response({"error": "Session metadata not found"}, status=400)
 
-        # 3. Конвертируем сумму (Stripe хранит в центах)
-        amount = (Decimal(session["amount_total"]) / Decimal(100)).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
-        currency = session["currency"].upper()
-
-        # Опционально: проверяем расхождение с ожидаемой суммой
-        try:
-            expected = Decimal(
-                (meta.description_data or {}).get("gross_total", "0") or "0"
-            ).quantize(Decimal("0.01"))
-        except Exception:
-            expected = Decimal("0.00")
-        if expected and (amount - expected).copy_abs() > Decimal("0.01"):
-            logger.warning(
-                "[StripeWebhook] amount_total mismatch: stripe=%s, expected=%s (session=%s)",
-                amount, expected, session_id,
-            )
-
-        # 4. Формируем данные для сервиса
-        data = WebhookPaymentData(
-            payment_system="stripe",
-            payment_method="stripe",
-            session_id=session_id,
+        data = stripe_checkout_session_to_webhook_payment_data(
+            session=session,
+            meta=meta,
             session_key=session_key,
-            conv_cache_id=session_id,  # Stripe: frontend получает checkout session ID
-            amount=amount,
-            currency=currency,
-            customer_id=session.get("customer"),
-            payment_intent_id=session.get("payment_intent") or session_id,
-            custom_data=meta.custom_data or {},
-            invoice_data=meta.invoice_data or {},
-            description_data=meta.description_data,
         )
 
-        # 5. Делегируем бизнес-логику в сервис
         result = create_orders_and_payment(data)
 
         if result is None:

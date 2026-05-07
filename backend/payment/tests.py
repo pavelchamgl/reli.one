@@ -998,3 +998,77 @@ class TestCreatePayPalPaymentView(SimpleTestCase):
         unauth_client = APIClient()
         resp = unauth_client.post(self.url, self._valid_payload, format="json")
         self.assertIn(resp.status_code, [401, 403])
+
+
+# ===========================================================================
+# payment.services.stripe_webhook
+# ===========================================================================
+
+import stripe as stripe_sdk
+
+from payment.services.stripe_webhook import (
+    stripe_checkout_session_to_webhook_payment_data,
+    verify_and_resolve_stripe_checkout_event,
+)
+
+
+class TestStripeWebhookService(SimpleTestCase):
+    @patch("payment.services.stripe_webhook.stripe.Webhook.construct_event")
+    def test_verify_signature_failure_returns_400_empty(self, mock_construct):
+        mock_construct.side_effect = stripe_sdk.error.SignatureVerificationError("msg", "hdr")
+        r = verify_and_resolve_stripe_checkout_event("{}", "sig", secret="whsec_test")
+        self.assertEqual(r.early_status, 400)
+        self.assertTrue(r.early_no_body)
+        self.assertIsNone(r.event)
+
+    @patch("payment.services.stripe_webhook.stripe.Webhook.construct_event")
+    def test_verify_ignored_event_returns_200_empty(self, mock_construct):
+        mock_construct.return_value = {"type": "charge.succeeded", "data": {}}
+        r = verify_and_resolve_stripe_checkout_event("{}", "sig", secret="whsec_test")
+        self.assertEqual(r.early_status, 200)
+        self.assertTrue(r.early_no_body)
+
+    @patch("payment.services.stripe_webhook.stripe.Webhook.construct_event")
+    def test_verify_checkout_completed_returns_event(self, mock_construct):
+        ev = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_x",
+                    "amount_total": 1050,
+                    "currency": "eur",
+                    "metadata": {"session_key": "sk-1"},
+                    "customer": "cus_1",
+                    "payment_intent": "pi_1",
+                }
+            },
+        }
+        mock_construct.return_value = ev
+        r = verify_and_resolve_stripe_checkout_event("{}", "sig", secret="whsec_test")
+        self.assertIsNone(r.early_status)
+        self.assertEqual(r.event, ev)
+
+    def test_session_to_webhook_payment_data_fields(self):
+        meta = MagicMock()
+        meta.custom_data = {"user_id": "1"}
+        meta.invoice_data = {"groups": []}
+        meta.description_data = {"gross_total": "10.50"}
+        session = {
+            "id": "cs_test",
+            "amount_total": 1050,
+            "currency": "eur",
+            "customer": "cus_x",
+            "payment_intent": "pi_x",
+        }
+        data = stripe_checkout_session_to_webhook_payment_data(
+            session=session,
+            meta=meta,
+            session_key="uuid-here",
+        )
+        self.assertEqual(data.payment_system, "stripe")
+        self.assertEqual(data.session_id, "cs_test")
+        self.assertEqual(data.session_key, "uuid-here")
+        self.assertEqual(data.amount, Decimal("10.50"))
+        self.assertEqual(data.currency, "EUR")
+        self.assertEqual(data.conv_cache_id, "cs_test")
+        self.assertEqual(data.payment_intent_id, "pi_x")
