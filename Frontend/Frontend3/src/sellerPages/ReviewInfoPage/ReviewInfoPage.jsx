@@ -228,6 +228,7 @@ const ReviewInfoPage = () => {
         {
           name: "Warehouse",
           promise: putWarehouse({
+            same_as_the_primary_address: selfData.same_as_the_primary_address,
             street: values.wStreet,
             city: values.wCity,
             zip_code: values.wZip_code,

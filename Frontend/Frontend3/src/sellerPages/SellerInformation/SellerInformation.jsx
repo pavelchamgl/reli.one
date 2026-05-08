@@ -68,6 +68,7 @@ const SellerInformation = () => {
             local_account_number: selfData?.local_account_number ?? "",
 
             // warehouse
+            same_as_the_primary_address: selfData?.same_as_the_primary_address ?? false,
             wStreet: selfData?.wStreet ?? "",
             wCity: selfData?.wCity ?? "",
             wZip_code: selfData?.wZip_code ?? "",
@@ -76,7 +77,8 @@ const SellerInformation = () => {
             wProof_document_issue_date: selfData?.wProof_document_issue_date ?? "",
 
             // return
-            same_as_warehouse: selfData?.same_as_warehouse ?? false,
+            // same_as_warehouse: selfData?.same_as_warehouse ?? false,
+            same_as_warehouse: false,
             rStreet: selfData?.rStreet ?? "",
             rCity: selfData?.rCity ?? "",
             rZip_code: selfData?.rZip_code ?? "",
@@ -140,6 +142,7 @@ const SellerInformation = () => {
                 {
                     name: "Warehouse",
                     promise: putWarehouse({
+                        same_as_the_primary_address: values.same_as_the_primary_address,
                         street: values.wStreet,
                         city: values.wCity,
                         zip_code: values.wZip_code,
