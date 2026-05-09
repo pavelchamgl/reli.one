@@ -33,12 +33,12 @@ const Slide = ({ title, desc, img }) => {
                 </div>
             }
             <div className={styles.contentWrap}>
-                {/* <div className={styles.btnWrap}>
+                <div className={styles.btnWrap}>
                     <button>
                         <img src={light} alt="" />
                     </button>
                     <button>Update</button>
-                </div> */}
+                </div>
                 <div className={styles.textWrap}>
                     <h2>{title}</h2>
                     <p>{desc}</p>
