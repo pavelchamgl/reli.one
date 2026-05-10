@@ -76,6 +76,7 @@ const SellerReviewCompany = () => {
             local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
+            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? false,
             wStreet: companyData?.wStreet ?? "",
             wCity: companyData?.wCity ?? "",
             wZip_code: companyData?.wZip_code ?? "",
@@ -225,6 +226,7 @@ const SellerReviewCompany = () => {
                     local_account_number: values?.local_account_number,
                 }),
                 putWarehouse({
+                    same_as_the_primary_address: values.same_as_the_primary_address,
                     street: values.wStreet,
                     city: values.wCity,
                     zip_code: values.wZip_code,

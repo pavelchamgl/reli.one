@@ -40,11 +40,11 @@ const CreateForm = () => {
             .typeError(t("validation.email.typeError"))
             .email(t("validation.email.email"))
             .required(t("validation.email.required")),
-        phone: yup
+        phone_number: yup
             .string()
             .transform((value) => value?.replace(/\D/g, "") || "")
-            .matches(/^\d{10,15}$/, t("validation.phone.invalid"))
-            .required(t("validation.phone.required")),
+            .matches(/^\d{10,15}$/, t("validation.phone_number.invalid"))
+            .required(t("validation.phone_number.required")),
         password: yup
             .string()
             .test("password", t("validation.password.passwordCriteria"), (value) => {
@@ -69,7 +69,7 @@ const CreateForm = () => {
             first_name: "",
             last_name: "",
             email: "",
-            phone: "",
+            phone_number: "",
             password: "",
             confirm_password: "",
         },
@@ -85,7 +85,7 @@ const CreateForm = () => {
                     localStorage.setItem("email", JSON.stringify(values.email));
                     localStorage.setItem('first_name', JSON.stringify(values.first_name))
                     localStorage.setItem('last_name', JSON.stringify(values.last_name))
-                    localStorage.setItem('phone', JSON.stringify(values.phone))
+                    localStorage.setItem('phone_number', JSON.stringify(values.phone_number))
                     setRegisterData({ ...values })
                     setIsLoading(false)
                     navigate("/seller/create-verify");
@@ -187,30 +187,30 @@ const CreateForm = () => {
                     img={phoneIc}
                     placeholder={tOnb('reg.placeholder_phone')}
                     num={true}
-                    name="phone"
-                    value={formik.values.phone}
+                    name="phone_number"
+                    value={formik.values.phone_number}
                     onChange={(e) => {
                         let val = e.target.value;
 
                         // Если пользователь стер всё или стер плюс, возвращаем "+" обратно
                         if (val === "" || val === " ") {
-                            formik.setFieldValue("phone", "+");
+                            formik.setFieldValue("phone_number", "+");
                             return;
                         }
 
                         // Разрешаем ввод только если это плюс и далее цифры
                         if (/^\+\d*$/.test(val)) {
-                            formik.setFieldValue("phone", val);
+                            formik.setFieldValue("phone_number", val);
                         }
                     }}
                     onFocus={(e) => {
-                        if (!formik.values.phone) {
-                            formik.setFieldValue("phone", "+");
+                        if (!formik.values.phone_number) {
+                            formik.setFieldValue("phone_number", "+");
                         }
                     }}
                         // onChange={formik.handleChange}
                         onBlur = { formik.handleBlur }
-                        error = { formik.errors.phone }
+                        error = { formik.errors.phone_number }
                             />
                             
                 <InputSeller

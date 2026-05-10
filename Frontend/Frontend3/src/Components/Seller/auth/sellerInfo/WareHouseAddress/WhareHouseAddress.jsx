@@ -22,7 +22,7 @@ const WhareHouseAddress = ({ formik }) => {
 
     const isCompany = pathname.includes("seller-company")
     const handleSameAsPrimaryAddress= (checked) => {
-        formik.setFieldValue('same_as_warehouse', checked)
+        formik.setFieldValue('same_as_the_primary_address', checked)
 
         if (!checked) {
             formik.setFieldValue("wStreet", "")
@@ -139,7 +139,7 @@ const WhareHouseAddress = ({ formik }) => {
 
             <label className={styles.checkWrap}>
                 <Checkbox
-                    checked={formik.values.same_as_warehouse}
+                    checked={formik.values.same_as_the_primary_address}
                     onChange={(e) => handleSameAsPrimaryAddress(e.target.checked)}
                 />
                 <p>Same as the primary address</p>

@@ -75,6 +75,7 @@ const SellerCompanyInfo = () => {
             local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
+            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? false,
             wStreet: companyData?.wStreet ?? "",
             wCity: companyData?.wCity ?? "",
             wZip_code: companyData?.wZip_code ?? "",
@@ -83,10 +84,12 @@ const SellerCompanyInfo = () => {
             wProof_document_issue_date: companyData?.wProof_document_issue_date ?? "",
 
             // return
-            same_as_warehouse: companyData?.same_as_warehouse ?? false,
+            // same_as_warehouse: companyData?.same_as_warehouse ?? false,
+            same_as_warehouse:false, 
             rStreet: companyData?.rStreet ?? "",
             rCity: companyData?.rCity ?? "",
             rZip_code: companyData?.rZip_code ?? "",
+            
             rCountry: companyData?.rCountry ?? "",
             rContact_phone: companyData?.rContact_phone ?? "",
             rProof_document_issue_date: companyData?.rProof_document_issue_date ?? ""
@@ -142,6 +145,7 @@ const SellerCompanyInfo = () => {
                         local_account_number: values?.local_account_number
                     }),
                     putWarehouse({
+                        same_as_the_primary_address: values.same_as_the_primary_address,
                         street: values.wStreet,
                         city: values.wCity,
                         zip_code: values.wZip_code,

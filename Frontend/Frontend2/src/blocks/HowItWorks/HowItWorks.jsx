@@ -17,10 +17,10 @@ const HowItWorks = () => {
                     <p className={styles.desc}>{t("how_it_works.main_title")}</p>
                     <Steps />
                     <div>
-                        <p className={styles.readyToStartTitle}>{t("how_it_works.final_text1")}</p>
-                        <p className={styles.readyToStart}>
+                        <p className={styles.readyToStartTitle}>{t("how_it_works.final_text1")}  {t("how_it_works.final_text2")}</p>
+                        {/* <p className={styles.readyToStart}>
                             {t("how_it_works.final_text2")}
-                        </p>
+                        </p> */}
                     </div>
                     <div className={styles.btnWrap}>
                         <a href="#get-in-touch">{t("how_it_works.button_contact")}</a>

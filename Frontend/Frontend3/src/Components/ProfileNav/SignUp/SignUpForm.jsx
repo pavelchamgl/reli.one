@@ -29,7 +29,13 @@ const SignUpForm = () => {
       .typeError(t("validation.email.typeError"))
       .email(t("validation.email.email"))
       .required(t("validation.email.required")),
-    phone: yup.string().required(t("validation.phone.required")),
+    // phone_number: yup
+    // .string().required(t("validation.phone_number.required")),
+    phone_number: yup
+                .string()
+                .transform((value) => value?.replace(/\D/g, "") || "")
+                .matches(/^\d{10,15}$/, t("validation.phone_number.invalid"))
+                .required(t("validation.phone_number.required")),
     password: yup
       .string()
       .test("password", t("validation.password.passwordCriteria"), (value) => {
@@ -54,7 +60,7 @@ const SignUpForm = () => {
       first_name: "",
       last_name: "",
       email: "",
-      phone: "",
+      phone_number: "",
       password: "",
       confirm_password: "",
     },
@@ -153,15 +159,34 @@ const SignUpForm = () => {
       <label className={styles.inpLabel}>
         <span>{t("telefon")}</span>
         <AuthInp
-          value={formik.values.phone}
-          name="phone"
-          onChange={formik.handleChange}
+          value={formik.values.phone_number}
+          name="phone_number"
+          // onChange={formik.handleChange}
+          onChange={(e) => {
+                        let val = e.target.value;
+
+                        // Если пользователь стер всё или стер плюс, возвращаем "+" обратно
+                        if (val === "" || val === " ") {
+                            formik.setFieldValue("phone_number", "+");
+                            return;
+                        }
+
+                        // Разрешаем ввод только если это плюс и далее цифры
+                        if (/^\+\d*$/.test(val)) {
+                            formik.setFieldValue("phone_number", val);
+                        }
+                    }}
+                    onFocus={(e) => {
+                        if (!formik.values.phone_number) {
+                            formik.setFieldValue("phone_number", "+");
+                        }
+                    }}
           onBlur={formik.handleBlur}
           type={"text"}
           width={size}
-          err={formik.errors.phone}
+          err={formik.errors.phone_number}
         />
-        <p className={styles.errText}>{formik.errors.phone}</p>
+        <p className={styles.errText}>{formik.errors.phone_number}</p>
       </label>
       <label className={styles.inpLabel}>
         <span>{t("password")}</span>

@@ -14,7 +14,10 @@ const Accordion = ({ title, text }) => {
                     src={arrow}
                     alt=""
                     style={{
-                        transform: open ? "rotate(90deg)" : "rotate(0)",
+                        // transform: open ? "rotate(90deg)" : "rotate(0)",
+                        // transition: "transform 0.3s ease"
+                        // Если открыт — вправо (0deg), если закрыт — вниз (90deg)
+                        transform: open ? "rotate(0deg)" : "rotate(90deg)",
                         transition: "transform 0.3s ease"
                     }}
                 />

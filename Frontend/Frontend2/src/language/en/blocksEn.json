@@ -25,7 +25,8 @@
         "steps": {
             "step1": "Add products",
             "step2": "Manage products",
-            "step3": "Grow your sales"
+            "step3": "Grow your sales",
+            "step4": "You sell"
         },
         "button_start": "Start Selling Today",
         "button_goto": "Go To Marketplace"
