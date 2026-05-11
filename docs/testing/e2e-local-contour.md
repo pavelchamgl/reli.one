@@ -7,6 +7,7 @@
 - Проверка полной цепочки: аутентификация → создание Stripe Checkout → оплата в тестовом режиме → webhook → создание сущностей в БД → письма в Mailpit.
 - Работа с **реальными тестовыми ключами** Stripe (и при необходимости других провайдеров) в изолированном окружении.
 - Быстрая проверка OpenAPI-контрактов и админки на свежей миграции.
+- Детальный ручной сценарий Stripe: [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md).
 
 Production-стек (`docker-compose.yml`, `envs/database.env`, `envs/backend.env`, `.reli_db`) **не используется**.
 
@@ -122,15 +123,14 @@ SMTP-порт **1025** при необходимости проброшен на
 
 После изменения `.env` перезапустите контейнер backend, чтобы подхватить env (например, `docker compose -f docker-compose.e2e.yml up -d --build` или `restart` сервиса `backend_e2e`). Пока секрет не совпадает, `StripeWebhookView` вернёт ошибку верификации подписи (несмотря на успешную оплату в Checkout).
 
-## Проверка `create-stripe-payment` (Postman)
+## Проверка `create-stripe-payment` (кратко)
 
-1. **Токен:** зарегистрируйте пользователя и получите JWT (см. эндпоинты в Swagger: `http://localhost:8000/schema/swagger/`, раздел accounts / token).
-2. **Запрос:** `POST http://localhost:8000/api/create-stripe-payment/`  
-   - Заголовок: `Authorization: Bearer <access_token>`  
-   - Тело: JSON по схеме `SessionInputSerializer` — удобно скопировать пример из Swagger (операция в теге **Stripe**).
-3. **Ответ при успехе (200):** поля вроде `checkout_url`, `session_id`, `session_key`.
-4. Откройте `checkout_url` в браузере и завершите оплату **тестовой картой** Stripe.
-5. Убедитесь, что webhook доставлен (Stripe CLI / Dashboard) и в логах backend нет ошибки обработки.
+Краткая последовательность; **полный пошаговый чеклист** (Postman, идемпотентность, логи, негативные кейсы): [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md).
+
+1. Получите JWT (регистрация / логин — см. Swagger, раздел **accounts**).
+2. `POST http://localhost:8000/api/create-stripe-payment/` с `Authorization: Bearer <token>` и телом из OpenAPI (тег **Stripe**).
+3. Откройте `checkout_url` в браузере, оплатите тестовой картой.
+4. Убедитесь, что webhook дошёл до `POST /api/stripe-webhook/` (Stripe CLI или ngrok + Dashboard).
 
 Путь webhook: **`POST http://localhost:8000/api/stripe-webhook/`** (для туннеля — тот же путь на публичном базовом URL).
 
@@ -164,6 +164,7 @@ SMTP-порт **1025** при необходимости проброшен на
 
 ## Связанные документы
 
+- `docs/testing/stripe-e2e-checklist.md` — **ручной чеклист Stripe** (Postman, webhook, идемпотентность, логи, негативные сценарии).
 - `docs/08-testing-strategy.md` — общая стратегия тестов и ссылка на этот контур.
 - `docs/07-deployment.md` — production compose; e2e **не** является деплоем.
 - `docs/testing/postgres-integration-tests.md` — **другой** стек (`docker-compose.test.yml`) под pytest / integration tests.
