@@ -180,6 +180,10 @@ python manage.py test sellers.tests.CompanyAccountHolderValidationTests
 
 **Frontend (`Frontend3`):** после подключения Vitest/Jest команды добавить в `package.json`; до этого — ручной и E2E позже.
 
+### Локальный e2e-контур (Docker, Postman, Stripe test)
+
+Для ручной проверки цепочки оплаты и webhook с изолированной БД, **Mailpit** и Swagger см. отдельный гайд: [`docs/testing/e2e-local-contour.md`](./testing/e2e-local-contour.md). Файл compose: `docker-compose.e2e.yml` (не путать с production `docker-compose.yml` и не путать с pytest-стеком `docker-compose.test.yml`).
+
 > **Skills:** при первой настройке pytest + маркеров — `/find-skills`.
 
 ---
@@ -225,6 +229,7 @@ flowchart TB
 
 ## Связанные документы
 
+- `docs/testing/e2e-local-contour.md` — локальный Docker e2e-контур (Postgres e2e, Mailpit, ручная проверка API / Stripe webhook).
 - `docs/tasks/002-testing-foundation/task.md` — **DONE (Testing Foundation Complete)**; Core vs Extended; Extended → Task 009, 010, 012.
 - `docs/tasks/012-order-lifecycle-extended-tests/task.md` — расширенные тесты lifecycle заказа (перенос из 002 Extended).
 - `docs/09-architecture-debt.md` — замечания по текущему объёму тестов и tooling.
@@ -257,4 +262,4 @@ flowchart TB
 - **Дублирование раннеров в CI:** выполняются и `python manage.py test`, и `pytest` — один и тот же набор тестов, два способа поймать регрессии раннера/плагинов.
 - **Покрытие (coverage):** порог в CI не зафиксирован; опционально — в рамках **Task 010** вместе с тестом промокода.
 - **Frontend:** `Frontend3` по-прежнему без unit-скрипта в `package.json`; только lint/build в CI.
-- **Следующие документы для правок при изменении тестов:** этот файл, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.
+- **Следующие документы для правок при изменении тестов:** этот файл, `docs/testing/e2e-local-contour.md`, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.

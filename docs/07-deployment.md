@@ -30,6 +30,8 @@ Docker network
 
 ## Docker Compose
 
+### Production
+
 Файл: `docker-compose.yml`
 
 | Сервис | Image / Build | Порты | Env-файлы |
@@ -42,6 +44,10 @@ Docker network
 - `static_volume` — Django collectstatic → Nginx
 - `/home/reli/reli.one/backend/media` → `/app/media` (bind mount)
 - `./.reli_db/postgres` → PostgreSQL data
+
+### Локальный e2e (не production)
+
+Файл: **`docker-compose.e2e.yml`** — отдельный стек **только для локальной** ручной проверки (e2e, Postman, тестовый Stripe, Mailpit). Он **не** описывает и **не** заменяет production-деплой: другие контейнеры, порты (`8000`, `5434`, `8025`), env-файлы `envs/*.e2e.env`, тома `.reli_e2e_db/`, `media_e2e/`, `static_e2e/`. На сервер выкатывать этот compose не следует. Подробности: [`docs/testing/e2e-local-contour.md`](./testing/e2e-local-contour.md).
 
 ## Запуск бэкенда (startup command)
 

@@ -2,6 +2,8 @@
 
 Отдельный стек от production: свой `docker-compose.test.yml`, свой том данных PostgreSQL и примеры env (`*.test.env.example`). Production `docker-compose.yml`, `envs/database.env`, `envs/backend.env` и каталог `.reli_db/postgres` не используются.
 
+Ручной e2e-контур (Mailpit, Postman, Stripe test) — **другой** файл: `docker-compose.e2e.yml`; см. [`e2e-local-contour.md`](./e2e-local-contour.md).
+
 ## Зачем
 
 Часть тестов (например, `payment/test_checkout_flow.py`, классы `*WebhookFlowTests`) ожидает реальный PostgreSQL: в `backend.settings` при заданных `DB_*` используется `django.db.backends.postgresql_psycopg2`. Локальный запуск pytest без доступного хоста `DB_HOST` приводит к ошибке резолва (типичный прод-хост `postgres_db` из Docker-сети недоступен с хоста macOS).

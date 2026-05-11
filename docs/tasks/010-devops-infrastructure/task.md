@@ -369,6 +369,10 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 
 ---
 
+## Локальный e2e-контур (документация)
+
+Для ручной проверки backend с изолированной БД, Mailpit и Stripe test mode добавлен compose **`docker-compose.e2e.yml`** и шаблоны `envs/backend.e2e.env.example`, `envs/database.e2e.env.example`. Описание запуска, портов, сброса БД, Mailpit, ngrok/webhook и ограничений безопасности: **`docs/testing/e2e-local-contour.md`**. В **`docs/07-deployment.md`** явно указано, что e2e-compose не является production.
+
 ## Привязка к коду
 
 | Тип | Файлы |
@@ -377,8 +381,9 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 | **Frontend** | `src/main.jsx`, `.env.example` |
 | **CI** | `.github/workflows/ci.yml` |
 | **Env** | `envs/backend.env.example`, `Frontend/Frontend3/.env.example` |
-| **Docs** | `docs/07-deployment.md` |
+| **Docs** | `docs/07-deployment.md`, `docs/testing/e2e-local-contour.md` |
 | **Git** | `.gitignore` (migrations) |
+| **Локальный e2e** | `docker-compose.e2e.yml`, `envs/*.e2e.env.example` |
 
 ## Связанные проблемы из docs/09-architecture-debt.md
 
