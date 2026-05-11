@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Set, Tuple
 
 from django.db import transaction
 from django.conf import settings
@@ -585,6 +585,84 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
     }
 
     return documents_summary, missing
+
+
+# ---------------------------------------------------------------------------
+# View-facing payloads (DRF serializers — ленивый import, чтобы не тянуть DRF в циклах)
+# ---------------------------------------------------------------------------
+
+
+def get_or_create_onboarding_block(model_cls, app: SellerOnboardingApplication, related_name: str):
+    """One-to-one блок заявки: вернуть существующий или создать пустой."""
+    obj = getattr(app, related_name, None)
+    if obj:
+        return obj
+    return model_cls.objects.create(application=app)
+
+
+def get_onboarding_block_or_none(app: SellerOnboardingApplication, related_name: str):
+    return getattr(app, related_name, None)
+
+
+def self_employed_personal_defaults_from_account(app: SellerOnboardingApplication) -> dict:
+    """Поля имени из аккаунта для префилла до создания блока персональных данных."""
+    user = app.seller_profile.user
+    return {
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+    }
+
+
+def build_seller_onboarding_state_response(app: SellerOnboardingApplication) -> dict:
+    """Тот же payload, что GET ``/api/sellers/onboarding/state/`` (без обёртки Response)."""
+    from .serializers_onboarding import OnboardingStateSerializer
+
+    data = OnboardingStateSerializer(app).data
+    completeness = compute_completeness(app)
+
+    data["completeness"] = {
+        "seller_type_selected": completeness.seller_type_selected,
+        "personal_complete": completeness.personal_complete,
+        "tax_complete": completeness.tax_complete,
+        "address_complete": completeness.address_complete,
+        "bank_complete": completeness.bank_complete,
+        "warehouse_complete": completeness.warehouse_complete,
+        "return_complete": completeness.return_complete,
+        "documents_complete": completeness.documents_complete,
+        "is_submittable": completeness.is_submittable,
+    }
+
+    is_editable = app.status in [OnboardingStatus.DRAFT, OnboardingStatus.REJECTED]
+    data["is_editable"] = is_editable
+    data["can_submit"] = bool(is_editable and completeness.is_submittable)
+    data["requires_onboarding"] = app.status != OnboardingStatus.APPROVED
+    data["next_step"] = compute_next_step(app, completeness) if is_editable else None
+
+    documents_summary, documents_missing = compute_documents_summary_and_missing(app)
+    data["documents_summary"] = documents_summary
+    data["documents_missing"] = documents_missing
+    return data
+
+
+def build_seller_onboarding_review_response(app: SellerOnboardingApplication) -> dict:
+    """Тот же payload, что GET ``/api/sellers/onboarding/review/``."""
+    from .serializers_onboarding import OnboardingStateSerializer
+
+    completeness = compute_completeness(app)
+    return {
+        "application": OnboardingStateSerializer(app).data,
+        "is_submittable": completeness.is_submittable,
+        "completeness": {
+            "seller_type_selected": completeness.seller_type_selected,
+            "personal_complete": completeness.personal_complete,
+            "tax_complete": completeness.tax_complete,
+            "address_complete": completeness.address_complete,
+            "bank_complete": completeness.bank_complete,
+            "warehouse_complete": completeness.warehouse_complete,
+            "return_complete": completeness.return_complete,
+            "documents_complete": completeness.documents_complete,
+        },
+    }
 
 
 def validate_before_submit(app: SellerOnboardingApplication) -> None:

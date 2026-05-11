@@ -4,6 +4,15 @@
 **Complexity:** High  
 **Status:** Pending
 
+## Прогресс 2026-05-11 (итерация stabilization, без смены контракта API)
+
+- Вынесены в `services_onboarding.py`: `build_seller_onboarding_state_response`, `build_seller_onboarding_review_response`, хелперы one-to-one блоков (`get_or_create_onboarding_block`, `get_onboarding_block_or_none`, `self_employed_personal_defaults_from_account`).
+- `views_onboarding.py`: state/review GET делегируют в сервис; дублирующие локальные функции удалены.
+- Добавлены тесты `sellers/test_onboarding_stabilization.py` (форма state, HTTP state/review, замена документа company, warehouse/return).
+- В `services_onboarding.py` явно импортированы `Set`, `Tuple` для аннотаций в `compute_completeness`.
+
+**Дальше (как планировалось в Task 008):** разбиение монолита views по шагам, полное покрытие company/self-employed по странам, `docs/seller-onboarding-flow.md`.
+
 ## Цель
 
 Стабилизировать seller onboarding: покрыть тестами текущее поведение, задокументировать логику страны-специфичных шагов, и безопасно декомпозировать 1940-строчный монолит `views_onboarding.py`.

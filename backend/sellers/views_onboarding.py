@@ -15,8 +15,6 @@ from rest_framework.exceptions import ValidationError
 from django.core.files.storage import default_storage
 
 from .models import (
-    OnboardingStatus,
-    SellerOnboardingApplication,
     SellerSelfEmployedPersonalDetails,
     SellerSelfEmployedTaxInfo,
     SellerSelfEmployedAddress,
@@ -49,10 +47,12 @@ from .serializers_onboarding import (
 from .services_onboarding import (
     ensure_application_editable,
     get_or_create_application_for_user,
-    compute_completeness,
     submit_application,
-    compute_next_step,
-    compute_documents_summary_and_missing,
+    get_or_create_onboarding_block,
+    get_onboarding_block_or_none,
+    self_employed_personal_defaults_from_account,
+    build_seller_onboarding_state_response,
+    build_seller_onboarding_review_response,
 )
 
 
@@ -220,35 +220,7 @@ class SellerOnboardingStateAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-
-        data = OnboardingStateSerializer(app).data
-        completeness = compute_completeness(app)
-
-        data["completeness"] = {
-            "seller_type_selected": completeness.seller_type_selected,
-            "personal_complete": completeness.personal_complete,
-            "tax_complete": completeness.tax_complete,
-            "address_complete": completeness.address_complete,
-            "bank_complete": completeness.bank_complete,
-            "warehouse_complete": completeness.warehouse_complete,
-            "return_complete": completeness.return_complete,
-            "documents_complete": completeness.documents_complete,
-            "is_submittable": completeness.is_submittable,
-        }
-
-        is_editable = app.status in [OnboardingStatus.DRAFT, OnboardingStatus.REJECTED]
-        data["is_editable"] = is_editable
-        data["can_submit"] = bool(is_editable and completeness.is_submittable)
-        data["requires_onboarding"] = app.status != OnboardingStatus.APPROVED
-
-        # next_step нужен только когда можно реально продолжать редактирование
-        data["next_step"] = compute_next_step(app, completeness) if is_editable else None
-
-        # documents summary/missing — фронту нужно понимать, что уже загружено и чего не хватает
-        documents_summary, documents_missing = compute_documents_summary_and_missing(app)
-        data["documents_summary"] = documents_summary
-        data["documents_missing"] = documents_missing
-
+        data = build_seller_onboarding_state_response(app)
         return Response(data, status=status.HTTP_200_OK)
 
 
@@ -332,25 +304,6 @@ class SellerSetSellerTypeAPIView(AuditAPIView):
         )
 
 
-def _get_or_create_one_to_one(model_cls, app: SellerOnboardingApplication, related_name: str):
-    obj = getattr(app, related_name, None)
-    if obj:
-        return obj
-    return model_cls.objects.create(application=app)
-
-
-def _get_one_to_one_or_none(app: SellerOnboardingApplication, related_name: str):
-    return getattr(app, related_name, None)
-
-
-def _self_employed_personal_user_data(app: SellerOnboardingApplication) -> dict:
-    user = app.seller_profile.user
-    return {
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-    }
-
-
 class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     permission_classes = [IsSeller]
 
@@ -393,9 +346,9 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "self_employed_personal")
+        obj = get_onboarding_block_or_none(app, "self_employed_personal")
         if not obj:
-            return Response(_self_employed_personal_user_data(app), status=status.HTTP_200_OK)
+            return Response(self_employed_personal_defaults_from_account(app), status=status.HTTP_200_OK)
         return Response(SelfEmployedPersonalSerializer(obj).data, status=status.HTTP_200_OK)
 
     @extend_schema(
@@ -446,7 +399,7 @@ class SellerSelfEmployedPersonalAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerSelfEmployedPersonalDetails,
             app,
             "self_employed_personal",
@@ -493,7 +446,7 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "self_employed_tax")
+        obj = get_onboarding_block_or_none(app, "self_employed_tax")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(SelfEmployedTaxSerializer(obj).data, status=status.HTTP_200_OK)
@@ -545,7 +498,7 @@ class SellerSelfEmployedTaxAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerSelfEmployedTaxInfo,
             app,
             "self_employed_tax",
@@ -593,7 +546,7 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "self_employed_address")
+        obj = get_onboarding_block_or_none(app, "self_employed_address")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(SelfEmployedAddressSerializer(obj).data, status=status.HTTP_200_OK)
@@ -646,7 +599,7 @@ class SellerSelfEmployedAddressAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerSelfEmployedAddress,
             app,
             "self_employed_address",
@@ -699,7 +652,7 @@ class SellerCompanyInfoAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "company_info")
+        obj = get_onboarding_block_or_none(app, "company_info")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(CompanyInfoSerializer(obj).data, status=status.HTTP_200_OK)
@@ -759,7 +712,7 @@ class SellerCompanyInfoAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerCompanyInfo,
             app,
             "company_info",
@@ -807,7 +760,7 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "company_representative")
+        obj = get_onboarding_block_or_none(app, "company_representative")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(CompanyRepresentativeSerializer(obj).data, status=status.HTTP_200_OK)
@@ -861,7 +814,7 @@ class SellerCompanyRepresentativeAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerCompanyRepresentative,
             app,
             "company_representative",
@@ -909,7 +862,7 @@ class SellerCompanyAddressAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "company_address")
+        obj = get_onboarding_block_or_none(app, "company_address")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(CompanyAddressSerializer(obj).data, status=status.HTTP_200_OK)
@@ -961,7 +914,7 @@ class SellerCompanyAddressAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerCompanyAddress,
             app,
             "company_address",
@@ -1009,7 +962,7 @@ class SellerBankAccountAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "bank_account")
+        obj = get_onboarding_block_or_none(app, "bank_account")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(BankAccountSerializer(obj).data, status=status.HTTP_200_OK)
@@ -1063,7 +1016,7 @@ class SellerBankAccountAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerBankAccount,
             app,
             "bank_account",
@@ -1112,7 +1065,7 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "warehouse_address")
+        obj = get_onboarding_block_or_none(app, "warehouse_address")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(WarehouseAddressSerializer(obj).data, status=status.HTTP_200_OK)
@@ -1165,7 +1118,7 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerWarehouseAddress,
             app,
             "warehouse_address",
@@ -1215,7 +1168,7 @@ class SellerReturnAddressAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        obj = _get_one_to_one_or_none(app, "return_address")
+        obj = get_onboarding_block_or_none(app, "return_address")
         if not obj:
             return Response({}, status=status.HTTP_200_OK)
         return Response(ReturnAddressSerializer(obj).data, status=status.HTTP_200_OK)
@@ -1283,7 +1236,7 @@ class SellerReturnAddressAPIView(AuditAPIView):
         app = get_or_create_application_for_user(request.user)
         ensure_application_editable(app)
 
-        obj = _get_or_create_one_to_one(
+        obj = get_or_create_onboarding_block(
             SellerReturnAddress,
             app,
             "return_address",
@@ -1876,22 +1829,10 @@ class SellerOnboardingReviewAPIView(AuditAPIView):
     )
     def get(self, request):
         app = get_or_create_application_for_user(request.user)
-        completeness = compute_completeness(app)
-        data = {
-            "application": OnboardingStateSerializer(app).data,
-            "is_submittable": completeness.is_submittable,
-            "completeness": {
-                "seller_type_selected": completeness.seller_type_selected,
-                "personal_complete": completeness.personal_complete,
-                "tax_complete": completeness.tax_complete,
-                "address_complete": completeness.address_complete,
-                "bank_complete": completeness.bank_complete,
-                "warehouse_complete": completeness.warehouse_complete,
-                "return_complete": completeness.return_complete,
-                "documents_complete": completeness.documents_complete,
-            },
-        }
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(
+            build_seller_onboarding_review_response(app),
+            status=status.HTTP_200_OK,
+        )
 
 
 class SellerOnboardingSubmitAPIView(AuditAPIView):
