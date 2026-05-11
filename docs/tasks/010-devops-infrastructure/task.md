@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In Progress — **локальный e2e-контур и документация готовы**; Iterations **5–6** (миграции в git, backup runbook) и **production-hardening** (деплой-checklist, полная верификация Sentry/мониторинга) **открыты**
+**Status:** In Progress — **локальный e2e-контур и документация готовы**; **ручной Stripe local e2e smoke (Postman + ngrok) пройден** — результат зафиксирован в [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (раздел *Verification evidence*, **не** production). Iterations **5–6** (миграции в git, backup runbook) и **production-hardening** (деплой-checklist, полная верификация Sentry/мониторинга) **остаются открытыми**.
 
 ## Цель
 
@@ -76,7 +76,8 @@
 ### Открыто (вне закрытия локального e2e)
 
 - [ ] **Backup / restore runbook** — в `docs/07-deployment.md` по-прежнему TODO (Iteration 6)
-- [ ] **Полное прохождение Stripe + PayPal e2e с артефактами** — контур и Stripe checklist есть; формальный sign-off / доказательства прогона PayPal и обоих потоков в этой задаче **не зафиксированы**
+- [x] **Stripe local e2e smoke с артефактами** — прогон через Postman/ngrok, Mailpit; evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (*Verification evidence*). **Не** равноценно production-приёмке.
+- [ ] **PayPal local e2e smoke с артефактами** — по-прежнему **не зафиксирован**; при необходимости оформить аналогичный чеклист/таблицу evidence.
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
 - [ ] **Production deployment checklist** — закрытие TODO в `docs/07-deployment.md` (ручной деплой, CI/CD, TLS refresh)
@@ -86,7 +87,7 @@
 
 1. Iteration 6: описать backup/restore и RTO/RPO в `docs/07-deployment.md`.
 2. Iteration 5: миграции в репозиторий; при необходимости startup-проверка env для production.
-3. Прогнать и задокументировать e2e PayPal + зафиксировать результаты Stripe по [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md).
+3. Прогнать и задокументировать e2e PayPal (аналогично evidence в чеклисте); Stripe smoke — см. уже заполненный раздел в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md).
 4. Iteration 7: подтвердить Sentry в prod, `check --deploy`, при необходимости health probe в ops-runbook.
 
 ---
