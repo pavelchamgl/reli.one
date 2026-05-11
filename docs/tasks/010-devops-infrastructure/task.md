@@ -10,10 +10,10 @@
 
 ## Контекст
 
-Без мониторинга инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей. Нет health-check для Docker/load balancer. Миграции исключены из git → восстановление чистой БД сложно. Нет backup стратегии для PostgreSQL и медиа-файлов.
+Без мониторинга инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей. Миграции исключены из git → восстановление чистой БД сложно. Нет backup стратегии для PostgreSQL и медиа-файлов.
 
 - **DEV-1 (P1):** Интеграция Sentry в коде **есть** (Iteration 3); **эксплуатационная** проверка в production (события, алерты) — **открыта** (Iteration 7)
-- **DEV-2 (P1):** ~~Нет health-check endpoint~~ — **`GET /health/` реализован** (Iteration 2); использование в боевом compose/runbook и мониторинг — **не завершены**
+- **DEV-2 (P1):** **`GET /health/`** — реализован (**Iteration 2**); контракт и production checklist описаны в **`docs/07-deployment.md`**; регрессия **`backend/test_health_endpoint.py`**. Привязка HEALTHCHECK в боевом compose/uptime — **по-прежнему на ops**
 - **DEV-3 (P1):** Нет backup стратегии PostgreSQL + Cloudinary
 - **DEV-4 (P2):** Миграции в `.gitignore` → нет version history схемы
 - **DEV-5 (P2):** `DEBUG` не проверяется в production
@@ -50,8 +50,10 @@
 
 ## Definition of Done
 
-- [x] `GET /health/` → `{"status": "ok", "db": "ok"}` в production — реализован в `backend/backend/urls.py`
-- [x] Sentry DSN настроен для Django и React — settings.py (только при DEBUG=False + SENTRY_DSN), main.jsx (только при VITE_SENTRY_DSN)
+- [x] `GET /health/` → `{"status": "ok", "db": "ok"}` при живой БД — `backend/backend/urls.py`
+- [x] Regression-тесты health: `pytest backend/test_health_endpoint.py` (200 + 503 при недоступной БД)
+- [x] `docs/07-deployment.md` — контракт `/health/`, уточнение Sentry (**DSN + DEBUG=False** для Django), **Production readiness checklist** (ручная сверка; не заменяет `check --deploy`)
+- [x] Sentry DSN настроен для Django и React — settings.py (только при **DEBUG=False + SENTRY_DSN**), main.jsx (при **VITE_SENTRY_DSN**)
 - [ ] Документирована backup стратегия в `docs/07-deployment.md` — раздел содержит только TODO
 - [ ] Миграции включены в git (`.gitignore` обновлён) — `.gitignore` строка 30: `*/migrations` по-прежнему исключает миграции
 - [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
@@ -80,7 +82,7 @@
 - [ ] **PayPal local e2e smoke с артефактами** — по-прежнему **не зафиксирован**; при необходимости оформить аналогичный чеклист/таблицу evidence.
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
-- [ ] **Production deployment checklist** — закрытие TODO в `docs/07-deployment.md` (ручной деплой, CI/CD, TLS refresh)
+- [ ] **Production deployment checklist** — в `docs/07-deployment.md` добавлен **ориентир checklist** (DEBUG, хосты, CSRF, proxy, Sentry, логи, health); процедура **ручного деплоя**, CI/CD pipeline, TLS refresh — по-прежнему **TODO** в том же файле
 - [ ] Остальные пункты **Definition of Done** выше: миграции в git, PromoCode regression, startup `DEBUG`/env validation
 
 ### Next steps (кратко)
@@ -152,7 +154,8 @@ urlpatterns = [
 - `backend/backend/urls.py`
 
 ### Статус
-- [x] Health check added — `backend/backend/urls.py` строки 10–27, path `health/`
+- [x] Health check added — `backend/backend/urls.py` строки 10–31, path `health/`
+- [x] Regression tests — `backend/test_health_endpoint.py`
 
 ---
 
@@ -423,6 +426,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 | **CI** | `.github/workflows/ci.yml` |
 | **Env** | `envs/backend.env.example`, `Frontend/Frontend3/.env.example` |
 | **Docs** | `docs/07-deployment.md`, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/08-testing-strategy.md` |
+| **Tests (health)** | `backend/test_health_endpoint.py` |
 | **Git** | `.gitignore` (migrations) |
 | **Локальный e2e** | `docker-compose.e2e.yml`, `envs/*.e2e.env.example` |
 

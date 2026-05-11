@@ -92,14 +92,24 @@ docker compose up -d --no-deps backend frontend1
 
 ## Health-check
 
-**URL:** `GET /health/`  
-**Аутентификация:** не требуется  
-**Использование:** Docker HEALTHCHECK, load balancer probe, uptime-мониторинг
+**URL:** `GET /health/` (корень сайта приложения Django, без префикса `/api`; за reverse proxy может выглядеть как `https://<domain>/health/`).
 
-| Статус | HTTP | Тело |
-|--------|------|------|
-| Всё в порядке | 200 | `{"status": "ok", "db": "ok"}` |
-| БД недоступна | 503 | `{"status": "error", "db": "error"}` |
+**Назначение:** минимальный **liveness/readiness** без аутентификации для оркестраторов и балансировщиков.
+
+**Что проверяется**
+
+| Компонент | Проверяется? | Примечание |
+|-----------|----------------|------------|
+| Процесс приложения отвечает | да | любой успешный JSON-ответ уже означает, что Django обработал запрос |
+| Подключение к основной БД | да | `connection.ensure_connection()` |
+| Stripe, PayPal, почта, очереди, Cloudinary и пр. | **нет** | намеренно не дергаются из health (тяжёлые, flaky, секретные токены) |
+
+**Контракт ответа:** только ключи `status` и `db`; значения — `"ok"` / `"error"`. Никаких переменных окружения, версий сборки или трассбеков в теле ответа (см. `backend/backend/urls.py`).
+
+| Сценарий | HTTP | Тело |
+|----------|------|------|
+| Приложение и БД доступны | 200 | `{"status": "ok", "db": "ok"}` |
+| БД недоступна (ошибка при `ensure_connection`) | 503 | `{"status": "error", "db": "error"}` |
 
 Проверка:
 ```bash
@@ -117,24 +127,43 @@ healthcheck:
   retries: 3
 ```
 
+Тесты: `pytest backend/test_health_endpoint.py`.
+
+## Production readiness checklist (ручная сверка)
+
+Документ не заменяет `python manage.py check --deploy`; список — ориентир для ops и релиза. Конкретные значения задаются только через env/`envs/backend.env.example`, без копирования секретов в git.
+
+| Тема | Что проверить |
+|------|----------------|
+| **DEBUG** | `DEBUG=False` в production (переменная окружения). |
+| **SECRET_KEY** | Задана, не совпадает с dev-деволтом из примеров. |
+| **ALLOWED_HOSTS** | Явный список хостов или корректный `ALLOWED_HOSTS` через env — не использовать `*` в production без понимания рисков. |
+| **CSRF_TRUSTED_ORIGINS** | В `settings` заданы HTTPS-оригины публичного сайта; при новом домене — дополнить и задеплоить. |
+| **HTTPS / proxy** | Nginx терминирует TLS (`SECURE_PROXY_SSL_HEADER`, `USE_X_FORWARDED_HOST` в коде уже ориентированы на работу за прокси); при смене схемы — сверить `SECURE_SSL_REDIRECT` при необходимости. |
+| **Secure cookies** | При полном HTTPS за прокси убедиться, что браузерные cookie/CSRF соответствуют политике (явные `SESSION_COOKIE_SECURE` / `CSRF_COOKIE_SECURE` в коде можно добавить позже как отдельную задачу — сейчас зафиксируйте фактической конфиг nginx + Django при приёмке). |
+| **Sentry backend** | `SENTRY_DSN` задан **и** `DEBUG=False`; иначе Django Sentry не инициализируется. |
+| **Sentry frontend** | `VITE_SENTRY_DSN` на этапе сборки только если нужно событие в браузере. |
+| **Логирование** | Ротация/объём логов на сервере, отсутствие DEBUG-шума в production. |
+| **Health** | Проба `GET /health/` с балансировщика/мониторинга; при падении только БД — ожидать **503**. |
+| **Спец. флаги** | Например `ENABLE_DELIVERY_DEV_ENDPOINTS=False` на production — см. `backend/backend/settings.py`. |
+
 ## Мониторинг и алерты
 
 ### Sentry
 
-Интеграция для Django и React. Активируется только при наличии `SENTRY_DSN` в env.
+Интеграция для Django и React на backend стороне включается **одновременно** при выполнении **всех** условий: задан переменная `SENTRY_DSN` и **`DEBUG=False`**. Если DSN указан при `DEBUG=True` (локальная разработка), **Django не отправляет** события в Sentry по текущей логике `settings.py`. Фронт: отдельно через `VITE_SENTRY_DSN` при сборке (см. шаблоны env).
 
 | Компонент | Env-переменная | Файл шаблона |
 |-----------|---------------|--------------|
 | Django backend | `SENTRY_DSN` | `envs/backend.env.example` |
 | React frontend | `VITE_SENTRY_DSN` | `Frontend/Frontend3/.env.example` |
 
-**Настройки безопасности:**
-- `send_default_pii=False` — IP, email, username не передаются
-- `before_send` фильтр — поля `password`, `token`, `card_number`, `iban` и др. заменяются на `[Filtered]`
-- Django: Sentry активируется только при `DEBUG=False`
-- `traces_sample_rate=0.1` — 10% транзакций для performance monitoring
+**Настройки безопасности (backend, см. код):**
+- `send_default_pii=False`
+- `before_send`: чувствительные ключи в теле запроса (напр. password, token, api_key, iban…) заменяются на `[Filtered]` — фильтрация точечная, не замена полному audit логирования
+- `traces_sample_rate=0.1`
 
-Получить DSN: Sentry → Project → Settings → Client Keys (DSN).
+Получить DSN: Sentry → Project → Settings → Client Keys (DSN). DSN не коммитить.
 
 ## Backup
 
