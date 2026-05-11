@@ -3,10 +3,12 @@ Regression tests for the order domain.
 
 Covers:
 - Order.calculate_refund() — all received / none received / partial / no items
-- OrderProduct.save() — received_at set/cleared on received flag change
+- OrderProduct.save() — received_at set/cleared on received flag change; aware timestamps
 - generate_order_number() — format and uniqueness
 - OrderEvent — creation and FK integrity
 - next_invoice_identifiers() — PAY-4: uniqueness under concurrency
+
+See also test_webhook_lifecycle.py for checkout webhook → Order/Payment/Invoice integration.
 """
 from __future__ import annotations
 
@@ -224,6 +226,7 @@ class OrderProductReceivedAtTests(OrderTestMixin, TestCase):
         op.save()
         op.refresh_from_db()
         self.assertIsNotNone(op.received_at)
+        self.assertTrue(timezone.is_aware(op.received_at))
 
     def test_received_at_cleared_when_unmarked_received(self):
         """Updating received True→False clears received_at back to None."""

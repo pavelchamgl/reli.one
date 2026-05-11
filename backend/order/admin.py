@@ -1,6 +1,6 @@
-from datetime import datetime
 from django.contrib import admin
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.html import format_html
 from django.urls import reverse
 
@@ -43,7 +43,7 @@ class OrderProductInline(admin.TabularInline):
                 if not obj.received:
                     obj.received_at = None
                 elif obj.received:
-                    obj.received_at = datetime.now()
+                    obj.received_at = timezone.now()
             obj.save()
             obj.order.refund_amount = obj.order.calculate_refund()
             obj.order.save()
