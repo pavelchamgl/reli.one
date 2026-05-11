@@ -79,7 +79,7 @@
 
 - [x] **Backup / restore runbook (PostgreSQL + e2e)** — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); RTO/RPO и облачные политики на production — при необходимости доп. правка `docs/07-deployment.md`
 - [x] **Stripe local e2e smoke с артефактами** — прогон через Postman/ngrok, Mailpit; evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (*Verification evidence*). **Не** равноценно production-приёмке.
-- [ ] **PayPal local e2e smoke с артефактами** — чеклист готов: [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); **заполненная** таблица *Verification evidence* после реального прогона — по-прежнему **не зафиксирована** в репозитории (как и для чувствительных прогонов).
+- [x] **PayPal local e2e smoke с артефактами** — прогон **sandbox + e2e** (Postman, ngrok, Mailpit); итоги зафиксированы в [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) → *Verification evidence — latest local smoke result* (**local/sandbox**, не prod; без сырых id/payload в репозитории). По политике команды точные номера заказов/инвоясов добавляются в тикеты отдельно.
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
 - [ ] **Production deployment checklist** — в `docs/07-deployment.md` добавлен **ориентир checklist** (DEBUG, хосты, CSRF, proxy, Sentry, логи, health); процедура **ручного деплоя**, CI/CD pipeline, TLS refresh — по-прежнему **TODO** в том же файле
@@ -89,7 +89,7 @@
 
 1. Iteration 6: при необходимости дополнить `docs/07-deployment.md` RTO/RPO и медиа/Cloudinary; PostgreSQL runbook — [`database-backup-restore.md`](../../operations/database-backup-restore.md).
 2. Iteration 5: миграции в репозиторий; при необходимости startup-проверка env для production.
-3. Прогнать и задокументировать e2e PayPal (аналогично evidence в чеклисте); Stripe smoke — см. уже заполненный раздел в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md).
+3. Stripe smoke и PayPal sandbox smoke — см. evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) и [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md).
 4. Iteration 7: подтвердить Sentry в prod, `check --deploy`, при необходимости health probe в ops-runbook.
 
 ---
