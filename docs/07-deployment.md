@@ -1,6 +1,6 @@
 # 07. Deployment
 
-Документ описывает **целевую** архитектуру деплоя, health-check, backup, Sentry и **пошаговый runbook** для выпуска backend. Следование этому чеклисту **не заменяет** ручную приёмку на вашем контуре: фактическая верификация production/staging выполняется командой после каждого релиза.
+Документ описывает **целевую** архитектуру деплоя, health-check, backup, Sentry и **пошаговый runbook** для выпуска backend. Operational monitoring без отдельного observability‑стека: **[`docs/operations/monitoring-alerts.md`](./operations/monitoring-alerts.md)**. Следование чеклистам **не заменяет** ручную приёмку на вашем контуре: фактическая верификация production/staging выполняется командой после каждого релиза.
 
 ## Среды (production / staging / local e2e)
 
@@ -133,7 +133,7 @@ healthcheck:
 
 Использовать как **последовательный чеклист** перед/после выката backend на **production** или **staging**. Не смешивать env и compose с [`docker-compose.e2e.yml`](../docker-compose.e2e.yml) ([`e2e-local-contour.md`](./testing/e2e-local-contour.md)). Этот runbook **не** сертифицирует, что production уже принят: финальная вывеска «готово» — решение команды после выполнения шагов.
 
-Связанные материалы: [`database-backup-restore.md`](./operations/database-backup-restore.md), [`e2e-local-contour.md`](./testing/e2e-local-contour.md), [`stripe-e2e-checklist.md`](./testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](./testing/paypal-e2e-checklist.md).
+Связанные материалы: [`database-backup-restore.md`](./operations/database-backup-restore.md), [`monitoring-alerts.md`](./operations/monitoring-alerts.md) (логи, ручной мониторинг, предложения по алертам), [`e2e-local-contour.md`](./testing/e2e-local-contour.md), [`stripe-e2e-checklist.md`](./testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](./testing/paypal-e2e-checklist.md).
 
 ### A. Pre-deploy
 
@@ -219,7 +219,7 @@ healthcheck:
 | **Оплата** | Реальные списания и тестовые карты — только на **staging/test** или тестовом режиме PSP. **Не** гонять тестовые платежи на production без процедуры. |
 | **Webhooks** | Доставка тестового события от PSP к вашему URL (или сверка последних записей в провайдере) — без раскрытия секретов в доках. |
 | **Почта** | Транзакционное письмо (например сброс пароля на тестовый ящик на **staging**). |
-| **Sentry** | Одно **контролируемое** исключение на staging (или безопасный тестовый ивент), что события доходят; на production — только по согласованию, чтобы не засорять прод-проект. |
+| **Sentry** | Детальный runbook: [**Sentry production verification**](#sentry-production-verification-runbook) (чеклист приёмки). Кратко: **staging** — контролируемый test event (shell / `capture_message`); **production** — только по согласованию с владельцем проекта в Sentry. |
 
 ### F. Rollback
 
@@ -230,13 +230,15 @@ healthcheck:
 
 ### G. Post-deploy monitoring
 
+Полное описание логгеров Django (`errors.log`, `payment.log`, …), критичных симптомов и предлагаемых алертов — **[`docs/operations/monitoring-alerts.md`](./operations/monitoring-alerts.md)**. Ниже — краткая сводка.
+
 | Источник | Что смотреть |
 |----------|----------------|
-| Файловые логи backend | При логировании в файлы: `backend/logs/errors.log`, `backend/logs/payment.log` и др. — рост ошибок, tracebacks после релиза. |
-| Sentry | Новые issues, регрессии по релизу; алерты по проекту. |
+| Файловые логи backend | См. [`monitoring-alerts.md`](./operations/monitoring-alerts.md) §1–2: `backend/logs/errors.log`, `payment.log` и др.; рост ERROR после релиза. |
+| Sentry | Новые issues, регрессии; алерты в UI — **настроить** по политике команды (см. [Sentry production verification](#sentry-production-verification-runbook)). |
 | Webhooks | Ответы 4xx/5xx на URL webhook у PSP; дашборды провайдера. |
-| Почта | Очередь/доставка, bounce при массовых рассылках. |
-| Курьерские API | Ошибки создания/печати этикеток (Packeta/GLS/DPD) в логах приложения. |
+| Почта | Очередь/доставка, bounce при массовых рассылках; по приложению — метки в `payment.log` (см. runbook). |
+| Курьерские API | Ошибки создания/печати этикеток — `delivery` → `debug.log` / `errors.log` (детали в runbook). |
 
 ### Краткая сводка тем (пересекается с разделом B)
 
@@ -248,28 +250,131 @@ healthcheck:
 | **CSRF / CORS** | Ориджины в коде соответствуют реальным фронтам/доменам. |
 | **HTTPS / proxy** | Nginx + `SECURE_PROXY_SSL_HEADER`; при необходимости политика `SECURE_SSL_REDIRECT` согласована с редиректами Nginx. |
 | **Secure cookies / HTTPS env** | См. раздел **B** (таблица cookies и HSTS), `envs/backend.env.example`, `backend/env_parse.py`. |
-| **Sentry** | DSN + `DEBUG=False` на backend. |
-| **Логирование** | Ротация, диск, уровень на production. |
+| **Sentry** | `SENTRY_DSN` + `DEBUG=False` на backend; пошаговая приёмка — [Sentry production verification (runbook)](#sentry-production-verification-runbook). |
+| **Логирование** | Таблица файлов, ротация и ручные проверки — [`monitoring-alerts.md`](./operations/monitoring-alerts.md); диск и рост `backend/logs/`. |
 | **Health** | Мониторинг `GET /health/`; БД down → **503**. |
 | **Спец. флаги** | `ENABLE_DELIVERY_DEV_ENDPOINTS=False` на production. |
 
 ## Мониторинг и алерты
 
-### Sentry
+### Operational monitoring, логи и алерты (runbook)
 
-Интеграция для Django и React на backend стороне включается **одновременно** при выполнении **всех** условий: задан переменная `SENTRY_DSN` и **`DEBUG=False`**. Если DSN указан при `DEBUG=True` (локальная разработка), **Django не отправляет** события в Sentry по текущей логике `settings.py`. Фронт: отдельно через `VITE_SENTRY_DSN` при сборке (см. шаблоны env).
+Полное описание: **[`docs/operations/monitoring-alerts.md`](./operations/monitoring-alerts.md)** — соответствие файлов блоку **`LOGGING`** в [`settings.py`](../backend/backend/settings.py): `errors.log`, `debug.log`, `payment.log`, `otp.log`, `warehouse.log`, `currency.log`, `georouting.log`; пост‑deploy чеклист; критичные симптомы (**webhooks** 4xx/5xx, сбои заказа/инвойса, почта, курьеры, **`/health/`** 503); **предложения** по production‑алертам (Sentry ERROR, доступность БД и диска, повторы webhook и т.д.); ручные действия (`docker logs`, `tail`, health, Sentry); будущее (JSON‑логи, Prometheus/Grafana, очередь/асинхрон, маршрутизация алертов).
 
-| Компонент | Env-переменная | Файл шаблона |
-|-----------|---------------|--------------|
+Этот репозиторий **не** подтверждает включённость алертов на вашем production — только задаёт эксплуатационную цель для ops.
+
+### Sentry production verification (runbook)
+
+Источник правды по **когда** включается backend SDK: [`backend/backend/settings.py`](../backend/backend/settings.py) — инициализация выполняется **только** если одновременно задан **`SENTRY_DSN`** и **`DEBUG=False`**. Если DSN есть при `DEBUG=True`, события **не** отправляются (поведение намеренное для локальной разработки).
+
+**Важно:** выполнение шагов ниже на вашем **staging/production** делает команда эксплуатации; репозиторий **не** утверждает, что Sentry уже принят в production, если нет сохранённого ручного evidence (тикет, заметка в релизе). Первый и последующие релизы — сверять с этим разделом.
+
+#### Обязательные условия (backend Django)
+
+| Условие | Проверка |
+|---------|----------|
+| `SENTRY_DSN` | Задано в секретах/ env целевого контура (**не** в git). Достаточно убедиться, что переменная **присутствует** у процесса Gunicorn (compose/оркестратор), без копирования значения в тикеты. |
+| `DEBUG=False` | Согласовано с `envs/backend.env` / политикой среды. При `DEBUG=True` события в Sentry **не уйдут**, даже при заданном DSN. |
+
+Фронт (отдельно от backend): сборка Frontend3 с **`VITE_SENTRY_DSN`** при необходимости — см. `Frontend/Frontend3/.env.example`; верификация браузера — по политике команды (часто тот же проект или отдельный DSN в Sentry).
+
+#### Как убедиться, что SDK Django инициализировался
+
+1. На **целевом** контейнере/хосте с тем же env, что у рабочего процесса, выполнить:
+   ```bash
+   cd /path/to/backend && python manage.py shell
+   ```
+2. В shell:
+   ```python
+   import sentry_sdk
+   client = sentry_sdk.Hub.current.client
+   assert client is not None, "Sentry client is None — проверьте SENTRY_DSN и DEBUG=False"
+   ```
+3. Если `client is None`: проверить, что приложение действительно стартует с `DEBUG=False`, что `SENTRY_DSN` не пустая строка после загрузки env, и что нет второго набора переменных (например другой процесс без env).
+
+Компоненты инициализации в коде (для трассировки инцидентов): интеграции **Django** (`transaction_style="url"`) и **logging** (`event_level="ERROR"`), `traces_sample_rate=0.1`, `send_default_pii=False`.
+
+#### Как безопасно отправить test event (без правок бизнес-кода)
+
+**Предпочтительно:** controlled **staging**.
+
+1. В том же shell после проверки client:
+   ```python
+   import sentry_sdk
+   sentry_sdk.capture_message("reli.one Sentry staging smoke YYMMDD-<инициалы>", level="warning")
+   ```
+2. Открыть Sentry UI → Issues (или все события) и найти сообщение по уникальной строке. Удалить/resolve issue после проверки, чтобы не засорять отчётность.
+
+**Не рекомендуется** массово бросать реальные 500 пользователям ради проверки. Если нужен exception-событие без деплоя кода: временно выполнить `capture_exception(RuntimeError("reli.one sentry connectivity test"))` из shell тем же процессом/окружением (или использовать [Sentry test event из UI документации](https://docs.sentry.io/) — только без утечки DSN).
+
+**Production:** отправка test-событий — только после согласования с владельцем проекта (noise, распределение ответственности за алерты).
+
+#### Что нельзя просачивать в Sentry (и логи приложения политики)
+
+Строже общих рекомендаций Sentry, ориентируйтесь на политики маркетплейса (платежи, KYC, персональные данные):
+
+- полные PAN/CVV, платёжные токены провайдеров, сырые webhook-тела со строками подписи;
+- пароли, OTP/коды входа, `SECRET_KEY`, API-ключи, токены сессии в явном виде;
+- дампы персональных данных (имя/адрес/телефон/email в составе необоснованной «передачи по умолчанию»);
+- содержимое seller KYC / документов.
+
+`send_default_pii=False` отключает часть отправки данных по умолчанию со стороны SDK, но **не снимает** ответственность за то, что попадает в `extra`, сообщения исключений и тело запроса.
+
+#### Что уже фильтруется в коде (`before_send`)
+
+Функция `_sentry_before_send` в [`settings.py`](../backend/backend/settings.py) обрабатывает **`event["request"]["data"]` только если это `dict`** (верхний уровень ключей запроса, как представлено SDK): для ключей из множества (сравнение **без учёта регистра** имён ключей)
+
+`password`, `token`, `access_token`, `refresh_token`, `card_number`, `cvv`, `iban`, `secret`, `api_key`
+
+значение заменяется строкой **`[Filtered]`**.
+
+**Ограничения фильтра (важно при приёмке):**
+
+- вложенные структуры и не-dict payloads не сканируются этим кодом — не полагаться на фильтр как на полную защиту PII;
+- имена ключей с опечатками или синонимами (`passwd`, `cardNumber` и т.д.) могут не попасть в список.
+
+После любого изменения конфигурации — spot-check образца события в Sentry: нет ли в breadcrumbs/extra воспроизведения тел запросов с чувствительными полями.
+
+#### Acceptance criteria и чеклист приёмки (ручное evidence)
+
+| # | Проверка |
+|---|----------|
+| 1 | **Test-событие дошло**: `capture_message` / контролируемое событие видно в Sentry Issues для нужного проекта/окружения. |
+| 2 | **Нет лишней PII в теле запроса**: в просмотре события убедиться, что ключи из списка `before_send` отображаются как `[Filtered]` при наличии `request.data` dict; дополнительно — глазами на stacktrace и extra. |
+| 3 | **Маршрут алерта настроен**: в Sentry (или с интеграцией Slack/email/PagerDuty) создано правило/уведомление на новые issues или регрессии по заданному окну — см. блок **Alerts ownership**. |
+| 4 | **Владелец проекта / dashboard assignee**: в организации Sentry назначены ответственные за проект (owner/member), дашборд или сохранённые запросы согласованы с командой. |
+| 5 | **Smoke после деплоя**: после выката — раздел **E. Smoke checks** (`/health/`, ключевые сценарии) плюс краткая сверка Sentry на всплеск новых ошибок (не считает за полную приёмку, но даёт регрессию). |
+
+Отметка для Task 010: наличие этого runbook закрывает **документированную** часть верификации; **факт** прохождения на вашем staging/production хранится **вне** git (runbook выполнен / тикет / чеклист релиза).
+
+#### Что проверить в Sentry UI
+
+- Проект и **DSN** соответствуют контуру (staging vs production — желательно **разные** проекты или разделение по environment, см. улучшение ниже).
+- Событие содержит ожидаемый заголовок/тип исключения, нет ли дубля по fingerprint при одной и той же смок-сессии (при желании suppress/merge).
+- Breadcrumbs не выводят сырые значения авторизации (если появятся — доработать фильтры/server-side sanitization отдельной задачей, не смешивая с бизнес-кодом без решения).
+
+#### Alerts ownership
+
+- Зафиксировать **имя аккаунта/команды** в Sentry и **кто** получает первичные алерты (email, Slack webhook, другой канал по политике компании).
+- Развести прод и стаж: либо отдельные проекты, либо единые проекты с чёткой политикой «когда смотреть prod» vs staging (до появления тегов `environment` в коде — см. следующий блок).
+- On-call или дежурный по инфраструктуре знает, как открыть issue, связать release/commit (если внедрятся) и эскалировать в разработку.
+
+#### Environment и release теги (текущее состояние и улучшения)
+
+В текущей инициализации `sentry_sdk.init(...)` в `settings.py` **не задаются** аргументы `environment` ни **`release`**.
+
+- **Улучшение (опционально, решение команды):** передавать `environment=os.getenv("DJANGO_ENV", "production")` или отдельную `SENTRY_ENVIRONMENT`; `release` — из переменной, выставляемой пайплайном деплоя (git SHA или тег сборки). До этого в UI ориентироваться на **имя проекта**, **сообщение smoke**, временные фильтры.
+
+| Компонент | Env для шаблона | Шаблон |
+|-----------|-----------------|--------|
 | Django backend | `SENTRY_DSN` | `envs/backend.env.example` |
 | React frontend | `VITE_SENTRY_DSN` | `Frontend/Frontend3/.env.example` |
 
-**Настройки безопасности (backend, см. код):**
-- `send_default_pii=False`
-- `before_send`: чувствительные ключи в теле запроса (напр. password, token, api_key, iban…) заменяются на `[Filtered]` — фильтрация точечная, не замена полному audit логирования
-- `traces_sample_rate=0.1`
+**Напоминание:** ключ DSN только из Sentry UI (Client Keys); **никогда не** коммитить в репозиторий.
 
-Получить DSN: Sentry → Project → Settings → Client Keys (DSN). DSN не коммитить.
+### Sentry — краткая справка
+
+Сводка условий и env — в таблице внутри [блока выше](#sentry-production-verification-runbook). Связка с строкой Smoke в разделе **E** сохранена.
 
 ## Backup
 

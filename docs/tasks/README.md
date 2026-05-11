@@ -18,7 +18,7 @@
 | Stripe smoke (не prod) | [`docs/testing/stripe-e2e-checklist.md`](../testing/stripe-e2e-checklist.md) — *Verification evidence* |
 | PayPal sandbox smoke (не prod) | [`docs/testing/paypal-e2e-checklist.md`](../testing/paypal-e2e-checklist.md) — *Verification evidence — latest local smoke result* |
 | Склад / резерв до оплаты (design-only) | [**Task 013**](./013-stock-reservation/task.md) — **не** блокирует **010**; имплементации нет; связь с **009** по метрикам/блокировкам — только если вернуть склад в roadmap |
-| `/health/`, Sentry-условия, prod checklist | [`docs/07-deployment.md`](../07-deployment.md) |
+| `/health/`, deployment + Sentry + **operational monitoring** runbooks | [`docs/07-deployment.md`](../07-deployment.md), [`docs/operations/monitoring-alerts.md`](../operations/monitoring-alerts.md) |
 | Health regression tests | `backend/test_health_endpoint.py` |
 | PostgreSQL backup / restore в e2e | [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) |
 
@@ -28,7 +28,7 @@
 
 | # | После аудита |
 |---|----------------|
-| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, **production deployment runbook (A–G)** в [`07-deployment.md`](../07-deployment.md) (выполнение и приёмка — **ручные**), **cookies/HSTS через env**, миграции в git + `makemigrations --check`. **Остаётся для «done»:** прогон runbook на реальном контуре, **Sentry в prod**, **мониторинг/алерты**, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа. **Не входит в закрытие 010:** промокоды, **013**. |
+| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, **production deployment runbook (A–G)** и **[`monitoring-alerts.md`](../operations/monitoring-alerts.md)** (вход через [`07-deployment.md`](../07-deployment.md)); выполнение runbook и приёмка — **ручные**; **алерты в prod действуют только после настройки ops**, не только из текста документа. **cookies/HSTS через env**, миграции в git + `makemigrations --check`. **Остаётся для «done»:** прогон runbook на контуре, **Sentry verification**, **активация** мониторинга/alerts по runbook ops, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа. **Не входит в закрытие 010:** промокоды, **013**. |
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
