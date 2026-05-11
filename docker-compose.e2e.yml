@@ -1,0 +1,54 @@
+services:
+  postgres_e2e:
+    image: postgres:17
+    container_name: reli_postgres_e2e
+    env_file:
+      - envs/database.e2e.env
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./.reli_e2e_db/postgres:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: reli_mailpit_e2e
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+  backend_e2e:
+    build:
+      context: ./backend
+    container_name: reli_backend_e2e
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - ./media_e2e:/app/media
+      - ./static_e2e:/app/staticfiles
+    env_file:
+      - envs/database.e2e.env
+      - envs/backend.e2e.env
+    environment:
+      DEBUG: "True"
+      STATIC_URL: "/static/"
+      STATIC_ROOT: "/app/staticfiles"
+      MEDIA_URL: "/media/"
+      MEDIA_ROOT: "/app/media"
+    depends_on:
+      postgres_e2e:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             python manage.py runserver 0.0.0.0:8000 --insecure"

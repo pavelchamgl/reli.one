@@ -46,7 +46,25 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 
-ALLOWED_HOSTS = ['reli.one', 'www.reli.one', 'info.reli.one', '45.147.248.21', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "")
+
+if ALLOWED_HOSTS_ENV == "*":
+    ALLOWED_HOSTS = ["*"]
+elif ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in ALLOWED_HOSTS_ENV.split(",")
+        if host.strip()
+    ]
+else:
+    ALLOWED_HOSTS = [
+        "reli.one",
+        "www.reli.one",
+        "info.reli.one",
+        "45.147.248.21",
+        "localhost",
+        "127.0.0.1",
+    ]
 
 # Application definition
 
