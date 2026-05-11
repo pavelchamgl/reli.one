@@ -6,6 +6,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from env_parse import cookie_samesite_from_env, int_from_env, str_to_bool
+
 # Build paths inside this folder: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 # Корень репозитория (родитель каталога backend/, где лежит manage.py).
@@ -16,8 +18,6 @@ REPO_ROOT = BASE_DIR.parent
 load_dotenv(REPO_ROOT / "envs" / "database.env")
 load_dotenv(REPO_ROOT / "envs" / "backend.env")
 load_dotenv(BASE_DIR / ".env")
-
-SECURE_SSL_REDIRECT = False
 
 # Media files (override via env for Docker e2e и др.; дефолты как на production)
 MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
@@ -49,8 +49,22 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
+
+# --- HTTPS / HSTS / cookies (env; безопасные дефолты для local и HTTP e2e) ---
+# Production: см. docs/07-deployment.md и envs/backend.env.example
+SECURE_SSL_REDIRECT = str_to_bool(os.getenv("SECURE_SSL_REDIRECT", "False"))
+SECURE_HSTS_SECONDS = int_from_env("SECURE_HSTS_SECONDS", 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = str_to_bool(
+    os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "True")
+)
+SECURE_HSTS_PRELOAD = str_to_bool(os.getenv("SECURE_HSTS_PRELOAD", "True"))
+
+SESSION_COOKIE_SECURE = str_to_bool(os.getenv("SESSION_COOKIE_SECURE", "False"))
+CSRF_COOKIE_SECURE = str_to_bool(os.getenv("CSRF_COOKIE_SECURE", "False"))
+SESSION_COOKIE_HTTPONLY = str_to_bool(os.getenv("SESSION_COOKIE_HTTPONLY", "True"))
+# CSRF_COOKIE_HTTPONLY не задаём: при True JS не прочитает csrftoken (ломает типичные SPA).
+SESSION_COOKIE_SAMESITE = cookie_samesite_from_env("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = cookie_samesite_from_env("CSRF_COOKIE_SAMESITE", "Lax")
 
 ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "")
 
@@ -270,10 +284,6 @@ if PROJECT_MANAGERS_EMAILS_RAW:
         PROJECT_MANAGERS_EMAILS = DEFAULT_PROJECT_MANAGERS
 else:
     PROJECT_MANAGERS_EMAILS = DEFAULT_PROJECT_MANAGERS
-
-
-def str_to_bool(value):
-    return value.lower() in ('true', '1', 'yes')
 
 
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")

@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In Progress — см. **Definition of Done** и **Iteration 7**. В `docs/07-deployment.md` добавлен **Production deployment runbook** (A–G) для реального выката backend; **прохождение** runbook и приёмка **production/staging** остаются **ручными** и не подтверждаются только фактом обновления документации. Открыто: **cookie/session security** (явные флаги в коде/env), **верификация Sentry в prod**, **мониторинг/алерты**, **финальный аудит 010**.
+**Status:** In Progress — см. **Definition of Done** и **Iteration 7**. В `docs/07-deployment.md` — **Production deployment runbook** (A–G); **cookies/HSTS** управляются env (`settings.py`, `env_parse.py`, шаблоны `envs/*.example`). **Прохождение** runbook и приёмка **production/staging** остаются **ручными**. Открыто: **верификация Sentry в prod**, **мониторинг/алерты**, **финальный аудит 010**.
 
 ## Цель
 
@@ -63,7 +63,7 @@
 - [x] Миграции проектных apps в git — `backend/*/migrations/*.py` отслеживаются (в т.ч. `__init__.py`); паттерн `.gitignore` строка 30 (`*/migrations`) на эти пути **не действует**. **Аудит 2026-05-11:** `makemigrations --check --dry-run` → «No changes detected»; незакоммиченных изменений в `backend/*/migrations/` нет. Опционально: уточнить `.gitignore` (например `backend/*/migrations/*.pyc` уже покрывает bytecode) для ясности политики
 - [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
 - [x] `DEBUG` корректно парсится как bool — `settings.py` строка 32 исправлена (2026-05-05): `os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`. Startup validation остаётся pending.
-- [ ] **Cookie / session security** в production: зафиксировать в `docs/07-deployment.md` (и при необходимости в checklist) целевые флаги `CSRF_COOKIE_*`, `SESSION_COOKIE_*`, `SECURE_*`, `SameSite` — согласованно с reverse proxy и HTTPS.
+- [x] **Cookie / session security (env):** `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SESSION_COOKIE_HTTPONLY`, SameSite, `SECURE_SSL_REDIRECT`, HSTS — задаются через env в `settings.py`; шаблоны `envs/backend.env.example`, `envs/backend.e2e.env.example`; runbook [`docs/07-deployment.md`](../../07-deployment.md) раздел B. `CSRF_COOKIE_HTTPONLY` не задан (дефолт Django, совместимость с фронтом). Ручная приёмка на контуре — по-прежнему обязательна.
 - [ ] **Финальный аудит Task 010:** закрыть Iteration 7 (ниже), сверить все открытые пункты этого файла с фактическим `docs/07-deployment.md` и ops-практикой.
 
 ---
@@ -89,12 +89,12 @@
 - [x] **Production deployment runbook** — в [`docs/07-deployment.md`](../../07-deployment.md) (секции A–G); **выполнение** шагов на вашем контуре и sign-off production — по-прежнему **ручные** (см. Iteration 7).
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
-- [ ] **Остальные пункты DoD:** cookie/session security (детализация в доке/коде); startup `DEBUG`/env validation (Iteration 5); RTO/RPO и медиа (Cloudinary) в `docs/07-deployment.md` при необходимости (Iteration 6); финальный аудит **010**.
+- [ ] **Остальные пункты DoD:** startup `DEBUG`/env validation (Iteration 5); RTO/RPO и медиа (Cloudinary) в `docs/07-deployment.md` при необходимости (Iteration 6); финальный аудит **010**.
 
 ### Next steps (кратко)
 
 1. Iteration 7: пройти runbook в [`docs/07-deployment.md`](../../07-deployment.md) на **staging** (или контролируемом контуре), Sentry, `check --deploy`, health/alerts.
-2. Уточнить **cookie/session security** в доке и при необходимости в коде (DoD).
+2. Уточнить при приёмке **SECURE_SSL_REDIRECT** vs редиректы Nginx, при необходимости — HSTS/preload по политике.
 3. Iteration 5: startup-проверка env для production (по желанию — фрагмент уже в задаче).
 4. Iteration 6: RTO/RPO и backup медиа (Cloudinary) — при продуктовой необходимости.
 5. Локальные smoke Stripe/PayPal — evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md).
@@ -406,7 +406,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 - [ ] CI pipeline проходит на основной ветке
 - [ ] `makemigrations --check` в CI не падает при актуальных миграциях
 - [ ] `python manage.py check --deploy` не выдаёт блокирующих предупреждений для целевого контура
-- [ ] **Production deployment runbook** в `docs/07-deployment.md` пройден пунктно на целевом контуре (в т.ч. cookies/sessions за HTTPS, см. runbook и DoD)
+- [ ] **Production deployment runbook** в `docs/07-deployment.md` пройден пунктно на целевом контуре (в т.ч. cookies/HSTS/env из раздела B)
 - [ ] Мониторинг/алерты на критичные ошибки согласованы с ops (не только наличие Sentry в коде)
 
 ### Статус

@@ -165,6 +165,22 @@ healthcheck:
 | Cloudinary | `CLOUDINARY_*` / `CLOUDINARY_URL`, если медиа через Cloudinary. |
 | Прочее | `ENABLE_DELIVERY_DEV_ENDPOINTS=False` на production (см. `settings.py`). |
 
+**Cookies и HTTPS** (`backend/backend/settings.py`, парсинг в `backend/env_parse.py`):
+
+| Переменная | Рекомендация **production** (TLS на edge) | **Local / docker e2e HTTP** |
+|------------|-------------------------------------------|------------------------------|
+| `SESSION_COOKIE_SECURE` | `True` | `False` (иначе браузер не отправит cookie по HTTP) |
+| `CSRF_COOKIE_SECURE` | `True` | `False` |
+| `SESSION_COOKIE_HTTPONLY` | `True` (дефолт) | `True` |
+| `SESSION_COOKIE_SAMESITE` | `Lax` (или `None` для cross-site — только осознанно, с `Secure`) | `Lax` |
+| `CSRF_COOKIE_SAMESITE` | `Lax` | `Lax` |
+| `SECURE_SSL_REDIRECT` | Часто `False`, если редирект HTTP→HTTPS делает **только Nginx**; `True` — если редирект должен выполнять Django (избегать двойных редиректов). | `False` |
+| `SECURE_HSTS_SECONDS` | Типично `31536000` (1 год) при стабильном HTTPS; `0` отключает HSTS. | `0` |
+| `SECURE_HSTS_INCLUDE_SUBDOMAINS` | `True` / `False` по политике | игнор. при `HSTS_SECONDS=0` |
+| `SECURE_HSTS_PRELOAD` | `True` только при подготовке к preload-листу | игнор. при `HSTS_SECONDS=0` |
+
+Шаблоны: **`envs/backend.env.example`** (production-oriented), **`envs/backend.e2e.env.example`** (HTTP-friendly). **`CSRF_COOKIE_HTTPONLY`** намеренно не выставляется в settings (дефолт Django `False`) из‑за SPA/чтения csrftoken в JS.
+
 Документ не заменяет **`python manage.py check --deploy`** — выполнить на целевом контуре или образе перед финализацией релиза.
 
 ### C. Nginx / reverse proxy
@@ -231,7 +247,7 @@ healthcheck:
 | **ALLOWED_HOSTS** | Явный список; `*` в production — только осознанно. |
 | **CSRF / CORS** | Ориджины в коде соответствуют реальным фронтам/доменам. |
 | **HTTPS / proxy** | Nginx + `SECURE_PROXY_SSL_HEADER`; при необходимости политика `SECURE_SSL_REDIRECT` согласована с редиректами Nginx. |
-| **Secure cookies** | Фактическая связка nginx + Django при приёмке; целевые флаги cookie — в roadmap Task 010. |
+| **Secure cookies / HTTPS env** | См. раздел **B** (таблица cookies и HSTS), `envs/backend.env.example`, `backend/env_parse.py`. |
 | **Sentry** | DSN + `DEBUG=False` на backend. |
 | **Логирование** | Ротация, диск, уровень на production. |
 | **Health** | Мониторинг `GET /health/`; БД down → **503**. |

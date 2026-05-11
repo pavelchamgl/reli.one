@@ -28,7 +28,7 @@
 
 | # | После аудита |
 |---|----------------|
-| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, **production deployment runbook (A–G)** в [`07-deployment.md`](../07-deployment.md) (выполнение и приёмка — **ручные**), миграции в git + `makemigrations --check`. **Остаётся для «done»:** прогон runbook на реальном контуре, **cookie/session security** (детализация), **Sentry в prod**, **мониторинг/алерты**, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа. **Не входит в закрытие 010:** промокоды, **013**. |
+| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, **production deployment runbook (A–G)** в [`07-deployment.md`](../07-deployment.md) (выполнение и приёмка — **ручные**), **cookies/HSTS через env**, миграции в git + `makemigrations --check`. **Остаётся для «done»:** прогон runbook на реальном контуре, **Sentry в prod**, **мониторинг/алерты**, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа. **Не входит в закрытие 010:** промокоды, **013**. |
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
