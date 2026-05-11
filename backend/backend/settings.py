@@ -31,6 +31,12 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")
 
+# Dev-only HTTP-маршруты курьеров (MyGLS/DPD) в delivery.urls — см. delivery.dev_access.
+# В production держать False. Для стенда без DEBUG можно выставить True явно.
+ENABLE_DELIVERY_DEV_ENDPOINTS = os.getenv(
+    "ENABLE_DELIVERY_DEV_ENDPOINTS", "False"
+).lower() in ("1", "true", "yes")
+
 CSRF_TRUSTED_ORIGINS = [
     'https://reli.one',
     'https://www.reli.one',

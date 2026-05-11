@@ -1,6 +1,5 @@
 import logging
 
-from threading import Thread
 from django.db import transaction
 
 from .utils import generate_parcels_for_order, fetch_and_store_labels_for_order
@@ -8,6 +7,10 @@ from payment.async_pool import executor
 
 logger = logging.getLogger(__name__)
 
+# Ленивый импорт внутри _target разрывает цикл импорта:
+# payment.services ↔ webhook_processing ↔ utils_async ↔ payment.services
+# Долгосрочно: очередь задач (Celery) + модуль уведомлений без обратного импорта из delivery.
+# См. docs/tasks/005-delivery-cleanup/task.md
 
 
 def async_parcels_and_seller_email(order_ids, session_id: str):
@@ -25,10 +28,17 @@ def async_parcels_and_seller_email(order_ids, session_id: str):
         )
 
         try:
-            # 1) Генерируем парсели для каждого заказа
+            # 1) Генерируем парсели для каждого заказа (ошибка по одному заказу не блокирует остальные)
             for oid in order_ids:
-                generate_parcels_for_order(oid)
-                fetch_and_store_labels_for_order(oid)
+                try:
+                    generate_parcels_for_order(oid)
+                    fetch_and_store_labels_for_order(oid)
+                except Exception:
+                    logger.exception(
+                        "[PARCELS] Сбой генерации посылок или догрузки ярлыков: order_id=%s session=%s",
+                        oid,
+                        session_id,
+                    )
 
             # 2) Продавцу — письмо с ярлыками
             try:

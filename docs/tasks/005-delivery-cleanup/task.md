@@ -4,6 +4,54 @@
 **Complexity:** Medium  
 **Status:** Pending
 
+## Анализ (2026-05-11)
+
+### Карта зависимостей (payment / order / delivery)
+
+```mermaid
+flowchart TB
+  subgraph checkout["Checkout (синхронно)"]
+    PV["payment/views.py"]
+    PS["payment/services/stripe_session.py\npaypal_session.py"]
+    PV --> PS
+    PS --> H["delivery/helpers.py"]
+    PS --> SR["delivery/services/shipping_split.py\nlocal_rates"]
+    PS --> DR["delivery/services/dpd_rates.py\ndpd_split"]
+    PS --> GR["delivery/services/gls_rates.py\ngls_split"]
+    PS --> PPS["delivery/services/packeta_point_service.py"]
+    PS --> VZ["delivery/validators/*"]
+  end
+
+  subgraph webhook["Webhook (после оплаты)"]
+    WP["payment/services/webhook_processing.py"]
+    WP --> DA["delivery.models DeliveryAddress"]
+    WP --> UA["delivery/utils_async.py\nasync_parcels_and_seller_email"]
+  end
+
+  UA --> GP["delivery/utils.py\ngenerate_parcels_for_order"]
+  UA --> FL["delivery/utils.py\nfetch_and_store_labels_for_order"]
+  GP --> MYGLS["providers/mygls"]
+  GP --> DPD["providers/dpd"]
+  GP --> PK["services/packeta.py"]
+
+  UA -. "ленивый import внутри _target" .-> PM["payment/services\nemail по сессии"]
+```
+
+- **Цикл импорта:** на уровне модулей — `utils_async` не импортирует `payment` при загрузке; вызов `payment.services` только внутри фоновой функции после коммита.
+- **Инконсистентность БД ↔ курьер:** `generate_parcels_for_order` — один большой `atomic` с HTTP к курьеру внутри. Успех API для посылки N и падение на N+1 может оставить активные отгрузки у провайдера без строк в БД (или откат БД при уже созданной посылке — зависит от точки сбоя). Нужны отдельная задача: укоротить транзакции, retry, идемпотентные client_reference.
+
+### Частично закрыто кодом (2026-05-11)
+
+- Dev-маршруты `/api/delivery/dev/*` регистрируются только при `DEBUG` или `ENABLE_DELIVERY_DEV_ENDPOINTS`.
+- В `async_parcels_and_seller_email` ошибка на одном `order_id` не останавливает остальные; письма по-прежнему после цикла.
+- Удалён неиспользуемый импорт `Thread` в `utils_async.py`.
+
+### Open (всё ещё по Task 005)
+
+- Retry/backoff для вызовов курьеров; очередь (Celery); мониторинг.
+- Разрыв циклической **архитектурной** связи (вынести уведомления в общий слой).
+- Явные тесты webhook при падении `generate_parcels_for_order` (заказ уже создан).
+
 ## Цель
 
 Сделать delivery flow надёжным: убрать dev-эндпоинты из production, добавить retry для генерации посылок, устранить цикличные зависимости в `utils_async.py`.
@@ -11,12 +59,10 @@
 ## Контекст
 
 Delivery domain имеет следующие проблемы:
-- Dev-эндпоинты (`DevShipMyGLS`, `DevShipDPD`) зарегистрированы без `DEBUG`-guard → доступны в production (SEC-4)
-- `async_parcels_and_seller_email` использует `ThreadPoolExecutor` без retry → при падении провайдера (Packeta/DPD/GLS) заказ создан, посылки нет (PAY-2)
-- `delivery/utils_async.py` использует ленивые импорты для разрыва циклических зависимостей → `payment.services` ↔ `webhook_processing` ↔ `utils_async` — архитектурный запах
-- Неиспользуемый импорт `Thread` в `utils_async.py`
-
-Файл `delivery/utils_async.py` отмечен как изменённый в git status — нужно понять что изменилось.
+- Dev-эндпоинты (`DevShipMyGLS`, `DevShipDPD` и др.): **с 2026-05-11** регистрируются только при `DEBUG` или `ENABLE_DELIVERY_DEV_ENDPOINTS`; ранее были доступны при любом `DEBUG=False` (SEC-4).
+- `async_parcels_and_seller_email` использует `ThreadPoolExecutor` без retry у провайдеров → при падении Packeta/DPD/GLS заказ уже создан, посылки может не быть (PAY-2); **с 2026-05-11** сбой на одном заказе в батче не блокирует остальные `order_ids`.
+- `delivery/utils_async.py` использует ленивые импорты для разрыва циклических зависимостей при загрузке модулей → архитектурный запах `payment.services` ↔ webhook ↔ `utils_async`.
+- ~~Неиспользуемый импорт `Thread`~~ — удалён (2026-05-11).
 
 ## Scope (область)
 
