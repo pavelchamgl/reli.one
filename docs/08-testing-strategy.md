@@ -101,7 +101,7 @@ flowchart LR
 6. **order** — итоговая модель после оплаты и ручных потоков.
 7. **sellers** — онбординг: валидация, API, переходы **submit / approve / reject** (покрыто).
 
-Остальные apps: **promocode** — базовые тесты есть; **атомарность счётчика использований промокода** — **не** входит в scope **[Task 010](./tasks/010-devops-infrastructure/task.md)** (DevOps/infrastructure — см. исключение промокодов там); трактовать как продуктовый/платежный долг (**003**, **002 Extended** backlog). **warehouses** — тесты склада / конкурентности — **Task 009**. **Расширенный order lifecycle** (переходы статусов продавцом, отмена, parcel) — **Task 012**. **favorites**, **reviews** — после стабилизации P0.
+Остальные apps: **promocode** — базовые тесты есть; промокоды **не** в текущем продуктовом roadmap и **не** блокируют **[Task 003](./tasks/003-payment-refactor/task.md)** cleanup (**Deferred** в её `task.md`); при возврате фичи — отдельная верификация и **002 Extended** по необходимости. **[Task 010](./tasks/010-devops-infrastructure/task.md)** промокоды в scope не включает. **warehouses** — тесты склада / конкурентности — **Task 009**; **резерв до оплаты** — **Task 013** (future). **Расширенный order lifecycle** (переходы статусов продавцом, отмена, parcel) — **Task 012**. **favorites**, **reviews** — после стабилизации P0.
 
 ---
 

@@ -2,37 +2,43 @@
 
 **Priority:** P0/P1  
 **Complexity:** High  
-**Status:** **Завершена (ядро)** — 2026-05-07. Реализованы P0-пункты: составной unique на `Payment`, replay/идемпотентность (+ `IntegrityError`), `PromoCode` `F()`, регрессия PAY-4, декомпозиция Steps 1–5. Дальнейшее — см. блок **Вне scope / follow-up** ниже.
 
-**Итоговые автотесты (Docker PostgreSQL, `backend_test`):**
+> **Навигация по номерам:** в `docs/tasks/` **Task 004** — *Order Consistency* (домен заказа). Текущий документ — **payment flow / cleanup** в коде и доках.
+
+**Status:** **P0 / ядро платежей — DONE (репозиторий).** Атомарность, идемпотентность webhook, декомпозиция Steps 1–5, локальные e2e smoke Stripe/PayPal задокументированы (см. **Done** ниже). **Payment cleanup / polish — OPEN** (структура сервисов, ошибки webhook, логирование, негативные тесты, финальный аудит документации) — см. **Open**. Промокоды и склад в цепочке оплаты — **вне текущего product roadmap** задачи, не блокеры **003** — см. **Deferred**.
+
+**Регрессия backend (Docker PostgreSQL, `backend_test`; счётчики могут меняться с ростом suite):**
 ```bash
 docker compose -f docker-compose.test.yml run --rm backend_test \
-  pytest payment/ promocode/ order/tests.py --tb=no --disable-warnings
+  pytest payment/ order/tests.py --tb=no --disable-warnings
 ```
-**88 passed** (54 `payment/tests.py` + 7 `payment/test_checkout_flow.py` + 21 `order/tests.py` + 6 `promocode/tests.py`).
+Опционально полная ветка с `promocode/` — только если трогаете код промокодов (в продукте сейчас **не используются**; не входит в scope cleanup **003**).
 
 ## Цель
 
-Устранить P0 проблемы надёжности payment flow (дублирование заказов, неатомарный счётчик промокода, гонки инвойсов) и подготовить архитектуру для безопасной поддержки.
+Устранить P0-риски надёжности payment flow (дублирование заказов по платежу, гонки инвойсов PAY-4) и выделить сервисный слой для безопасной поддержки. **Промокоды и списание складских остатков** в рамках текущего roadmap **не** являются целями этой задачи — см. **Deferred**.
 
 ## Контекст
 
-Payment flow — самая критическая часть системы. Сейчас в ней:
-- ~~`Payment`: дубль по парам `(payment_system, session_id)`~~ — закрыто: **`UniqueConstraint` в БД + `IntegrityError` → replay** в `webhook_processing` (DB-1)
-- ~~`PromoCode` / DB-6~~ — `increment_used_count` переведён на `F()` + регрессия в `promocode/tests.py`
-- **PAY-4 (закрыто кодом):** в `order/services/invoice_numbers.py` уже используются `transaction.atomic`, `select_for_update()` и `F()` для счётчика — дубликаты номеров снимаются на уровне реализации; остаётся **регрессионное покрытие** (см. `order/tests.py`: `NextInvoiceIdentifiersTests`, `NextInvoiceIdentifiersConcurrencyTests`).
-- `payment/views.py` — исторически до рефактора порядка **~2198** строк (BE-2); **после Steps 1–4 фактически ≈ 973 строки** (актуально на 2026-05-07)
-- Фоновые задачи (посылки, email) через `ThreadPoolExecutor` без retry → потеря при падении процесса (PAY-2)
+Payment flow — критичный контур. **Фактическое состояние (май 2026):**
+- ~~`Payment`: дубль по парам `(payment_system, session_id)`~~ — **`UniqueConstraint` + `IntegrityError` → replay** в `webhook_processing` (DB-1)
+- **PAY-4:** в `order/services/invoice_numbers.py` — `transaction.atomic`, `select_for_update()`, `F()`; регрессия `order/tests.py` (`NextInvoiceIdentifiersTests`, `NextInvoiceIdentifiersConcurrencyTests`)
+- **Создание сессии (Stripe/PayPal):** вынесено в `services/stripe_session.py`, `paypal_session.py`, общие `checkout_shared.py`, `checkout_metadata.py` — стабильный thin HTTP в `views`
+- **Webhooks:** разбор и верификация — `services/stripe_webhook.py`, `services/paypal_webhook.py`; оркестрация — `webhook_processing.py`
+- **Локальный e2e (не production):** успешные smoke Stripe и PayPal в Docker e2e; заказ, инвойс, письма (Mailpit), повтор webhook без дублей — evidence: [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`docs/testing/paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md). **Это не приёмка production.**
+- `payment/views.py` — после декомпозиции порядка **≈ 973** строки (снимок 2026-05); BE-2 по объёму смягчён, финальный аудит структуры — в **Open**
+- **PAY-2:** фоновые посылки/email через `ThreadPoolExecutor` без retry — **Deferred** (Celery/очередь)
 
-Этот рефакторинг **нельзя начинать до завершения Task 002** (regression tests должны быть написаны первыми).
+**Task 002** как предпосылка для исторического P0-рефакторинга — выполнена по Core; регрессии по `payment/` поддерживать при доработках из **Open**.
 
-## Scope (область)
+## Scope (область) — актуальный
 
-- ~~`Payment`: уникальность~~ — **`UniqueConstraint(payment_system, session_id)`** + миграция `payment.0004_…` + обработка гонки (`IntegrityError` → replay)
-- ~~Исправление `PromoCode.increment_used_count` через `F()`~~ — сделано
-- ~~Добавление `select_for_update` в `InvoiceSequence`~~ — уже есть в `next_invoice_identifiers()`; поддерживать тестами
-- ~~Декомпозиция `payment/views.py` → `payment/services/` (Steps 1–5)~~ — checkout / webhook сведены к тонкому HTTP-слою + сервисы; см. таблицу прогресса; доп. вынос (`order_factory` и т.д.) не обязателен
-- Оценка и план перехода с `ThreadPoolExecutor` на Celery (реализация опционально)
+- ~~`Payment`: уникальность~~ — **`UniqueConstraint(payment_system, session_id)`** + обработка replay
+- ~~Декомпозиция Steps 1–5~~ — checkout / webhook / order creation в сервисах; см. таблицу прогресса
+- ~~Идемпотентность webhook, инвойс после оплаты~~ — автотесты + зафиксированный локальный e2e smoke (чеклисты выше)
+- **Остаётся в работе (cleanup):** финальный аудит модулей `payment/services/*`, обработка ошибок webhook, выровненное логирование, документация метаданных/сессии, негативные webhook-тесты при пробелах — детализация в **Open**
+
+**Явно не входит в scope Task 003 (текущий roadmap):** промокоды в продукте; резерв/списание остатков и складской учёт в цепочке оплаты (**Task 013** / future). См. **Deferred**.
 
 ## Не входит в задачу
 
@@ -52,26 +58,39 @@ Payment flow — самая критическая часть системы. С
 - Декомпозиция `views.py` без тестов — неприемлемый риск → строгий запрет Iteration 3 без Iteration 2
 - `ThreadPoolExecutor` → Celery — требует инфраструктурных изменений (Redis, Celery worker)
 
-## Definition of Done
+## Done / Open / Deferred
 
-- [x] `Payment`: составной уникальный ключ `(payment_system, session_id)` — `UniqueConstraint` + миграция применены; конфликт insert обрабатывается как replay
-- [x] Повторная доставка / гонка: второй webhook не создаёт второй `Payment` и не оставляет «осиротевшие» заказы после отката (регрессия: `TestCreateOrdersIntegrityReplayCheckout`)
-- [x] `PromoCode.increment_used_count` использует `F()` выражение
-- [x] PAY-4 / `next_invoice_identifiers()`: `transaction.atomic` + `select_for_update()` + `F()` уже в коде (`order/services/invoice_numbers.py`); регрессия — тесты уникальности в `order/tests.py`
-- [x] Идемпотентность Stripe/PayPal webhook: `_replay_if_payment_exists` + `IntegrityError` → replay, HTTP-контракты без изменений; при необходимости — расширить отдельными E2E на дубль payload
-- [x] Автотесты: **88 passed** (срез `payment/` + `promocode/` + `order/tests.py`, см. команду выше)
-- [x] Регрессия `IntegrityError` / replay: `payment/tests.py::TestCreateOrdersIntegrityReplayCheckout`
+### Done (репозиторий; не подразумевает production payment acceptance)
 
-### Вне scope Task 003 (follow-up, не блокирует закрытие)
+- [x] **DB-1 / `Payment`:** составной уникальный ключ `(payment_system, session_id)`; конфликт insert → replay (`IntegrityError` / `_replay_if_payment_exists`)
+- [x] **Идемпотентность / replay:** повторный webhook не создаёт второй `Payment`/`Order`; регрессия `TestCreateOrdersIntegrityReplayCheckout` и др. в `payment/`
+- [x] **PAY-4:** `next_invoice_identifiers()` — atomic + row lock + `F()`; тесты в `order/tests.py`
+- [x] **Создание платёжной сессии:** стабилизировано в сервисах (Stripe/PayPal + shared metadata); thin controllers в `views`
+- [x] **Обработка webhook:** стабилизирована (`stripe_webhook`, `paypal_webhook`, `webhook_processing`); HTTP-контракты не менялись в рамках рефакторинга
+- [x] **Локальный e2e smoke Stripe/PayPal:** пройден; evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) и [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) — **только sandbox/local Docker, не production**
+- [x] **Инвойс и письма:** на e2e контуре проверены создание счёта и письма клиенту/продавцу/менеджерам через **Mailpit** (см. те же чеклисты)
+- [x] **Декомпозиция Steps 1–5** — по таблице прогресса ниже
+
+### Open (payment-specific хвосты Task 003)
+
+- [ ] **Структура `payment/services/*`:** финальный проход / audit границ модулей и публичных точек входа (без смены бизнес-поведения)
+- [ ] **Error handling webhook:** последовательное маппирование сбоев (верификация, parse, внешние API) в HTTP-ответы; без утечки чувствительных деталей наружу (см. `040-security.mdc`)
+- [ ] **Логирование:** единые уровни/сообщения по ключевым веткам checkout + webhook (удобство расследований в staging/prod)
+- [ ] **Документация:** описание жизненного цикла `session_key` / метаданных / связи с PSP session — для разработчиков (можно `docs/` или OpenAPI notes)
+- [ ] **Негативные webhook-тесты:** добить пробелы по PayPal-веткам и ошибочным payload (см. существующий follow-up по branch coverage)
+- [ ] **Финальный audit:** сверка этого `task.md` с кодом после закрытия пунктов выше
+
+### Deferred (вне текущего roadmap Task 003; не блокеры closure P0-ядра)
 
 | Тема | Примечание |
 |------|------------|
-| **Celery вместо ThreadPoolExecutor** | PAY-2: инфраструктура, retry-модель для посылок/email |
-| **decrease_stock / склад** | Списание остатков в цепочке оплаты — не реализовывалось в Task 003 |
-| **Fragile PayPal errors** | Хрупкие ветки payload/API → явные HTTP-ответы; см. Follow-up в Iteration 4 |
-| **views cleanup** | Импорты, dead code, уменьшение «шума» в `views.py` без смены поведения |
-| **`OrderProduct.received_at` naive datetime** | RuntimeWarning в `order/tests.py`; правка timezone — отдельная задача (например `docs/tasks/011-order-product-received-at-timezone/`) |
-| **Опциональный вынос** | `order_factory.py` / `invoice_service.py` / `notification.py` из `webhook_processing` — техдолг Iteration 4 |
+| **PromoCode / DB-6 в продукте** | Промокоды **не используются** в продукте; доработки конкурентности/продукта — отдельно при возврате фичи |
+| **Stock reservation / `decrease_stock` / warehouse quantity** | **Task 013** / future; не входит в обязательный scope **003** |
+| **Celery вместо ThreadPoolExecutor** | PAY-2: инфраструктура, retry для посылок/email |
+| **Fragile PayPal errors** | Хрупкие ветки payload/API — явные HTTP-ответы; пересекается с **Open** |
+| **views cleanup** | Импорты, dead code в `views.py` без смены поведения |
+| **`OrderProduct.received_at` naive datetime** | **Task 011** |
+| **Опциональный вынос** | `order_factory.py` / `invoice_service.py` / `notification.py` из `webhook_processing` — по желанию |
 
 ---
 
@@ -87,7 +106,7 @@ Payment flow — самая критическая часть системы. С
 - Прочитать `backend/payment/services/webhook_processing.py`
 - Прочитать `backend/payment/services/stripe_checkout.py`, `paypal_checkout.py`
 - Прочитать `backend/payment/models.py` — `Payment`, `StripeMetadata`, `PayPalMetadata`
-- Прочитать `backend/promocode/models.py` — `increment_used_count`
+- *(Опционально / вне roadmap)* `backend/promocode/models.py` — только если снова включают промокоды в продукт
 - Прочитать `backend/order/services/invoice_numbers.py`
 - Прочитать `backend/delivery/utils_async.py` — `async_parcels_and_seller_email`
 
@@ -117,9 +136,9 @@ sequenceDiagram
     Backend->>DB: Load StripeMetadata by session_key
     Backend->>DB: BEGIN TRANSACTION
     Backend->>DB: Create Payment + Orders + OrderProducts (уникальность пары payment_system+session_id)
-    Backend->>DB: Decrement warehouse stock (вне scope Task 003 / follow-up)
-    Backend->>DB: PromoCode — increment атомарный (F()) где используется
-    Backend->>DB: InvoiceSequence / next_invoice_identifiers (atomic + row lock + F()) — PAY-4 снят в коде; регрессия тестами
+    Note over Backend,DB: Warehouse / decrease_stock — deferred (Task 013), не в scope 003
+    Note over Backend,DB: PromoCode в продукте не используется — roadmap deferred
+    Backend->>DB: InvoiceSequence / next_invoice_identifiers (atomic + row lock + F()) — PAY-4
     Backend->>DB: COMMIT
     Backend->>Delivery: async generate_parcels (РИСК: нет retry)
     Backend->>Backend: async send emails (РИСК: нет retry)
@@ -153,15 +172,7 @@ class StripeWebhookIdempotencyTest(TestCase):
         # Оба запроса возвращают 200 (идемпотентность)
 ```
 
-**PromoCode increment (обязательно до правки DB-6):**
-```python
-# promocode/tests_concurrent.py
-
-class PromoCodeConcurrentTest(TestCase):
-    def test_concurrent_increment_does_not_exceed_max_usage(self):
-        # Запустить 10 параллельных increment при max_usage=5
-        # assert PromoCode.used_count <= 5
-```
+**PromoCode / DB-6:** не входит в текущий roadmap **003** (промокоды в продукте не используются). Исторические тесты остаются в `promocode/` при необходимости полного прогона репозитория.
 
 **InvoiceSequence / PAY-4 (регрессия, код уже целевой):**
 - `order/tests.py` — `NextInvoiceIdentifiersTests` (последовательные вызовы: уникальность, префикс года, ширина суффикса)
@@ -174,7 +185,7 @@ class PromoCodeConcurrentTest(TestCase):
 - `send_seller_emails_by_session` → mock
 
 ### Статус
-- [x] Ключевые регрессии и расширения suite внедрены; см. **88 passed** и чеклист DoD
+- [x] Ключевые регрессии по `payment/` и PAY-4 в `order/tests.py`; промокоды — вне scope roadmap **003**
 
 ---
 
@@ -199,15 +210,10 @@ class PromoCodeConcurrentTest(TestCase):
 
 Подробнее: [payment-unique-constraint-plan.md](./payment-unique-constraint-plan.md).
 
-**2. `promocode/models.py` — атомарный increment:**
+**2. `promocode/models.py` (исторически; вне scope roadmap **003**):** атомарный increment **уже внедрён** (`F()`). Промокоды в продукте **не используются** — дальнейшая работа по DB-6 как продуктовому риску — **Deferred**.
 
 ```python
-# ДО:
-def increment_used_count(self):
-    self.used_count += 1
-    self.save()
-
-# ПОСЛЕ:
+# Справочно — целевой паттерн (в репозитории уже применён):
 from django.db.models import F
 
 def increment_used_count(self):
@@ -232,7 +238,7 @@ def increment_used_count(self):
 | Файл | Изменение |
 |------|-----------|
 | `backend/payment/models.py` | `UniqueConstraint(payment_system, session_id)` + обработка в `webhook_processing` |
-| `backend/promocode/models.py` | `F()` в increment_used_count |
+| `backend/promocode/models.py` | `F()` в increment — *в репозитории; продуктовый трек промокодов — **Deferred*** |
 | `backend/order/services/invoice_numbers.py` | PAY-4: уже atomic + `select_for_update` + `F()`; регрессия в `order/tests.py` |
 | `backend/payment/services/webhook_processing.py` | `_replay_if_payment_exists` + `IntegrityError` → `_CONCURRENT_PAYMENT_REPLAY` / replay semantics |
 | `backend/payment/migrations/0004_payment_system_session_id_uniq.py` | `UniqueConstraint(payment_system, session_id)` |
@@ -327,7 +333,7 @@ backend/payment/
 - **Step 5.3** ✅ `_persist_checkout_in_atomic` + `PersistCheckoutResult` — один `transaction.atomic()`, прежний порядок Order → OrderProduct → Payment → события → `set_conv_cache_after_commit` → invoice best-effort; те же `ValidationError` / `Exception` и логи.
 - **Step 5.4** ✅ `_schedule_post_commit_side_effects` — после успешного commit: client email, затем parcels/seller (те же условия и аргументы async).
 - **`create_orders_and_payment`:** тонкий оркестратор; публичные контракты для views (`WebhookPaymentData`, `WebhookProcessingResult`, сигнатура функции) **не менялись**.
-- **Регрессия:** см. блок **Итоговые автотесты** (88 passed для среза с `promocode/` и `order/tests.py`).
+- **Регрессия:** см. команду pytest в шапке задачи (`payment/` + `order/tests.py`).
 
 #### Step 5 — план и границы (исторический scope)
 
@@ -335,17 +341,17 @@ backend/payment/
 - **Реализация:** завершена (5.1–5.4); **поведение не изменялось** (code review: OK).
 - **Scope Step 5:** только **декомпозиция** `create_orders_and_payment` в `payment/services/webhook_processing.py`, **без изменения публичных прикладных контрактов** (`WebhookPaymentData`, `WebhookProcessingResult`, HTTP-слой).
 
-**Явно вне scope Step 5** (отдельные задачи; пересекается с закрытием Task 003 по части уже сделанного):
+**Явно вне scope Step 5 и текущего roadmap Task 003:**
 
 - ~~уникальность `Payment`…~~ ✅ (сделано после Step 5)
-- ~~атомарный инкремент промокода…~~ ✅ (`F()` в модели)
-- списание склада (`warehouses.services.decrease_stock` или аналог в потоке оплаты) — **ещё актуально**
-- перепроектирование границ транзакций для инвойса (savepoint, вынос за пределы внешнего `atomic` и т.п.);
-- замена `ThreadPoolExecutor` на Celery (инфраструктура, retry-модель).
+- ~~атомарный инкремент промокода в модели…~~ ✅ (*в репозитории есть `F()`; продуктовые промокоды — **Deferred***)
+- **Списание склада / reservation** (`warehouses.services.decrease_stock` или аналог в потоке оплаты) — **Deferred**, **Task 013** / future (**не** хвост **003**)
+- перепроектирование границ транзакций для инвойса (savepoint, вынос за пределы внешнего `atomic` и т.п.) — по отдельному решению
+- замена `ThreadPoolExecutor` на Celery (инфраструктура, retry-модель)
 
 ### Follow-up вне Task 003 (расшифровка)
 
-Сводка уже в **Definition of Done → Вне scope**. Дубли для поиска в backlog:
+Сводка дублирует блок **Deferred** и пункты **Open** выше. Детали для backlog:
 
 - **PayPal webhook branch coverage:** расширить unit-тесты — `CHECKOUT.ORDER.APPROVED` / `CHECKOUT.ORDER.COMPLETED`, ошибки capture и смежные ветки.
 - **Fragile PayPal payload/API errors:** хрупкие ветки (битый payload, необработанные HTTP/исключения от PayPal API) — отдельная задача с явным маппированием в HTTP.
@@ -368,15 +374,15 @@ backend/payment/
 ### Тесты для запуска
 ```bash
 docker compose -f docker-compose.test.yml run --rm backend_test \
-  pytest payment/ promocode/ order/tests.py -v --tb=short
+  pytest payment/ order/tests.py -v --tb=short
 ```
 
 ### Сценарии для проверки
-- [x] Автоматические регрессии (см. 88 passed)
-- [ ] Ручная валидация в sandbox: дважды Stripe/PayPal webhook для одной оплаты — при необходимости
+- [x] Автоматические регрессии `payment/` + PAY-4 в `order/tests.py`
+- [x] Ручной **локальный** e2e smoke Stripe + PayPal (Docker e2e, sandbox/test keys, Mailpit): идемпотентность повторного webhook, инвойс, письма — **evidence** в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (*Verification evidence*) и [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) (*latest local smoke result*). **Не production.**
 
 ### Статус
-- [x] Validation complete (automated); ручные сценарии — опционально
+- [x] Validation complete для P0-ядра и документированного e2e smoke; **production payment acceptance** — отдельно и **не** утверждается этим файлом
 
 ---
 
@@ -384,15 +390,15 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 
 | Тип | Файлы |
 |-----|-------|
-| **Backend** | `payment/models.py`, `payment/views.py` (**≈973 строки** после Steps 1–4), `payment/services/webhook_processing.py`, `payment/services/checkout_metadata.py`, `payment/services/checkout_shared.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `promocode/models.py`, `order/services/invoice_numbers.py` |
-| **Модели** | `Payment` (`UniqueConstraint` на `payment_system` + `session_id`), `PromoCode`, `InvoiceSequence` |
+| **Backend** | `payment/models.py`, `payment/views.py` (**≈973 строки** после Steps 1–4), `payment/services/webhook_processing.py`, `payment/services/checkout_metadata.py`, `payment/services/checkout_shared.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `order/services/invoice_numbers.py` |
+| **Модели** | `Payment` (`UniqueConstraint` на `payment_system` + `session_id`), `InvoiceSequence`; `PromoCode` — вне roadmap **003** |
 | **API** | `POST /stripe-webhook/`, `POST /paypal-webhook/` (контракты не меняются) |
 | **Интеграции** | Stripe Webhook SDK, PayPal Webhook SDK |
 
 ## Связанные проблемы из docs/09-architecture-debt.md
 
 - DB-1: ~~`Payment.session_id` не уникален~~ — **закрыто** составным `UniqueConstraint` + `IntegrityError` → replay
-- DB-6: ~~`PromoCode.increment_used_count` неатомарный~~ — **закрыто** (`F()` + тесты)
+- DB-6: в коде **исправлено** (`F()` + тесты в `promocode/`); **продуктовый** трек промокодов — **Deferred** (фича не используется)
 - PAY-4: ~~`InvoiceSequence` без `select_for_update`~~ — **снято в коде** (`invoice_numbers.py`); приоритет — **регрессионные тесты** (добавлены в `order/tests.py`)
 - PAY-2: Нет retry при ошибке генерации посылок P1
 - BE-2: `payment/views.py` было ~2198 строк → **≈ 973** после Steps 1–4; **Step 5** — декомпозиция `create_orders_and_payment` в `webhook_processing.py` **завершена**; опциональный вынос в отдельные модули (`order_factory` и т.д.) — техдолг
