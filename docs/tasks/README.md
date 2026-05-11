@@ -28,7 +28,7 @@
 
 | # | После аудита |
 |---|----------------|
-| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, deployment checklist (черновик), миграции в git + `makemigrations --check`. **Остаётся для «done»:** полнота **production deployment** checklist, **cookie/session security** в деплой-доке, **Sentry в prod** (проверка событий), **мониторинг/алерты**, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа в `docs/07-deployment.md`. **Не входит в закрытие 010:** промокоды, **013**. |
+| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, **production deployment runbook (A–G)** в [`07-deployment.md`](../07-deployment.md) (выполнение и приёмка — **ручные**), миграции в git + `makemigrations --check`. **Остаётся для «done»:** прогон runbook на реальном контуре, **cookie/session security** (детализация), **Sentry в prod**, **мониторинг/алерты**, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа. **Не входит в закрытие 010:** промокоды, **013**. |
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
@@ -45,7 +45,7 @@
 
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
-1. [**010**](./010-devops-infrastructure/task.md) — deployment checklist (полнота), cookies/sessions в prod, Sentry verification, мониторинг/алерты, `check --deploy`, финальный аудит **010**; дополнить `docs/07-deployment.md` (RTO/RPO, медиа, ручной деплой, CI/CD, TLS) по мере необходимости. Промокоды и **013** — **не** DoD **010**.
+1. [**010**](./010-devops-infrastructure/task.md) — **выполнить** runbook из `docs/07-deployment.md` на staging/prod-контуре; cookies/sessions, Sentry verification, мониторинг/алерты, `check --deploy`, финальный аудит **010**; при необходимости RTO/RPO и медиа. Промокоды и **013** — **не** DoD **010**.
 2. [**004**, **005**, **008**](./004-order-consistency/task.md) — по вашему темпу после стабильного тестового фундамента.
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 

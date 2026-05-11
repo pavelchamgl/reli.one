@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In Progress — фокус на **реально используемой инфраструктуре:** локальный **e2e** (compose, env examples), **deployment** docs, **`/health/`** + регрессионные тесты, **Sentry** (код + условия включения), **backup/restore** runbook, **CI** (миграции + тесты), **security deployment checklist** в `docs/07-deployment.md`. Smoke **Stripe/PayPal sandbox** задокументированы ([`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); **не production**). **Честно открыто:** финальный **production** deployment checklist (полнота), **cookie/session security** в конфиге деплоя, **верификация Sentry в prod**, **мониторинг/алерты**, закрывающий **аудит Task 010** (Iteration 7 + сверка с `docs/07-deployment.md`).
+**Status:** In Progress — см. **Definition of Done** и **Iteration 7**. В `docs/07-deployment.md` добавлен **Production deployment runbook** (A–G) для реального выката backend; **прохождение** runbook и приёмка **production/staging** остаются **ручными** и не подтверждаются только фактом обновления документации. Открыто: **cookie/session security** (явные флаги в коде/env), **верификация Sentry в prod**, **мониторинг/алерты**, **финальный аудит 010**.
 
 ## Цель
 
@@ -57,7 +57,7 @@
 
 - [x] `GET /health/` → `{"status": "ok", "db": "ok"}` при живой БД — `backend/backend/urls.py`
 - [x] Regression-тесты health: `pytest backend/test_health_endpoint.py` (200 + 503 при недоступной БД)
-- [x] `docs/07-deployment.md` — контракт `/health/`, уточнение Sentry (**DSN + DEBUG=False** для Django), **Production readiness checklist** (ручная сверка; не заменяет `check --deploy`)
+- [x] `docs/07-deployment.md` — контракт `/health/`; Sentry (**DSN + DEBUG=False**); раздел **Production deployment runbook** (A–G: pre-deploy, env, nginx/proxy, deploy, smoke, rollback, post-deploy); таблица **среды** (production / staging / local e2e не смешивать); ссылки на backup/e2e/Stripe/PayPal docs; **не** заменяет `check --deploy` и **не** означает, что production уже принят без ручной верификации
 - [x] Sentry DSN настроен для Django и React — settings.py (только при **DEBUG=False + SENTRY_DSN**), main.jsx (при **VITE_SENTRY_DSN**)
 - [x] Runbook backup/restore PostgreSQL и restore в e2e — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в `docs/07-deployment.md` раздел Backup ссылается на runbook (медиа/частота prod — вне runbook)
 - [x] Миграции проектных apps в git — `backend/*/migrations/*.py` отслеживаются (в т.ч. `__init__.py`); паттерн `.gitignore` строка 30 (`*/migrations`) на эти пути **не действует**. **Аудит 2026-05-11:** `makemigrations --check --dry-run` → «No changes detected»; незакоммиченных изменений в `backend/*/migrations/` нет. Опционально: уточнить `.gitignore` (например `backend/*/migrations/*.pyc` уже покрывает bytecode) для ясности политики
@@ -86,15 +86,15 @@
 - [x] **Backup / restore runbook (PostgreSQL + e2e)** — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); RTO/RPO и облачные политики на production — при необходимости доп. правка `docs/07-deployment.md`
 - [x] **Stripe local e2e smoke с артефактами** — прогон через Postman/ngrok, Mailpit; evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (*Verification evidence*). **Не** равноценно production-приёмке.
 - [x] **PayPal local e2e smoke с артефактами** — прогон **sandbox + e2e** (Postman, ngrok, Mailpit); итоги зафиксированы в [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) → *Verification evidence — latest local smoke result* (**local/sandbox**, не prod; без сырых id/payload в репозитории). По политике команды точные номера заказов/инвоясов добавляются в тикеты отдельно.
+- [x] **Production deployment runbook** — в [`docs/07-deployment.md`](../../07-deployment.md) (секции A–G); **выполнение** шагов на вашем контуре и sign-off production — по-прежнему **ручные** (см. Iteration 7).
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
-- [ ] **Production deployment checklist** — в `docs/07-deployment.md` есть ориентир; дописать **полную** процедуру ручного деплоя, CI/CD, обновление TLS, **cookie/session security** (см. DoD).
-- [ ] **Остальные пункты DoD:** startup `DEBUG`/env validation (Iteration 5); RTO/RPO и медиа (Cloudinary) в `docs/07-deployment.md` при необходимости (Iteration 6); финальный аудит **010**.
+- [ ] **Остальные пункты DoD:** cookie/session security (детализация в доке/коде); startup `DEBUG`/env validation (Iteration 5); RTO/RPO и медиа (Cloudinary) в `docs/07-deployment.md` при необходимости (Iteration 6); финальный аудит **010**.
 
 ### Next steps (кратко)
 
-1. Iteration 7: Sentry в prod (событие теста), `check --deploy`, health probe / алерты в ops-runbook.
-2. `docs/07-deployment.md`: расширить production checklist — деплой, CI/CD, TLS, **cookies/sessions**, мониторинг.
+1. Iteration 7: пройти runbook в [`docs/07-deployment.md`](../../07-deployment.md) на **staging** (или контролируемом контуре), Sentry, `check --deploy`, health/alerts.
+2. Уточнить **cookie/session security** в доке и при необходимости в коде (DoD).
 3. Iteration 5: startup-проверка env для production (по желанию — фрагмент уже в задаче).
 4. Iteration 6: RTO/RPO и backup медиа (Cloudinary) — при продуктовой необходимости.
 5. Локальные smoke Stripe/PayPal — evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md).
@@ -406,7 +406,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 - [ ] CI pipeline проходит на основной ветке
 - [ ] `makemigrations --check` в CI не падает при актуальных миграциях
 - [ ] `python manage.py check --deploy` не выдаёт блокирующих предупреждений для целевого контура
-- [ ] Deployment checklist в `docs/07-deployment.md` пройден пунктно (в т.ч. cookies/sessions за HTTPS)
+- [ ] **Production deployment runbook** в `docs/07-deployment.md` пройден пунктно на целевом контуре (в т.ч. cookies/sessions за HTTPS, см. runbook и DoD)
 - [ ] Мониторинг/алерты на критичные ошибки согласованы с ops (не только наличие Sentry в коде)
 
 ### Статус
