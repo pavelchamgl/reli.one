@@ -20,7 +20,7 @@
 | Инфра | `pytest-django` в зависимостях; `pytest.ini` указывает `DJANGO_SETTINGS_MODULE`. При отсутствии переменных Postgres в окружении — SQLite `:memory:` (как в `settings`). Локально при загруженном `envs/database.env` может подключаться Postgres — для быстрых прогонов без БД задайте пустые `DB_NAME`, `DB_HOST` и т.д. |
 | CI | `.github/workflows/ci.yml`: `makemigrations --check`, `migrate`, **`python manage.py test`**, затем **`pytest`**, плюс сборки фронтов. |
 | Ручной Stripe e2e (локально) | Процедура и **зафиксированный результат smoke-прогона** (Orders/Invoice/письма/идемпотентность webhook, только local e2e, не prod): [`docs/testing/stripe-e2e-checklist.md`](testing/stripe-e2e-checklist.md) → раздел *Verification evidence*. |
-| Ручной PayPal e2e (локально, sandbox) | Пошаговый чеклист Postman + ngrok webhook: [`docs/testing/paypal-e2e-checklist.md`](testing/paypal-e2e-checklist.md); таблицу *Verification evidence* заполняют после прогона (без коммита PII). |
+| Ручной PayPal e2e (локально, sandbox) | Чеклист Postman + ngrok: [`docs/testing/paypal-e2e-checklist.md`](testing/paypal-e2e-checklist.md); раздел *Verification evidence — latest local smoke result* фиксирует пройденный sandbox-smoke **без** сырых id/payload в git (детали чисел — локально или в тикете). |
 
 ---
 

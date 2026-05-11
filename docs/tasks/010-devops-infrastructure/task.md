@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In Progress — **локальный e2e-контур и документация готовы**; **ручной Stripe local e2e smoke (Postman + ngrok) пройден** — результат зафиксирован в [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (раздел *Verification evidence*, **не** production). Iterations **5–6** (миграции в git, backup runbook) и **production-hardening** (деплой-checklist, полная верификация Sentry/мониторинга) **остаются открытыми**.
+**Status:** In Progress — **локальный e2e**, **smoke Stripe и PayPal sandbox** задокументированы ([`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); **не production**). **`/health/`** + тесты, production readiness checklist и runbook **PostgreSQL backup/restore → e2e** ([`database-backup-restore.md`](../../operations/database-backup-restore.md)) — готовы. **Открыто:** миграции в git, PromoCode concurrency test, целевой текст **RTO/RPO + медиа (Cloudinary)** в `docs/07-deployment.md`, полный **ручной деплой / CI** в том же файле, **Sentry/alerts в prod** (Iteration 7).
 
 ## Цель
 
@@ -14,7 +14,7 @@
 
 - **DEV-1 (P1):** Интеграция Sentry в коде **есть** (Iteration 3); **эксплуатационная** проверка в production (события, алерты) — **открыта** (Iteration 7)
 - **DEV-2 (P1):** **`GET /health/`** — реализован (**Iteration 2**); контракт и production checklist описаны в **`docs/07-deployment.md`**; регрессия **`backend/test_health_endpoint.py`**. Привязка HEALTHCHECK в боевом compose/uptime — **по-прежнему на ops**
-- **DEV-3 (P1):** Нет backup стратегии PostgreSQL + Cloudinary
+- **DEV-3 (P1):** Runbook **`pg_dump` / restore PostgreSQL → локальный e2e** есть — [`database-backup-restore.md`](../../operations/database-backup-restore.md); **регулярные бэкапы на production-сервере, RTO/RPO, Cloudinary/medиа** в `docs/07-deployment.md` — **ещё без полного описания**
 - **DEV-4 (P2):** Миграции в `.gitignore` → нет version history схемы
 - **DEV-5 (P2):** `DEBUG` не проверяется в production
 
