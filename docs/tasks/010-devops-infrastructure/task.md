@@ -2,20 +2,19 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In Progress — см. **Definition of Done** и **Iteration 7**. В `docs/07-deployment.md` — **Production deployment runbook** (A–G), блок **Operational monitoring**, **Sentry production verification (runbook)**; отдельно **[`docs/operations/monitoring-alerts.md`](../../operations/monitoring-alerts.md)** (логи `LOGGING`, ручные проверки, **предложения** по production‑алертам — без утверждения, что они уже включены у вас в prod). **cookies/HSTS** — env (`settings.py`, `env_parse.py`, шаблоны `envs/*.example`). Приёмка **production/staging** остаётся **ручной**; для Sentry и мониторинга нужно **ручное evidence**, не только файлы в репозитории. Открыто: **исполнение** Sentry/monitors/alerts по runbook на контуре, **финальный аудит 010**.
+**Status:** **DONE (репозиторий)** — deliverables ниже выполнены; детально см. **[Финальный аудит и таблица DoD](#финальный-аудит-и-таблица-dod)**. **OPEN / Partial (операционно):** боевые **staging/production** приёмка, `check --deploy`, активация Sentry/monitors/alerts только **вручную на контуре** (git **не** утверждает «production verified»).
 
 ## Цель
-
 Закрепить эксплуатационный контур: health-check, Sentry, мониторинг/логи/алерты **в документации** ([`docs/operations/monitoring-alerts.md`](../../operations/monitoring-alerts.md), без навязывания observability‑стека в коде), документацию деплоя и безопасности, backup/restore, локальный e2e и шаблоны env, CI; без привязки к неиспользуемым в продукте доменам (промокоды, складской резерв — см. **Deferred** ниже).
 
 ## Контекст
 
-Без мониторинга инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей. Схема БД версионируется файлами миграций в репозитории (`backend/*/migrations/`); восстановление **чистой** БД — через `migrate`. Нет backup стратегии для PostgreSQL и медиа-файлов (runbook — отдельно в `docs/operations/`).
+Без мониторинга инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей. Схема БД версионируется файлами миграций в репозитории (`backend/*/migrations/`); восстановление **чистой** БД — через `migrate`. Техника **PostgreSQL dump/restore и перенос в e2e** задокументирована (`docs/operations/`); расписание **регулярных** боевых бэкапов, RTO/RPO и политика **медиа** описаны только частично (см. DoD‑таблицу ниже).
 
-- **DEV-1 (P1):** Интеграция Sentry в коде **есть** (Iteration 3); runbook приёмки описан в **`docs/07-deployment.md`** → **Sentry production verification (runbook)**; **эксплуатационное** прохождение на staging/production и evidence — **открыто** (Iteration 7)
+- **DEV-1 (P1):** Интеграция Sentry в коде **есть** (Iteration 3); runbook приёмки — [`07-deployment.md`](../../07-deployment.md) → **Sentry production verification**; включение и evidence на **staging/production** — см. колонку **Remaining action** в [таблице DoD](#финальный-аудит-и-таблица-dod)
 - **DEV-2 (P1):** **`GET /health/`** — реализован (**Iteration 2**); контракт и production checklist описаны в **`docs/07-deployment.md`**; регрессия **`backend/test_health_endpoint.py`**. Привязка HEALTHCHECK в боевом compose/uptime — **по-прежнему на ops**
 - **DEV-3 (P1):** Runbook **`pg_dump` / restore PostgreSQL → локальный e2e** есть — [`database-backup-restore.md`](../../operations/database-backup-restore.md); **регулярные бэкапы на production-сервере, RTO/RPO, Cloudinary/medиа** в `docs/07-deployment.md` — **ещё без полного описания**
-- **Operational monitoring (документ):** эксплуатационный runbook логов/алертов без полноценного observability‑stack — [`monitoring-alerts.md`](../../operations/monitoring-alerts.md), ссылка из [`07-deployment.md`](../../07-deployment.md); **факт включённости** всех правил мониторинга на production репозиторий **не** подтверждает — только ops (**Iteration 7**)
+- **Operational monitoring (документ):** runbook — [`monitoring-alerts.md`](../../operations/monitoring-alerts.md), вход из [`07-deployment.md`](../../07-deployment.md); **активация** правил на сервере — [таблица DoD](#финальный-аудит-и-таблица-dod) / [ручной раздел](#ручные-действия-на-staging--production-не-отменяют-done-репозитория)
 - **DEV-4 (P2):** Исторически в `.gitignore` была строка `*/migrations` — она **не** матчит пути вида `backend/<app>/migrations/` (один `*` без `/`), поэтому миграции проектных apps **уже отслеживаются** в git; осмысленный DoD — поддерживать `makemigrations --check` без дрейфа и явный политический выбор ignore (см. Iteration 5)
 - **DEV-5 (P2):** `DEBUG` не проверяется в production
 
@@ -66,7 +65,33 @@
 - [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
 - [x] `DEBUG` корректно парсится как bool — `settings.py` строка 32 исправлена (2026-05-05): `os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`. Startup validation остаётся pending.
 - [x] **Cookie / session security (env):** `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`, `SESSION_COOKIE_HTTPONLY`, SameSite, `SECURE_SSL_REDIRECT`, HSTS — задаются через env в `settings.py`; шаблоны `envs/backend.env.example`, `envs/backend.e2e.env.example`; runbook [`docs/07-deployment.md`](../../07-deployment.md) раздел B. `CSRF_COOKIE_HTTPONLY` не задан (дефолт Django, совместимость с фронтом). Ручная приёмка на контуре — по-прежнему обязательна.
-- [ ] **Финальный аудит Task 010:** закрыть Iteration 7 (ниже), сверить все открытые пункты этого файла с фактическим `docs/07-deployment.md` и ops-практикой.
+- [x] **Финальный аудит документов Task 010:** сверены этот файл, [`README`](../README.md), [`docs/07-deployment.md`](../../07-deployment.md), [`docs/08-testing-strategy.md`](../../08-testing-strategy.md); **2026-05-11**. Репозиторий **не** утверждает боевую приёмку.
+
+---
+
+## Финальный аудит и таблица DoD
+
+**Итог репозитория:** объём **implementation + документации** задачи выполнен (**DONE для git**). **Production / staging evidence** остаётся **pending**, если боевой контур ещё не проходился по runbook. Локальный **Docker e2e** и sandbox smoke Stripe/PayPal в чеклистах — **не** полноценная **production acceptance** (см. [`docs/07-deployment.md`](../../07-deployment.md) и раздел [«Прогресс: локальный e2e»](#прогресс-локальный-e2e-не-production) ниже).
+
+| Item | Status | Evidence (ссылка / артефакт) | Remaining action (ops / вне git) |
+|------|--------|-------------------------------|----------------------------------|
+| Local e2e контур | **Done** | `docker-compose.e2e.yml`; [`e2e-local-contour.md`](../../testing/e2e-local-contour.md) | — |
+| Env examples (`*.example`, e2e + prod‑oriented) | **Done** | `envs/backend.env.example`, `envs/database.env.example`, `envs/backend.e2e.env.example`, `envs/database.e2e.env.example`; `Frontend/Frontend3/.env.example` | Сверка с живыми `*.env` на сервере |
+| Mailpit в e2e | **Done** | compose + [`e2e-local-contour.md`](../../testing/e2e-local-contour.md) | — |
+| Stripe local e2e smoke (docs) | **Done** | [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) | Не смешивать с prod acceptance |
+| PayPal sandbox smoke (docs) | **Done** | [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) | Не смешивать с prod acceptance |
+| `/health/` + тесты + док | **Done** | [`backend/backend/urls.py`](../../../backend/backend/urls.py), [`test_health_endpoint.py`](../../../backend/test_health_endpoint.py), [`07-deployment.md`](../../07-deployment.md) § Health | После релиза: проверить с клиента на **staging/prod** |
+| PostgreSQL backup/restore → e2e | **Done** | [`database-backup-restore.md`](../../operations/database-backup-restore.md) | Регламент **регулярных** prod‑бэкапов / полный RTO/RPO → см. строки ниже |
+| Миграции + drift check в CI | **Done** | `backend/*/migrations/`; [.github/workflows/ci.yml](../../../.github/workflows/ci.yml) | Поддерживать при смене моделей |
+| Deployment runbook A–G | **Done** | [`07-deployment.md`](../../07-deployment.md) | Пройти вручную на своём контуре, sign‑off ops |
+| Cookie / HTTPS / session (env, раздел B) | **Done** | `settings.py`, `env_parse.py`, `envs/*.example`; [`07-deployment.md`](../../07-deployment.md) § B | Ручная приёмка после выката |
+| Sentry код + verification runbook | **Docs Done / Ops pending** | Django/React init; [`07-deployment.md` → Sentry](../../07-deployment.md#sentry-production-verification-runbook) | Приёмка на staging/prod по runbook |
+| Monitoring / alerts runbook | **Docs Done / Ops pending** | [`monitoring-alerts.md`](../../operations/monitoring-alerts.md) | Включить правила мониторинга по runbook |
+| `manage.py check --deploy` на цели | **Manual pending** | — | По runbook перед релизом |
+| Startup prod env validation (proposal Iter. 5) | **Не в этом закрытии** | см. ниже Iteration 5 — код опционально | Отдельный PR при нужде |
+| RTO/RPO, backup медиа (Iteration 6) | **Не в этом закрытии** | `07-deployment.md`, Iteration 6 | Доп. док при продуктовой нужде |
+| **PromoCode** | **Excluded** | [Deferred §](#deferred--future-не-входит-в-roadmap-task-010-не-блокирует-закрытие) | — |
+| **Stock reservation / Task 013** | **Excluded** | [Deferred §](#deferred--future-не-входит-в-roadmap-task-010-не-блокирует-закрытие) | — |
 
 ---
 
@@ -83,16 +108,21 @@
 - [x] **Webhook / ngrok** — в e2e шаблоне `ALLOWED_HOSTS="*"` и документация Stripe CLI / ngrok (**только** для локального контура)
 - [x] **Документация:** [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md), [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`docs/testing/paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); backup/restore: [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в [`docs/07-deployment.md`](../../07-deployment.md) зафиксировано, что e2e-compose **не** для production
 
-### Открыто (вне закрытия локального e2e)
+### Артефакты e2e и runbooks (в репозитории выполнены)
 
 - [x] **Backup / restore runbook (PostgreSQL + e2e)** — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); RTO/RPO и облачные политики на production — при необходимости доп. правка `docs/07-deployment.md`
 - [x] **Stripe local e2e smoke с артефактами** — прогон через Postman/ngrok, Mailpit; evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (*Verification evidence*). **Не** равноценно production-приёмке.
 - [x] **PayPal local e2e smoke с артефактами** — прогон **sandbox + e2e** (Postman, ngrok, Mailpit); итоги зафиксированы в [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) → *Verification evidence — latest local smoke result* (**local/sandbox**, не prod; без сырых id/payload в репозитории). По политике команды точные номера заказов/инвоясов добавляются в тикеты отдельно.
 - [x] **Production deployment runbook** — в [`docs/07-deployment.md`](../../07-deployment.md) (секции A–G); **выполнение** шагов на вашем контуре и sign-off production — по-прежнему **ручные** (см. Iteration 7).
 - [x] **Operational monitoring/alerts/logs runbook** — [`monitoring-alerts.md`](../../operations/monitoring-alerts.md), вход через [`07-deployment.md`](../../07-deployment.md)
-- [ ] **Мониторинг production — исполнение** — включить правила алертов (Sentry uptime/disk/email/webhooks и т.п. по runbook), HEALTHCHECK/`/health/` мониторинг, метрики **при необходимости**; сохранить **ручное evidence**; наличие runbook ≠ настроенные алерты
-- [ ] **Финальная верификация Sentry** на вашем staging/production по runbook [`docs/07-deployment.md`](../../07-deployment.md) (якорь `sentry-production-verification-runbook`); **документация runbook — в репозитории**, результат приёмки фиксируйте **вручную вне git** (Iteration 7)
-- [ ] **Остальные пункты DoD:** startup `DEBUG`/env validation (Iteration 5); RTO/RPO и медиа (Cloudinary) в `docs/07-deployment.md` при необходимости (Iteration 6); финальный аудит **010**.
+
+### Ручные действия на staging / production (не отменяют **DONE репозитория**)
+
+Эти пункты **вне git**; чекбоксы ниже — памятка ops, а не DoD кода.
+
+- [ ] **Мониторинг production — исполнение** — правила алертов, uptime/`/health/` и т.п. по [`monitoring-alerts.md`](../../operations/monitoring-alerts.md)
+- [ ] **Sentry staging/production verification** — по [`07-deployment.md`](../../07-deployment.md#sentry-production-verification-runbook)
+- [ ] Пройти **Iteration 7** чеклист на вашем контуре (см. [ниже](#iteration-7--validation-закрывающий-аудит-task-010))
 
 ### Next steps (кратко)
 
@@ -124,7 +154,7 @@
 - Пробелы в deployment документации
 
 ### Статус
-- [ ] Analysis complete
+- [x] Analysis complete (исторически; результат зафиксирован в последующих iterations)
 
 ---
 
@@ -404,6 +434,8 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 ## Iteration 7 — Validation (закрывающий аудит Task 010)
 
 ### Сценарии для проверки
+
+> Чекбоксы ниже — только для **вашего живого** staging/production. **Локальный e2e / sandbox smoke не являются** их заменой ([`07-deployment.md`](../../07-deployment.md), [таблица DoD выше](#финальный-аудит-и-таблица-dod)).
 - [ ] `GET /health/` → 200 `{"status": "ok", "db": "ok"}` на целевом production/stage
 - [ ] Sentry: пройти **[Sentry production verification (runbook)](../../07-deployment.md#sentry-production-verification-runbook)** (test event, проверка фильтрации, UI, алерты, ownership); **предпочтительно staging**; production test event — по согласованию. Не отмечать как «готово», пока нет **ручного** evidence.
 - [ ] CI pipeline проходит на основной ветке
@@ -413,13 +445,14 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 - [ ] Мониторинг/алерты на критичные ошибки: **проектные** действия ops по **[`monitoring-alerts.md`](../../operations/monitoring-alerts.md)** (вкл. Sentry rules, uptime/`/health/`, наблюдение за `backend/logs`). Не считать закрытым только по наличию Sentry/SDK в коде или markdown в репозитории
 
 ### Статус
-- [ ] Validation complete (финальный аудит Task 010)
+- [x] **Финальный аудит репозитория (документальный, 2026-05-11):** артефакты и ссылки согласованы; **не** равно проверке боевого сервера (см. чекбоксы ниже).
+- [ ] **Применение чеклиста на целевом контуре + ручное evidence** (по готовности ops)
 
-**Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iteration 5 (миграции в git) и Iteration 6 (частично: runbook PG + e2e в `docs/operations/`) — см. актуальные чекбоксы выше. Iteration 7 — production validation.
+**Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iteration 5 (миграции в git) и Iteration 6 (частично: runbook PG + e2e в `docs/operations/`) — см. актуальные чекбоксы выше.
 
-**Обновление 2026-05-11:** Локальный e2e-контур и связанная документация добавлены (см. раздел **«Прогресс: локальный e2e»** выше). **Миграции:** сверка `makemigrations --check --dry-run` и `migrate --plan` (SQLite при пустых `DB_*`) — дрейфа нет; см. чекбоксы DoD и Iteration 5.
+**Обновление 2026-05-11:** локальный e2e-контур и связанная документация добавлены (см. **«Прогресс: локальный e2e»**). **Миграции:** сверка `makemigrations --check --dry-run` и `migrate --plan` (SQLite при пустых `DB_*`) — дрейфа нет; см. DoD и Iteration 5.
 
-**Обновление roadmap:** промокоды и stock reservation (**013**) вынесены из блокеров **010** (см. **Deferred / Future**); закрытие **010** — по инфраструктурным хвостам и Iteration 7.
+**Закрытие задачи в git:** **DONE** по репозиторному scope; промокоды и **013** — **не** блокеры ([Deferred §](#deferred--future-не-входит-в-roadmap-task-010-не-блокирует-закрытие)). Эксплуатационная приёмка стоит в невыполненных чекбоксах ниже.
 
 ---
 
@@ -450,8 +483,8 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 
 ## Связанные проблемы из docs/09-architecture-debt.md
 
-- DEV-1: оставшийся эксплуатационный **gap** до полноценной системы наблюдаемости ослаблен **runbook**: [`monitoring-alerts.md`](../../operations/monitoring-alerts.md) и раздел **`07-deployment.md`**; **активация** правил мониторинга на production всё ещё на ops (см. **Iteration 7**).
-- DEV-2: Нет health-check endpoint P1
-- DEV-3: Нет backup стратегии P1
+- DEV-1: оставшийся эксплуатационный **gap** до полноценной системы наблюдаемости ослаблен **runbook**: [`monitoring-alerts.md`](../../operations/monitoring-alerts.md) и раздел **`07-deployment.md`**; **активация** правил мониторинга на production всё ещё на ops (см. [таблицу DoD](#финальный-аудит-и-таблица-dod)).
+- DEV-2: ~~«Нет `/health/`»~~ — endpoint и регрессия есть (**Iteration 2**); см. архитектурный долг `docs/09-architecture-debt.md` для полного вычёркивания статуса
+- DEV-3: ~~«Нет backup» как техники~~ — см. **[`database-backup-restore.md`](../../operations/database-backup-restore.md)** и **DEV-3** выше (**регулярные prod** процедуры / RTO — ещё вне задачи или Iteration 6)
 - DEV-4: Политика `.gitignore` для `migrations` vs фактическое версионирование схемы — **актуализировано** в **010** (миграции apps в git; см. DoD)
 - DEV-5: `DEBUG` не проверяется P2

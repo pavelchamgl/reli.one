@@ -101,7 +101,7 @@ flowchart LR
 6. **order** — итоговая модель после оплаты и ручных потоков.
 7. **sellers** — онбординг: валидация, API, переходы **submit / approve / reject** (покрыто).
 
-Остальные apps: **promocode** — базовые тесты есть; **атомарность счётчика использований** — **Task 010**. **warehouses** — тесты склада / конкурентности — **Task 009**. **Расширенный order lifecycle** (переходы статусов продавцом, отмена, parcel) — **Task 012**. **favorites**, **reviews** — после стабилизации P0.
+Остальные apps: **promocode** — базовые тесты есть; **атомарность счётчика использований промокода** — **не** входит в scope **[Task 010](./tasks/010-devops-infrastructure/task.md)** (DevOps/infrastructure — см. исключение промокодов там); трактовать как продуктовый/платежный долг (**003**, **002 Extended** backlog). **warehouses** — тесты склада / конкурентности — **Task 009**. **Расширенный order lifecycle** (переходы статусов продавцом, отмена, parcel) — **Task 012**. **favorites**, **reviews** — после стабилизации P0.
 
 ---
 
@@ -198,7 +198,7 @@ python manage.py test sellers.tests.CompanyAccountHolderValidationTests
 
 1. **Backend:** `python manage.py test` **и** `pytest` с окружением без продакшен-секретов (в CI по умолчанию SQLite после `migrate` — без `DB_*` в job).
 2. **Lint** для **eslint** фронтов (`Frontend2`, `Frontend3`: `npm run lint`).
-3. Порог **coverage** по apps P0 — опционально (можно ввести в **Task 010**).
+3. Порог **coverage** по apps P0 — опционально (политика команды / усиление CI **вне обязательного scope [Task 010](./tasks/010-devops-infrastructure/task.md) DevOps**).
 
 Не запускать в CI реальные webhook к Stripe/PayPal; не использовать продакшен ключи.
 
@@ -224,7 +224,7 @@ flowchart TB
 | Этап | Действия | Skills (подобрать через `/find-skills`) |
 |------|-----------|----------------------------------------|
 | 0 | CI: `manage.py test` + `pytest` + lint FE (см. workflow) | CI, babysit |
-| 1 | P0 backend: `accounts`, `product`, `delivery`, `payment`, `order` (базовый домен), `sellers` — **Task 002 DONE (Core)**; Extended: **Task 009** (warehouse), **Task 010** (promocode atomic / при желании coverage), **Task 012** (order lifecycle extended) | pytest-django, factory |
+| 1 | P0 backend: `accounts`, `product`, `delivery`, `payment`, `order` (базовый домен), `sellers` — **Task 002 DONE (Core)**; Extended: **Task 009** (warehouse), **012** (order lifecycle extended), атомика/продукт **`promocode`** — **не DevOps/Task 010** (см. **003 / backlog**); infra/e2e/runbooks локально и в CI — см. **[Task 010 — DevOps](./tasks/010-devops-infrastructure/task.md)** |
 | 2 | Unit-пакет для `delivery/services/*` и критичных валидаторов | — |
 | 3 | Подключить frontend unit (Vitest + RTL) для auth и checkout-форм | — |
 | 4 | Поздний слой: E2E (Playwright) для 1–2 happy-path | E2E skill при наличии |
@@ -235,7 +235,7 @@ flowchart TB
 
 - `docs/testing/e2e-local-contour.md` — локальный Docker e2e-контур (Postgres e2e, Mailpit, ручная проверка API / Stripe webhook).
 - `docs/testing/stripe-e2e-checklist.md` — ручной чеклист Stripe payment flow в e2e (Postman, идемпотентность, логи).
-- `docs/tasks/002-testing-foundation/task.md` — **DONE (Testing Foundation Complete)**; Core vs Extended; Extended → Task 009, 010, 012.
+- `docs/tasks/002-testing-foundation/task.md` — **DONE (Testing Foundation Complete)**; Core vs Extended; Extended → Task 009 (warehouse), Task 012 (order lifecycle); **промокоды / атомика — не смешивать с [Task 010 DevOps](./tasks/010-devops-infrastructure/task.md)**.
 - `docs/tasks/012-order-lifecycle-extended-tests/task.md` — расширенные тесты lifecycle заказа (перенос из 002 Extended).
 - `docs/09-architecture-debt.md` — замечания по текущему объёму тестов и tooling.
 - `docs/02-user-flows.md`, `docs/01-business-domains.md` — сценарии для расширения P1/P2.
@@ -251,7 +251,7 @@ flowchart TB
 | Тема | Задача |
 |------|--------|
 | Конкурентность склада / `decrease_stock` | **Task 009** |
-| Атомарность `PromoCode.increment_used_count` | **Task 010** |
+| Атомарность `PromoCode.increment_used_count` | **не Task 010** (DevOps); **003 / продуктовый backlog / 002 Extended** |
 | Расширенный order lifecycle (статусы, отмена, parcel и т.д.) | **Task 012** |
 
 **Task 011** (`order-product-received-at-timezone`) — только исправление naive datetime для `OrderProduct.received_at`; **не** заменяет Task 012.
@@ -265,6 +265,6 @@ flowchart TB
 - **Оценка объёма backend-тестов:** порядка **80+** тестов при полном прогоне (`manage.py test` / `pytest` без `--ignore=.venv` из каталога `backend`).
 - **Переменные БД:** в CI backend-job **нет** `DB_*` → после `migrate` используется ветка SQLite из `settings`. Локально при загрузке `envs/database.env` нужно обнулять `DB_NAME` и `DB_HOST` (и при необходимости остальные `DB_*`) для такого же режима, либо поднимать Postgres.
 - **Дублирование раннеров в CI:** выполняются и `python manage.py test`, и `pytest` — один и тот же набор тестов, два способа поймать регрессии раннера/плагинов.
-- **Покрытие (coverage):** порог в CI не зафиксирован; опционально — в рамках **Task 010** вместе с тестом промокода.
+- **Покрытие (coverage):** порог в CI не зафиксирован; при введении порога — отдельное решение (не смешивать с **scope [010 DevOps](./tasks/010-devops-infrastructure/task.md)**).
 - **Frontend:** `Frontend3` по-прежнему без unit-скрипта в `package.json`; только lint/build в CI.
 - **Следующие документы для правок при изменении тестов:** этот файл, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.

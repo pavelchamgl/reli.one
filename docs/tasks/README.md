@@ -24,11 +24,11 @@
 
 ### Статус задач (аудиторская формулировка)
 
-Задачи **не закрыты целиком**, если в их `task.md` остаются неотмеченные чекбоксы или явный **Partial / In Progress**.
+Задачи **не закрыты целиком** по продуктовому смыслу, если в их `task.md` остаются обязательные **кодовые** чекбоксы. **Исключение:** **[Task 010 — DevOps](./010-devops-infrastructure/task.md)** закрыт для **репозитория** (**DONE git**), см. [финальную таблицу DoD](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); эксплуатационная приёмка описана как **pending** и не отменяет это закрытие.
 
 | # | После аудита |
 |---|----------------|
-| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, **production deployment runbook (A–G)** и **[`monitoring-alerts.md`](../operations/monitoring-alerts.md)** (вход через [`07-deployment.md`](../07-deployment.md)); выполнение runbook и приёмка — **ручные**; **алерты в prod действуют только после настройки ops**, не только из текста документа. **cookies/HSTS через env**, миграции в git + `makemigrations --check`. **Остаётся для «done»:** прогон runbook на контуре, **Sentry verification**, **активация** мониторинга/alerts по runbook ops, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа. **Не входит в закрытие 010:** промокоды, **013**. |
+| **010** | **DONE (репозиторий):** e2e-compose, env examples, Mailpit, Stripe/PayPal **local/sandbox** smoke (evidence в docs), `/health/` + тесты, backup/restore runbook, migrations+CI, deployment A–G, cookies env, Sentry+monitoring **runbooks в `docs/`**. **OPEN (ops):** прогон тех же runbook на **staging/prod**, evidence, `check --deploy`, включение алертов — см. [DoD-таблицу 010](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod). **Не входит в закрытие 010:** промокоды, **013**. Опционально позже: startup env validation (Iter. 5), RTO/RPO+медиа (Iter. 6). |
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
@@ -45,7 +45,7 @@
 
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
-1. [**010**](./010-devops-infrastructure/task.md) — **выполнить** runbook из `docs/07-deployment.md` на staging/prod-контуре; cookies/sessions, Sentry verification, мониторинг/алерты, `check --deploy`, финальный аудит **010**; при необходимости RTO/RPO и медиа. Промокоды и **013** — **не** DoD **010**.
+1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). Промокоды и **013** — не DoD **010**.
 2. [**004**, **005**, **008**](./004-order-consistency/task.md) — по вашему темпу после стабильного тестового фундамента.
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 
@@ -110,7 +110,7 @@ graph TD
 | 007 | [frontend-critical-fixes](./007-frontend-critical-fixes/task.md) | P1 | Low | 006 | GO |
 | 008 | [seller-onboarding-stabilization](./008-seller-onboarding-stabilization/task.md) | P1 | High | 002 | NO-GO без 002 |
 | 009 | [db-model-improvements](./009-db-model-improvements/task.md) | **P0**/P2 | Medium | 002 | NO-GO без 002 |
-| 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | **Частично** (docs+e2e+smokes+runbooks; см. задачу) |
+| 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | **DONE (git)**; см. [DoD-таблицу](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); ops acceptance — отдельно |
 | 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | GO |
 | 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | перенос Extended из 002 |
 | **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **Future** / design-only | High | при старте: **002**, **003** | **Не** в текущем roadmap; **не** блокирует **010**; в коде нет целевого резерва (см. `task.md`) |
@@ -126,7 +126,7 @@ gantt
     001 System Stabilization              :crit, s001, 2026-05-05, 5d
     section Foundation
     002 Testing Foundation                :crit, s002, after s001, 14d
-    010 DevOps (часть сделано: e2e+smokes+runbooks) :s010, after s001, 7d
+    010 DevOps (репозиторий закрыт; ops — см. task 010) :s010, after s001, 2d
     section Critical Fixes
     007 Frontend Fixes                    :s007, after s006, 5d
     006 Security (rate limiting)          :s006b, after s007, 3d
