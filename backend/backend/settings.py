@@ -19,9 +19,9 @@ load_dotenv(BASE_DIR / ".env")
 
 SECURE_SSL_REDIRECT = False
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Media files (override via env for Docker e2e и др.; дефолты как на production)
+MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
 
 CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 
@@ -250,8 +250,8 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/reli.one/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = os.getenv("STATIC_URL", "/reli.one/static/")
+STATIC_ROOT = os.getenv("STATIC_ROOT", os.path.join(BASE_DIR, "static"))
 
 DEFAULT_PROJECT_MANAGERS = ["office@reli.one"]
 
