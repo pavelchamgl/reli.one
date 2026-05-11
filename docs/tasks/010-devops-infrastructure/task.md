@@ -73,13 +73,13 @@
 - [x] **Mailpit** — локальная проверка SMTP без отправки писем наружу (`EMAIL_HOST=mailpit`)
 - [x] **Статика / admin в e2e** — `STATIC_URL`, `STATIC_ROOT`, `MEDIA_URL`, `MEDIA_ROOT` читаются из env с production-compatible defaults; compose задаёт `/static/`, `/app/staticfiles`, `/media/`, `/app/media`
 - [x] **Webhook / ngrok** — в e2e шаблоне `ALLOWED_HOSTS="*"` и документация Stripe CLI / ngrok (**только** для локального контура)
-- [x] **Документация:** [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md), [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md); backup/restore: [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в [`docs/07-deployment.md`](../../07-deployment.md) зафиксировано, что e2e-compose **не** для production
+- [x] **Документация:** [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md), [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`docs/testing/paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); backup/restore: [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в [`docs/07-deployment.md`](../../07-deployment.md) зафиксировано, что e2e-compose **не** для production
 
 ### Открыто (вне закрытия локального e2e)
 
 - [x] **Backup / restore runbook (PostgreSQL + e2e)** — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); RTO/RPO и облачные политики на production — при необходимости доп. правка `docs/07-deployment.md`
 - [x] **Stripe local e2e smoke с артефактами** — прогон через Postman/ngrok, Mailpit; evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (*Verification evidence*). **Не** равноценно production-приёмке.
-- [ ] **PayPal local e2e smoke с артефактами** — по-прежнему **не зафиксирован**; при необходимости оформить аналогичный чеклист/таблицу evidence.
+- [ ] **PayPal local e2e smoke с артефактами** — чеклист готов: [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); **заполненная** таблица *Verification evidence* после реального прогона — по-прежнему **не зафиксирована** в репозитории (как и для чувствительных прогонов).
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
 - [ ] **Production deployment checklist** — в `docs/07-deployment.md` добавлен **ориентир checklist** (DEBUG, хосты, CSRF, proxy, Sentry, логи, health); процедура **ручного деплоя**, CI/CD pipeline, TLS refresh — по-прежнему **TODO** в том же файле
@@ -409,11 +409,13 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 
 ## Локальный e2e-контур (документация)
 
-Для ручной проверки backend с изолированной БД, Mailpit и Stripe test mode: compose **`docker-compose.e2e.yml`**, шаблоны **`envs/backend.e2e.env.example`**, **`envs/database.e2e.env.example`**.
+Для ручной проверки backend с изолированной БД, Mailpit и провайдерами оплаты (Stripe test mode, PayPal sandbox): compose **`docker-compose.e2e.yml`**, шаблоны **`envs/backend.e2e.env.example`**, **`envs/database.e2e.env.example`**.
 
 | Документ | Содержание |
 |----------|------------|
 | [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md) | Запуск compose, порты, сброс БД, Mailpit, ngrok/webhook, безопасность |
+| [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) | Ручной Stripe: Postman, webhook, идемпотентность |
+| [`docs/testing/paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) | Ручной PayPal sandbox: Postman, ngrok, `PAYPAL_WEBHOOK_ID`, идемпотентность |
 | [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md) | Backup/restore PostgreSQL, restore prod-копии в e2e, safety |
 
 ## Привязка к коду
@@ -424,7 +426,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 | **Frontend** | `src/main.jsx`, `.env.example` |
 | **CI** | `.github/workflows/ci.yml` |
 | **Env** | `envs/backend.env.example`, `Frontend/Frontend3/.env.example` |
-| **Docs** | `docs/07-deployment.md`, `docs/operations/database-backup-restore.md`, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/08-testing-strategy.md` |
+| **Docs** | `docs/07-deployment.md`, `docs/operations/database-backup-restore.md`, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/testing/paypal-e2e-checklist.md`, `docs/08-testing-strategy.md` |
 | **Tests (health)** | `backend/test_health_endpoint.py` |
 | **Git** | `.gitignore` (migrations, `backups/`, e2e volumes) |
 | **Локальный e2e** | `docker-compose.e2e.yml`, `envs/*.e2e.env.example` |

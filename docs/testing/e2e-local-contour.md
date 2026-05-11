@@ -1,13 +1,14 @@
 # Локальный e2e-контур (Docker) для ручной проверки API
 
-Отдельный стек от production и от **pytest**-стека (`docker-compose.test.yml`): собственные тома PostgreSQL и media, SMTP через **Mailpit**, Django на `runserver` со статикой. Назначение — end-to-end и ручные сценарии (Postman, браузер, Stripe test mode) без затрагивания боевой БД и без рассылки реальных писем.
+Отдельный стек от production и от **pytest**-стека (`docker-compose.test.yml`): собственные тома PostgreSQL и media, SMTP через **Mailpit**, Django на `runserver` со статикой. Назначение — end-to-end и ручные сценарии (Postman, браузер, Stripe test mode / PayPal sandbox) без затрагивания боевой БД и без рассылки реальных писем.
 
 ## Назначение
 
-- Проверка полной цепочки: аутентификация → создание Stripe Checkout → оплата в тестовом режиме → webhook → создание сущностей в БД → письма в Mailpit.
-- Работа с **реальными тестовыми ключами** Stripe (и при необходимости других провайдеров) в изолированном окружении.
+- Проверка полной цепочки для **Stripe** или **PayPal**: аутентификация → создание платёжной сессии → оплата (test / sandbox) → webhook → сущности в БД → письма в Mailpit.
+- Работа с **тестовыми ключами** Stripe и **sandbox** учётными данными PayPal в изолированном окружении.
 - Быстрая проверка OpenAPI-контрактов и админки на свежей миграции.
 - Детальный ручной сценарий Stripe: [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md).
+- Детальный ручной сценарий PayPal **sandbox**: [`paypal-e2e-checklist.md`](./paypal-e2e-checklist.md).
 
 Production-стек (`docker-compose.yml`, `envs/database.env`, `envs/backend.env`, `.reli_db`) **не используется**.
 
@@ -166,7 +167,8 @@ SMTP-порт **1025** при необходимости проброшен на
 ## Связанные документы
 
 - [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) — backup production PostgreSQL и restore в локальный e2e.
-- `docs/testing/stripe-e2e-checklist.md` — **ручной чеклист Stripe** (Postman, webhook, идемпотентность, логи, негативные сценарии).
-- `docs/08-testing-strategy.md` — общая стратегия тестов и ссылка на этот контур.
-- `docs/07-deployment.md` — production compose; e2e **не** является деплоем.
-- `docs/testing/postgres-integration-tests.md` — **другой** стек (`docker-compose.test.yml`) под pytest / integration tests.
+- [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md) — ручной чеклист **Stripe**.
+- [`paypal-e2e-checklist.md`](./paypal-e2e-checklist.md) — ручной чеклист **PayPal sandbox**.
+- [`docs/08-testing-strategy.md`](../08-testing-strategy.md) — общая стратегия тестов и ссылка на этот контур.
+- [`docs/07-deployment.md`](../07-deployment.md) — production compose; e2e **не** является деплоем.
+- [`postgres-integration-tests.md`](./postgres-integration-tests.md) — **другой** стек (`docker-compose.test.yml`) под pytest / integration tests.

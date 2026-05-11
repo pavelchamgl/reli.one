@@ -10,7 +10,7 @@
 
 ## Verification evidence — latest local smoke result
 
-**Дата фиксации в документации:** 2026-05-11. **один успешный ручной smoke-прогон** (Postman → Stripe Checkout → webhook через публичный туннель), без секретов и без полных идентификаторов Stripe.
+**Дата фиксации в документации:** 2026-05-11. Ниже зафиксирован **один успешный ручной smoke-прогон** (Postman → Stripe Checkout → webhook через публичный туннель), без секретов и без полных идентификаторов Stripe.
 
 | Поле | Значение / наблюдение |
 |------|------------------------|
@@ -184,4 +184,5 @@
 ## См. также
 
 - [`e2e-local-contour.md`](./e2e-local-contour.md) — запуск compose, Mailpit, postgres, ngrok.
+- [`paypal-e2e-checklist.md`](./paypal-e2e-checklist.md) — ручной PayPal **sandbox** (Postman, ngrok webhook).
 - [`docs/08-testing-strategy.md`](../08-testing-strategy.md) — стратегия тестов и P0 webhook / идемпотентность.
