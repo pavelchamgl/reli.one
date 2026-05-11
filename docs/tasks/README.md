@@ -13,7 +13,8 @@ graph TD
         T001["001 System Stabilization\nСломанный kod прямо сейчас"]
         T002["002 Testing Foundation\n0% покрытие = нельзя рефакторить"]
         T003P0["003 Payment Refactor\nDB-1: двойные заказы\nDB-6: race condition promo"]
-        T009P0["009 DB Models\nDB-2: overselling warehouse"]
+        T009P0["009 DB Models\nDB-2: warehouse locking"]
+        T013P0["013 Stock Reservation\ninventory before pay"]
         T006P0["006 Security\nSEC-1: секреты в git\nSEC-2: PII в коде"]
     end
 
@@ -36,6 +37,7 @@ graph TD
     T002 --> T008
     T003 --> T004
     T003 --> T005
+    T013P0 --> T009P0
     T006P0 --> T007
 ```
 
@@ -57,8 +59,7 @@ graph TD
 | 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | GO параллельно |
 | 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | GO |
 | 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | перенос Extended из 002 |
-
----
+| **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **P0** | High | **002**, согласование с **003** | продуктовый риск: оплата без учёта остатков |
 
 ## Рекомендуемый порядок выполнения
 
@@ -105,7 +106,7 @@ gantt
 ### 2. Какие критические сценарии НЕ покрыты?
 
 - Дублирующийся Stripe webhook → создание двух заказов
-- Конкурентный `decrease_stock` → overselling
+- Конкурентный `decrease_stock` → overselling **(только если списание снова включено в webhook без резерва/блокировок — см. Task 013)**
 - Конкурентный `increment_used_count` → превышение лимита промокода
 - Параллельная генерация инвойсов → дублирующиеся номера
 - Order lifecycle transitions (Pending → Processing → Shipped → Closed)
@@ -117,8 +118,7 @@ gantt
 РИСК 1 (DB-1): Payment.session_id не уникален
 → Stripe может доставить webhook дважды → 2 заказа, 2 списания промокода
 
-РИСК 2 (DB-2): WarehouseItem без select_for_update
-→ Параллельные webhook-и → quantity_in_stock < 0 → overselling
+РИСК 2 (DB-2): Нет end-to-end учёта остатка до оплаты; списание в webhook отключено → см. Task 013. При возврате списания без `select_for_update()` — параллельные подтверждения могут испортить `quantity_in_stock`
 
 РИСК 3 (DB-6): PromoCode.increment_used_count не атомарный
 → Промокод применяется больше max_usage раз
@@ -186,5 +186,8 @@ docs/tasks/
 ├── 007-frontend-critical-fixes/task.md
 ├── 008-seller-onboarding-stabilization/task.md
 ├── 009-db-model-improvements/task.md
-└── 010-devops-infrastructure/task.md
+├── 010-devops-infrastructure/task.md
+├── 011-order-product-received-at-timezone/task.md
+├── 012-order-lifecycle-extended-tests/task.md
+└── 013-stock-reservation/task.md
 ```

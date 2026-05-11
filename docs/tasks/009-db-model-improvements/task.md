@@ -4,13 +4,15 @@
 **Complexity:** Medium  
 **Status:** Pending
 
+> **Состояние склада (актуализация 2026-05-11):** сейчас create payment session **не проверяет** `WarehouseItem.quantity_in_stock`; webhook **не вызывает** `decrease_stock` (функция в коде есть, но ни одного вызова по проекту — списание отключено). Поведение склада при оплате и целевой end-to-end flow описаны в **[Task 013 — Stock Reservation](../013-stock-reservation/task.md)**. Включать списание в webhook снова нельзя без проверки/резерва на этапе create session.
+
 ## Цель
 
-Устранить критический риск overselling (warehouse без блокировки), исправить бизнес-логику аналитики и привести модели базы данных в соответствие с требованиями надёжности.
+Устранить технические риски вокруг складских моделей и цен, **в части склада** подготовить низкоуровневые примитивы (блокировка строки при списании и т.д.), не подменяя ими отдельную задачу **013** по резервированию до оплаты. Исправить бизнес-логику аналитики и привести часть моделей в соответствие с требованиями надёжности.
 
 ## Контекст
 
-- **DB-2 (P0):** `WarehouseItem.decrease_stock` без `select_for_update()` → при параллельных webhook-ах `quantity_in_stock` уходит в минус → overselling
+- **DB-2 (P0 — при возврате списания):** когда `decrease_stock` снова станет частью боевого flow, необходимо `select_for_update()` на строке `WarehouseItem`, иначе при параллельных подтверждениях `quantity_in_stock` может уйти в неконсистентное состояние. **Сейчас** списание в webhook выключено, поэтому риск именно «двойного списания в webhook» **не активен**, но остаётся **product risk** см. Task 013 (оплата без учёта остатка).
 - **BE-6 (P2):** `analytics/services.py` использует `Warehouse.objects.get(name="Vendor warehouse")` → при переименовании склада в Admin аналитика перестаёт работать
 - **BE-5 (P2):** Бизнес-логика цены (`price_with_acquiring`, `ACQUIRING_RATE = 1.04`) разбросана по `product/models.py`, `favorites/views.py` — при изменении ставки нужно менять в нескольких местах
 
@@ -31,7 +33,8 @@
 ## Зависимости
 
 - **Task 002 (testing-foundation)** — Core завершён; конкурентные тесты склада (`decrease_stock`) входят в эту задачу (Extended из 002)
-- Task 003 (payment-refactor) — webhook processing использует warehouse.decrease_stock
+- **Task 013 (stock-reservation)** — **блокирующая задача** для безопасного повторного включения списания: сначала проверка и резерв на create payment session, затем атомарное подтверждение в webhook
+- Task 003 (payment-refactor) — те же точки интеграции (session + webhook), должны быть согласованы с Task 013; **реального вызова** `decrease_stock` из webhook в текущем коде нет
 
 ## Риски
 
@@ -65,7 +68,7 @@
 - Найти все места с `1.04` или `ACQUIRING_RATE`
 
 ### Output
-- Схема warehouse flow (когда вызывается decrease_stock)
+- Схема warehouse flow (**текущий baseline:** в webhook только выбор склада через `WarehouseItem`; `decrease_stock` не вызывается — см. Task 013)
 - Список всех мест с hardcoded acquiring rate
 - Migration plan для `reserved_quantity`
 
@@ -75,7 +78,8 @@ sequenceDiagram
     participant WH as warehouses/services
     participant DB
 
-    Webhook->>WH: decrease_stock(variant_id, qty)
+    Note over Webhook,DB: Целевой/будущий риск при параллельном списании без блокировки
+    Webhook->>WH: decrease_stock (после Task 013 + включения)
     WH->>DB: SELECT quantity_in_stock (NO LOCK)
     Note over DB: РИСК: другой webhook читает то же значение
     WH->>DB: UPDATE quantity_in_stock = current - qty
@@ -168,11 +172,11 @@ class InsufficientStockError(Exception):
 reserved_quantity = models.PositiveIntegerField(default=0)
 ```
 
-**Phase 2:** В `create_checkout_session` вызывать `reserve_stock()` вместо `decrease_stock()`
+**Phase 2:** В **create payment session** вводится резерв (детальный flow — **[Task 013](../013-stock-reservation/task.md)**).
 
-**Phase 3:** В `webhook_processing` подтверждать резерв или освобождать при неоплате
+**Phase 3:** В `webhook_processing` подтверждение резервов / освобождение при отмене (Task 013); `decrease_stock` или её преемник — только в связке с идемпотентностью.
 
-Реализация Phase 2-3 — в отдельной задаче.
+Реализация Phase 2-3 отнесена к **Task 013** и не должна дублироваться здесь как «готовая система складов».
 
 ### Статус
 - [ ] select_for_update added
