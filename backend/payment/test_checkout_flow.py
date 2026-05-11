@@ -33,7 +33,7 @@ def _resolved_zip_ok():
 
 
 class CheckoutCatalogMixin:
-    """Минимальный каталог: продавец CZ, вариант, остаток, справочники заказа."""
+    """Минимальный каталог: продавец CZ, вариант, WarehouseItem (склад для webhook), справочники."""
 
     @classmethod
     def setUpCatalog(cls):
@@ -428,6 +428,8 @@ class StripeWebhookFlowTests(CheckoutCatalogMixin, TestCase):
         orders_after_first = Order.objects.count()
         self.assertEqual(orders_after_first, 1)
         self.assertEqual(Payment.objects.filter(session_id=session_id).count(), 1)
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50)
 
         r2 = self.client.post(
             url,
@@ -438,6 +440,8 @@ class StripeWebhookFlowTests(CheckoutCatalogMixin, TestCase):
         self.assertEqual(r2.status_code, status.HTTP_200_OK)
         self.assertEqual(Order.objects.count(), orders_after_first)
         self.assertEqual(Payment.objects.filter(session_id=session_id).count(), 1)
+        wi.refresh_from_db()
+        self.assertEqual(wi.quantity_in_stock, 50)
 
     @patch("payment.views.async_parcels_and_seller_email")
     @patch("payment.views.async_send_client_email")
@@ -527,6 +531,9 @@ class StripeWebhookFlowTests(CheckoutCatalogMixin, TestCase):
 
         pay = Payment.objects.get(session_id=session_id)
         self.assertEqual(pay.amount_total, group_total)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50)
 
 
 class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
@@ -630,6 +637,8 @@ class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
         )
         self.assertEqual(r1.status_code, status.HTTP_200_OK, r1.data)
         self.assertEqual(Order.objects.count(), 1)
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50)
         self.assertEqual(
             Payment.objects.filter(
                 payment_system="paypal", session_id=paypal_order_id
@@ -654,6 +663,8 @@ class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
             r2.data.get("status"),
             "0 order(s) created successfully",
         )
+        wi.refresh_from_db()
+        self.assertEqual(wi.quantity_in_stock, 50)
 
     @patch("payment.views.async_parcels_and_seller_email")
     @patch("payment.views.async_send_client_email")
@@ -743,3 +754,6 @@ class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
         self.assertEqual(pay.amount_total, group_total)
         desc = PayPalMetadata.objects.get(session_key=session_key).description_data
         self.assertEqual(Decimal(str(desc["gross_total"])), group_total)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50)

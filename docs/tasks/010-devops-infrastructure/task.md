@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In Progress (Iterations 2–4 выполнены, 5–6 не начаты)
+**Status:** In Progress — **локальный e2e-контур и документация готовы**; Iterations **5–6** (миграции в git, backup runbook) и **production-hardening** (деплой-checklist, полная верификация Sentry/мониторинга) **открыты**
 
 ## Цель
 
@@ -12,8 +12,8 @@
 
 Без мониторинга инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей. Нет health-check для Docker/load balancer. Миграции исключены из git → восстановление чистой БД сложно. Нет backup стратегии для PostgreSQL и медиа-файлов.
 
-- **DEV-1 (P1):** Нет Sentry → payment/order ошибки незаметны в real-time
-- **DEV-2 (P1):** Нет health-check endpoint
+- **DEV-1 (P1):** Интеграция Sentry в коде **есть** (Iteration 3); **эксплуатационная** проверка в production (события, алерты) — **открыта** (Iteration 7)
+- **DEV-2 (P1):** ~~Нет health-check endpoint~~ — **`GET /health/` реализован** (Iteration 2); использование в боевом compose/runbook и мониторинг — **не завершены**
 - **DEV-3 (P1):** Нет backup стратегии PostgreSQL + Cloudinary
 - **DEV-4 (P2):** Миграции в `.gitignore` → нет version history схемы
 - **DEV-5 (P2):** `DEBUG` не проверяется в production
@@ -57,6 +57,37 @@
 - [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
 - [ ] PromoCode: тест атомарности / гонок `used_count` — перенос из Task 002 Extended (см. Scope выше)
 - [x] `DEBUG` корректно парсится как bool — `settings.py` строка 32 исправлена (2026-05-05): `os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`. Startup validation остаётся pending.
+
+---
+
+## Прогресс: локальный e2e (не production)
+
+Ниже — фактическое состояние после появления изолированного Docker e2e. **Это не означает готовность production** (отдельные пункты ниже).
+
+### Сделано
+
+- [x] **`docker-compose.e2e.yml`** — PostgreSQL e2e, Mailpit, backend (`migrate`, `collectstatic`, `runserver --insecure`)
+- [x] Шаблоны **`envs/backend.e2e.env.example`**, **`envs/database.e2e.env.example`**
+- [x] **Mailpit** — локальная проверка SMTP без отправки писем наружу (`EMAIL_HOST=mailpit`)
+- [x] **Статика / admin в e2e** — `STATIC_URL`, `STATIC_ROOT`, `MEDIA_URL`, `MEDIA_ROOT` читаются из env с production-compatible defaults; compose задаёт `/static/`, `/app/staticfiles`, `/media/`, `/app/media`
+- [x] **Webhook / ngrok** — в e2e шаблоне `ALLOWED_HOSTS="*"` и документация Stripe CLI / ngrok (**только** для локального контура)
+- [x] **Документация:** [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md), [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md); в [`docs/07-deployment.md`](../../07-deployment.md) зафиксировано, что e2e-compose **не** для production
+
+### Открыто (вне закрытия локального e2e)
+
+- [ ] **Backup / restore runbook** — в `docs/07-deployment.md` по-прежнему TODO (Iteration 6)
+- [ ] **Полное прохождение Stripe + PayPal e2e с артефактами** — контур и Stripe checklist есть; формальный sign-off / доказательства прогона PayPal и обоих потоков в этой задаче **не зафиксированы**
+- [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
+- [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
+- [ ] **Production deployment checklist** — закрытие TODO в `docs/07-deployment.md` (ручной деплой, CI/CD, TLS refresh)
+- [ ] Остальные пункты **Definition of Done** выше: миграции в git, PromoCode regression, startup `DEBUG`/env validation
+
+### Next steps (кратко)
+
+1. Iteration 6: описать backup/restore и RTO/RPO в `docs/07-deployment.md`.
+2. Iteration 5: миграции в репозиторий; при необходимости startup-проверка env для production.
+3. Прогнать и задокументировать e2e PayPal + зафиксировать результаты Stripe по [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md).
+4. Iteration 7: подтвердить Sentry в prod, `check --deploy`, при необходимости health probe в ops-runbook.
 
 ---
 
@@ -316,7 +347,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 
 ### Статус
 - [ ] Migrations in git — НЕ сделано. `.gitignore` строка 30: `*/migrations` по-прежнему исключает все миграции. CI-шаг `makemigrations --check` пройдёт только если в БД уже применены миграции (в CI используется SQLite fallback — проблема)
-- [ ] DEBUG check added — НЕ сделано. `settings.py` строка 32: `DEBUG = os.getenv("DEBUG")` возвращает строку. Если в `.env` задано `DEBUG=False`, Python получит truthy-строку. Нужно: `DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`
+- [ ] Startup production validation (`DJANGO_ENV=production`, обязательные env vars) — НЕ сделано (см. предложенный фрагмент выше). Парсинг **`DEBUG` как bool** уже исправлен в `settings.py` (см. Definition of Done).
 
 ---
 
@@ -365,13 +396,22 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 ### Статус
 - [ ] Validation complete
 
-**Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iterations 5–6 не начаты (миграции в git, DEBUG bool, backup docs).
+**Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iterations 5–6 не начаты (миграции в git, backup docs).
+
+**Обновление 2026-05-11:** Локальный e2e-контур и связанная документация добавлены (см. раздел **«Прогресс: локальный e2e»** выше). Iterations 5–7 **по-прежнему актуальны** для production.
 
 ---
 
 ## Локальный e2e-контур (документация)
 
-Для ручной проверки backend с изолированной БД, Mailpit и Stripe test mode добавлен compose **`docker-compose.e2e.yml`** и шаблоны `envs/backend.e2e.env.example`, `envs/database.e2e.env.example`. Описание запуска, портов, сброса БД, Mailpit, ngrok/webhook и ограничений безопасности: **`docs/testing/e2e-local-contour.md`**. В **`docs/07-deployment.md`** явно указано, что e2e-compose не является production.
+Для ручной проверки backend с изолированной БД, Mailpit и Stripe test mode: compose **`docker-compose.e2e.yml`**, шаблоны **`envs/backend.e2e.env.example`**, **`envs/database.e2e.env.example`**.
+
+| Документ | Содержание |
+|----------|------------|
+| [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md) | Запуск compose, порты, сброс БД, Mailpit, ngrok/webhook, безопасность |
+| [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) | Ручной Postman/Webhook чеклист Stripe, идемпотентность, логи |
+
+В [`docs/07-deployment.md`](../../07-deployment.md) указано, что **`docker-compose.e2e.yml` не для production**.
 
 ## Привязка к коду
 
@@ -381,7 +421,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 | **Frontend** | `src/main.jsx`, `.env.example` |
 | **CI** | `.github/workflows/ci.yml` |
 | **Env** | `envs/backend.env.example`, `Frontend/Frontend3/.env.example` |
-| **Docs** | `docs/07-deployment.md`, `docs/testing/e2e-local-contour.md` |
+| **Docs** | `docs/07-deployment.md`, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/08-testing-strategy.md` |
 | **Git** | `.gitignore` (migrations) |
 | **Локальный e2e** | `docker-compose.e2e.yml`, `envs/*.e2e.env.example` |
 

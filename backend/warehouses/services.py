@@ -1,8 +1,6 @@
 import logging
 
 from .models import WarehouseItem
-from warehouses.models import WarehouseItem, Warehouse
-from product.models import ProductVariant
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +8,8 @@ logger = logging.getLogger(__name__)
 def decrease_stock(warehouse, variant, quantity):
     """
     Уменьшает остаток. Если WarehouseItem нет или не хватает — логируем и выходим.
+
+    Примечание: списание при создании заказа из webhook сейчас отключено — см. webhook_processing.
     """
     try:
         wi = WarehouseItem.objects.get(
