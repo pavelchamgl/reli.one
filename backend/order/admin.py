@@ -5,16 +5,17 @@ from django.utils.html import format_html
 from django.urls import reverse
 
 from .models import (
-    Order,
-    OrderProduct,
-    DeliveryType,
-    OrderStatus,
-    DeliveryStatus,
     CourierService,
+    DeliveryStatus,
+    DeliveryType,
     Invoice,
     InvoiceSequence,
+    Order,
     OrderEvent,
+    OrderProduct,
+    OrderStatus,
 )
+from .order_status_names import OrderStatusName
 
 
 # ------------------------ OrderProduct Inline -------------------------
@@ -53,7 +54,10 @@ class OrderProductInline(admin.TabularInline):
         readonly_fields = super().get_readonly_fields(request, obj)
         if obj and hasattr(obj, 'order') and hasattr(obj.order, 'order_status') and obj.order.order_status:
             readonly_fields = list(readonly_fields)
-            if obj.order.order_status.name not in ['Pending', 'Processing']:
+            if obj.order.order_status.name not in (
+                OrderStatusName.PENDING,
+                OrderStatusName.PROCESSING,
+            ):
                 readonly_fields.append('received')
         return readonly_fields
 
@@ -93,7 +97,7 @@ class OrderAdmin(admin.ModelAdmin):
     change_to_self_pickup.short_description = 'Change selected to Self Pickup'
 
     def cancel_orders(self, request, queryset):
-        order_status = get_object_or_404(OrderStatus, name='Cancelled')
+        order_status = get_object_or_404(OrderStatus, name=OrderStatusName.CANCELLED)
         queryset.update(order_status=order_status)
         self.message_user(request, "Selected orders have been cancelled.")
     cancel_orders.short_description = 'Cancel selected orders'

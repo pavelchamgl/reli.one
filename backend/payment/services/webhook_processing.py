@@ -34,6 +34,7 @@ from order.models import (
     OrderStatus,
     ProductStatus,
 )
+from order.order_status_names import OrderStatusName
 from order.services.invoice_data import prepare_invoice_data
 from order.services.invoice_generator import generate_invoice_pdf
 from payment.models import Payment
@@ -272,9 +273,9 @@ def _prepare_order_creation_context(
     # 5. Справочные данные
     # ------------------------------------------------------------------
     try:
-        pending_status = OrderStatus.objects.get(name="Pending")
+        pending_status = OrderStatus.objects.get(name=OrderStatusName.PENDING)
     except OrderStatus.DoesNotExist:
-        logger.error("[%s] OrderStatus 'Pending' not found in DB", source)
+        logger.error("[%s] OrderStatus '%s' not found in DB", source, OrderStatusName.PENDING)
         return None
 
     root_addr = data.custom_data.get("delivery_address") or {}

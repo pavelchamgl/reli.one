@@ -20,7 +20,8 @@ from rest_framework.test import APIClient
 
 from accounts.choices import UserRole
 from accounts.models import CustomUser
-from order.models import CourierService, DeliveryType, Order, OrderStatus, OrderProduct
+from order.models import CourierService, DeliveryType, Order, OrderProduct, OrderStatus
+from order.order_status_names import OrderStatusName
 from payment.mixins import PayPalMixin
 from payment.models import Payment, PayPalMetadata, StripeMetadata
 from product.models import BaseProduct, ProductStatus, ProductVariant
@@ -97,7 +98,9 @@ class CheckoutCatalogMixin:
         DeliveryType.objects.all().delete()
         cls.dt_pudo = DeliveryType.objects.create(pk=1, name="PUDO")
         cls.dt_hd = DeliveryType.objects.create(pk=2, name="Home Delivery")
-        cls.order_status_pending, _ = OrderStatus.objects.get_or_create(name="Pending")
+        cls.order_status_pending, _ = OrderStatus.objects.get_or_create(
+            name=OrderStatusName.PENDING
+        )
 
         CourierService.objects.all().delete()
         cls.cs_packeta = CourierService.objects.create(

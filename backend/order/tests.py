@@ -7,6 +7,7 @@ Covers:
 - generate_order_number() — format and uniqueness
 - OrderEvent — creation and FK integrity
 - next_invoice_identifiers() — PAY-4: uniqueness under concurrency
+- OrderStatusName vs seller actions — единый источник имён статуса заказа
 
 See also test_webhook_lifecycle.py for checkout webhook → Order/Payment/Invoice integration.
 """
@@ -33,7 +34,9 @@ from order.models import (
     OrderStatus,
     generate_order_number,
 )
+from order.order_status_names import OrderStatusName
 from order.services.invoice_numbers import INVOICE_NUMBER_PAD, next_invoice_identifiers
+from order.services.seller_order_actions import SellerOrderActionsService
 from payment.models import Payment
 from product.models import BaseProduct, ProductStatus, ProductVariant
 from sellers.models import SellerProfile
@@ -372,3 +375,14 @@ class OrderEventTests(OrderTestMixin, TestCase):
             OrderEvent.objects.create(order=self.order, type=event_type)
 
         self.assertEqual(self.order.events.count(), len(OrderEvent.Type.values))
+
+
+class OrderStatusNameConsistencyTests(TestCase):
+    """Константы имён статуса заказа не расходятся между модулями."""
+
+    def test_seller_actions_aliases_order_status_name(self):
+        self.assertEqual(SellerOrderActionsService.STATUS_PENDING, OrderStatusName.PENDING)
+        self.assertEqual(SellerOrderActionsService.STATUS_PROCESSING, OrderStatusName.PROCESSING)
+        self.assertEqual(SellerOrderActionsService.STATUS_SHIPPED, OrderStatusName.SHIPPED)
+        self.assertEqual(SellerOrderActionsService.STATUS_DELIVERED, OrderStatusName.DELIVERED)
+        self.assertEqual(SellerOrderActionsService.STATUS_CANCELLED, OrderStatusName.CANCELLED)

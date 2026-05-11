@@ -7,6 +7,7 @@ from django.db.models import DecimalField, F, Sum
 from django.shortcuts import render
 
 from order.models import Order, OrderProduct
+from order.order_status_names import OrderStatusName
 from supplier.models import Supplier
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,7 @@ def generate_report(request):
             )['total'] or Decimal('0.00')
 
             closed_orders = Order.objects.filter(
-                order_status__name="Closed",
+                order_status__name=OrderStatusName.CLOSED,
                 order_date__date__range=[start_date, end_date],
             )
 

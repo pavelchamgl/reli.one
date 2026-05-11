@@ -122,6 +122,9 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'Order'
         verbose_name_plural = 'Orders'
+        indexes = [
+            models.Index(fields=("user", "order_date"), name="order_user_orderdate_idx"),
+        ]
 
     def __str__(self):
         return f"Order #{self.order_number} by {self.user.email} on {self.order_date.strftime('%d.%m.%Y')}"
@@ -139,6 +142,13 @@ class Order(models.Model):
 
 
 class ProductStatus(models.TextChoices):
+    """
+    Статус позиции заказа (OrderProduct.status).
+
+    Не путать с ``product.models.ProductStatus`` — это статус карточки товара
+    в каталоге (pending/approved/rejected); имена классов совпадают исторически.
+    """
+
     AWAITING_ASSEMBLY = 'awaiting_assembly', 'Awaiting assembly'
     AWAITING_SHIPMENT = 'awaiting_shipment', 'Awaiting shipment'
     DELIVERABLE = 'deliverable', 'Deliverable'

@@ -22,6 +22,7 @@ from order.models import (
     OrderProduct,
     OrderStatus,
 )
+from order.order_status_names import OrderStatusName
 from payment.models import Payment, StripeMetadata
 from payment.services.webhook_processing import WebhookPaymentData, create_orders_and_payment
 from product.models import BaseProduct, ProductStatus, ProductVariant
@@ -103,7 +104,7 @@ class OrderWebhookLifecycleTests(TestCase):
             quantity_in_stock=100,
         )
 
-        OrderStatus.objects.get_or_create(name="Pending")
+        OrderStatus.objects.get_or_create(name=OrderStatusName.PENDING)
         DeliveryType.objects.all().delete()
         cls.dt_pudo = DeliveryType.objects.create(pk=1, name="PUDO")
         cls.dt_hd = DeliveryType.objects.create(pk=2, name="Home Delivery")

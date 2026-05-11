@@ -425,6 +425,7 @@ class TestCreateOrdersIntegrityReplayCheckout(TestCase):
         from accounts.choices import UserRole
         from accounts.models import CustomUser
         from order.models import CourierService, DeliveryType, OrderStatus
+        from order.order_status_names import OrderStatusName
         from product.models import BaseProduct, ProductStatus, ProductVariant
         from sellers.models import SellerProfile
         from warehouses.models import Warehouse, WarehouseItem
@@ -460,7 +461,7 @@ class TestCreateOrdersIntegrityReplayCheckout(TestCase):
             phone_number=f"+420822{h % 1000000:06d}",
         )
 
-        OrderStatus.objects.get_or_create(name="Pending")
+        OrderStatus.objects.get_or_create(name=OrderStatusName.PENDING)
         cls.dt = DeliveryType.objects.create(name=f"DTL-{slug}")
         cls.cs = CourierService.objects.create(
             code=f"cs{h % 10_000_000:07d}",
