@@ -2,11 +2,11 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In Progress — **локальный e2e**, **smoke Stripe и PayPal sandbox** задокументированы ([`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); **не production**). **`/health/`** + тесты, production readiness checklist и runbook **PostgreSQL backup/restore → e2e** ([`database-backup-restore.md`](../../operations/database-backup-restore.md)) — готовы. **Открыто:** миграции в git, PromoCode concurrency test, целевой текст **RTO/RPO + медиа (Cloudinary)** в `docs/07-deployment.md`, полный **ручной деплой / CI** в том же файле, **Sentry/alerts в prod** (Iteration 7).
+**Status:** In Progress — фокус на **реально используемой инфраструктуре:** локальный **e2e** (compose, env examples), **deployment** docs, **`/health/`** + регрессионные тесты, **Sentry** (код + условия включения), **backup/restore** runbook, **CI** (миграции + тесты), **security deployment checklist** в `docs/07-deployment.md`. Smoke **Stripe/PayPal sandbox** задокументированы ([`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md); **не production**). **Честно открыто:** финальный **production** deployment checklist (полнота), **cookie/session security** в конфиге деплоя, **верификация Sentry в prod**, **мониторинг/алерты**, закрывающий **аудит Task 010** (Iteration 7 + сверка с `docs/07-deployment.md`).
 
 ## Цель
 
-Добавить базовую DevOps инфраструктуру: мониторинг ошибок, health-check, стратегию backup, включить миграции в git-историю, настроить CI/CD pipeline.
+Закрепить эксплуатационный контур: health-check, Sentry, документация деплоя и безопасности, backup/restore, локальный e2e и шаблоны env, CI; без привязки к неиспользуемым в продукте доменам (промокоды, складской резерв — см. **Deferred** ниже).
 
 ## Контекст
 
@@ -20,16 +20,20 @@
 
 ## Scope (область)
 
-- Интеграция Sentry для Django и React
-- Добавление `/health/` endpoint
-- Документирование backup стратегии
-- Поддержание миграций в git без дрейфа (`makemigrations --check` в CI)
-- Проверка `DEBUG=False` при запуске
-- Обновление GitHub Actions CI
+- Интеграция Sentry для Django и React (и условия DSN / PII)
+- `/health/` endpoint и регрессионные тесты
+- Документация backup/restore PostgreSQL и восстановление в e2e-контур
+- Шаблоны env для backend/e2e (`envs/*.example`)
+- Локальный Docker e2e (`docker-compose.e2e.yml`) и чеклисты PSP (sandbox)
+- Поддержание миграций без дрейфа (`makemigrations --check` в CI)
+- CI: миграции, `manage.py test`, `pytest`
+- `docs/07-deployment.md`: production readiness / security deployment checklist, ссылки на runbooks
+- Стартовая валидация env для production (по мере доработки Iteration 5)
 
-### Качество backend (перенос Extended из Task 002)
+## Deferred / Future (не входит в roadmap Task 010, не блокирует закрытие)
 
-- **PromoCode:** regression-тест на **атомарность / отсутствие гонок** при инкременте `used_count` (см. `promocode/models.py::increment_used_count`). При доработке CI — опционально `pytest-cov` и порог по P0 apps в том же треке.
+- **Промокоды:** в текущем продуктовом контуре **не используются**; тесты атомарности `PromoCode` / **Task 002 Extended** по промокодам **не** являются DoD для **010**. При возврате фичи — вынести в отдельную задачу / **003** по коду.
+- **Складской резерв / stock reservation / Task 013:** остаётся **design-only / future**; **010 не зависит** от **013** и не требует реализации резерва или доработок `WarehouseItem` для своего DoD.
 
 ## Не входит в задачу
 
@@ -40,7 +44,8 @@
 
 ## Зависимости
 
-- Task 002 (testing-foundation) — CI должен запускать тесты
+- Task 002 (testing-foundation) — в репозитории принят CI с тестами; **010** опирается на этот контур.
+- **Нет зависимости** от Task 013, промокодов или складского резерва для целей DevOps/деплоя в рамках **010**.
 
 ## Риски
 
@@ -57,8 +62,9 @@
 - [x] Runbook backup/restore PostgreSQL и restore в e2e — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в `docs/07-deployment.md` раздел Backup ссылается на runbook (медиа/частота prod — вне runbook)
 - [x] Миграции проектных apps в git — `backend/*/migrations/*.py` отслеживаются (в т.ч. `__init__.py`); паттерн `.gitignore` строка 30 (`*/migrations`) на эти пути **не действует**. **Аудит 2026-05-11:** `makemigrations --check --dry-run` → «No changes detected»; незакоммиченных изменений в `backend/*/migrations/` нет. Опционально: уточнить `.gitignore` (например `backend/*/migrations/*.pyc` уже покрывает bytecode) для ясности политики
 - [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
-- [ ] PromoCode: тест атомарности / гонок `used_count` — перенос из Task 002 Extended (см. Scope выше)
 - [x] `DEBUG` корректно парсится как bool — `settings.py` строка 32 исправлена (2026-05-05): `os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`. Startup validation остаётся pending.
+- [ ] **Cookie / session security** в production: зафиксировать в `docs/07-deployment.md` (и при необходимости в checklist) целевые флаги `CSRF_COOKIE_*`, `SESSION_COOKIE_*`, `SECURE_*`, `SameSite` — согласованно с reverse proxy и HTTPS.
+- [ ] **Финальный аудит Task 010:** закрыть Iteration 7 (ниже), сверить все открытые пункты этого файла с фактическим `docs/07-deployment.md` и ops-практикой.
 
 ---
 
@@ -82,15 +88,16 @@
 - [x] **PayPal local e2e smoke с артефактами** — прогон **sandbox + e2e** (Postman, ngrok, Mailpit); итоги зафиксированы в [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) → *Verification evidence — latest local smoke result* (**local/sandbox**, не prod; без сырых id/payload в репозитории). По политике команды точные номера заказов/инвоясов добавляются в тикеты отдельно.
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
-- [ ] **Production deployment checklist** — в `docs/07-deployment.md` добавлен **ориентир checklist** (DEBUG, хосты, CSRF, proxy, Sentry, логи, health); процедура **ручного деплоя**, CI/CD pipeline, TLS refresh — по-прежнему **TODO** в том же файле
-- [ ] Остальные пункты **Definition of Done** выше: PromoCode regression, startup `DEBUG`/env validation (миграции — см. аудит 2026-05-11 в DoD)
+- [ ] **Production deployment checklist** — в `docs/07-deployment.md` есть ориентир; дописать **полную** процедуру ручного деплоя, CI/CD, обновление TLS, **cookie/session security** (см. DoD).
+- [ ] **Остальные пункты DoD:** startup `DEBUG`/env validation (Iteration 5); RTO/RPO и медиа (Cloudinary) в `docs/07-deployment.md` при необходимости (Iteration 6); финальный аудит **010**.
 
 ### Next steps (кратко)
 
-1. Iteration 6: при необходимости дополнить `docs/07-deployment.md` RTO/RPO и медиа/Cloudinary; PostgreSQL runbook — [`database-backup-restore.md`](../../operations/database-backup-restore.md).
-2. Iteration 5: миграции в репозиторий; при необходимости startup-проверка env для production.
-3. Stripe smoke и PayPal sandbox smoke — см. evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) и [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md).
-4. Iteration 7: подтвердить Sentry в prod, `check --deploy`, при необходимости health probe в ops-runbook.
+1. Iteration 7: Sentry в prod (событие теста), `check --deploy`, health probe / алерты в ops-runbook.
+2. `docs/07-deployment.md`: расширить production checklist — деплой, CI/CD, TLS, **cookies/sessions**, мониторинг.
+3. Iteration 5: startup-проверка env для production (по желанию — фрагмент уже в задаче).
+4. Iteration 6: RTO/RPO и backup медиа (Cloudinary) — при продуктовой необходимости.
+5. Локальные smoke Stripe/PayPal — evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md).
 
 ---
 
@@ -391,21 +398,25 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 
 ---
 
-## Iteration 7 — Validation
+## Iteration 7 — Validation (закрывающий аудит Task 010)
 
 ### Сценарии для проверки
-- [ ] `GET /health/` → 200 `{"status": "ok", "db": "ok"}`
-- [ ] Намеренно вызвать исключение в Django → появляется в Sentry
-- [ ] CI pipeline проходит на feature branch
+- [ ] `GET /health/` → 200 `{"status": "ok", "db": "ok"}` на целевом production/stage
+- [ ] Намеренно вызвать исключение в Django → событие в Sentry (prod/stage с DSN)
+- [ ] CI pipeline проходит на основной ветке
 - [ ] `makemigrations --check` в CI не падает при актуальных миграциях
-- [ ] `python manage.py check --deploy` не выдаёт предупреждений
+- [ ] `python manage.py check --deploy` не выдаёт блокирующих предупреждений для целевого контура
+- [ ] Deployment checklist в `docs/07-deployment.md` пройден пунктно (в т.ч. cookies/sessions за HTTPS)
+- [ ] Мониторинг/алерты на критичные ошибки согласованы с ops (не только наличие Sentry в коде)
 
 ### Статус
-- [ ] Validation complete
+- [ ] Validation complete (финальный аудит Task 010)
 
 **Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iteration 5 (миграции в git) и Iteration 6 (частично: runbook PG + e2e в `docs/operations/`) — см. актуальные чекбоксы выше. Iteration 7 — production validation.
 
-**Обновление 2026-05-11:** Локальный e2e-контур и связанная документация добавлены (см. раздел **«Прогресс: локальный e2e»** выше). **Миграции:** сверка `makemigrations --check --dry-run` и `migrate --plan` (SQLite при пустых `DB_*`) — дрейфа нет; см. чекбоксы DoD и Iteration 5. Iterations 5 (startup validation) и 6–7 **по-прежнему актуальны** для production.
+**Обновление 2026-05-11:** Локальный e2e-контур и связанная документация добавлены (см. раздел **«Прогресс: локальный e2e»** выше). **Миграции:** сверка `makemigrations --check --dry-run` и `migrate --plan` (SQLite при пустых `DB_*`) — дрейфа нет; см. чекбоксы DoD и Iteration 5.
+
+**Обновление roadmap:** промокоды и stock reservation (**013**) вынесены из блокеров **010** (см. **Deferred / Future**); закрытие **010** — по инфраструктурным хвостам и Iteration 7.
 
 ---
 

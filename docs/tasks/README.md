@@ -8,7 +8,7 @@
 
 ## Состояние после e2e-контура и DevOps-доков (май 2026)
 
-Краткая сводка **только по артефактам в `docs/` и smoke-результатам**, без новых архитектурных решений за рамками уже зафиксированных proposals (в т.ч. **Task 013** — целевой flow резерва описан как proposal, в коде не реализован).
+Краткая сводка **только по артефактам в `docs/` и smoke-результатам**, без новых архитектурных решений за рамками уже зафиксированных proposals. **Task 010 (DevOps)** в текущем roadmap **не** блокируется **Task 013** (stock reservation) ни промокодами: **013** и складской резерв — **future / design-only**; промокоды в продукте сейчас **не используются** (см. [`010-devops-infrastructure/task.md`](./010-devops-infrastructure/task.md) → Deferred).
 
 ### Задокументировано и проверено руками в sandbox/e2e
 
@@ -17,7 +17,7 @@
 | Локальный e2e Docker | [`docs/testing/e2e-local-contour.md`](../testing/e2e-local-contour.md) |
 | Stripe smoke (не prod) | [`docs/testing/stripe-e2e-checklist.md`](../testing/stripe-e2e-checklist.md) — *Verification evidence* |
 | PayPal sandbox smoke (не prod) | [`docs/testing/paypal-e2e-checklist.md`](../testing/paypal-e2e-checklist.md) — *Verification evidence — latest local smoke result* |
-| Склад / оплата без резерва — baseline | [**Task 013**](./013-stock-reservation/task.md) (+ уточнения в **Task 009**) |
+| Склад / резерв до оплаты (design-only) | [**Task 013**](./013-stock-reservation/task.md) — **не** блокирует **010**; имплементации нет; связь с **009** по метрикам/блокировкам — только если вернуть склад в roadmap |
 | `/health/`, Sentry-условия, prod checklist | [`docs/07-deployment.md`](../07-deployment.md) |
 | Health regression tests | `backend/test_health_endpoint.py` |
 | PostgreSQL backup / restore в e2e | [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) |
@@ -28,8 +28,8 @@
 
 | # | После аудита |
 |---|----------------|
-| **010** | **Частично выполнена:** локальный stack, handbook payment providers, Stripe+PayPal smoke evidence, health+deployment docs, Postgres runbook; **файлы миграций под `backend/*/migrations/` в git**, `makemigrations --check` без дрейфа (аудит 2026-05-11). **Не списывать в «done»:** тест PromoCode concurrency; эксплуатация Sentry/алерты/load balancer health в prod; RTO/RPO и backup **медиа/Cloudinary** в deployment doc; закрыть TODO деплоя/CI/TLS в `docs/07-deployment.md`; startup env validation (**010** DoD). |
-| **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. |
+| **010** | **Частично выполнена:** локальный e2e stack, Stripe+PayPal sandbox smoke (docs), **`/health/`** + тесты, Sentry в коде, Postgres backup/restore runbook, deployment checklist (черновик), миграции в git + `makemigrations --check`. **Остаётся для «done»:** полнота **production deployment** checklist, **cookie/session security** в деплой-доке, **Sentry в prod** (проверка событий), **мониторинг/алерты**, **`check --deploy`**, закрывающий **аудит 010** (Iteration 7), startup env validation, при необходимости RTO/RPO и медиа в `docs/07-deployment.md`. **Не входит в закрытие 010:** промокоды, **013**. |
+| **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
 
@@ -39,13 +39,13 @@
 
 **P0 — продуктовые и финансово значимые риски без полной закрывающей реализации в коде**
 
-1. [**Task 013**](./013-stock-reservation/task.md) — перевести proposal в планируемые итерации (резерв до оплаты + согласование с **003**); до реализации **не** включать слепое списание склада из webhook (уже правило зафиксировано в задаче).
-2. Свериться с кодом/`task.md`: остаются ли открытыми атомарные фиксы **003** по DB-уникальности платежной сессии и промокоду (**DB-1, DB-6**) — трактовать как P0 пока есть подтверждённая брешь.
+1. [**Task 013**](./013-stock-reservation/task.md) — **deferred / future:** при возврате продукта с учётом остатков — планирование итераций и согласование с **003**; до решения **не** трактовать как блокер **010** или текущего релиза.
+2. Свериться с кодом/`task.md`: остаются ли открытыми атомарные фиксы **003** по DB-уникальности платежной сессии (**DB-1**) и смежные P0-риски — **без** привязки промокодов к **010** (промокоды в продукте не используются).
 3. [**006**](./006-security-hardening/task.md) — любые незакрытые пункты SEC-1/SEC-2/PII/`git`-истории по вашему `task.md`.
 
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
-1. [**010**](./010-devops-infrastructure/task.md) — завершить оставшиеся DoD: ~~миграции в git~~ (уже в репо; поддерживать `--check`); PromoCode concurrency test; **Iteration 7** (Sentry в prod, `check --deploy`); дополнить `docs/07-deployment.md`: RTO/RPO, медиа, ручной деплой, CI/CD, TLS (**без смешения с уже готовым runbook’ом Postgres**).
+1. [**010**](./010-devops-infrastructure/task.md) — deployment checklist (полнота), cookies/sessions в prod, Sentry verification, мониторинг/алерты, `check --deploy`, финальный аудит **010**; дополнить `docs/07-deployment.md` (RTO/RPO, медиа, ручной деплой, CI/CD, TLS) по мере необходимости. Промокоды и **013** — **не** DoD **010**.
 2. [**004**, **005**, **008**](./004-order-consistency/task.md) — по вашему темпу после стабильного тестового фундамента.
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 
@@ -67,9 +67,8 @@ graph TD
     subgraph P0["🔴 P0 — Критические (немедленно)"]
         T001["001 System Stabilization\nСломанный код прямо сейчас"]
         T002["002 Testing Foundation\n0% покрытие = нельзя рефакторить"]
-        T003P0["003 Payment Refactor\nDB-1: двойные заказы\nDB-6: race condition promo"]
+        T003P0["003 Payment Refactor\nDB-1: двойные заказы;\nатомарные платёжные фиксы"]
         T009P0["009 DB Models\nDB-2: warehouse locking"]
-        T013P0["013 Stock Reservation\ninventory before pay"]
         T006P0["006 Security\nSEC-1: секреты в git\nSEC-2: PII в коде"]
     end
 
@@ -85,6 +84,7 @@ graph TD
     subgraph P2["🟡 P2 — Улучшения"]
         T009["009 DB Models\nAnalytics, pricing"]
         T006P2["006 Security\nRate limiting, CSP"]
+        T013F["013 Stock Reservation\n(deferred / future)"]
     end
 
     T001 --> T002
@@ -92,7 +92,6 @@ graph TD
     T002 --> T008
     T003 --> T004
     T003 --> T005
-    T013P0 --> T009P0
     T006P0 --> T007
 ```
 
@@ -114,7 +113,7 @@ graph TD
 | 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | **Частично** (docs+e2e+smokes+runbooks; см. задачу) |
 | 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | GO |
 | 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | перенос Extended из 002 |
-| **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **P0** | High | **002**, согласование с **003** | продуктовый риск: оплата без учёта остатков |
+| **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **Future** / design-only | High | при старте: **002**, **003** | **Не** в текущем roadmap; **не** блокирует **010**; в коде нет целевого резерва (см. `task.md`) |
 
 ## Рекомендуемый порядок выполнения
 
@@ -154,17 +153,17 @@ gantt
 |---------|---------------------|
 | `warehouse` | По документированной стратегии **`warehouses/tests.py` минимальны / пусты** |
 | Автоматизация full чекаута PSP | Полный счастливый путь Stripe/PayPal у внешних провайдеров дополняется **ручными** e2e-чеклистами (`docs/testing/`) |
-| `promocode` конкуренция | По **010** всё ещё открыт перенос/написание теста атомарности |
+| `promocode` | Код и тесты остаются в репозитории; **промокоды не в продуктовом roadmap** — конкурентные сценарии / **DB-6** не блокируют **010**; при возврате фичи — **003** или отдельная задача |
 | Frontend3 | Раннер тестов в `package.json` **не описан как подключённый** |
 
-Вывод аудита январского отчёта «≈ 0% покрытие» по backend **устарел**; это **не** отменяет P0-бизнес-риски (**013** и см. ниже).
+Вывод аудита январского отчёта «≈ 0% покрытие» по backend **устарел**; отдельные **P0**-риски по складу (**013**) и платежам остаются предметом соответствующих `task.md` и **не** продлевают **010**, пока **013**/промокоды вне текущего roadmap.
 
 ### 2. Какие критические сценарии НЕ покрыты / требуют внимания?
 
 - Контролируемая идемпотентность платёжных webhook в продукте — есть **автотестовая база** в `payment` (Stripe/PayPal flow), см. задачи и CI; регрессии держать при изменениях **003**.
-- Отсутствие **inventory reservation** до оплаты (**Task 013** — только proposal + baseline по коду) — самостоятельный продуктовый разрыв.
+- Отсутствие **inventory reservation** до оплаты (**Task 013** — только proposal + baseline по коду): значимо **если** склад/остатки снова станут обязательным продуктовым треком; в **текущем roadmap** — **deferred**, **не** блокер **010**.
 - Конкурентный **`decrease_stock`** — актуально **после** возврата списания в webhook и наличия **013** (**Task 009** — технические элементы блокировок).
-- Конкурентный `increment_used_count` / промокоды (**DB-6**) — верифицировать статус атомарных фиксов в **003**/коде; тест закрывает **010**.
+- Конкурентный `increment_used_count` / промокоды (**DB-6**) — **не** блокер **010**; при возврате промокодов в продукт — верифицировать **003**/код и покрытие отдельно.
 - Параллельная генерация инвойсов / жизненный цикл заказа / смежные сценарии — см. **004**, **012** и расширенное покрытие (**002**/домены).
 
 ### 3. Какие P0 архитектурные риски существуют?
