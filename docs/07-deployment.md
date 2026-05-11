@@ -167,7 +167,9 @@ healthcheck:
 
 ## Backup
 
-> TODO: Описать стратегию резервного копирования БД и медиафайлов.
+**Runbook:** [`docs/operations/database-backup-restore.md`](./operations/database-backup-restore.md) — `pg_dump` (custom / plain), безопасный перенос дампа, восстановление в **локальный e2e** (`docker-compose.e2e.yml`, `./backups` → `/backups`, порт **`5434`**), полный сброс e2e-тома, проверки, safety (PII/GDPR), `.gitignore`.
+
+Стратегия **Cloudinary / медиа** на production и регламент частоты бэкапов на сервере — по-прежнему задаются командой эксплуатации (в этом файле детализируются только при необходимости отдельным обновлением).
 
 ## Rollback
 

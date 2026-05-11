@@ -198,7 +198,10 @@ backend/media/
 
 # Local E2E stack (docker-compose.e2e.yml)
 media_e2e/
+static_e2e/
 .reli_e2e_db/
+# Локальные дампы для pg_restore в e2e (см. docs/operations/database-backup-restore.md)
+backups/
 
 # PostgreSQL integration tests (docker-compose.test.yml)
 .reli_test_db/

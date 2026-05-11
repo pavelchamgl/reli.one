@@ -15,7 +15,7 @@ Production-стек (`docker-compose.yml`, `envs/database.env`, `envs/backend.en
 
 | Сервис (Compose) | Контейнер | Назначение |
 |------------------|-----------|------------|
-| `postgres_e2e` | `reli_postgres_e2e` | PostgreSQL 17, данные в `./.reli_e2e_db/postgres`, опционально `./backups` смонтирован в контейнер |
+| `postgres_e2e` | `reli_postgres_e2e` | PostgreSQL 17, данные в `./.reli_e2e_db/postgres`; каталог **`./backups`** смонтирован в контейнер как **`/backups`** для дампов при restore (см. [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md)) |
 | `mailpit` | `reli_mailpit_e2e` | Ловушка SMTP + веб-UI просмотра писем |
 | `backend_e2e` | `reli_backend_e2e` | Django: `migrate` → `collectstatic` → `runserver 0.0.0.0:8000 --insecure` |
 
@@ -148,6 +148,7 @@ SMTP-порт **1025** при необходимости проброшен на
 
 ## Безопасность: prod, backup, env и медиа
 
+- **`./backups`:** не коммитить дампы PostgreSQL и не выполнять `pg_restore` против production-хоста по ошибке — пошаговые правила и чеклист: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md).
 - **Не использовать** `docker-compose.e2e.yml` и e2e-env как образец для production: широкие `ALLOWED_HOSTS`, тестовые пароли БД в примерах и отладочный режим в compose предназначены только для локальной проверки.
 - **Не коммить** заполненные `envs/backend.e2e.env` / `envs/database.e2e.env`, если в них появились реальные ключи; держите секреты вне репозитория (локально, vault, secret manager).
 - **Не коммить** production-дампы БД, бэкапы с PII, выгрузки заказов/платежей с боевого сервера.
@@ -164,6 +165,7 @@ SMTP-порт **1025** при необходимости проброшен на
 
 ## Связанные документы
 
+- [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) — backup production PostgreSQL и restore в локальный e2e.
 - `docs/testing/stripe-e2e-checklist.md` — **ручной чеклист Stripe** (Postman, webhook, идемпотентность, логи, негативные сценарии).
 - `docs/08-testing-strategy.md` — общая стратегия тестов и ссылка на этот контур.
 - `docs/07-deployment.md` — production compose; e2e **не** является деплоем.

@@ -54,7 +54,7 @@
 - [x] Regression-тесты health: `pytest backend/test_health_endpoint.py` (200 + 503 при недоступной БД)
 - [x] `docs/07-deployment.md` — контракт `/health/`, уточнение Sentry (**DSN + DEBUG=False** для Django), **Production readiness checklist** (ручная сверка; не заменяет `check --deploy`)
 - [x] Sentry DSN настроен для Django и React — settings.py (только при **DEBUG=False + SENTRY_DSN**), main.jsx (при **VITE_SENTRY_DSN**)
-- [ ] Документирована backup стратегия в `docs/07-deployment.md` — раздел содержит только TODO
+- [x] Runbook backup/restore PostgreSQL и restore в e2e — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в `docs/07-deployment.md` раздел Backup ссылается на runbook (медиа/частота prod — вне runbook)
 - [ ] Миграции включены в git (`.gitignore` обновлён) — `.gitignore` строка 30: `*/migrations` по-прежнему исключает миграции
 - [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
 - [ ] PromoCode: тест атомарности / гонок `used_count` — перенос из Task 002 Extended (см. Scope выше)
@@ -73,11 +73,11 @@
 - [x] **Mailpit** — локальная проверка SMTP без отправки писем наружу (`EMAIL_HOST=mailpit`)
 - [x] **Статика / admin в e2e** — `STATIC_URL`, `STATIC_ROOT`, `MEDIA_URL`, `MEDIA_ROOT` читаются из env с production-compatible defaults; compose задаёт `/static/`, `/app/staticfiles`, `/media/`, `/app/media`
 - [x] **Webhook / ngrok** — в e2e шаблоне `ALLOWED_HOSTS="*"` и документация Stripe CLI / ngrok (**только** для локального контура)
-- [x] **Документация:** [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md), [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md); в [`docs/07-deployment.md`](../../07-deployment.md) зафиксировано, что e2e-compose **не** для production
+- [x] **Документация:** [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md), [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md); backup/restore: [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в [`docs/07-deployment.md`](../../07-deployment.md) зафиксировано, что e2e-compose **не** для production
 
 ### Открыто (вне закрытия локального e2e)
 
-- [ ] **Backup / restore runbook** — в `docs/07-deployment.md` по-прежнему TODO (Iteration 6)
+- [x] **Backup / restore runbook (PostgreSQL + e2e)** — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); RTO/RPO и облачные политики на production — при необходимости доп. правка `docs/07-deployment.md`
 - [x] **Stripe local e2e smoke с артефактами** — прогон через Postman/ngrok, Mailpit; evidence в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) (*Verification evidence*). **Не** равноценно production-приёмке.
 - [ ] **PayPal local e2e smoke с артефактами** — по-прежнему **не зафиксирован**; при необходимости оформить аналогичный чеклист/таблицу evidence.
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
@@ -87,7 +87,7 @@
 
 ### Next steps (кратко)
 
-1. Iteration 6: описать backup/restore и RTO/RPO в `docs/07-deployment.md`.
+1. Iteration 6: при необходимости дополнить `docs/07-deployment.md` RTO/RPO и медиа/Cloudinary; PostgreSQL runbook — [`database-backup-restore.md`](../../operations/database-backup-restore.md).
 2. Iteration 5: миграции в репозиторий; при необходимости startup-проверка env для production.
 3. Прогнать и задокументировать e2e PayPal (аналогично evidence в чеклисте); Stripe smoke — см. уже заполненный раздел в [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md).
 4. Iteration 7: подтвердить Sentry в prod, `check --deploy`, при необходимости health probe в ops-runbook.
@@ -384,7 +384,8 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 ```
 
 ### Статус
-- [ ] Backup strategy documented — `docs/07-deployment.md` строка 135: `> TODO: Описать стратегию резервного копирования`. Шаблон из Iteration 6 не добавлен.
+- [x] PostgreSQL backup/restore + e2e restore documented — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); `docs/07-deployment.md` → раздел Backup со ссылкой
+- [ ] RTO/RPO и backup медиа (Cloudinary) в `docs/07-deployment.md` — при необходимости отдельным коммитом
 
 ---
 
@@ -400,7 +401,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 ### Статус
 - [ ] Validation complete
 
-**Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iterations 5–6 не начаты (миграции в git, backup docs).
+**Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iteration 5 (миграции в git) и Iteration 6 (частично: runbook PG + e2e в `docs/operations/`) — см. актуальные чекбоксы выше. Iteration 7 — production validation.
 
 **Обновление 2026-05-11:** Локальный e2e-контур и связанная документация добавлены (см. раздел **«Прогресс: локальный e2e»** выше). Iterations 5–7 **по-прежнему актуальны** для production.
 
@@ -413,9 +414,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 | Документ | Содержание |
 |----------|------------|
 | [`docs/testing/e2e-local-contour.md`](../../testing/e2e-local-contour.md) | Запуск compose, порты, сброс БД, Mailpit, ngrok/webhook, безопасность |
-| [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) | Ручной Postman/Webhook чеклист Stripe, идемпотентность, логи |
-
-В [`docs/07-deployment.md`](../../07-deployment.md) указано, что **`docker-compose.e2e.yml` не для production**.
+| [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md) | Backup/restore PostgreSQL, restore prod-копии в e2e, safety |
 
 ## Привязка к коду
 
@@ -425,9 +424,9 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 | **Frontend** | `src/main.jsx`, `.env.example` |
 | **CI** | `.github/workflows/ci.yml` |
 | **Env** | `envs/backend.env.example`, `Frontend/Frontend3/.env.example` |
-| **Docs** | `docs/07-deployment.md`, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/08-testing-strategy.md` |
+| **Docs** | `docs/07-deployment.md`, `docs/operations/database-backup-restore.md`, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/08-testing-strategy.md` |
 | **Tests (health)** | `backend/test_health_endpoint.py` |
-| **Git** | `.gitignore` (migrations) |
+| **Git** | `.gitignore` (migrations, `backups/`, e2e volumes) |
 | **Локальный e2e** | `docker-compose.e2e.yml`, `envs/*.e2e.env.example` |
 
 ## Связанные проблемы из docs/09-architecture-debt.md
