@@ -1,54 +1,20 @@
 import copy
-import json
 import logging
-import uuid
 from decimal import Decimal, ROUND_HALF_UP
-from typing import Optional, Union
 
-import requests
 import stripe
-from accounts.models import CustomUser
-from delivery.helpers import resolve_country_code_from_group
-from delivery.models import DeliveryAddress
-from delivery.services.dpd_rates import calculate_order_shipping_dpd
-from delivery.services.gls_rates import calculate_gls_shipping_options
-from delivery.services.gls_split import split_items_into_parcels_gls
-from delivery.services.packeta_point_service import resolve_country_from_local_pickup_point
-from delivery.services.shipping_split import split_items_into_parcels, combine_parcel_options, calculate_order_shipping
-from delivery.utils_async import async_parcels_and_seller_email
-from delivery.validators.validators import validate_phone_matches_country
-from delivery.validators.zip_utils import uppercase_zip
-from delivery.validators.zip_validator import ZipCodeValidator
 from django.conf import settings
 from django.core.cache import caches
-from django.db import transaction
-from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiExample, OpenApiParameter, inline_serializer
-from order.models import (
-    CourierService,
-    Order,
-    DeliveryType,
-    OrderProduct,
-    OrderStatus,
-    ProductStatus,
-    Invoice,
-    OrderEvent,
-)
-from order.services.invoice_data import prepare_invoice_data
-from order.services.invoice_generator import generate_invoice_pdf
-from order.services.invoice_numbers import next_invoice_identifiers
-from product.models import BaseProduct, ProductVariant
-from promocode.models import PromoCode
 from rest_framework import status, serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .mixins import PayPalMixin
-from .models import Payment, StripeMetadata
+from .models import StripeMetadata
 from .serializers import SessionInputSerializer, StripeSessionOutputSerializer, PayPalSessionOutputSerializer
 from .services import (
     create_stripe_checkout_session,
@@ -72,176 +38,13 @@ from .services.paypal_webhook import (
     paypal_payload_to_webhook_payment_data,
 )
 from .services.webhook_processing import create_orders_and_payment
-from .services_async import async_send_client_email
 
 conv_cache = caches["conv"]
-CONV_CACHE_TTL = 60 * 60 * 24  # 24h
 
-# Paypal secret fields
-client_id = settings.PAYPAL_CLIENT_ID
-client_secret = settings.PAYPAL_CLIENT_SECRET
-PAYPAL_API_URL = settings.PAYPAL_API_URL
-
-# Stripe secret fields
 stripe.api_key = settings.STRIPE_API_SECRET_KEY
 endpoint_secret = settings.STRIPE_WEBHOOK_ENDPOINT_SECRET
 
-# карта delivery_type -> carrier channel для options
-CHANNEL_MAP = {
-    1: 'PUDO',  # пункт выдачи
-    2: 'HD',  # доставка на дом
-}
-
-# --- GLS-specific delivery modes ---
-# Работает только при courier_service = GLS и delivery_type = 1 (PUDO)
-DELIVERY_MODES_GLS = {"shop", "box"}
-
 logger = logging.getLogger(__name__)
-
-
-def _D(x):
-    return x if isinstance(x, Decimal) else Decimal(str(x))
-
-
-def increment_promo_usage(promo_code: str):
-    promo = PromoCode.objects.get(code=promo_code)
-    promo.increment_used_count()
-
-
-def apply_promo_code(promo_code: str, basket_items):
-    """
-    Оставляем старую логику, как была — без новых проверок.
-    """
-    price = 0
-    for item in basket_items:
-        price += basket_items[item].product.price * basket_items[item].quantity
-
-    try:
-        promo = PromoCode.objects.get(code=promo_code)
-        now = timezone.now()
-        if promo.valid_from <= now <= promo.valid_until and promo.used_count < promo.max_usage:
-            discount_amount = price * promo.discount_percentage / 100
-            return discount_amount
-        else:
-            raise ValidationError("Invalid or expired promo code.")
-    except PromoCode.DoesNotExist:
-        raise ValidationError("Invalid promo code.")
-
-
-def _get_courier_code(val: Optional[Union[int, str]]) -> str:
-    """
-    Приводим к строковому коду курьера.
-    НИКАКИХ новых валидаторов — только маппинг/чтение из БД как раньше.
-    """
-    if val is None:
-        return ""
-    if isinstance(val, str):
-        return val.lower().strip()
-    try:
-        cs = CourierService.objects.only("code").get(id=val)
-        return (cs.code or "").lower()
-    except CourierService.DoesNotExist:
-        return ""
-
-
-def _check_cz_origin_for_groups(variant_map: dict, groups: list) -> Optional[Response]:
-    """
-    Оставляем «лайт»-проверку CZ, как была:
-    — все SKU должны иметь seller.default_warehouse.country == 'CZ'
-    — unknown SKU → 400
-    — non-CZ → 400 c ключом 'origin'
-    Ничего нового тут не добавляем.
-    """
-    skus_in_payload = []
-    for g in groups:
-        for p in g.get("products", []):
-            skus_in_payload.append(str(p["sku"]))
-
-    missing = []
-    not_cz = []
-
-    for sku in skus_in_payload:
-        v = variant_map.get(sku)
-        if not v:
-            missing.append(sku)
-            continue
-        seller = getattr(v.product, "seller", None)
-        dw = getattr(seller, "default_warehouse", None) if seller else None
-        if not (dw and getattr(dw, "country", None) == "CZ"):
-            not_cz.append(sku)
-
-    if missing:
-        return Response(
-            {"error": f"Unknown SKU(s): {', '.join(missing)}"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if not_cz:
-        return Response(
-            {
-                "origin": [
-                    (
-                        "Только отправка из Чехии. Продавец(ы) SKU "
-                        f"{', '.join(not_cz)} не имеют чешского склада "
-                        "(default_warehouse.country != 'CZ')."
-                    )
-                ]
-            },
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    return None
-
-
-
-def create_order_event(*, order, event_type, meta=None):
-    OrderEvent.objects.create(
-        order=order,
-        type=event_type,
-        meta=meta or {},
-    )
-
-
-class PaymentSessionValidator:
-    """
-      - наличие country / pickup_point_id / адреса
-      - resolve_country_code_from_group
-    """
-
-    @staticmethod
-    def validate_groups(groups, root_country: Optional[str] = None):
-        for idx, group in enumerate(groups, start=1):
-            courier_code = _get_courier_code(group.get("courier_service"))
-            country = resolve_country_code_from_group(
-                group,
-                idx,
-                logger=logger,
-                root_country=root_country,
-                courier_code=courier_code,
-            )
-            if not country:
-                return Response(
-                    {"error": f"Group {idx}: invalid pickup point / address."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-            # --- GLS-specific mode validation ---
-            # Если GLS + PUDO → требуется delivery_mode = "shop" или "box"
-            delivery_type = group.get("delivery_type")
-            if courier_code == "gls" and delivery_type == 1:
-                mode = str(group.get("delivery_mode", "")).lower().strip()
-                if mode not in DELIVERY_MODES_GLS:
-                    return Response(
-                        {
-                            "error": (
-                                f"Group {idx}: For GLS PUDO delivery, 'delivery_mode' "
-                                f"must be one of: {', '.join(DELIVERY_MODES_GLS)}"
-                            )
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-        return None
 
 
 @method_decorator(csrf_exempt, name='dispatch')

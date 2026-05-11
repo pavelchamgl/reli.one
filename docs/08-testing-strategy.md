@@ -109,7 +109,7 @@ flowchart LR
 
 - **delivery**: чистые функции в `services/local_rates.py`, `shipping_split.py`, `dpd_rates.py`, `gls_rates.py` — входные структуры `items`, границы веса/габаритов, агрегация посылок.
 - **sellers**: сервисы наподобие `get_expected_company_account_holder`, `validate_before_submit` (уже есть unit-примеры).
-- **payment**: разбор/нормализация payload-ов, валидация групп (`PaymentSessionValidator`), вспомогательные функции без HTTP.
+- **payment**: разбор/нормализация payload-ов, валидация групп (`SessionInputSerializer` / `GroupSerializer`, checkout-сервисы), вспомогательные функции без HTTP.
 - **order**: расчёты итогов по позициям (например сервисы детализации заказа продавца), если логика изолирована от ORM или через лёгкие объекты.
 - **serializers**: кастомная валидация полей там, где она нетривиальна.
 

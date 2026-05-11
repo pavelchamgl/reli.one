@@ -93,8 +93,8 @@ class CheckoutCatalogMixin:
             quantity_in_stock=50,
         )
 
-        # Контракт API / payment.views.CHANNEL_MAP и GroupSerializer завязаны на
-        # фиксированные значения: delivery_type 1=PUDO, 2=HD; courier_service 2/3/4.
+        # delivery_type 1=PUDO, 2=HD; courier_service 2/3/4 — см. также
+        # payment.services.checkout_shared._CHANNEL_MAP в checkout-сервисах.
         DeliveryType.objects.all().delete()
         cls.dt_pudo = DeliveryType.objects.create(pk=1, name="PUDO")
         cls.dt_hd = DeliveryType.objects.create(pk=2, name="Home Delivery")
@@ -350,9 +350,12 @@ class StripeWebhookFlowTests(CheckoutCatalogMixin, TestCase):
             },
         }
 
-    @patch("payment.views.async_parcels_and_seller_email")
-    @patch("payment.views.async_send_client_email")
-    @patch("payment.views.generate_invoice_pdf", return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"))
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
     @patch("payment.views.stripe.Webhook.construct_event")
     def test_webhook_idempotent_no_duplicate_orders(
         self,
@@ -446,9 +449,12 @@ class StripeWebhookFlowTests(CheckoutCatalogMixin, TestCase):
         wi.refresh_from_db()
         self.assertEqual(wi.quantity_in_stock, 50)
 
-    @patch("payment.views.async_parcels_and_seller_email")
-    @patch("payment.views.async_send_client_email")
-    @patch("payment.views.generate_invoice_pdf", return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"))
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
     @patch("payment.views.stripe.Webhook.construct_event")
     def test_webhook_order_products_and_totals(
         self,
@@ -564,9 +570,12 @@ class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
             },
         }
 
-    @patch("payment.views.async_parcels_and_seller_email")
-    @patch("payment.views.async_send_client_email")
-    @patch("payment.views.generate_invoice_pdf", return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"))
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
     @patch.object(PayPalMixin, "verify_webhook", return_value=True)
     def test_paypal_webhook_idempotent_no_duplicate_orders(
         self,
@@ -669,9 +678,12 @@ class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
         wi.refresh_from_db()
         self.assertEqual(wi.quantity_in_stock, 50)
 
-    @patch("payment.views.async_parcels_and_seller_email")
-    @patch("payment.views.async_send_client_email")
-    @patch("payment.views.generate_invoice_pdf", return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"))
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
     @patch.object(PayPalMixin, "verify_webhook", return_value=True)
     def test_paypal_webhook_order_products_and_totals(
         self,

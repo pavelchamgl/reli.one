@@ -320,9 +320,8 @@ stateDiagram-v2
 | `CreatePayPalPaymentView` | Создание PayPal Order |
 | `PayPalWebhookView` | Обработка `CHECKOUT.ORDER.APPROVED` и пр. |
 | `ConversionPayloadView` | Данные для пикселей аналитики |
-| `PaymentSessionValidator` | Валидация статуса сессии |
 
-**Объём `views.py`: ~2 198 строк** — крупнейший файл в проекте.
+**Объём `views.py`:** в ходе refactor и cleanup (2026) снижен до **~775 строк** (ранее ~2 198); тяжёлая логика — в `payment/services/`.
 
 #### Serializers
 

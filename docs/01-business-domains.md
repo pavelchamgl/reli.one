@@ -542,10 +542,10 @@ sequenceDiagram
 
 | Риск | Описание |
 |------|---------|
-| **Нет idempotency** | Stripe может доставить webhook дважды → двойной заказ. Нужен `Payment.objects.get_or_create(session_id=...)` |
-| `payment/views.py` ~2198 строк | Создание заказа, генерация PDF, email, посылки — всё в одном файле |
-| Нет retry для email/посылок | Если `generate_parcels_for_order` или `send_email` упадёт — транзакция откатится? Или посылки создались, но заказ нет? |
-| `apply_promo_code` в `views.py` | Дублирует логику из `PromoCode` — два места применения скидки |
+| ~~**Нет idempotency**~~ | Закрыто: уникальность `(payment_system, session_id)` + replay в `webhook_processing` (см. Task 003). |
+| `payment/views.py` объём | Исторически ~2198 строк; после refactor/cleanup **~775**; оркестрация — в `payment/services/`. |
+| Нет retry для email/посылок | Если async посылки/email упадут после commit — см. PAY-2 / Celery backlog. |
+| ~~`apply_promo_code` в `views.py`~~ | Мёртвый хелпер удалён из `views.py` (2026-05); промокоды вне текущего product roadmap. |
 
 ---
 

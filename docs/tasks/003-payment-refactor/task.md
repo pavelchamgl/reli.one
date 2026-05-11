@@ -386,11 +386,72 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 
 ---
 
+## Аудит структуры payment app (2026-05-11)
+
+Краткая карта потока (границы слоёв без смены контрактов):
+
+```mermaid
+flowchart LR
+  subgraph http [HTTP]
+    V1[CreateStripePaymentView]
+    V2[CreatePayPalPaymentView]
+    V3[StripeWebhookView]
+    V4[PayPalWebhookView]
+    V5[ConversionPayloadView]
+  end
+  subgraph checkout [Checkout services]
+    SS[stripe_session]
+    PS[paypal_session]
+    SC[stripe_checkout API]
+    PC[paypal_checkout API]
+    CM[checkout_metadata]
+    SH[checkout_shared]
+  end
+  subgraph wh [Webhook parse]
+    SW[stripe_webhook]
+    PW[paypal_webhook]
+  end
+  subgraph core [Orchestration]
+    WP[webhook_processing.create_orders_and_payment]
+  end
+  subgraph dom [Другие домены]
+    OR[order / Invoice PDF]
+    DL[delivery.utils_async parcels]
+    EM[payment.services_async email]
+  end
+  V1 --> SS --> SC
+  V2 --> PS --> PC
+  SS --- SH
+  PS --- SH
+  SS --- CM
+  PS --- CM
+  V3 --> SW --> WP
+  V4 --> PW --> WP
+  WP --> OR
+  WP --> EM
+  WP --> DL
+  V5 --> CX[conv cache / get_orders_by_payment_session_id]
+```
+
+**Выводы аудита**
+
+| Область | Оценка |
+|---------|--------|
+| **views** | Create*-views — тонкие (serializer → `build_*_context` → `create_*_checkout_session`). Webhook-views — verify/parse в `*_webhook`, затем `create_orders_and_payment`. ConversionPayload — кэш + фолбэк через `get_orders_by_payment_session_id`. |
+| **Stripe vs PayPal session** | Общая логика — `checkout_shared` (`_CHANNEL_MAP`, `check_cz_origin_for_checkout`, базовая ошибка); различия — только в `stripe_session` / `paypal_session` и вызовах PSP API — **опасного дублирования нет**. |
+| **webhook_processing** | Зона ответственности: pre-flight + `_replay_if_payment_exists`, один `atomic` (заказы, `OrderProduct`, `Payment`, `OrderEvent`, conv cache, best-effort `Invoice`), post-commit `async_send_client_email` + `async_parcels_and_seller_email`. Назначение склада на строку заказа (`WarehouseItem` lookup) — **не** списание остатков; бизнес доставки не менялась. |
+| **Идемпотентность** | Повтор webhook → replay без второго `Payment`; `IntegrityError` → replay; **side effects post-commit не планируются** при replay (как в docstring `create_orders_and_payment`). |
+| **Метаданные** | `WebhookPaymentData` + `StripeMetadata` / `PayPalMetadata` в моделях; билдеры в `checkout_metadata`. |
+| **Мёртвый код (устранён 2026-05-11)** | В `views.py` удалены неиспользуемые импорты, дубликат CZ-проверки (`check_cz_origin` уже в `checkout_shared`), мёртвые `PaymentSessionValidator` / promo-хелперы / `create_order_event`, неиспользуемые константы модулей. Размер `views.py` **≈775 строк**. |
+| **Логирование** | Webhook: префиксы вида `[StripeWebhook]` / idempotent replay; checkout — session_key / user id; при необходимости дальнейшая унификация — см. **Open** выше. |
+
+---
+
 ## Привязка к коду
 
 | Тип | Файлы |
 |-----|-------|
-| **Backend** | `payment/models.py`, `payment/views.py` (**≈973 строки** после Steps 1–4), `payment/services/webhook_processing.py`, `payment/services/checkout_metadata.py`, `payment/services/checkout_shared.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `order/services/invoice_numbers.py` |
+| **Backend** | `payment/models.py`, `payment/views.py` (**≈775 строк** после cleanup 2026-05-11), `payment/services/webhook_processing.py`, `payment/services/checkout_metadata.py`, `payment/services/checkout_shared.py`, `payment/services/stripe_webhook.py`, `payment/services/paypal_webhook.py`, `order/services/invoice_numbers.py` |
 | **Модели** | `Payment` (`UniqueConstraint` на `payment_system` + `session_id`), `InvoiceSequence`; `PromoCode` — вне roadmap **003** |
 | **API** | `POST /stripe-webhook/`, `POST /paypal-webhook/` (контракты не меняются) |
 | **Интеграции** | Stripe Webhook SDK, PayPal Webhook SDK |
@@ -401,4 +462,4 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 - DB-6: в коде **исправлено** (`F()` + тесты в `promocode/`); **продуктовый** трек промокодов — **Deferred** (фича не используется)
 - PAY-4: ~~`InvoiceSequence` без `select_for_update`~~ — **снято в коде** (`invoice_numbers.py`); приоритет — **регрессионные тесты** (добавлены в `order/tests.py`)
 - PAY-2: Нет retry при ошибке генерации посылок P1
-- BE-2: `payment/views.py` было ~2198 строк → **≈ 973** после Steps 1–4; **Step 5** — декомпозиция `create_orders_and_payment` в `webhook_processing.py` **завершена**; опциональный вынос в отдельные модули (`order_factory` и т.д.) — техдолг
+- BE-2: `payment/views.py` исторически ~2198 строк → **≈775** после выноса сервисов и cleanup мёртвого кода (2026-05); **Step 5** — декомпозиция `create_orders_and_payment` в `webhook_processing.py` **завершена**; опциональный вынос в отдельные модули (`order_factory` и т.д.) — техдолг
