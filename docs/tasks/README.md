@@ -28,7 +28,7 @@
 
 | # | После аудита |
 |---|----------------|
-| **010** | **Частично выполнена:** локальный stack, handbook payment providers, Stripe+PayPal smoke evidence, health+deployment docs, Postgres runbook. **Не списывать в «done»:** миграции в git; тест PromoCode concurrency; эксплуатация Sentry/алерты/load balancer health в prod; RTO/RPO и backup **медиа/Cloudinary** в deployment doc; закрыть TODO деплоя/CI/TLS в `docs/07-deployment.md`. |
+| **010** | **Частично выполнена:** локальный stack, handbook payment providers, Stripe+PayPal smoke evidence, health+deployment docs, Postgres runbook; **файлы миграций под `backend/*/migrations/` в git**, `makemigrations --check` без дрейфа (аудит 2026-05-11). **Не списывать в «done»:** тест PromoCode concurrency; эксплуатация Sentry/алерты/load balancer health в prod; RTO/RPO и backup **медиа/Cloudinary** в deployment doc; закрыть TODO деплоя/CI/TLS в `docs/07-deployment.md`; startup env validation (**010** DoD). |
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
@@ -45,7 +45,7 @@
 
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
-1. [**010**](./010-devops-infrastructure/task.md) — завершить оставшиеся DoD: миграции в git, PromoCode concurrency test; **Iteration 7** (Sentry в prod, `check --deploy`); дополнить `docs/07-deployment.md`: RTO/RPO, медиа, ручной деплой, CI/CD, TLS (**без смешения с уже готовым runbook’ом Postgres**).
+1. [**010**](./010-devops-infrastructure/task.md) — завершить оставшиеся DoD: ~~миграции в git~~ (уже в репо; поддерживать `--check`); PromoCode concurrency test; **Iteration 7** (Sentry в prod, `check --deploy`); дополнить `docs/07-deployment.md`: RTO/RPO, медиа, ручной деплой, CI/CD, TLS (**без смешения с уже готовым runbook’ом Postgres**).
 2. [**004**, **005**, **008**](./004-order-consistency/task.md) — по вашему темпу после стабильного тестового фундамента.
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 

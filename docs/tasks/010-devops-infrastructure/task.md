@@ -10,12 +10,12 @@
 
 ## Контекст
 
-Без мониторинга инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей. Миграции исключены из git → восстановление чистой БД сложно. Нет backup стратегии для PostgreSQL и медиа-файлов.
+Без мониторинга инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей. Схема БД версионируется файлами миграций в репозитории (`backend/*/migrations/`); восстановление **чистой** БД — через `migrate`. Нет backup стратегии для PostgreSQL и медиа-файлов (runbook — отдельно в `docs/operations/`).
 
 - **DEV-1 (P1):** Интеграция Sentry в коде **есть** (Iteration 3); **эксплуатационная** проверка в production (события, алерты) — **открыта** (Iteration 7)
 - **DEV-2 (P1):** **`GET /health/`** — реализован (**Iteration 2**); контракт и production checklist описаны в **`docs/07-deployment.md`**; регрессия **`backend/test_health_endpoint.py`**. Привязка HEALTHCHECK в боевом compose/uptime — **по-прежнему на ops**
 - **DEV-3 (P1):** Runbook **`pg_dump` / restore PostgreSQL → локальный e2e** есть — [`database-backup-restore.md`](../../operations/database-backup-restore.md); **регулярные бэкапы на production-сервере, RTO/RPO, Cloudinary/medиа** в `docs/07-deployment.md` — **ещё без полного описания**
-- **DEV-4 (P2):** Миграции в `.gitignore` → нет version history схемы
+- **DEV-4 (P2):** Исторически в `.gitignore` была строка `*/migrations` — она **не** матчит пути вида `backend/<app>/migrations/` (один `*` без `/`), поэтому миграции проектных apps **уже отслеживаются** в git; осмысленный DoD — поддерживать `makemigrations --check` без дрейфа и явный политический выбор ignore (см. Iteration 5)
 - **DEV-5 (P2):** `DEBUG` не проверяется в production
 
 ## Scope (область)
@@ -23,7 +23,7 @@
 - Интеграция Sentry для Django и React
 - Добавление `/health/` endpoint
 - Документирование backup стратегии
-- Включение миграций в git
+- Поддержание миграций в git без дрейфа (`makemigrations --check` в CI)
 - Проверка `DEBUG=False` при запуске
 - Обновление GitHub Actions CI
 
@@ -45,7 +45,7 @@
 ## Риски
 
 - Sentry может логировать PII если настроен неправильно → нужен `before_send` filter
-- Включение миграций в git требует того чтобы сначала `makemigrations` вернул чистое состояние
+- Смена `.gitignore`/политики по миграциям требует того, чтобы `makemigrations --check` и ревью графа миграций были согласованы (сейчас проектные миграции уже в git)
 - `DEBUG` check при запуске может нарушить staging если там `DEBUG=True`
 
 ## Definition of Done
@@ -55,7 +55,7 @@
 - [x] `docs/07-deployment.md` — контракт `/health/`, уточнение Sentry (**DSN + DEBUG=False** для Django), **Production readiness checklist** (ручная сверка; не заменяет `check --deploy`)
 - [x] Sentry DSN настроен для Django и React — settings.py (только при **DEBUG=False + SENTRY_DSN**), main.jsx (при **VITE_SENTRY_DSN**)
 - [x] Runbook backup/restore PostgreSQL и restore в e2e — [`docs/operations/database-backup-restore.md`](../../operations/database-backup-restore.md); в `docs/07-deployment.md` раздел Backup ссылается на runbook (медиа/частота prod — вне runbook)
-- [ ] Миграции включены в git (`.gitignore` обновлён) — `.gitignore` строка 30: `*/migrations` по-прежнему исключает миграции
+- [x] Миграции проектных apps в git — `backend/*/migrations/*.py` отслеживаются (в т.ч. `__init__.py`); паттерн `.gitignore` строка 30 (`*/migrations`) на эти пути **не действует**. **Аудит 2026-05-11:** `makemigrations --check --dry-run` → «No changes detected»; незакоммиченных изменений в `backend/*/migrations/` нет. Опционально: уточнить `.gitignore` (например `backend/*/migrations/*.pyc` уже покрывает bytecode) для ясности политики
 - [x] CI запускает тесты и проверку миграций — `.github/workflows/ci.yml` содержит `makemigrations --check --dry-run` + `manage.py test` + `pytest`
 - [ ] PromoCode: тест атомарности / гонок `used_count` — перенос из Task 002 Extended (см. Scope выше)
 - [x] `DEBUG` корректно парсится как bool — `settings.py` строка 32 исправлена (2026-05-05): `os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")`. Startup validation остаётся pending.
@@ -83,7 +83,7 @@
 - [ ] **Мониторинг production** — алерты, при необходимости HEALTHCHECK в боевом compose, метрики; `/health/` в приложении есть, эксплуатационная обвязка не завершена
 - [ ] **Финальная верификация Sentry** в production (см. Iteration 7)
 - [ ] **Production deployment checklist** — в `docs/07-deployment.md` добавлен **ориентир checklist** (DEBUG, хосты, CSRF, proxy, Sentry, логи, health); процедура **ручного деплоя**, CI/CD pipeline, TLS refresh — по-прежнему **TODO** в том же файле
-- [ ] Остальные пункты **Definition of Done** выше: миграции в git, PromoCode regression, startup `DEBUG`/env validation
+- [ ] Остальные пункты **Definition of Done** выше: PromoCode regression, startup `DEBUG`/env validation (миграции — см. аудит 2026-05-11 в DoD)
 
 ### Next steps (кратко)
 
@@ -320,7 +320,9 @@ jobs:
 
 ### Migrations in git
 
-**Обновить `.gitignore`:**
+**Фактическое состояние (2026-05-11):** миграции Django apps под `backend/<app>/migrations/` уже **закоммичены**; шаблон `.gitignore` `*/migrations` не соответствует этим путям. Ниже — исторический чеклист; при смене политики ignore пересобрать граф и прогнать CI.
+
+**Опционально уточнить `.gitignore`:**
 ```gitignore
 # Убрать:
 # */migrations/
@@ -350,7 +352,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 ```
 
 ### Статус
-- [ ] Migrations in git — НЕ сделано. `.gitignore` строка 30: `*/migrations` по-прежнему исключает все миграции. CI-шаг `makemigrations --check` пройдёт только если в БД уже применены миграции (в CI используется SQLite fallback — проблема)
+- [x] Migrations in git — файлы миграций под `backend/<app>/migrations/` **в репозитории**; утверждение про полное исключение миграций `.gitignore` было **неточным** (шаблон `*/migrations` не покрывает `backend/.../migrations/`). **Аудит 2026-05-11:** без дрейфа моделей/миграций; локально при заданных в `envs/*` Postgres-переменных `makemigrations` может выдать предупреждение о недоступной БД, но проверка дрейфа остаётся валидной; в CI, как в `ci.yml`, без `DB_*` используется SQLite — предупреждения нет
 - [ ] Startup production validation (`DJANGO_ENV=production`, обязательные env vars) — НЕ сделано (см. предложенный фрагмент выше). Парсинг **`DEBUG` как bool** уже исправлен в `settings.py` (см. Definition of Done).
 
 ---
@@ -403,7 +405,7 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 
 **Аудит 2026-05-05:** Iterations 2–4 выполнены (health-check, Sentry, CI). Iteration 5 (миграции в git) и Iteration 6 (частично: runbook PG + e2e в `docs/operations/`) — см. актуальные чекбоксы выше. Iteration 7 — production validation.
 
-**Обновление 2026-05-11:** Локальный e2e-контур и связанная документация добавлены (см. раздел **«Прогресс: локальный e2e»** выше). Iterations 5–7 **по-прежнему актуальны** для production.
+**Обновление 2026-05-11:** Локальный e2e-контур и связанная документация добавлены (см. раздел **«Прогресс: локальный e2e»** выше). **Миграции:** сверка `makemigrations --check --dry-run` и `migrate --plan` (SQLite при пустых `DB_*`) — дрейфа нет; см. чекбоксы DoD и Iteration 5. Iterations 5 (startup validation) и 6–7 **по-прежнему актуальны** для production.
 
 ---
 
@@ -436,5 +438,5 @@ if not DEBUG and os.getenv("DJANGO_ENV") == "production":
 - DEV-1: Нет мониторинга и алертинга P1
 - DEV-2: Нет health-check endpoint P1
 - DEV-3: Нет backup стратегии P1
-- DEV-4: Миграции исключены из git P2
+- DEV-4: Политика `.gitignore` для `migrations` vs фактическое версионирование схемы — **актуализировано** в **010** (миграции apps в git; см. DoD)
 - DEV-5: `DEBUG` не проверяется P2
