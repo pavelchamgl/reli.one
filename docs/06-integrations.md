@@ -2,17 +2,18 @@
 
 ## Платёжные системы
 
+**Полное описание архитектуры, последовательности вызовов, идемпотентности и troubleshooting:** [**Payment flow**](payment-flow.md).
+
+Краткая справка по переменным и провайдерам:
+
 ### Stripe
 
 | Параметр | Описание |
 |----------|----------|
-| Env-переменная | `STRIPE_API_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` |
-| Режим | TODO: live / test |
-| Webhook endpoint | TODO: `/api/…` |
-| Используется для | TODO |
-
-> TODO: Описать флоу создания PaymentIntent / Checkout Session.
-> TODO: Описать обработку webhook-событий (payment_intent.succeeded, …).
+| Env-переменные | `STRIPE_API_SECRET_KEY`, `STRIPE_API_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_ENDPOINT_SECRET` |
+| Режим | Задаётся ключами в Stripe Dashboard (test / live) |
+| Checkout | `POST /api/create-stripe-payment/` |
+| Webhook | `POST /api/stripe-webhook/` — см. [payment-flow.md](payment-flow.md) |
 
 ---
 
@@ -20,11 +21,10 @@
 
 | Параметр | Описание |
 |----------|----------|
-| Env-переменная | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID` |
-| Режим | `PAYPAL_MODE` (sandbox / live) |
-| API URL | sandbox: `api-m.sandbox.paypal.com` / live: `api-m.paypal.com` |
-
-> TODO: Описать флоу создания ордера PayPal.
+| Env-переменные | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `PAYPAL_MODE` |
+| API URL | при `PAYPAL_MODE=live` — `https://api-m.paypal.com`, иначе sandbox |
+| Checkout | `POST /api/create-paypal-payment/` |
+| Webhook | `POST /api/paypal-webhook/` — см. [payment-flow.md](payment-flow.md) |
 
 ---
 

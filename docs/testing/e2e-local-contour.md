@@ -9,6 +9,7 @@
 - Быстрая проверка OpenAPI-контрактов и админки на свежей миграции.
 - Детальный ручной сценарий Stripe: [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md).
 - Детальный ручной сценарий PayPal **sandbox**: [`paypal-e2e-checklist.md`](./paypal-e2e-checklist.md).
+- Архитектура payment flow и troubleshooting: [`payment-flow.md`](../payment-flow.md).
 
 Production-стек (`docker-compose.yml`, `envs/database.env`, `envs/backend.env`, `.reli_db`) **не используется**.
 

@@ -1,6 +1,6 @@
 # Manual checklist: PayPal sandbox flow (локальный e2e-контур)
 
-Пошаговая ручная проверка цепочки **PayPal Checkout (sandbox) → webhook → заказ / инвойс / почта** в Docker e2e. Базовый контур: [`e2e-local-contour.md`](./e2e-local-contour.md). Аналог по структуре: [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md).
+Пошаговая ручная проверка цепочки **PayPal Checkout (sandbox) → webhook → заказ / инвойс / почта** в Docker e2e. Базовый контур: [`e2e-local-contour.md`](./e2e-local-contour.md). Аналог по структуре: [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md). **Архитектура и troubleshooting:** [`../payment-flow.md`](../payment-flow.md).
 
 **Инструменты:** Postman (или аналог), браузер, аккаунты [PayPal Sandbox](https://developer.paypal.com/dashboard/), **ngrok** (или аналог) для публичного URL webhook.
 

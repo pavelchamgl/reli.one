@@ -1,6 +1,6 @@
 # Manual checklist: Stripe payment flow (локальный e2e-контур)
 
-Пошаговая ручная проверка цепочки **Stripe Checkout → webhook → заказ / инвойс / почта** в Docker e2e. Предполагается знакомство с базовым контуром: [`e2e-local-contour.md`](./e2e-local-contour.md).
+Пошаговая ручная проверка цепочки **Stripe Checkout → webhook → заказ / инвойс / почта** в Docker e2e. Предполагается знакомство с базовым контуром: [`e2e-local-contour.md`](./e2e-local-contour.md). **Архитектура и troubleshooting:** [`../payment-flow.md`](../payment-flow.md).
 
 **Инструменты:** Postman (или аналог), браузер, Stripe **test mode**, Stripe CLI **или** ngrok + webhook в Dashboard.
 
