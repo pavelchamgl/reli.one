@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Pending (структурная реализация по DoD ниже) — **repo-scope regression gate: пройден 2026-05-12**
+**Status:** Pending (структурная реализация по DoD ниже) — **repo-scope regression gate: пройден 2026-05-12**; **e2e старт backend: подтверждён 2026-05-12** (после очистки Docker / ресурсов хоста).
 
 ---
 
@@ -36,17 +36,36 @@ docker compose -f docker-compose.e2e.yml up --build -d
 | `pytest payment/ -q` | OK, exit 0 |
 | `pytest order/ -q` | OK, exit 0 |
 | `pytest -q` (полный backend) | OK, exit 0 |
-| `docker-compose.e2e.yml up --build` | **Не подтверждено:** сборка образа `backend_e2e` завершилась ошибкой хоста Docker `no space left on device` при распаковке слоя (контейнер не дошёл до migrate/collectstatic/runserver) |
+| `docker-compose.e2e.yml up --build` | См. блок **E2e follow-up** ниже |
+
+### E2e follow-up (2026-05-12, после очистки Docker)
+
+После `docker system prune` / освобождения места первая попытка `compose pull` дала сетевые `EOF` с Docker Hub (`postgres`, `mailpit`) — типичная нестабильность канала; образы докачались с повторными `docker pull`.
+
+Выполнено:
+
+```bash
+docker pull postgres:17
+docker pull axllent/mailpit:latest
+# из корня репозитория:
+docker compose -f docker-compose.e2e.yml build backend_e2e
+docker compose -f docker-compose.e2e.yml up -d
+docker compose -f docker-compose.e2e.yml logs backend_e2e --tail 150
+```
+
+**Лог `backend_e2e`:** миграции без ошибок (`No migrations to apply.`), `collectstatic` (`184 static files copied`), затем `Starting development server at http://0.0.0.0:8000/`. Контейнеры в статусе Up (postgres healthy, mailpit, backend на `:8000`).
 
 ### Known warnings
 
 1. **Docker Compose — orphan containers:** при `docker-compose.test.yml` выводится предупреждение о контейнерах другого compose-проекта (`reli_backend_e2e`, `reli_postgres_e2e`, `reli_mailpit_e2e`). На результат проверок не влияет; при уборке: `docker compose -f docker-compose.test.yml up --remove-orphans` или остановить e2e stack.
 2. **dj-rest-auth / django-allauth:** при импорте регистрационных serializer’ов — `UserWarning` про устаревшие `app_settings.USERNAME_REQUIRED` / `EMAIL_REQUIRED` (рекомендация перейти на `SIGNUP_FIELDS`). Источник — зависимости, не код приложения; дублируется в `manage.py check` и pytest warnings summary.
 3. **E2e rebuild:** в логе сборки — стандартное предупреждение pip про установку от root в образе.
+4. **Docker Hub:** после полной очистки локальных образов возможны обрывы (`EOF`) при `pull`; помогают повторы или отдельные `docker pull` до успеха.
 
 ### Remaining ops / manual actions
 
-- **Освободить место на диске Docker Desktop** (или почистить образы/BuildKit cache), затем повторить `docker compose -f docker-compose.e2e.yml up --build` и убедиться в логах `backend_e2e`: успешный `migrate`, `collectstatic`, строка старта `runserver`.
+- После проверки при желании остановить стек: `docker compose -f docker-compose.e2e.yml down`.
+- При сбоях pull с Hub — повторить `docker pull` или сменить сеть/VPN; не ошибка приложения.
 - По желанию: `docker compose -f docker-compose.test.yml ... --remove-orphans`, чтобы убрать предупреждение про orphan containers.
 
 ### Артефакты вне этого gate
