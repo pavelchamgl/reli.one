@@ -236,7 +236,7 @@ flowchart TB
 - `docs/testing/e2e-local-contour.md` — локальный Docker e2e-контур (Postgres e2e, Mailpit, ручная проверка API / Stripe webhook).
 - `docs/testing/stripe-e2e-checklist.md` — ручной чеклист Stripe payment flow в e2e (Postman, идемпотентность, логи).
 - `docs/tasks/002-testing-foundation/task.md` — **DONE (Testing Foundation Complete)**; Core vs Extended; Extended → Task 009 (warehouse), Task 012 (order lifecycle); **промокоды / атомика — не смешивать с [Task 010 DevOps](./tasks/010-devops-infrastructure/task.md)**.
-- `docs/tasks/012-order-lifecycle-extended-tests/task.md` — расширенные тесты lifecycle заказа (перенос из 002 Extended).
+- `docs/tasks/003-payment-refactor/task.md` — платежный контур; **closure repo-scope** и таблица evidence — `docs/tasks/004-order-consistency/task.md` → [Final DoD table](./tasks/004-order-consistency/task.md#final-dod-table).
 - `docs/09-architecture-debt.md` — замечания по текущему объёму тестов и tooling.
 - `docs/02-user-flows.md`, `docs/01-business-domains.md` — сценарии для расширения P1/P2.
 
@@ -267,4 +267,4 @@ flowchart TB
 - **Дублирование раннеров в CI:** выполняются и `python manage.py test`, и `pytest` — один и тот же набор тестов, два способа поймать регрессии раннера/плагинов.
 - **Покрытие (coverage):** порог в CI не зафиксирован; при введении порога — отдельное решение (не смешивать с **scope [010 DevOps](./tasks/010-devops-infrastructure/task.md)**).
 - **Frontend:** `Frontend3` по-прежнему без unit-скрипта в `package.json`; только lint/build в CI.
-- **Следующие документы для правок при изменении тестов:** этот файл, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.
+- **Следующие документы для правок при изменении тестов:** этот файл, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/003-payment-refactor/task.md`, `docs/tasks/004-order-consistency/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.

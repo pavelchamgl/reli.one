@@ -2,13 +2,36 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Pending (структурная реализация по DoD ниже) — **repo-scope regression gate: пройден 2026-05-12**; **e2e старт backend: подтверждён 2026-05-12** (после очистки Docker / ресурсов хоста).
+
+> **Именование:** обсуждаемое как «**Task 004 Payment Cleanup**» здесь сведено к **закрытию платежного контура по repo-scope**. Канон постановки и истории кода — **[Task 003 — Payment refactor](../003-payment-refactor/task.md)**. Этот файл исторически описывает **Order Consistency**; сверху зафиксирован **финальный аудит payment cleanup**, ниже — **backlog домена заказа** (не смешивать с закрытием платежей).
+
+**Status:** **DONE (repo-scope)** для **Payment cleanup** — см. [Final DoD table](#final-dod-table). **Production / live PSP acceptance** репозиторий **не** утверждает (проводится вручную на боевом контуре; зафиксирован только sandbox/local smoke в `docs/testing/*`). **Структурная Order Consistency** (миграции, константы статусов и т.д.) — **[не закрыта](#order-domain-backlog)**.
 
 ---
 
-## Final regression status (2026-05-12)
+## Финальный аудит — Payment cleanup (repo-scope)
 
-Интеграционный regression pass по связке **payment ↔ order** (Docker test matrix). Цель — зафиксировать состояние репозитория перед закрытием проверок по scope; реализация пунктов DoD (миграции, константы) не смешивается с этим gate.
+Критерии проверены по документам, тестам и локальному контенту в git (май 2026). **Согласовано с [Task 010 — DevOps](../010-devops-infrastructure/task.md):** промокоды и складской резерв (**Task 013**) **не** входят в scope платежного закрытия и **не** блокируют его (аналогично Deferred в Task 010).
+
+### Final DoD table
+
+| Item | Status | Evidence | Remaining action |
+|------|--------|----------|------------------|
+| Payment flow стабилизирован (checkout, webhook, уникальность `Payment`) | **Done** | [Task 003](../003-payment-refactor/task.md) → Done; `backend/payment/` | Боевая приёмка PSP — только вручную на контуре |
+| Stripe / PayPal smoke (local/sandbox) | **Done** | [`stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md), [`paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) | Production smoke — вне git |
+| Webhook replay / идемпотентность | **Done** | Автотесты `payment/`; [`payment-flow.md`](../../payment-flow.md) | — |
+| Negative webhook tests и документация | **Done** (с follow-up) | Task 003: матрица HTTP/verify; остаётся опциональный follow-up по ветке `api_get` CAPTURE — **не блокер** | Расширять ветки по желанию |
+| Документация payment flow | **Done** | [`payment-flow.md`](../../payment-flow.md) → локальный e2e, Task 003 | Обновлять при смене контрактов |
+| Full `pytest` backend | **Done** | `docker-compose.test.yml` → `pytest -q`; CI | Держать зелёным в PR |
+| **PromoCode** в цепочке оплаты | **Исключено из scope** | Task 003 Deferred; Task 010 Deferred | Отдельная задача при возврате фичи |
+| **Stock reservation / [Task 013](../013-stock-reservation/task.md)** | **Исключено из scope** | design-only / future; Task 010 | Не блокирует платежный контур |
+| Order domain (структурная консистентность) | **Deferred / backlog** | Раздел [Order domain backlog](#order-domain-backlog) ниже | Отдельная продуктовая итерация |
+
+---
+
+## Regression gate — Docker test matrix + e2e (2026-05-12)
+
+Интеграционный regression pass по связке **payment ↔ order** (Docker test matrix). Цель — зафиксировать состояние репозитория перед закрытием проверок по scope; **структурные** пункты Order Consistency (ниже) с этим gate **не** смешиваются.
 
 ### Commands run
 
@@ -73,6 +96,10 @@ docker compose -f docker-compose.e2e.yml logs backend_e2e --tail 150
 Уже зафиксированы отдельно (не перезапускались в этом прогоне): локальный e2e, Stripe/PayPal smoke, webhook lifecycle tests, актуальные docs по payment — см. связанные задачи и `docs/testing/*`.
 
 ---
+
+## Order domain backlog
+
+**Структурная часть Task 004 — не закрыта repo-scope.** Ниже — **оригинальная постановка** по консистентности домена заказа (статусы, `Order.user`, `received_at`, индексы). Это **не** входило в критерии **Payment cleanup** и остаётся в работе по приоритету продукта.
 
 ## Цель
 

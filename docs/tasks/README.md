@@ -24,29 +24,31 @@
 
 ### Статус задач (аудиторская формулировка)
 
-Задачи **не закрыты целиком** по продуктовому смыслу, если в их `task.md` остаются обязательные **кодовые** чекбоксы. **Исключение:** **[Task 010 — DevOps](./010-devops-infrastructure/task.md)** закрыт для **репозитория** (**DONE git**), см. [финальную таблицу DoD](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); эксплуатационная приёмка описана как **pending** и не отменяет это закрытие.
+Задачи **не закрыты целиком** по продуктовому смыслу, если в их `task.md` остаются обязательные **кодовые** чекбоксы. **Исключения по закрытию для git без боевой приёмки:** **[Task 010 — DevOps](./010-devops-infrastructure/task.md)** (**DONE git**), см. [финальную таблицу DoD](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); **[Payment cleanup](./004-order-consistency/task.md#final-dod-table)** — **DONE repo-scope** в **[Task 004](./004-order-consistency/task.md)** при этом **структурный backlog Order Consistency** в том же файле остаётся **OPEN**. Эксплуатационная приёмка описана как **pending** и не отменяет эти закрытия.
 
 | # | После аудита |
 |---|----------------|
 | **010** | **DONE (репозиторий):** e2e-compose, env examples, Mailpit, Stripe/PayPal **local/sandbox** smoke (evidence в docs), `/health/` + тесты, backup/restore runbook, migrations+CI, deployment A–G, cookies env, Sentry+monitoring **runbooks в `docs/`**. **OPEN (ops):** прогон тех же runbook на **staging/prod**, evidence, `check --deploy`, включение алертов — см. [DoD-таблицу 010](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod). **Не входит в закрытие 010:** промокоды, **013**. Опционально позже: startup env validation (Iter. 5), RTO/RPO+медиа (Iter. 6). |
+| **003** | **DONE (repo-scope)** платежного контура и cleanup — см. **[task.md](./003-payment-refactor/task.md)** и **[Final DoD table Task 004](./004-order-consistency/task.md#final-dod-table)**. **OPEN:** необязательный polish (не блокирует closure). Промокоды и **013** не блокируют. |
+| **004** | **DONE (repo-scope)** для **Payment cleanup** (аудит, regression, ссылки на evidence). **OPEN / backlog:** структурная **Order Consistency** (миграции, константы статусов) — см. [task.md](./004-order-consistency/task.md#order-domain-backlog). |
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
 
-Остальные задачи (**003–008, 011, 012** и др.) этим проходом **не перепроверялись построчно** в коде — их статус следует брать из соответствующих `task.md` и трактовать здесь без изменений, пока те файлы явно не обновлены.
+Остальные задачи (**005–008, 011, 012** и др.) этим проходом **не перепроверялись построчно** в коде — их статус следует брать из соответствующих `task.md`, пока те файлы явно не обновлены (**003**, **004**, **010** обновлены май 2026).
 
 ### Next priority (рекомендация аудита — не смешивать с выполненными фактами)
 
 **P0 — продуктовые и финансово значимые риски без полной закрывающей реализации в коде**
 
 1. [**Task 013**](./013-stock-reservation/task.md) — **deferred / future:** при возврате продукта с учётом остатков — планирование итераций и согласование с **003**; до решения **не** трактовать как блокер **010** или текущего релиза.
-2. [**Task 003**](./003-payment-refactor/task.md) **(payment):** P0-ядро (**DB-1**, webhook, декомпозиция, локальный e2e smoke — evidence в `docs/testing/stripe-e2e-checklist.md` / `paypal-e2e-checklist.md`) — **done по репозиторию**; открыты хвосты **cleanup** (audit `payment/services`, error handling webhook, логирование, metadata docs, негативные webhook-тесты). Промокоды и склад (**013**) — **не** блокеры **003** (см. **Deferred** в `task.md`).
+2. [**Task 003**](./003-payment-refactor/task.md) **(payment):** **DONE (repo-scope)** — см. также **[Task 004 — Final DoD](./004-order-consistency/task.md#final-dod-table)**; открыт только **необязательный** polish в `task.md` **003**. Промокоды и склад (**013**) — **не** блокеры.
 3. [**006**](./006-security-hardening/task.md) — любые незакрытые пункты SEC-1/SEC-2/PII/`git`-истории по вашему `task.md`.
 
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
 1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). Промокоды и **013** — не DoD **010**.
-2. [**004**, **005**, **008**](./004-order-consistency/task.md) — по вашему темпу после стабильного тестового фундамента.
+2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md), [**008**](./008-seller-onboarding-stabilization/task.md) — по вашему темпу после стабильного тестового фундамента.
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 
 **P2**
@@ -103,8 +105,8 @@ graph TD
 |---|--------|----------|------------|------------|----------|
 | 001 | [system-stabilization](./001-system-stabilization/task.md) | **P0** | Medium | — | GO |
 | 002 | [testing-foundation](./002-testing-foundation/task.md) | **P0** | High | 001 | **DONE (Core)**; Extended → 009, 010, 012 |
-| 003 | [payment-refactor](./003-payment-refactor/task.md) | **P0/P1** | High | **002** | NO-GO без 002 |
-| 004 | [order-consistency](./004-order-consistency/task.md) | P1 | Medium | 002 | NO-GO без 002 |
+| 003 | [payment-refactor](./003-payment-refactor/task.md) | **P0/P1** | High | **002** | **DONE (repo-scope)**; см. [004 Final DoD](./004-order-consistency/task.md#final-dod-table); polish — опционально |
+| 004 | [order-consistency](./004-order-consistency/task.md) | P1 | Medium | 002 | **DONE (repo-scope)** payment audit; **OPEN** order backlog — см. [Order domain backlog](./004-order-consistency/task.md#order-domain-backlog) |
 | 005 | [delivery-cleanup](./005-delivery-cleanup/task.md) | P1 | Medium | 002 | NO-GO без 002 |
 | 006 | [security-hardening](./006-security-hardening/task.md) | **P0/P1** | Medium | — | GO (SEC-1,2 немедленно) |
 | 007 | [frontend-critical-fixes](./007-frontend-critical-fixes/task.md) | P1 | Low | 006 | GO |
