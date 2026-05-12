@@ -11,6 +11,7 @@
 | [Stripe e2e checklist](testing/stripe-e2e-checklist.md) | Ручной smoke, evidence, негативные HTTP |
 | [PayPal e2e checklist](testing/paypal-e2e-checklist.md) | Sandbox smoke, негативные сценарии |
 | [Task 003 — Payment refactor](tasks/003-payment-refactor/task.md) | История рефакторинга, Done/Open/Deferred |
+| [Task 005 — Delivery cleanup](tasks/005-delivery-cleanup/task.md) | Post-payment parcels, dev-gating курьеров, хвосты retry/tests |
 
 ---
 
@@ -180,6 +181,15 @@ sequenceDiagram
 
 - Ожидаемое поведение: **второй** запрос — **200**, без новых сущностей; см. раздел «Идемпотентный replay». Если видите два заказа на одну сессию — это **аномалия** (срочно смотреть уникальность `Payment` и логи race).
 
+### Посылки после оплаты (delivery / курьеры)
+
+- **Где смотреть логи:** сообщения с префиксом **`[PARCELS]`**, **`[PARCELS→SELLER]`**, **`[PARCELS→MANAGER]`** в приложении (реализация — `delivery/utils_async.py`). Сводка по файлам логов и алертам — [`docs/operations/monitoring-alerts.md`](operations/monitoring-alerts.md).
+- **Заказ есть, посылок нет:** типично отказ HTTP у перевозчика или ошибка внутри `generate_parcels_for_order` / `fetch_and_store_labels_for_order`; заказ при этом **не** должен откатываться из-за фоновой задачи. Дальнейшие шаги (повтор, ручная отгрузка) — по внутреннему runbook; открытые пункты по автоматизации retry — [Task 005](tasks/005-delivery-cleanup/task.md).
+- **Dev-эндпоинты курьеров** (`…/api/delivery/dev/…`): в production должны быть **выключены** (`DEBUG=False` и **`ENABLE_DELIVERY_DEV_ENDPOINTS`** не задан или `False`). Для контролируемого включения на staging — только явный флаг.
+- **`origin_blocked`:** генерация посылок и связанная цепочка к продавцу могут быть пропущены по продуктовым правилам; см. код webhook и метаданные заказа.
+
+**Замечание:** полная приёмочная проверка всех production-интеграций с перевозчиками в этом документе **не** утверждается; при инцидентах опирайтесь на логи, мониторинг и задачу **005**.
+
 ---
 
 ## Переменные окружения (имена, без значений)
@@ -192,5 +202,6 @@ sequenceDiagram
 | `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | OAuth PayPal |
 | `PAYPAL_WEBHOOK_ID` | Идентификатор подписки webhook для verify |
 | `PAYPAL_MODE` | `sandbox` / `live` (влияет на API URL) |
+| `ENABLE_DELIVERY_DEV_ENDPOINTS` | Явно включить HTTP dev-tooling курьеров в `delivery` при `DEBUG=False` (staging и т.п.) |
 
 Полные примеры плейсхолдеров: [envs/backend.e2e.env.example](../envs/backend.e2e.env.example) (не коммитить реальные секреты).

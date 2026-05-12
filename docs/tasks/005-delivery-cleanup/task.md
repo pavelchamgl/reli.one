@@ -2,11 +2,23 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Pending
+**Status:** In progress — первая волна (dev-gating, изоляция ошибок по заказу, baseline troubleshooting в `payment-flow`) закрыта; открыты O1–O4 см. ниже.
 
-## Анализ (2026-05-11)
+## Инварианты roadmap (май 2026)
 
-### Карта зависимостей (payment / order / delivery)
+- **PromoCode** — вне scope Task 005 и **не** блокирует эту задачу.
+- **Stock reservation / Task 013** — вне текущего roadmap и **не** блокирует Task 005.
+- **Полноценная очередь Celery** (broker, workers, мониторинг задач) — **не** входит в обязательный scope; см. [Deferred](#deferred--future).
+- **Production-интеграции курьеров** (Packeta, DPD, GLS, MyGLS и т.д.) **не** считаются полностью приёмочно проверенными этим документом: поведение в бою опирается на логи, существующие тесты и ручные сценарии; отдельный «green light» по всем перевозчикам **не** заявлен.
+
+## Продуктовый контекст
+
+- **Checkout (синхронно):** `payment` при создании сессии использует `delivery` (helpers, rates, split, валидаторы) для расчёта доставки в составе оплаты.
+- **После оплаты:** в `on_commit` планируется фоновая цепочка **генерации посылок и ярлыков** и писем продавцу/менеджеру (`async_parcels_and_seller_email` и смежный код в `payment`).
+
+---
+
+## Анализ — карта зависимостей (payment / order / delivery)
 
 ```mermaid
 flowchart TB
@@ -37,268 +49,107 @@ flowchart TB
   UA -. "ленивый import внутри _target" .-> PM["payment/services\nemail по сессии"]
 ```
 
-- **Цикл импорта:** на уровне модулей — `utils_async` не импортирует `payment` при загрузке; вызов `payment.services` только внутри фоновой функции после коммита.
-- **Инконсистентность БД ↔ курьер:** `generate_parcels_for_order` — один большой `atomic` с HTTP к курьеру внутри. Успех API для посылки N и падение на N+1 может оставить активные отгрузки у провайдера без строк в БД (или откат БД при уже созданной посылке — зависит от точки сбоя). Нужны отдельная задача: укоротить транзакции, retry, идемпотентные client_reference.
+- **Цикл импорта:** на уровне модулей `utils_async` не тянет `payment` при загрузке; вызов `payment.services` — внутри фоновой функции после коммита (см. комментарий в `delivery/utils_async.py`).
+- **БД ↔ курьер:** `generate_parcels_for_order` по-прежнему сочетает транзакционность и HTTP к перевозчику; полное согласование отказов (короткие транзакции, идемпотентность, retry на уровне провайдера) — **Deferred**, не обязательный объём текущего cleanup.
 
-### Частично закрыто кодом (2026-05-11)
+---
 
-- Dev-маршруты `/api/delivery/dev/*` регистрируются только при `DEBUG` или `ENABLE_DELIVERY_DEV_ENDPOINTS`.
-- В `async_parcels_and_seller_email` ошибка на одном `order_id` не останавливает остальные; письма по-прежнему после цикла.
-- Удалён неиспользуемый импорт `Thread` в `utils_async.py`.
+## Done (зафиксировано в репозитории)
 
-### Open (всё ещё по Task 005)
+| Тема | Суть |
+|------|------|
+| Dev courier endpoints | Маршруты `delivery` dev-tooling регистрируются только если `DEBUG` **или** `ENABLE_DELIVERY_DEV_ENDPOINTS` (`delivery/dev_access.py`, `delivery/urls.py`). |
+| Тест политики dev-доступа | `delivery/test_dev_access.py` — три режима флагов. |
+| Изоляция ошибок по заказу | В `async_parcels_and_seller_email` сбой на одном `order_id` не блокирует остальные; отдельные `try/except` на продавца/менеджера. |
+| Импорты | Неиспользуемый `Thread` в `utils_async` удалён ранее. |
+| Dependency map | Диаграмма выше + комментарий в коде про долгосрочный выход на очередь/слой уведомлений. |
+| Monitoring notes | Сводка по логам и алертам для courier/delivery — [`docs/operations/monitoring-alerts.md`](../../operations/monitoring-alerts.md). |
+| Troubleshooting (baseline) | Раздел «Посылки после оплаты» в [`docs/payment-flow.md`](../../payment-flow.md) — логи, dev-gating, `origin_blocked`, оговорка про приёмку перевозчиков. |
 
-- Retry/backoff для вызовов курьеров; очередь (Celery); мониторинг.
-- Разрыв циклической **архитектурной** связи (вынести уведомления в общий слой).
-- Явные тесты webhook при падении `generate_parcels_for_order` (заказ уже создан).
+**Зависимости от других задач:** Task **003** и **010** по репозиторию закрыты в объёме, релевантном оплате/DevOps; **005** на них **не** завязан через PromoCode или склад.
 
-## Цель
+---
 
-Сделать delivery flow надёжным: убрать dev-эндпоинты из production, добавить retry для генерации посылок, устранить цикличные зависимости в `utils_async.py`.
+## Open (оставшийся scope Task 005)
 
-## Контекст
+| # | Пункт |
+|---|--------|
+| O1 | **Retry / follow-up:** операционная стратегия (что делать при падении провайдера после оплаты: повтор, ручной триггер, тикет) и при необходимости — узкая реализация **без** обязательной полной Celery-инфраструктуры (отдельное решение в коде по согласованию). |
+| O2 | **Тесты на сбои delivery:** явное покрытие пути «заказ создан, `generate_parcels_for_order` падает» — заказ в БД, webhook не считается провалом для создания заказа; логирование (см. направление в историческом Iteration 2 ниже). |
+| O3 | **Документация troubleshooting (опционально):** расширение baseline из [`docs/payment-flow.md`](../../payment-flow.md) в отдельный operations-runbook, если понадобится больше регламентов для поддержки. |
+| O4 | **Финальный аудит:** пройти [Definition of Done](#definition-of-done) ниже и зафиксировать статус в этом файле. |
 
-Delivery domain имеет следующие проблемы:
-- Dev-эндпоинты (`DevShipMyGLS`, `DevShipDPD` и др.): **с 2026-05-11** регистрируются только при `DEBUG` или `ENABLE_DELIVERY_DEV_ENDPOINTS`; ранее были доступны при любом `DEBUG=False` (SEC-4).
-- `async_parcels_and_seller_email` использует `ThreadPoolExecutor` без retry у провайдеров → при падении Packeta/DPD/GLS заказ уже создан, посылки может не быть (PAY-2); **с 2026-05-11** сбой на одном заказе в батче не блокирует остальные `order_ids`.
-- `delivery/utils_async.py` использует ленивые импорты для разрыва циклических зависимостей при загрузке модулей → архитектурный запах `payment.services` ↔ webhook ↔ `utils_async`.
-- ~~Неиспользуемый импорт `Thread`~~ — удалён (2026-05-11).
+---
 
-## Scope (область)
+## Deferred / Future
 
-- Добавление `if settings.DEBUG:` guard в `delivery/urls.py`
-- Планирование и оценка перехода с `ThreadPoolExecutor` на Celery (или добавление retry через `transaction.on_commit` + exception handling)
-- Устранение циклической зависимости между `payment.services` и `delivery.utils_async`
-- Очистка неиспользуемых импортов в `utils_async.py`
-- Добавление error handling в `async_parcels_and_seller_email`
+- **Celery (или аналог)** с broker, ретраями задач и наблюдаемостью вместо `ThreadPoolExecutor` — отдельная инфраструктурная инициатива, не блокер текущего cleanup.
+- **Укорочение транзакций** и **идемпотентные client_reference** при создании посылок у провайдера — снижение рассинхрона БД ↔ курьер.
+- **Архитектурный слой уведомлений** вместо ленивого импорта `payment.services` из `delivery` — может пересечься с polish **003**, но не является входным условием для O1–O4.
+- **Крупный rewrite** курьерских клиентских API — вне scope.
 
-## Не входит в задачу
+---
 
-- Изменение логики расчёта стоимости доставки
-- Изменение провайдеров (Packeta, DPD, GLS)
-- Изменение модели `DeliveryParcel`
-- Полная реализация Celery (только план)
+## Scope границы (напоминание)
 
-## Зависимости
+- **В scope:** поведение post-payment parcel generation, безопасность dev-tooling, изоляция ошибок, документация и тесты на отказы, операционная стратегия retry/follow-up.
+- **Вне scope:** пересчёт тарифов доставки в checkout, смена провайдеров, изменение модели `DeliveryParcel`, промокоды, складской резерв.
 
-- Task 002 (testing-foundation) — нужны тесты delivery перед правками
-- Task 003 (payment-refactor) — декомпозиция payment/views.py упростит разрыв цикличных зависимостей
-
-## Риски
-
-- Исправление `utils_async.py` может затронуть `payment/services/webhook_processing.py` который вызывает `async_parcels_and_seller_email` → нужна координация с Task 003
-- Добавление Celery требует инфраструктурных изменений → в рамках этой задачи только план + временный fallback
+---
 
 ## Definition of Done
 
-- [ ] Dev-эндпоинты delivery недоступны в production
-- [ ] `utils_async.py` не содержит неиспользуемых импортов
-- [ ] При ошибке генерации посылки — исключение логируется и заказ НЕ откатывается
-- [ ] Циклические зависимости между delivery и payment задокументированы с планом устранения
-- [ ] Написан тест: webhook успешен даже если генерация посылки падает
+### Закрыто
+
+- [x] Dev-эндпоинты курьеров недоступны в типичном production (`DEBUG=False`, флаг выключен).
+- [x] В фоновой генерации посылок ошибка по одному заказу не блокирует остальные в батче.
+- [x] Карта зависимостей и ссылка на мониторинг логов.
+
+### Остаётся
+
+- [ ] Задокументирована и согласована **стратегия retry/follow-up** для провалов генерации посылок (см. O1).
+- [ ] Есть **автотест(ы)** на устойчивость webhook/order к падению генерации посылок (см. O2).
+- [x] В **`docs/payment-flow.md`** есть **baseline manual troubleshooting** по parcel-flow (расширение — опционально, O3).
+- [ ] **Финальный аудит** по чеклисту Task 005 выполнен и статус в шапке обновлён (см. O4).
 
 ---
 
-# Iterations
+## Исторические итерации (ссылочно)
 
-## Iteration 1 — Analysis
+Использовались для первоначального плана; реализация dev-gating и error isolation соответствует **Done** выше, а не обязательно старым фрагментам кода в ранних версиях этого файла.
 
-### Цель
-Понять текущую архитектуру delivery flow и выявить все зависимости.
+### Iteration 1 — Analysis
 
-### Действия
-- Прочитать `backend/delivery/utils_async.py` (изменённый файл)
-- Прочитать `backend/delivery/urls.py` — найти dev-endpoints
-- Прочитать `backend/delivery/api/dev_views.py`
-- Прочитать `backend/payment/services/webhook_processing.py` — как вызывается `async_parcels_and_seller_email`
-- Прочитать `backend/delivery/services/` — `generate_parcels_for_order`, `fetch_and_store_labels_for_order`
+- [x] Analysis complete (диаграмма, файлы перечислены в карте зависимостей).
 
-### Output
+### Iteration 2 — Tests
 
-Диаграмма зависимостей:
-```mermaid
-graph TD
-    WebhookView["payment/views.py\nStripeWebhookView"] --> WP["payment/services/\nwebhook_processing.py"]
-    WP --> OrderFactory["create_orders_and_payment()"]
-    WP --> AsyncDelivery["delivery/utils_async.py\nasync_parcels_and_seller_email()"]
-    AsyncDelivery --> GenerateParcels["delivery/services/\ngenerate_parcels_for_order()"]
-    AsyncDelivery --> FetchLabels["delivery/services/\nfetch_and_store_labels_for_order()"]
-    AsyncDelivery --> PaymentNotify["payment/services/\nsend_seller_emails_by_session()\n[CIRCULAR IMPORT]"]
-    WP --> ClientEmail["payment/services_async.py\nasync_send_client_email()"]
-```
+- [x] Политика dev URL — `delivery/test_dev_access.py`.
+- [ ] Тесты сценария «падение `generate_parcels_for_order` после успешного создания заказа» — **Open** (O2).
 
-- Список всех зарегистрированных URL в `delivery/urls.py`
-- Оценка: нужен Celery или достаточно улучшенного error handling
-
-### Статус
-- [ ] Analysis complete
-
----
-
-## Iteration 2 — Tests
-
-### Цель
-Написать тесты, фиксирующие поведение при ошибке провайдера доставки.
-
-### Тесты для написания
+Направление для O2 (без требования дословного копирования):
 
 ```python
-# backend/delivery/tests_async.py
+# Например: backend/delivery/tests_async.py или рядом с webhook lifecycle
 
-class AsyncParcelsErrorHandlingTest(TestCase):
-    @patch("delivery.services.generate_parcels_for_order", side_effect=Exception("Packeta unavailable"))
-    @patch("payment.services.webhook_processing.create_orders_and_payment")
-    def test_parcel_generation_failure_does_not_rollback_order(self, mock_create, mock_generate):
-        # Payment и Order созданы успешно
-        # generate_parcels_for_order падает
-        # Order в БД существует (не откатился)
-        # Ошибка залогирована
-
-    @patch("delivery.services.generate_parcels_for_order", side_effect=Exception("DPD timeout"))
-    def test_parcel_generation_failure_is_logged(self, mock_generate):
-        # logger.error вызван с правильным сообщением
-
-class DevEndpointAccessTest(TestCase):
-    def test_dev_ship_endpoint_not_accessible_in_production(self):
-        # При DEBUG=False: GET /delivery/dev/... → 404
+# patch generate_parcels_for_order → Exception
+# убедиться: Order существует, ошибка залогирована / webhook не откатывает заказ
 ```
 
-### Статус
-- [ ] Tests written
+### Iteration 3 — Fix (первая волна)
 
----
+- [x] Dev gating — `dev_access.include_dev_courier_tooling`.
+- [x] Error handling — `utils_async.async_parcels_and_seller_email`.
+- [x] Unused import removed.
 
-## Iteration 3 — Fix
+### Iteration 4 — Celery
 
-### Цель
-Применить исправления.
+**Отложено.** При появлении решения о внедрении очереди — вынести в отдельную задачу или appendix (не блокирует закрытие O1–O4 по текущему scope).
 
-### Что менять
+### Iteration 5 — Validation
 
-**1. `backend/delivery/urls.py` — DEBUG guard:**
-
-```python
-from django.conf import settings
-
-urlpatterns = [
-    # ... основные URL
-]
-
-if settings.DEBUG:
-    from .api.dev_views import DevShipMyGLS, DevShipDPD, DevDpdPrintByShipment
-    urlpatterns += [
-        path("dev/ship-mygls/", DevShipMyGLS.as_view()),
-        path("dev/ship-dpd/", DevShipDPD.as_view()),
-        path("dev/dpd-print/", DevDpdPrintByShipment.as_view()),
-    ]
-```
-
-**2. `backend/delivery/utils_async.py` — error handling:**
-
-```python
-import logging
-logger = logging.getLogger(__name__)
-
-def async_parcels_and_seller_email(order_ids, session_id):
-    def _target():
-        for order_id in order_ids:
-            try:
-                generate_parcels_for_order(order_id)
-                fetch_and_store_labels_for_order(order_id)
-            except Exception as exc:
-                logger.error(
-                    "Failed to generate parcels for order %s: %s",
-                    order_id, exc, exc_info=True
-                )
-                # Не re-raise — заказ уже создан, продолжаем с email
-        try:
-            from payment.services import send_seller_emails_by_session, send_merged_manager_email_from_session
-            send_seller_emails_by_session(session_id)
-            send_merged_manager_email_from_session(session_id)
-        except Exception as exc:
-            logger.error("Failed to send seller emails for session %s: %s", session_id, exc, exc_info=True)
-
-    transaction.on_commit(lambda: executor.submit(_target))
-```
-
-**3. Убрать неиспользуемый импорт:**
-
-```python
-# Удалить: from threading import Thread
-```
-
-**4. Документирование циклической зависимости:**
-
-Добавить в `delivery/utils_async.py` comment с планом устранения:
-```python
-# TODO (task-005): Циклическая зависимость payment <-> delivery.
-# Plan: вынести send_seller_emails в отдельный notification.py модуль
-# который импортируется обоими пакетами без circular dependency.
-```
-
-### Затрагиваемые файлы
-| Файл | Изменение |
-|------|-----------|
-| `backend/delivery/urls.py` | DEBUG guard |
-| `backend/delivery/utils_async.py` | error handling, убрать Thread |
-
-### Статус
-- [ ] DEBUG guard applied
-- [ ] Error handling improved
-- [ ] Unused import removed
-
----
-
-## Iteration 4 — Celery Plan (документация)
-
-### Цель
-Задокументировать план перехода с ThreadPoolExecutor на Celery для future task.
-
-### Создать `docs/tasks/005-delivery-cleanup/celery-plan.md`:
-
-```markdown
-# Plan: Celery для фоновых задач delivery
-
-## Текущее состояние
-ThreadPoolExecutor — нет retry, нет мониторинга, нет гарантии доставки
-
-## Целевое состояние
-Celery + Redis broker
-
-## Задачи для Celery
-- generate_parcels_for_order(order_id) — retry 3x, backoff 60s
-- fetch_and_store_labels_for_order(order_id) — retry 3x
-- send_seller_emails_by_session(session_id) — retry 2x
-- send_client_email(order_id) — retry 2x
-
-## Migration steps
-1. Добавить celery в requirements.txt
-2. Настроить CELERY_BROKER_URL = Redis
-3. Создать celery.py в backend/backend/
-4. Конвертировать функции в @shared_task
-5. Обновить utils_async.py → вызов через .delay()
-6. Добавить flower для мониторинга
-```
-
-### Статус
-- [ ] Celery plan documented
-
----
-
-## Iteration 5 — Validation
-
-### Тесты для запуска
-```bash
-pytest backend/delivery/ -v
-```
-
-### Сценарии для проверки
-- [ ] `curl -X GET https://reli.one/api/delivery/dev/ship-mygls/` → 404 в production
-- [ ] Webhook при недоступном Packeta → заказ создаётся, ошибка в логах
-- [ ] `from delivery.utils_async import async_parcels_and_seller_email` — нет предупреждений
-
-### Статус
-- [ ] Validation complete
+- [ ] Полный прогон pytest по `delivery` и целевые тесты из O2.
+- [ ] Ручная проверка: при выключенном dev-доступе маршруты `…/dev/…` не резолвятся.
 
 ---
 
@@ -306,12 +157,11 @@ pytest backend/delivery/ -v
 
 | Тип | Файлы |
 |-----|-------|
-| **Backend** | `delivery/urls.py`, `delivery/utils_async.py`, `delivery/api/dev_views.py` |
-| **Модели** | Не меняются |
-| **API** | Dev endpoints скрыты в production |
-| **Интеграции** | Packeta, DPD, GLS (поведение не меняется, только error handling) |
+| **Backend** | `delivery/dev_access.py`, `delivery/urls.py`, `delivery/utils_async.py`, `delivery/api/dev_views.py`, `payment/services/webhook_processing.py`, `payment/services_async.py` |
+| **Модели** | Не менялись в рамках первой волны |
+| **Интеграции** | Packeta, DPD, GLS — без заявления о полной production-приёмке |
 
-## Связанные проблемы из docs/09-architecture-debt.md
+## Связанные заметки из docs/09-architecture-debt.md
 
-- SEC-4: Dev-эндпоинты доставки доступны в продакшне P1
-- PAY-2: Нет retry при ошибке генерации посылок P1
+- SEC-4: dev-эндпоинты доставки — **смягчено** gating (остаётся дисциплина env на prod).
+- PAY-2: retry при ошибке генерации посылок — частично смягчено изоляцией ошибок; **полное** решение — в O1 / Deferred (очередь).
