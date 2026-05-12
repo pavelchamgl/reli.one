@@ -34,7 +34,7 @@
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
 | **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
-| **005** | **IN PROGRESS:** первая волна delivery cleanup (**DONE** в репо): gating dev-курьерских эндпоинтов (`DEBUG` / `ENABLE_DELIVERY_DEV_ENDPOINTS`), изоляция ошибок по заказу в post-payment parcel flow, тесты политики dev-доступа, ссылки на мониторинг, baseline troubleshooting в [`payment-flow.md`](../payment-flow.md). **OPEN:** retry/follow-up стратегия, тесты падения `generate_parcels_for_order`, опциональное расширение runbook, финальный аудит. **Deferred:** полная Celery, укорочение транзакций у курьера, крупный rewrite API перевозчиков. **Не** зависит от PromoCode и **013**. Детали — **[task.md](./005-delivery-cleanup/task.md)**. |
+| **005** | **IN PROGRESS:** первая волна delivery cleanup + **O2** (**DONE**): gating dev-курьерских эндпоинтов, изоляция ошибок по заказу, [`test_async_parcels_errors.py`](../../backend/delivery/test_async_parcels_errors.py), baseline troubleshooting в [`payment-flow.md`](../payment-flow.md). **OPEN:** retry/follow-up (O1), опциональное расширение runbook (O3), финальный аудит (O4). **Deferred:** см. [task.md](./005-delivery-cleanup/task.md). **Не** зависит от PromoCode и **013**. |
 
 Остальные задачи (**006–008, 011, 012** и др.) этим проходом **не перепроверялись построчно** в коде — их статус следует брать из соответствующих `task.md`, пока те файлы явно не обновлены (**003**, **004**, **005**, **010** обновлены май 2026).
 
@@ -49,7 +49,7 @@
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
 1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). Промокоды и **013** — не DoD **010**.
-2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md) — хвосты post-payment parcels, retry/follow-up, тесты на сбои (**не** блокируются **013**/промокодами). [**008**](./008-seller-onboarding-stabilization/task.md) — по вашему темпу после стабильного тестового фундамента.
+2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md) — retry/follow-up (O1), финальный аудит (O4); регресс сбоев посылок покрыт тестами (**не** блокируются **013**/промокодами). [**008**](./008-seller-onboarding-stabilization/task.md) — по вашему темпу после стабильного тестового фундамента.
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 
 **P2**
@@ -108,7 +108,7 @@ graph TD
 | 002 | [testing-foundation](./002-testing-foundation/task.md) | **P0** | High | 001 | **DONE (Core)**; Extended → 009, 010, 012 |
 | 003 | [payment-refactor](./003-payment-refactor/task.md) | **P0/P1** | High | **002** | **DONE (repo-scope)**; см. [004 Final DoD](./004-order-consistency/task.md#final-dod-table); polish — опционально |
 | 004 | [order-consistency](./004-order-consistency/task.md) | P1 | Medium | 002 | **DONE (repo-scope)** payment audit; **OPEN** order backlog — см. [Order domain backlog](./004-order-consistency/task.md#order-domain-backlog) |
-| 005 | [delivery-cleanup](./005-delivery-cleanup/task.md) | P1 | Medium | 002 (тесты для O2) | **IN PROGRESS** — см. [task.md](./005-delivery-cleanup/task.md); первая волна безопасности **DONE** |
+| 005 | [delivery-cleanup](./005-delivery-cleanup/task.md) | P1 | Medium | 002 | **IN PROGRESS** — см. [task.md](./005-delivery-cleanup/task.md); O2-тесты **DONE** |
 | 006 | [security-hardening](./006-security-hardening/task.md) | **P0/P1** | Medium | — | GO (SEC-1,2 немедленно) |
 | 007 | [frontend-critical-fixes](./007-frontend-critical-fixes/task.md) | P1 | Low | 006 | GO |
 | 008 | [seller-onboarding-stabilization](./008-seller-onboarding-stabilization/task.md) | P1 | High | 002 | NO-GO без 002 |
