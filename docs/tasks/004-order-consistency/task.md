@@ -2,7 +2,58 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Pending
+**Status:** Pending (структурная реализация по DoD ниже) — **repo-scope regression gate: пройден 2026-05-12**
+
+---
+
+## Final regression status (2026-05-12)
+
+Интеграционный regression pass по связке **payment ↔ order** (Docker test matrix). Цель — зафиксировать состояние репозитория перед закрытием проверок по scope; реализация пунктов DoD (миграции, константы) не смешивается с этим gate.
+
+### Commands run
+
+Из корня репозитория (каталог с `docker-compose.test.yml`):
+
+```bash
+docker compose -f docker-compose.test.yml run --rm backend_test python manage.py check
+docker compose -f docker-compose.test.yml run --rm backend_test pytest payment/ -q
+docker compose -f docker-compose.test.yml run --rm backend_test pytest order/ -q
+docker compose -f docker-compose.test.yml run --rm backend_test pytest -q
+```
+
+Проверка e2e-контура (ожидалось: migrate без ошибок, collectstatic, runserver):
+
+```bash
+docker compose -f docker-compose.e2e.yml up --build -d
+# фактически выполнялся полный rebuild образа backend_e2e; см. Results
+```
+
+### Results
+
+| Шаг | Результат |
+|-----|-----------|
+| `manage.py check` | OK — `System check identified no issues (0 silenced).`, exit 0 |
+| `pytest payment/ -q` | OK, exit 0 |
+| `pytest order/ -q` | OK, exit 0 |
+| `pytest -q` (полный backend) | OK, exit 0 |
+| `docker-compose.e2e.yml up --build` | **Не подтверждено:** сборка образа `backend_e2e` завершилась ошибкой хоста Docker `no space left on device` при распаковке слоя (контейнер не дошёл до migrate/collectstatic/runserver) |
+
+### Known warnings
+
+1. **Docker Compose — orphan containers:** при `docker-compose.test.yml` выводится предупреждение о контейнерах другого compose-проекта (`reli_backend_e2e`, `reli_postgres_e2e`, `reli_mailpit_e2e`). На результат проверок не влияет; при уборке: `docker compose -f docker-compose.test.yml up --remove-orphans` или остановить e2e stack.
+2. **dj-rest-auth / django-allauth:** при импорте регистрационных serializer’ов — `UserWarning` про устаревшие `app_settings.USERNAME_REQUIRED` / `EMAIL_REQUIRED` (рекомендация перейти на `SIGNUP_FIELDS`). Источник — зависимости, не код приложения; дублируется в `manage.py check` и pytest warnings summary.
+3. **E2e rebuild:** в логе сборки — стандартное предупреждение pip про установку от root в образе.
+
+### Remaining ops / manual actions
+
+- **Освободить место на диске Docker Desktop** (или почистить образы/BuildKit cache), затем повторить `docker compose -f docker-compose.e2e.yml up --build` и убедиться в логах `backend_e2e`: успешный `migrate`, `collectstatic`, строка старта `runserver`.
+- По желанию: `docker compose -f docker-compose.test.yml ... --remove-orphans`, чтобы убрать предупреждение про orphan containers.
+
+### Артефакты вне этого gate
+
+Уже зафиксированы отдельно (не перезапускались в этом прогоне): локальный e2e, Stripe/PayPal smoke, webhook lifecycle tests, актуальные docs по payment — см. связанные задачи и `docs/testing/*`.
+
+---
 
 ## Цель
 
