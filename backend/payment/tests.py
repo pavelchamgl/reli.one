@@ -15,7 +15,7 @@ from django.core.files.base import ContentFile
 from django.test import SimpleTestCase, TestCase
 
 from order.models import Order
-from payment.models import PayPalMetadata, Payment
+from payment.models import PayPalMetadata, Payment, StripeMetadata
 from payment.services.paypal_checkout import (
     create_paypal_checkout_session,
     get_paypal_access_token,
@@ -1184,6 +1184,14 @@ class TestStripeWebhookService(SimpleTestCase):
         self.assertIsNone(r.event)
 
     @patch("payment.services.stripe_webhook.stripe.Webhook.construct_event")
+    def test_verify_value_error_returns_400_empty(self, mock_construct):
+        mock_construct.side_effect = ValueError("invalid payload")
+        r = verify_and_resolve_stripe_checkout_event("not-json", "sig", secret="whsec_test")
+        self.assertEqual(r.early_status, 400)
+        self.assertTrue(r.early_no_body)
+        self.assertIsNone(r.event)
+
+    @patch("payment.services.stripe_webhook.stripe.Webhook.construct_event")
     def test_verify_ignored_event_returns_200_empty(self, mock_construct):
         mock_construct.return_value = {"type": "charge.succeeded", "data": {}}
         r = verify_and_resolve_stripe_checkout_event("{}", "sig", secret="whsec_test")
@@ -1413,6 +1421,137 @@ class TestPayPalWebhookService(SimpleTestCase):
 
 
 # ===========================================================================
+# StripeWebhookView — HTTP-контракт (без реального Stripe verify)
+# ===========================================================================
+
+from payment.services.stripe_webhook import StripeWebhookVerifyResult
+
+
+class TestStripeWebhookViewHttp(SimpleTestCase):
+    """
+    Ответы view при негативных путях (verify / metadata / orchestration).
+    Идемпотентный replay и happy-path покрыты в test_checkout_flow / сервисах.
+    """
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_verify_failure_400_empty_body(self):
+        with patch(
+            "payment.views.verify_and_resolve_stripe_checkout_event",
+            return_value=StripeWebhookVerifyResult(
+                early_status=400,
+                early_no_body=True,
+            ),
+        ):
+            resp = self.client.post(
+                "/api/stripe-webhook/",
+                data="{}",
+                content_type="application/json",
+                HTTP_STRIPE_SIGNATURE="v0=fake",
+            )
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.content, b"")
+
+    def test_unhandled_event_type_200_empty_body(self):
+        with patch(
+            "payment.views.verify_and_resolve_stripe_checkout_event",
+            return_value=StripeWebhookVerifyResult(
+                early_status=200,
+                early_no_body=True,
+            ),
+        ):
+            resp = self.client.post(
+                "/api/stripe-webhook/",
+                data="{}",
+                content_type="application/json",
+                HTTP_STRIPE_SIGNATURE="v0=fake",
+            )
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.content, b"")
+
+    def test_missing_session_key_400(self):
+        ev = {
+            "type": "checkout.session.completed",
+            "data": {"object": {"id": "cs_x", "metadata": {}}},
+        }
+        with patch(
+            "payment.views.verify_and_resolve_stripe_checkout_event",
+            return_value=StripeWebhookVerifyResult(event=ev),
+        ):
+            resp = self.client.post(
+                "/api/stripe-webhook/",
+                data="{}",
+                content_type="application/json",
+            )
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.data["error"], "Missing session_key")
+
+    def test_metadata_not_found_400(self):
+        ev = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_nometa",
+                    "amount_total": 100,
+                    "currency": "eur",
+                    "metadata": {"session_key": "nonexistent-uuid"},
+                    "payment_intent": "pi_x",
+                }
+            },
+        }
+        with patch(
+            "payment.views.verify_and_resolve_stripe_checkout_event",
+            return_value=StripeWebhookVerifyResult(event=ev),
+        ), patch(
+            "payment.views.StripeMetadata.objects.get",
+            side_effect=StripeMetadata.DoesNotExist,
+        ):
+            resp = self.client.post(
+                "/api/stripe-webhook/",
+                data="{}",
+                content_type="application/json",
+            )
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.data["error"], "Session metadata not found")
+
+    def test_order_creation_failed_500(self):
+        ev = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": "cs_fail",
+                    "amount_total": 100,
+                    "currency": "eur",
+                    "metadata": {"session_key": "sk-fail"},
+                    "payment_intent": "pi_f",
+                }
+            },
+        }
+        meta = MagicMock()
+        with patch(
+            "payment.views.verify_and_resolve_stripe_checkout_event",
+            return_value=StripeWebhookVerifyResult(event=ev),
+        ), patch(
+            "payment.views.StripeMetadata.objects.get",
+            return_value=meta,
+        ), patch(
+            "payment.views.stripe_checkout_session_to_webhook_payment_data",
+            return_value=_make_webhook_data(),
+        ), patch(
+            "payment.views.create_orders_and_payment",
+            return_value=None,
+        ):
+            resp = self.client.post(
+                "/api/stripe-webhook/",
+                data="{}",
+                content_type="application/json",
+            )
+        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(resp.data["error"], "Order creation failed")
+
+
+# ===========================================================================
 # PayPalWebhookView — HTTP-контракт (без реального PayPal verify)
 # ===========================================================================
 
@@ -1449,6 +1588,17 @@ class TestPayPalWebhookViewHttp(SimpleTestCase):
             )
         self.assertEqual(resp.status_code, 403)
         self.assertEqual(resp.data["error"], "Invalid webhook signature")
+
+    def test_invalid_json_400_verify_not_called(self):
+        with patch.object(PayPalMixin, "verify_webhook") as mock_verify:
+            resp = self.client.post(
+                "/api/paypal-webhook/",
+                data="not-json",
+                content_type="application/json",
+            )
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(resp.data["error"], "Invalid JSON")
+        mock_verify.assert_not_called()
 
     def test_replay_returns_200_zero_orders_message(self):
         body = json.dumps(
@@ -1487,3 +1637,37 @@ class TestPayPalWebhookViewHttp(SimpleTestCase):
             resp.data["status"],
             "0 order(s) created successfully",
         )
+
+    def test_order_creation_failed_500(self):
+        body = json.dumps(
+            {
+                "event_type": "CHECKOUT.ORDER.COMPLETED",
+                "resource": {
+                    "id": "O-FAIL",
+                    "purchase_units": [
+                        {
+                            "reference_id": "sk-fail",
+                            "amount": {"value": "2.00", "currency_code": "EUR"},
+                        }
+                    ],
+                },
+            }
+        )
+        meta = MagicMock()
+        meta.custom_data = {"user_id": 1}
+        meta.invoice_data = {}
+        meta.description_data = {}
+        with patch.object(PayPalMixin, "verify_webhook", return_value=True), patch(
+            "payment.services.paypal_webhook.PayPalMetadata.objects.get",
+            return_value=meta,
+        ), patch(
+            "payment.views.create_orders_and_payment",
+            return_value=None,
+        ):
+            resp = self.client.post(
+                "/api/paypal-webhook/",
+                data=body,
+                content_type="application/json",
+            )
+        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(resp.data["error"], "Order creation failed")

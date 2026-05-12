@@ -28,7 +28,11 @@ class PayPalMixin:
         webhook_id = settings.PAYPAL_WEBHOOK_ID
 
         logger.debug(
-            f"Headers received: transmission_id={transmission_id}, transmission_time={transmission_time}, cert_url={cert_url}, actual_signature={actual_signature}, auth_algo={auth_algo}"
+            "PayPal webhook verify headers: transmission_id=%s, has_sig=%s, cert_url_set=%s, auth_algo=%s",
+            transmission_id,
+            bool(actual_signature),
+            bool(cert_url),
+            auth_algo,
         )
 
         # Получаем доступ к PayPal

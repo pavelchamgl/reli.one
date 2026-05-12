@@ -28,6 +28,15 @@
 
 ---
 
+## Webhook: негативные сценарии и HTTP
+
+Подробная матрица HTTP и ссылка на автотесты: [`stripe-e2e-checklist.md`](./stripe-e2e-checklist.md) (раздел **Webhook: негативные сценарии и HTTP**).
+
+- PayPal: **403** при невалидной верификации подписи; **200** + `ignored` для неизвестных `event_type`.
+- Ошибки **capture** / **api_get** в сервисе — см. `payment/services/paypal_webhook.py` и `TestPayPalWebhookService` (`payment/tests.py`).
+
+---
+
 ## Verification evidence — шаблон следующего прогона
 
 Чтобы сохранять детальный след при следующих прогонах, скопируйте таблицу в тикет или локальную копию; в git по умолчанию не ссылайтесь на полные строки платежной интеграции.

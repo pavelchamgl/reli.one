@@ -26,6 +26,40 @@
 
 ---
 
+## Webhook: негативные сценарии и HTTP (справочник)
+
+Автопокрытие: `payment/tests.py` — `TestStripeWebhookService`, `TestStripeWebhookViewHttp`, `TestPayPalWebhookService`, `TestPayPalWebhookViewHttp`; интеграция happy-path/replay — `payment/test_checkout_flow.py`.
+
+### Stripe (`POST /api/stripe-webhook/`)
+
+| Сценарий | HTTP | Тело ответа | Retry Stripe |
+|----------|------|-------------|--------------|
+| Невалидная / отсутствующая подпись (`construct_event` → `SignatureVerificationError` или `ValueError`) | **400** | пустое | Stripe **повторит** 4xx (экспоненциальный backoff) |
+| Тип события вне `checkout.session.completed` / `async_payment_succeeded` | **200** | пустое | Нет повторов как ошибки (успех для провайдера) |
+| Нет `session_key` в `metadata` Checkout Session | **400** | `{"error": "Missing session_key"}` | Повтор того же payload малополезен без исправления данных |
+| Нет строки `StripeMetadata` для `session_key` | **400** | `{"error": "Session metadata not found"}` | Аналогично |
+| `create_orders_and_payment` → `None` (валидация / БД) | **500** | `{"error": "Order creation failed"}` | Stripe **будет ретраить** 5xx |
+| Идемпотентный replay (платёж уже есть) | **200** | пустое | Уже обработано |
+
+**Логи:** логгеры `payment`, `payment.services.stripe_webhook` пишут в `logs/payment.log` (не в `errors.log`, пока нет ERROR от root). В сообщениях об ошибке verify — только `%s` от исключения, **без** `whsec` и без сырого тела запроса.
+
+**Follow-up:** если объект session в событии **битый** (нет `amount_total` и т.д.), `stripe_checkout_session_to_webhook_payment_data` может бросить `KeyError` → необработанный 500 Django — при необходимости обернуть и вернуть 400/500 с телом по политике; сейчас не менялось.
+
+### PayPal (`POST /api/paypal-webhook/`)
+
+| Сценарий | HTTP | Тело | Retry PayPal |
+|----------|------|------|--------------|
+| Невалидный JSON | **400** | `{"error": "Invalid JSON"}` | verify не вызывается |
+| Неизвестный `event_type` | **200** | `{"status": "ignored"}` | Не ошибка |
+| `verify_webhook` → false | **403** | `{"error": "Invalid webhook signature"}` | Обычно **не** transient; нужна корректная подпись / env |
+| Ошибки разбора payload → `paypal_payload_to_webhook_payment_data` (early) | **400** / **500** | как в `early_body` | **500** (например capture fail) — провайдер может повторить |
+| `create_orders_and_payment` → `None` | **500** | `{"error": "Order creation failed"}` | Retry возможен |
+| Replay | **200** | `"0 order(s) created successfully"` при пустых orders | OK |
+
+**Логи:** `payment.mixins` при **DEBUG** больше **не** логирует значение `paypal-transmission-sig` (только факт наличия). Токен PayPal в логи не пишется.
+
+---
+
 ## Переменные окружения (плейсхолдеры, не копировать боевые ключи)
 
 В `envs/backend.e2e.env` (локально, файл не в git) задайте как минимум:
