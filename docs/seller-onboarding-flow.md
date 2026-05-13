@@ -367,7 +367,7 @@ flowchart LR
 | Область | Путь |
 |---------|------|
 | URLs | `backend/sellers/urls.py`, `backend/backend/urls.py` |
-| Views | `backend/sellers/views_onboarding.py` (реэкспорт + `SellerDocumentUploadAPIView`); вынесено: `onboarding/steps/state.py`, `seller_type.py`, `self_employed.py`, `company.py`, `bank.py`, **`warehouse.py`**, **`return_policy.py`**, `onboarding/review/review.py`, `onboarding/review/submit.py` |
+| Views | `backend/sellers/views_onboarding.py` (thin re-export для `urls.py`); реализации: `onboarding/steps/state.py`, `seller_type.py`, `self_employed.py`, `company.py`, `bank.py`, `warehouse.py`, `return_policy.py`, **`documents.py`** (`SellerDocumentUploadAPIView`), `onboarding/review/review.py`, `onboarding/review/submit.py` |
 | Serializers | `backend/sellers/serializers_onboarding.py` |
 | Сервисы | `backend/sellers/services_onboarding.py` |
 | Аудит | `backend/sellers/services_onboarding_audit.py`, `backend/sellers/audit_context.py` |
@@ -394,7 +394,7 @@ flowchart LR
 - [Task 008 — Seller Onboarding Stabilization](./tasks/008-seller-onboarding-stabilization/task.md)
 - [Testing strategy](./08-testing-strategy.md) — раздел про `sellers` и пробелы покрытия
 - [User flows](./02-user-flows.md) — пользовательское описание API онбординга (проверять соответствие методов PATCH vs PUT при изменениях клиента)
-- [Architecture debt](./09-architecture-debt.md) — BE-3 (объём `views_onboarding.py`)
+- [Architecture debt](./09-architecture-debt.md) — BE-3 (`views_onboarding.py`: монолит → thin re-export, логика в `onboarding/`)
 
 ---
 

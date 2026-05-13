@@ -12,3 +12,5 @@ from .company import (
 from .bank import SellerBankAccountAPIView
 from .warehouse import SellerWarehouseAddressAPIView
 from .return_policy import SellerReturnAddressAPIView
+from .documents import SellerDocumentUploadAPIView
+
