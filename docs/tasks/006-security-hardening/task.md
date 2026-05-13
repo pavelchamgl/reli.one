@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** Medium  
-**Status:** In Progress (Iteration 2 частично, Iteration 3 не начата)
+**Status:** In Progress (официальный план SEC-1 — [`docs/security-incident-response.md`](../../security-incident-response.md); выполнение rewrite/ротации — ops)
 
 ## Цель
 
@@ -20,7 +20,7 @@
 
 ## Scope (область)
 
-- Инструкция по очистке git-истории (`git filter-repo`) и ротации credentials
+- Инструкция по очистке git-истории и ротации credentials — **[`docs/security-incident-response.md`](../../security-incident-response.md)** (Phase 0–5, чеклист ротации)
 - Удаление `Frontend/Frontend3/src/code/test.js`
 - Вынос Google OAuth clientId в `VITE_GOOGLE_CLIENT_ID`
 - Добавление DRF throttling для auth/OTP endpoints
@@ -47,7 +47,7 @@
 ## Definition of Done
 
 - [x] `Frontend/Frontend3/src/code/test.js` удалён
-- [ ] Git-история очищена от секретов (или задокументирован план)
+- [x] Git / SEC-1: **план** очистки истории и ротации задокументирован — [`docs/security-incident-response.md`](../../security-incident-response.md). **Фактический** history rewrite, `force push` и ротация credentials в production — **pending ops execution** (см. документ и чеклист ниже Iteration 3).
 - [x] Google clientId читается из `VITE_GOOGLE_CLIENT_ID`
 - [x] `Frontend/Frontend3/.env.example` создан
 - [x] DRF throttling настроен: глобальные anon/user лимиты + узкий **`otp`** (5/min) на эндпоинтах выдачи OTP (см. [аудит](#audit-otp-throttling-drf-mvp))
@@ -217,31 +217,24 @@ curl -sI https://info.reli.one | grep -i content-security-policy
 ## Iteration 3 — Git History Cleanup Plan
 
 ### Цель
-Задокументировать процесс очистки git-истории и ротации credentials.
+Зафиксировать процесс очистки git-истории и ротации credentials в **отдельном каноническом документе**.
 
-**ВАЖНО:** Это требует координации с командой и согласования с DevOps/ops.
+**Канонический план (Phase 0–5), инвентаризация, команды `filter-repo`, валидация и таблица ротации:** **[`docs/security-incident-response.md`](../../security-incident-response.md)**.
 
-### Процедура
+Краткая процедура ниже — **ссылка для удобства**; при расхождении приоритет у `security-incident-response.md`.
+
+### Процедура (сводка)
 
 ```bash
-# 1. Установить git-filter-repo
-pip install git-filter-repo
-
-# 2. Очистить файлы из истории
-git filter-repo --path envs/database.env --invert-paths
-git filter-repo --path envs/backend.env --invert-paths
-git filter-repo --path backend/backend/www.solopharma.shop.key --invert-paths
-git filter-repo --path Frontend/Frontend3/src/code/test.js --invert-paths
-
-# 3. Force push (требует координации!)
-git push origin --force --all
-git push origin --force --tags
-
-# 4. Все разработчики должны:
-git clone <repo> (fresh clone, НЕ git pull)
+# См. Phase 3 в ../../security-incident-response.md — работа из mirror, единый вызов:
+# git filter-repo --force --invert-paths --path ... (несколько --path)
+# Затем force push только после backup + freeze + уведомления команды.
 ```
 
 ### Credentials для ротации после очистки
+
+Детальный чеклист с колонками Owner / Rotated at / Verified — в **[документе инцидента](../../security-incident-response.md#3-credentials-rotation-checklist)**. Кратко:
+
 - [ ] PostgreSQL password
 - [ ] Stripe Secret Key (test + production)
 - [ ] Stripe Webhook Secret
@@ -253,17 +246,19 @@ git clone <repo> (fresh clone, НЕ git pull)
 - [ ] GLS credentials
 
 ### Создать `docs/security-incident-response.md`
-- Фиксация инцидента
-- Принятые меры
-- Дата ротации credentials
+
+- [x] Документ создан; описание инцидента, фазы 0–5, проверки, таблица ротации.
 
 ### Статус
-- [ ] Plan documented — процедура описана в этом файле, но `docs/security-incident-response.md` не создан
-- [ ] Team notified
-- [ ] History cleaned (координация с ops)
-- [ ] All credentials rotated
 
-**Аудит 2026-05-05:** SEC-1 остаётся открытым P0. Git-история не очищена, credentials не ротированы.
+- [x] **Plan documented** — [`docs/security-incident-response.md`](../../security-incident-response.md) (Step 4 Task 006)
+- [ ] Team notified
+- [ ] History cleaned (координация с ops; выполнение **вне** репозитория-документации)
+- [ ] All credentials rotated (пункт DoD «production» — отдельно; не закрывать без ops)
+
+**Audit Step 4 (2026-05-13):** Формальный incident response и план `git filter-repo` вынесены в `docs/security-incident-response.md`. SEC-1 остаётся **открытым по факту** до rewrite + ротации; документационная часть «план зафиксирован» закрыта.
+
+**Аудит 2026-05-05 (исторический):** ранее SEC-1 был открытым; состояние выполнения ops см. актуальный чеклист в `security-incident-response.md`.
 
 ---
 
@@ -310,7 +305,8 @@ pytest accounts/ -k OTPThrottle -v
 | **Frontend** | `src/main.jsx`, `src/code/test.js` (удалить), `.env.example` |
 | **Backend** | `backend/settings.py`, `accounts/views.py` |
 | **Env** | `envs/backend.env.example` |
-| **Инфраструктура** | git history; **`Frontend/nginx/default.conf`** (CSP + security headers для prod `reli.one` / `info.reli.one`) |
+| **Инфраструктура** | git history; **`Frontend/nginx/default.conf`** (CSP для prod) |
+| **Документация SEC-1** | [`docs/security-incident-response.md`](../../security-incident-response.md) |
 | **Интеграции** | Google OAuth, Stripe, PayPal, DPD, Packeta |
 
 ## Связанные проблемы из docs/09-architecture-debt.md
