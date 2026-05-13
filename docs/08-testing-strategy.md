@@ -15,7 +15,7 @@
 
 | Область | Состояние |
 |---------|-----------|
-| Backend | Покрытие P0-цепочки расширено: `payment` (webhook, checkout), `order` (базовые доменные тесты), `product` (каталог API), `delivery` (shipping options с моками перевозчиков), `sellers` (валидация + **submit/approve/reject**), `accounts`, `promocode` (модель/сигналы). См. **Task 002** (DONE). |
+| Backend | Покрытие P0-цепочки расширено: `payment` (webhook, checkout), `order` (базовые доменные тесты), `product` (каталог API), `delivery` (shipping options с моками перевозчиков), `sellers` — `tests.py`: валидация онбординга, **submit/approve/reject** на сервисах; `test_onboarding_stabilization.py`: форма **state/review**, замена документа company, warehouse/return; **пробелы:** явные тесты веток `compute_completeness`, матрица стран (CZ/SK vs др.), assert **`OnboardingAuditLog`** — см. **[Task 008](./tasks/008-seller-onboarding-stabilization/task.md)**. `accounts`, `promocode` (модель/сигналы). См. **Task 002** (DONE). |
 | Frontend | Тестовый раннер не подключён. |
 | Инфра | `pytest-django` в зависимостях; `pytest.ini` указывает `DJANGO_SETTINGS_MODULE`. При отсутствии переменных Postgres в окружении — SQLite `:memory:` (как в `settings`). Локально при загруженном `envs/database.env` может подключаться Postgres — для быстрых прогонов без БД задайте пустые `DB_NAME`, `DB_HOST` и т.д. |
 | CI | `.github/workflows/ci.yml`: `makemigrations --check`, `migrate`, **`python manage.py test`**, затем **`pytest`**, плюс сборки фронтов. |
@@ -68,7 +68,7 @@ flowchart TB
 | Создание платёжной сессии | Stripe / PayPal: валидация групп, CZ-origin SKU, сохранение метаданных, мок вызовов внешнего API. |
 | Webhook + идемпотентность | Повтор одного и того же события не создаёт дубликаты заказов/платежей; корректный ответ при уже обработанной сессии (см. описание в OpenAPI `payment/views`). |
 | Создание заказа | После успешной оплаты (или прямой сценарий создания, если есть): статусы, строки заказа, связь с продавцом и доставкой. |
-| Онбординг продавца | Submit с валидными данными; review-слой (статусы, права); негативные кейсы валидации (пример — `validate_before_submit`, держатель счёта для компании). |
+| Онбординг продавца | Submit с валидными данными; review-слой (статусы, права); негативные кейсы валидации (пример — `validate_before_submit`, держатель счёта для компании); HTTP **state/review** и замена документов — см. `test_onboarding_stabilization.py`; дальнейшее покрытие — **Task 008** (completeness/страны/audit). |
 
 ---
 
@@ -267,4 +267,4 @@ flowchart TB
 - **Дублирование раннеров в CI:** выполняются и `python manage.py test`, и `pytest` — один и тот же набор тестов, два способа поймать регрессии раннера/плагинов.
 - **Покрытие (coverage):** порог в CI не зафиксирован; при введении порога — отдельное решение (не смешивать с **scope [010 DevOps](./tasks/010-devops-infrastructure/task.md)**).
 - **Frontend:** `Frontend3` по-прежнему без unit-скрипта в `package.json`; только lint/build в CI.
-- **Следующие документы для правок при изменении тестов:** этот файл, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/003-payment-refactor/task.md`, `docs/tasks/004-order-consistency/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.
+- **Следующие документы для правок при изменении тестов:** этот файл, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/003-payment-refactor/task.md`, `docs/tasks/004-order-consistency/task.md`, `docs/tasks/008-seller-onboarding-stabilization/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.

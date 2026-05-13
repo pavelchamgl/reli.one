@@ -36,7 +36,7 @@
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
 | **005** | **DONE (repo-scope):** dev-gating курьерских dev-endpoints, изоляция сбоев post-payment parcels, [`test_async_parcels_errors.py`](../../backend/delivery/test_async_parcels_errors.py), playbook retry/follow-up в [`payment-flow.md`](../payment-flow.md), связка с [`monitoring-alerts.md`](../operations/monitoring-alerts.md) — см. **[Final DoD table](./005-delivery-cleanup/task.md#final-dod-table-task-005)**. **OPEN (ops):** ручная приёмка перевозчиков в **production** (**pending**). **Deferred:** Celery, automatic retry, идемпотентность у перевозчика — в `task.md`. **Не** смешивать с PromoCode и **013**. |
 
-Остальные задачи (**006–008, 011, 012** и др.) этим проходом **не перепроверялись построчно** в коде — их статус следует брать из соответствующих `task.md`, пока те файлы явно не обновлены (**003**, **004**, **005**, **010** обновлены май 2026).
+Остальные задачи (**006–007, 011, 012** и др.) этим проходом **не перепроверялись построчно** в коде — их статус следует брать из соответствующих `task.md`, пока те файлы явно не обновлены (**003**, **004**, **005**, **010**, **008** обновлены май 2026).
 
 ### Next priority (рекомендация аудита — не смешивать с выполненными фактами)
 
@@ -49,7 +49,7 @@
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
 1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). Промокоды и **013** — не DoD **010**.
-2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md) — **DONE repo-scope**; остаётся **ops:** приёмка перевозчиков в production (**manual/pending**) — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005). [**008**](./008-seller-onboarding-stabilization/task.md) — по вашему темпу после стабильного тестового фундамента.
+2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md) — **DONE repo-scope**; остаётся **ops:** приёмка перевозчиков в production (**manual/pending**) — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005). [**008**](./008-seller-onboarding-stabilization/task.md) — **IN PROGRESS:** baseline стабилизации в коде (state/review → сервисы, `test_onboarding_stabilization.py`, сервисные submit/approve/reject); **OPEN:** `docs/seller-onboarding-flow.md`, тесты веток `compute_completeness`, матрица стран, assert audit log, декомпозиция `views_onboarding.py`. **Не зависит** от PromoCode, **013**, **005** (кроме общего payment/order фундамента) — см. [task.md](./008-seller-onboarding-stabilization/task.md).
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 
 **P2**
@@ -80,7 +80,7 @@ graph TD
         T004["004 Order Consistency\nDB-3,4,5,7"]
         T005["005 Delivery Cleanup\nDONE repo-scope;\nops courier pending"]
         T007["007 Frontend Fixes\nFE-1..7: утечки, баги API"]
-        T008["008 Seller Onboarding\nBE-3: 1940 строк"]
+        T008["008 Seller Onboarding\nBE-3: ~1900 строк views"]
         T010["010 DevOps\ne2e + smoke + runbooks"]
     end
 
@@ -111,7 +111,7 @@ graph TD
 | 005 | [delivery-cleanup](./005-delivery-cleanup/task.md) | P1 | Medium | 002 | **DONE (repo-scope)** — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005); **ops:** courier acceptance pending |
 | 006 | [security-hardening](./006-security-hardening/task.md) | **P0/P1** | Medium | — | GO (SEC-1,2 немедленно) |
 | 007 | [frontend-critical-fixes](./007-frontend-critical-fixes/task.md) | P1 | Low | 006 | GO |
-| 008 | [seller-onboarding-stabilization](./008-seller-onboarding-stabilization/task.md) | P1 | High | 002 | NO-GO без 002 |
+| 008 | [seller-onboarding-stabilization](./008-seller-onboarding-stabilization/task.md) | P1 | High | 002 (Core **done**) | **IN PROGRESS** — см. task.md; refactor монолита **GO** только после расширения регрессий |
 | 009 | [db-model-improvements](./009-db-model-improvements/task.md) | **P0**/P2 | Medium | 002 | NO-GO без 002 |
 | 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | **DONE (git)**; см. [DoD-таблицу](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); ops acceptance — отдельно |
 | 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | GO |

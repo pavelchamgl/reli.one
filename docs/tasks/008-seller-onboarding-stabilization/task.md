@@ -2,61 +2,120 @@
 
 **Priority:** P1  
 **Complexity:** High  
-**Status:** Pending
+**Status:** In progress — стабилизация **не завершена**; онбординг **не** считается полностью закрытым по продуктовому DoD.
 
-## Прогресс 2026-05-11 (итерация stabilization, без смены контракта API)
+> **Ограничения:** контракт публичного onboarding API **не меняется** без отдельного решения. Этот шаг (май 2026) — только актуализация документации и сверка с кодом; **backend/frontend в diff не входят**.
 
-- Вынесены в `services_onboarding.py`: `build_seller_onboarding_state_response`, `build_seller_onboarding_review_response`, хелперы one-to-one блоков (`get_or_create_onboarding_block`, `get_onboarding_block_or_none`, `self_employed_personal_defaults_from_account`).
-- `views_onboarding.py`: state/review GET делегируют в сервис; дублирующие локальные функции удалены.
-- Добавлены тесты `sellers/test_onboarding_stabilization.py` (форма state, HTTP state/review, замена документа company, warehouse/return).
-- В `services_onboarding.py` явно импортированы `Set`, `Tuple` для аннотаций в `compute_completeness`.
+---
 
-**Дальше (как планировалось в Task 008):** разбиение монолита views по шагам, полное покрытие company/self-employed по странам, `docs/seller-onboarding-flow.md`.
+## Явные независимости
 
-## Цель
+Task **008 не зависит** от:
 
-Стабилизировать seller onboarding: покрыть тестами текущее поведение, задокументировать логику страны-специфичных шагов, и безопасно декомпозировать 1940-строчный монолит `views_onboarding.py`.
+| Трек | Пояснение |
+|------|-----------|
+| **PromoCode** | промокоды вне текущего roadmap; онбординг с ними не связан |
+| **Stock reservation / Task 013** | вне текущего roadmap; не блокирует работы по 008 |
+| **Delivery cleanup / Task 005** | нет специфичной связки онбординга с delivery-task; достаточно общего стабильного **payment/order** фундамента маркетплейса |
 
-## Контекст
+**Зависимость:** **[Task 002 — Testing Foundation](./002-testing-foundation/task.md)** — **Core DONE** (pytest/CI, базовые регрессии по доменам).
 
-Seller onboarding — критическая бизнес-функция. Текущее состояние:
-- `views_onboarding.py` — 1940 строк с ветвлениями по `seller_type` (Self-employed/Company) и стране (CZ/SK vs другие)
-- `services_onboarding.py` — большой сервисный файл, логика completeness, IBAN/SWIFT валидация, модерация
-- Тесты: только ~4 кейса на validation (company account holder, self-employed)
-- Файлы отмечены как изменённые в git status → нужно понять что именно изменилось
-- Нет документации о том, какие шаги обязательны для какого seller_type/страны
+---
 
-## Scope (область)
+## Scope Task 008 (цель стабилизации)
+
+| Область | Смысл |
+|---------|--------|
+| **state/review consistency** | Единообразные ответы `GET state` / `GET review`, без дублирования логики во views |
+| **Company happy-path** | Сохранение и валидация шагов компании + submit-путь |
+| **Self-employed happy-path** | Сохранение и валидация шагов OSVČ + submit-путь |
+| **documents upload/replace** | Загрузка и идемпотентная замена документов по ключу (type/scope/side) |
+| **submit / review approve/reject** | Переходы статусов и guard-ы на сервисном слое |
+| **audit log** | Запись событий онбординга (`OnboardingAuditLog`, сервис аудита) |
+| **API tests** | Регрессии ключевых эндпоинтов и сервисных переходов |
+| **onboarding flow documentation** | Продуктово-техническое описание шагов и ветвлений (в т.ч. страна/тип) |
+| **final regression / audit** | Прогон тестов sellers + ручные сценарии перед крупным рефакторингом |
+
+---
+
+## Done (подтверждено кодом на момент синхронизации docs)
+
+- **`services_onboarding.py`:** `build_seller_onboarding_state_response`, `build_seller_onboarding_review_response`; хелперы one-to-one блоков (`get_or_create_onboarding_block`, `get_onboarding_block_or_none`, `self_employed_personal_defaults_from_account` и др.); `compute_completeness`, модерация, валидации submit.
+- **`views_onboarding.py`:** `GET` state/review делегируют в сервисы сборки ответа (дублирующие локальные сборщики убраны). Объём файла по-прежнему монолитный — **~1900 строк** (оценка `wc -l`, не «замороженная» метрика).
+- **`serializers_onboarding.py`** — присутствует, блоки данных онбординга.
+- **`services_onboarding_audit.py`**, модель **`OnboardingAuditLog`** (`models.py`), миграции `0005`/`0006`, контекст `audit_context.py`, связка с сигналами/middleware/drf_hooks — аудит в коде есть.
+- **Тесты:**
+  - `backend/sellers/tests.py` — валидация держателя счёта компании (`validate_before_submit` / `get_expected_company_account_holder`), **Self-employed personal** GET/PUT, **submit / approve / reject** на сервисах (с моками `log_onboarding_event` / почты / sync).
+  - `backend/sellers/test_onboarding_stabilization.py` — форма **state** (`build_seller_onboarding_state_response`), HTTP **state/review**, **замена документа company** (повторный POST с тем же ключом), **warehouse + return** (`same_as_warehouse`).
+- Аннотации `Set`, `Tuple` в `compute_completeness` и связанном коде приведены в порядок (импорты для typing).
+
+---
+
+## Open (следующие шаги работ — actionable)
+
+1. **Документация flow:** создать **`docs/seller-onboarding-flow.md`** (статусы, шаги по `seller_type`, ветвления CZ/SK vs др., ссылки на эндпоинты, кратко про `compute_completeness`) — черновик диаграммы уже ниже в Iteration 1.
+2. **`compute_completeness`:** отдельные **unit/integration** тесты на ветки (тип продавца, страна, недостающие документы, проценты/`is_submittable`) — сейчас логика затрагивается опосредованно через ответ state, **без** целенаправленного покрытия веток.
+3. **Company / Self-employed по странам:** API-regression по полным цепочкам для **CZ/SK** и хотя бы один контрольный кейс «не CZ/SK», где в коде есть отличия.
+4. **Audit log:** тесты, проверяющие создание **`OnboardingAuditLog`** (не только мок `log_onboarding_event` в transition-тестах).
+5. **Декомпозиция `views_onboarding.py`** в step-handlers — **только после** расширения регрессий (как в Iteration 3 ниже); URL и контракты не менять.
+6. **Iteration 1 (Analysis):** формально закрыть чеклисты «analysis complete / flow documented» после появления `seller-onboarding-flow.md` и явной таблицы страны×тип из кода.
+7. **Финальная валидация:** прогон `pytest backend/sellers/ -v` / `manage.py test sellers` + ручной чеклист из Iteration 5 перед merge крупных refactor-веток.
+
+---
+
+## Deferred / Future
+
+- Вынос onboarding views в пакет `sellers/onboarding/steps/` — см. Iteration 3 (не начинать без тестов).
+- **factory_boy**-фикстуры для «полной заявки» — по желанию, не блокер документации.
+- E2E онбординга во **Frontend3** — вне минимального scope 008, если не решено иначе.
+
+---
+
+## Manual / Ops
+
+- Ручные сценарии из раздела **Iteration 5 — Validation** (регистрация продавца, заполнение шагов, submit, запрет редактирования после отправки и т.д.) — по-прежнему релевантны для приёмки; автоматизация не заменяет smoke в sandbox/staging.
+
+---
+
+## Контекст (исторический снимок → актуализировано)
+
+Seller onboarding — критическая зона. Раньше в задаче фигурировали формулировки «только ~4 теста», «git status неочистен» — на момент синхронизации май 2026 это **устарело**: есть отдельный файл стабилизации и расширенные сервисные тесты переходов.
+
+Актуальные ориентиры по объёму (локально `wc -l`, могут меняться коммитами):
+
+| Файл | Порядок величины |
+|------|------------------|
+| `backend/sellers/views_onboarding.py` | ~1900 строк |
+| `backend/sellers/services_onboarding.py` | ~870 строк |
+
+---
+
+## Scope (область задачи) — без изменения бизнес-смысла
 
 - Анализ и документация текущего onboarding flow
-- Написание regression тестов для всех шагов
-- Декомпозиция `views_onboarding.py` в step-handlers
-- Документация `docs/seller-onboarding-flow.md`
+- Расширение regression-тестов там, где есть пробелы (ветки completeness, страны, audit)
+- Безопасная декомпозиция `views_onboarding.py` в step-handlers **после** тестов
 
 ## Не входит в задачу
 
-- Изменение бизнес-правил онбординга
-- Добавление новых стран
+- Изменение бизнес-правил онбординга без явного решения
+- Добавление новых стран/новых обязательных полей в контракт
 - Изменение API-контрактов онбординга
-- Изменение моделей `SellerOnboardingApplication`
-
-## Зависимости
-
-- **Task 002 (testing-foundation)** — **Core DONE**; pytest + CI доступны; factory-boy по желанию позже
+- Изменение моделей `SellerOnboardingApplication` и связанных без отдельного migration-плана
 
 ## Риски
 
-- Код с ветвлениями по стране сложно тестировать → нужны тесты для CZ и SK отдельно
-- `compute_completeness` — сложная логика, лёгко сломать при рефакторинге → обязательные тесты перед правкой
-- `views_onboarding.py` изменён (git status) → нужно прочитать diff перед тестами
+- Ветвления по стране сложно покрывать → нужны явные тестовые матрицы CZ/SK/другие
+- `compute_completeness` — плотная логика; регрессии при рефакторинге без тестов по веткам **высокий риск**
+- Монолит `views_onboarding.py` остаётся точкой концентрации сложности до декомпозиции
 
-## Definition of Done
+---
 
-- [ ] Задокументирован полный onboarding flow (Mermaid диаграмма)
-- [ ] Написаны тесты для каждого шага (submit, self-employed, company, bank, warehouse, return, documents)
-- [ ] `compute_completeness` покрыт тестами
-- [ ] `views_onboarding.py` декомпозирован в step-handlers (если тесты написаны)
-- [ ] `docs/seller-onboarding-flow.md` создан
+## Definition of Done (продуктовый — задача **не закрыта**, пока всё не выполнено)
+
+- [ ] Задокументирован полный onboarding flow (Mermaid + prose в `docs/seller-onboarding-flow.md`)
+- [ ] Регрессии по шагам и странам на уровне, достаточном для безопасного рефакторинга (включая ветки `compute_completeness` и audit)
+- [ ] `views_onboarding.py` декомпозирован в step-handlers (после тестов), URL маршруты сохранены
 
 ---
 
@@ -68,15 +127,14 @@ Seller onboarding — критическая бизнес-функция. Тек
 Полностью понять текущий onboarding flow и зафиксировать все ветвления.
 
 ### Действия
-- Прочитать `backend/sellers/views_onboarding.py` — все 14 классов
+- Прочитать `backend/sellers/views_onboarding.py` — все классы onboarding API
 - Прочитать `backend/sellers/services_onboarding.py` — `compute_completeness`, `ensure_application_editable`, модерация
 - Прочитать `backend/sellers/serializers_onboarding.py` — блоки данных
-- Прочитать `backend/sellers/tests.py` — что уже покрыто
-- Понять `git diff` для изменённых файлов (sellers/*)
+- Прочитать `backend/sellers/tests.py`, `backend/sellers/test_onboarding_stabilization.py` — фактическое покрытие
+- Прочитать `backend/sellers/services_onboarding_audit.py`, модель `OnboardingAuditLog`
 
-### Output
+### Output — диаграмма onboarding flow (черновик для будущего doc)
 
-**Диаграмма onboarding flow:**
 ```mermaid
 stateDiagram-v2
     [*] --> Draft: get_or_create_application
@@ -98,6 +156,7 @@ stateDiagram-v2
 ```
 
 **Ветвления по seller_type:**
+
 | Шаг | Self-employed | Company |
 |-----|--------------|---------|
 | seller-type | ✓ | ✓ |
@@ -108,88 +167,38 @@ stateDiagram-v2
 | return policy | ✓ | ✓ |
 | documents | ✓ | ✓ |
 
-**Ветвления по стране (CZ/SK vs другие):**
-- Необходимо задокументировать при анализе кода
+**Ветвления по стране (CZ/SK vs другие):** зафиксировать в `docs/seller-onboarding-flow.md` по коду.
 
 ### Статус
 - [ ] Analysis complete
-- [ ] Flow documented
+- [ ] Flow documented (`docs/seller-onboarding-flow.md`)
 
 ---
 
-## Iteration 2 — Tests
+## Iteration 2 — Tests (расширение)
 
 ### Цель
-Написать regression-тесты для всех шагов onboarding перед любым рефакторингом.
+Закрыть пробелы регрессий **до** декомпозиции views.
 
-### Тесты для написания
+### Приоритеты (фактический backlog)
 
-**Основной flow:**
-```python
-# backend/sellers/tests_onboarding_flow.py
+Историческая ссылка на `tests_onboarding_flow.py` **не соответствует** репозиторию: расширять **`backend/sellers/test_onboarding_stabilization.py`** и/или **`backend/sellers/tests.py`** (или выделить новый модуль в `sellers/` при росте объёма).
 
-class OnboardingStateTest(TestCase):
-    def test_new_seller_has_draft_application(self):
-        # GET /sellers/onboarding/state/ → {"status": "draft"}
-
-    def test_application_cannot_be_edited_after_submission(self):
-        # ensure_application_editable → ValidationError после submit
-
-class SellerTypeTest(TestCase):
-    def test_set_seller_type_self_employed(self):
-        # PUT /sellers/onboarding/seller-type/ {"type": "self_employed"}
-        # → 200, тип сохранён
-
-    def test_set_seller_type_company(self):
-        # PUT /sellers/onboarding/seller-type/ {"type": "company"}
-
-class SelfEmployedBlockTest(TestCase):
-    def test_save_self_employed_personal_data(self):
-        # PUT /sellers/onboarding/self-employed/ {...}
-
-    def test_self_employed_personal_data_required_fields(self):
-        # PUT с пустым телом → 400 с ошибками полей
-
-class CompanyBlockTest(TestCase):
-    def test_save_company_data(self):
-        # PUT /sellers/onboarding/company/ {...}
-
-    def test_company_account_holder_validation_cz_sk(self):
-        # Существующий тест - перенести/расширить
-
-class BankDetailsTest(TestCase):
-    def test_valid_iban_accepted(self):
-        ...
-
-    def test_invalid_iban_rejected(self):
-        # IBAN неправильный → 400
-
-    def test_valid_swift_accepted(self):
-        ...
-
-class CompletenessTest(TestCase):
-    def test_incomplete_application_cannot_be_submitted(self):
-        # compute_completeness < 100 → submit → ValidationError
-
-    def test_complete_application_can_be_submitted(self):
-        # Все шаги заполнены → submit → 200
-```
-
-### Моки необходимые
-- Email сервис при submit
-- Admin notification при submit
+- Явные кейсы для **`compute_completeness`** (тип, страна, документы).
+- Цепочки **company / self-employed** с различием **CZ/SK** vs другие страны.
+- Утверждения по **`OnboardingAuditLog`** (реальные записи в БД, не только `@patch("sellers.services_onboarding.log_onboarding_event")` в transition-тестах).
 
 ### Статус
-- [ ] Tests written
+- [ ] Пробелы по completeness / странам / audit закрыты тестами
 
 ---
 
-## Iteration 3 — Refactor (только если тесты написаны)
+## Iteration 3 — Refactor (только если тесты достаточны)
 
 ### Цель
 Декомпозировать `views_onboarding.py` в step-handlers.
 
-### Целевая структура
+### Целевая структура (ориентир)
 
 ```
 backend/sellers/
@@ -198,63 +207,37 @@ backend/sellers/
     ├── __init__.py
     ├── steps/
     │   ├── __init__.py
-    │   ├── state.py             ← OnboardingStateView
-    │   ├── seller_type.py       ← SellerTypeView
-    │   ├── self_employed.py     ← SelfEmployedBlockView
-    │   ├── company.py           ← CompanyBlockView
-    │   ├── bank.py              ← BankDetailsView
-    │   ├── warehouse.py         ← WarehouseView
-    │   ├── return_policy.py     ← ReturnPolicyView
-    │   └── documents.py         ← DocumentsView
+    │   ├── state.py
+    │   ├── seller_type.py
+    │   ├── self_employed.py
+    │   ├── company.py
+    │   ├── bank.py
+    │   ├── warehouse.py
+    │   ├── return_policy.py
+    │   └── documents.py
     └── review/
-        ├── submit.py            ← SubmitView
-        └── review.py            ← ReviewView (admin)
+        ├── submit.py
+        └── review.py
 ```
 
-### Правила рефакторинга
+### Правила
 - Только перенос кода, не изменение логики
-- После каждого переноса запускать полный набор тестов onboarding
-- Сохранить полную backward compatibility URL-маршрутов
-
-### Ограничения
-- Не менять API-контракты
-- Не менять serializers
+- После каждого переноса — полный набор тестов sellers
+- Сохранить backward compatibility URL-маршрутов и ответов API
 
 ### Статус
-- [ ] Steps extracted (только после написания тестов)
+- [ ] Steps extracted
 
 ---
 
 ## Iteration 4 — Documentation
 
 ### Цель
-Задокументировать onboarding flow для продуктовой и технической команды.
+Поддерживать onboarding flow для продуктовой и технической команды.
 
-### Создать `docs/seller-onboarding-flow.md`:
+### Создать `docs/seller-onboarding-flow.md`
 
-```markdown
-# Seller Onboarding Flow
-
-## Статусы заявки
-...
-
-## Шаги по seller_type
-...
-
-## Требования по стране (CZ/SK)
-...
-
-## Валидации
-- IBAN
-- SWIFT
-- Документы
-
-## API endpoints
-...
-
-## compute_completeness логика
-...
-```
+Содержание (минимум): статусы заявки; шаги по `seller_type`; требования по стране (CZ/SK); валидации (IBAN/SWIFT, документы); таблица API endpoints; связь с `compute_completeness`.
 
 ### Статус
 - [ ] Documentation created
@@ -263,16 +246,20 @@ backend/sellers/
 
 ## Iteration 5 — Validation
 
-### Тесты для запуска
+### Тесты
+
 ```bash
 pytest backend/sellers/ -v
+# или
+python manage.py test sellers
 ```
 
-### Сценарии для ручной проверки
+### Ручная проверка (Manual/Ops)
+
 - [ ] Регистрация нового продавца → создаётся draft application
 - [ ] Заполнение self-employed данных → сохраняется корректно
 - [ ] Попытка submit без заполнения всех шагов → ошибка
-- [ ] Полное заполнение → submit → статус "submitted"
+- [ ] Полное заполнение → submit → статус submitted/pending (как в доменной модели)
 - [ ] Редактирование после submit → ошибка
 
 ### Статус
@@ -284,12 +271,12 @@ pytest backend/sellers/ -v
 
 | Тип | Файлы |
 |-----|-------|
-| **Backend** | `sellers/views_onboarding.py`, `sellers/services_onboarding.py`, `sellers/serializers_onboarding.py` |
+| **Backend** | `sellers/views_onboarding.py`, `sellers/services_onboarding.py`, `sellers/serializers_onboarding.py`, `sellers/services_onboarding_audit.py`, `sellers/models.py` |
 | **Новые файлы** | `sellers/onboarding/steps/*.py` (при рефакторинге) |
-| **Тесты** | `sellers/tests_onboarding_flow.py` |
-| **Модели** | `SellerOnboardingApplication`, `SellerDocument`, блоки onboarding |
-| **API** | Не меняются контракты |
+| **Тесты** | `sellers/tests.py`, `sellers/test_onboarding_stabilization.py` |
+| **Модели** | `SellerOnboardingApplication`, `SellerDocument`, `OnboardingAuditLog`, блоки onboarding |
+| **API** | Контракты без изменений без отдельного решения |
 
-## Связанные проблемы из docs/09-architecture-debt.md
+## Связанные замечания из docs/09-architecture-debt.md
 
-- BE-3: `sellers/views_onboarding.py` 1940 строк P1
+- **BE-3:** монолитный `sellers/views_onboarding.py` — **P1** (актуализировать строки при следующем проходе debt-дока)
