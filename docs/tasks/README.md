@@ -49,7 +49,7 @@
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
 1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). Промокоды и **013** — не DoD **010**.
-2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md) — **DONE repo-scope**; остаётся **ops:** приёмка перевозчиков в production (**manual/pending**) — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005). [**008**](./008-seller-onboarding-stabilization/task.md) — **IN PROGRESS:** baseline стабилизации в коде (state/review → сервисы, `test_onboarding_stabilization.py`, сервисные submit/approve/reject); **OPEN:** `docs/seller-onboarding-flow.md`, тесты веток `compute_completeness`, матрица стран, assert audit log, декомпозиция `views_onboarding.py`. **Не зависит** от PromoCode, **013**, **005** (кроме общего payment/order фундамента) — см. [task.md](./008-seller-onboarding-stabilization/task.md).
+2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md) — **DONE repo-scope**; остаётся **ops:** приёмка перевозчиков в production (**manual/pending**) — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005). [**008**](./008-seller-onboarding-stabilization/task.md) — **IN PROGRESS:** baseline стабилизации в коде + flow-док [`seller-onboarding-flow.md`](../seller-onboarding-flow.md); **OPEN:** тесты веток `compute_completeness`, регрессии цепочек/стран при необходимости продукту, assert audit log, декомпозиция `views_onboarding.py`. **Не зависит** от PromoCode, **013**, **005** (кроме общего payment/order фундамента) — см. [task.md](./008-seller-onboarding-stabilization/task.md).
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 
 **P2**
@@ -243,5 +243,5 @@ docs/tasks/
 └── 013-stock-reservation/task.md
 ```
 
-См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e).
+См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).
 
