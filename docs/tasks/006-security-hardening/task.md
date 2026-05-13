@@ -15,7 +15,7 @@
 - **SEC-2 (P0):** Реальные PII (имя, email, телефон, адрес покупателя + Stripe session_id) в `Frontend/Frontend3/src/code/test.js`
 - **SEC-3 (P1):** Google OAuth `clientId` захардкожен в `src/main.jsx`
 - **SEC-4 (P1):** Dev endpoints delivery в production → вынесены в Task 005
-- **SEC-5 (P2):** JWT в `localStorage` (уязвим к XSS)
+- **SEC-5 (P2):** JWT в `localStorage` (уязвим к XSS) — частично смягчается **базовым CSP в nginx** (не замена httpOnly)
 - **SEC-6 (P2):** Rate limiting на OTP **send/resend** — реализовано (см. [аудит OTP throttling](#audit-otp-throttling-drf-mvp)); прочие auth/OTP **verify** без отдельного scope-throttle
 
 ## Scope (область)
@@ -42,6 +42,7 @@
 - `git filter-repo` + force push требует координации со всей командой (все должны сделать fresh clone)
 - Ротация credentials (Stripe, DB, Google OAuth) требует согласования с ops
 - DRF throttling может ограничить легитимных пользователей при неправильной настройке
+- **CSP MVP:** ложные срабатыванности в консоли/сломанные виджеты при узком whitelist; `unsafe-inline`/`unsafe-eval` слабее строгой политики — план ужесточения см. [аудит nginx](#audit-nginx-csp-baseline-mvp)
 
 ## Definition of Done
 
@@ -50,6 +51,7 @@
 - [x] Google clientId читается из `VITE_GOOGLE_CLIENT_ID`
 - [x] `Frontend/Frontend3/.env.example` создан
 - [x] DRF throttling настроен: глобальные anon/user лимиты + узкий **`otp`** (5/min) на эндпоинтах выдачи OTP (см. [аудит](#audit-otp-throttling-drf-mvp))
+- [x] Базовый **Content-Security-Policy** и вспомогательные security headers в **nginx** — `Frontend/nginx/default.conf` (см. [аудит nginx CSP](#audit-nginx-csp-baseline-mvp))
 - [ ] Все ротированные credentials обновлены в production
 
 ---
@@ -149,6 +151,7 @@ class OTPResendView(APIView):
 | `Frontend/Frontend3/.env.example` | Новый |
 | `backend/backend/settings.py` | DRF throttling |
 | `backend/accounts/views.py` | OTPRateThrottle |
+| `Frontend/nginx/default.conf` | CSP (MVP) + `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` |
 | `envs/backend.env.example` | Проверить полноту |
 
 ### Статус
@@ -156,6 +159,7 @@ class OTPResendView(APIView):
 - [x] Google clientId in env — `import.meta.env.VITE_GOOGLE_CLIENT_ID` в main.jsx
 - [x] .env.example created — `Frontend/Frontend3/.env.example` с VITE_API_URL, VITE_GOOGLE_CLIENT_ID, VITE_SENTRY_DSN
 - [x] DRF throttling configured — `DEFAULT_THROTTLE_CLASSES` / `DEFAULT_THROTTLE_RATES` в `backend/settings.py`; `OTPRateThrottle` (`scope=otp`) на `SendOTPForEmailVerificationAPIView`, `SendOTPForPasswordResetAPIView` (`accounts/views.py`)
+- [x] **Nginx CSP (MVP)** — `Frontend/nginx/default.conf`: оба HTTPS `server` (`reli.one`, `info.reli.one`); см. [аудит](#audit-nginx-csp-baseline-mvp)
 
 <a id="audit-otp-throttling-drf-mvp"></a>
 
@@ -175,6 +179,38 @@ class OTPResendView(APIView):
 OTP по сигналу при регистрации не затрагивается (не HTTP).
 
 **Аудит 2026-05-13:** Реализовано по коду выше.
+
+<a id="audit-nginx-csp-baseline-mvp"></a>
+
+### Audit: nginx CSP baseline (MVP)
+
+**Файл:** `Frontend/nginx/default.conf` (в репозитории найдена эта конфигурация; отдельных `docker/nginx/` / `infra/` nginx snippets нет).
+
+**Где:** блоки `server { server_name reli.one; ... }` и `server { server_name info.reli.one; ... }`, сразу после существующего `Strict-Transport-Security` (дубликатов HSTS не добавлялось).
+
+**Добавленные заголовки (`add_header ... always`):**
+
+| Header | Значение (смысл) |
+|--------|------------------|
+| `X-Content-Type-Options` | `nosniff` |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` |
+| `X-Frame-Options` | `SAMEORIGIN` |
+| `Content-Security-Policy` | MVP-политика одной строкой: `default-src 'self'`; `script-src` с `'unsafe-inline'` `'unsafe-eval'` + Google / Facebook SDK / Stripe / Packeta widget; `style-src` + Google Fonts; широкие `img-src` (`https:`); `connect-src` — self, reli hosts, Google APIs, Facebook Graph, Stripe/PayPal/Sentry; `frame-src` — OAuth, Stripe, Facebook, DPD/GLS/Packeta виджеты; `media-src` для внешних видео; `object-src 'none'`; `base-uri` / `frame-ancestors` `'self'`. |
+
+**Риски / TODO:**
+
+- MVP допускает **`'unsafe-inline'`** и **`'unsafe-eval'`** ради Vite/React; после аудита production-бандла и отказа от inline — **ужесточить** `script-src`/`style-src`.
+- Новые внешние домены (например Cloudinary, доп. PSP) могут потребовать расширения `connect-src` / `img-src` / `frame-src` — проверять в браузерной консоли при деплое.
+- **JWT в `localStorage` CSP не лечит** — это лишь дополнительный слой; целевое решение — httpOnly (вне scope 006).
+
+**Проверка после выката на прод:**
+
+```bash
+curl -sI https://reli.one | grep -i content-security-policy
+curl -sI https://info.reli.one | grep -i content-security-policy
+```
+
+**Аудит:** nginx-конфиг обновлён в репозитории; факт наличия заголовков на живом контуре подтверждает ops после deploy.
 
 ---
 
@@ -274,7 +310,7 @@ pytest accounts/ -k OTPThrottle -v
 | **Frontend** | `src/main.jsx`, `src/code/test.js` (удалить), `.env.example` |
 | **Backend** | `backend/settings.py`, `accounts/views.py` |
 | **Env** | `envs/backend.env.example` |
-| **Инфраструктура** | git history, nginx CSP headers |
+| **Инфраструктура** | git history; **`Frontend/nginx/default.conf`** (CSP + security headers для prod `reli.one` / `info.reli.one`) |
 | **Интеграции** | Google OAuth, Stripe, PayPal, DPD, Packeta |
 
 ## Связанные проблемы из docs/09-architecture-debt.md
