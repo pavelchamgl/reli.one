@@ -31,7 +31,6 @@ from .permissions_onboarding import IsSeller
 from .serializers_onboarding import (
     SellerTypeSerializer,
     OnboardingStateSerializer,
-    OnboardingStateResponseSerializer,
     SellerDocumentCreateSerializer,
     SellerDocumentReadSerializer,
     SelfEmployedPersonalSerializer,
@@ -47,13 +46,13 @@ from .serializers_onboarding import (
 from .services_onboarding import (
     ensure_application_editable,
     get_or_create_application_for_user,
-    submit_application,
     get_or_create_onboarding_block,
     get_onboarding_block_or_none,
     self_employed_personal_defaults_from_account,
-    build_seller_onboarding_state_response,
-    build_seller_onboarding_review_response,
 )
+from .onboarding.steps.state import SellerOnboardingStateAPIView
+from .onboarding.review.review import SellerOnboardingReviewAPIView
+from .onboarding.review.submit import SellerOnboardingSubmitAPIView
 
 
 ALLOWED_MIME_TYPES = {
@@ -64,164 +63,6 @@ ALLOWED_MIME_TYPES = {
 
 MAX_FILE_SIZE_MB = 10
 MAX_FILES_PER_REQUEST = 5
-
-
-class SellerOnboardingStateAPIView(AuditAPIView):
-    permission_classes = [IsSeller]
-
-    @extend_schema(
-        tags=["Seller Onboarding"],
-        summary="Get seller onboarding state",
-        description=(
-                "Returns current onboarding application state for the authenticated seller.\n\n"
-                "The response includes:\n"
-                "- onboarding application metadata (status, timestamps, rejection info)\n"
-                "- computed completeness flags for each onboarding block\n"
-                "- submission & editability flags (`is_editable`, `can_submit`, `requires_onboarding`)\n"
-                "- `next_step` indicating where the user should continue onboarding\n"
-                "- normalized `documents_summary` describing how document requirements are satisfied\n"
-                "- `documents_missing` listing unmet document requirements\n\n"
-                "This endpoint is intended to be called:\n"
-                "- on onboarding page load\n"
-                "- after saving any onboarding block\n"
-                "- before showing review / submit screen"
-        ),
-        responses={
-            200: OpenApiResponse(
-                response=OnboardingStateResponseSerializer,
-                description="Current onboarding state and completeness flags",
-                examples=[
-                    OpenApiExample(
-                        name="Draft onboarding (incomplete)",
-                        value={
-                            "id": 12,
-                            "seller_type": "self_employed",
-                            "status": "draft",
-                            "submitted_at": None,
-                            "reviewed_at": None,
-                            "rejected_reason": None,
-                            "completeness": {
-                                "seller_type_selected": True,
-                                "personal_complete": True,
-                                "tax_complete": False,
-                                "address_complete": True,
-                                "bank_complete": False,
-                                "warehouse_complete": False,
-                                "return_complete": False,
-                                "documents_complete": False,
-                                "is_submittable": False,
-                            },
-                            "is_editable": True,
-                            "can_submit": False,
-                            "requires_onboarding": True,
-                            "next_step": "tax",
-                            "documents_summary": {
-                                "requirements": [
-                                    {
-                                        "doc_type": "identity_document",
-                                        "scope": "self_employed_personal",
-                                        "status": "missing",
-                                        "satisfied_by": None,
-                                        "uploaded_sides": [],
-                                        "document_ids": []
-                                    },
-                                    {
-                                        "doc_type": "proof_of_address",
-                                        "scope": "self_employed_address",
-                                        "status": "missing",
-                                        "satisfied_by": None,
-                                        "uploaded_sides": [],
-                                        "document_ids": []
-                                    }
-                                ],
-                                "counts": {
-                                    "total_uploaded": 0,
-                                    "used_for_requirements": 0,
-                                    "extra_unused": 0
-                                }
-                            },
-                            "documents_missing": [
-                                {
-                                    "doc_type": "identity_document",
-                                    "scope": "self_employed_personal",
-                                    "rule": "identity_document",
-                                    "missing_sides": ["front", "back"],
-                                    "accepts_single_side": True
-                                },
-                                {
-                                    "doc_type": "proof_of_address",
-                                    "scope": "self_employed_address",
-                                    "rule": "single_sided",
-                                    "missing_sides": [None]
-                                }
-                            ]
-                        },
-                        response_only=True,
-                    ),
-                    OpenApiExample(
-                        name="Ready for submission",
-                        value={
-                            "id": 12,
-                            "seller_type": "company",
-                            "status": "draft",
-                            "submitted_at": None,
-                            "reviewed_at": None,
-                            "rejected_reason": None,
-                            "completeness": {
-                                "seller_type_selected": True,
-                                "personal_complete": True,
-                                "tax_complete": True,
-                                "address_complete": True,
-                                "bank_complete": True,
-                                "warehouse_complete": True,
-                                "return_complete": True,
-                                "documents_complete": True,
-                                "is_submittable": True,
-                            },
-                            "is_editable": True,
-                            "can_submit": True,
-                            "requires_onboarding": True,
-                            "next_step": "review",
-                            "documents_summary": {
-                                "requirements": [
-                                    {
-                                        "doc_type": "registration_certificate",
-                                        "scope": "company_info",
-                                        "status": "satisfied",
-                                        "satisfied_by": "single_sided",
-                                        "uploaded_sides": [None],
-                                        "document_ids": [10]
-                                    },
-                                    {
-                                        "doc_type": "proof_of_address",
-                                        "scope": "company_address",
-                                        "status": "satisfied",
-                                        "satisfied_by": "single_sided",
-                                        "uploaded_sides": [None],
-                                        "document_ids": [13]
-                                    }
-                                ],
-                                "counts": {
-                                    "total_uploaded": 3,
-                                    "used_for_requirements": 3,
-                                    "extra_unused": 0
-                                }
-                            },
-                            "documents_missing": []
-                        },
-                        response_only=True,
-                    )
-                ],
-            ),
-            403: OpenApiResponse(
-                description="User is not a seller",
-            ),
-        },
-    )
-    def get(self, request):
-        app = get_or_create_application_for_user(request.user)
-        data = build_seller_onboarding_state_response(app)
-        return Response(data, status=status.HTTP_200_OK)
 
 
 class SellerSetSellerTypeAPIView(AuditAPIView):
@@ -1777,124 +1618,3 @@ class SellerDocumentUploadAPIView(AuditAPIView):
         except Exception:
             # Не валим основной flow из-за проблем удаления старого/временного файла
             pass
-
-
-class SellerOnboardingReviewAPIView(AuditAPIView):
-    permission_classes = [IsSeller]
-
-    @extend_schema(
-        tags=["Seller Onboarding"],
-        summary="Review onboarding application before submission",
-        description=(
-            "Returns a full review of the current seller onboarding application.\n\n"
-            "This endpoint **does not modify any data**. It is used to:\n"
-            "- Check whether the onboarding application is complete\n"
-            "- Determine if the application can be submitted for verification\n"
-            "- Inspect completeness of each required block (data & documents)\n\n"
-            "Typically called before invoking the submit endpoint."
-        ),
-        responses={
-            200: OpenApiResponse(
-                description="Onboarding review data",
-                examples=[
-                    OpenApiExample(
-                        name="Review response",
-                        value={
-                            "application": {
-                                "id": 12,
-                                "seller_type": "company",
-                                "status": "draft",
-                                "submitted_at": None,
-                                "reviewed_at": None,
-                                "rejected_reason": None,
-                            },
-                            "is_submittable": True,
-                            "completeness": {
-                                "seller_type_selected": True,
-                                "personal_complete": True,
-                                "tax_complete": True,
-                                "address_complete": True,
-                                "bank_complete": True,
-                                "warehouse_complete": True,
-                                "return_complete": True,
-                                "documents_complete": True,
-                            },
-                        },
-                        response_only=True,
-                    ),
-                ],
-            ),
-            403: OpenApiResponse(description="User is not a seller"),
-        },
-    )
-    def get(self, request):
-        app = get_or_create_application_for_user(request.user)
-        return Response(
-            build_seller_onboarding_review_response(app),
-            status=status.HTTP_200_OK,
-        )
-
-
-class SellerOnboardingSubmitAPIView(AuditAPIView):
-    permission_classes = [IsSeller]
-
-    @extend_schema(
-        tags=["Seller Onboarding"],
-        summary="Submit onboarding application for verification",
-        description=(
-            "Submits the seller onboarding application for verification.\n\n"
-            "This endpoint:\n"
-            "- Performs **strict validation** of all required onboarding blocks\n"
-            "- Validates documents, bank account, addresses and seller type\n"
-            "- Changes application status to `pending_verification`\n\n"
-            "Submission is only allowed when the application is complete.\n"
-            "If validation fails, a detailed error structure is returned."
-        ),
-        responses={
-            200: OpenApiResponse(
-                description="Onboarding application successfully submitted",
-                examples=[
-                    OpenApiExample(
-                        name="Successful submission",
-                        value={
-                            "id": 12,
-                            "seller_type": "company",
-                            "status": "pending_verification",
-                            "submitted_at": "2025-12-23T10:15:30Z",
-                            "reviewed_at": None,
-                            "rejected_reason": None,
-                        },
-                        response_only=True,
-                    ),
-                ],
-            ),
-            400: OpenApiResponse(
-                description="Validation error – onboarding application is incomplete",
-                examples=[
-                    OpenApiExample(
-                        name="Validation errors",
-                        value={
-                            "bank_account": "Bank account is required.",
-                            "warehouse_address": "Warehouse address is incomplete.",
-                            "completeness": {
-                                "seller_type_selected": True,
-                                "personal_complete": True,
-                                "tax_complete": False,
-                                "address_complete": True,
-                                "bank_complete": False,
-                                "warehouse_complete": False,
-                                "return_complete": True,
-                                "documents_complete": True,
-                            },
-                        },
-                        response_only=True,
-                    ),
-                ],
-            ),
-            403: OpenApiResponse(description="User is not a seller",),
-        },
-    )
-    def post(self, request):
-        app = get_or_create_application_for_user(request.user)
-        app = submit_application(app)
-        return Response(OnboardingStateSerializer(app).data, status=status.HTTP_200_OK)
