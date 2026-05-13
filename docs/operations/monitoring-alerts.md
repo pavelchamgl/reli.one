@@ -67,6 +67,7 @@ Runbook описывает **минимальный** эксплуатацион
 | **Диск и ротация логов** | Порог занятости диска на томах с **`logs/`**, **медиа**, БД; при ротации Django **~6 × 2.5 MiB на каждый тип файла**, при высокой нагрузке оцените суммарный размер **`backend/logs/`** |
 | **Почтовые сбои** | По наличию **`logger.exception`** / устойчивых **`[…-MAIL]`** ошибок в **`payment.log`** (или перевод ошибок отправки почты на отдельный алерт после доработки кода — вне задачи этого runbook) |
 | **Courier API failures** | Всплеск **ERROR** в **`errors.log`**, связанных с **`delivery`**, или паттернов в **`debug.log`** по интеграциям перевозчиков |
+| **Посылки после оплаты (заказ есть, этикеток нет)** | Строки **`[PARCELS]`** / смежные в логах; затем playbook — [`payment-flow.md` — Operational playbook](../payment-flow.md#operational-playbook-parcel-retry-and-follow-up) (ручной retry, без автоматики в текущем релизе) |
 
 **Владение:** зафиксировать владельцев алертов и эскалации (см. раздел Alerts ownership в Sentry в **`07-deployment.md`**).
 
@@ -83,6 +84,10 @@ Runbook описывает **минимальный** эксплуатацион
 | **`curl`/браузер на `/health/`** | Периодический или перед/после релиза smoke доступности приложения и БД |
 
 Секреты и токены **не** вставлять в команды журналирования для третьих лиц; не публиковать сырые тела webhook.
+
+### Parcel generation — manual retry / follow-up
+
+Пошаговый операционный процесс при сбое генерации посылок **после успешной оплаты** (логи, ручной повтор вызова `generate_parcels_for_order` / `fetch_and_store_labels_for_order`, эскалация) зафиксирован в **[Operational playbook: parcel retry and follow-up](../payment-flow.md#operational-playbook-parcel-retry-and-follow-up)** в `payment-flow.md`. Автоматический retry и Celery в коде **не** входят в минимальный контур текущего релиза.
 
 ---
 

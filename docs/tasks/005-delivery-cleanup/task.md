@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In progress — O2 закрыт (автотесты сбоев post-payment parcel flow); открыты O1, O3, O4.
+**Status:** In progress — **O1** и **O2** закрыты документированием и тестами; открыты **O3** (опционально), **O4** (финальный аудит).
 
 ## Инварианты roadmap (май 2026)
 
@@ -65,9 +65,24 @@ flowchart TB
 | Dependency map | Диаграмма выше + комментарий в коде про долгосрочный выход на очередь/слой уведомлений. |
 | Monitoring notes | Сводка по логам и алертам для courier/delivery — [`docs/operations/monitoring-alerts.md`](../../operations/monitoring-alerts.md). |
 | Troubleshooting (baseline) | Раздел «Посылки после оплаты» в [`docs/payment-flow.md`](../../payment-flow.md) — логи, dev-gating, `origin_blocked`, оговорка про приёмку перевозчиков. |
+| **Retry / follow-up (O1)** | Зафиксированная **операционная** стратегия (без автоматического retry в коде и без Celery): см. [§ O1](#o1--retry--follow-up-операционная-стратегия) и раздел **[Operational playbook: parcel retry and follow-up](../../payment-flow.md#operational-playbook-parcel-retry-and-follow-up)** в `payment-flow.md`. |
 | Автотесты сбоев parcel flow (O2) | [`backend/delivery/test_async_parcels_errors.py`](../../../backend/delivery/test_async_parcels_errors.py): падение `generate_parcels_for_order` / `fetch_and_store_labels_for_order`, отдельные сбои seller/manager email, отсутствие проброса исключений наружу; wiring `async_parcels_and_seller_email` через синхронный вызов `executor` + `on_commit` в тесте. Без реальных HTTP к перевозчикам (всё через `unittest.mock`). |
 
 **Зависимости от других задач:** Task **003** и **010** по репозиторию закрыты в объёме, релевантном оплате/DevOps; **005** на них **не** завязан через PromoCode или склад.
+
+---
+
+## O1 — Retry / follow-up (операционная стратегия)
+
+**Статус:** зафиксировано в документации (без изменений backend-кода). Автоматический retry в процессе webhook или фоновой задаче **не** реализован и **не** входит в текущий релизный минимум.
+
+**Кратко**
+
+1. **Типовые причины:** таймауты и обрывы сети при HTTP к перевозчику; **5xx** и временная недоступность API; **4xx** из‑за невалидного/устаревшего payload или конфигурации; проблемы **аутентификации/токенов** у провайдера (истёкший ключ, неверный env).
+2. **Текущее поведение кода:** после успешного commit webhook **`Order` / `Payment` / инвойс (best-effort) уже в БД**; цепочка `run_parcels_and_seller_email_after_commit` (`delivery/utils_async.py`) вызывает `generate_parcels_for_order` и `fetch_and_store_labels_for_order` (`delivery/utils.py`) в фоне; при исключении — **`logger.exception`** с префиксом **`[PARCELS]`** (и при необходимости **`[PARCELS→SELLER]`** / **`[PARCELS→MANAGER]`** для почты); **исключение наружу не пробрасывается**, повторной постановки задачи **нет**.
+3. **Операционный процесс:** детально — в [`docs/payment-flow.md`](../../payment-flow.md) → **[Operational playbook: parcel retry and follow-up](../../payment-flow.md#operational-playbook-parcel-retry-and-follow-up)**; краткий чеклист и алерты — в [`docs/operations/monitoring-alerts.md`](../../operations/monitoring-alerts.md).
+4. **Будущие инструменты (только рекомендации, не реализованы):** `manage.py` команда «перезапуск генерации посылок по `order_id` / `session_key`»; **admin action** на заказе; защищённый **внутренний endpoint** под ролью staff; позже — **очередь (Celery)** с ретраями и DLQ — см. [Deferred](#deferred--future).
+5. **Не обязательно для текущего релиза:** любой автоматический retry, Celery, идемпотентные client_reference на стороне провайдера, укорочение транзакций в `generate_parcels_for_order` — остаётся в [Deferred](#deferred--future).
 
 ---
 
@@ -75,7 +90,6 @@ flowchart TB
 
 | # | Пункт |
 |---|--------|
-| O1 | **Retry / follow-up:** операционная стратегия (что делать при падении провайдера после оплаты: повтор, ручной триггер, тикет) и при необходимости — узкая реализация **без** обязательной полной Celery-инфраструктуры (отдельное решение в коде по согласованию). |
 | O3 | **Документация troubleshooting (опционально):** расширение baseline из [`docs/payment-flow.md`](../../payment-flow.md) в отдельный operations-runbook, если понадобится больше регламентов для поддержки. |
 | O4 | **Финальный аудит:** пройти [Definition of Done](#definition-of-done) ниже и зафиксировать статус в этом файле. |
 
@@ -88,6 +102,7 @@ flowchart TB
 - **Архитектурный слой уведомлений** вместо ленивого импорта `payment.services` из `delivery` — может пересечься с polish **003**, но не является входным условием для O1–O4.
 - **Крупный rewrite** курьерских клиентских API — вне scope.
 - **Опционально (не O2):** один интеграционный тест полного webhook `create_orders_and_payment` + сохранённый `Order` при падении фоновой генерации посылок — если понадобится доказательство именно на уровне HTTP webhook (сейчас покрыто синхронным runner и wiring-тестом).
+- **Автоматический retry и продуктовый tooling** (management command, admin action, внутренний retry endpoint, Celery) — см. рекомендации в [O1](#o1--retry--follow-up-операционная-стратегия); внедрение только по отдельному решению.
 
 ---
 
@@ -108,7 +123,7 @@ flowchart TB
 
 ### Остаётся
 
-- [ ] Задокументирована и согласована **стратегия retry/follow-up** для провалов генерации посылок (см. O1).
+- [x] Задокументирована и согласована **стратегия retry/follow-up** для провалов генерации посылок (O1 — см. [§ O1](#o1--retry--follow-up-операционная-стратегия) и [`payment-flow.md`](../../payment-flow.md)).
 - [x] Есть **автотесты** на изоляцию сбоев post-payment parcel flow (`delivery/test_async_parcels_errors.py`; см. таблицу Done).
 - [x] В **`docs/payment-flow.md`** есть **baseline manual troubleshooting** по parcel-flow (расширение — опционально, O3).
 - [ ] **Финальный аудит** по чеклисту Task 005 выполнен и статус в шапке обновлён (см. O4).
@@ -129,6 +144,10 @@ flowchart TB
 - [x] Сбои parcel/labels/email — `delivery/test_async_parcels_errors.py` (O2).
 
 Ранее планировался пример с webhook целиком; реализовано через **`run_parcels_and_seller_email_after_commit`** и моки (`generate_parcels_for_order`, `fetch_and_store_labels_for_order`, `payment.services.*`), плюс тест wiring для `async_parcels_and_seller_email`.
+
+### Retry / follow-up (O1)
+
+- [x] Операционный playbook и рекомендации по будущему tooling — [`payment-flow.md`](../../payment-flow.md), [`monitoring-alerts.md`](../../operations/monitoring-alerts.md), § [O1](#o1--retry--follow-up-операционная-стратегия) в этом файле.
 
 ### Iteration 3 — Fix (первая волна)
 
@@ -159,4 +178,4 @@ flowchart TB
 ## Связанные заметки из docs/09-architecture-debt.md
 
 - SEC-4: dev-эндпоинты доставки — **смягчено** gating (остаётся дисциплина env на prod).
-- PAY-2: retry при ошибке генерации посылок — частично смягчено изоляцией ошибок; **полное** решение — в O1 / Deferred (очередь).
+- PAY-2: retry при ошибке генерации посылок — изоляция ошибок + **операционный playbook (O1)** в документации; **автоматический** retry и очередь — [Deferred](#deferred--future).
