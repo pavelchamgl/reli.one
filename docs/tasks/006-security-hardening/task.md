@@ -2,7 +2,29 @@
 
 **Priority:** P0/P1  
 **Complexity:** Medium  
-**Status:** In Progress (официальный план SEC-1 — [`docs/security-incident-response.md`](../../security-incident-response.md); выполнение rewrite/ротации — ops)
+**Status:** **DONE (repo scope; ops execution pending for production credential rotation and git history rewrite).**
+
+## Final Audit Summary (Step 5 — repo scope)
+
+<a id="final-audit-summary-task-006-repo-scope"></a>
+
+См. также **[Definition of Done](#definition-of-done)** и **[`docs/security-incident-response.md`](../../security-incident-response.md)**.
+
+**Выполнено в репозитории:**
+
+| Область | Статус |
+|---------|--------|
+| PII-файл `Frontend/Frontend3/src/code/test.js` | Удалён из дерева (файл отсутствует) |
+| Google OAuth | `clientId` из `import.meta.env.VITE_GOOGLE_CLIENT_ID` (`src/main.jsx`) |
+| `Frontend/Frontend3/.env.example` | Есть (VITE_API_URL, VITE_GOOGLE_CLIENT_ID, VITE_SENTRY_DSN) |
+| DRF throttling | Глобальные anon/user; scope `otp` (5/min); `OTPRateThrottle` на OTP send/resend views |
+| Автотесты OTP throttling | `OTPThrottleTests` в `backend/accounts/tests.py` |
+| Nginx | CSP (MVP) + `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` в `Frontend/nginx/default.conf` (оба HTTPS server) |
+| SEC-1 документация | `docs/security-incident-response.md` — план Phase 0–5 и чеклист ротации |
+
+**Регрессия (Docker `backend_test`, май 2026):** `python manage.py check` — без замечаний; `pytest accounts/ -v` — **10 passed**.
+
+**Остаётся вне закрытия repo scope (ops):** ротация секретов в **production**, выполнение **`git filter-repo` / force push** по инструкции в `security-incident-response.md`; единственный открытый чекбокс DoD — «credentials в production».
 
 ## Цель
 
@@ -51,6 +73,7 @@
 - [x] Google clientId читается из `VITE_GOOGLE_CLIENT_ID`
 - [x] `Frontend/Frontend3/.env.example` создан
 - [x] DRF throttling настроен: глобальные anon/user лимиты + узкий **`otp`** (5/min) на эндпоинтах выдачи OTP (см. [аудит](#audit-otp-throttling-drf-mvp))
+- [x] Автотесты OTP throttling — `OTPThrottleTests` в `backend/accounts/tests.py` (`pytest accounts/` — 10 тестов)
 - [x] Базовый **Content-Security-Policy** и вспомогательные security headers в **nginx** — `Frontend/nginx/default.conf` (см. [аудит nginx CSP](#audit-nginx-csp-baseline-mvp))
 - [ ] Все ротированные credentials обновлены в production
 
@@ -283,18 +306,20 @@ pytest accounts/ -k OTPThrottle -v
 ### Сценарии для проверки
 - [x] 6 запросов к `POST /api/accounts/email/otp/resend/` с одного IP за минуту → **429** на 6-м (scope `otp`, 5/min) — покрыто `OTPThrottleTests.test_email_otp_resend_fifth_allowed_sixth_returns_429`
 - [x] Аналогично `POST /api/accounts/password/reset/otp/send/` — `OTPThrottleTests.test_password_reset_otp_send_fifth_allowed_sixth_returns_429`
-- [ ] `src/code/test.js` → 404 (удалён)
-- [ ] `VITE_GOOGLE_CLIENT_ID` не undefined в production build
-- [ ] git log не содержит секретов (после cleanup)
+- [x] `src/code/test.js` отсутствует в репозитории (HEAD)
+- [ ] `VITE_GOOGLE_CLIENT_ID` задан в **production** build/env (проверка ops / CI при выкате)
+- [ ] `git log` **без** утечек после **выполнения** cleanup (см. [`security-incident-response.md`](../../security-incident-response.md))
 
 ### Что должно работать
 - Все auth flows работают с throttling
 - Google login работает с env-based clientId
 
 ### Статус
-- [ ] Validation complete (прочие пункты чеклиста: test.js, Google env, git history)
+- [x] **Validation complete (repo scope)** — репозиторные проверки, `manage.py check`, `pytest accounts/ -v` (10 passed). **OPEN (ops):** ротация credentials, rewrite git history, подтверждение `VITE_*` на prod.
 
-**Аудит 2026-05-13:** Throttling в коде включён. **2026-05-13 (step 2):** добавлены авто-тесты OTP throttling — `OTPThrottleTests` в `accounts/tests.py` (2 теста); `pytest accounts/` — 10 passed.
+**Аудит Step 5 (2026-05-13):** Task 006 закрыта как **DONE (repo scope)**. См. [Final Audit Summary](#final-audit-summary-task-006-repo-scope).
+
+**Аудит 2026-05-13 (throttling):** `OTPThrottleTests`; `pytest accounts/` — 10 passed.
 
 ---
 
@@ -302,7 +327,7 @@ pytest accounts/ -k OTPThrottle -v
 
 | Тип | Файлы |
 |-----|-------|
-| **Frontend** | `src/main.jsx`, `src/code/test.js` (удалить), `.env.example` |
+| **Frontend** | `src/main.jsx` (`VITE_GOOGLE_CLIENT_ID`), `.env.example` |
 | **Backend** | `backend/settings.py`, `accounts/views.py` |
 | **Env** | `envs/backend.env.example` |
 | **Инфраструктура** | git history; **`Frontend/nginx/default.conf`** (CSP для prod) |
