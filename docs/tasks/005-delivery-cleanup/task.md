@@ -2,7 +2,8 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In progress — **O1** и **O2** закрыты документированием и тестами; открыты **O3** (опционально), **O4** (финальный аудит).
+**Status:** **DONE (repo-scope)** — цели задачи по репозиторию выполнены (см. [Final DoD table](#final-dod-table-task-005)).  
+**Pending (ops / вне git):** ручная приёмка интеграций с перевозчиками (**Packeta, DPD, GLS, MyGLS** и др.) в **production** этим документом **не утверждается** — только регламент команды и реальные проверки на ваших контурах. **Celery**, **automatic in-code retry** и **идемпотентность на стороне перевозчика в коде** — не реализованы; см. [Deferred](#deferred--future).
 
 ## Инварианты roadmap (май 2026)
 
@@ -86,20 +87,12 @@ flowchart TB
 
 ---
 
-## Open (оставшийся scope Task 005)
-
-| # | Пункт |
-|---|--------|
-| O3 | **Документация troubleshooting (опционально):** расширение baseline из [`docs/payment-flow.md`](../../payment-flow.md) в отдельный operations-runbook, если понадобится больше регламентов для поддержки. |
-| O4 | **Финальный аудит:** пройти [Definition of Done](#definition-of-done) ниже и зафиксировать статус в этом файле. |
-
----
-
 ## Deferred / Future
 
-- **Celery (или аналог)** с broker, ретраями задач и наблюдаемостью вместо `ThreadPoolExecutor` — отдельная инфраструктурная инициатива, не блокер текущего cleanup.
+- **O3 (опционально, не блокирует закрытие Task 005):** отдельный standalone operations-runbook **не** требуется — расширенный playbook в [`payment-flow.md`](../../payment-flow.md) и перекрёстные ссылки в [`monitoring-alerts.md`](../../operations/monitoring-alerts.md).
+- **Celery (или аналог)** с broker, ретраями задач и наблюдаемостью вместо `ThreadPoolExecutor` — отдельная инфраструктурная инициатива; **не реализовано**.
 - **Укорочение транзакций** и **идемпотентные client_reference** при создании посылок у провайдера — снижение рассинхрона БД ↔ курьер.
-- **Архитектурный слой уведомлений** вместо ленивого импорта `payment.services` из `delivery` — может пересечься с polish **003**, но не является входным условием для O1–O4.
+- **Архитектурный слой уведомлений** вместо ленивого импорта `payment.services` из `delivery` — может пересечься с polish **003**; не входил в закрытие **005**.
 - **Крупный rewrite** курьерских клиентских API — вне scope.
 - **Опционально (не O2):** один интеграционный тест полного webhook `create_orders_and_payment` + сохранённый `Order` при падении фоновой генерации посылок — если понадобится доказательство именно на уровне HTTP webhook (сейчас покрыто синхронным runner и wiring-тестом).
 - **Автоматический retry и продуктовый tooling** (management command, admin action, внутренний retry endpoint, Celery) — см. рекомендации в [O1](#o1--retry--follow-up-операционная-стратегия); внедрение только по отдельному решению.
@@ -113,20 +106,26 @@ flowchart TB
 
 ---
 
-## Definition of Done
+<a id="final-dod-table-task-005"></a>
 
-### Закрыто
+## Final DoD table (Task 005)
 
-- [x] Dev-эндпоинты курьеров недоступны в типичном production (`DEBUG=False`, флаг выключен).
-- [x] В фоновой генерации посылок ошибка по одному заказу не блокирует остальные в батче.
-- [x] Карта зависимостей и ссылка на мониторинг логов.
+**Кратко (repo-scope):** dev-endpoints закрыты флагами и покрыты тестами; сбои parcel/labels/email изолированы и покрыты тестами; retry/follow-up задокументирован в `payment-flow.md`; мониторинг ссылается на playbook; регрессия pytest зафиксирована в таблице ниже; приёмка перевозчиков в **production** — только **manual/pending (ops)**.
 
-### Остаётся
+Финальный аудит **repo-scope**: ниже — что считается закрытым в репозитории, где evidence и что остаётся **вне git** (ops / manual).
 
-- [x] Задокументирована и согласована **стратегия retry/follow-up** для провалов генерации посылок (O1 — см. [§ O1](#o1--retry--follow-up-операционная-стратегия) и [`payment-flow.md`](../../payment-flow.md)).
-- [x] Есть **автотесты** на изоляцию сбоев post-payment parcel flow (`delivery/test_async_parcels_errors.py`; см. таблицу Done).
-- [x] В **`docs/payment-flow.md`** есть **baseline manual troubleshooting** по parcel-flow (расширение — опционально, O3).
-- [ ] **Финальный аудит** по чеклисту Task 005 выполнен и статус в шапке обновлён (см. O4).
+| Item | Status | Evidence | Remaining action |
+|------|--------|----------|------------------|
+| Dev courier endpoints gated | **Done** | `delivery/dev_access.py`, `delivery/urls.py`; тесты `delivery/test_dev_access.py` | **Ops:** на каждом контуре убедиться `DEBUG=False`, `ENABLE_DELIVERY_DEV_ENDPOINTS` не включён случайно; при желании — ручной запрос к `…/api/delivery/dev/…` → ожидание отсутствия маршрута |
+| Async parcel / labels / email failures isolated | **Done** | `delivery/utils_async.py` (`run_parcels_and_seller_email_after_commit`); `delivery/test_async_parcels_errors.py` | — |
+| Retry / follow-up playbook (операционный) | **Done** | [§ O1](#o1--retry--follow-up-операционная-стратегия); [`payment-flow.md` — Operational playbook](../../payment-flow.md#operational-playbook-parcel-retry-and-follow-up) | **Ops:** при инцидентах следовать playbook; **не** ожидать automatic retry в коде |
+| Monitoring / logs связаны с playbook | **Done** | [`monitoring-alerts.md`](../../operations/monitoring-alerts.md) (таблица симптомов + § Parcel generation); обратные ссылки на `payment-flow.md` | **Ops:** настроить алерты по proposal в том же runbook (вне scope **005**) |
+| Карта зависимостей delivery ↔ payment | **Done** | Диаграмма выше в этом `task.md` | — |
+| Regression gate (pytest) | **Done** (зафиксировано при закрытии O2 / финализации) | Последний зелёный прогон (май 2026): `docker compose -f docker-compose.test.yml run --rm backend_test pytest delivery/ -q`; то же для `pytest payment/ -q` и `pytest -q` из корня backend в контейнере | **Политика команды:** повторять перед релизом / в CI при изменениях в `delivery`/`payment` |
+| Production courier acceptance (Packeta, DPD, GLS, …) | **Not claimed** | — | **Manual / ops pending:** приёмка перевозчиков в **production** этим репозиторием **не утверждается**; только регламент и реальные проверки на ваших контурах |
+| Celery / automatic in-code retry / courier idempotency в коде | **Deferred** | См. [Deferred / Future](#deferred--future) | Отдельные задачи по решению продукта; **не** часть **005** |
+
+**Явно не заявляется:** полная production-проверка GLS/DPD/Packeta/MyGLS; реализация Celery; реализация automatic retry; изменения PromoCode или Task 013.
 
 ---
 
@@ -157,13 +156,13 @@ flowchart TB
 
 ### Iteration 4 — Celery
 
-**Отложено.** При появлении решения о внедрении очереди — вынести в отдельную задачу или appendix (не блокирует закрытие O1–O4 по текущему scope).
+**Отложено** (Deferred). При появлении решения о внедрении очереди — отдельная задача.
 
 ### Iteration 5 — Validation
 
 - [x] Прогон `pytest delivery/` (включая O2).
 - [x] Прогон `pytest payment/` и полный `pytest` backend через `docker-compose.test.yml` (май 2026).
-- [ ] Ручная проверка: при выключенном dev-доступе маршруты `…/dev/…` не резолвятся.
+- [x] Ручная проверка dev-маршрутов на контуре — перенесена в колонку **Remaining action** финальной [таблицы DoD](#final-dod-table-task-005) (ops).
 
 ---
 

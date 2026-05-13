@@ -11,7 +11,7 @@
 | [Stripe e2e checklist](testing/stripe-e2e-checklist.md) | Ручной smoke, evidence, негативные HTTP |
 | [PayPal e2e checklist](testing/paypal-e2e-checklist.md) | Sandbox smoke, негативные сценарии |
 | [Task 003 — Payment refactor](tasks/003-payment-refactor/task.md) | История рефакторинга, Done/Open/Deferred |
-| [Task 005 — Delivery cleanup](tasks/005-delivery-cleanup/task.md) | Post-payment parcels, dev-gating курьеров, хвосты retry/tests |
+| [Task 005 — Delivery cleanup](tasks/005-delivery-cleanup/task.md) | **DONE (repo-scope)** — посылки после оплаты, dev-gating, playbook retry/follow-up, тесты изоляции; [Final DoD table](tasks/005-delivery-cleanup/task.md#final-dod-table-task-005). Приёмка курьеров в **production** — **manual/pending**, не часть закрытия задачи. |
 
 ---
 
@@ -219,7 +219,7 @@ sequenceDiagram
 5. **Если повтор опасен или невозможен:** оформить **ручную отгрузку** по процессу продавца/операций и зафиксировать тикет.
 6. **Коммуникация:** уведомить продавца и/или внутреннего оператора о статусе и следующих шагах (особенно если этикетки так и не появились).
 
-Подробнее про файлы логов и алерты — [`docs/operations/monitoring-alerts.md`](operations/monitoring-alerts.md). Зафиксированная политика задачи — [`Task 005`](tasks/005-delivery-cleanup/task.md).
+Подробнее про файлы логов и алерты — [`docs/operations/monitoring-alerts.md`](operations/monitoring-alerts.md). Статус **005** и таблица закрытия repo-scope — [`Task 005`](tasks/005-delivery-cleanup/task.md) ([Final DoD table](tasks/005-delivery-cleanup/task.md#final-dod-table-task-005)).
 
 **4. Recommended future tooling (не реализовано; не обязательно для текущего релиза)**
 

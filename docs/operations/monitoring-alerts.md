@@ -87,7 +87,7 @@ Runbook описывает **минимальный** эксплуатацион
 
 ### Parcel generation — manual retry / follow-up
 
-Пошаговый операционный процесс при сбое генерации посылок **после успешной оплаты** (логи, ручной повтор вызова `generate_parcels_for_order` / `fetch_and_store_labels_for_order`, эскалация) зафиксирован в **[Operational playbook: parcel retry and follow-up](../payment-flow.md#operational-playbook-parcel-retry-and-follow-up)** в `payment-flow.md`. Автоматический retry и Celery в коде **не** входят в минимальный контур текущего релиза.
+Пошаговый операционный процесс при сбое генерации посылок **после успешной оплаты** (логи, ручной повтор вызова `generate_parcels_for_order` / `fetch_and_store_labels_for_order`, эскалация) зафиксирован в **[Operational playbook: parcel retry and follow-up](../payment-flow.md#operational-playbook-parcel-retry-and-follow-up)** в `payment-flow.md`. Автоматический retry и Celery в коде **не** входят в минимальный контур текущего релиза. Статус задачи и таблица закрытия repo-scope — **[Task 005 — Final DoD](../tasks/005-delivery-cleanup/task.md#final-dod-table-task-005)**.
 
 ---
 
