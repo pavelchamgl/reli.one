@@ -16,7 +16,7 @@
 - **SEC-3 (P1):** Google OAuth `clientId` захардкожен в `src/main.jsx`
 - **SEC-4 (P1):** Dev endpoints delivery в production → вынесены в Task 005
 - **SEC-5 (P2):** JWT в `localStorage` (уязвим к XSS)
-- **SEC-6 (P2):** Нет rate limiting на OTP и auth endpoints
+- **SEC-6 (P2):** Rate limiting на OTP **send/resend** — реализовано (см. [аудит OTP throttling](#audit-otp-throttling-drf-mvp)); прочие auth/OTP **verify** без отдельного scope-throttle
 
 ## Scope (область)
 
@@ -49,7 +49,7 @@
 - [ ] Git-история очищена от секретов (или задокументирован план)
 - [x] Google clientId читается из `VITE_GOOGLE_CLIENT_ID`
 - [x] `Frontend/Frontend3/.env.example` создан
-- [ ] DRF throttling настроен для OTP endpoint
+- [x] DRF throttling настроен: глобальные anon/user лимиты + узкий **`otp`** (5/min) на эндпоинтах выдачи OTP (см. [аудит](#audit-otp-throttling-drf-mvp))
 - [ ] Все ротированные credentials обновлены в production
 
 ---
@@ -155,9 +155,26 @@ class OTPResendView(APIView):
 - [x] test.js deleted — подтверждено в коде, файл удалён
 - [x] Google clientId in env — `import.meta.env.VITE_GOOGLE_CLIENT_ID` в main.jsx
 - [x] .env.example created — `Frontend/Frontend3/.env.example` с VITE_API_URL, VITE_GOOGLE_CLIENT_ID, VITE_SENTRY_DSN
-- [ ] DRF throttling configured — НЕ реализовано: в settings.py нет DEFAULT_THROTTLE_CLASSES, OTPRateThrottle не создан
+- [x] DRF throttling configured — `DEFAULT_THROTTLE_CLASSES` / `DEFAULT_THROTTLE_RATES` в `backend/settings.py`; `OTPRateThrottle` (`scope=otp`) на `SendOTPForEmailVerificationAPIView`, `SendOTPForPasswordResetAPIView` (`accounts/views.py`)
 
-**Аудит 2026-05-05:** Три из четырёх пунктов Iteration 2 выполнены в коде. DRF throttling пропущен.
+<a id="audit-otp-throttling-drf-mvp"></a>
+
+### Audit: OTP throttling (DRF, MVP)
+
+**Глобально (`REST_FRAMEWORK`):** анонимные запросы — `100/hour`, аутентифицированные — `1000/hour` (остальные DRF views с дефолтными throttle-классами).
+
+**Узкий лимит `otp` (5/minute), только выдача/ресенд кода (AnonRateThrottle по IP):**
+
+| Метод | Path (prefix `api/accounts/`) | View |
+|-------|-------------------------------|------|
+| POST | `email/otp/resend/` | `SendOTPForEmailVerificationAPIView` |
+| POST | `password/reset/otp/send/` | `SendOTPForPasswordResetAPIView` |
+
+**Без отдельного OTP-throttle** (проверка кода, не генерация): `email/confirmation/`, `check-otp-password-reset/`, `password/reset/confirmation/`.
+
+OTP по сигналу при регистрации не затрагивается (не HTTP).
+
+**Аудит 2026-05-13:** Реализовано по коду выше.
 
 ---
 
@@ -218,12 +235,14 @@ git clone <repo> (fresh clone, НЕ git pull)
 
 ### Тесты для запуска
 ```bash
-pytest backend/accounts/ -k "otp" -v
-# Проверить что throttle работает
+cd backend && python manage.py check
+pytest accounts/ -v
+# Селектор -k otp в accounts/ сейчас не матчит тесты (имена классов без "otp"); при добавлении тестов throttling — уточнить -k
 ```
 
 ### Сценарии для проверки
-- [ ] 6 запросов к `/api/accounts/email/otp/resend/` за минуту → 429 на 6-м
+- [ ] 6 запросов к `POST /api/accounts/email/otp/resend/` с одного IP за минуту → **429** на 6-м (scope `otp`, 5/min)
+- [ ] Аналогично `POST /api/accounts/password/reset/otp/send/`
 - [ ] `src/code/test.js` → 404 (удалён)
 - [ ] `VITE_GOOGLE_CLIENT_ID` не undefined в production build
 - [ ] git log не содержит секретов (после cleanup)
@@ -235,7 +254,7 @@ pytest backend/accounts/ -k "otp" -v
 ### Статус
 - [ ] Validation complete
 
-**Аудит 2026-05-05:** Валидация не проводилась. Throttling не реализован — тест 429 невозможен.
+**Аудит 2026-05-13:** Throttling в коде включён; сценарии 429 — по ручному чеклисту. Регрессия: `pytest accounts/ -v` — 8 passed (Docker `backend_test`).
 
 ---
 

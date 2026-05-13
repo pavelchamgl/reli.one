@@ -255,6 +255,15 @@ REST_FRAMEWORK = {
     'DATE_FORMAT': '%d.%m.%Y',
     'TIME_FORMAT': '%H:%M',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'otp': '5/minute',
+    },
 }
 
 MAX_UPLOAD_SIZE = 13 * 1024 * 1024  # 13 MB

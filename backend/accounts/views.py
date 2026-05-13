@@ -8,6 +8,7 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiTypes, 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -25,6 +26,10 @@ from .serializers import (
     UserProfileSerializer,
 )
 from .utils import create_and_send_otp
+
+
+class OTPRateThrottle(AnonRateThrottle):
+    scope = 'otp'
 
 
 class UserRegistrationView(APIView):
@@ -256,6 +261,8 @@ class SellerRegistrationView(UserRegistrationView):
 
 
 class SendOTPForEmailVerificationAPIView(APIView):
+    throttle_classes = [OTPRateThrottle]
+
     @extend_schema(
         description="Send OTP for email verification.",
         request=EmailSerializer,
@@ -546,6 +553,8 @@ class CustomLogoutView(APIView):
 
 
 class SendOTPForPasswordResetAPIView(APIView):
+    throttle_classes = [OTPRateThrottle]
+
     @extend_schema(
         description="Send OTP to user's email for password reset.",
         request=EmailSerializer,
