@@ -4,3 +4,8 @@ from .self_employed import (
     SellerSelfEmployedPersonalAPIView,
     SellerSelfEmployedTaxAPIView,
 )
+from .company import (
+    SellerCompanyAddressAPIView,
+    SellerCompanyInfoAPIView,
+    SellerCompanyRepresentativeAPIView,
+)
