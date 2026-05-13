@@ -52,7 +52,7 @@ Task **008 не зависит** от:
   - `backend/sellers/test_onboarding_completeness.py` — **`compute_completeness`**, **`compute_next_step`**, **`compute_documents_summary_and_missing`**: пустая заявка / тип без блоков; SE и company partial vs complete; документы (identity только `back` до добавления `front`); `same_as_warehouse`; инвариант `tax_country` (ветки по стране в completeness **нет**).
   - `backend/sellers/test_onboarding_audit.py` — реальные строки **`OnboardingAuditLog`**: прямой **`log_onboarding_event`** (включая `audit_disabled` без записи, PK заявки); **`submit_application`** → `review_requested`; **`approve_application`** / **`reject_application`** (мок только **`sync_legal_info_from_application`** / **`send_mail`**); отрицательные guard и **`validate_before_submit`** без аудита.
   - `backend/sellers/test_onboarding_api_happy_path.py` — полные REST happy-path **company** и **self-employed** (POST/PUT/GET state & review, документы multipart, POST submit → `pending_verification`); негативы incomplete submit и редактирование после submit; контрольный кейс **DE** в ISO-полях (без матрицы стран в completeness).
-- **Декомпозиция views:** пакет `sellers/onboarding/` — **шаг 6:** state / review / submit; **шаг 7:** `seller_type.py`; **шаг 8:** `self_employed.py`; **шаг 9:** company info / representative / address → `steps/company.py`; реэкспорт из `views_onboarding.py` для `urls.py`.
+- **Декомпозиция views:** пакет `sellers/onboarding/` — **шаг 6:** state / review / submit; **шаг 7:** `seller_type.py`; **шаг 8:** `self_employed.py`; **шаг 9:** `company.py`; **шаг 10:** `SellerBankAccountAPIView` → `steps/bank.py`; реэкспорт из `views_onboarding.py` для `urls.py`.
 - Аннотации `Set`, `Tuple` в `compute_completeness` и связанном коде приведены в порядок (импорты для typing).
 - **Документация flow:** [`docs/seller-onboarding-flow.md`](../seller-onboarding-flow.md) (шаг 2 Task 008).
 
@@ -213,8 +213,10 @@ backend/sellers/
 ### Статус
 - [x] **Шаг 6:** вынесены **`SellerOnboardingStateAPIView`**, **`SellerOnboardingReviewAPIView`**, **`SellerOnboardingSubmitAPIView`** (см. пути выше). Реэкспорт из `views_onboarding.py`.
 - [x] **Шаг 7:** вынесен **`SellerSetSellerTypeAPIView`** → `sellers/onboarding/steps/seller_type.py`; реэкспорт из `views_onboarding.py`.
+- [x] **Шаг 8:** вынесены **`SellerSelfEmployedPersonalAPIView`**, **`SellerSelfEmployedTaxAPIView`**, **`SellerSelfEmployedAddressAPIView`** → `sellers/onboarding/steps/self_employed.py`; реэкспорт из `views_onboarding.py`.
 - [x] **Шаг 9:** вынесены **`SellerCompanyInfoAPIView`**, **`SellerCompanyRepresentativeAPIView`**, **`SellerCompanyAddressAPIView`** → `sellers/onboarding/steps/company.py`; реэкспорт из `views_onboarding.py`.
-- [ ] Остальные step-handlers (bank, warehouse, return, documents) — перенос малыми шагами
+- [x] **Шаг 10:** вынесен **`SellerBankAccountAPIView`** → `sellers/onboarding/steps/bank.py`; реэкспорт из `views_onboarding.py`.
+- [ ] Остальные step-handlers (warehouse, return, documents) — перенос малыми шагами
 
 ### Фактическая структура (май 2026)
 
@@ -222,12 +224,13 @@ backend/sellers/
 backend/sellers/onboarding/
 ├── __init__.py
 ├── steps/
-│   ├── __init__.py      # экспорт seller_type, self-employed, company views
+│   ├── __init__.py      # экспорт seller_type, self-employed, company, bank views
 │   ├── state.py         # SellerOnboardingStateAPIView
 │   ├── seller_type.py   # SellerSetSellerTypeAPIView
 │   ├── self_employed.py # SellerSelfEmployed* (personal, tax, address)
 │   ├── company.py       # SellerCompany* (info, representative, address)
-│   └── …                # bank / warehouse / … — позже
+│   ├── bank.py          # SellerBankAccountAPIView
+│   └── …                # warehouse / return / documents — позже
 └── review/
     ├── __init__.py
     ├── review.py
@@ -279,7 +282,7 @@ python manage.py test sellers
 | Тип | Файлы |
 |-----|-------|
 | **Backend** | `sellers/views_onboarding.py`, `sellers/services_onboarding.py`, `sellers/serializers_onboarding.py`, `sellers/services_onboarding_audit.py`, `sellers/models.py` |
-| **Onboarding views (пакет)** | `sellers/onboarding/steps/state.py`, `seller_type.py`, `self_employed.py`, **`company.py`**, `review/review.py`, `review/submit.py` (реэкспорт в `views_onboarding.py`) |
+| **Onboarding views (пакет)** | `sellers/onboarding/steps/state.py`, `seller_type.py`, `self_employed.py`, `company.py`, **`bank.py`**, `review/review.py`, `review/submit.py` (реэкспорт в `views_onboarding.py`) |
 | **Новые файлы** | `sellers/onboarding/**` (пошаговое наполнение); остальные steps — в следующих итерациях |
 | **Тесты** | `sellers/tests.py`, `sellers/test_onboarding_stabilization.py`, `sellers/test_onboarding_completeness.py`, `sellers/test_onboarding_audit.py`, `sellers/test_onboarding_api_happy_path.py` |
 | **Документация** | [`docs/seller-onboarding-flow.md`](../seller-onboarding-flow.md) |

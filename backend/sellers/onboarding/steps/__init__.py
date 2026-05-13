@@ -9,3 +9,4 @@ from .company import (
     SellerCompanyInfoAPIView,
     SellerCompanyRepresentativeAPIView,
 )
+from .bank import SellerBankAccountAPIView
