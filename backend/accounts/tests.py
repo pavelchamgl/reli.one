@@ -1,9 +1,64 @@
+from unittest.mock import patch
+
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import CustomUser
+
+
+class OTPThrottleTests(APITestCase):
+    """DRF scope `otp` (5/min): первые 5 POST с одного IP не 429, 6-й — 429."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = CustomUser.objects.create_user(
+            first_name="Otp",
+            last_name="Throttle",
+            email="otp-throttle@example.com",
+            password="StrongP@ss1",
+        )
+        self.email_payload = {"email": self.user.email}
+        self.resend_url = reverse("resend_otp_for_email_verification")
+        self.password_reset_otp_send_url = reverse("send_orp_for_password_reset")
+
+    @patch("accounts.views.create_and_send_otp")
+    def test_email_otp_resend_fifth_allowed_sixth_returns_429(self, _mock_send):
+        for i in range(5):
+            with self.subTest(request_index=i + 1):
+                response = self.client.post(
+                    self.resend_url, self.email_payload, format="json"
+                )
+                self.assertNotEqual(
+                    response.status_code,
+                    status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+        sixth = self.client.post(
+            self.resend_url, self.email_payload, format="json"
+        )
+        self.assertEqual(sixth.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+
+    @patch("accounts.views.create_and_send_otp")
+    def test_password_reset_otp_send_fifth_allowed_sixth_returns_429(self, _mock_send):
+        for i in range(5):
+            with self.subTest(request_index=i + 1):
+                response = self.client.post(
+                    self.password_reset_otp_send_url,
+                    self.email_payload,
+                    format="json",
+                )
+                self.assertNotEqual(
+                    response.status_code,
+                    status.HTTP_429_TOO_MANY_REQUESTS,
+                )
+        sixth = self.client.post(
+            self.password_reset_otp_send_url,
+            self.email_payload,
+            format="json",
+        )
+        self.assertEqual(sixth.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
 
 
 class CustomerRegistrationPhoneNumberTests(APITestCase):

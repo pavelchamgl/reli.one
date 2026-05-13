@@ -237,12 +237,21 @@ git clone <repo> (fresh clone, НЕ git pull)
 ```bash
 cd backend && python manage.py check
 pytest accounts/ -v
-# Селектор -k otp в accounts/ сейчас не матчит тесты (имена классов без "otp"); при добавлении тестов throttling — уточнить -k
+pytest accounts/ -k OTPThrottle -v
 ```
 
+### Автоматические тесты throttling (OTP)
+
+| Тест | Endpoint |
+|------|----------|
+| `OTPThrottleTests.test_email_otp_resend_fifth_allowed_sixth_returns_429` | `POST /api/accounts/email/otp/resend/` |
+| `OTPThrottleTests.test_password_reset_otp_send_fifth_allowed_sixth_returns_429` | `POST /api/accounts/password/reset/otp/send/` |
+
+Реализация: `accounts/tests.py`; `create_and_send_otp` замокан; перед каждым тестом `cache.clear()` (полная подмена `CACHES` в тесте **не** используется — в `settings` есть алиас `conv` для payment, иначе падает импорт urlconf).
+
 ### Сценарии для проверки
-- [ ] 6 запросов к `POST /api/accounts/email/otp/resend/` с одного IP за минуту → **429** на 6-м (scope `otp`, 5/min)
-- [ ] Аналогично `POST /api/accounts/password/reset/otp/send/`
+- [x] 6 запросов к `POST /api/accounts/email/otp/resend/` с одного IP за минуту → **429** на 6-м (scope `otp`, 5/min) — покрыто `OTPThrottleTests.test_email_otp_resend_fifth_allowed_sixth_returns_429`
+- [x] Аналогично `POST /api/accounts/password/reset/otp/send/` — `OTPThrottleTests.test_password_reset_otp_send_fifth_allowed_sixth_returns_429`
 - [ ] `src/code/test.js` → 404 (удалён)
 - [ ] `VITE_GOOGLE_CLIENT_ID` не undefined в production build
 - [ ] git log не содержит секретов (после cleanup)
@@ -252,9 +261,9 @@ pytest accounts/ -v
 - Google login работает с env-based clientId
 
 ### Статус
-- [ ] Validation complete
+- [ ] Validation complete (прочие пункты чеклиста: test.js, Google env, git history)
 
-**Аудит 2026-05-13:** Throttling в коде включён; сценарии 429 — по ручному чеклисту. Регрессия: `pytest accounts/ -v` — 8 passed (Docker `backend_test`).
+**Аудит 2026-05-13:** Throttling в коде включён. **2026-05-13 (step 2):** добавлены авто-тесты OTP throttling — `OTPThrottleTests` в `accounts/tests.py` (2 теста); `pytest accounts/` — 10 passed.
 
 ---
 
