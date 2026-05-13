@@ -1,0 +1,1 @@
+from .seller_type import SellerSetSellerTypeAPIView
