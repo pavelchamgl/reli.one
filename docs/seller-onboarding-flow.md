@@ -367,7 +367,7 @@ flowchart LR
 | Область | Путь |
 |---------|------|
 | URLs | `backend/sellers/urls.py`, `backend/backend/urls.py` |
-| Views | `backend/sellers/views_onboarding.py`; вынесено: `onboarding/steps/state.py`, `onboarding/steps/seller_type.py`, `onboarding/review/review.py`, `onboarding/review/submit.py` |
+| Views | `backend/sellers/views_onboarding.py`; вынесено: `onboarding/steps/state.py`, `seller_type.py`, `self_employed.py`, `onboarding/review/review.py`, `onboarding/review/submit.py` |
 | Serializers | `backend/sellers/serializers_onboarding.py` |
 | Сервисы | `backend/sellers/services_onboarding.py` |
 | Аудит | `backend/sellers/services_onboarding_audit.py`, `backend/sellers/audit_context.py` |
