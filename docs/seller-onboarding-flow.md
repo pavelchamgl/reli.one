@@ -391,7 +391,7 @@ flowchart LR
 
 ## 15. Related documents
 
-- [Task 008 — Seller Onboarding Stabilization](./tasks/008-seller-onboarding-stabilization/task.md)
+- [Task 008 — Seller Onboarding Stabilization](./tasks/008-seller-onboarding-stabilization/task.md) — **[Final DoD (repo-scope)](./tasks/008-seller-onboarding-stabilization/task.md#final-dod-table-task-008)**; ручная приёмка UI/staging и e2e Frontend3 — **pending / deferred** (см. task).
 - [Testing strategy](./08-testing-strategy.md) — раздел про `sellers` и пробелы покрытия
 - [User flows](./02-user-flows.md) — пользовательское описание API онбординга (проверять соответствие методов PATCH vs PUT при изменениях клиента)
 - [Architecture debt](./09-architecture-debt.md) — BE-3 (`views_onboarding.py`: монолит → thin re-export, логика в `onboarding/`)
