@@ -15,7 +15,7 @@
 
 | Область | Состояние |
 |---------|-----------|
-| Backend | Покрытие P0-цепочки расширено: `payment` (webhook, checkout), `order` (базовые доменные тесты), `product` (каталог API), `delivery` (shipping options с моками перевозчиков), `sellers` — `tests.py`; `test_onboarding_stabilization.py`; **`test_onboarding_completeness.py`** (`compute_completeness` и др.); **`test_onboarding_audit.py`** (реальные `OnboardingAuditLog`, сервисный submit/approve/reject без мока аудита); **пробел:** полные REST happy-path по странам при продуктовой необходимости (отдельной матрицы стран в completeness нет — см. **[Seller onboarding flow](./seller-onboarding-flow.md)**) — см. **[Task 008](./tasks/008-seller-onboarding-stabilization/task.md)**. `accounts`, `promocode` (модель/сигналы). См. **Task 002** (DONE). |
+| Backend | Покрытие P0-цепочки расширено: `payment` (webhook, checkout), `order` (базовые доменные тесты), `product` (каталог API), `delivery` (shipping options с моками перевозчиков), `sellers` — `tests.py`; `test_onboarding_stabilization.py`; **`test_onboarding_completeness.py`**; **`test_onboarding_audit.py`**; **`test_onboarding_api_happy_path.py`** (полные REST-цепочки onboarding company/self-employed, негативы); отдельной матрицы стран в `compute_completeness` нет — см. **[Seller onboarding flow](./seller-onboarding-flow.md)** — **[Task 008](./tasks/008-seller-onboarding-stabilization/task.md)**. `accounts`, `promocode` (модель/сигналы). См. **Task 002** (DONE). |
 | Frontend | Тестовый раннер не подключён. |
 | Инфра | `pytest-django` в зависимостях; `pytest.ini` указывает `DJANGO_SETTINGS_MODULE`. При отсутствии переменных Postgres в окружении — SQLite `:memory:` (как в `settings`). Локально при загруженном `envs/database.env` может подключаться Postgres — для быстрых прогонов без БД задайте пустые `DB_NAME`, `DB_HOST` и т.д. |
 | CI | `.github/workflows/ci.yml`: `makemigrations --check`, `migrate`, **`python manage.py test`**, затем **`pytest`**, плюс сборки фронтов. |
@@ -68,7 +68,7 @@ flowchart TB
 | Создание платёжной сессии | Stripe / PayPal: валидация групп, CZ-origin SKU, сохранение метаданных, мок вызовов внешнего API. |
 | Webhook + идемпотентность | Повтор одного и того же события не создаёт дубликаты заказов/платежей; корректный ответ при уже обработанной сессии (см. описание в OpenAPI `payment/views`). |
 | Создание заказа | После успешной оплаты (или прямой сценарий создания, если есть): статусы, строки заказа, связь с продавцом и доставкой. |
-| Онбординг продавца | Submit с валидными данными; review-слой (статусы, права); негативные кейсы валидации (пример — `validate_before_submit`, держатель счёта для компании); HTTP **state/review** и замена документов — см. `test_onboarding_stabilization.py`; дальнейшее покрытие — **Task 008** (completeness/страны/audit). |
+| Онбординг продавца | Submit с валидными данными; review-слой (статусы, права); негативные кейсы валидации (`validate_before_submit`, держатель счёта); HTTP **state/review**, замена документов — `test_onboarding_stabilization.py`; **полные REST-цепочки** — `test_onboarding_api_happy_path.py`; completeness/audit — **Task 008** (`test_onboarding_completeness.py`, `test_onboarding_audit.py`). |
 
 ---
 

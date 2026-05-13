@@ -387,8 +387,7 @@ flowchart LR
 | `backend/sellers/test_onboarding_stabilization.py` | Форма ответа state, HTTP state/review, замена документа company, warehouse/return. |
 | `backend/sellers/test_onboarding_completeness.py` | `compute_completeness`, `compute_next_step`, `compute_documents_summary_and_missing`. |
 | `backend/sellers/test_onboarding_audit.py` | Реальные строки `OnboardingAuditLog`: `log_onboarding_event`, submit/approve/reject без мока аудита; отрицательные guard/validation. |
-
----
+| `backend/sellers/test_onboarding_api_happy_path.py` | Полные REST-цепочки company и self-employed (multipart документы, state/review, submit); негативы; контрольный ISO **DE** в payload. |
 
 ## 15. Related documents
 
