@@ -9,6 +9,7 @@ Covers:
 - next_invoice_identifiers() — PAY-4: uniqueness under concurrency
 - OrderStatusName vs seller actions — единый источник имён статуса заказа
 - SellerOrderActionsService — confirm / mark shipped / cancel (Task 012)
+- OrderStatus — регрессия строковой хрупкости имён (Task 004 analysis)
 
 See also test_webhook_lifecycle.py for checkout webhook → Order/Payment/Invoice integration.
 """
@@ -391,6 +392,19 @@ class OrderStatusNameConsistencyTests(TestCase):
         self.assertEqual(SellerOrderActionsService.STATUS_CANCELLED, OrderStatusName.CANCELLED)
 
 
+class OrderStatusStringFragilityTests(TestCase):
+    """
+    Документирует хрупкость строковых статусов без нормализации (Task 004 backlog).
+    Два разных регистра — две разные строки БД; переходы сервиса завязаны на OrderStatusName.
+    """
+
+    def test_distinct_rows_for_case_variant_names(self):
+        low = OrderStatus.objects.create(name="pending")
+        title = OrderStatus.objects.create(name="Pending")
+        self.assertNotEqual(low.pk, title.pk)
+        self.assertNotEqual(low.name, title.name)
+
+
 # ---------------------------------------------------------------------------
 # SellerOrderActionsService — lifecycle (Task 012)
 # ---------------------------------------------------------------------------
@@ -496,3 +510,46 @@ class SellerOrderActionsLifecycleTests(OrderTestMixin, TestCase):
         op.refresh_from_db()
         self.assertEqual(order.order_status.name, OrderStatusName.CANCELLED)
         self.assertEqual(op.status, OrderLineStatus.CANCELED)
+
+    def test_cancel_order_staff_rejects_when_delivered(self):
+        admin_user = CustomUser.objects.create_user(
+            email="admin-cancel-delivered@example.com",
+            password="pass123",
+            role=UserRole.ADMIN,
+            is_staff=True,
+        )
+        order = self._make_order_with_status(OrderStatusName.DELIVERED)
+        self._add_product(order)
+        with self.assertRaises(ValidationError):
+            SellerOrderActionsService.cancel_order(order_id=order.pk, user=admin_user)
+
+    def test_cancel_order_staff_rejects_when_already_cancelled(self):
+        admin_user = CustomUser.objects.create_user(
+            email="admin-cancel-twice@example.com",
+            password="pass123",
+            role=UserRole.ADMIN,
+            is_staff=True,
+        )
+        order = self._make_order_with_status(OrderStatusName.CANCELLED)
+        self._add_product(order)
+        with self.assertRaises(ValidationError):
+            SellerOrderActionsService.cancel_order(order_id=order.pk, user=admin_user)
+
+    def test_cancel_order_staff_succeeds_from_shipped(self):
+        admin_user = CustomUser.objects.create_user(
+            email="admin-cancel-shipped@example.com",
+            password="pass123",
+            role=UserRole.ADMIN,
+            is_staff=True,
+        )
+        order = self._make_order_with_status(OrderStatusName.SHIPPED)
+        self._add_product(order)
+        SellerOrderActionsService.cancel_order(order_id=order.pk, user=admin_user)
+        order.refresh_from_db()
+        self.assertEqual(order.order_status.name, OrderStatusName.CANCELLED)
+        self.assertTrue(
+            OrderEvent.objects.filter(
+                order=order,
+                type=OrderEvent.Type.CANCELLED,
+            ).exists()
+        )

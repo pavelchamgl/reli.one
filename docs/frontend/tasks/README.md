@@ -4,13 +4,13 @@
 
 | ID | Задача | После | Статус |
 |----|--------|-------|--------|
-| **FE-T001** | [Матрица сценариев и конвенции](./001-test-matrix-and-conventions/task.md) | — | To do |
-| **FE-T002** | [Пилот Vitest + RTL в Frontend3](./002-vitest-rtl-pilot-frontend3/task.md) | FE-T001 | To do |
-| **FE-T003** | [Якорные RTL-тесты P0](./003-rtl-anchor-tests-p0/task.md) | FE-T002 | To do |
-| **FE-T004** | [Playwright: фундамент и smoke](./004-playwright-e2e-foundation/task.md) | FE-T002 | To do |
-| **FE-T005** | [Frontend2 и интеграция в CI](./005-frontend2-and-ci-integration/task.md) | FE-T002; желательно FE-T003, FE-T004 | To do |
+| **FE-T001** | [Матрица сценариев и конвенции](./001-test-matrix-and-conventions/task.md) | — | **Done** — артефакт: [test-matrix.md](../test-matrix.md) |
+| **FE-T002** | [Пилот Vitest + RTL в Frontend3](./002-vitest-rtl-pilot-frontend3/task.md) | FE-T001 | **Done** — Vitest, хелперы, smoke, CI `frontend3` |
+| **FE-T003** | [Якорные RTL-тесты P0](./003-rtl-anchor-tests-p0/task.md) | FE-T002 | **In progress** — API + `ProtectedRoute`; формы / ошибки / чекаут в матрице как backlog |
+| **FE-T004** | [Playwright: фундамент и smoke](./004-playwright-e2e-foundation/task.md) | FE-T002 | **Done** — `e2e/`, `npm run test:e2e`, job `e2e_frontend3` в CI |
+| **FE-T005** | [Frontend2 и интеграция в CI](./005-frontend2-and-ci-integration/task.md) | FE-T002 | **Done** — Vitest smoke, шаг `npm run test` в job `frontend2` |
 
 **Примечания.**
 
-- **FE-T003** и **FE-T004** можно вести **параллельно** после FE-T002, если разные исполнители.
-- **FE-T005** логично начинать после стабилизации пилота (FE-T002); включение e2e в CI — по готовности FE-T004.
+- **FE-T003** и **FE-T004** изначально допускали параллельную работу после FE-T002.
+- Расширение RTL по матрице (логин, тосты, корзина) — продолжение **FE-T003** без нового номера задачи.

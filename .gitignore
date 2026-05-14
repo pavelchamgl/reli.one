@@ -7,6 +7,10 @@ Frontend/Frontend1/node_modules
 Frontend/Frontend2/node_modules
 Frontend/Frontend3/node_modules
 
+# Playwright (Frontend3 e2e)
+Frontend/Frontend3/test-results/
+Frontend/Frontend3/playwright-report/
+
 # TLS / сертификаты и приватные ключи
 *.key
 *.crt
@@ -27,7 +31,6 @@ envs/*
 *~
 Frontend/dist
 */__pycache__
-*/migrations
 */migrations/__pycache__
 *.DS_Store
 # Byte-compiled / optimized / DLL files

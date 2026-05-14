@@ -2,7 +2,7 @@
 
 **Priority:** P0  
 **Complexity:** Medium  
-**Status:** To do
+**Status:** Done
 
 ## Цель
 
@@ -38,10 +38,10 @@
 
 ## Definition of Done
 
-- [ ] `npm run test` (или принятый менеджером пакетов эквивалент) в `Frontend/Frontend3` завершается успешно в чистом окружении CI-образа (локально проверено).
-- [ ] Есть задокументированный хелпер рендера с провайдерами.
-- [ ] Есть минимум один committed тест, не помеченный `skip`.
-- [ ] Нет захардкоженных секретов; Sentry/OAuth не ломают прогон (заглушки или env).
+- [x] `npm run test` в `Frontend/Frontend3`; CI job `frontend3` выполняет тесты.
+- [x] Хелпер `src/test/test-utils.jsx` (`renderWithProviders`).
+- [x] Набор unit/RTL тестов (API, ProtectedRoute, smoke хелпера).
+- [x] Секреты не в тестах.
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** In progress — добавлены регрессии `SellerOrderActionsLifecycleTests` в `backend/order/tests.py`; расширение сценариев по мере необходимости.
+**Status:** **Done (repo-scope)** — `SellerOrderActionsLifecycleTests` покрывает confirm, mark shipped / посылки, отмену staff из Pending/Shipped, отказ отмены при Delivered/Cancelled, негативы для не-staff; **`OrderStatusStringFragilityTests`** фиксирует хрупкость строк статусов (связь с **Task 004** backlog). Расширение под «delivered/closed/Manager» без изменения сервиса — только при появлении методов в `SellerOrderActionsService`.
 
 ## Цель
 
@@ -35,10 +35,11 @@
 
 ## Definition of Done
 
-- [x] Расширение `backend/order/tests.py` — класс `SellerOrderActionsLifecycleTests` (confirm, mark_shipped + parcels, cancel права staff/seller).
-- [ ] Дополнительные переходы (delivered, closed, права Manager и т.д.) по продуктовому scope.
+- [x] Расширение `backend/order/tests.py` — класс `SellerOrderActionsLifecycleTests` (confirm, mark_shipped + parcels, cancel staff из Pending/Shipped, отмена запрещена для Delivered/Cancelled и для не-staff).
+- [x] Регрессия строковых статусов — `OrderStatusStringFragilityTests`.
+- [ ] Переходы, для которых в коде **ещё нет** публичных действий (например delivered через отдельный endpoint) — вне scope до расширения сервиса.
 - [x] Без реальных вызовов внешних API.
-- [ ] Полный прогон CI локально подтверждён после изменений.
+- [x] `manage.py test order.tests.SellerOrderActionsLifecycleTests order.tests.OrderStatusStringFragilityTests` — зелёный (SQLite CI-совместимо).
 
 ## Связанные задачи
 

@@ -1,6 +1,6 @@
 # План тестирования фронтенда (Reli.one)
 
-Документ фиксирует **согласованные цели** покрытия React/Vite-приложений **`Frontend/Frontend3`** (основной клиент) и **`Frontend/Frontend2`** (лендинг): уровни тестов, целевой стек, приоритеты и порядок внедрения. Это **план документации**, а не описание уже внедрённого кода; актуальное состояние раннеров см. в `package.json` соответствующих пакетов.
+Документ фиксирует **согласованные цели** покрытия React/Vite-приложений **`Frontend/Frontend3`** (основной клиент) и **`Frontend/Frontend2`** (лендинг): уровни тестов, целевой стек, приоритеты и порядок внедрения. Это **план документации**, а не описание уже внедрённого кода; актуальное состояние раннеров см. в `package.json` соответствующих пакетов. **Живая матрица сценариев:** [test-matrix.md](./test-matrix.md).
 
 Общая стратегия репозитория (backend + снимок по фронту): **[08. Testing strategy](../08-testing-strategy.md)**. Архитектура UI: **[04. Frontend architecture](../04-frontend-architecture.md)**.
 
@@ -9,8 +9,8 @@
 ## 1. Контекст
 
 - Оба фронта: **Vite + React 18**.
-- **`Frontend3`:** в `package.json` есть **`npm run test`** / **`npm run test:watch`** (Vitest), `@testing-library/react`, хелпер **`src/test/test-utils.jsx`**, CI выполняет тесты после lint — см. **[08-testing-strategy.md](../08-testing-strategy.md)**.
-- **`Frontend2`:** скриптов `test*` в `package.json` пока нет — паритет после пилота F3.
+- **`Frontend3`:** `npm run test`, `npm run test:e2e` (Playwright), хелпер **`src/test/test-utils.jsx`**, job **`e2e_frontend3`** — см. **[08-testing-strategy.md](../08-testing-strategy.md)** и **[test-matrix.md](./test-matrix.md)**.
+- **`Frontend2`:** `npm run test` / `npm run test:watch` (Vitest smoke) — см. **[test-matrix.md](./test-matrix.md)**.
 - Backend P0 уже покрывается API/интеграционными тестами; фронт дополняет это **проверкой UI-поведения**, **регрессиями форм и маршрутизации** и **узким слоем e2e** по критичным сценариям.
 
 ---
@@ -101,14 +101,13 @@ flowchart TB
 
 ## 8. CI
 
-Целевой порядок в pipeline (уточняется при внедрении):
+Фактически в **`.github/workflows/ci.yml`** (май 2026):
 
-1. `lint` (уже есть).
-2. `test` (Vitest) по каждому фронту, где подключён раннер.
-3. `build` (уже есть).
-4. E2E: отдельный job, при необходимости только на `main` / по расписанию из-за длительности.
+1. **`frontend2`**: `npm ci` → lint → **`npm run test`** → build.
+2. **`frontend3`**: `npm ci` → lint → **`npm run test`** → build.
+3. **`e2e_frontend3`**: `npm ci` → build → `playwright install --with-deps chromium` → **`npm run test:e2e`** (отдельный job, `CI=true`).
 
-Конкретные шаги правок `.github/workflows/*.yml` — в **задаче 005**.
+Локально e2e: из `Frontend/Frontend3` выполнить `npm run build && npm run test:e2e` (Playwright поднимет `vite preview` через `webServer` в `playwright.config.js`).
 
 ---
 
@@ -129,3 +128,4 @@ flowchart TB
 ## 10. История согласований
 
 - 2026-05-14 — утверждены цели, уровни, стек (Vitest + Testing Library + Playwright), приоритеты и порядок внедрения (чат планирования).
+- 2026-05-14 — внедрены матрица [test-matrix.md](./test-matrix.md), Playwright smoke, Vitest для Frontend2, job `e2e_frontend3`, правка `.gitignore` для миграций (DEV-4).
