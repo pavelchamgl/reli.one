@@ -126,8 +126,15 @@ flowchart TB
 
 ---
 
-## 10. История согласований
+## 10. Дорожная карта до рефакторинга Frontend3
+
+Закрытие текущих задач по тестам (в первую очередь **FE-T003**), критерии готовности к структурным изменениям и порядок малых PR описаны в **[refactoring-readiness-plan.md](./refactoring-readiness-plan.md)**.
+
+---
+
+## 11. История согласований
 
 - 2026-05-14 — утверждены цели, уровни, стек (Vitest + Testing Library + Playwright), приоритеты и порядок внедрения (чат планирования).
 - 2026-05-14 — внедрены матрица [test-matrix.md](./test-matrix.md), Playwright smoke, Vitest для Frontend2, job `e2e_frontend3`, правка `.gitignore` для миграций (DEV-4).
 - 2026-05 — синхронизация документов `docs/frontend/*` с фактом: таблицы путей к тестам, `vite.config` (exclude `e2e/`), двойной setup Frontend3, блокировка job `frontend2` из‑за ESLint.
+- 2026-05-14 — добавлен [refactoring-readiness-plan.md](./refactoring-readiness-plan.md): фазы 0–4 и фиксация изменений перед рефакторингом Frontend3.

@@ -43,3 +43,4 @@
 ## Связанные таски
 
 - [FE-T001–FE-T005](./tasks/README.md)
+- [Дорожная карта до рефакторинга Frontend3](./refactoring-readiness-plan.md)
