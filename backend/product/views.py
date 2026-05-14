@@ -26,8 +26,8 @@ from .serializers import (
 from order.models import OrderProduct
 from accounts.choices import UserRole
 
+from .constants import ACQUIRING_RATE
 
-ACQUIRING_MULTIPLIER = Decimal("1.04")
 
 def build_public_products_queryset(base_qs):
     """
@@ -47,7 +47,7 @@ def build_public_products_queryset(base_qs):
     # 2. Финальная цена с эквайрингом
     qs = qs.annotate(
         final_min_price=ExpressionWrapper(
-            F("base_min_price") * Value(ACQUIRING_MULTIPLIER),
+            F("base_min_price") * Value(ACQUIRING_RATE),
             output_field=DecimalField(max_digits=10, decimal_places=2),
         )
     )

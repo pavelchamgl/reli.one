@@ -2,13 +2,13 @@
 
 **Priority:** P0/P1  
 **Complexity:** Medium  
-**Status:** In Progress — **Steps 1–3** выполнены (локинг `decrease_stock` + активный concurrency-тест на PostgreSQL в Docker); Step 4 — analytics/pricing безопасность и централизация acquiring.
+**Status:** In Progress — **Steps 1–4** выполнены (warehouse locking, analytics fallback, `ACQUIRING_RATE` в `product/constants.py`). Остаётся **Iteration 5** (валидация/чеклисты) и **вне scope 009:** `reserved_quantity` / резервирование — **Task 013**; стабильный идентификатор склада (`warehouse_type`/slug) — отдельная миграционная задача.
 
 > **Состояние склада (актуализация 2026-05-11):** сейчас create payment session **не проверяет** `WarehouseItem.quantity_in_stock`; webhook **не вызывает** `decrease_stock` (функция в коде есть, но ни одного вызова по проекту — списание отключено). Поведение склада при оплате и целевой end-to-end flow описаны в **[Task 013 — Stock Reservation](../013-stock-reservation/task.md)**. **В рамках Task 009 webhook не должен начинать вызывать `decrease_stock`:** включение списания возможно только после резерва/проверок по Task 013 и отдельному решению.
-
 > **Аудит Step 1 (2026-05-13):** см. раздел [Current baseline (Step 1 audit)](#current-baseline-step-1-audit) ниже.  
 > **Аудит Step 2 (2026-05-14):** baseline-тесты `decrease_stock` и analytics-сервиса; по Step 3 тест на нехватку остатка и concurrency обновлены/включены на PostgreSQL — см. [Iteration 2](#iteration-2--tests).  
-> **Аудит Step 3 (2026-05-14):** `decrease_stock` обёрнут в `transaction.atomic()`; строка `WarehouseItem` захватывается через `select_for_update()`; при `quantity_in_stock < quantity` — `warning` + `InsufficientStockError`, поле не меняется; при отсутствии строки складской позиции — прежний noop (`warning`, без исключения). **`payment/` и webhook не изменялись**, `reserved_quantity` не добавлялся, миграций нет. Конкурентный тест: `threading.Barrier` + два потока с `connection.close()`, класс активен под PostgreSQL (`skipUnless`), в Docker test contour проходит.
+> **Аудит Step 3 (2026-05-14):** `decrease_stock` обёрнут в `transaction.atomic()`; строка `WarehouseItem` захватывается через `select_for_update()`; при `quantity_in_stock < quantity` — `warning` + `InsufficientStockError`, поле не меняется; при отсутствии строки складской позиции — прежний noop (`warning`, без исключения). **`payment/` и webhook не изменялись**, `reserved_quantity` не добавлялся, миграций нет. Конкурентный тест: `threading.Barrier` + два потока с `connection.close()`, класс активен под PostgreSQL (`skipUnless`), в Docker test contour проходит.  
+> **Аудит Step 4 (2026-05-14):** `get_stats_for_two_warehouses` не бросает `Warehouse.DoesNotExist`: склады ищутся по каноническим именам через `_warehouse_by_canonical_name`; при отсутствии/переименовании для соответствующей стороны подставляется словарь нулей (`zero_warehouse_order_stats()`), структура ответа и ключи метрик неизменны. Добавлен `backend/product/constants.py` с **`ACQUIRING_RATE`**, импорт в `product/models.py`, `product/views.py`, `favorites/views.py`; формулы и округления как при `Decimal("1.04")`. **`payment/` и webhook не трогались**; **`reserved_quantity` и stock reservation — Task 013**; миграции `warehouse_type` не делались.
 
 ## Цель
 
@@ -17,8 +17,8 @@
 ## Контекст
 
 - **DB-2 (P0 — при возврате списания):** когда `decrease_stock` снова станет частью боевого flow, необходимо `select_for_update()` на строке `WarehouseItem`, иначе при параллельных подтверждениях `quantity_in_stock` может уйти в неконсистентное состояние. **Сейчас** списание в webhook выключено, поэтому риск именно «двойного списания в webhook» **не активен**, но остаётся **product risk** см. Task 013 (оплата без учёта остатка).
-- **BE-6 (P2):** `analytics/services.py` использует `Warehouse.objects.get(name="Vendor warehouse")` → при переименовании склада в Admin аналитика перестаёт работать
-- **BE-5 (P2):** Бизнес-логика цены (`price_with_acquiring`, `ACQUIRING_RATE = 1.04`) разбросана по `product/models.py`, `favorites/views.py` — при изменении ставки нужно менять в нескольких местах
+- **BE-6 (P2):** ~~жёсткий `Warehouse.objects.get(name=…)` в analytics~~ **после Step 4:** fallback нулевой статистики; долгосрочно всё равно желательны стабильные ключи склада (**отдельная миграция**, не входит в 009).
+- **BE-5 (P2):** ставка эквайринга для витрины/варианта централизована в **`product/constants.py`** (`ACQUIRING_RATE`); дубли `1.04` могут ещё встречаться вне указанных файлов (checkout/payment свойства без правок по Step 4).
 
 ## Scope (область)
 
@@ -50,9 +50,9 @@
 
 - [x] `warehouses/services.py` использует `select_for_update()` в `decrease_stock` (Step 3)
 - [x] Конкурентный тест для `decrease_stock`: `WarehouseStockConcurrencyTest` **активен на PostgreSQL** (Docker `backend_test`), на SQLite класс **`skipUnless`** с явным reason; сценарий 10 − 8 − 8 → итого 2, один успех + один `InsufficientStockError`.
-- [ ] `analytics/services.py` не падает при переименовании склада
-- [ ] `ACQUIRING_RATE` централизован в одном месте
-- [ ] Все существующие тесты product/warehouse проходят
+- [x] `analytics/services.py` не падает при отсутствии/переименовании канонических складов (Step 4)
+- [x] `ACQUIRING_RATE` централизован в `product/constants.py` и подключён в models + catalog/favorites views (Step 4)
+- [x] Полный pytest (Docker) проходит после Step 4
 
 ---
 
@@ -173,13 +173,16 @@ sequenceDiagram
 | `WarehouseStockServiceTest.test_decrease_stock_missing_item_is_noop` | активен — нет `WarehouseItem` → без исключения |
 | `WarehouseStockConcurrencyTest.test_concurrent_decrease_stock_documents_current_race_or_target_behavior` | **Step 3+:** активен на **PostgreSQL** (`skipUnless`), два потока + `Barrier`; локально на SQLite класс целиком пропускается |
 
-**Файл `backend/analytics/tests.py`**
+**Файл `backend/analytics/tests.py`** *(обновлено Step 4 — см. [Iteration 4](#iteration-4--analytics--pricing-fix))*
 
 | Тест | Статус |
 |------|--------|
-| `AnalyticsWarehouseStatsServiceTest.test_get_stats_for_two_warehouses_raises_when_canonical_warehouse_names_missing` | активен — `Warehouse.DoesNotExist` baseline |
-| `AnalyticsWarehouseStatsServiceTest.test_get_stats_for_two_warehouses_raises_when_vendor_warehouse_renamed` | активен — жёсткое имя «Vendor warehouse»; переименование → тот же сбой |
-| `AnalyticsWarehouseStatsServiceTest.test_future_expected_behavior_analytics_empty_when_warehouses_missing` | **`@skip`** — ожидаемое поведение после **Task 009 Step 4** (fallback вместо 500) |
+| `AnalyticsWarehouseStatsServiceTest.test_returns_zeros_when_canonical_warehouses_missing` | активен |
+| `AnalyticsWarehouseStatsServiceTest.test_vendor_renamed_reli_bucket_uses_orders_stats` | активен |
+| `AnalyticsWarehouseStatsServiceTest.test_zero_warehouse_order_stats_matches_service_shape` | активен |
+| `WarehouseOrdersStatsHttpTest.test_warehouse_stats_endpoint_200_when_no_canonical_warehouses` | активен |
+
+*(Прежние baseline-тесты Step 2 с `Warehouse.DoesNotExist` удалены после внедрения fallback.)*
 
 **Примечание:** в `backend/pytest.ini` добавлен паттерн `tests_*.py`, чтобы собирать модули вида `tests_stock.py` (рядом с уже поддерживаемыми `test_*.py`).
 
@@ -220,61 +223,33 @@ reserved_quantity = models.PositiveIntegerField(default=0)
 ## Iteration 4 — Analytics & Pricing Fix
 
 ### Цель
-Исправить хрупкую зависимость аналитики от имён складов и централизовать acquiring rate.
+Убрать 500 из-за складской аналитики при «битых» именах складов и сократить дубли ставки эквайринга на витрине.
 
-### Analytics fix
+### Реализовано (Step 4, 2026-05-14)
 
-**`backend/analytics/services.py`:**
-```python
-# ДО:
-vendor_wh = Warehouse.objects.get(name="Vendor warehouse")
-reli_wh = Warehouse.objects.get(name="Reli warehouse")
+**Analytics (`backend/analytics/services.py`):**
+- Константы `VENDOR_WAREHOUSE_NAME` / `RELI_WAREHOUSE_NAME`; `_warehouse_by_canonical_name()` возвращает `Warehouse` или `None`.
+- `zero_warehouse_order_stats()` — тот же набор ключей, что у `get_warehouse_orders_stats`, со значением `0`.
+- `get_stats_for_two_warehouses`: для каждой стороны либо обычный расчёт, либо копия нулевого шаблона; **`Warehouse.DoesNotExist` наружу не пробрасывается**; топ-level JSON не меняется.
 
-# ПОСЛЕ: безопасный вариант с try/except
-try:
-    vendor_wh = Warehouse.objects.get(name="Vendor warehouse")
-except Warehouse.DoesNotExist:
-    logger.warning("Vendor warehouse not found")
-    return empty_stats_response()
+**Pricing (`backend/product/constants.py`):**
+- `ACQUIRING_RATE = Decimal("1.04")` — используется в `product/models.py` (`min_price_with_acquiring`, `price_without_vat`, `price_with_acquiring`), `product/views.py` (`build_public_products_queryset`), `favorites/views.py`.
 
-# Долгосрочно: добавить warehouse_type поле (отдельная migration-задача)
-# warehouse_type = CharField(choices=[("vendor", "Vendor"), ("reli", "Reli")])
-```
-
-### Pricing centralization
-
-**`backend/product/constants.py`** (новый файл):
-```python
-from decimal import Decimal
-
-ACQUIRING_RATE = Decimal("1.04")  # Ставка эквайринга
-```
-
-**`backend/product/models.py`** — обновить:
-```python
-from .constants import ACQUIRING_RATE
-
-class ProductVariant(models.Model):
-    @property
-    def price_with_acquiring(self):
-        return self.price * ACQUIRING_RATE
-```
-
-**`backend/favorites/views.py`** — обновить аналогично.
+**Не в scope Step 4:** `payment/` / webhook-дубли эквайринга без прямых правок по задаче; **`reserved_quantity` и резерв до оплаты — Task 013**; типизация складов через миграцию — отдельно.
 
 ### Затрагиваемые файлы
 | Файл | Изменение |
 |------|-----------|
-| `backend/warehouses/services.py` | select_for_update |
-| `backend/warehouses/exceptions.py` | новый файл |
-| `backend/analytics/services.py` | try/except |
-| `backend/product/constants.py` | новый файл |
-| `backend/product/models.py` | использование ACQUIRING_RATE |
-| `backend/favorites/views.py` | использование ACQUIRING_RATE |
+| `backend/analytics/services.py` | fallback канонических имён + `zero_warehouse_order_stats()` |
+| `backend/analytics/tests.py` | новые кейсы сервиса + HTTP **200** при отсутствии складов |
+| `backend/product/constants.py` | `ACQUIRING_RATE` |
+| `backend/product/models.py` | импорт `ACQUIRING_RATE`, замена литералов `1.04` |
+| `backend/product/views.py` | `ACQUIRING_RATE` вместо локальной константы |
+| `backend/favorites/views.py` | annotate через `ACQUIRING_RATE` |
 
 ### Статус
-- [ ] Analytics fixed
-- [ ] Pricing centralized
+- [x] Analytics fixed
+- [x] Pricing centralized (в указанном scope)
 
 ---
 
@@ -289,7 +264,7 @@ pytest backend/product/ -v
 
 ### Сценарии для проверки
 - [ ] При параллельных webhook-ах stock не уходит в минус
-- [ ] Переименовать склад в Admin → аналитика возвращает пустой ответ, не 500
+- [x] Переименовать/удалить канонические склады в Admin → эндпоинт статистики отдаёт **200** и нулевые блоки, не 500 (Step 4)
 - [ ] `price_with_acquiring` возвращает корректную цену с acquiring rate
 - [ ] Инвойс-цены совпадают с расчётными
 
@@ -302,7 +277,7 @@ pytest backend/product/ -v
 
 | Тип | Файлы |
 |-----|-------|
-| **Backend** | `warehouses/services.py`, `analytics/services.py`, `product/models.py`, `favorites/views.py` |
+| **Backend** | `warehouses/services.py`, `analytics/services.py`, `product/models.py`, `product/views.py`, `favorites/views.py` |
 | **Новые файлы** | `warehouses/exceptions.py`, `product/constants.py` |
 | **Модели** | `WarehouseItem` (без миграций на этом этапе) |
 | **API** | Не меняются |
