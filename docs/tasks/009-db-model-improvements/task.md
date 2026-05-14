@@ -2,12 +2,13 @@
 
 **Priority:** P0/P1  
 **Complexity:** Medium  
-**Status:** In Progress — **Step 1** audit и **Step 2** regression-тесты (warehouse stock + analytics baseline) выполнены; изменения runtime (`select_for_update`, fallback analytics и т.д.) — начиная с Step 3.
+**Status:** In Progress — **Steps 1–3** выполнены (локинг `decrease_stock` + активный concurrency-тест на PostgreSQL в Docker); Step 4 — analytics/pricing безопасность и централизация acquiring.
 
 > **Состояние склада (актуализация 2026-05-11):** сейчас create payment session **не проверяет** `WarehouseItem.quantity_in_stock`; webhook **не вызывает** `decrease_stock` (функция в коде есть, но ни одного вызова по проекту — списание отключено). Поведение склада при оплате и целевой end-to-end flow описаны в **[Task 013 — Stock Reservation](../013-stock-reservation/task.md)**. **В рамках Task 009 webhook не должен начинать вызывать `decrease_stock`:** включение списания возможно только после резерва/проверок по Task 013 и отдельному решению.
 
 > **Аудит Step 1 (2026-05-13):** см. раздел [Current baseline (Step 1 audit)](#current-baseline-step-1-audit) ниже.  
-> **Аудит Step 2 (2026-05-14):** добавлены модульные/сервисные тесты без правок `warehouses/services.py` и `analytics/services.py`; конкурентный тест и «мягкая» analytics — отложены через `@skip` до Step 3 / Step 4 (см. [Iteration 2](#iteration-2--tests)).
+> **Аудит Step 2 (2026-05-14):** baseline-тесты `decrease_stock` и analytics-сервиса; по Step 3 тест на нехватку остатка и concurrency обновлены/включены на PostgreSQL — см. [Iteration 2](#iteration-2--tests).  
+> **Аудит Step 3 (2026-05-14):** `decrease_stock` обёрнут в `transaction.atomic()`; строка `WarehouseItem` захватывается через `select_for_update()`; при `quantity_in_stock < quantity` — `warning` + `InsufficientStockError`, поле не меняется; при отсутствии строки складской позиции — прежний noop (`warning`, без исключения). **`payment/` и webhook не изменялись**, `reserved_quantity` не добавлялся, миграций нет. Конкурентный тест: `threading.Barrier` + два потока с `connection.close()`, класс активен под PostgreSQL (`skipUnless`), в Docker test contour проходит.
 
 ## Цель
 
@@ -47,8 +48,8 @@
 
 ## Definition of Done
 
-- [ ] `warehouses/services.py` использует `select_for_update()` в `decrease_stock`
-- [ ] Написан конкурентный тест для `decrease_stock` (**Step 2:** заготовка есть, активный тест отключён — см. Iteration 2)
+- [x] `warehouses/services.py` использует `select_for_update()` в `decrease_stock` (Step 3)
+- [x] Конкурентный тест для `decrease_stock`: `WarehouseStockConcurrencyTest` **активен на PostgreSQL** (Docker `backend_test`), на SQLite класс **`skipUnless`** с явным reason; сценарий 10 − 8 − 8 → итого 2, один успех + один `InsufficientStockError`.
 - [ ] `analytics/services.py` не падает при переименовании склада
 - [ ] `ACQUIRING_RATE` централизован в одном месте
 - [ ] Все существующие тесты product/warehouse проходят
@@ -168,9 +169,9 @@ sequenceDiagram
 | Тест | Статус |
 |------|--------|
 | `WarehouseStockServiceTest.test_decrease_stock_reduces_quantity` | активен — списание 3 с остатка 10 → 7 |
-| `WarehouseStockServiceTest.test_decrease_stock_insufficient_stock_does_not_change_quantity` | активен — при нехватке остаток не меняется, исключение **не** ожидается (контракт до Step 3) |
+| `WarehouseStockServiceTest.test_decrease_stock_insufficient_stock_does_not_change_quantity` | активен — **Step 3+:** при нехватке ожидается **`InsufficientStockError`**, остаток без изменений |
 | `WarehouseStockServiceTest.test_decrease_stock_missing_item_is_noop` | активен — нет `WarehouseItem` → без исключения |
-| `WarehouseStockConcurrencyTest.test_concurrent_decrease_stock_documents_current_race_or_target_behavior` | **`@skip`** — гонка без `select_for_update` нестабильно воспроизводится в CI; включить после **Task 009 Step 3** |
+| `WarehouseStockConcurrencyTest.test_concurrent_decrease_stock_documents_current_race_or_target_behavior` | **Step 3+:** активен на **PostgreSQL** (`skipUnless`), два потока + `Barrier`; локально на SQLite класс целиком пропускается |
 
 **Файл `backend/analytics/tests.py`**
 
@@ -192,32 +193,10 @@ sequenceDiagram
 ### Цель
 Добавить `select_for_update()` и базовую защиту от overselling.
 
-### Что менять
+### Реализовано (Step 3, 2026-05-14)
 
-**`backend/warehouses/services.py`:**
-```python
-from django.db import transaction
-
-def decrease_stock(variant_id: int, qty: int) -> None:
-    """Уменьшить остаток. Атомарно. Бросает InsufficientStockError если недостаточно."""
-    with transaction.atomic():
-        item = WarehouseItem.objects.select_for_update().get(
-            product_variant_id=variant_id
-        )
-        if item.quantity_in_stock < qty:
-            raise InsufficientStockError(
-                f"Insufficient stock for variant {variant_id}: "
-                f"available={item.quantity_in_stock}, requested={qty}"
-            )
-        item.quantity_in_stock -= qty
-        item.save(update_fields=["quantity_in_stock"])
-```
-
-**Добавить `InsufficientStockError`** в `backend/warehouses/exceptions.py` (новый файл):
-```python
-class InsufficientStockError(Exception):
-    pass
-```
+- Файл `backend/warehouses/exceptions.py` — класс `InsufficientStockError`.
+- Функция **`decrease_stock(warehouse, product_variant, quantity)`** без смены сигнатуры: внутри **`transaction.atomic()`** загрузка `WarehouseItem` через **`select_for_update()`**; при отсутствии строки — warning и выход (**noop**); при недостаточном остатке — warning и **`InsufficientStockError`** без изменения поля; иначе — списание и `save(update_fields=["quantity_in_stock"])`.
 
 ### Migration Plan для `reserved_quantity` (следующий шаг)
 
@@ -233,8 +212,8 @@ reserved_quantity = models.PositiveIntegerField(default=0)
 Реализация Phase 2-3 отнесена к **Task 013** и не должна дублироваться здесь как «готовая система складов».
 
 ### Статус
-- [ ] select_for_update added
-- [ ] InsufficientStockError created
+- [x] select_for_update added
+- [x] InsufficientStockError created
 
 ---
 
