@@ -2,11 +2,12 @@
 
 **Priority:** P0/P1  
 **Complexity:** Medium  
-**Status:** In Progress — **Step 1 (baseline audit)** выполнен; правки кода / миграции — начиная с Iteration 2.
+**Status:** In Progress — **Step 1** audit и **Step 2** regression-тесты (warehouse stock + analytics baseline) выполнены; изменения runtime (`select_for_update`, fallback analytics и т.д.) — начиная с Step 3.
 
 > **Состояние склада (актуализация 2026-05-11):** сейчас create payment session **не проверяет** `WarehouseItem.quantity_in_stock`; webhook **не вызывает** `decrease_stock` (функция в коде есть, но ни одного вызова по проекту — списание отключено). Поведение склада при оплате и целевой end-to-end flow описаны в **[Task 013 — Stock Reservation](../013-stock-reservation/task.md)**. **В рамках Task 009 webhook не должен начинать вызывать `decrease_stock`:** включение списания возможно только после резерва/проверок по Task 013 и отдельному решению.
 
-> **Аудит Step 1 (2026-05-13):** см. раздел [Current baseline (Step 1 audit)](#current-baseline-step-1-audit) ниже.
+> **Аудит Step 1 (2026-05-13):** см. раздел [Current baseline (Step 1 audit)](#current-baseline-step-1-audit) ниже.  
+> **Аудит Step 2 (2026-05-14):** добавлены модульные/сервисные тесты без правок `warehouses/services.py` и `analytics/services.py`; конкурентный тест и «мягкая» analytics — отложены через `@skip` до Step 3 / Step 4 (см. [Iteration 2](#iteration-2--tests)).
 
 ## Цель
 
@@ -47,7 +48,7 @@
 ## Definition of Done
 
 - [ ] `warehouses/services.py` использует `select_for_update()` в `decrease_stock`
-- [ ] Написан конкурентный тест для `decrease_stock`
+- [ ] Написан конкурентный тест для `decrease_stock` (**Step 2:** заготовка есть, активный тест отключён — см. Iteration 2)
 - [ ] `analytics/services.py` не падает при переименовании склада
 - [ ] `ACQUIRING_RATE` централизован в одном месте
 - [ ] Все существующие тесты product/warehouse проходят
@@ -160,40 +161,29 @@ sequenceDiagram
 ### Цель
 Написать тесты до правки warehouse логики.
 
-### Тесты для написания
+### Реализовано (Step 2, 2026-05-14)
 
-```python
-# backend/warehouses/tests_stock.py
+**Файл `backend/warehouses/tests_stock.py`**
 
-class WarehouseStockTest(TestCase):
-    def test_decrease_stock_reduces_quantity(self):
-        # item.quantity_in_stock = 10
-        # decrease_stock(variant_id, 3)
-        # item.quantity_in_stock == 7
+| Тест | Статус |
+|------|--------|
+| `WarehouseStockServiceTest.test_decrease_stock_reduces_quantity` | активен — списание 3 с остатка 10 → 7 |
+| `WarehouseStockServiceTest.test_decrease_stock_insufficient_stock_does_not_change_quantity` | активен — при нехватке остаток не меняется, исключение **не** ожидается (контракт до Step 3) |
+| `WarehouseStockServiceTest.test_decrease_stock_missing_item_is_noop` | активен — нет `WarehouseItem` → без исключения |
+| `WarehouseStockConcurrencyTest.test_concurrent_decrease_stock_documents_current_race_or_target_behavior` | **`@skip`** — гонка без `select_for_update` нестабильно воспроизводится в CI; включить после **Task 009 Step 3** |
 
-    def test_decrease_stock_raises_on_insufficient_stock(self):
-        # quantity_in_stock = 2
-        # decrease_stock(variant_id, 5) → raises InsufficientStockError (или ValidationError)
+**Файл `backend/analytics/tests.py`**
 
-    def test_decrease_stock_does_not_go_negative(self):
-        # После ошибки quantity_in_stock не изменился
+| Тест | Статус |
+|------|--------|
+| `AnalyticsWarehouseStatsServiceTest.test_get_stats_for_two_warehouses_raises_when_canonical_warehouse_names_missing` | активен — `Warehouse.DoesNotExist` baseline |
+| `AnalyticsWarehouseStatsServiceTest.test_get_stats_for_two_warehouses_raises_when_vendor_warehouse_renamed` | активен — жёсткое имя «Vendor warehouse»; переименование → тот же сбой |
+| `AnalyticsWarehouseStatsServiceTest.test_future_expected_behavior_analytics_empty_when_warehouses_missing` | **`@skip`** — ожидаемое поведение после **Task 009 Step 4** (fallback вместо 500) |
 
-class WarehouseStockConcurrencyTest(TransactionTestCase):
-    """Использовать TransactionTestCase для реального тестирования блокировок"""
-
-    def test_concurrent_decrease_stock_does_not_oversell(self):
-        # Параллельно два потока уменьшают stock на 8 при quantity=10
-        # Один должен упасть
-        # Итоговый stock = 2 (не -6)
-
-class AnalyticsServiceTest(TestCase):
-    def test_warehouse_stats_with_renamed_warehouse(self):
-        # Переименовать "Vendor warehouse" → "New Name"
-        # analytics не падает (DoesNotExist → default/empty response)
-```
+**Примечание:** в `backend/pytest.ini` добавлен паттерн `tests_*.py`, чтобы собирать модули вида `tests_stock.py` (рядом с уже поддерживаемыми `test_*.py`).
 
 ### Статус
-- [ ] Tests written
+- [x] Tests written (активные + осознанно skipped см. таблицы выше)
 
 ---
 
