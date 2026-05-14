@@ -57,8 +57,8 @@ security: remove secrets from repo, restrict CORS and ALLOWED_HOSTS
 ## Известные ловушки
 
 - `STRIPE_SECRET_KEY_TEST` объявлен в `envs/backend.env`, но **не** читается в `settings.py` — при обращении к `settings.STRIPE_SECRET_KEY_TEST` будет `AttributeError`
-- Миграции исключены из git — после изменения моделей нужно генерировать и применять миграции вручную
-- `BaseURL` во фронте захардкожен как `"https://reli.one/api"` — для локальной разработки нужно явно переопределять
+- В `.gitignore` указано `*/migrations`, но файлы миграций Django **уже отслеживаются** в репозитории; новые миграции могут потребовать явного добавления в git — см. [`docs/09-architecture-debt.md`](./09-architecture-debt.md) (DEV-4)
+- Базовый URL API для `Frontend3`: переменная **`VITE_API_URL`** (fallback задаётся в коде API-слоя); локально и на staging задавать в `.env`, не править продакшен-URL в исходниках
 - `info.reli.one` проксирует `/admin` на backend — хост должен быть в `ALLOWED_HOSTS`
 
 ## Документация

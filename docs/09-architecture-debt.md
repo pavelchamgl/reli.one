@@ -3,6 +3,8 @@
 > Архитектурный технический долг на основе анализа кода и документации.
 > Источники: `03-backend-architecture.md`, `04-frontend-architecture.md`, `05-database-model.md`, реальный код.
 
+**Источник правды по тестам и актуальному статусу задач:** [`docs/08-testing-strategy.md`](./08-testing-strategy.md) и [`docs/tasks/README.md`](./tasks/README.md). Этот файл сохраняет карту долга и исторический контекст; пункты про «нет тестов» и «нет CI» ниже **не должны** читаться без сверки с **08**.
+
 **Приоритеты:** `P0` — критично (поломан функционал / угроза данным) · `P1` — высокий · `P2` — средний · `P3` — техдолг
 
 > **Совет по инструментарию.** Перед реализацией каждого блока рекомендуется выполнить `/find-skills` —
@@ -669,106 +671,63 @@ with transaction.atomic():
 
 ## 6. Testing
 
-### TEST-1: Покрытие тестами ≈ 0% `P0`
+### TEST-1: Покрытие тестами ≈ 0% `P0` — **исторический пункт; состояние изменилось**
 
-**Описание:** Backend: найден только `backend/sellers/tests.py` (~109 строк). Frontend: нет ни одного теста. Нет `pytest.ini`, нет CI-запуска тестов.
+**Было (аудит до Task 002):** Backend почти без тестов; нет `pytest.ini`; нет прогона в CI.
 
-**Файлы:** Весь проект
+**Сейчас (сверять с [`08-testing-strategy.md`](./08-testing-strategy.md)):** Backend P0 покрыт регрессиями в `accounts`, `product`, `delivery`, `payment`, `order`, `sellers`, `promocode`; есть `pytest.ini`, `conftest.py`, CI выполняет `makemigrations --check`, `migrate`, `python manage.py test` и `pytest`. Extended-пробелы: см. таблицу в **08** и [`docs/tasks/README.md`](./tasks/README.md) (warehouse automation, frontend unit runner).
 
-**Business impact:** Любой рефакторинг критического пути (payment webhook, order creation) — высокий риск незамеченных регрессий.
+**Frontend:** автоматические unit/RTL-тесты для `Frontend3` вводятся по [`docs/frontend/testing-plan.md`](./frontend/testing-plan.md); до внедрения Vitest в `package.json` снимок остаётся «lint/build в CI».
 
-**Technical impact:** Нет safety net для исправления P0/P1 проблем выше.
+**Рекомендация (не меняется по смыслу):** расширять матрицу P0 по **08**, держать webhook/order регрессии при любых правках payment.
 
-**Рекомендация:** Начать с integration-тестов критического пути:
-
-```
-Приоритет тестирования:
-1. payment/webhook (idempotency, order creation)
-2. accounts (registration, OTP, login)
-3. order (lifecycle transitions)
-4. warehouses (decrease_stock concurrency)
-5. promocode (increment_used_count)
-```
-
-Стек: `pytest-django`, `factory-boy`, `freezegun`, `responses` (mock HTTP).
-
-**Без миграций:** Да · **Тесты нужны:** — (это и есть задача)
-
-> 💡 `/find-skills` — может быть skill для настройки pytest-django + factory_boy.
+**Без миграций:** Да · **Тесты нужны:** продолжение покрытия по задачам **002**, **012**, frontend-плану.
 
 ---
 
-### TEST-2: Нет CI-запуска тестов `P1`
+### TEST-2: Нет CI-запуска тестов `P1` — **снято для backend**
 
-**Описание:** GitHub Actions / GitLab CI не настроены для автоматического запуска тестов при push.
+**Было:** CI не гонял тесты.
 
-**Business impact:** PR может сломать продакшн, если тесты не запущены вручную.
+**Сейчас:** `.github/workflows/ci.yml` — backend job с тестами (см. **08**, раздел CI). Остаётся усиление: порог coverage (опционально), job `npm run test` для фронта после подключения Vitest.
 
-**Рекомендация:** Минимальный GitHub Actions workflow:
-```yaml
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: pip install -r requirements.txt
-      - run: pytest backend/ --tb=short
-```
-
-**Без миграций:** Да · **Тесты нужны:** Нет (инфраструктура)
+**Без миграций:** Да · **Тесты нужны:** Нет
 
 ---
 
 ## 7. Deployment / DevOps
 
-### DEV-1: Нет мониторинга и алертинга `P1`
+### DEV-1: Нет мониторинга и алертинга `P1` — **частично закрыто в доках/репо**
 
-**Описание:** Нет Sentry, Prometheus, Grafana, CloudWatch. Инциденты (падение webhook, 500 в payment) обнаруживаются только по жалобам пользователей.
+**Было:** Об observability не было зафиксировано.
 
-**Business impact:** Потеря заказов незаметна в real-time.
-
-**Рекомендация:** Минимально — Sentry для Django (`sentry-sdk`) + Sentry для React. Добавить `SENTRY_DSN` в `backend.env`.
-
-**Без миграций:** Да · **Тесты нужны:** Нет
-
-> 💡 `/find-skills` — может быть skill для настройки Sentry в Django/React.
-
----
-
-### DEV-2: Нет health-check эндпоинта `P1`
-
-**Описание:** Load balancer / docker не имеет эндпоинта для проверки готовности сервиса.
-
-**Файлы:** `backend/backend/urls.py`
-
-**Рекомендация:**
-```python
-path("health/", lambda r: JsonResponse({"status": "ok"}), name="health"),
-```
+**Сейчас:** Runbooks и деплой описаны в [`docs/07-deployment.md`](./07-deployment.md), [`docs/operations/monitoring-alerts.md`](./operations/monitoring-alerts.md); в проекте подключён Sentry для Django/React (env примеры — см. Task **010**). Полная эксплуатационная приёмка на staging/prod — вне репозитория.
 
 **Без миграций:** Да · **Тесты нужны:** Нет
 
 ---
 
-### DEV-3: Нет стратегии backup БД и медиа `P1`
+### DEV-2: Нет health-check эндпоинта `P1` — **снято**
 
-**Описание:** Не описан процесс резервного копирования PostgreSQL и Cloudinary/S3-медиа.
-
-**Business impact:** Потеря данных при сбое — финансовые записи, KYC-документы.
-
-**Рекомендация:** `pg_dump` через cron / managed DB backup + Cloudinary backup policy. Описать в `docs/07-deployment.md`.
+**Сейчас:** Эндпоинт `/health/` и регрессионные тесты (см. `backend/test_health_endpoint.py`, Task **010**).
 
 **Без миграций:** Да · **Тесты нужны:** Нет
 
 ---
 
-### DEV-4: Миграции исключены из git `P2`
+### DEV-3: Нет стратегии backup БД и медиа `P1` — **частично закрыто**
 
-**Описание:** `.gitignore: */migrations` — история изменений схемы БД не версионируется.
+**Сейчас:** Runbook PostgreSQL backup/restore — [`docs/operations/database-backup-restore.md`](./operations/database-backup-restore.md); связка с e2e-контуром в **07**. Политика медиа (Cloudinary) — по-прежнему решение эксплуатации.
 
-**Business impact:** Восстановление чистой БД без `all_data.json` невозможно; нет diff миграций в PR.
+**Без миграций:** Да · **Тесты нужны:** Нет
 
-**Рекомендация:** Включить миграции в git. Добавить `makemigrations --check` в CI.
+---
+
+### DEV-4: Строка `.gitignore` для `*/migrations` `P2`
+
+**Описание:** В [`.gitignore`](../.gitignore) по-прежнему указано `*/migrations`, при этом файлы миграций **уже отслеживаются** в git для приложений backend (исторически добавлены до игнора или принудительно). Риск: новый разработчик может не заметить, что **новые** файлы миграций не попадут в `git add` без `-f`.
+
+**Рекомендация:** Удалить `*/migrations` из `.gitignore` (отдельный согласованный PR) или документировать обязательный `git add -f` / проверку в CI (`makemigrations --check` уже есть).
 
 **Без миграций:** Да · **Тесты нужны:** Нет
 
@@ -803,11 +762,9 @@ if not DEBUG:
 
 ---
 
-### DOC-2: `08-testing-strategy.md` — полностью TODO `P2`
+### DOC-2: `08-testing-strategy.md` — **закрыто**
 
-**Описание:** Документ по стратегии тестирования не заполнен.
-
-**Рекомендация:** Заполнить после реализации TEST-1 — описать стек, фикстуры, запуск.
+Документ [`docs/08-testing-strategy.md`](./08-testing-strategy.md) содержит актуальную стратегию, снимок по apps, CI и связь с задачами.
 
 ---
 
@@ -885,7 +842,6 @@ graph TD
         DB6["DB-6: PromoCode non-atomic"]
         BE1["BE-1: promocode signal падает"]
         PAY3["PAY-3 = BE-1"]
-        TEST1["TEST-1: 0% покрытие тестами"]
     end
 
     subgraph P1["🟠 P1 — Высокий"]
@@ -907,10 +863,6 @@ graph TD
         FE7["FE-7: BaseURL захардкожен"]
         PAY2["PAY-2: Нет retry посылок"]
         PAY4["PAY-4: InvoiceSequence без lock"]
-        DEV1["DEV-1: Нет мониторинга"]
-        DEV2["DEV-2: Нет health-check"]
-        DEV3["DEV-3: Нет backup стратегии"]
-        TEST2["TEST-2: Нет CI тестов"]
     end
 
     subgraph P2["🟡 P2 — Средний"]
@@ -922,10 +874,10 @@ graph TD
         FE8["FE-8: Mob* дубли"]
         FE9["FE-9: console.log в prod"]
         PAY5["PAY-5: Нет серверной корзины"]
-        DEV4["DEV-4: Миграции вне git"]
+        DEV4["DEV-4: gitignore migrations"]
         DEV5["DEV-5: DEBUG не проверяется"]
         DOC1["DOC-1: Нет версионирования API"]
-        DOC2["DOC-2: Testing strategy TODO"]
+        FE_TESTS["FE unit tests Vitest"]
         UX1["UX-1: Нет push-уведомлений"]
         UX2["UX-2: Потеря данных чекаута"]
         UX3["UX-3: Нет spinner на PaymentEnd"]
@@ -938,21 +890,23 @@ graph TD
     end
 ```
 
+Актуальный срез тестов, CI и задач: **[08-testing-strategy](./08-testing-strategy.md)**, **[tasks/README](./tasks/README.md)**. Узлы FE-1…FE-7 отражают исходный аудит; часть закрыта в **Task 007** — сверяйте с кодом.
+
 ### Рекомендуемый порядок исправления
 
 ```mermaid
 flowchart LR
     STEP1["Шаг 1\nБезопасность\nSEC-1,2,3,4"] --> STEP2
-    STEP2["Шаг 2\nПокрытие тестами\nTEST-1,2\n(без тестов нельзя рефакторить)"] --> STEP3
+    STEP2["Шаг 2\nBackend регрессии\nи frontend Vitest"] --> STEP3
     STEP3["Шаг 3\nP0 баги\nDB-1,2,6\nBE-1\nDB-7"] --> STEP4
     STEP4["Шаг 4\nP1 модели\nDB-3,4,5\nPAY-4"] --> STEP5
     STEP5["Шаг 5\nP1 фронтенд\nFE-1..7"] --> STEP6
     STEP6["Шаг 6\nP1 архитектура\nBE-2,3,4\nPAY-2"] --> STEP7
-    STEP7["Шаг 7\nDevOps\nDEV-1..5"] --> STEP8
+    STEP7["Шаг 7\nDevOps хвосты\nDEV-4,5"] --> STEP8
     STEP8["Шаг 8\nP2 долг\nBE-5..7\nUX-1..4\nSEC-5,6"]
 ```
 
-> **Важно:** Шаг 2 (тесты) должен предшествовать Шагу 6 (рефакторинг payment/onboarding).
-> Без тестов рефакторинг этих монолитов — неприемлемый риск.
+> **Важно:** Регрессии по критическому пути (см. **08**) должны предшествовать крупному рефакторингу payment/onboarding.
+> Без них рефакторинг монолитов остаётся высоким риском.
 
 > 💡 Перед началом каждого шага выполните `/find-skills` — это может существенно ускорить реализацию.

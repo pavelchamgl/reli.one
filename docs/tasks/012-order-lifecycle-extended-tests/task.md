@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Pending
+**Status:** In progress — добавлены регрессии `SellerOrderActionsLifecycleTests` в `backend/order/tests.py`; расширение сценариев по мере необходимости.
 
 ## Цель
 
@@ -35,10 +35,10 @@
 
 ## Definition of Done
 
-- [ ] Файл(ы) тестов в `backend/order/tests/` или расширение `backend/order/tests.py` — по конвенции проекта.
-- [ ] Покрыты ключевые переходы и негативные кейсы, согласованные с `seller_order_actions` / permissions.
-- [ ] Без реальных вызовов внешних API; моки по правилам проекта.
-- [ ] `manage.py test` и `pytest` для затронутых модулей проходят в CI-совместимом окружении.
+- [x] Расширение `backend/order/tests.py` — класс `SellerOrderActionsLifecycleTests` (confirm, mark_shipped + parcels, cancel права staff/seller).
+- [ ] Дополнительные переходы (delivered, closed, права Manager и т.д.) по продуктовому scope.
+- [x] Без реальных вызовов внешних API.
+- [ ] Полный прогон CI локально подтверждён после изменений.
 
 ## Связанные задачи
 

@@ -9,7 +9,8 @@
 ## 1. Контекст
 
 - Оба фронта: **Vite + React 18**.
-- На момент составления плана в `Frontend2` и `Frontend3` **нет** скриптов `test*` и зависимостей Vitest/Jest/Playwright в `package.json` — тестовый контур вводится по задачам из **[tasks/README.md](./tasks/README.md)**.
+- **`Frontend3`:** в `package.json` есть **`npm run test`** / **`npm run test:watch`** (Vitest), `@testing-library/react`, хелпер **`src/test/test-utils.jsx`**, CI выполняет тесты после lint — см. **[08-testing-strategy.md](../08-testing-strategy.md)**.
+- **`Frontend2`:** скриптов `test*` в `package.json` пока нет — паритет после пилота F3.
 - Backend P0 уже покрывается API/интеграционными тестами; фронт дополняет это **проверкой UI-поведения**, **регрессиями форм и маршрутизации** и **узким слоем e2e** по критичным сценариям.
 
 ---

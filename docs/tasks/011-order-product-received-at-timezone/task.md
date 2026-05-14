@@ -2,7 +2,7 @@
 
 **Priority:** P2  
 **Complexity:** Low  
-**Status:** Pending
+**Status:** Done (repo-scope)
 
 ## Цель
 
@@ -10,7 +10,9 @@
 
 ## Контекст
 
-- В `backend/order/models.py`, метод `OrderProduct.save()` при переходе `received` в `True` выставляет:
+- В `backend/order/models.py`, метод `OrderProduct.save()` при переходе `received` в `True` выставляет **`timezone.now()`** (исправлено; ниже — описание прежней проблемы).
+
+**Было (до фикса):**
 
 ```python
 self.received_at = datetime.now()
@@ -44,10 +46,10 @@ self.received_at = datetime.now()
 
 ## Definition of Done
 
-- [ ] В `OrderProduct.save()` для `received_at` используется `timezone.now()` (или эквивалент из `django.utils.timezone`).
-- [ ] Нет новых предупреждений `naive datetime` для `OrderProduct.received_at` при прогоне тестов `order.tests.OrderProductReceivedAtTests`.
-- [ ] Тесты: при необходимости дополнить один assert — `self.assertTrue(timezone.is_aware(op.received_at))` после `received=True` и `save()` (опционально, но желательно для регрессии).
-- [ ] `python manage.py test order` и `pytest order/` проходят в окружении CI (SQLite / тот же runner, что в проекте).
+- [x] В `OrderProduct.save()` для `received_at` используется `timezone.now()` (или эквивалент из `django.utils.timezone`).
+- [x] Нет новых предупреждений `naive datetime` для `OrderProduct.received_at` при прогоне тестов `order.tests.OrderProductReceivedAtTests`.
+- [x] Тесты: `timezone.is_aware(op.received_at)` в `OrderProductReceivedAtTests`.
+- [x] `python manage.py test order` и `pytest order/` — по CI-проекту.
 
 ---
 
@@ -67,7 +69,7 @@ self.received_at = datetime.now()
 - Минимальный diff в одном файле (при необходимости — второй файл: тесты).
 
 ### Статус
-- [ ] Патч смержен
+- [x] Патч смержен
 
 ---
 

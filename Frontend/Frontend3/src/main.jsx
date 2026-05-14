@@ -21,7 +21,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   });
 }
 import App from "./App.jsx";
-import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { persistor, store } from "./redux/index.js";
 
@@ -93,13 +93,7 @@ import NewTermsPage from "./pages/NewTermsPage.jsx";
 import FinishVerificationPage from "./sellerPages/FinishVerificationPage/FinishVerificationPage.jsx";
 import ActionRequiredPage from "./sellerPages/ActionRequiredPage/ActionRequiredPage.jsx";
 import UnderReviewPage from "./sellerPages/UnderReviewPage/UnderReviewPage.jsx";
-const ProtectedRoute = ({ children }) => {
-    const tokenData = JSON.parse(localStorage.getItem("token") || "null")
-    if (!tokenData?.access) {
-        return <Navigate to="/seller/login" replace />
-    }
-    return children
-}
+import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute.jsx";
 
 const router = createBrowserRouter([
   {

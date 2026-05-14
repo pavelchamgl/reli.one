@@ -32,7 +32,7 @@
 | **003** | **DONE (repo-scope)** платежного контура и cleanup — см. **[task.md](./003-payment-refactor/task.md)** и **[Final DoD table Task 004](./004-order-consistency/task.md#final-dod-table)**. **OPEN:** необязательный polish (не блокирует closure). Промокоды и **013** не блокируют. |
 | **004** | **DONE (repo-scope)** для **Payment cleanup** (аудит, regression, ссылки на evidence). **OPEN / backlog:** структурная **Order Consistency** (миграции, константы статусов) — см. [task.md](./004-order-consistency/task.md#order-domain-backlog). |
 | **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. |
-| **009** | **Pending:** analytics/pricing/warehouse-lock и т.д. по собственному `task.md`; не смешивать с «готовым складом». |
+| **009** | **DONE (repo-scope)** по [`009-db-model-improvements/task.md`](./009-db-model-improvements/task.md) Iteration 5 — см. финальный аудит в `task.md`; follow-up (**reserved_quantity**, списание в webhook) — [**Task 013**](./013-stock-reservation/task.md). |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
 | **005** | **DONE (repo-scope):** dev-gating курьерских dev-endpoints, изоляция сбоев post-payment parcels, [`test_async_parcels_errors.py`](../../backend/delivery/test_async_parcels_errors.py), playbook retry/follow-up в [`payment-flow.md`](../payment-flow.md), связка с [`monitoring-alerts.md`](../operations/monitoring-alerts.md) — см. **[Final DoD table](./005-delivery-cleanup/task.md#final-dod-table-task-005)**. **OPEN (ops):** ручная приёмка перевозчиков в **production** (**pending**). **Deferred:** Celery, automatic retry, идемпотентность у перевозчика — в `task.md`. **Не** смешивать с PromoCode и **013**. |
 
@@ -112,10 +112,10 @@ graph TD
 | 006 | [security-hardening](./006-security-hardening/task.md) | **P0/P1** | Medium | — | **DONE (repo-scope)** — см. [Final Audit Summary](./006-security-hardening/task.md#final-audit-summary-task-006-repo-scope); **ops:** credential rotation + history rewrite per [`security-incident-response.md`](../security-incident-response.md) |
 | 007 | [frontend-critical-fixes](./007-frontend-critical-fixes/task.md) | P1 | Low | 006 | GO |
 | 008 | [seller-onboarding-stabilization](./008-seller-onboarding-stabilization/task.md) | P1 | High | 002 (Core **done**) | **DONE (repo-scope)** — см. [Final DoD](./008-seller-onboarding-stabilization/task.md#final-dod-table-task-008); manual UI/staging + Frontend3 e2e — **не** в закрытии repo |
-| 009 | [db-model-improvements](./009-db-model-improvements/task.md) | **P0**/P2 | Medium | 002 | NO-GO без 002 |
+| 009 | [db-model-improvements](./009-db-model-improvements/task.md) | **P0**/P2 | Medium | 002 | **DONE (repo-scope)** — см. Iteration 5 в `task.md`; **013** — резерв/spisanie |
 | 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | **DONE (git)**; см. [DoD-таблицу](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); ops acceptance — отдельно |
-| 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | GO |
-| 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | перенос Extended из 002 |
+| 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | **DONE (repo-scope)** |
+| 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | **In progress** — `SellerOrderActionsLifecycleTests` в `order/tests.py`; см. `task.md` |
 | **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **Future** / design-only | High | при старте: **002**, **003** | **Не** в текущем roadmap; **не** блокирует **010**; в коде нет целевого резерва (см. `task.md`) |
 
 ## Рекомендуемый порядок выполнения
@@ -154,10 +154,10 @@ gantt
 
 | Область | Замечание (май 2026) |
 |---------|---------------------|
-| `warehouse` | По документированной стратегии **`warehouses/tests.py` минимальны / пусты** |
+| `warehouse` | **`warehouses/tests_stock.py`** (Task **009**); заготовка `warehouses/tests.py` может быть пустой |
 | Автоматизация full чекаута PSP | Полный счастливый путь Stripe/PayPal у внешних провайдеров дополняется **ручными** e2e-чеклистами (`docs/testing/`) |
 | `promocode` | Код и тесты остаются в репозитории; **промокоды не в продуктовом roadmap** — конкурентные сценарии / **DB-6** не блокируют **010**; при возврате фичи — **003** или отдельная задача |
-| Frontend3 | Раннер тестов в `package.json` **не описан как подключённый** |
+| Frontend3 | **`npm run test`** (Vitest + RTL) в `Frontend3/package.json`; CI job `frontend3` выполняет `npm run test` после lint |
 
 Вывод аудита январского отчёта «≈ 0% покрытие» по backend **устарел**; отдельные **P0**-риски по складу (**013**) и платежам остаются предметом соответствующих `task.md` и **не** продлевают **010**, пока **013**/промокоды вне текущего roadmap.
 

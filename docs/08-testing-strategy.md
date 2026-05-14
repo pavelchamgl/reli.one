@@ -7,7 +7,7 @@
 - Перечислены приоритеты и критические сценарии, согласованные с P0.
 - Разделены уровни unit / integration (API).
 - Указаны порядок покрытия apps, моки, фикстуры, локальный запуск и CI.
-- Учтено **фактическое** состояние: backend использует `django.test` / `APITestCase` / `APIClient` и **pytest-django** (тот же тестовый набор можно гнать и через `manage.py test`, и через `pytest`); осмысленные тесты есть в `accounts`, `sellers`, `payment`, `order`, `product`, `delivery`, `promocode`; `backend/pytest.ini` и `backend/conftest.py` есть; `warehouses/tests.py` пока пустой; в активном frontend (`Frontend3`) нет скрипта тестов в `package.json`.
+- Учтено **фактическое** состояние: backend использует `django.test` / `APITestCase` / `APIClient` и **pytest-django** (тот же тестовый набор можно гнать и через `manage.py test`, и через `pytest`); осмысленные тесты есть в `accounts`, `sellers`, `payment`, `order`, `product`, `delivery`, `promocode`, складские регрессии в **`warehouses/tests_stock.py`** (см. **Task 009**; `warehouses/tests.py` может оставаться пустым); `backend/pytest.ini` и `backend/conftest.py` есть; **`Frontend3`**: `npm run test` (Vitest + RTL), см. [`docs/frontend/testing-plan.md`](frontend/testing-plan.md); `Frontend2` — пока без unit-скрипта (только lint/build в CI).
 
 ---
 
@@ -16,9 +16,9 @@
 | Область | Состояние |
 |---------|-----------|
 | Backend | Покрытие P0-цепочки расширено: `payment` (webhook, checkout), `order` (базовые доменные тесты), `product` (каталог API), `delivery` (shipping options с моками перевозчиков), `sellers` — `tests.py`; `test_onboarding_stabilization.py`; **`test_onboarding_completeness.py`**; **`test_onboarding_audit.py`**; **`test_onboarding_api_happy_path.py`** (полные REST-цепочки onboarding company/self-employed, негативы); HTTP-реализации onboarding вынесены в **`sellers/onboarding/**`** (`views_onboarding.py` — thin re-export). Отдельной матрицы стран в `compute_completeness` нет — см. **[Seller onboarding flow](./seller-onboarding-flow.md)** — **[Task 008](./tasks/008-seller-onboarding-stabilization/task.md)** (**DONE repo-scope** по backend-регрессиям, см. [Final DoD](./tasks/008-seller-onboarding-stabilization/task.md#final-dod-table-task-008); **ручной UI/staging онбординга** и **e2e Frontend3** этим документом **не подтверждаются**). `accounts`, `promocode` (модель/сигналы). См. **Task 002** (DONE). |
-| Frontend | Тестовый раннер в `Frontend2` / `Frontend3` пока не подключён (снимок). Целевой план уровней (unit / RTL / e2e), стек и декомпозиция задач: **[docs/frontend/testing-plan.md](frontend/testing-plan.md)** → **[tasks](frontend/tasks/README.md)**. |
+| Frontend | **`Frontend3`:** Vitest + Testing Library; `renderWithProviders` в `src/test/test-utils.jsx`; P0-регрессии API (`orders`, `productsApi`, onboarding state) и `ProtectedRoute`; CI — шаг `npm run test`. **`Frontend2`:** без `test` в `package.json` (план — после пилота F3). План уровней: **[docs/frontend/testing-plan.md](frontend/testing-plan.md)** → **[tasks](frontend/tasks/README.md)**. |
 | Инфра | `pytest-django` в зависимостях; `pytest.ini` указывает `DJANGO_SETTINGS_MODULE`. При отсутствии переменных Postgres в окружении — SQLite `:memory:` (как в `settings`). Локально при загруженном `envs/database.env` может подключаться Postgres — для быстрых прогонов без БД задайте пустые `DB_NAME`, `DB_HOST` и т.д. |
-| CI | `.github/workflows/ci.yml`: `makemigrations --check`, `migrate`, **`python manage.py test`**, затем **`pytest`**, плюс сборки фронтов. |
+| CI | `.github/workflows/ci.yml`: `makemigrations --check`, `migrate`, **`python manage.py test`**, затем **`pytest`**, job **`frontend3`**: `npm ci`, lint, **`npm run test`**, build; **`frontend2`**: lint, build. |
 | Ручной Stripe e2e (локально) | Процедура и **зафиксированный результат smoke-прогона** (Orders/Invoice/письма/идемпотентность webhook, только local e2e, не prod): [`docs/testing/stripe-e2e-checklist.md`](testing/stripe-e2e-checklist.md) → раздел *Verification evidence*. |
 | Ручной PayPal e2e (локально, sandbox) | Чеклист Postman + ngrok: [`docs/testing/paypal-e2e-checklist.md`](testing/paypal-e2e-checklist.md); раздел *Verification evidence — latest local smoke result* фиксирует пройденный sandbox-smoke **без** сырых id/payload в git (детали чисел — локально или в тикете). |
 
@@ -180,7 +180,7 @@ python manage.py test sellers.tests.CompanyAccountHolderValidationTests
 
 Если в окружении не заданы `DB_NAME` / `NAME` для default БД, в `settings` включается SQLite in-memory. Если подхватывается `envs/database.env` с Postgres — для прогона без живой БД обнулите `DB_NAME`, `DB_HOST` (и при необходимости остальные `DB_*`) в командной строке, как в примерах выше. Для проверки ближе к продакшену — задать `DB_*` на локальную БД и прогнать миграции.
 
-**Frontend (`Frontend3`):** после подключения Vitest/Jest команды добавить в `package.json`; до этого — ручной и E2E позже.
+**Frontend (`Frontend3`):** `npm run test` / `npm run test:watch` из каталога `Frontend/Frontend3`; перед первым прогоном — `npm ci`.
 
 ### Локальный e2e-контур (Docker, Postman, Stripe test)
 
@@ -267,5 +267,5 @@ flowchart TB
 - **Переменные БД:** в CI backend-job **нет** `DB_*` → после `migrate` используется ветка SQLite из `settings`. Локально при загрузке `envs/database.env` нужно обнулять `DB_NAME` и `DB_HOST` (и при необходимости остальные `DB_*`) для такого же режима, либо поднимать Postgres.
 - **Дублирование раннеров в CI:** выполняются и `python manage.py test`, и `pytest` — один и тот же набор тестов, два способа поймать регрессии раннера/плагинов.
 - **Покрытие (coverage):** порог в CI не зафиксирован; при введении порога — отдельное решение (не смешивать с **scope [010 DevOps](./tasks/010-devops-infrastructure/task.md)**).
-- **Frontend:** `Frontend3` по-прежнему без unit-скрипта в `package.json`; только lint/build в CI.
+- **Frontend:** `Frontend3` — `npm run test` в CI; `Frontend2` — только lint/build.
 - **Следующие документы для правок при изменении тестов:** этот файл, `docs/testing/e2e-local-contour.md`, `docs/testing/stripe-e2e-checklist.md`, `docs/seller-onboarding-flow.md`, `docs/tasks/002-testing-foundation/task.md`, `docs/tasks/003-payment-refactor/task.md`, `docs/tasks/004-order-consistency/task.md`, `docs/tasks/008-seller-onboarding-stabilization/task.md`, `docs/tasks/009-db-model-improvements/task.md`, `docs/tasks/010-devops-infrastructure/task.md`, `docs/tasks/012-order-lifecycle-extended-tests/task.md`.

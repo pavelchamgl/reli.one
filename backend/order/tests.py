@@ -8,6 +8,7 @@ Covers:
 - OrderEvent — creation and FK integrity
 - next_invoice_identifiers() — PAY-4: uniqueness under concurrency
 - OrderStatusName vs seller actions — единый источник имён статуса заказа
+- SellerOrderActionsService — confirm / mark shipped / cancel (Task 012)
 
 See also test_webhook_lifecycle.py for checkout webhook → Order/Payment/Invoice integration.
 """
@@ -20,10 +21,11 @@ from decimal import Decimal
 from django.db import close_old_connections
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from accounts.choices import UserRole
 from accounts.models import CustomUser
-from delivery.models import DeliveryAddress
+from delivery.models import DeliveryAddress, DeliveryParcel
 from order.models import (
     CourierService,
     DeliveryType,
@@ -32,6 +34,7 @@ from order.models import (
     OrderEvent,
     OrderProduct,
     OrderStatus,
+    ProductStatus as OrderLineStatus,
     generate_order_number,
 )
 from order.order_status_names import OrderStatusName
@@ -386,3 +389,110 @@ class OrderStatusNameConsistencyTests(TestCase):
         self.assertEqual(SellerOrderActionsService.STATUS_SHIPPED, OrderStatusName.SHIPPED)
         self.assertEqual(SellerOrderActionsService.STATUS_DELIVERED, OrderStatusName.DELIVERED)
         self.assertEqual(SellerOrderActionsService.STATUS_CANCELLED, OrderStatusName.CANCELLED)
+
+
+# ---------------------------------------------------------------------------
+# SellerOrderActionsService — lifecycle (Task 012)
+# ---------------------------------------------------------------------------
+
+
+class SellerOrderActionsLifecycleTests(OrderTestMixin, TestCase):
+    """Регрессии для действий продавца / админа над заказом."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        for name in (
+            OrderStatusName.PENDING,
+            OrderStatusName.PROCESSING,
+            OrderStatusName.SHIPPED,
+            OrderStatusName.DELIVERED,
+            OrderStatusName.CANCELLED,
+        ):
+            OrderStatus.objects.get_or_create(name=name)
+        cls.courier = CourierService.objects.create(
+            name="Lifecycle Test Courier",
+            code=f"lifecycle-cs-{id(cls)}",
+        )
+
+    def _make_order_with_status(self, status_name: str) -> Order:
+        st = OrderStatus.objects.get(name=status_name)
+        payment = self._make_payment(suffix=f"{status_name}-{id(self)}")
+        return Order.objects.create(
+            user=self.customer,
+            first_name="Jan",
+            last_name="Novak",
+            customer_email="order-test-customer@example.com",
+            total_amount=Decimal("105.00"),
+            group_subtotal=Decimal("105.00"),
+            delivery_type=self.delivery_type,
+            order_status=st,
+            delivery_cost=Decimal("5.00"),
+            payment=payment,
+            delivery_address=self.delivery_address,
+        )
+
+    def test_confirm_order_moves_pending_to_processing(self):
+        order = self._make_order_with_status(OrderStatusName.PENDING)
+        self._add_product(order)
+        SellerOrderActionsService.confirm_order(order_id=order.pk, user=self.seller_user)
+        order.refresh_from_db()
+        self.assertEqual(order.order_status.name, OrderStatusName.PROCESSING)
+        self.assertTrue(
+            OrderEvent.objects.filter(
+                order=order,
+                type=OrderEvent.Type.ORDER_ACKNOWLEDGED,
+            ).exists()
+        )
+
+    def test_confirm_order_rejects_when_not_pending(self):
+        order = self._make_order_with_status(OrderStatusName.PROCESSING)
+        self._add_product(order)
+        with self.assertRaises(ValidationError):
+            SellerOrderActionsService.confirm_order(order_id=order.pk, user=self.seller_user)
+
+    def test_mark_shipped_requires_parcels(self):
+        order = self._make_order_with_status(OrderStatusName.PROCESSING)
+        self._add_product(order)
+        with self.assertRaises(ValidationError) as ctx:
+            SellerOrderActionsService.mark_as_shipped(order_id=order.pk, user=self.seller_user)
+        err = ctx.exception.detail
+        blob = err if isinstance(err, str) else str(err)
+        self.assertIn("parcel", blob.lower())
+
+    def test_mark_shipped_ok_with_parcel(self):
+        order = self._make_order_with_status(OrderStatusName.PROCESSING)
+        self._add_product(order)
+        DeliveryParcel.objects.create(
+            order=order,
+            warehouse=self.warehouse,
+            service=self.courier,
+            weight_grams=500,
+            parcel_index=0,
+            shipping_price=Decimal("5.00"),
+            tracking_number="TRACK-1",
+        )
+        SellerOrderActionsService.mark_as_shipped(order_id=order.pk, user=self.seller_user)
+        order.refresh_from_db()
+        self.assertEqual(order.order_status.name, OrderStatusName.SHIPPED)
+
+    def test_cancel_order_denied_for_non_staff_seller(self):
+        order = self._make_order_with_status(OrderStatusName.PENDING)
+        self._add_product(order)
+        with self.assertRaises(PermissionDenied):
+            SellerOrderActionsService.cancel_order(order_id=order.pk, user=self.seller_user)
+
+    def test_cancel_order_staff_sets_cancelled_and_product_lines(self):
+        admin_user = CustomUser.objects.create_user(
+            email="admin-order-lifecycle@example.com",
+            password="pass123",
+            role=UserRole.ADMIN,
+            is_staff=True,
+        )
+        order = self._make_order_with_status(OrderStatusName.PENDING)
+        op = self._add_product(order)
+        SellerOrderActionsService.cancel_order(order_id=order.pk, user=admin_user)
+        order.refresh_from_db()
+        op.refresh_from_db()
+        self.assertEqual(order.order_status.name, OrderStatusName.CANCELLED)
+        self.assertEqual(op.status, OrderLineStatus.CANCELED)
