@@ -1,39 +1,44 @@
 # Матрица тестов Frontend3 / Frontend2
 
-Согласовано с [testing-plan.md](./testing-plan.md) и [08-testing-strategy.md](../08-testing-strategy.md). Обновлять при появлении регрессий или новых P0-потоков.
+Согласовано с [testing-plan.md](./testing-plan.md) и [08-testing-strategy.md](../08-testing-strategy.md). Колонка **Файлы в репо** — фактическое расположение тестов.
 
 ## Конвенции
 
 | Тема | Решение |
 |------|---------|
-| Файлы тестов | Рядом с кодом: `*.test.js(x)` |
+| Файлы тестов | Рядом с кодом: `*.test.js(x)`; e2e Playwright — `e2e/*.spec.js` |
 | Раннер | Vitest (`npm run test` / `npm run test:watch`) |
-| Компоненты | `@testing-library/react`, `@testing-library/user-event` |
-| Среда | `jsdom`, setup: `Frontend3/src/test/setup.js`, полифилл `localStorage` до импорта Redux |
-| Обёртка | `renderWithProviders` в `Frontend3/src/test/test-utils.jsx` — Redux `Provider` + `MemoryRouter` (i18n подключать при тестах экранов с `useTranslation`) |
-| HTTP | **Первый этап:** `vi.mock` на модуль `./index.js` / `mainInstance` API-слоя (как в `orders.test.js`, `productsApi.test.js`). **MSW** — опционально позже, см. [FE-T004](./tasks/004-playwright-e2e-foundation/task.md) |
-| Sentry / OAuth | Не вызывать реальные SDK; при флаках — мок модулей или пустой `VITE_*` |
+| Компоненты | `@testing-library/react`, `@testing-library/user-event` (зависимости есть в **Frontend3**; во **Frontend2** в тестах пока без RTL-компонентных кейсов) |
+| Среда **Frontend3** | `jsdom`; `setupFiles`: [`Frontend/Frontend3/src/test/polyfill-localstorage.js`](../../Frontend/Frontend3/src/test/polyfill-localstorage.js) (до импорта Redux), затем [`setup.js`](../../Frontend/Frontend3/src/test/setup.js) (`@testing-library/jest-dom/vitest`) |
+| Среда **Frontend2** | `jsdom`; [`Frontend/Frontend2/src/test/setup.js`](../../Frontend/Frontend2/src/test/setup.js) |
+| Обёртка | **`renderWithProviders`**: [`Frontend/Frontend3/src/test/test-utils.jsx`](../../Frontend/Frontend3/src/test/test-utils.jsx) — Redux `Provider` + `MemoryRouter` (i18n — подключать в обёртке при тестах экранов с `useTranslation`) |
+| Vitest vs Playwright | В **`vite.config.js` Frontend3** каталог **`e2e/**` в `test.exclude`**, иначе Vitest попытается грузить Playwright-спеки |
+| HTTP | **Сейчас:** `vi.mock` на модуль API (`orders.test.js`, `productsApi.test.js`, `onbordingStatus.test.js`). **MSW** — не подключён |
+| Sentry / OAuth | Не дергать реальные SDK в unit/RTL; при необходимости — мок модулей / env |
 
 ## Frontend3 — сценарии
 
-| Сценарий | Приоритет | Уровень | Статус |
-|----------|-------------|---------|--------|
-| Защита маршрутов продавца (`ProtectedRoute`, редирект без токена) | P0 | RTL | Покрыто |
-| API заказов: URL детали, `not_closed` без пробела, `closed` | P0 | Unit | Покрыто |
-| Поиск товаров: корректный path query | P0 | Unit | Покрыто |
-| Статус онбординга продавца: `/sellers/onboarding/state/` | P0 | Unit | Покрыто |
-| Логин / форма регистрации (валидация Yup) | P0 | RTL | Backlog |
-| Ошибки API / retry (axios-retry), тосты | P0 | RTL | Backlog |
-| Корзина / чекаут (ключевые шаги) | P0 | RTL + e2e | Backlog |
-| Smoke: приложение открывается | P1 | e2e (Playwright) | Покрыто (`e2e/smoke.spec.js`, CI `e2e_frontend3`) |
+| Сценарий | Приоритет | Уровень | Статус | Файлы в репо |
+|----------|-----------|---------|--------|----------------|
+| Защита маршрутов продавца (`ProtectedRoute`, редирект без токена) | P0 | RTL | Покрыто | [`src/Components/ProtectedRoute/ProtectedRoute.test.jsx`](../../Frontend/Frontend3/src/Components/ProtectedRoute/ProtectedRoute.test.jsx) |
+| API заказов: URL детали, `not_closed`, `closed` | P0 | Unit | Покрыто | [`src/api/orders.test.js`](../../Frontend/Frontend3/src/api/orders.test.js) |
+| Поиск товаров: корректный path query | P0 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
+| Статус онбординга продавца | P0 | Unit | Покрыто | [`src/api/seller/onbordingStatus.test.js`](../../Frontend/Frontend3/src/api/seller/onbordingStatus.test.js) |
+| Дым обёртки `renderWithProviders` | P0 | RTL | Покрыто | [`src/test/renderWithProviders.test.jsx`](../../Frontend/Frontend3/src/test/renderWithProviders.test.jsx) |
+| Логин / регистрация (Yup) | P0 | RTL | Backlog | — |
+| Ошибки API / retry, тосты | P0 | RTL | Backlog | — |
+| Корзина / чекаут | P0 | RTL + e2e | Backlog | — |
+| Smoke: корень SPA открывается | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js), CI job `e2e_frontend3` |
 
 ## Frontend2 — сценарии
 
-| Сценарий | Приоритет | Уровень | Статус |
-|----------|-------------|---------|--------|
-| Дымовой рендер / утилиты | P1 | Unit | Минимальный smoke |
-| Формы лендинга (Formik) | P1 | Unit / RTL | По мере изменений |
-| Ключевые CTA и навигация | P1 | e2e | После стабилизации smoke |
+| Сценарий | Приоритет | Уровень | Статус | Файлы в репо |
+|----------|-----------|---------|--------|----------------|
+| Дымовой тест Vitest | P1 | Unit | Покрыто | [`src/landing-smoke.test.js`](../../Frontend/Frontend2/src/landing-smoke.test.js) |
+| Формы лендинга (Formik) | P1 | Unit / RTL | Backlog | — |
+| Ключевые CTA и навигация | P1 | e2e | Backlog | — |
+
+**CI:** см. предупреждение в [README ./README.md](./README.md) — `lint` во Frontend2 сейчас **не зелёный**, job **`frontend2`** обычно падает до `test`.
 
 ## Связанные таски
 

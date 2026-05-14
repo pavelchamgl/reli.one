@@ -1,6 +1,6 @@
 # План тестирования фронтенда (Reli.one)
 
-Документ фиксирует **согласованные цели** покрытия React/Vite-приложений **`Frontend/Frontend3`** (основной клиент) и **`Frontend/Frontend2`** (лендинг): уровни тестов, целевой стек, приоритеты и порядок внедрения. Это **план документации**, а не описание уже внедрённого кода; актуальное состояние раннеров см. в `package.json` соответствующих пакетов. **Живая матрица сценариев:** [test-matrix.md](./test-matrix.md).
+Документ задаёт **цели** и **стек** для **`Frontend/Frontend3`** и **`Frontend/Frontend2`**. Фактические версии скриптов, путей к тестам, ограничений CI (в т.ч. ESLint на Frontend2) — в **[README ./README.md](./README.md)** (раздел *Снимок кодовой базы*) и в **[test-matrix.md](./test-matrix.md)**.
 
 Общая стратегия репозитория (backend + снимок по фронту): **[08. Testing strategy](../08-testing-strategy.md)**. Архитектура UI: **[04. Frontend architecture](../04-frontend-architecture.md)**.
 
@@ -101,13 +101,14 @@ flowchart TB
 
 ## 8. CI
 
-Фактически в **`.github/workflows/ci.yml`** (май 2026):
+Фактически в **`.github/workflows/ci.yml`**:
 
-1. **`frontend2`**: `npm ci` → lint → **`npm run test`** → build.
-2. **`frontend3`**: `npm ci` → lint → **`npm run test`** → build.
-3. **`e2e_frontend3`**: `npm ci` → build → `playwright install --with-deps chromium` → **`npm run test:e2e`** (отдельный job, `CI=true`).
+1. **`frontend2`**: `npm ci` → **`npm run lint`** → **`npm run test`** → build.  
+   **Важно:** в **Frontend2** текущий `eslint` с `--max-warnings 0` даёт **errors** по проекту — шаг **Lint** обычно **падает**, до **Test** пайплайн не доходит. Дым Vitest всё равно можно запускать локально: `npm run test` в каталоге лендинга.
+2. **`frontend3`**: `npm ci` → lint → **`npm run test`** → build (у ESLint — 0 errors, есть warnings).
+3. **`e2e_frontend3`**: `npm ci` → build → `npx playwright install --with-deps chromium` → **`npm run test:e2e`** (отдельный job, `CI=true`).
 
-Локально e2e: из `Frontend/Frontend3` выполнить `npm run build && npm run test:e2e` (Playwright поднимет `vite preview` через `webServer` в `playwright.config.js`).
+Локально e2e: из `Frontend/Frontend3` — `npm run build && npm run test:e2e` (Playwright поднимает `vite preview` через `webServer` в `playwright.config.js`).
 
 ---
 
@@ -129,3 +130,4 @@ flowchart TB
 
 - 2026-05-14 — утверждены цели, уровни, стек (Vitest + Testing Library + Playwright), приоритеты и порядок внедрения (чат планирования).
 - 2026-05-14 — внедрены матрица [test-matrix.md](./test-matrix.md), Playwright smoke, Vitest для Frontend2, job `e2e_frontend3`, правка `.gitignore` для миграций (DEV-4).
+- 2026-05 — синхронизация документов `docs/frontend/*` с фактом: таблицы путей к тестам, `vite.config` (exclude `e2e/`), двойной setup Frontend3, блокировка job `frontend2` из‑за ESLint.

@@ -2,11 +2,11 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Done
+**Status:** Done (инфраструктура); **открытый риск:** job **`frontend2`** в CI падает на **`npm run lint`** (сотни ESLint errors в лендинге). Пока lint не зелёный, до **`npm run test`** в pipeline не доходит. См. [README](../../README.md).
 
 ## Цель
 
-Распространить подход **FE-T002** на **`Frontend/Frontend2`** (Vitest + минимальный smoke) и **подключить прогон** к **GitHub Actions**.
+Распространить подход **FE-T002** на **`Frontend/Frontend2`** (Vitest + минимальный smoke) и **подключить шаги** к **GitHub Actions**.
 
 ## Контекст
 
@@ -34,9 +34,10 @@
 
 ## Definition of Done
 
-- [x] `npm run test` в `Frontend/Frontend2`.
-- [x] CI: `frontend2` выполняет `npm run test --if-present`.
+- [x] `npm run test` в `Frontend/Frontend2` (локально).
+- [x] В `.github/workflows/ci.yml` для `frontend2` есть шаг **`npm run test --if-present`** после lint.
 - [x] [08-testing-strategy.md](../../../08-testing-strategy.md) и [testing-plan.md](../../testing-plan.md) отражают контур.
+- [ ] **Зелёный** job `frontend2` end-to-end — отдельная задача (исправление ESLint по лендингу).
 
 ---
 
