@@ -2,7 +2,7 @@
 
 **Priority:** P0/P1  
 **Complexity:** Medium  
-**Status:** In Progress — **Steps 1–4** выполнены (warehouse locking, analytics fallback, `ACQUIRING_RATE` в `product/constants.py`). Остаётся **Iteration 5** (валидация/чеклисты) и **вне scope 009:** `reserved_quantity` / резервирование — **Task 013**; стабильный идентификатор склада (`warehouse_type`/slug) — отдельная миграционная задача.
+**Status:** Завершена по scope Task 009 — **Iteration 5 (pre-commit)** пройден; **`reserved_quantity` / включение списания в webhook / стабильный тип склада** — вне задачи (**[Task 013](../013-stock-reservation/task.md)** миграция `warehouse_type` отдельно).
 
 > **Состояние склада (актуализация 2026-05-11):** сейчас create payment session **не проверяет** `WarehouseItem.quantity_in_stock`; webhook **не вызывает** `decrease_stock` (функция в коде есть, но ни одного вызова по проекту — списание отключено). Поведение склада при оплате и целевой end-to-end flow описаны в **[Task 013 — Stock Reservation](../013-stock-reservation/task.md)**. **В рамках Task 009 webhook не должен начинать вызывать `decrease_stock`:** включение списания возможно только после резерва/проверок по Task 013 и отдельному решению.
 > **Аудит Step 1 (2026-05-13):** см. раздел [Current baseline (Step 1 audit)](#current-baseline-step-1-audit) ниже.  
@@ -255,21 +255,38 @@ reserved_quantity = models.PositiveIntegerField(default=0)
 
 ## Iteration 5 — Validation
 
-### Тесты для запуска
+### Финальный аудит (2026-05-14, pre-commit)
+
+Проверено в рабочей копии перед коммитом:
+
+| Проверка | Результат |
+|----------|-----------|
+| `decrease_stock` вызывается из `payment/` или webhook | **Нет** (`grep` по `backend/payment/`, `backend/**/webhook*.py` — вхождений `decrease_stock` нет; определение только `warehouses/services.py` + тесты) |
+| `reserved_quantity` | **Не добавлялся** (поиск по `backend/` — пусто) |
+| Новые миграции в рамках Task 009 | **Нет** (изменения только в перечисленных py + task.md) |
+| Контракт публичных полей сериализаторов / JSON аналитики | **Прежний** (`vendor_warehouse` / `reli_warehouse`, те же ключи метрик) |
+| Analytics HTTP при отсутствии canonical warehouses | **200** + тест `WarehouseOrdersStatsHttpTest` |
+| `ACQUIRING_RATE` | Те же числовые значения и `quantize`/`ROUND_HALF_UP`; в `product/` и `favorites/` нет литералов `Decimal("1.04")`/`Decimal('1.04')`/ `ACQUIRING_MULTIPLIER` кроме `product/constants.py` |
+| **`reserved_quantity`, резерв до оплаты, вызов списания из webhook** | По-прежнему **[Task 013 — Stock Reservation](../013-stock-reservation/task.md)** |
+
+### Команды проверки (Docker, из корня репозитория)
+
 ```bash
-pytest backend/warehouses/ -v
-pytest backend/analytics/ -v
-pytest backend/product/ -v
+docker compose -f docker-compose.test.yml run --rm backend_test python manage.py check
+docker compose -f docker-compose.test.yml run --rm backend_test pytest analytics/ product/ favorites/ warehouses/ -v
+docker compose -f docker-compose.test.yml run --rm backend_test pytest -q
 ```
 
+**Результат последнего прогона (Iteration 5):** `manage.py check` exit 0 (0 silenced issues); targeted pytest suites и полный `-q` — exit 0, все тесты зелёные.
+
 ### Сценарии для проверки
-- [ ] При параллельных webhook-ах stock не уходит в минус
 - [x] Переименовать/удалить канонические склады в Admin → эндпоинт статистики отдаёт **200** и нулевые блоки, не 500 (Step 4)
-- [ ] `price_with_acquiring` возвращает корректную цену с acquiring rate
-- [ ] Инвойс-цены совпадают с расчётными
+- [x] Параллельное списание в **`decrease_stock`** (PostgreSQL): **Task 009 Step 3** — concurrency-тест; **в webhook не подключено** до Task 013
+- [x] `price_with_acquiring` / annotate acquiring: регрессия покрыта тестами product/favorites при неизменных формулах
+- [ ] Инвойс-цены / checkout payment (Stripe/PayPal) — **вне изменений Task 009** (`payment/` не трогался)
 
 ### Статус
-- [ ] Validation complete
+- [x] Validation complete (backend Task 009; follow-up только Task 013 / отдельные задачи при необходимости)
 
 ---
 
@@ -285,6 +302,6 @@ pytest backend/product/ -v
 
 ## Связанные проблемы из docs/09-architecture-debt.md
 
-- DB-2: `WarehouseItem` без блокировки → overselling P0
-- BE-5: Бизнес-логика разбросана по views/models P2
-- BE-6: Хардкод имён складов в analytics P2
+- DB-2: примитив `decrease_stock` после Task 009 Step 3 использует **`select_for_update`**; включение списания в webhook и резервы — **Task 013**.
+- BE-5: часть acquiring для витрины **централизована** в `product/constants.py` (остальные модули вне scope Step 4).
+- BE-6: analytics по историческим именам складов **с fallback** (Step 4); стабильный ключ склада в БД — отдельная задача.
