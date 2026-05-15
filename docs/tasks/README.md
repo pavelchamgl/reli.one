@@ -4,6 +4,8 @@
 > **Актуализация (май 2026, после e2e/DevOps/docs):** см. раздел [Состояние после e2e-контура](#состояние-после-e2e-контура-и-devops-доков-май-2026).  
 > Все задачи следуют workflow из `docs/10-agent-workflow.md`.
 
+**Навигация:** точка входа в документацию — [`docs/README.md`](../README.md); агрегированный порядок треков — [`docs/roadmap.md`](../roadmap.md) (детали всегда в `task.md` и во [frontend/tasks](../frontend/tasks/README.md)).
+
 ---
 
 ## Состояние после e2e-контура и DevOps-доков (май 2026)
@@ -117,6 +119,7 @@ graph TD
 | 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | **DONE (repo-scope)** |
 | 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | **DONE (repo-scope)** — см. [`task.md`](./012-order-lifecycle-extended-tests/task.md) |
 | **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **Future** / design-only | High | при старте: **002**, **003**, **004** (константы/миграции статусов желательно раньше) | **Не** в текущем roadmap; **не** блокирует **010**; в коде нет целевого резерва (см. `task.md`, приоритизация) |
+| **014** | [**frontend3-stabilization-audit**](./014-frontend3-stabilization-audit/task.md) | P1 | Medium | — | **Planned:** аудит Frontend3 + roadmap стабилизации (аналитика; см. `task.md`) |
 
 ## Рекомендуемый порядок выполнения
 
@@ -241,7 +244,8 @@ docs/tasks/
 ├── 010-devops-infrastructure/task.md
 ├── 011-order-product-received-at-timezone/task.md
 ├── 012-order-lifecycle-extended-tests/task.md
-└── 013-stock-reservation/task.md
+├── 013-stock-reservation/task.md
+└── 014-frontend3-stabilization-audit/task.md
 ```
 
 См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).

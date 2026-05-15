@@ -28,3 +28,5 @@
 
 - [04. Frontend architecture](../04-frontend-architecture.md)
 - [08. Testing strategy](../08-testing-strategy.md)
+- [Документация: точка входа](../README.md), [roadmap-треки](../roadmap.md)
+- Следующий аналитический шаг по Frontend3: [Task 014 — Stabilization Audit](../tasks/014-frontend3-stabilization-audit/task.md)

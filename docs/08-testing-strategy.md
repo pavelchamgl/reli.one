@@ -8,6 +8,7 @@
 - Разделены уровни unit / integration (API).
 - Указаны порядок покрытия apps, моки, фикстуры, локальный запуск и CI.
 - Учтено **фактическое** состояние: backend использует `django.test` / `APITestCase` / `APIClient` и **pytest-django** (тот же тестовый набор можно гнать и через `manage.py test`, и через `pytest`); осмысленные тесты есть в `accounts`, `sellers`, `payment`, `order`, `product`, `delivery`, `promocode`, складские регрессии в **`warehouses/tests_stock.py`** (см. **Task 009**; `warehouses/tests.py` может оставаться пустым); `backend/pytest.ini` и `backend/conftest.py` есть; **`Frontend3`**: `npm run test` (Vitest + RTL), `npm run test:e2e` (Playwright smoke); **`Frontend2`**: `npm run test` (Vitest smoke) — job **`frontend2`** в CI обычно **падает на ESLint** раньше шага test; снимок: [`docs/frontend/README.md`](frontend/README.md). Матрица: [`docs/frontend/test-matrix.md`](frontend/test-matrix.md); план фронта: [`docs/frontend/testing-plan.md`](frontend/testing-plan.md).
+- Агрегированные треки задач и приоритеты: [`docs/roadmap.md`](roadmap.md) (детали — в [`docs/tasks/README.md`](tasks/README.md) и [`docs/frontend/tasks/README.md`](frontend/tasks/README.md)).
 
 ---
 
