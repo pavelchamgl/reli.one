@@ -23,6 +23,11 @@
 | Защита маршрутов продавца (`ProtectedRoute`, редирект без токена) | P0 | RTL | Покрыто | [`src/Components/ProtectedRoute/ProtectedRoute.test.jsx`](../../Frontend/Frontend3/src/Components/ProtectedRoute/ProtectedRoute.test.jsx) |
 | API заказов: URL детали, `not_closed`, `closed` | P0 | Unit | Покрыто | [`src/api/orders.test.js`](../../Frontend/Frontend3/src/api/orders.test.js) |
 | Поиск товаров: корректный path query | P0 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
+| Товары продавца: `getProductsBySellerId` возвращает данные (fix FE-P0-002) | P1 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
+| Категория товаров: `getProductsByCategory` относительный path (fix FE-P0-003) | P1 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
+| `getProductById` / `getProducts` + error handling | P1 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
+| SearchPage: render, пустой/непустой результат, URL param, категории | P1 | RTL | Покрыто | [`src/pages/SearchPage.test.jsx`](../../Frontend/Frontend3/src/pages/SearchPage.test.jsx) |
+| CatalogCard: render, background image, click dispatch | P1 | RTL | Покрыто | [`src/Components/Catalog/CatalogCard/CatalogCard.test.jsx`](../../Frontend/Frontend3/src/Components/Catalog/CatalogCard/CatalogCard.test.jsx) |
 | Статус онбординга продавца | P0 | Unit | Покрыто | [`src/api/seller/onbordingStatus.test.js`](../../Frontend/Frontend3/src/api/seller/onbordingStatus.test.js) |
 | `handleError` + onboarding API endpoints | P0 | Unit | Покрыто | [`src/api/seller/onboarding.test.js`](../../Frontend/Frontend3/src/api/seller/onboarding.test.js) |
 | Seller type selection (RTL) | P1 | RTL | Покрыто | [`src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx`](../../Frontend/Frontend3/src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx) |

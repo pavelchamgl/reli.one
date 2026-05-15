@@ -46,7 +46,7 @@
 
 **Гейт входа:** Phase 1 завершена. CI зелёный.
 
-**Задачи:** [003-seller-onboarding-tests](./tasks/003-seller-onboarding-tests/task.md), [004-products-and-search-tests](./tasks/004-products-and-search-tests/task.md), [005-orders-flow-tests](./tasks/005-orders-flow-tests/task.md)
+**Задачи:** [003-seller-onboarding-tests](./tasks/003-seller-onboarding-tests/task.md) ✅ Done, [004-products-and-search-tests](./tasks/004-products-and-search-tests/task.md) ✅ Done, [005-orders-flow-tests](./tasks/005-orders-flow-tests/task.md)
 
 ### 2.0 — Test infrastructure fixes (блокируют корректность тестов)
 
@@ -68,9 +68,17 @@
 
 | PR | Finding/матрица | Содержание |
 |----|----------------|------------|
-| 2.2.1 | FE-T003 + Seller | RTL для onboarding status step-navigation; mock `getOnboardingStatus` |
+| 2.2.1 ✅ | FE-T003 + Seller | RTL для onboarding status step-navigation; mock `getOnboardingStatus` — Done |
 
-**Критерий закрытия Phase 2:** все P0-строки в [test-matrix.md](./test-matrix.md) имеют статус «Покрыто» или «Backlog (обоснованно)». FE-T003 → Done.
+### 2.3 — Products & Search tests ✅
+
+| PR | Finding/матрица | Содержание |
+|----|----------------|------------|
+| 2.3.1 ✅ | FE-P0-002, FE-P0-003 | `getProductsBySellerId`, `getProductsByCategory`, `getProductById`, `getProducts` — unit тесты (15 тестов) |
+| 2.3.2 ✅ | Поиск UI | `SearchPage` RTL: render/empty/results/URL param/category (6 тестов) |
+| 2.3.3 ✅ | Каталог UI | `CatalogCard` RTL: render/backgroundImage/click (3 теста) |
+
+**Критерий закрытия Phase 2:** все P0-строки в [test-matrix.md](./test-matrix.md) имеют статус «Покрыто» или «Backlog (обоснованно)». FE-T003, FE-004 → Done.
 
 ---
 

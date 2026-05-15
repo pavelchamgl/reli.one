@@ -363,10 +363,11 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 
 | Категория | Состояние |
 |-----------|-----------|
-| Vitest + RTL | Установлен и работает (`npm run test` зелёный) |
+| Vitest + RTL | Установлен и работает (`npm run test` зелёный, 49/49) |
 | `renderWithProviders` | Есть; отсутствует i18n wrapper, singleton store |
-| API unit тесты | 3 файла: `orders.test.js`, `productsApi.test.js`, `onbordingStatus.test.js` |
-| RTL component tests | 2 файла: `ProtectedRoute.test.jsx`, `renderWithProviders.test.jsx` |
+| API unit тесты | 4 файла: `orders.test.js`, `productsApi.test.js` (15 тестов), `onbordingStatus.test.js`, `onboarding.test.js` |
+| RTL component tests | 4 файла: `ProtectedRoute.test.jsx`, `renderWithProviders.test.jsx`, `SellerTypeContent.test.jsx`, `CatalogCard.test.jsx` |
+| RTL page tests | 1 файл: `SearchPage.test.jsx` |
 | Playwright smoke | Покрыт (`e2e/smoke.spec.js`), CI job `e2e_frontend3` |
 | Login/reg форм | **Backlog** — не реализованы |
 | API errors/retry | **Backlog** — не реализованы |

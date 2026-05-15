@@ -1,6 +1,6 @@
 # FE-004 — Products & Search Tests
 
-**Status:** Planned  
+**Status:** Done  
 **Priority:** P1  
 **Phase:** 2  
 **Depends on:** FE-002, test infra fixes (FE-P1-004, FE-P1-007)
@@ -28,10 +28,36 @@
 
 ## Definition of Done
 
-- [ ] Unit-тесты для исправленных API-функций.
-- [ ] Хотя бы один RTL-тест на отображение результатов поиска.
-- [ ] `npm run test` зелёный.
-- [ ] Строки в [test-matrix.md](../../test-matrix.md) обновлены.
+- [x] Unit-тесты для исправленных API-функций.
+- [x] Хотя бы один RTL-тест на отображение результатов поиска.
+- [x] `npm run test` зелёный (49/49).
+- [x] Строки в [test-matrix.md](../../test-matrix.md) обновлены.
+
+## Implementation notes
+
+### Новые/изменённые тестовые файлы
+
+| Файл | Тестов | Тип |
+|------|--------|-----|
+| `src/api/productsApi.test.js` | 15 (было 2) | unit — все 5 API-функций + error handling |
+| `src/pages/SearchPage.test.jsx` | 6 | RTL — render/empty/results/category/URL |
+| `src/Components/Catalog/CatalogCard/CatalogCard.test.jsx` | 3 | RTL — render/backgroundImage/click |
+
+### Паттерн тестирования SearchPage
+
+SearchPage сильно связан с Redux и дочерними компонентами (`ProductCard`, фильтры). Применён подход:
+- `configureStore` с `preloadedState` для products-слайса (нет HTTP-вызовов в read-сценариях).
+- `vi.mock` для `ProductCard` (слишком сложный, вызывает `getProductById` на mount), фильтров, `react-responsive`, `react-i18next`.
+- Мок дефолтного экспорта `api/index.js` (mainInstance) для блокировки реальных HTTP вызовов из thunk-ов.
+
+### Особенность: loading-индикатор отсутствует
+
+`SearchPage` не рендерит loading-индикатор. `searchStatus: "loading"` устанавливается только внутри `ProductCard` (skeleton). Follow-up добавлен ниже.
+
+## Follow-up (не в scope FE-004)
+
+- SearchPage не имеет собственного loading-индикатора — показывает `NoContentText` как в loading, так и в empty состоянии. Рекомендация: добавить `data-testid="loading"` или skeleton в SearchPage при `searchStatus === "loading"` (FE-006 или отдельная задача).
+- `ProductCard` протестировать изолированно сложно из-за вызова `getProductById` на mount и множества Redux-зависимостей — рассмотреть в рамках FE-006 рефакторинга.
 
 ## Validation
 
