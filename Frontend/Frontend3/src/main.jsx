@@ -32,7 +32,6 @@ import ForrSellerPage from "./pages/ForrSellerPage.jsx";
 import ForBuyersPage from "./pages/ForBuyersPage.jsx";
 import LikedPage from "./pages/LikedPage.jsx";
 import MyOrdersPage from "./pages/MyOrdersPage.jsx";
-import Test from "./pages/Test.jsx";
 import ProductPage from "./pages/ProductPage.jsx";
 import BasketPage from "./pages/BasketPage.jsx";
 import PaymentPage from "./pages/PaymentPage.jsx";
@@ -176,10 +175,6 @@ const router = createBrowserRouter([
   {
     path: "/basket",
     element: <BasketPage />,
-  },
-  {
-    path: "/test",
-    element: <Test />,
   },
   {
     path: "/payment",

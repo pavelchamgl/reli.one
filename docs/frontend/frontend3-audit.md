@@ -173,34 +173,24 @@ const res = await mainInstance.get("sellers/orders/?courier_service=2")
 
 #### FE-P0-006: `ProtectedRoute` читает `localStorage` во время рендера — race с PersistGate
 
-**Severity:** P0  
+**Severity:** P0 — **Fixed** (FE-001, май 2026)  
 **Файл:** `src/Components/ProtectedRoute/ProtectedRoute.jsx`  
 **Описание:**  
-```js
-const tokenData = JSON.parse(localStorage.getItem("token") || "null")
-```
-`PersistGate` гидрирует Redux store асинхронно. На момент первого рендера `localStorage` может быть уже доступен, но `ProtectedRoute` читает его напрямую — минуя Redux store и `persist`. При логауте, если токен очищается из Redux state, но не из localStorage (или наоборот), компонент окажется десинхронизирован.
+`PersistGate` гидрирует Redux store асинхронно. `ProtectedRoute` читал `localStorage` напрямую, минуя Redux store. При логауте через Redux без очистки localStorage компонент оставался десинхронизирован.
 
-**Рекомендованное исправление:** читать из Redux state (`useSelector`) вместо прямого доступа к `localStorage`.
+**Исправление:**  
+- Создан `src/redux/authSlice.js` (setToken / clearToken, persisted).
+- `ProtectedRoute` читает `state.auth.token` через `useSelector`.
+- Все login (7 компонентов) и logout (8 точек) диспатчат соответствующие actions.
+- `api/index.js` interceptor диспатчит setToken / clearToken при refresh через storeInjector.
 
 ---
 
 #### FE-P0-007: `testApi.js` — dead dev artifact в `src/api/`
 
-**Severity:** P0 (security/quality)  
-**Файл:** `src/api/testApi.js`  
-**Описание:**
-```js
-export const testApi = async () => {
-    try {
-        const res = await mainInstance.get("/create")
-        return res
-    } catch (error) {}  // ошибки заглушены
-}
-```
-Вызов `/create` — неизвестный эндпоинт; ошибки тихо подавляются. Файл без назначения, остался от разработки.
-
-**Рекомендованное исправление:** удалить файл; проверить, нет ли импортов.
+**Severity:** P0 (security/quality) — **Fixed** (FE-001, май 2026)  
+**Файл:** `src/api/testApi.js` — **удалён**; route `/test` — **удалён** из `main.jsx`.  
+`src/pages/Test.jsx` оставлен (используется как площадка для IdentDocumInp, роут удалён; полное удаление в FE-006).
 
 ---
 
@@ -405,10 +395,8 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 
 #### FE-P3-003: `src/api/testApi.js`, `/test` route — dev artifacts в src/
 
-**Severity:** P3  
-**Файлы:** `src/api/testApi.js`, `src/pages/Test.jsx`, route `/test` в `main.jsx`  
-**Описание:**  
-Маршрут `/test`, файл `Test.jsx` и `testApi.js` — остатки разработки, присутствующие в production bundle.
+**Severity:** P3 — **Partially Fixed** (FE-001, май 2026)  
+**Файлы:** `src/api/testApi.js` — удалён; route `/test` — удалён из `main.jsx`; `src/pages/Test.jsx` — роут удалён, файл остался (нет import в production routing).
 
 ---
 
@@ -453,8 +441,8 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 | FE-P0-003 | **P0** | API / Catalog | `getProductsByCategory` — hardcoded prod URL |
 | FE-P0-004 | **P0** | API / Seller Orders | `getOrders` hardcoded `?courier_service=2` |
 | FE-P0-005 | **P0** | API / Onboarding | Дублирующий onboarding state endpoint + typo в имени файла |
-| FE-P0-006 | **P0** | Auth / Routing | `ProtectedRoute` читает localStorage напрямую |
-| FE-P0-007 | **P0** | Code Quality | `testApi.js` — dead dev artifact |
+| FE-P0-006 | **P0** ✅ Fixed | Auth / Routing | `ProtectedRoute` читает localStorage напрямую |
+| FE-P0-007 | **P0** ✅ Fixed | Code Quality | `testApi.js` — dead dev artifact |
 | FE-P1-001 | P1 | Tests | RTL login/reg отсутствует |
 | FE-P1-002 | P1 | Tests | RTL API errors/retry/toasts отсутствует |
 | FE-P1-003 | P1 | Tests | RTL basket/checkout отсутствует |
@@ -470,7 +458,7 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 | FE-P2-006 | P2 | Architecture | persist migration `selfEmploed: undefined` без документации |
 | FE-P3-001 | P3 | E2E | Нет checkout e2e happy path |
 | FE-P3-002 | P3 | E2E | Нет seller onboarding e2e |
-| FE-P3-003 | P3 | Code Quality | dev artifacts в production bundle (`/test`, `testApi.js`) |
+| FE-P3-003 | P3 ✅ Partial | Code Quality | dev artifacts в production bundle (`/test`, `testApi.js`) |
 
 ---
 

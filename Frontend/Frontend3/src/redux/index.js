@@ -4,6 +4,7 @@ import storage from 'redux-persist/lib/storage' // defaults to localStorage for 
 import { combineReducers } from "@reduxjs/toolkit"
 
 
+import { reducer as authReducer } from "./authSlice"
 import { reducer as productsReducer } from "./productsSlice"
 import { reducer as basketReducer } from "./basketSlice"
 import { reducer as categoryReducer } from "./categorySlice"
@@ -21,6 +22,7 @@ import { reducer as selfEmploedSlice } from "./selfEmployed"
 import { reducer as newOrderSlice } from "./newOrderSlice"
 import { PERSIST_VERSION } from "../configs/cookieConfig"
 import { createMigrate, createTransform } from "redux-persist"
+import { injectStore } from "./storeInjector"
 
 
 export const migrations = {
@@ -37,12 +39,13 @@ const persistConfig = {
     key: 'root',
     storage,
     version: PERSIST_VERSION,
-    whitelist: ['basket', 'payment', "edit_goods"], // только эти слайсы сохраняются
+    whitelist: ['auth', 'basket', 'payment', "edit_goods"], // только эти слайсы сохраняются
     migrate: createMigrate(migrations, { debug: false }),
 
 }
 
 const rootReducer = combineReducers({
+    auth: authReducer,
     products: productsReducer,
     basket: basketReducer,
     category: categoryReducer,
@@ -71,4 +74,6 @@ export const store = configureStore({
 })
 
 export const persistor = persistStore(store)
+
+injectStore(store)
 

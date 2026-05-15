@@ -3,6 +3,7 @@ import googleIcon from "../../../assets/Auth/googleIc.svg"
 import { useGoogleLogin, GoogleLogin } from "@react-oauth/google";
 import { getInfoForG, googleLogin } from "../../../api/auth";
 import { useDispatch } from "react-redux";
+import { setToken } from "../../../redux/authSlice";
 // import jwt_decode from "jwt-decode";
 
 
@@ -23,6 +24,7 @@ const GoogleAuth = ({ setRegErr, setIsLoged, syncBasket }) => {
             });
             googleLogin(tokenResponse.access_token).then((res) => {
                 localStorage.setItem("token", JSON.stringify(res.data));
+                dispatch(setToken(res.data));
                 setIsLoged(true)
 
                 dispatch(syncBasket())

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import facebookIcon from "../../../assets/Auth/facebookIc.svg";
 
 import { useDispatch } from "react-redux";
+import { setToken } from "../../../redux/authSlice";
 
 import styles from "./FacebookAuth.module.scss";
 import { facebookLogin } from "../../../api/auth";
@@ -39,6 +40,7 @@ const FacebookAuth = ({ setRegErr, setIsLoged, syncBasket }) => {
                             setIsLoged(true)
                             dispatch(syncBasket())
                             localStorage.setItem("token", JSON.stringify(res.data));
+                            dispatch(setToken(res.data));
 
                         }
                     }).catch((err) => {

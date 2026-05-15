@@ -13,6 +13,7 @@ import arrDown from "../assets/profileNav/arrDown.svg";
 import styles from "../styles/MobProfileNavPage.module.scss";
 import { useDispatch } from "react-redux";
 import { deleteBaskets, deselectAllProducts } from "../redux/basketSlice";
+import { clearToken } from "../redux/authSlice";
 
 const MobProfileNavPage = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -72,6 +73,7 @@ const MobProfileNavPage = () => {
     logout({ refresh_token: userData?.refresh }).then((res) => {
       localStorage.removeItem("token");
       dispatch(deselectAllProducts())
+      dispatch(clearToken());
       clearBasket()
       localStorage.removeItem("email");
       clearBasket();
@@ -83,6 +85,7 @@ const MobProfileNavPage = () => {
   const handleDeleteAgree = () => {
     deleteAccount().then((res) => {
       localStorage.removeItem("token");
+      dispatch(clearToken());
       dispatch(deleteBaskets())
       localStorage.removeItem("email");
       window.location.reload();

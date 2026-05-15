@@ -13,6 +13,7 @@ import CheckBox from "../../ui/CheckBox/CheckBox";
 import styles from "./LoginModal.module.scss";
 import { useSelector, useDispatch } from "react-redux";
 import { updateBasket, syncBasket } from "../../redux/basketSlice";
+import { setToken } from "../../redux/authSlice";
 import { useActionPayment } from "../../hook/useActionPayment.js";
 import GoogleAuth from "../Auth/googleAuth/GoogleAuth.jsx";
 import FacebookAuth from "../Auth/facebookAuth/FacebookAuth.jsx";
@@ -62,6 +63,7 @@ const LoginModal = ({ open, handleClose, text, basket = false }) => {
         const res = await login(values)
         localStorage.setItem("token", JSON.stringify(res.data));
         localStorage.setItem("email", JSON.stringify(values.email));
+        dispatch(setToken(res.data));
 
         setIsLoged(true)
 

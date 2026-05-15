@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from "react-redux"
+import { clearToken } from "../redux/authSlice"
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -35,6 +36,7 @@ const SellerHomePage = () => {
       localStorage.setItem("COOKIE_VERSION", COOKIE_VERSION)
       localStorage.removeItem("cookieSave")
       localStorage.removeItem("token")
+      dispatch(clearToken())
     }
 
   }, [])

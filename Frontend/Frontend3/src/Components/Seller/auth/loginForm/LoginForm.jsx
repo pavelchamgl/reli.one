@@ -13,6 +13,7 @@ import { login } from "../../../../api/auth";
 
 import styles from "./LoginForm.module.scss"
 import { syncBasket } from "../../../../redux/basketSlice";
+import { setToken } from "../../../../redux/authSlice";
 import { getOnboardingStatus } from "../../../../api/seller/onboarding";
 
 const LoginForm = () => {
@@ -62,7 +63,7 @@ const LoginForm = () => {
                 const res = await login(values)
                 localStorage.setItem("token", JSON.stringify(res.data));
                 localStorage.setItem("email", JSON.stringify(values.email));
-
+                dispatch(setToken(res.data));
 
                 dispatch(syncBasket())
                 setIsLoading(false)

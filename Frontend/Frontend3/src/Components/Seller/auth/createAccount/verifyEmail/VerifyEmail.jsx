@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { useDispatch } from "react-redux"
+import { setToken } from "../../../../../redux/authSlice"
 
 import AuthBtnSeller from "../../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller"
 import TitleAndDesc from "../../../../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
@@ -22,6 +24,7 @@ const VeriFyEmail = () => {
     const [isLoading, setIsLoading] = useState(false)
 
     const navigate = useNavigate()
+    const dispatch = useDispatch()
 
     const { t: tOnb } = useTranslation('onbording')
 
@@ -48,6 +51,7 @@ const VeriFyEmail = () => {
             });
             setRegErr("");
             localStorage.setItem("token", JSON.stringify(res.data));
+            dispatch(setToken(res.data));
             navigate("/seller/seller-type")
             setIsLoading(false)
 

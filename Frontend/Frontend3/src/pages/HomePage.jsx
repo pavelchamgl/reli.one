@@ -13,6 +13,7 @@ import MobNav from "../Components/MobNav/MobNav";
 import { deselectAllProducts, syncBasket } from "../redux/basketSlice";
 import { useActionPayment } from "../hook/useActionPayment";
 import { useDispatch, useSelector } from "react-redux";
+import { clearToken } from "../redux/authSlice";
 import ScrollToTop from "../Components/ScrollToTop/ScrollToTop";
 import CookieModal from "../ui/CookieModal/CookieModal";
 import { COOKIE_VERSION } from "../configs/cookieConfig";
@@ -79,6 +80,7 @@ const HomePage = () => {
       localStorage.setItem("COOKIE_VERSION", COOKIE_VERSION)
       localStorage.removeItem("cookieSave")
       localStorage.removeItem("token")
+      dispatch(clearToken())
     }
 
   }, [])

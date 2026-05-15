@@ -1,5 +1,7 @@
 import axios from "axios"
 import { ErrToast } from "../ui/Toastify";
+import { getInjectedStore } from "../redux/storeInjector";
+import { setToken, clearToken } from "../redux/authSlice";
 
 export const BaseURL = import.meta.env.VITE_API_URL || "https://reli.one/api"
 
@@ -135,6 +137,7 @@ const responseInterceptor = async (err) => {
 
       const newToken = { ...parsedToken, access: data.access };
       localStorage.setItem("token", JSON.stringify(newToken));
+      getInjectedStore()?.dispatch(setToken(newToken));
 
       processQueue(null, data.access);
 
@@ -148,6 +151,7 @@ const responseInterceptor = async (err) => {
       ErrToast("Сессия истекла. Пожалуйста, войдите заново");
 
       localStorage.removeItem("token");
+      getInjectedStore()?.dispatch(clearToken());
       // window.location.href = "/login";
 
       return Promise.reject(refreshError);

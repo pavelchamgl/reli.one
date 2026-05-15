@@ -10,9 +10,12 @@ import SellerTab from "../../../ui/Seller/sellerTab/SellerTab";
 import styles from "./SellerHeader.module.scss";
 import ChangeLang from "../all/ChangeLang/ChangeLang";
 import { logout } from "../../../api/auth";
+import { useDispatch } from "react-redux";
+import { clearToken } from "../../../redux/authSlice";
 
 const SellerHeader = () => {
   const { t } = useTranslation();
+  const dispatch = useDispatch();
 
   const mobile = useMediaQuery({ maxWidth: 500 })
 
@@ -26,6 +29,7 @@ const SellerHeader = () => {
     logout({ refresh_token: token?.refresh }).then((res) => {
       localStorage.removeItem("token");
       localStorage.removeItem("email");
+      dispatch(clearToken());
       navigate('/seller/login')
       window.location.reload();
     });
