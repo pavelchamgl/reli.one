@@ -64,6 +64,7 @@ export const getSearchProducts = async (query = "") => {
 export const getProductsBySellerId = async (id) => {
     try {
         const res = await mainInstance.get(`sellers/${id}/products/`)
+        return res
     } catch (error) {
         throw error
     }
@@ -71,7 +72,7 @@ export const getProductsBySellerId = async (id) => {
 
 export const getProductsByCategory = async (category) => {
     try {
-        const res = await mainInstance.get(`https://reli.one/api/products/categories/${category}`)
+        const res = await mainInstance.get(`/products/categories/${category}`)
         return res
     } catch (error) {
         throw error

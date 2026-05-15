@@ -7,7 +7,6 @@ import DownLabelsBlock from '../../Components/Seller/newOrder/downLabelsBlock/Do
 import FilterBlock from '../../Components/Seller/newOrder/filterBlock/FilterBlock'
 import MobileOrderCard from '../../Components/Seller/newOrder/mobileOrderCard/MobileOrderCard'
 import NewOrderTable from '../../Components/Seller/newOrder/newOrderTable/NewOrderTable'
-import { getOrders } from '../../api/seller/orders'
 import { useActionNewOrder } from '../../hook/useActionNewOrder'
 import NoContentText from '../../ui/NoContentText/NoContentText'
 

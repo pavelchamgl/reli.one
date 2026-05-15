@@ -24,15 +24,15 @@
 **Гейт входа:** CI `frontend3` + `e2e_frontend3` зелёные.
 
 **Задача:** [001-auth-and-routing-stabilization](./tasks/001-auth-and-routing-stabilization/task.md) — FE-P0-006 (ProtectedRoute), FE-P0-007 (testApi.js) — **Done**  
-**Задача:** [002-api-layer-hardening](./tasks/002-api-layer-hardening/task.md) — FE-P0-001..005 (API fixes)
+**Задача:** [002-api-layer-hardening](./tasks/002-api-layer-hardening/task.md) — FE-P0-001..005 (API fixes) — **Done**
 
 | PR | Finding | Изменения |
 |----|---------|-----------|
-| 1.1 | FE-P0-001 | `postSubmitOnboarding`: убрать `throw` до `handleError`, оставить только `handleError` |
-| 1.2 | FE-P0-002 | `getProductsBySellerId`: добавить `return res` |
-| 1.3 | FE-P0-003 | `getProductsByCategory`: убрать абсолютный URL → относительный |
-| 1.4 | FE-P0-004 | `getOrders` (seller): убрать hardcoded `?courier_service=2` |
-| 1.5 | FE-P0-005 | Консолидация onboarding state endpoint: оставить `getOnboardingStatus` в `onboarding.js`, обновить импорты, удалить `onbordingStatus.js`, обновить тест |
+| 1.1 | FE-P0-001 ✅ | `postSubmitOnboarding`: убрать `throw` до `handleError`, оставить только `handleError` |
+| 1.2 | FE-P0-002 ✅ | `getProductsBySellerId`: добавить `return res` |
+| 1.3 | FE-P0-003 ✅ | `getProductsByCategory`: убрать абсолютный URL → относительный |
+| 1.4 | FE-P0-004 ✅ | `getOrders` (seller): убрать hardcoded `?courier_service=2` |
+| 1.5 | FE-P0-005 ✅ | Консолидация onboarding state endpoint: оставить `getOnboardingStatus` в `onboarding.js`, обновить импорты, удалить `onbordingStatus.js`, обновить тест |
 | 1.6 | FE-P0-006 ✅ | `ProtectedRoute`: читать из Redux state через `useSelector` вместо прямого `localStorage` |
 | 1.7 | FE-P0-007 + FE-P3-003 ✅ | Удалить `src/api/testApi.js`; удалить импорт и route `/test` из `main.jsx`; `Test.jsx` → роут удалён, файл остался |
 

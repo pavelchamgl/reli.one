@@ -79,95 +79,41 @@ Frontend/Frontend3/
 
 #### FE-P0-001: `postSubmitOnboarding` — unreachable `handleError` после `throw`
 
-**Severity:** P0  
-**Файл:** `src/api/seller/onboarding.js`, строка 144–145  
-**Описание:**  
-```js
-// строка 144
-throw (error)
-handleError(error, "Failed to submit onboarding data"); // ← НЕДОСТИЖИМО
-```
-`throw` выполняется первым; `handleError` никогда не вызывается. Ошибки сабмита онбординга пробрасываются как сырые объекты `AxiosError`, а не нормализованные `{status, message}` — потребители могут получить нечитаемые объекты ошибок вместо понятных сообщений.
-
-**Рекомендованное исправление:**  
-```js
-} catch (error) {
-    handleError(error, "Failed to submit onboarding data");
-}
-```
-
-**Зависимости:** аудит потребителей `postSubmitOnboarding` в sellerPages на предмет обработки ошибки.
+**Severity:** P0 — **Fixed** (FE-002, май 2026)  
+**Файл:** `src/api/seller/onboarding.js`  
+Убран `throw (error)` перед `handleError` — теперь ошибка нормализуется через `handleError(error, "Failed to submit onboarding data")`.
 
 ---
 
 #### FE-P0-002: `getProductsBySellerId` — отсутствует `return`
 
-**Severity:** P0  
-**Файл:** `src/api/productsApi.js`, строки 64–69  
-**Описание:**
-```js
-export const getProductsBySellerId = async (id) => {
-    try {
-        const res = await mainInstance.get(`sellers/${id}/products/`)
-        // ← res не возвращается!
-    } catch (error) {
-        throw error
-    }
-}
-```
-Функция всегда возвращает `undefined`. Любой вызывающий код, ожидающий данные, молча получит `undefined`.
-
-**Рекомендованное исправление:** добавить `return res` после строки с `await`.
+**Severity:** P0 — **Fixed** (FE-002, май 2026)  
+**Файл:** `src/api/productsApi.js`  
+Добавлен `return res` — функция теперь возвращает данные вместо `undefined`.
 
 ---
 
 #### FE-P0-003: `getProductsByCategory` — hardcoded production URL
 
-**Severity:** P0  
-**Файл:** `src/api/productsApi.js`, строка 74  
-**Описание:**
-```js
-const res = await mainInstance.get(`https://reli.one/api/products/categories/${category}`)
-```
-Абсолютный URL `https://reli.one/api` захардкожен в теле функции, игнорируя `VITE_API_URL`. Функция всегда обращается в прод, даже из локальной среды.
-
-**Рекомендованное исправление:**
-```js
-const res = await mainInstance.get(`/products/categories/${category}`)
-// mainInstance использует BaseURL из VITE_API_URL
-```
+**Severity:** P0 — **Fixed** (FE-002, май 2026)  
+**Файл:** `src/api/productsApi.js`  
+Заменён абсолютный URL на относительный `/products/categories/${category}` — `mainInstance` использует `VITE_API_URL`.  
+**Note:** Аналогичные hardcoded URL остаются в `productsSlice.js` (3) и `favorite.js` (1) — follow-up для FE-006.
 
 ---
 
 #### FE-P0-004: `getOrders` (seller) — hardcoded `?courier_service=2`
 
-**Severity:** P0  
-**Файл:** `src/api/seller/orders.js`, строка 6  
-**Описание:**
-```js
-const res = await mainInstance.get("sellers/orders/?courier_service=2")
-```
-Фильтр `courier_service=2` (Packeta) захардкожен. Продавцы, работающие с DPD (4), GLS (3) или другими перевозчиками, не увидят свои заказы. Backend принимает необязательный `courier_service` — при отсутствии фильтра возвращает все заказы.
-
-**Рекомендованное исправление:** убрать захардкоженный параметр (или передавать его как аргумент функции).
+**Severity:** P0 — **Fixed** (FE-002, май 2026)  
+**Файл:** `src/api/seller/orders.js`  
+Убран `?courier_service=2`; сигнатура изменена на `getOrders(params = {})`. Фильтры передаются через axios `params`. Вызов без аргументов возвращает все заказы (backward compatible). Удалён мёртвый import из `NewSellerOrder.jsx`.
 
 ---
 
 #### FE-P0-005: Duplicate onboarding state endpoint
 
-**Severity:** P0  
-**Файлы:**  
-- `src/api/seller/onbordingStatus.js` — `getOnbordStatus()` → `GET /sellers/onboarding/state/`  
-- `src/api/seller/onboarding.js` — `getOnboardingStatus()` → `GET /sellers/onboarding/state/`
-
-**Описание:**  
-Два разных файла и функции вызывают один и тот же эндпоинт. Разные компоненты могут использовать разные функции. Файл `onbordingStatus.js` имеет опечатку в имени (`onbording`). При изменении контракта нужно обновлять оба места.
-
-**Рекомендованное исправление:**  
-- Оставить одну функцию — `getOnboardingStatus` в `onboarding.js`.  
-- Обновить все импорты `getOnbordStatus` → `getOnboardingStatus`.  
-- Удалить `onbordingStatus.js`.  
-- Обновить тест `onbordingStatus.test.js` на новый импорт.
+**Severity:** P0 — **Fixed** (FE-002, май 2026)  
+`src/api/seller/onbordingStatus.js` удалён. Тест `onbordingStatus.test.js` переведён на `getOnboardingStatus` из `onboarding.js`. Производственный код использовал только `getOnboardingStatus` из `onboarding.js`.
 
 ---
 
@@ -436,11 +382,11 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 
 | ID | Severity | Область | Краткое описание |
 |----|----------|---------|-----------------|
-| FE-P0-001 | **P0** | API / Onboarding | unreachable `handleError` в `postSubmitOnboarding` |
-| FE-P0-002 | **P0** | API / Catalog | `getProductsBySellerId` не возвращает данные |
-| FE-P0-003 | **P0** | API / Catalog | `getProductsByCategory` — hardcoded prod URL |
-| FE-P0-004 | **P0** | API / Seller Orders | `getOrders` hardcoded `?courier_service=2` |
-| FE-P0-005 | **P0** | API / Onboarding | Дублирующий onboarding state endpoint + typo в имени файла |
+| FE-P0-001 | **P0** ✅ Fixed | API / Onboarding | unreachable `handleError` в `postSubmitOnboarding` |
+| FE-P0-002 | **P0** ✅ Fixed | API / Catalog | `getProductsBySellerId` не возвращает данные |
+| FE-P0-003 | **P0** ✅ Fixed | API / Catalog | `getProductsByCategory` — hardcoded prod URL |
+| FE-P0-004 | **P0** ✅ Fixed | API / Seller Orders | `getOrders` hardcoded `?courier_service=2` |
+| FE-P0-005 | **P0** ✅ Fixed | API / Onboarding | Дублирующий onboarding state endpoint + typo в имени файла |
 | FE-P0-006 | **P0** ✅ Fixed | Auth / Routing | `ProtectedRoute` читает localStorage напрямую |
 | FE-P0-007 | **P0** ✅ Fixed | Code Quality | `testApi.js` — dead dev artifact |
 | FE-P1-001 | P1 | Tests | RTL login/reg отсутствует |

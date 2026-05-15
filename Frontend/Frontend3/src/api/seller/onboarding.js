@@ -141,7 +141,6 @@ export const postSubmitOnboarding = async () => {
         const res = await mainInstance.post("/sellers/onboarding/submit/");
         return res.data;
     } catch (error) {
-        throw (error)
         handleError(error, "Failed to submit onboarding data");
     }
 };

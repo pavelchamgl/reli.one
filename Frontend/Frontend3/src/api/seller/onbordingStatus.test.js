@@ -9,7 +9,7 @@ vi.mock("../index.js", () => ({
   },
 }));
 
-import { getOnbordStatus } from "./onbordingStatus.js";
+import { getOnboardingStatus } from "./onboarding.js";
 
 describe("seller onboarding status api", () => {
   beforeEach(() => {
@@ -18,7 +18,7 @@ describe("seller onboarding status api", () => {
   });
 
   it("requests sellers onboarding state endpoint", async () => {
-    await getOnbordStatus();
+    await getOnboardingStatus();
     expect(mockGet).toHaveBeenCalledWith("/sellers/onboarding/state/");
   });
 });

@@ -29,7 +29,7 @@
 | ID | Задача | Phase | Priority | Статус |
 |----|--------|-------|----------|--------|
 | **FE-001** | [Auth & Routing Stabilization](./001-auth-and-routing-stabilization/task.md) | 1 | **P0** | **Done** |
-| **FE-002** | [API Layer Hardening](./002-api-layer-hardening/task.md) | 1 | **P0** | **Planned** |
+| **FE-002** | [API Layer Hardening](./002-api-layer-hardening/task.md) | 1 | **P0** | **Done** |
 | **FE-003** | [Seller Onboarding Tests](./003-seller-onboarding-tests/task.md) | 2 | P1 | **Planned** |
 | **FE-004** | [Products & Search Tests](./004-products-and-search-tests/task.md) | 2 | P1 | **Planned** |
 | **FE-005** | [Orders Flow Tests](./005-orders-flow-tests/task.md) | 2 | P1 | **Planned** |
