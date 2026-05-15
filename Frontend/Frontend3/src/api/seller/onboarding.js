@@ -1,9 +1,9 @@
 import mainInstance from "..";
 
 // =================================================
-// ✅ General error handler
+// ✅ General error handler (exported for unit testing)
 // =================================================
-const handleError = (error, defaultMsg = "Unknown error") => {
+export const handleError = (error, defaultMsg = "Unknown error") => {
     if (error.response) {
         const { status, data } = error.response;
         throw {

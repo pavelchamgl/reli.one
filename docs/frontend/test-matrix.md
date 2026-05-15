@@ -13,7 +13,7 @@
 | Среда **Frontend2** | `jsdom`; [`Frontend/Frontend2/src/test/setup.js`](../../Frontend/Frontend2/src/test/setup.js) |
 | Обёртка | **`renderWithProviders`**: [`Frontend/Frontend3/src/test/test-utils.jsx`](../../Frontend/Frontend3/src/test/test-utils.jsx) — Redux `Provider` + `MemoryRouter` (i18n — подключать в обёртке при тестах экранов с `useTranslation`) |
 | Vitest vs Playwright | В **`vite.config.js` Frontend3** каталог **`e2e/**` в `test.exclude`**, иначе Vitest попытается грузить Playwright-спеки |
-| HTTP | **Сейчас:** `vi.mock` на модуль API (`orders.test.js`, `productsApi.test.js`, `onbordingStatus.test.js`). **MSW** — не подключён |
+| HTTP | **Сейчас:** `vi.mock` на модуль API (`orders.test.js`, `productsApi.test.js`, `onbordingStatus.test.js`, `onboarding.test.js`). **MSW** — не подключён |
 | Sentry / OAuth | Не дергать реальные SDK в unit/RTL; при необходимости — мок модулей / env |
 
 ## Frontend3 — сценарии
@@ -24,6 +24,8 @@
 | API заказов: URL детали, `not_closed`, `closed` | P0 | Unit | Покрыто | [`src/api/orders.test.js`](../../Frontend/Frontend3/src/api/orders.test.js) |
 | Поиск товаров: корректный path query | P0 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
 | Статус онбординга продавца | P0 | Unit | Покрыто | [`src/api/seller/onbordingStatus.test.js`](../../Frontend/Frontend3/src/api/seller/onbordingStatus.test.js) |
+| `handleError` + onboarding API endpoints | P0 | Unit | Покрыто | [`src/api/seller/onboarding.test.js`](../../Frontend/Frontend3/src/api/seller/onboarding.test.js) |
+| Seller type selection (RTL) | P1 | RTL | Покрыто | [`src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx`](../../Frontend/Frontend3/src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx) |
 | Дым обёртки `renderWithProviders` | P0 | RTL | Покрыто | [`src/test/renderWithProviders.test.jsx`](../../Frontend/Frontend3/src/test/renderWithProviders.test.jsx) |
 | Логин / регистрация (Yup) | P0 | RTL | Backlog | — |
 | Ошибки API / retry, тосты | P0 | RTL | Backlog | — |

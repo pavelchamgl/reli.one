@@ -1,6 +1,6 @@
 # FE-003 — Seller Onboarding Tests
 
-**Status:** Planned  
+**Status:** Done  
 **Priority:** P1  
 **Phase:** 2  
 **Depends on:** FE-001, FE-002, test infra fixes (FE-P1-004, FE-P1-007)
@@ -33,10 +33,27 @@ Backend onboarding API покрыт тестами (Task 008 Done). Frontend onb
 
 ## Definition of Done
 
-- [ ] Тест onboarding status: разные статусы → корректный UI.
-- [ ] Тест submit: успех + обработка ошибки `{status, message}`.
-- [ ] `npm run test` зелёный.
-- [ ] Строки в [test-matrix.md](../../test-matrix.md) обновлены.
+- [x] Тест onboarding status: разные статусы → корректный UI (`SellerTypeContent.test.jsx`).
+- [x] Тест submit: успех + обработка ошибки `{status, message}`.
+- [x] `npm run test` зелёный (27/27).
+- [x] Строки в [test-matrix.md](../../test-matrix.md) обновлены.
+
+## Implementation notes
+
+### Новые тестовые файлы
+
+| Файл | Тестов | Тип |
+|------|--------|-----|
+| `src/api/seller/onboarding.test.js` | 9 | unit — `handleError` + endpoint calls |
+| `src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx` | 9 | RTL |
+
+### Изменения в source
+
+- `src/api/seller/onboarding.js` — `handleError` стала `export` для прямого тестирования.
+
+### Особенность Vitest 4.x
+
+При использовании `vi.mock()` + `mockRejectedValue()` в одном файле Vitest 4.1.6 с окружением jsdom трекает оригинальный rejected promise как "unhandled rejection" и помечает тест FAILED до выполнения ассертов. Решение: `handleError` тестируется напрямую как чистая функция (синхронно), без rejected promise-мока. Паттерн задокументирован в `onboarding.test.js`.
 
 ## Validation
 
