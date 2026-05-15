@@ -363,11 +363,12 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 
 | Категория | Состояние |
 |-----------|-----------|
-| Vitest + RTL | Установлен и работает (`npm run test` зелёный, 49/49) |
+| Vitest + RTL | Установлен и работает (`npm run test` зелёный, 120/120) |
 | `renderWithProviders` | Есть; отсутствует i18n wrapper, singleton store |
-| API unit тесты | 4 файла: `orders.test.js`, `productsApi.test.js` (15 тестов), `onbordingStatus.test.js`, `onboarding.test.js` |
-| RTL component tests | 4 файла: `ProtectedRoute.test.jsx`, `renderWithProviders.test.jsx`, `SellerTypeContent.test.jsx`, `CatalogCard.test.jsx` |
-| RTL page tests | 1 файл: `SearchPage.test.jsx` |
+| API unit тесты | 6 файлов: `orders.test.js` (12), `productsApi.test.js` (15), `onbordingStatus.test.js`, `onboarding.test.js`, `seller/orders.test.js` (20) |
+| RTL component tests | 5 файлов: `ProtectedRoute.test.jsx`, `renderWithProviders.test.jsx`, `SellerTypeContent.test.jsx`, `CatalogCard.test.jsx`, `BasketCardBlock.test.jsx` |
+| RTL page tests | 2 файла: `SearchPage.test.jsx`, `MyOrdersPage.test.jsx` |
+| Redux unit tests | 1 файл: `basketSlice.test.js` (29 тестов) |
 | Playwright smoke | Покрыт (`e2e/smoke.spec.js`), CI job `e2e_frontend3` |
 | Login/reg форм | **Backlog** — не реализованы |
 | API errors/retry | **Backlog** — не реализованы |
@@ -392,7 +393,7 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 | FE-P0-007 | **P0** ✅ Fixed | Code Quality | `testApi.js` — dead dev artifact |
 | FE-P1-001 | P1 | Tests | RTL login/reg отсутствует |
 | FE-P1-002 | P1 | Tests | RTL API errors/retry/toasts отсутствует |
-| FE-P1-003 | P1 | Tests | RTL basket/checkout отсутствует |
+| FE-P1-003 | P1 ✅ Partial | Tests | basketSlice unit + BasketCardBlock RTL покрыты; PaymentPage + interceptors — backlog |
 | FE-P1-004 | P1 | Tests | `renderWithProviders` без i18n |
 | FE-P1-005 | P1 | Tests | module-level `networkToastShown` — leak между тестами |
 | FE-P1-006 | P1 | Tests / Architecture | `window.location.href` в Redux thunk |

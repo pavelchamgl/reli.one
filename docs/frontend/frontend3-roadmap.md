@@ -46,7 +46,7 @@
 
 **Гейт входа:** Phase 1 завершена. CI зелёный.
 
-**Задачи:** [003-seller-onboarding-tests](./tasks/003-seller-onboarding-tests/task.md) ✅ Done, [004-products-and-search-tests](./tasks/004-products-and-search-tests/task.md) ✅ Done, [005-orders-flow-tests](./tasks/005-orders-flow-tests/task.md)
+**Задачи:** [003-seller-onboarding-tests](./tasks/003-seller-onboarding-tests/task.md) ✅ Done, [004-products-and-search-tests](./tasks/004-products-and-search-tests/task.md) ✅ Done, [005-orders-flow-tests](./tasks/005-orders-flow-tests/task.md) ✅ Done
 
 ### 2.0 — Test infrastructure fixes (блокируют корректность тестов)
 
@@ -78,7 +78,17 @@
 | 2.3.2 ✅ | Поиск UI | `SearchPage` RTL: render/empty/results/URL param/category (6 тестов) |
 | 2.3.3 ✅ | Каталог UI | `CatalogCard` RTL: render/backgroundImage/click (3 теста) |
 
-**Критерий закрытия Phase 2:** все P0-строки в [test-matrix.md](./test-matrix.md) имеют статус «Покрыто» или «Backlog (обоснованно)». FE-T003, FE-004 → Done.
+### 2.4 — Orders & Basket tests ✅
+
+| PR | Finding/матрица | Содержание |
+|----|----------------|------------|
+| 2.4.1 ✅ | Customer orders API | `orders.test.js` расширен: return values + error propagation (12 тестов) |
+| 2.4.2 ✅ | Seller orders API | `seller/orders.test.js` новый: все 10 функций (20 тестов) |
+| 2.4.3 ✅ | FE-P1-003 | `basketSlice.test.js` новый: 29 unit-тестов reducers |
+| 2.4.4 ✅ | Корзина UI | `BasketCardBlock.test.jsx` RTL: empty/list/checkbox (8 тестов) |
+| 2.4.5 ✅ | Orders UI | `MyOrdersPage.test.jsx` RTL: render/tabs (6 тестов) |
+
+**Критерий закрытия Phase 2:** все P0-строки в [test-matrix.md](./test-matrix.md) имеют статус «Покрыто» или «Backlog (обоснованно)». FE-T003, FE-004, FE-005 → Done.
 
 ---
 

@@ -28,13 +28,18 @@
 | `getProductById` / `getProducts` + error handling | P1 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
 | SearchPage: render, пустой/непустой результат, URL param, категории | P1 | RTL | Покрыто | [`src/pages/SearchPage.test.jsx`](../../Frontend/Frontend3/src/pages/SearchPage.test.jsx) |
 | CatalogCard: render, background image, click dispatch | P1 | RTL | Покрыто | [`src/Components/Catalog/CatalogCard/CatalogCard.test.jsx`](../../Frontend/Frontend3/src/Components/Catalog/CatalogCard/CatalogCard.test.jsx) |
+| Customer orders API: endpoint, return values, error propagation | P1 | Unit | Покрыто | [`src/api/orders.test.js`](../../Frontend/Frontend3/src/api/orders.test.js) |
+| Seller orders API: getOrders/getOrderDetails/confirm/shipped/cancel/labels | P1 | Unit | Покрыто | [`src/api/seller/orders.test.js`](../../Frontend/Frontend3/src/api/seller/orders.test.js) |
+| basketSlice: add/delete/select/count/clear/paymentEnd/sync/delivery | P0 | Unit | Покрыто | [`src/redux/basketSlice.test.js`](../../Frontend/Frontend3/src/redux/basketSlice.test.js) |
+| BasketCardBlock: empty state, item list, count, checkbox, filtered | P0 | RTL | Покрыто | [`src/Components/Basket/BasketCardBlock/BasketCardBlock.test.jsx`](../../Frontend/Frontend3/src/Components/Basket/BasketCardBlock/BasketCardBlock.test.jsx) |
+| MyOrdersPage: render, current/history tab switch | P1 | RTL | Покрыто | [`src/pages/MyOrdersPage.test.jsx`](../../Frontend/Frontend3/src/pages/MyOrdersPage.test.jsx) |
 | Статус онбординга продавца | P0 | Unit | Покрыто | [`src/api/seller/onbordingStatus.test.js`](../../Frontend/Frontend3/src/api/seller/onbordingStatus.test.js) |
 | `handleError` + onboarding API endpoints | P0 | Unit | Покрыто | [`src/api/seller/onboarding.test.js`](../../Frontend/Frontend3/src/api/seller/onboarding.test.js) |
 | Seller type selection (RTL) | P1 | RTL | Покрыто | [`src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx`](../../Frontend/Frontend3/src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx) |
 | Дым обёртки `renderWithProviders` | P0 | RTL | Покрыто | [`src/test/renderWithProviders.test.jsx`](../../Frontend/Frontend3/src/test/renderWithProviders.test.jsx) |
 | Логин / регистрация (Yup) | P0 | RTL | Backlog | — |
 | Ошибки API / retry, тосты | P0 | RTL | Backlog | — |
-| Корзина / чекаут | P0 | RTL + e2e | Backlog | — |
+| Корзина / чекаут (basketSlice + BasketCardBlock) | P0 | Unit + RTL | Покрыто (частично) | [`src/redux/basketSlice.test.js`](../../Frontend/Frontend3/src/redux/basketSlice.test.js), [`BasketCardBlock.test.jsx`](../../Frontend/Frontend3/src/Components/Basket/BasketCardBlock/BasketCardBlock.test.jsx) |
 | Smoke: корень SPA открывается | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js), CI job `e2e_frontend3` |
 
 ## Frontend2 — сценарии
