@@ -11,7 +11,7 @@
 | Компоненты | `@testing-library/react`, `@testing-library/user-event` (зависимости есть в **Frontend3**; во **Frontend2** в тестах пока без RTL-компонентных кейсов) |
 | Среда **Frontend3** | `jsdom`; `setupFiles`: [`Frontend/Frontend3/src/test/polyfill-localstorage.js`](../../Frontend/Frontend3/src/test/polyfill-localstorage.js) (до импорта Redux), затем [`setup.js`](../../Frontend/Frontend3/src/test/setup.js) (`@testing-library/jest-dom/vitest`) |
 | Среда **Frontend2** | `jsdom`; [`Frontend/Frontend2/src/test/setup.js`](../../Frontend/Frontend2/src/test/setup.js) |
-| Обёртка | **`renderWithProviders`**: [`Frontend/Frontend3/src/test/test-utils.jsx`](../../Frontend/Frontend3/src/test/test-utils.jsx) — Redux `Provider` + `MemoryRouter` (i18n — подключать в обёртке при тестах экранов с `useTranslation`) |
+| Обёртка | **`renderWithProviders`**: [`Frontend/Frontend3/src/test/test-utils.jsx`](../../Frontend/Frontend3/src/test/test-utils.jsx) — Redux `Provider` + `I18nextProvider` (тестовый instance, `t(key)→key`) + `MemoryRouter`. Все три провайдера включены по умолчанию (FE-007). |
 | Vitest vs Playwright | В **`vite.config.js` Frontend3** каталог **`e2e/**` в `test.exclude`**, иначе Vitest попытается грузить Playwright-спеки |
 | HTTP | **Сейчас:** `vi.mock` на модуль API (`orders.test.js`, `productsApi.test.js`, `onbordingStatus.test.js`, `onboarding.test.js`). **MSW** — не подключён |
 | Sentry / OAuth | Не дергать реальные SDK в unit/RTL; при необходимости — мок модулей / env |
@@ -36,7 +36,7 @@
 | Статус онбординга продавца | P0 | Unit | Покрыто | [`src/api/seller/onbordingStatus.test.js`](../../Frontend/Frontend3/src/api/seller/onbordingStatus.test.js) |
 | `handleError` + onboarding API endpoints | P0 | Unit | Покрыто | [`src/api/seller/onboarding.test.js`](../../Frontend/Frontend3/src/api/seller/onboarding.test.js) |
 | Seller type selection (RTL) | P1 | RTL | Покрыто | [`src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx`](../../Frontend/Frontend3/src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx) |
-| Дым обёртки `renderWithProviders` | P0 | RTL | Покрыто | [`src/test/renderWithProviders.test.jsx`](../../Frontend/Frontend3/src/test/renderWithProviders.test.jsx) |
+| Дым обёртки `renderWithProviders` + i18n provider | P0 | RTL | Покрыто | [`src/test/renderWithProviders.test.jsx`](../../Frontend/Frontend3/src/test/renderWithProviders.test.jsx) |
 | Логин / регистрация (Yup) | P0 | RTL | Backlog | — |
 | Ошибки API / retry, тосты | P0 | RTL | Backlog | — |
 | Корзина / чекаут (basketSlice + BasketCardBlock) | P0 | Unit + RTL | Покрыто (частично) | [`src/redux/basketSlice.test.js`](../../Frontend/Frontend3/src/redux/basketSlice.test.js), [`BasketCardBlock.test.jsx`](../../Frontend/Frontend3/src/Components/Basket/BasketCardBlock/BasketCardBlock.test.jsx) |

@@ -34,7 +34,7 @@
 | 1.4 | FE-P0-004 ✅ | `getOrders` (seller): убрать hardcoded `?courier_service=2` |
 | 1.5 | FE-P0-005 ✅ | Консолидация onboarding state endpoint: оставить `getOnboardingStatus` в `onboarding.js`, обновить импорты, удалить `onbordingStatus.js`, обновить тест |
 | 1.6 | FE-P0-006 ✅ | `ProtectedRoute`: читать из Redux state через `useSelector` вместо прямого `localStorage` |
-| 1.7 | FE-P0-007 + FE-P3-003 ✅ | Удалить `src/api/testApi.js`; удалить импорт и route `/test` из `main.jsx`; `Test.jsx` → роут удалён, файл остался |
+| 1.7 | FE-P0-007 + FE-P3-003 ✅ | Удалить `src/api/testApi.js`; удалить импорт и route `/test` из `main.jsx`; `Test.jsx` → роут удалён (FE-001), файл удалён (FE-006) |
 
 **Критерий закрытия Phase 1:** `npm run test` зелёный после каждого PR; импорт `testApi` и `onbordingStatus` не используется.
 
@@ -52,9 +52,9 @@
 
 | PR | Finding | Действие |
 |----|---------|---------|
-| 2.0.1 | FE-P1-004 | Добавить `I18nextProvider` с тестовым i18n инстансом в `renderWithProviders` |
-| 2.0.2 | FE-P1-007 | Добавить фабричную функцию `setupStore()` → создавать свежий store per test; обновить `renderWithProviders` |
-| 2.0.3 | FE-P1-005 | Задокументировать / добавить сброс `networkToastShown` в тестовом setup (или рефакторить в closure) |
+| 2.0.1 ✅ | FE-P1-004 | `I18nextProvider` + `i18nTest` instance добавлены в `renderWithProviders` (FE-007) |
+| 2.0.2 ✅ | FE-P1-007 | `setupStore()` + fresh store per test в `renderWithProviders` (FE-006) |
+| 2.0.3 ✅ | FE-P1-005 | `resetNetworkToastShown()` helper добавлен (FE-006) |
 
 ### 2.1 — Anchor RTL tests (продолжение FE-T003)
 
