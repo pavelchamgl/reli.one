@@ -75,5 +75,19 @@ export const store = configureStore({
 
 export const persistor = persistStore(store)
 
+/**
+ * Создаёт свежий non-persisted store для тестов.
+ * Каждый вызов возвращает независимый инстанс — нет state bleeding между тестами.
+ * @see docs/frontend/frontend3-audit.md FE-P1-007
+ */
+export function setupStore(preloadedState = {}) {
+    return configureStore({
+        reducer: rootReducer,
+        preloadedState,
+        middleware: (getDefaultMiddleware) =>
+            getDefaultMiddleware({ serializableCheck: false }),
+    })
+}
+
 injectStore(store)
 

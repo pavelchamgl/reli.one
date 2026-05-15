@@ -33,7 +33,7 @@
 | **FE-003** | [Seller Onboarding Tests](./003-seller-onboarding-tests/task.md) | 2 | P1 | **Done** |
 | **FE-004** | [Products & Search Tests](./004-products-and-search-tests/task.md) | 2 | P1 | **Done** |
 | **FE-005** | [Orders Flow Tests](./005-orders-flow-tests/task.md) | 2 | P1 | **Done** |
-| **FE-006** | [Refactoring Foundation](./006-refactoring-foundation/task.md) | 3 | P2 | **Planned** |
+| **FE-006** | [Refactoring Foundation](./006-refactoring-foundation/task.md) | 3 | P2 | **Done** |
 
 _P3 (Playwright/E2E expansion) — будут добавлены после Phase 2._
 

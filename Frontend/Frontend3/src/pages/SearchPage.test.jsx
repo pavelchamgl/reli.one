@@ -164,4 +164,12 @@ describe("SearchPage", () => {
 
     expect(screen.queryByText(/Kategorie:/)).not.toBeInTheDocument();
   });
+
+  it("shows search-loading indicator when searchStatus is loading", () => {
+    const store = makeStore({ searchStatus: "loading" });
+    renderWithProviders(<SearchPage />, { storeInstance: store });
+
+    expect(screen.getByTestId("search-loading")).toBeInTheDocument();
+    expect(screen.queryByText("noContent.title")).not.toBeInTheDocument();
+  });
 });

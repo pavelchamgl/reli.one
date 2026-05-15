@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { getProductById, getProducts, getProductsBySellerId } from "../api/productsApi"
-import axios from "axios";
 import mainInstance from "../api";
 
 export const fetchGetProducts = createAsyncThunk(
@@ -8,7 +7,15 @@ export const fetchGetProducts = createAsyncThunk(
     async (_, { rejectWithValue, getState }) => {
         try {
             const state = getState().products
-            const res = await mainInstance.get(`https://reli.one/api/products/categories/${state.category}/?max_price=${state.max}&min_price=${state.min}&ordering=${state.ordering}&page=${state.page}&page_size=35`)
+            const res = await mainInstance.get(`products/categories/${state.category}/`, {
+                params: {
+                    max_price: state.max,
+                    min_price: state.min,
+                    ordering: state.ordering,
+                    page: state.page,
+                    page_size: 35,
+                },
+            })
             return res.data
         } catch (error) {
             return rejectWithValue()
@@ -33,7 +40,7 @@ export const fetchSearchProducts = createAsyncThunk(
     async (text, { rejectWithValue, getState }) => {
         try {
             const state = getState().products
-            const res = await mainInstance.get(`https://reli.one/api/products/search/`, {
+            const res = await mainInstance.get(`products/search/`, {
                 params: {
                     max_price: state.max,
                     min_price: state.min,
@@ -56,7 +63,7 @@ export const fetchSellerProducts = createAsyncThunk(
 
         try {
             const state = getState().products
-            const res = await mainInstance.get(`https://reli.one/api/sellers/${id}/products/`, {
+            const res = await mainInstance.get(`sellers/${id}/products/`, {
                 params: {
                     // max_price: state.max,
                     // min_price: state.min,

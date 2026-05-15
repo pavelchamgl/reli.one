@@ -98,18 +98,25 @@
 
 **Гейт входа:** Phase 1 + Phase 2 завершены. Гейты G1–G4 из [refactoring-readiness-plan.md](./refactoring-readiness-plan.md) выполнены.
 
-**Задача:** [006-refactoring-foundation](./tasks/006-refactoring-foundation/task.md)
+**Задача:** [006-refactoring-foundation](./tasks/006-refactoring-foundation/task.md) ✅ Done
 
 | PR | Finding | Действие |
 |----|---------|---------|
-| 3.1 | FE-P2-001 | Вынести роутинг в `src/router.jsx`, добавить `React.lazy` + `Suspense` для page-компонентов |
-| 3.2 | FE-P2-003 | Вынести `buildPaymentGroups(...)` из paymentSlice — убрать дублирование Stripe/PayPal |
-| 3.3 | FE-P2-004 | `applyInterceptors(instance)` — единая установка interceptors для `mainInstance` и `formDataInstance` |
-| 3.4 | FE-P2-002 | Вынести email-sync из basket reducers в action.payload или `authSlice` |
-| 3.5 | FE-P2-005 | Убрать дублирующую инициализацию paymentSlice из localStorage (доверять только persist) |
-| 3.6 | FE-P2-006 | Задокументировать migration `selfEmploed: undefined` в комментарии; добавить тест миграции |
+| 3.1 ✅ | FE-P2-001 | `React.lazy` + `Suspense` для всех page-компонентов в `main.jsx` |
+| 3.2 ✅ | FE-P0-003 follow-up | Hardcoded URLs убраны из `productsSlice.js` (3 шт.) и `favorite.js` |
+| 3.3 ✅ | FE-P1-005 | `resetNetworkToastShown()` экспортирован для тестов |
+| 3.4 ✅ | FE-P1-007 | `setupStore()` + `renderWithProviders` fresh store per test |
+| 3.5 ✅ | FE-005 follow-up | `getOrders`/`getOrderDetails` — silent catch → throw error |
+| 3.6 ✅ | SearchPage | `data-testid="search-loading"` при `searchStatus === "loading"` |
+| 3.7 ✅ | FE-P3-003 | `src/pages/Test.jsx` удалён |
 
-**Порядок PR:** утилиты и чистые функции → слайсы → API-слой → router.  
+**Отложено (следующие фазы):**
+- FE-P2-003: `buildPaymentGroups` DRY в paymentSlice
+- FE-P2-004: `applyInterceptors` DRY
+- FE-P2-002: email-sync из basket reducers
+- FE-P2-005: paymentSlice localStorage дублирование
+- FE-P2-006: persist migration документация
+
 Каждый PR: `npm run test` зелёный после merge.
 
 ---

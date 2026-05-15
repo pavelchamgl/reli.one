@@ -18,6 +18,15 @@ let isRefreshing = false;
 let failedQueue = [];
 let networkToastShown = false;
 
+/**
+ * Сбрасывает module-level флаг networkToastShown.
+ * Использовать только в тестах (beforeEach/afterEach).
+ * @see docs/frontend/frontend3-audit.md FE-P1-005
+ */
+export function resetNetworkToastShown() {
+  networkToastShown = false;
+}
+
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
     error ? prom.reject(error) : prom.resolve(token);

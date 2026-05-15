@@ -51,12 +51,9 @@ describe("seller orders — getOrders", () => {
     expect(result).toBe(mockResponse);
   });
 
-  // Note: getOrders silently swallows errors (no throw in catch block) — FE-P2 follow-up.
-  // Use synchronous throw to avoid Vitest 4.x unhandled-rejection noise (see FE-003 notes).
-  it("returns undefined on error (silent catch)", async () => {
+  it("propagates errors", async () => {
     mockGet.mockImplementationOnce(() => { throw new Error("Network Error"); });
-    const result = await getOrders();
-    expect(result).toBeUndefined();
+    await expect(getOrders()).rejects.toThrow("Network Error");
   });
 });
 
@@ -78,10 +75,9 @@ describe("seller orders — getOrderDetails", () => {
     expect(result).toBe(mockResponse);
   });
 
-  it("returns undefined on error (silent catch)", async () => {
+  it("propagates errors", async () => {
     mockGet.mockImplementationOnce(() => { throw new Error("Not Found"); });
-    const result = await getOrderDetails(0);
-    expect(result).toBeUndefined();
+    await expect(getOrderDetails(0)).rejects.toThrow("Not Found");
   });
 });
 

@@ -26,7 +26,7 @@
 | Товары продавца: `getProductsBySellerId` возвращает данные (fix FE-P0-002) | P1 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
 | Категория товаров: `getProductsByCategory` относительный path (fix FE-P0-003) | P1 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
 | `getProductById` / `getProducts` + error handling | P1 | Unit | Покрыто | [`src/api/productsApi.test.js`](../../Frontend/Frontend3/src/api/productsApi.test.js) |
-| SearchPage: render, пустой/непустой результат, URL param, категории | P1 | RTL | Покрыто | [`src/pages/SearchPage.test.jsx`](../../Frontend/Frontend3/src/pages/SearchPage.test.jsx) |
+| SearchPage: render, пустой/непустой результат, URL param, категории, loading state | P1 | RTL | Покрыто | [`src/pages/SearchPage.test.jsx`](../../Frontend/Frontend3/src/pages/SearchPage.test.jsx) |
 | CatalogCard: render, background image, click dispatch | P1 | RTL | Покрыто | [`src/Components/Catalog/CatalogCard/CatalogCard.test.jsx`](../../Frontend/Frontend3/src/Components/Catalog/CatalogCard/CatalogCard.test.jsx) |
 | Customer orders API: endpoint, return values, error propagation | P1 | Unit | Покрыто | [`src/api/orders.test.js`](../../Frontend/Frontend3/src/api/orders.test.js) |
 | Seller orders API: getOrders/getOrderDetails/confirm/shipped/cancel/labels | P1 | Unit | Покрыто | [`src/api/seller/orders.test.js`](../../Frontend/Frontend3/src/api/seller/orders.test.js) |
