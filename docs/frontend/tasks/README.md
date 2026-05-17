@@ -35,8 +35,7 @@
 | **FE-005** | [Orders Flow Tests](./005-orders-flow-tests/task.md) | 2 | P1 | **Done** |
 | **FE-006** | [Refactoring Foundation](./006-refactoring-foundation/task.md) | 3 | P2 | **Done** |
 | **FE-007** | Test Infra i18n Provider & Docs Sync | 2 | P1 | **Done** |
-
-_P3 (Playwright/E2E expansion) — будут добавлены после Phase 2._
+| **FE-008** | [Playwright E2E Foundation](./008-playwright-e2e-foundation/task.md) | 4 | P3 | **Done** |
 
 ---
 

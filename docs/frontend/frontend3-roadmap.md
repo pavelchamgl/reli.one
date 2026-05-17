@@ -127,8 +127,11 @@
 
 **Гейт входа:** Phase 2 завершена (baseline RTL стабилен).
 
+**Задача:** [008-playwright-e2e-foundation](./tasks/008-playwright-e2e-foundation/task.md) ✅ Done
+
 | PR | Finding | Содержание |
 |----|---------|---------|
+| 4.0 ✅ | FE-008 | Smoke e2e: root/home/protected-redirect/search/wildcard — 5/5 passed |
 | 4.1 | FE-P3-001 | Playwright e2e: checkout happy path (mock backend или local e2e-контур) |
 | 4.2 | FE-P3-002 | Playwright e2e: seller onboarding smoke (login → step 1 → step 2 ...) |
 | 4.3 | — | Расширение матрицы P1 e2e по [test-matrix.md](./test-matrix.md) |

@@ -41,6 +41,10 @@
 | Ошибки API / retry, тосты | P0 | RTL | Backlog | — |
 | Корзина / чекаут (basketSlice + BasketCardBlock) | P0 | Unit + RTL | Покрыто (частично) | [`src/redux/basketSlice.test.js`](../../Frontend/Frontend3/src/redux/basketSlice.test.js), [`BasketCardBlock.test.jsx`](../../Frontend/Frontend3/src/Components/Basket/BasketCardBlock/BasketCardBlock.test.jsx) |
 | Smoke: корень SPA открывается | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js), CI job `e2e_frontend3` |
+| Smoke: home page app shell mount | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |
+| Smoke: protected seller route → /seller/login redirect | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |
+| Smoke: search page loads | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |
+| Smoke: unknown route → wildcard fallback | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |
 
 ## Frontend2 — сценарии
 

@@ -321,7 +321,8 @@ const migrations = {
 
 **Severity:** P3  
 **Описание:**  
-Playwright smoke только проверяет открытие корня SPA. Полный сценарий «добавить в корзину → оплата → Stripe redirect» не покрыт e2e.
+Playwright smoke (FE-008) проверяет routing и mounting. Полный сценарий «добавить в корзину → оплата → Stripe redirect» не покрыт e2e.  
+**Follow-up:** FE Phase 4 (PR 4.1).
 
 ---
 
@@ -329,7 +330,8 @@ Playwright smoke только проверяет открытие корня SPA
 
 **Severity:** P3  
 **Описание:**  
-Seller onboarding — сложный multi-step flow (login → type → personal/company info → bank → warehouse → submit → review). Ручная приёмка подтверждена (backend), но e2e UI-сценарий отсутствует.
+Seller onboarding — сложный multi-step flow. Ручная приёмка подтверждена (backend). Базовый protected-route redirect покрыт в FE-008 (smoke). Полный onboarding flow — follow-up.  
+**Follow-up:** FE Phase 4 (PR 4.2).
 
 ---
 
@@ -363,7 +365,7 @@ Seller onboarding — сложный multi-step flow (login → type → persona
 | RTL component tests | 5 файлов: `ProtectedRoute.test.jsx`, `renderWithProviders.test.jsx`, `SellerTypeContent.test.jsx`, `CatalogCard.test.jsx`, `BasketCardBlock.test.jsx` |
 | RTL page tests | 2 файла: `SearchPage.test.jsx`, `MyOrdersPage.test.jsx` |
 | Redux unit tests | 1 файл: `basketSlice.test.js` (29 тестов) |
-| Playwright smoke | Покрыт (`e2e/smoke.spec.js`), CI job `e2e_frontend3` |
+| Playwright smoke | 5 тестов: root/home/protected-redirect/search/wildcard (FE-008) — `e2e/smoke.spec.js`, CI job `e2e_frontend3` |
 | Login/reg форм | **Backlog** — не реализованы |
 | API errors/retry | **Backlog** — не реализованы |
 | Basket/checkout RTL | **Backlog** — не реализованы |
