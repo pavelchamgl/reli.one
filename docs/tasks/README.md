@@ -119,7 +119,8 @@ graph TD
 | 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | **DONE (repo-scope)** |
 | 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | **DONE (repo-scope)** — см. [`task.md`](./012-order-lifecycle-extended-tests/task.md) |
 | **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **Future** / design-only | High | при старте: **002**, **003**, **004** (константы/миграции статусов желательно раньше) | **Не** в текущем roadmap; **не** блокирует **010**; в коде нет целевого резерва (см. `task.md`, приоритизация) |
-| **014** | [**frontend3-stabilization-audit**](./014-frontend3-stabilization-audit/task.md) | P1 | Medium | — | **Planned:** аудит Frontend3 + roadmap стабилизации (аналитика; см. `task.md`) |
+| **014** | [**frontend3-stabilization-audit**](./014-frontend3-stabilization-audit/task.md) | P1 | Medium | — | **Done** — аудит Frontend3 + roadmap стабилизации (аналитика; см. `task.md`) |
+| **015** | [**full-stack-e2e-design**](./015-full-stack-e2e-design/task.md) | P2 | Medium | FE-008–010, 012, 004 backlog | **Planned (design-only):** стратегия full-stack e2e; без runtime-кода |
 
 ## Рекомендуемый порядок выполнения
 
@@ -245,7 +246,8 @@ docs/tasks/
 ├── 011-order-product-received-at-timezone/task.md
 ├── 012-order-lifecycle-extended-tests/task.md
 ├── 013-stock-reservation/task.md
-└── 014-frontend3-stabilization-audit/task.md
+├── 014-frontend3-stabilization-audit/task.md
+└── 015-full-stack-e2e-design/task.md
 ```
 
 См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).
