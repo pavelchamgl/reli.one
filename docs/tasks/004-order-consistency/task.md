@@ -144,13 +144,13 @@ Order domain содержит несколько структурных проб
 
 ## Definition of Done
 
-- [ ] `Order.user` → `on_delete=SET_NULL` (миграция)
-- [ ] `OrderStatus.name` → `unique=True` (миграция)
+- [x] `Order.user` → `on_delete=SET_NULL, null=True, blank=True` (миграция 0009, 2026-05-18)
+- [x] `OrderStatus.name` → `unique=True` (миграция 0009, 2026-05-18)
 - [x] Создан `backend/order/constants.py` с константами статусов (2026-05-18)
 - [x] Строковые сравнения статусов: delivery/utils.py исправлен; остальные raw-строки — документация/API-ключи (не бизнес-логика)
-- [ ] `OrderProduct.received_at` использует `timezone.now()`
-- [ ] Добавлены индексы на `Order.user_id`, `Order.order_status_id`
-- [ ] Все тесты order lifecycle проходят
+- [x] `OrderProduct.received_at` использует `timezone.now()` (было уже корректно)
+- [x] Добавлены индексы: `(user, order_status)`, `(order_date)` на Order; `(seller_profile, status)` на OrderProduct (миграция 0009, 2026-05-18)
+- [x] Все тесты order/ reviews/ проходят (37 passed, exit 0, 2026-05-18)
 
 ---
 
@@ -315,6 +315,51 @@ class OrderProductStatus:
 ```
 
 Обновить все места использования на импорт из `constants.py`.
+
+### Итерация 3b — Migrations & Indexes (2026-05-18)
+
+**Изменённые файлы:**
+
+| Файл | Изменение |
+|------|-----------|
+| `backend/order/models.py` | `Order.user` → `SET_NULL, null=True, blank=True`; `Order.__str__` null-safe; `OrderStatus.name unique=True`; добавлены индексы |
+| `backend/order/migrations/0009_order_consistency.py` | **создан** |
+
+**Детали изменений в `models.py`:**
+
+- `OrderStatus.name` → `unique=True` (защита от дублей)
+- `Order.user` → `on_delete=SET_NULL, null=True, blank=True` (GDPR / финансовое хранение)
+- `Order.__str__` → null-safe: `self.user.email if self.user_id else "deleted_user"`
+- `Order.Meta.indexes` += `(user, order_status)`, `(order_date)`
+- `OrderProduct.Meta.indexes` += `(seller_profile, status)`
+- `OrderProduct.received_at` — уже использовал `timezone.now()`, не изменялся
+
+**Миграция `0009_order_consistency`:**
+- `AlterField` OrderStatus.name → unique
+- `AlterField` Order.user → SET_NULL / null
+- `AddIndex` order_user_status_idx
+- `AddIndex` order_orderdate_idx
+- `AddIndex` orderproduct_seller_status_idx
+
+**Валидация (2026-05-18):**
+
+```bash
+docker compose -f docker-compose.test.yml run --rm backend_test \
+  python manage.py makemigrations --check --dry-run
+# → exit 0, "No changes detected"
+
+docker compose -f docker-compose.test.yml run --rm backend_test \
+  pytest order/ reviews/ -q
+# → 37 passed, exit 0
+```
+
+**Предупреждения для production:**
+- `unique=True` на `OrderStatus.name`: перед apply проверить дубли:
+  `SELECT name, COUNT(*) FROM order_orderstatus GROUP BY name HAVING COUNT(*) > 1`
+- `SET_NULL` на `Order.user`: применять в maintenance window или через `CONCURRENTLY`
+- Индексы добавляются блокирующим `CREATE INDEX`; для prod большой таблицы использовать `RunSQL + CONCURRENTLY`
+
+---
 
 ### Шаг 2: Миграции (требуют review)
 

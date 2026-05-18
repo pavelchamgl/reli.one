@@ -25,7 +25,7 @@ class DeliveryType(models.Model):
 
 # Статус заказа: Pending, Processing, Shipped, Delivered, Cancelled (Enum)
 class OrderStatus(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, unique=True)
 
     class Meta:
         verbose_name = 'Ordered status'
@@ -92,7 +92,12 @@ class Invoice(models.Model):
 
 class Order(models.Model):
     order_number = models.CharField(max_length=50, unique=True, default=generate_order_number)
-    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        'accounts.CustomUser',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
     first_name = models.CharField(max_length=150)
     last_name = models.CharField(max_length=150)
     customer_email = models.EmailField()
@@ -124,10 +129,13 @@ class Order(models.Model):
         verbose_name_plural = 'Orders'
         indexes = [
             models.Index(fields=("user", "order_date"), name="order_user_orderdate_idx"),
+            models.Index(fields=("user", "order_status"), name="order_user_status_idx"),
+            models.Index(fields=("order_date",), name="order_orderdate_idx"),
         ]
 
     def __str__(self):
-        return f"Order #{self.order_number} by {self.user.email} on {self.order_date.strftime('%d.%m.%Y')}"
+        email = self.user.email if self.user_id else "deleted_user"
+        return f"Order #{self.order_number} by {email} on {self.order_date.strftime('%d.%m.%Y')}"
 
     def calculate_refund(self):
         # Начальная сумма возврата - это стоимость всех незабранных товаров
@@ -184,6 +192,9 @@ class OrderProduct(models.Model):
     class Meta:
         verbose_name = 'Ordered product'
         verbose_name_plural = 'Ordered products'
+        indexes = [
+            models.Index(fields=("seller_profile", "status"), name="orderproduct_seller_status_idx"),
+        ]
 
     def __str__(self):
         return f"{self.quantity} of {self.product.name} in order {self.order.pk}"
