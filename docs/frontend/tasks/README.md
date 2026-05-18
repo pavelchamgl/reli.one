@@ -37,6 +37,7 @@
 | **FE-007** | Test Infra i18n Provider & Docs Sync | 2 | P1 | **Done** |
 | **FE-008** | [Playwright E2E Foundation](./008-playwright-e2e-foundation/task.md) | 4 | P3 | **Done** |
 | **FE-009** | [Checkout Happy Path E2E](./009-checkout-happy-path-e2e/task.md) | 4 | P3 | **Done** |
+| **FE-010** | [Seller Onboarding E2E Smoke](./010-seller-onboarding-e2e-smoke/task.md) | 4 | P3 | **Done** |
 
 ---
 

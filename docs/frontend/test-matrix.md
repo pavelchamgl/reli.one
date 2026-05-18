@@ -50,6 +50,10 @@
 | Checkout: basket → payment навигация через кнопку Continue | P0 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
 | Checkout: payment section 1 (адресная форма) рендерится | P0 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
 | Checkout: нет Stripe/PayPal вызовов на section 1 | P0 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
+| Seller onboarding: login page загружается | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
+| Seller onboarding: create-account page загружается | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
+| Seller onboarding: seller-type page рендерит выбор типа (мок API) | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
+| Seller onboarding: application-sub показывает confirmation (мок API) | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
 
 ## Frontend2 — сценарии
 

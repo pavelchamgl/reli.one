@@ -134,7 +134,7 @@
 | 4.0 ✅ | FE-008 | Smoke e2e: root/home/protected-redirect/search/wildcard — 5/5 passed |
 | 4.1 ✅ | FE-009 | Playwright e2e: checkout happy path — basket/payment section 1, no PSP calls — 6/6 passed |
 | 4.2 | FE-P3-001 follow-up | Playwright e2e: checkout sections 2–3 (delivery mock + payment form) |
-| 4.3 | FE-P3-002 | Playwright e2e: seller onboarding smoke (login → step 1 → step 2 ...) |
+| 4.3 ✅ | FE-010 | Playwright e2e: seller onboarding smoke (login/create-account/seller-type/application-sub) — 4/4 passed |
 | 4.4 | — | Расширение матрицы P1 e2e по [test-matrix.md](./test-matrix.md) |
 
 ---
