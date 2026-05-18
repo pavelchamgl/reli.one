@@ -45,6 +45,11 @@
 | Smoke: protected seller route → /seller/login redirect | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |
 | Smoke: search page loads | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |
 | Smoke: unknown route → wildcard fallback | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |
+| Checkout: basket page открывается (пустая корзина) | P1 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
+| Checkout: basket page с товаром из Redux state | P1 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
+| Checkout: basket → payment навигация через кнопку Continue | P0 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
+| Checkout: payment section 1 (адресная форма) рендерится | P0 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
+| Checkout: нет Stripe/PayPal вызовов на section 1 | P0 | e2e | Покрыто | [`e2e/checkout.spec.js`](../../Frontend/Frontend3/e2e/checkout.spec.js) |
 
 ## Frontend2 — сценарии
 
