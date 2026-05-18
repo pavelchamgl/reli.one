@@ -146,8 +146,8 @@ Order domain содержит несколько структурных проб
 
 - [ ] `Order.user` → `on_delete=SET_NULL` (миграция)
 - [ ] `OrderStatus.name` → `unique=True` (миграция)
-- [ ] Создан `backend/order/constants.py` с константами статусов
-- [ ] Все строковые сравнения статусов заменены на константы
+- [x] Создан `backend/order/constants.py` с константами статусов (2026-05-18)
+- [x] Строковые сравнения статусов: delivery/utils.py исправлен; остальные raw-строки — документация/API-ключи (не бизнес-логика)
 - [ ] `OrderProduct.received_at` использует `timezone.now()`
 - [ ] Добавлены индексы на `Order.user_id`, `Order.order_status_id`
 - [ ] Все тесты order lifecycle проходят
@@ -235,8 +235,59 @@ class OrderUserDeletionTest(TestCase):
 
 ## Iteration 3 — Migration & Constants
 
-### Цель
-Применить миграции и создать централизованные константы.
+### Итерация 3a — Constants (2026-05-18)
+
+**Аудит raw-строк (полный):**
+
+| Место | Строка | Тип | Решение |
+|-------|--------|-----|---------|
+| `order/order_status_names.py` | все | определение констант | уже был, используется везде |
+| `delivery/utils.py:156` | `"awaiting_shipment"` | DB-фильтр | **заменено** → `ProductStatus.AWAITING_SHIPMENT` |
+| `order/seller_views.py` (enum/examples) | `"Pending"`, `"Shipped"` и др. | OpenAPI-документация | оставлено — не логика |
+| `analytics/services.py` (dict keys) | `"awaiting_assembly"` и др. | ключи ответа API-контракта | оставлено — изменение нарушит контракт |
+| `analytics/tests.py` | то же | тестовая фикстура | оставлено |
+
+**Созданные артефакты:**
+
+- `backend/order/constants.py` — единый модуль для всех констант домена:
+  - `OrderStatusName` — re-export из `order.order_status_names` (backward compat)
+  - `DeliveryStatusName` — новый класс (PENDING / IN_TRANSIT / DELIVERED / FAILED)
+  - `OrderProductStatus` — re-export `ProductStatus` из `order.models`
+
+**Изменённые файлы:**
+
+| Файл | Изменение |
+|------|-----------|
+| `backend/order/constants.py` | **создан** |
+| `backend/delivery/utils.py` | raw `"awaiting_shipment"` → `ProductStatus.AWAITING_SHIPMENT` |
+
+**Не изменялось (intentional):**
+
+- `order/order_status_names.py` — сохранён, всё ещё canonical import-path (10+ файлов)
+- `order/models.py` — `ProductStatus` TextChoices остаётся в models; не дублируется
+- Миграции — не создавались (не входит в scope итерации)
+- Business logic — не изменялась
+
+**Валидация:**
+
+```bash
+# Статическая (синтаксис + линтер):
+python3 -c "import ast; ..." # OK — order/constants.py, order/order_status_names.py, delivery/utils.py
+# Linter: 0 ошибок
+```
+
+```bash
+# Docker-тесты (требуется запущенный Docker daemon, выполнить вручную):
+docker compose -f docker-compose.test.yml run --rm backend_test pytest order/ reviews/ -q
+```
+
+**Статус:**
+- [x] `constants.py` создан
+- [x] Raw-строка в `delivery/utils.py` заменена на константу
+- [ ] Docker-тесты order/ reviews/ (выполнить при запущенном Docker)
+- [ ] Миграции — следующая итерация
+
+---
 
 ### Шаг 1: Константы (без миграций)
 
@@ -330,9 +381,10 @@ self.received_at = timezone.now()
 | `backend/order/migrations/XXXX_*.py` | новые миграции |
 
 ### Статус
-- [ ] constants.py created
-- [ ] All string comparisons updated
-- [ ] timezone.now() fix applied
+- [x] constants.py created (2026-05-18)
+- [x] Raw-string в delivery/utils.py заменена на константу (2026-05-18)
+- [ ] All string comparisons updated (analytics dict-keys — deferred, API contract)
+- [ ] timezone.now() fix applied (уже применён в models.py — `timezone.now()`)
 - [ ] Migrations written
 
 ---
