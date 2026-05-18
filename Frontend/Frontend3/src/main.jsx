@@ -75,6 +75,7 @@ import NewTermsPage from "./pages/NewTermsPage.jsx";
 import FinishVerificationPage from "./sellerPages/FinishVerificationPage/FinishVerificationPage.jsx";
 import ActionRequiredPage from "./sellerPages/ActionRequiredPage/ActionRequiredPage.jsx";
 import UnderReviewPage from "./sellerPages/UnderReviewPage/UnderReviewPage.jsx";
+import VerifiedAnalyt from "./sellerPages/VerifiedAnalyt/VerifiedAnalyt.jsx";
 
 const router = createBrowserRouter([
   {
@@ -281,6 +282,10 @@ const router = createBrowserRouter([
       {
         path: 'under-review',
         element: <UnderReviewPage />
+      },
+      {
+        path: 'verified-analyt',
+        element: <VerifiedAnalyt />
       }
     ],
   },

@@ -1,0 +1,89 @@
+.main {
+  border: 1.48px solid #d1d5dc;
+  border-radius: 14px;
+  padding: 32px;
+  width: 100%;
+
+  box-shadow:
+    0 2px 4px -2px rgba(0, 0, 0, 0.1),
+    0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #fff 0%, #f9fafb 100%);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+
+  & h5 {
+    font-weight: 600;
+    font-size: 20px;
+    color: #0a0a0a;
+  }
+
+  & div {
+    width: 100%;
+  }
+}
+
+.text {
+  margin-top: 8px;
+  margin-bottom: 16px;
+  font-weight: 400;
+  font-size: 16px;
+  color: #4a5565;
+}
+
+.btn {
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  color: white;
+
+  background: #00a63e;
+
+  border-radius: 8px;
+  width: 246px;
+  height: 48px;
+
+  transition: 0.5s ease;
+
+  @media (max-width: 500px) {
+    width: 100%;
+  }
+}
+
+.btn:hover {
+  background-color: #00792d;
+}
+
+.agreementWrap {
+  border: 1.48px solid #b9f8cf;
+  border-radius: 10px;
+  padding: 16px;
+  width: 100%;
+
+  background-color: #f0fdf4;
+
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  & h6 {
+    font-weight: 500;
+    font-size: 16px;
+    color: #0d542b;
+  }
+}
+
+.agreementDate {
+  font-weight: 400;
+  font-size: 14px;
+  color: #008236;
+
+  & span {
+    font-family: var(--ft);
+    font-weight: 300;
+    font-size: 13px;
+  }
+}

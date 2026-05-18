@@ -41,9 +41,9 @@ const SellerTab = () => {
       </button>
       <button
         className={
-          pathname === "/seller/seller-order" ? styles.tabBtnAcc : styles.tabBtn
+          pathname === "/seller/finish-verification" ? styles.tabBtnAcc : styles.tabBtn
         }
-        onClick={() => navigate("/seller/seller-order")}
+        onClick={() => navigate("/seller/finish-verification")}
       >
         {t('salesAnalytics')}
       </button>
