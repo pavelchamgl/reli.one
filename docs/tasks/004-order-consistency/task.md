@@ -150,7 +150,7 @@ Order domain содержит несколько структурных проб
 - [x] Строковые сравнения статусов: delivery/utils.py исправлен; остальные raw-строки — документация/API-ключи (не бизнес-логика)
 - [x] `OrderProduct.received_at` использует `timezone.now()` (было уже корректно)
 - [x] Добавлены индексы: `(user, order_status)`, `(order_date)` на Order; `(seller_profile, status)` на OrderProduct (миграция 0009, 2026-05-18)
-- [x] Все тесты order/ reviews/ проходят (37 passed, exit 0, 2026-05-18)
+- [x] Все тесты order/ reviews/ проходят (40 passed, exit 0, 2026-05-18; +3 SET_NULL регрессии)
 
 ---
 
@@ -229,7 +229,22 @@ class OrderUserDeletionTest(TestCase):
 ```
 
 ### Статус
-- [ ] Tests written
+- [x] Tests written (2026-05-18, Task 012 follow-up)
+
+### Iteration 2 — Validation (2026-05-18)
+
+Добавлен класс `OrderUserDeletionTests` в `backend/order/tests.py` (3 теста):
+
+| Тест | Что проверяет |
+|------|---------------|
+| `test_order_survives_user_deletion` | `user.delete()` не каскадирует удаление заказа |
+| `test_order_user_is_none_after_user_deletion` | `order.user is None` после удаления пользователя |
+| `test_order_str_safe_after_user_deletion` | `str(order)` не бросает `AttributeError`; содержит `"deleted_user"` и `order_number` |
+
+```bash
+docker compose -f docker-compose.test.yml run --rm backend_test pytest order/ reviews/ -q
+# → 40 passed, exit 0  (было 37 до добавления тестов)
+```
 
 ---
 

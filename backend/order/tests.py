@@ -10,6 +10,7 @@ Covers:
 - OrderStatusName vs seller actions — единый источник имён статуса заказа
 - SellerOrderActionsService — confirm / mark shipped / cancel (Task 012)
 - OrderStatus — регрессия строковой хрупкости имён (Task 004 analysis)
+- OrderUserDeletionTests — SET_NULL регрессия: user.delete() не каскадирует заказ (Task 004 Iter 3b)
 
 See also test_webhook_lifecycle.py for checkout webhook → Order/Payment/Invoice integration.
 """
@@ -403,6 +404,71 @@ class OrderStatusStringFragilityTests(TestCase):
         title = OrderStatus.objects.create(name="Pending")
         self.assertNotEqual(low.pk, title.pk)
         self.assertNotEqual(low.name, title.name)
+
+
+# ---------------------------------------------------------------------------
+# Order.user SET_NULL — deletion regression (Task 004 Iteration 3b / Task 012)
+# ---------------------------------------------------------------------------
+
+
+class OrderUserDeletionTests(OrderTestMixin, TestCase):
+    """
+    After Order.user → on_delete=SET_NULL (migration 0009), deleting a customer
+    must NOT cascade-delete their orders.  The order must remain accessible and
+    Order.__str__() must not raise.
+
+    Each test creates its own isolated customer so that deleting it does not
+    affect shared fixtures from OrderTestMixin.setUpTestData.
+    """
+
+    def _fresh_customer(self) -> "CustomUser":
+        """Per-test user; email is unique via id(self)."""
+        return CustomUser.objects.create_user(
+            email=f"deletable-{id(self)}@example.com",
+            password="x",
+            first_name="Temp",
+            last_name="Customer",
+            role=UserRole.CUSTOMER,
+        )
+
+    def _make_order_for(self, user: "CustomUser") -> Order:
+        return Order.objects.create(
+            user=user,
+            first_name=user.first_name,
+            last_name=user.last_name,
+            customer_email=user.email,
+            total_amount=Decimal("50.00"),
+            group_subtotal=Decimal("50.00"),
+            delivery_type=self.delivery_type,
+            order_status=self.order_status,
+            delivery_cost=Decimal("0.00"),
+        )
+
+    def test_order_survives_user_deletion(self):
+        """Deleting a customer does NOT cascade-delete their orders."""
+        user = self._fresh_customer()
+        order = self._make_order_for(user)
+        order_pk = order.pk
+        user.delete()
+        self.assertTrue(Order.objects.filter(pk=order_pk).exists())
+
+    def test_order_user_is_none_after_user_deletion(self):
+        """After user.delete(), Order.user is set to None (SET_NULL)."""
+        user = self._fresh_customer()
+        order = self._make_order_for(user)
+        user.delete()
+        order.refresh_from_db()
+        self.assertIsNone(order.user)
+
+    def test_order_str_safe_after_user_deletion(self):
+        """Order.__str__() must not raise AttributeError when user is None."""
+        user = self._fresh_customer()
+        order = self._make_order_for(user)
+        user.delete()
+        order.refresh_from_db()
+        result = str(order)
+        self.assertIn("deleted_user", result)
+        self.assertIn(order.order_number, result)
 
 
 # ---------------------------------------------------------------------------
