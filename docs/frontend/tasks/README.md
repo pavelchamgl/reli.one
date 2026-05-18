@@ -38,6 +38,7 @@
 | **FE-008** | [Playwright E2E Foundation](./008-playwright-e2e-foundation/task.md) | 4 | P3 | **Done** |
 | **FE-009** | [Checkout Happy Path E2E](./009-checkout-happy-path-e2e/task.md) | 4 | P3 | **Done** |
 | **FE-010** | [Seller Onboarding E2E Smoke](./010-seller-onboarding-e2e-smoke/task.md) | 4 | P3 | **Done** |
+| **FE-011** | Full-Stack Seller Onboarding E2E (FS-001) | 5 | P2 | **Done** — `e2e/fullstack-seller-onboarding.spec.js`; авто-skip без бэкенда |
 
 ---
 

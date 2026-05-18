@@ -252,6 +252,19 @@
 | Seller-type с mock onboarding state |
 | `pending_verification` screen с mock state |
 
+#### `e2e/fullstack-seller-onboarding.spec.js` — FS-001, full-stack (требует backend)
+
+Тесты автоматически **пропускаются**, если бэкенд недоступен.  
+Запуск: `docker compose -f docker-compose.e2e.yml up --build` → `npm run build && npm run test:e2e`.
+
+Стратегия: `request` fixture → прямые API-вызовы к Django; `page.route()` proxy → перенаправление `https://reli.one/api/*` → `http://localhost:8000/api/*`; JWT в localStorage через `addInitScript`.
+
+| # | Сценарий | Тип |
+|---|---------|-----|
+| FS-001a | Полная API-цепочка self-employed онбординга → `pending_verification` | Backend API |
+| FS-001b | Страница `/seller/application-sub` отображает `pending_verification` из реального бэкенда | Full-stack UI |
+| FS-001c | Выбор `seller-type` через UI → навигация на `/seller/seller-info` → тип сохранён в БД | Full-stack UI |
+
 ---
 
 ### Пробелы во Frontend3
@@ -294,5 +307,6 @@
 | basketSlice + API (frontend3) | Высокое | — |
 | ProtectedRoute + компоненты (frontend3) | Среднее | P1 — добавить компоненты |
 | Checkout E2E (frontend3) | Частично (FE-009) | P1 — happy path с бэком |
+| Full-stack seller onboarding E2E (frontend3) | FS-001 (3 теста, skip без бэкенда) | — |
 | Seller dashboard (frontend3) | Нет | P2 |
 | Frontend2 | Нет | P2 |

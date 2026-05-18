@@ -215,6 +215,18 @@ graph TD
 - [x] Рекомендуемый порядок реализации зафиксирован.
 - [ ] Дизайн согласован с командой (review PR).
 
+## Статус реализации FS-001
+
+**FS-001 реализован:** `Frontend/Frontend3/e2e/fullstack-seller-onboarding.spec.js`
+
+| Сценарий | Файл | Статус |
+|---------|------|--------|
+| FS-001a — API chain → `pending_verification` | `fullstack-seller-onboarding.spec.js` | **Done** |
+| FS-001b — UI `/seller/application-sub` с реальным бэкендом | `fullstack-seller-onboarding.spec.js` | **Done** |
+| FS-001c — Выбор seller-type через UI → навигация → БД | `fullstack-seller-onboarding.spec.js` | **Done** |
+
+Инфраструктурный подход: `page.route()` proxy (нет новых docker-compose) + JWT seeding через `addInitScript` + авто-skip при недоступном бэкенде.
+
 ---
 
 ## Связанные ссылки

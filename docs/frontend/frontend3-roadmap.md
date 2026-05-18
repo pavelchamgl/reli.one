@@ -136,6 +136,7 @@
 | 4.2 | FE-P3-001 follow-up | Playwright e2e: checkout sections 2–3 (delivery mock + payment form) |
 | 4.3 ✅ | FE-010 | Playwright e2e: seller onboarding smoke (login/create-account/seller-type/application-sub) — 4/4 passed |
 | 4.4 | — | Расширение матрицы P1 e2e по [test-matrix.md](./test-matrix.md) |
+| 4.5 ✅ | FE-011 | Full-stack e2e: seller onboarding FS-001 (3 теста, Django + Postgres, proxy-forwarding, skip без бэкенда) |
 
 ---
 
