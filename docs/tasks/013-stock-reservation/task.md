@@ -2,7 +2,7 @@
 
 **Priority:** P0 (блокирует корректное списание в webhook)
 **Complexity:** High
-**Status:** Design complete (2026-05-18); реализация — Phase 1–5 ниже
+**Status:** Phase 1 complete (2026-05-19) — DB layer only; Phase 2 (service) — pending
 
 ---
 
@@ -779,7 +779,7 @@ test_webhook_after_expiry_policy_correct
 
 | Фаза | Задачи | Зависимости | Риск |
 |------|--------|-------------|------|
-| **Phase 1** | Модели + миграции (`StockReservation`, `StockReservationItem`, `WarehouseItem.reserved_quantity`) | Task 004 миграции применены | Низкий (только DDL) |
+| **Phase 1** ✅ | Модели + миграции (`StockReservation`, `StockReservationItem`, `WarehouseItem.reserved_quantity`) | Task 004 миграции применены | Низкий (только DDL) |
 | **Phase 2** | `StockReservationService` (create/confirm/release) + unit tests | Phase 1 | Средний (concurrency tests) |
 | **Phase 3** | Интеграция в session builders (Stripe + PayPal) под feature flag | Phase 2 | Средний (регрессии checkout) |
 | **Phase 4** | Интеграция в webhook success/failure handlers | Phase 2 | Высокий (payment-critical path) |
@@ -801,8 +801,8 @@ test_webhook_after_expiry_policy_correct
 
 ## 14. Definition of Done
 
-- [ ] `WarehouseItem.reserved_quantity` добавлен и мигрирован
-- [ ] Модели `StockReservation`, `StockReservationItem` созданы
+- [x] `WarehouseItem.reserved_quantity` добавлен и мигрирован (Phase 1, 2026-05-19)
+- [x] Модели `StockReservation`, `StockReservationItem` созданы (Phase 1, 2026-05-19)
 - [ ] `StockReservationService.create_reservation()` — атомарно, deadlock-safe, idempotent
 - [ ] `StockReservationService.confirm_reservation()` — вызывает `decrease_stock()`, idempotent
 - [ ] `StockReservationService.release_reservation()` — освобождает `reserved_quantity`, idempotent
@@ -816,7 +816,7 @@ test_webhook_after_expiry_policy_correct
 - [ ] Concurrency test: два сессии → только один успех на последний item
 - [ ] Integration test: webhook success/failure/replay
 - [ ] Regression: `pytest payment/ order/ warehouses/ -q` зелёный с включённым флагом
-- [ ] `makemigrations --check` exit 0
+- [x] `makemigrations --check` exit 0 (Phase 1, 2026-05-19)
 - [ ] Документация ошибки 409 для фронтенда (UX: «товар только что закончился»)
 
 ---
@@ -841,3 +841,4 @@ test_webhook_after_expiry_policy_correct
 |------|-----------|
 | 2026-05-11 | Создан документ: зафиксирован baseline, риски, целевой flow, запрет на включение списания без резерва |
 | 2026-05-18 | Полный технический дизайн: архитектурные варианты, модели данных, lifecycle, concurrency, edge cases, фазированный план, DoD |
+| 2026-05-19 | Phase 1 реализована: `WarehouseItem.reserved_quantity`, `StockReservation`, `StockReservationItem`, миграция `0002_stock_reservation`. `makemigrations --check` exit 0. `pytest payment/ order/ warehouses/ -q` → 113 passed, exit 0. |
