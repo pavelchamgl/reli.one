@@ -2,7 +2,7 @@
 
 **Priority:** P0 (блокирует корректное списание в webhook)
 **Complexity:** High
-**Status:** Phase 1 complete (2026-05-19) — DB layer only; Phase 2 (service) — pending
+**Status:** Phase 2 complete (2026-05-19) — service layer + tests; Phase 3 (session integration) — pending
 
 ---
 
@@ -780,7 +780,7 @@ test_webhook_after_expiry_policy_correct
 | Фаза | Задачи | Зависимости | Риск |
 |------|--------|-------------|------|
 | **Phase 1** ✅ | Модели + миграции (`StockReservation`, `StockReservationItem`, `WarehouseItem.reserved_quantity`) | Task 004 миграции применены | Низкий (только DDL) |
-| **Phase 2** | `StockReservationService` (create/confirm/release) + unit tests | Phase 1 | Средний (concurrency tests) |
+| **Phase 2** ✅ | `StockReservationService` (create/confirm/release) + unit + concurrency tests | Phase 1 | Средний (concurrency tests) |
 | **Phase 3** | Интеграция в session builders (Stripe + PayPal) под feature flag | Phase 2 | Средний (регрессии checkout) |
 | **Phase 4** | Интеграция в webhook success/failure handlers | Phase 2 | Высокий (payment-critical path) |
 | **Phase 5** | Cleanup management command + cron | Phase 2 | Низкий |
@@ -803,18 +803,18 @@ test_webhook_after_expiry_policy_correct
 
 - [x] `WarehouseItem.reserved_quantity` добавлен и мигрирован (Phase 1, 2026-05-19)
 - [x] Модели `StockReservation`, `StockReservationItem` созданы (Phase 1, 2026-05-19)
-- [ ] `StockReservationService.create_reservation()` — атомарно, deadlock-safe, idempotent
-- [ ] `StockReservationService.confirm_reservation()` — вызывает `decrease_stock()`, idempotent
-- [ ] `StockReservationService.release_reservation()` — освобождает `reserved_quantity`, idempotent
+- [x] `StockReservationService.create_reservation()` — атомарно, deadlock-safe, idempotent (Phase 2, 2026-05-19)
+- [x] `StockReservationService.confirm_reservation()` — инлайн-декремент, idempotent (Phase 2, 2026-05-19)
+- [x] `StockReservationService.release_reservation()` — освобождает `reserved_quantity`, idempotent (Phase 2, 2026-05-19)
 - [ ] Интеграция в `build_stripe_checkout_context`: 409 при нехватке stock
 - [ ] Интеграция в `build_paypal_checkout_context`: 409 при нехватке stock
 - [ ] Интеграция в `create_orders_and_payment` (webhook success): confirm
 - [ ] Обработчики failure/cancel/expired webhook: release
 - [ ] Cleanup command `release_expired_reservations` с `skip_locked`
 - [ ] Feature flag `STOCK_RESERVATION_ENABLED` работает как kill-switch
-- [ ] Unit tests: create/confirm/release + idempotency
-- [ ] Concurrency test: два сессии → только один успех на последний item
-- [ ] Integration test: webhook success/failure/replay
+- [x] Unit tests: create/confirm/release + idempotency (29 unit tests, Phase 2, 2026-05-19)
+- [x] Concurrency test: два сессии → только один успех на последний item (2 tests, Phase 2, 2026-05-19)
+- [ ] Integration test: webhook success/failure/replay (Phase 4)
 - [ ] Regression: `pytest payment/ order/ warehouses/ -q` зелёный с включённым флагом
 - [x] `makemigrations --check` exit 0 (Phase 1, 2026-05-19)
 - [ ] Документация ошибки 409 для фронтенда (UX: «товар только что закончился»)
@@ -842,3 +842,4 @@ test_webhook_after_expiry_policy_correct
 | 2026-05-11 | Создан документ: зафиксирован baseline, риски, целевой flow, запрет на включение списания без резерва |
 | 2026-05-18 | Полный технический дизайн: архитектурные варианты, модели данных, lifecycle, concurrency, edge cases, фазированный план, DoD |
 | 2026-05-19 | Phase 1 реализована: `WarehouseItem.reserved_quantity`, `StockReservation`, `StockReservationItem`, миграция `0002_stock_reservation`. `makemigrations --check` exit 0. `pytest payment/ order/ warehouses/ -q` → 113 passed, exit 0. |
+| 2026-05-19 | Phase 2 реализована: `warehouses/services/` package, `StockReservationService` (create/confirm/release), `InsufficientStockError.detail`, 31 новых тестов (29 unit + 2 concurrency). `pytest payment/ order/ warehouses/ -q` → 144 passed, exit 0. |

@@ -2,8 +2,8 @@ import logging
 
 from django.db import transaction
 
-from .exceptions import InsufficientStockError
-from .models import WarehouseItem
+from warehouses.exceptions import InsufficientStockError
+from warehouses.models import WarehouseItem
 
 logger = logging.getLogger(__name__)
 
