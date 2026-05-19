@@ -2,7 +2,7 @@
 
 **Priority:** P0 (блокирует корректное списание в webhook)
 **Complexity:** High
-**Status:** Phase 6 prep complete (2026-05-19) — local Docker smoke automation; staging/prod flag enable — ops
+**Status:** Phase 6 — local smoke ✅; staging rollout runbook ready ([`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md)); выполнение на сервере — ops
 
 ---
 
@@ -869,6 +869,20 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 1. Аналогично с `PAYPAL_MODE=sandbox` и webhook URL из [`docs/testing/paypal-e2e-checklist.md`](../testing/paypal-e2e-checklist.md).
 2. События success / voided — проверить confirm и release.
 
+### 13.2 Staging rollout (ops)
+
+Полный пошаговый runbook: **[`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md)**.
+
+| Шаг | Действие |
+|-----|----------|
+| 1 | Deploy + `migrate` (`0002_stock_reservation`) |
+| 2 | `STOCK_RESERVATION_ENABLED=True` + restart backend |
+| 3 | Cron `*/5 * * * * … release_expired_reservations` |
+| 4 | `python manage.py smoke_stock_reservation` |
+| 5 | Manual sandbox: Stripe/PayPal success, 409, replay, abandoned → evidence table в runbook |
+| 6 | `python manage.py report_stock_reservation_health` (+ SQL в runbook) |
+| 7 | При инциденте: флаг `False`, restart, cron **оставить** |
+
 ### Rollback checklist (staging/prod)
 
 | Шаг | Действие |
@@ -942,3 +956,4 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 | 2026-05-19 | Phase 4 реализована: `confirm_checkout_stock_reservation_if_enabled()` в начале `_persist_checkout_in_atomic`, release на Stripe (`checkout.session.expired`, `async_payment_failed`) и PayPal (`CHECKOUT.ORDER.VOIDED`, `PAYMENT.CAPTURE.DENIED`), replay не вызывает confirm, 6 интеграционных + 2 unit тестов. `pytest payment/ warehouses/ -q` → 116 passed; `pytest payment/ order/ warehouses/ -q` → 156 passed, exit 0. |
 | 2026-05-19 | Phase 5 реализована: `python manage.py release_expired_reservations` (`--dry-run`, `--limit`), `select_for_update(skip_locked=True)`, cron `*/5 * * * *`, 8 тестов команды. `pytest warehouses/ -q` → 41 passed; `pytest payment/ order/ warehouses/ -q` → 164 passed, exit 0. |
 | 2026-05-19 | Phase 6 prep: `smoke_reservation_rollout.py`, pytest `tests_stock_reservation_smoke.py`, `manage.py smoke_stock_reservation`, env examples (`STOCK_RESERVATION_*`), раздел 13.1 (Docker checklist, Stripe/PayPal manual, rollback). |
+| 2026-05-19 | Phase 6 staging runbook: [`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md), `report_stock_reservation_health`, admin для `StockReservation` / `reserved_quantity`. |
