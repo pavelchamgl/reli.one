@@ -27,6 +27,7 @@ from payment.models import Payment, PayPalMetadata, StripeMetadata
 from product.models import BaseProduct, ProductStatus, ProductVariant
 from sellers.models import SellerProfile
 from warehouses.models import StockReservation, Warehouse, WarehouseItem
+from warehouses.services.reservation import StockReservationService
 
 
 def _resolved_zip_ok():
@@ -982,6 +983,395 @@ class StockReservationCheckoutSessionTests(CheckoutCatalogMixin, TestCase):
         reservation = StockReservation.objects.get()
         self.assertEqual(reservation.status, StockReservation.Status.RELEASED)
         self.assertEqual(reservation.payment_system, "paypal")
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.reserved_quantity, 0)
+
+
+class StockReservationWebhookTests(CheckoutCatalogMixin, TestCase):
+    """Task 013 Phase 4 — confirm/release in payment webhooks."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.setUpCatalog()
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def _reserve_stock(self, session_key: str, qty: int, payment_system: str = "stripe"):
+        groups = [{"products": [{"sku": self.variant.sku, "quantity": qty}]}]
+        StockReservationService.create_reservation(
+            session_key=session_key,
+            payment_system=payment_system,
+            groups=groups,
+            variant_map={self.variant.sku: self.variant},
+        )
+
+    def _stripe_group_meta(self, qty: int, delivery_opt: Decimal, group_total: Decimal):
+        return {
+            "seller_id": self.seller_profile.id,
+            "delivery_type": 2,
+            "courier_service": 2,
+            "delivery_address": {
+                "street": "Test 9",
+                "city": "Praha",
+                "zip": "11000",
+                "country": "CZ",
+            },
+            "products": [{"sku": self.variant.sku, "quantity": qty}],
+            "calculated_delivery_cost": str(delivery_opt),
+            "calculated_total_parcels": 1,
+            "calculated_group_total": str(group_total),
+        }
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
+    @patch("payment.views.stripe.Webhook.construct_event")
+    def test_stripe_success_confirms_reservation_and_decrements_stock(
+        self,
+        mock_construct,
+        _mock_pdf,
+        _mock_email_client,
+        _mock_parcels,
+    ):
+        qty = 2
+        delivery_opt = Decimal("5.21")
+        unit_acq = self.variant.price_with_acquiring
+        group_total = (unit_acq * qty + delivery_opt).quantize(Decimal("0.01"))
+        session_key = "stripe-res-confirm-key"
+        session_id = "cs_stripe_res_confirm"
+
+        self._reserve_stock(session_key, qty, payment_system="stripe")
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.reserved_quantity, qty)
+
+        StripeMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                "user_id": str(self.customer.id),
+                "email": self.customer.email,
+                "first_name": "Buyer",
+                "last_name": "Test",
+                "phone": "+420777123456",
+                "delivery_address": {"country": "CZ", "zip": "11000", "city": "Praha"},
+            },
+            invoice_data={
+                "invoice_number": "2026003001",
+                "groups": [self._stripe_group_meta(qty, delivery_opt, group_total)],
+            },
+            description_data={
+                "gross_total": str(group_total),
+                "delivery_total": str(delivery_opt),
+                "variable_symbol": "2026003001",
+            },
+        )
+
+        mock_construct.return_value = {
+            "id": "evt_confirm",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": session_id,
+                    "metadata": {"session_key": session_key},
+                    "amount_total": int(group_total * 100),
+                    "currency": "eur",
+                    "customer": None,
+                    "payment_intent": "pi_confirm",
+                }
+            },
+        }
+
+        response = self.client.post(
+            reverse("stripe_webhook"),
+            data=b"{}",
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="sig_mock",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        reservation = StockReservation.objects.get(session_key=session_key)
+        self.assertEqual(reservation.status, StockReservation.Status.CONFIRMED)
+
+        wi.refresh_from_db()
+        self.assertEqual(wi.quantity_in_stock, 50 - qty)
+        self.assertEqual(wi.reserved_quantity, 0)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
+    @patch.object(PayPalMixin, "verify_webhook", return_value=True)
+    def test_paypal_success_confirms_reservation_and_decrements_stock(
+        self,
+        _mock_verify,
+        _mock_pdf,
+        _mock_email_client,
+        _mock_parcels,
+    ):
+        qty = 3
+        delivery_opt = Decimal("5.21")
+        unit_acq = self.variant.price_with_acquiring
+        group_total = (unit_acq * qty + delivery_opt).quantize(Decimal("0.01"))
+        session_key = "paypal-res-confirm-key"
+        paypal_order_id = "PP-RES-CONFIRM"
+
+        self._reserve_stock(session_key, qty, payment_system="paypal")
+
+        PayPalMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                "user_id": str(self.customer.id),
+                "email": self.customer.email,
+                "first_name": "Buyer",
+                "last_name": "Test",
+                "phone": "+420777123456",
+                "delivery_address": {"country": "CZ"},
+            },
+            invoice_data={
+                "invoice_number": "2026003002",
+                "groups": [self._stripe_group_meta(qty, delivery_opt, group_total)],
+            },
+            description_data={
+                "gross_total": str(group_total),
+                "delivery_total": str(delivery_opt),
+                "variable_symbol": "2026003002",
+            },
+        )
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.COMPLETED",
+            "resource": {
+                "id": paypal_order_id,
+                "purchase_units": [
+                    {
+                        "reference_id": session_key,
+                        "amount": {"value": str(group_total), "currency_code": "EUR"},
+                    }
+                ],
+            },
+        }
+        response = self.client.post(
+            reverse("paypal_webhook"),
+            data=json.dumps(payload).encode("utf-8"),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        reservation = StockReservation.objects.get(session_key=session_key)
+        self.assertEqual(reservation.status, StockReservation.Status.CONFIRMED)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50 - qty)
+        self.assertEqual(wi.reserved_quantity, 0)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
+    @patch("payment.views.stripe.Webhook.construct_event")
+    def test_stripe_webhook_replay_does_not_double_decrement_stock(
+        self,
+        mock_construct,
+        _mock_pdf,
+        _mock_email_client,
+        _mock_parcels,
+    ):
+        qty = 2
+        delivery_opt = Decimal("5.21")
+        unit_acq = self.variant.price_with_acquiring
+        group_total = (unit_acq * qty + delivery_opt).quantize(Decimal("0.01"))
+        session_key = "stripe-res-replay-key"
+        session_id = "cs_stripe_res_replay"
+
+        self._reserve_stock(session_key, qty)
+        StripeMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                "user_id": str(self.customer.id),
+                "email": self.customer.email,
+                "first_name": "Buyer",
+                "last_name": "Test",
+                "phone": "+420777123456",
+                "delivery_address": {"country": "CZ"},
+            },
+            invoice_data={
+                "invoice_number": "2026003003",
+                "groups": [self._stripe_group_meta(qty, delivery_opt, group_total)],
+            },
+            description_data={
+                "gross_total": str(group_total),
+                "delivery_total": str(delivery_opt),
+                "variable_symbol": "2026003003",
+            },
+        )
+
+        event = {
+            "id": "evt_replay",
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": session_id,
+                    "metadata": {"session_key": session_key},
+                    "amount_total": int(group_total * 100),
+                    "currency": "eur",
+                    "payment_intent": "pi_replay",
+                }
+            },
+        }
+        mock_construct.return_value = event
+        url = reverse("stripe_webhook")
+
+        r1 = self.client.post(
+            url, data=b"{}", content_type="application/json", HTTP_STRIPE_SIGNATURE="sig",
+        )
+        self.assertEqual(r1.status_code, status.HTTP_200_OK)
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        stock_after_first = wi.quantity_in_stock
+        self.assertEqual(stock_after_first, 50 - qty)
+
+        r2 = self.client.post(
+            url, data=b"{}", content_type="application/json", HTTP_STRIPE_SIGNATURE="sig",
+        )
+        self.assertEqual(r2.status_code, status.HTTP_200_OK)
+        wi.refresh_from_db()
+        self.assertEqual(wi.quantity_in_stock, stock_after_first)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
+    @patch("payment.views.stripe.Webhook.construct_event")
+    def test_stripe_success_without_reservation_is_backward_compatible(
+        self,
+        mock_construct,
+        _mock_pdf,
+        _mock_email_client,
+        _mock_parcels,
+    ):
+        qty = 1
+        delivery_opt = Decimal("5.21")
+        unit_acq = self.variant.price_with_acquiring
+        group_total = (unit_acq * qty + delivery_opt).quantize(Decimal("0.01"))
+        session_key = "stripe-no-reservation-key"
+        session_id = "cs_stripe_no_res"
+
+        StripeMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                "user_id": str(self.customer.id),
+                "email": self.customer.email,
+                "first_name": "Buyer",
+                "last_name": "Test",
+                "phone": "+420777123456",
+                "delivery_address": {"country": "CZ"},
+            },
+            invoice_data={
+                "invoice_number": "2026003004",
+                "groups": [self._stripe_group_meta(qty, delivery_opt, group_total)],
+            },
+            description_data={
+                "gross_total": str(group_total),
+                "delivery_total": str(delivery_opt),
+                "variable_symbol": "2026003004",
+            },
+        )
+
+        mock_construct.return_value = {
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "id": session_id,
+                    "metadata": {"session_key": session_key},
+                    "amount_total": int(group_total * 100),
+                    "currency": "eur",
+                    "payment_intent": "pi_legacy",
+                }
+            },
+        }
+
+        response = self.client.post(
+            reverse("stripe_webhook"),
+            data=b"{}",
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="sig",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(StockReservation.objects.count(), 0)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.views.stripe.Webhook.construct_event")
+    def test_stripe_expired_webhook_releases_reservation(self, mock_construct):
+        qty = 2
+        session_key = "stripe-res-expired-key"
+        self._reserve_stock(session_key, qty)
+
+        mock_construct.return_value = {
+            "type": "checkout.session.expired",
+            "data": {
+                "object": {
+                    "id": "cs_expired",
+                    "metadata": {"session_key": session_key},
+                }
+            },
+        }
+
+        response = self.client.post(
+            reverse("stripe_webhook"),
+            data=b"{}",
+            content_type="application/json",
+            HTTP_STRIPE_SIGNATURE="sig",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        reservation = StockReservation.objects.get(session_key=session_key)
+        self.assertEqual(reservation.status, StockReservation.Status.RELEASED)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.reserved_quantity, 0)
+        self.assertEqual(wi.quantity_in_stock, 50)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch.object(PayPalMixin, "verify_webhook", return_value=True)
+    def test_paypal_voided_webhook_releases_reservation(self, _mock_verify):
+        qty = 1
+        session_key = "paypal-res-voided-key"
+        self._reserve_stock(session_key, qty, payment_system="paypal")
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.VOIDED",
+            "resource": {
+                "id": "PP-VOID-1",
+                "purchase_units": [{"reference_id": session_key}],
+            },
+        }
+        response = self.client.post(
+            reverse("paypal_webhook"),
+            data=json.dumps(payload).encode("utf-8"),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("status"), "released")
+
+        reservation = StockReservation.objects.get(session_key=session_key)
+        self.assertEqual(reservation.status, StockReservation.Status.RELEASED)
 
         wi = WarehouseItem.objects.get(product_variant=self.variant)
         self.assertEqual(wi.reserved_quantity, 0)

@@ -325,9 +325,12 @@ class TestSetConvCacheAfterCommit(SimpleTestCase):
 class TestCreateOrdersIdempotency(SimpleTestCase):
     """create_orders_and_payment — idempotent replay."""
 
+    @patch("payment.services.webhook_processing.confirm_checkout_stock_reservation_if_enabled")
     @patch("payment.services.webhook_processing.set_conv_cache_after_commit")
     @patch("payment.services.webhook_processing.Payment")
-    def test_returns_replay_result_when_payment_exists(self, mock_payment_cls, mock_cache_fn):
+    def test_returns_replay_result_when_payment_exists(
+        self, mock_payment_cls, mock_cache_fn, mock_confirm,
+    ):
         existing = MagicMock()
         existing.amount_total = Decimal("100.00")
         existing.currency = "EUR"
@@ -338,6 +341,7 @@ class TestCreateOrdersIdempotency(SimpleTestCase):
         self.assertIsNotNone(result)
         self.assertTrue(result.is_replay)
         self.assertEqual(result.orders, [])
+        mock_confirm.assert_not_called()
         mock_cache_fn.assert_called_once_with(
             "cs_test_123",  # conv_cache_id
             Decimal("100.00"),
@@ -345,9 +349,12 @@ class TestCreateOrdersIdempotency(SimpleTestCase):
             source="StripeWebhook",
         )
 
+    @patch("payment.services.webhook_processing.confirm_checkout_stock_reservation_if_enabled")
     @patch("payment.services.webhook_processing.set_conv_cache_after_commit")
     @patch("payment.services.webhook_processing.Payment")
-    def test_paypal_replay_uses_conv_cache_id(self, mock_payment_cls, mock_cache_fn):
+    def test_paypal_replay_uses_conv_cache_id(
+        self, mock_payment_cls, mock_cache_fn, mock_confirm,
+    ):
         existing = MagicMock()
         existing.amount_total = Decimal("50.00")
         existing.currency = "EUR"
@@ -362,6 +369,7 @@ class TestCreateOrdersIdempotency(SimpleTestCase):
         result = create_orders_and_payment(data)
 
         self.assertTrue(result.is_replay)
+        mock_confirm.assert_not_called()
         mock_cache_fn.assert_called_once()
         call_args = mock_cache_fn.call_args[0]
         self.assertEqual(call_args[0], "my-uuid-key")  # conv_cache_id, не session_id
@@ -1496,7 +1504,7 @@ class TestStripeWebhookViewHttp(SimpleTestCase):
 
     def test_verify_failure_400_empty_body(self):
         with patch(
-            "payment.views.verify_and_resolve_stripe_checkout_event",
+            "payment.views.construct_stripe_webhook_event",
             return_value=StripeWebhookVerifyResult(
                 early_status=400,
                 early_no_body=True,
@@ -1513,10 +1521,9 @@ class TestStripeWebhookViewHttp(SimpleTestCase):
 
     def test_unhandled_event_type_200_empty_body(self):
         with patch(
-            "payment.views.verify_and_resolve_stripe_checkout_event",
+            "payment.views.construct_stripe_webhook_event",
             return_value=StripeWebhookVerifyResult(
-                early_status=200,
-                early_no_body=True,
+                event={"type": "charge.succeeded", "data": {}},
             ),
         ):
             resp = self.client.post(
@@ -1534,7 +1541,7 @@ class TestStripeWebhookViewHttp(SimpleTestCase):
             "data": {"object": {"id": "cs_x", "metadata": {}}},
         }
         with patch(
-            "payment.views.verify_and_resolve_stripe_checkout_event",
+            "payment.views.construct_stripe_webhook_event",
             return_value=StripeWebhookVerifyResult(event=ev),
         ):
             resp = self.client.post(
@@ -1559,7 +1566,7 @@ class TestStripeWebhookViewHttp(SimpleTestCase):
             },
         }
         with patch(
-            "payment.views.verify_and_resolve_stripe_checkout_event",
+            "payment.views.construct_stripe_webhook_event",
             return_value=StripeWebhookVerifyResult(event=ev),
         ), patch(
             "payment.views.StripeMetadata.objects.get",
@@ -1588,7 +1595,7 @@ class TestStripeWebhookViewHttp(SimpleTestCase):
         }
         meta = MagicMock()
         with patch(
-            "payment.views.verify_and_resolve_stripe_checkout_event",
+            "payment.views.construct_stripe_webhook_event",
             return_value=StripeWebhookVerifyResult(event=ev),
         ), patch(
             "payment.views.StripeMetadata.objects.get",

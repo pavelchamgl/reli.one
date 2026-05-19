@@ -21,6 +21,9 @@ from django.core.cache import caches
 from django.db import IntegrityError, transaction
 from rest_framework.exceptions import ValidationError
 
+from payment.services.checkout_shared import confirm_checkout_stock_reservation_if_enabled
+from warehouses.exceptions import InsufficientStockError
+
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
 from delivery.utils_async import async_parcels_and_seller_email
@@ -312,6 +315,19 @@ def _persist_checkout_in_atomic(
 
     try:
         with transaction.atomic():
+            try:
+                confirm_checkout_stock_reservation_if_enabled(data.session_key)
+            except InsufficientStockError as exc:
+                logger.error(
+                    "[%s] Stock reservation confirm failed for session_key=%s: %s",
+                    source,
+                    data.session_key,
+                    exc.detail,
+                )
+                raise ValidationError(
+                    f"Stock reservation confirm failed: {exc.detail}"
+                ) from exc
+
             for idx, group in enumerate(groups, start=1):
                 dt = DeliveryType.objects.filter(id=group.get("delivery_type")).first()
                 if not dt:

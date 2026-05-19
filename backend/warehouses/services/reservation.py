@@ -1,9 +1,9 @@
 """
 StockReservationService — lifecycle management for stock reservations.
 
-Task 013 Phase 2+.  Session builders call ``create_reservation`` when
-``STOCK_RESERVATION_ENABLED`` is True (Phase 3).  Webhook confirm/release — Phase 4.
-Use ``STOCK_RESERVATION_ENABLED`` as the runtime kill-switch.
+Task 013 Phase 2+.  Session builders call ``create_reservation``; webhooks call
+``confirm_reservation`` / ``release_reservation`` when ``STOCK_RESERVATION_ENABLED``
+is True (Phases 3–4).  Use the setting as the runtime kill-switch.
 
 Public API
 ----------

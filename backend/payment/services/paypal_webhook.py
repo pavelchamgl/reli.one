@@ -16,6 +16,7 @@ import requests
 from django.conf import settings
 
 from payment.models import PayPalMetadata
+from payment.services.checkout_shared import release_checkout_stock_reservation_if_enabled
 from payment.services.paypal_checkout import get_paypal_access_token
 from payment.services.webhook_processing import WebhookPaymentData
 
@@ -28,6 +29,15 @@ PAYPAL_HANDLED_EVENT_TYPES = frozenset(
         "CHECKOUT.ORDER.APPROVED",
     }
 )
+
+PAYPAL_RELEASE_EVENT_TYPES = frozenset(
+    {
+        "PAYMENT.CAPTURE.DENIED",
+        "CHECKOUT.ORDER.VOIDED",
+    }
+)
+
+PAYPAL_KNOWN_EVENT_TYPES = PAYPAL_HANDLED_EVENT_TYPES | PAYPAL_RELEASE_EVENT_TYPES
 
 PAYPAL_API_URL = settings.PAYPAL_API_URL
 
@@ -57,11 +67,69 @@ def parse_paypal_webhook_body(raw_body: str) -> PayPalWebhookParseResult:
         return PayPalWebhookParseResult(early_status=400, early_body={"error": "Invalid JSON"})
 
     event_type = payload.get("event_type")
-    if event_type not in PAYPAL_HANDLED_EVENT_TYPES:
+    if event_type not in PAYPAL_KNOWN_EVENT_TYPES:
         logger.info("Ignored PayPal event: %s", event_type)
         return PayPalWebhookParseResult(early_status=200, early_body={"status": "ignored"})
 
     return PayPalWebhookParseResult(payload=payload)
+
+
+def paypal_release_session_key_from_payload(
+    payload: dict,
+    *,
+    api_get: Callable[[str], dict] | None = None,
+) -> str | None:
+    """
+    Resolve internal session_key (reference_id) from PayPal failure/cancel webhook payload.
+    """
+    event_type = payload.get("event_type")
+    resource = payload.get("resource", {})
+
+    if event_type == "CHECKOUT.ORDER.VOIDED":
+        pu = (resource.get("purchase_units") or [{}])[0]
+        return pu.get("reference_id")
+
+    if event_type == "PAYMENT.CAPTURE.DENIED":
+        related = (resource.get("supplementary_data") or {}).get("related_ids") or {}
+        order_id = related.get("order_id")
+        if not order_id:
+            return None
+        api_get = api_get or default_paypal_api_get
+        try:
+            order_details = api_get(f"/v2/checkout/orders/{order_id}")
+        except Exception as exc:
+            logger.exception(
+                "[PayPalWebhook] Failed to load order %s for CAPTURE.DENIED release: %s",
+                order_id,
+                exc,
+            )
+            return None
+        pu = (order_details.get("purchase_units") or [{}])[0]
+        return pu.get("reference_id")
+
+    return None
+
+
+def handle_paypal_reservation_release_payload(payload: dict) -> None:
+    """Release stock reservation for PayPal failure/cancel webhook events."""
+    event_type = payload.get("event_type")
+    if event_type not in PAYPAL_RELEASE_EVENT_TYPES:
+        return
+
+    session_key = paypal_release_session_key_from_payload(payload)
+    if not session_key:
+        logger.warning(
+            "[PayPalWebhook] %s without resolvable session_key — skip reservation release",
+            event_type,
+        )
+        return
+
+    release_checkout_stock_reservation_if_enabled(session_key)
+    logger.info(
+        "[PayPalWebhook] Released stock reservation for session_key=%s (%s)",
+        session_key,
+        event_type,
+    )
 
 
 def default_paypal_api_get(path: str) -> dict:

@@ -115,3 +115,34 @@ def create_checkout_stock_reservation_if_enabled(
         )
     except InsufficientStockError as exc:
         raise error_cls({"stock": exc.detail}, http_status=409) from exc
+
+
+def confirm_checkout_stock_reservation_if_enabled(session_key: str) -> None:
+    """
+    Confirm a PENDING reservation after successful payment webhook.
+
+    No-op when ``STOCK_RESERVATION_ENABLED`` is False or reservation is missing
+    (legacy checkouts). Idempotent when reservation is already CONFIRMED/RELEASED.
+    """
+    if not getattr(settings, "STOCK_RESERVATION_ENABLED", False):
+        return
+
+    from warehouses.services.reservation import StockReservationService
+
+    StockReservationService.confirm_reservation(session_key)
+
+
+def release_checkout_stock_reservation_if_enabled(session_key: str | None) -> None:
+    """
+    Release a PENDING reservation on payment failure / cancel / expiry webhook.
+
+    No-op when flag is off or ``session_key`` is empty.
+    """
+    if not getattr(settings, "STOCK_RESERVATION_ENABLED", False):
+        return
+    if not session_key:
+        return
+
+    from warehouses.services.reservation import StockReservationService
+
+    StockReservationService.release_reservation(session_key)

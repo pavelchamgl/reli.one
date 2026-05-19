@@ -22,8 +22,11 @@ from .services import (
     get_orders_by_payment_session_id,
 )
 from .services.stripe_webhook import (
+    _STRIPE_HANDLED_TYPES,
+    _STRIPE_RELEASE_TYPES,
+    construct_stripe_webhook_event,
+    handle_stripe_reservation_release_event,
     stripe_checkout_session_to_webhook_payment_data,
-    verify_and_resolve_stripe_checkout_event,
 )
 from .services.stripe_session import (
     StripeSessionBuildError,
@@ -35,6 +38,8 @@ from .services.paypal_session import (
 )
 from warehouses.services.reservation import StockReservationService
 from .services.paypal_webhook import (
+    PAYPAL_RELEASE_EVENT_TYPES,
+    handle_paypal_reservation_release_payload,
     parse_paypal_webhook_body,
     paypal_payload_to_webhook_payment_data,
 )
@@ -359,15 +364,25 @@ class StripeWebhookView(APIView):
         payload = request.body.decode("utf-8")
         sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")
 
-        verify = verify_and_resolve_stripe_checkout_event(
+        constructed = construct_stripe_webhook_event(
             payload, sig_header, secret=endpoint_secret,
         )
-        if verify.early_status is not None:
-            if verify.early_no_body:
-                return Response(status=verify.early_status)
-            return Response(verify.early_body, status=verify.early_status)
+        if constructed.early_status is not None:
+            if constructed.early_no_body:
+                return Response(status=constructed.early_status)
+            return Response(constructed.early_body, status=constructed.early_status)
 
-        event = verify.event
+        event = constructed.event
+        event_type = event.get("type")
+
+        if event_type in _STRIPE_RELEASE_TYPES:
+            handle_stripe_reservation_release_event(event)
+            return Response(status=200)
+
+        if event_type not in _STRIPE_HANDLED_TYPES:
+            logger.info("Unhandled Stripe event: %s", event_type)
+            return Response(status=200)
+
         session = event["data"]["object"]
         session_id = session["id"]
         session_key = (session.get("metadata") or {}).get("session_key")
@@ -660,6 +675,10 @@ class PayPalWebhookView(PayPalMixin, APIView):
 
         if not self.verify_webhook(request, body):
             return Response({"error": "Invalid webhook signature"}, status=403)
+
+        if parsed.payload.get("event_type") in PAYPAL_RELEASE_EVENT_TYPES:
+            handle_paypal_reservation_release_payload(parsed.payload)
+            return Response({"status": "released"}, status=200)
 
         built = paypal_payload_to_webhook_payment_data(parsed.payload)
         if built.early_status is not None:
