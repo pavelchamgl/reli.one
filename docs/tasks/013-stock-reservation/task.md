@@ -2,7 +2,7 @@
 
 **Priority:** P0 (блокирует корректное списание в webhook)
 **Complexity:** High
-**Status:** Phase 4 complete (2026-05-19) — webhook confirm/release under feature flag; Phase 5 (cleanup cron) — pending
+**Status:** Phase 5 complete (2026-05-19) — `release_expired_reservations` command; Phase 6 (staging/prod rollout) — pending
 
 ---
 
@@ -416,11 +416,16 @@ class Command(BaseCommand):
             .select_for_update(skip_locked=True)  # skip reservations locked by active webhook
         )
         released = 0
-        for reservation in qs:
-            StockReservationService.release_reservation(reservation.session_key, reason="expired")
+        for reservation in reservations:
+            StockReservationService.release_reservation(
+                reservation.session_key,
+                final_status=StockReservation.Status.EXPIRED,
+            )
             released += 1
         self.stdout.write(f"Released {released} expired reservation(s).")
 ```
+
+Опции: `--dry-run` (только отчёт), `--limit N` (макс. строк за запуск). Реализация: `warehouses/management/commands/release_expired_reservations.py`.
 
 ### 6.3 Вызов cleanup
 
@@ -783,7 +788,7 @@ test_webhook_after_expiry_policy_correct
 | **Phase 2** ✅ | `StockReservationService` (create/confirm/release) + unit + concurrency tests | Phase 1 | Средний (concurrency tests) |
 | **Phase 3** ✅ | Интеграция в session builders (Stripe + PayPal) под feature flag | Phase 2 | Средний (регрессии checkout) |
 | **Phase 4** ✅ | Интеграция в webhook success/failure handlers | Phase 2–3 | Высокий (payment-critical path) |
-| **Phase 5** | Cleanup management command + cron | Phase 2 | Низкий |
+| **Phase 5** ✅ | Cleanup management command + cron | Phase 2 | Низкий |
 | **Phase 6** | Включение feature flag в staging → prod | Phase 3–5 зелёные | Высокий (первый production deploy) |
 
 ### Rollout sequence
@@ -810,7 +815,7 @@ test_webhook_after_expiry_policy_correct
 - [x] Интеграция в `build_paypal_checkout_context`: 409 при нехватке stock (Phase 3, 2026-05-19)
 - [x] Интеграция в `create_orders_and_payment` (webhook success): confirm (Phase 4, 2026-05-19)
 - [x] Обработчики failure/cancel/expired webhook: release (Phase 4, 2026-05-19)
-- [ ] Cleanup command `release_expired_reservations` с `skip_locked`
+- [x] Cleanup command `release_expired_reservations` с `skip_locked` (Phase 5, 2026-05-19)
 - [x] Feature flag `STOCK_RESERVATION_ENABLED` работает как kill-switch (Phase 3, 2026-05-19)
 - [x] Unit tests: create/confirm/release + idempotency (29 unit tests, Phase 2, 2026-05-19)
 - [x] Concurrency test: два сессии → только один успех на последний item (2 tests, Phase 2, 2026-05-19)
@@ -845,3 +850,4 @@ test_webhook_after_expiry_policy_correct
 | 2026-05-19 | Phase 2 реализована: `warehouses/services/` package, `StockReservationService` (create/confirm/release), `InsufficientStockError.detail`, 31 новых тестов (29 unit + 2 concurrency). `pytest payment/ order/ warehouses/ -q` → 144 passed, exit 0. |
 | 2026-05-19 | Phase 3 реализована: `STOCK_RESERVATION_ENABLED` (default False), `create_checkout_stock_reservation_if_enabled()` в `checkout_shared`, вызов из Stripe/PayPal builders после валидации и до metadata, rollback `release_reservation` при ошибке PSP во view, 8 новых тестов. `pytest payment/ warehouses/ -q` → 110 passed; `pytest payment/ order/ warehouses/ -q` → 150 passed, exit 0. |
 | 2026-05-19 | Phase 4 реализована: `confirm_checkout_stock_reservation_if_enabled()` в начале `_persist_checkout_in_atomic`, release на Stripe (`checkout.session.expired`, `async_payment_failed`) и PayPal (`CHECKOUT.ORDER.VOIDED`, `PAYMENT.CAPTURE.DENIED`), replay не вызывает confirm, 6 интеграционных + 2 unit тестов. `pytest payment/ warehouses/ -q` → 116 passed; `pytest payment/ order/ warehouses/ -q` → 156 passed, exit 0. |
+| 2026-05-19 | Phase 5 реализована: `python manage.py release_expired_reservations` (`--dry-run`, `--limit`), `select_for_update(skip_locked=True)`, cron `*/5 * * * *`, 8 тестов команды. `pytest warehouses/ -q` → 41 passed; `pytest payment/ order/ warehouses/ -q` → 164 passed, exit 0. |
