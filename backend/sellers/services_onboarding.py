@@ -641,6 +641,7 @@ def build_seller_onboarding_state_response(app: SellerOnboardingApplication) -> 
     documents_summary, documents_missing = compute_documents_summary_and_missing(app)
     data["documents_summary"] = documents_summary
     data["documents_missing"] = documents_missing
+    data["seller_profile_id"] = app.seller_profile_id
     return data
 
 

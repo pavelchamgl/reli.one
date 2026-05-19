@@ -252,6 +252,19 @@
 | Seller-type с mock onboarding state |
 | `pending_verification` screen с mock state |
 
+#### `e2e/fullstack-checkout-payment-session.spec.js` — FS-002, full-stack (требует backend)
+
+Тесты автоматически **пропускаются**, если бэкенд недоступен.
+
+Стратегия: `request` fixture → создание seller + product + customer через API; `page.route()` mock для PSP; Redux state seeded в localStorage (pageSection=3); JWT в localStorage.
+
+| # | Сценарий | Тип |
+|---|---------|-----|
+| FS-002a | API chain: input validation → SKU lookup → CZ origin → Packeta shipping → PSP boundary (500 Stripe expected) | Backend API |
+| FS-002b | UI section 3 с seeded Redux state → mocked create-stripe-payment → верификация payload (seller_id + SKU + delivery) | Full-stack UI |
+
+---
+
 #### `e2e/fullstack-seller-onboarding.spec.js` — FS-001, full-stack (требует backend)
 
 Тесты автоматически **пропускаются**, если бэкенд недоступен.  
@@ -271,7 +284,7 @@
 
 | Область | Что не покрыто |
 |---|---|
-| Checkout | Полный happy path с реальным бэкендом |
+| Checkout | Payment session — **покрыто FS-002 (PSP mocked)**. Полный webhook lifecycle (FS-003) — follow-up |
 | Страница продукта | Выбор варианта, добавление в корзину |
 | Профиль пользователя | Редактирование данных, смена пароля |
 | Seller dashboard | Управление товарами, обработка заказов |

@@ -215,6 +215,26 @@ graph TD
 - [x] Рекомендуемый порядок реализации зафиксирован.
 - [ ] Дизайн согласован с командой (review PR).
 
+## Статус реализации FS-002
+
+**FS-002 реализован:** `Frontend/Frontend3/e2e/fullstack-checkout-payment-session.spec.js`
+
+| Сценарий | Файл | Статус |
+|---------|------|--------|
+| FS-002a — API chain: validation → Packeta shipping → PSP boundary | `fullstack-checkout-payment-session.spec.js` | **Done** |
+| FS-002b — UI section 3 с seeded Redux state → mocked PSP → correct payload | `fullstack-checkout-payment-session.spec.js` | **Done** |
+
+Инфраструктурный подход:
+- `request` fixture для data setup (seller + warehouse + product + customer via API)
+- `seller_profile_id` добавлен в `GET /api/sellers/onboarding/state/` response (backend `services_onboarding.py`, 1 строка)
+- `page.route()` mock для create-stripe-payment (fake 200 response, no real Stripe call)
+- Redux state seeded в localStorage (pageSection=3 → section 3 сразу)
+- Авто-skip при недоступном бэкенде
+
+Документация: [`docs/frontend/tasks/012-full-stack-checkout-payment-session-e2e/task.md`](../../frontend/tasks/012-full-stack-checkout-payment-session-e2e/task.md)
+
+---
+
 ## Статус реализации FS-001
 
 **FS-001 реализован:** `Frontend/Frontend3/e2e/fullstack-seller-onboarding.spec.js`
