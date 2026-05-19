@@ -9,6 +9,9 @@
 #
 # Свой сценарий pytest:
 #   docker compose -f docker-compose.test.yml run --rm backend_test pytest payment/ -v
+#
+# Task 013 rollout smoke (stock reservation, no PSP):
+#   docker compose -f docker-compose.test.yml run --rm backend_test pytest warehouses/tests_stock_reservation_smoke.py -v
 
 services:
   postgres_test:

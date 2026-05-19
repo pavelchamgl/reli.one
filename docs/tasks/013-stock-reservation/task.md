@@ -2,7 +2,7 @@
 
 **Priority:** P0 (блокирует корректное списание в webhook)
 **Complexity:** High
-**Status:** Phase 5 complete (2026-05-19) — `release_expired_reservations` command; Phase 6 (staging/prod rollout) — pending
+**Status:** Phase 6 prep complete (2026-05-19) — local Docker smoke automation; staging/prod flag enable — ops
 
 ---
 
@@ -789,7 +789,97 @@ test_webhook_after_expiry_policy_correct
 | **Phase 3** ✅ | Интеграция в session builders (Stripe + PayPal) под feature flag | Phase 2 | Средний (регрессии checkout) |
 | **Phase 4** ✅ | Интеграция в webhook success/failure handlers | Phase 2–3 | Высокий (payment-critical path) |
 | **Phase 5** ✅ | Cleanup management command + cron | Phase 2 | Низкий |
-| **Phase 6** | Включение feature flag в staging → prod | Phase 3–5 зелёные | Высокий (первый production deploy) |
+| **Phase 6** 🔄 | Local Docker smoke automation ✅; включение флага staging → prod — ops | Phase 3–5 зелёные | Высокий (первый production deploy) |
+
+---
+
+## 13.1 Phase 6 — Local Docker smoke (перед staging/prod)
+
+**Тип smoke:** автоматизированный (pytest + опционально `manage.py`), **без** реальных вызовов Stripe/PayPal.  
+**Файлы:** `warehouses/smoke_reservation_rollout.py`, `warehouses/tests_stock_reservation_smoke.py`, `warehouses/management/commands/smoke_stock_reservation.py`.
+
+### Подготовка env (один раз)
+
+```bash
+cp envs/database.test.env.example envs/database.test.env
+cp envs/backend.test.env.example envs/backend.test.env
+# Секреты только в локальных envs/*.env — не коммитить.
+# Для manage.py smoke (не pytest) можно временно в backend.test.env:
+#   STOCK_RESERVATION_ENABLED=True
+```
+
+Плейсхолдеры Stripe/PayPal в `envs/backend.test.env.example` достаточны для регрессии; smoke их не вызывает.
+
+### Чеклист автоматизированного smoke (рекомендуется)
+
+| # | Проверка | Как |
+|---|----------|-----|
+| 1 | Миграции применены | `docker compose -f docker-compose.test.yml run --rm backend_test python manage.py migrate --noinput` |
+| 2 | Полная регрессия payment/order/warehouses | см. команду ниже |
+| 3 | Rollout smoke (флаг ON, 7 шагов) | `pytest warehouses/tests_stock_reservation_smoke.py -v` |
+| 4 | Cleanup command (входит в smoke) | `release_expired_reservations` внутри smoke |
+| 5 | Cron dry-run (опционально) | `python manage.py release_expired_reservations --dry-run` |
+
+**Что проверяет rollout smoke (service layer):**
+
+1. `WarehouseItem.quantity_in_stock=1`, первый `create_reservation` → `reserved_quantity=1`
+2. Второй резерв → `InsufficientStockError` (`available=0`)
+3. `create_checkout_stock_reservation_if_enabled` → `StripeSessionBuildError` с `http_status=409`
+4. `confirm_reservation` → `quantity_in_stock=0`, статус `CONFIRMED`
+5. Повторный `confirm_reservation` → без двойного списания
+6. Просроченный PENDING + `release_expired_reservations` → `EXPIRED`, `reserved_quantity` восстановлен
+7. (Регрессия) полный pytest payment/order/warehouses
+
+### Команды (из корня репозитория)
+
+```bash
+# 1) Регрессия (обязательно перед включением флага)
+docker compose -f docker-compose.test.yml run --rm backend_test \
+  pytest payment/ order/ warehouses/ -q
+
+# 2) Автоматизированный rollout smoke (STOCK_RESERVATION_ENABLED через @override_settings)
+docker compose -f docker-compose.test.yml run --rm backend_test \
+  pytest warehouses/tests_stock_reservation_smoke.py -v
+
+# 3) То же через management command (migrate + STOCK_RESERVATION_ENABLED=True)
+docker compose -f docker-compose.test.yml run --rm backend_test sh -c \
+  'python manage.py migrate --noinput && STOCK_RESERVATION_ENABLED=True python manage.py smoke_stock_reservation'
+
+# 4) Cleanup dry-run (опционально)
+docker compose -f docker-compose.test.yml run --rm backend_test \
+  python manage.py release_expired_reservations --dry-run
+```
+
+### Опционально: ручной sandbox smoke (Stripe CLI / PayPal)
+
+Только после зелёного автоматизированного smoke. Использовать **test/sandbox** ключи из секретного env, не из репозитория.
+
+**Stripe (локальный backend + туннель):**
+
+1. Поднять backend с `STOCK_RESERVATION_ENABLED=True` (staging-like env).
+2. Создать checkout через API/Frontend с SKU, у которого `quantity_in_stock=1`.
+3. Второй параллельный checkout того же SKU → ожидать **409** `{"stock": {...}}`.
+4. Оплатить первый checkout в Stripe test mode.
+5. `stripe listen --forward-to https://<host>/api/stripe-webhook/` (или e2e contour из [`docs/testing/stripe-e2e-checklist.md`](../testing/stripe-e2e-checklist.md)).
+6. Проверить: заказ создан, `StockReservation` → `CONFIRMED`, остаток уменьшен один раз.
+7. Повторить webhook → идемпотентность, без второго списания.
+
+**PayPal sandbox:**
+
+1. Аналогично с `PAYPAL_MODE=sandbox` и webhook URL из [`docs/testing/paypal-e2e-checklist.md`](../testing/paypal-e2e-checklist.md).
+2. События success / voided — проверить confirm и release.
+
+### Rollback checklist (staging/prod)
+
+| Шаг | Действие |
+|-----|----------|
+| 1 | **Немедленно:** `STOCK_RESERVATION_ENABLED=False` в env + перезапуск backend (новые checkout без резерва) |
+| 2 | Оставить cron `release_expired_reservations` включённым — освобождает старые PENDING |
+| 3 | Мониторинг: доля HTTP **409** на `create-stripe-payment` / `create-paypal-payment` |
+| 4 | Admin/DB: `StockReservation` со статусом `PENDING` и `expires_at < now()` — должны уходить в `EXPIRED` после cron |
+| 5 | При инциденте oversell: сверить `WarehouseItem.quantity_in_stock` vs фактический склад; ручная коррекция остатков |
+| 6 | Откат кода не обязателен, если флаг OFF — поведение как до Task 013 |
+| 7 | После стабилизации: post-mortem, при необходимости включить флаг снова после зелёного local smoke |
 
 ### Rollout sequence
 
@@ -851,3 +941,4 @@ test_webhook_after_expiry_policy_correct
 | 2026-05-19 | Phase 3 реализована: `STOCK_RESERVATION_ENABLED` (default False), `create_checkout_stock_reservation_if_enabled()` в `checkout_shared`, вызов из Stripe/PayPal builders после валидации и до metadata, rollback `release_reservation` при ошибке PSP во view, 8 новых тестов. `pytest payment/ warehouses/ -q` → 110 passed; `pytest payment/ order/ warehouses/ -q` → 150 passed, exit 0. |
 | 2026-05-19 | Phase 4 реализована: `confirm_checkout_stock_reservation_if_enabled()` в начале `_persist_checkout_in_atomic`, release на Stripe (`checkout.session.expired`, `async_payment_failed`) и PayPal (`CHECKOUT.ORDER.VOIDED`, `PAYMENT.CAPTURE.DENIED`), replay не вызывает confirm, 6 интеграционных + 2 unit тестов. `pytest payment/ warehouses/ -q` → 116 passed; `pytest payment/ order/ warehouses/ -q` → 156 passed, exit 0. |
 | 2026-05-19 | Phase 5 реализована: `python manage.py release_expired_reservations` (`--dry-run`, `--limit`), `select_for_update(skip_locked=True)`, cron `*/5 * * * *`, 8 тестов команды. `pytest warehouses/ -q` → 41 passed; `pytest payment/ order/ warehouses/ -q` → 164 passed, exit 0. |
+| 2026-05-19 | Phase 6 prep: `smoke_reservation_rollout.py`, pytest `tests_stock_reservation_smoke.py`, `manage.py smoke_stock_reservation`, env examples (`STOCK_RESERVATION_*`), раздел 13.1 (Docker checklist, Stripe/PayPal manual, rollback). |
