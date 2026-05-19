@@ -1,9 +1,9 @@
 """
 StockReservationService — lifecycle management for stock reservations.
 
-Task 013 Phase 2.  Not integrated into payment/checkout runtime yet;
-integration happens in Phase 3 (session builders) and Phase 4 (webhook handlers).
-Use ``STOCK_RESERVATION_ENABLED`` setting as the runtime kill-switch (Phase 3+).
+Task 013 Phase 2+.  Session builders call ``create_reservation`` when
+``STOCK_RESERVATION_ENABLED`` is True (Phase 3).  Webhook confirm/release — Phase 4.
+Use ``STOCK_RESERVATION_ENABLED`` as the runtime kill-switch.
 
 Public API
 ----------

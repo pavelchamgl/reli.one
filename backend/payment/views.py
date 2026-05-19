@@ -33,6 +33,7 @@ from .services.paypal_session import (
     PayPalSessionBuildError,
     build_paypal_checkout_context,
 )
+from warehouses.services.reservation import StockReservationService
 from .services.paypal_webhook import (
     parse_paypal_webhook_body,
     paypal_payload_to_webhook_payment_data,
@@ -314,6 +315,8 @@ class CreateStripePaymentView(APIView):
             )
 
         except Exception as e:
+            if settings.STOCK_RESERVATION_ENABLED:
+                StockReservationService.release_reservation(ctx.session_key)
             logger.exception(
                 "Stripe session creation failed for user=%s session_key=%s",
                 user.id,
@@ -606,6 +609,8 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 ctx.session_key,
             )
         except Exception as e:
+            if settings.STOCK_RESERVATION_ENABLED:
+                StockReservationService.release_reservation(ctx.session_key)
             logger.exception(
                 "PayPal session creation failed for user=%s session_key=%s",
                 user.id,

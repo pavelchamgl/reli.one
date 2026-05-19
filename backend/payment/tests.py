@@ -940,7 +940,65 @@ class TestCheckoutMetadataBuilders(SimpleTestCase):
 # payment.services.stripe_session — build_stripe_checkout_context
 # ===========================================================================
 
-from payment.services.stripe_session import build_stripe_checkout_context
+from payment.services.checkout_shared import create_checkout_stock_reservation_if_enabled
+from payment.services.stripe_session import StripeSessionBuildError, build_stripe_checkout_context
+
+
+class TestCreateCheckoutStockReservationIfEnabled(SimpleTestCase):
+    """Shared reservation hook used by Stripe and PayPal session builders."""
+
+    @patch("warehouses.services.reservation.StockReservationService")
+    def test_noop_when_flag_disabled(self, mock_svc):
+        from django.test import override_settings
+
+        with override_settings(STOCK_RESERVATION_ENABLED=False):
+            create_checkout_stock_reservation_if_enabled(
+                session_key="sk-1",
+                payment_system="stripe",
+                groups=[],
+                variant_map={},
+                error_cls=StripeSessionBuildError,
+            )
+        mock_svc.create_reservation.assert_not_called()
+
+    @patch("warehouses.services.reservation.StockReservationService")
+    def test_calls_service_when_flag_enabled(self, mock_svc):
+        from django.test import override_settings
+
+        with override_settings(STOCK_RESERVATION_ENABLED=True):
+            create_checkout_stock_reservation_if_enabled(
+                session_key="sk-2",
+                payment_system="paypal",
+                groups=[{"products": []}],
+                variant_map={},
+                error_cls=StripeSessionBuildError,
+            )
+        mock_svc.create_reservation.assert_called_once_with(
+            session_key="sk-2",
+            payment_system="paypal",
+            groups=[{"products": []}],
+            variant_map={},
+        )
+
+    @patch("warehouses.services.reservation.StockReservationService")
+    def test_maps_insufficient_stock_to_409(self, mock_svc):
+        from django.test import override_settings
+        from warehouses.exceptions import InsufficientStockError
+
+        mock_svc.create_reservation.side_effect = InsufficientStockError(
+            detail={"sku": "X", "requested": 2, "available": 0}
+        )
+        with override_settings(STOCK_RESERVATION_ENABLED=True):
+            with self.assertRaises(StripeSessionBuildError) as ctx:
+                create_checkout_stock_reservation_if_enabled(
+                    session_key="sk-3",
+                    payment_system="stripe",
+                    groups=[],
+                    variant_map={},
+                    error_cls=StripeSessionBuildError,
+                )
+        self.assertEqual(ctx.exception.http_status, 409)
+        self.assertEqual(ctx.exception.detail, {"stock": {"sku": "X", "requested": 2, "available": 0}})
 
 
 class TestBuildStripeCheckoutContext(SimpleTestCase):

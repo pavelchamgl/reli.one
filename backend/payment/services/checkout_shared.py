@@ -10,7 +10,12 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Type
+from typing import TYPE_CHECKING, Type
+
+from django.conf import settings
+
+if TYPE_CHECKING:
+    from product.models import ProductVariant
 
 _CHANNEL_MAP: dict[int, str] = {
     1: "PUDO",
@@ -79,3 +84,34 @@ def check_cz_origin_for_checkout(
                 ]
             },
         )
+
+
+def create_checkout_stock_reservation_if_enabled(
+    *,
+    session_key: str,
+    payment_system: str,
+    groups: list,
+    variant_map: dict[str, "ProductVariant"],
+    error_cls: Type[CheckoutSessionBuildError],
+) -> None:
+    """
+    Reserve stock after checkout validation, before PSP session creation.
+
+    No-op when ``STOCK_RESERVATION_ENABLED`` is False (preserves legacy behaviour).
+    Maps ``InsufficientStockError.detail`` to HTTP 409 via ``error_cls``.
+    """
+    if not getattr(settings, "STOCK_RESERVATION_ENABLED", False):
+        return
+
+    from warehouses.exceptions import InsufficientStockError
+    from warehouses.services.reservation import StockReservationService
+
+    try:
+        StockReservationService.create_reservation(
+            session_key=session_key,
+            payment_system=payment_system,
+            groups=groups,
+            variant_map=variant_map,
+        )
+    except InsufficientStockError as exc:
+        raise error_cls({"stock": exc.detail}, http_status=409) from exc

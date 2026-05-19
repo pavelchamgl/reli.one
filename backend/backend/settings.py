@@ -37,6 +37,10 @@ ENABLE_DELIVERY_DEV_ENDPOINTS = os.getenv(
     "ENABLE_DELIVERY_DEV_ENDPOINTS", "False"
 ).lower() in ("1", "true", "yes")
 
+# Task 013: stock reservation at checkout session creation (Phase 3+).
+# Default False — deploy code/migrations without changing checkout behaviour.
+STOCK_RESERVATION_ENABLED = str_to_bool(os.getenv("STOCK_RESERVATION_ENABLED", "False"))
+
 # E2E test helpers. NEVER enable in production. Default False.
 # STRIPE_WEBHOOK_SKIP_SIGNATURE — skip Stripe signature verification in webhook view.
 # ENABLE_E2E_ENDPOINTS — expose /api/e2e/* test-setup endpoints.

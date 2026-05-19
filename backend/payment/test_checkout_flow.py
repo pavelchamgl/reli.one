@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from django.core.files.base import ContentFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
@@ -26,7 +26,7 @@ from payment.mixins import PayPalMixin
 from payment.models import Payment, PayPalMetadata, StripeMetadata
 from product.models import BaseProduct, ProductStatus, ProductVariant
 from sellers.models import SellerProfile
-from warehouses.models import Warehouse, WarehouseItem
+from warehouses.models import StockReservation, Warehouse, WarehouseItem
 
 
 def _resolved_zip_ok():
@@ -772,3 +772,216 @@ class PayPalWebhookFlowTests(CheckoutCatalogMixin, TestCase):
 
         wi = WarehouseItem.objects.get(product_variant=self.variant)
         self.assertEqual(wi.quantity_in_stock, 50)
+
+
+class StockReservationCheckoutSessionTests(CheckoutCatalogMixin, TestCase):
+    """Task 013 Phase 3 — reservation at Stripe/PayPal session creation."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.setUpCatalog()
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.customer)
+
+    def _packeta_hd_payload(self, quantity=2):
+        return {
+            "email": self.customer.email,
+            "first_name": "Buyer",
+            "last_name": "Test",
+            "phone": "+420777123456",
+            "delivery_address": {
+                "street": "Test 9",
+                "city": "Praha",
+                "zip": "11000",
+                "country": "CZ",
+            },
+            "groups": [
+                {
+                    "seller_id": self.seller_profile.id,
+                    "delivery_type": 2,
+                    "courier_service": 2,
+                    "delivery_address": {
+                        "street": "Test 9",
+                        "city": "Praha",
+                        "zip": "11000",
+                        "country": "CZ",
+                    },
+                    "products": [{"sku": self.variant.sku, "quantity": quantity}],
+                }
+            ],
+        }
+
+    def _mock_shipping(self, mock_ship):
+        mock_ship.return_value = {
+            "options": [
+                {
+                    "channel": "HD",
+                    "service": "Home Delivery",
+                    "price": Decimal("4.31"),
+                    "priceWithVat": Decimal("5.21"),
+                    "currency": "EUR",
+                    "courier": "Zásilkovna",
+                }
+            ],
+            "total_parcels": 1,
+        }
+
+    @override_settings(STOCK_RESERVATION_ENABLED=False)
+    @patch("payment.services.stripe_checkout.stripe.checkout.Session.create")
+    @patch("payment.services.stripe_session.calculate_order_shipping")
+    @patch("payment.services.stripe_session.validate_phone_matches_country", return_value=None)
+    @patch("payment.services.stripe_session.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
+    @patch(
+        "payment.serializers.normalize_and_validate_phone",
+        return_value="+420777123456",
+    )
+    def test_flag_off_no_reservation_created(
+        self,
+        _mock_norm_top_phone,
+        _mock_zip,
+        _mock_phone,
+        mock_ship,
+        mock_stripe_create,
+    ):
+        self._mock_shipping(mock_ship)
+        mock_session = MagicMock()
+        mock_session.url = "https://checkout.stripe.test/pay/cs_flag_off"
+        mock_session.id = "cs_flag_off"
+        mock_stripe_create.return_value = mock_session
+
+        url = reverse("create_checkout_session")
+        response = self.client.post(url, self._packeta_hd_payload(), format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(StockReservation.objects.count(), 0)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.stripe_checkout.stripe.checkout.Session.create")
+    @patch("payment.services.stripe_session.calculate_order_shipping")
+    @patch("payment.services.stripe_session.validate_phone_matches_country", return_value=None)
+    @patch("payment.services.stripe_session.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
+    @patch(
+        "payment.serializers.normalize_and_validate_phone",
+        return_value="+420777123456",
+    )
+    def test_flag_on_creates_pending_reservation(
+        self,
+        _mock_norm_top_phone,
+        _mock_zip,
+        _mock_phone,
+        mock_ship,
+        mock_stripe_create,
+    ):
+        self._mock_shipping(mock_ship)
+        mock_session = MagicMock()
+        mock_session.url = "https://checkout.stripe.test/pay/cs_flag_on"
+        mock_session.id = "cs_flag_on"
+        mock_stripe_create.return_value = mock_session
+
+        url = reverse("create_checkout_session")
+        response = self.client.post(url, self._packeta_hd_payload(quantity=2), format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        reservation = StockReservation.objects.get(session_key=response.data["session_key"])
+        self.assertEqual(reservation.status, StockReservation.Status.PENDING)
+        self.assertEqual(reservation.payment_system, "stripe")
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.reserved_quantity, 2)
+        self.assertEqual(wi.quantity_in_stock, 50)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.stripe_session.calculate_order_shipping")
+    @patch("payment.services.stripe_session.validate_phone_matches_country", return_value=None)
+    @patch("payment.services.stripe_session.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
+    @patch(
+        "payment.serializers.normalize_and_validate_phone",
+        return_value="+420777123456",
+    )
+    def test_flag_on_insufficient_stock_returns_409(
+        self,
+        _mock_norm_top_phone,
+        _mock_zip,
+        _mock_phone,
+        mock_ship,
+    ):
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        wi.quantity_in_stock = 1
+        wi.reserved_quantity = 0
+        wi.save(update_fields=["quantity_in_stock", "reserved_quantity"])
+
+        self._mock_shipping(mock_ship)
+        url = reverse("create_checkout_session")
+        response = self.client.post(url, self._packeta_hd_payload(quantity=2), format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertIn("stock", response.data)
+        self.assertEqual(response.data["stock"]["sku"], self.variant.sku)
+        self.assertEqual(response.data["stock"]["requested"], 2)
+        self.assertEqual(response.data["stock"]["available"], 1)
+        self.assertEqual(StockReservation.objects.count(), 0)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch(
+        "payment.services.stripe_checkout.stripe.checkout.Session.create",
+        side_effect=RuntimeError("Stripe API down"),
+    )
+    @patch("payment.services.stripe_session.calculate_order_shipping")
+    @patch("payment.services.stripe_session.validate_phone_matches_country", return_value=None)
+    @patch("payment.services.stripe_session.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
+    @patch(
+        "payment.serializers.normalize_and_validate_phone",
+        return_value="+420777123456",
+    )
+    def test_stripe_psp_failure_releases_reservation(
+        self,
+        _mock_norm_top_phone,
+        _mock_zip,
+        _mock_phone,
+        mock_ship,
+        _mock_stripe_create,
+    ):
+        self._mock_shipping(mock_ship)
+        url = reverse("create_checkout_session")
+        response = self.client.post(url, self._packeta_hd_payload(quantity=1), format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        reservation = StockReservation.objects.get()
+        self.assertEqual(reservation.status, StockReservation.Status.RELEASED)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.reserved_quantity, 0)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch(
+        "payment.views.create_paypal_checkout_session",
+        side_effect=RuntimeError("PayPal API down"),
+    )
+    @patch("payment.services.paypal_session.calculate_order_shipping")
+    @patch("payment.services.paypal_session.validate_phone_matches_country", return_value=None)
+    @patch("payment.services.paypal_session.ZipCodeValidator.validate_and_resolve", return_value=_resolved_zip_ok())
+    @patch(
+        "payment.serializers.normalize_and_validate_phone",
+        return_value="+420777123456",
+    )
+    def test_paypal_psp_failure_releases_reservation(
+        self,
+        _mock_norm_top_phone,
+        _mock_zip,
+        _mock_phone,
+        mock_ship,
+        _mock_paypal_create,
+    ):
+        self._mock_shipping(mock_ship)
+        url = reverse("create_paypal_payment")
+        response = self.client.post(url, self._packeta_hd_payload(quantity=1), format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        reservation = StockReservation.objects.get()
+        self.assertEqual(reservation.status, StockReservation.Status.RELEASED)
+        self.assertEqual(reservation.payment_system, "paypal")
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.reserved_quantity, 0)

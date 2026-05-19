@@ -40,6 +40,7 @@ from payment.services.checkout_shared import (
     _CHANNEL_MAP,
     _D,
     check_cz_origin_for_checkout,
+    create_checkout_stock_reservation_if_enabled,
 )
 
 logger = logging.getLogger(__name__)
@@ -356,6 +357,17 @@ def build_paypal_checkout_context(
 
     session_key = str(uuid.uuid4())
     invoice_number, variable_symbol = next_invoice_identifiers()
+
+    # ------------------------------------------------------------------
+    # 5b. Stock reservation (feature-flagged; before metadata / PSP)
+    # ------------------------------------------------------------------
+    create_checkout_stock_reservation_if_enabled(
+        session_key=session_key,
+        payment_system="paypal",
+        groups=groups,
+        variant_map=variant_map,
+        error_cls=PayPalSessionBuildError,
+    )
 
     # ------------------------------------------------------------------
     # 6. Сохранение метаданных
