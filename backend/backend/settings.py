@@ -37,6 +37,16 @@ ENABLE_DELIVERY_DEV_ENDPOINTS = os.getenv(
     "ENABLE_DELIVERY_DEV_ENDPOINTS", "False"
 ).lower() in ("1", "true", "yes")
 
+# E2E test helpers. NEVER enable in production. Default False.
+# STRIPE_WEBHOOK_SKIP_SIGNATURE — skip Stripe signature verification in webhook view.
+# ENABLE_E2E_ENDPOINTS — expose /api/e2e/* test-setup endpoints.
+STRIPE_WEBHOOK_SKIP_SIGNATURE = os.getenv(
+    "STRIPE_WEBHOOK_SKIP_SIGNATURE", "False"
+).lower() in ("1", "true", "yes")
+ENABLE_E2E_ENDPOINTS = os.getenv(
+    "ENABLE_E2E_ENDPOINTS", "False"
+).lower() in ("1", "true", "yes")
+
 CSRF_TRUSTED_ORIGINS = [
     'https://reli.one',
     'https://www.reli.one',

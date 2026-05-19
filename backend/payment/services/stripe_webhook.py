@@ -5,11 +5,13 @@ HTTP-ответы формируются в StripeWebhookView; здесь тол
 """
 from __future__ import annotations
 
+import json
 import logging
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_HALF_UP
 
 import stripe
+from django.conf import settings
 
 from payment.models import StripeMetadata
 from payment.services.webhook_processing import WebhookPaymentData
@@ -45,7 +47,20 @@ def verify_and_resolve_stripe_checkout_event(
 ) -> StripeWebhookVerifyResult:
     """
     Проверка подписи Stripe и отбор событий checkout session (completed / async_payment_succeeded).
+
+    Когда STRIPE_WEBHOOK_SKIP_SIGNATURE=True (E2E-only, никогда в prod), подпись не проверяется:
+    тело парсится как JSON напрямую.
     """
+    if getattr(settings, "STRIPE_WEBHOOK_SKIP_SIGNATURE", False):
+        try:
+            event = json.loads(raw_body)
+        except (ValueError, TypeError):
+            return StripeWebhookVerifyResult(early_status=400, early_no_body=True)
+        if event.get("type") not in _STRIPE_HANDLED_TYPES:
+            logger.info("Unhandled Stripe event (skip-sig): %s", event.get("type"))
+            return StripeWebhookVerifyResult(early_status=200, early_no_body=True)
+        return StripeWebhookVerifyResult(event=event)
+
     try:
         event = stripe.Webhook.construct_event(raw_body, signature_header, secret)
     except (ValueError, stripe.error.SignatureVerificationError) as e:

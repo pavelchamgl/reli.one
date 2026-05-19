@@ -215,6 +215,25 @@ graph TD
 - [x] Рекомендуемый порядок реализации зафиксирован.
 - [ ] Дизайн согласован с командой (review PR).
 
+## Статус реализации FS-003
+
+**FS-003 реализован:** `Frontend/Frontend3/e2e/fullstack-payment-confirmation.spec.js`
+
+| Сценарий | Файл | Статус |
+|---------|------|--------|
+| FS-003a — Webhook lifecycle: StripeMetadata → POST /stripe-webhook/ → Order/Payment/Invoice + conversion-payload ready | `fullstack-payment-confirmation.spec.js` | **Done** |
+| FS-003b — UI /my_orders отображает заказ после webhook | `fullstack-payment-confirmation.spec.js` | **Done** |
+
+Инфраструктурный подход:
+- `STRIPE_WEBHOOK_SKIP_SIGNATURE=true` → webhook endpoint пропускает `stripe.Webhook.construct_event`
+- `ENABLE_E2E_ENDPOINTS=true` → `/api/e2e/payment/setup-order-data/` + `/api/e2e/payment/create-stripe-metadata/`
+- Авто-skip при недоступном бэкенде или отключённом `ENABLE_E2E_ENDPOINTS`
+- `/my_orders` (MyOrdersPage + HistorySmallCard) как UI assertion point (нет dedicated confirmation page)
+
+Документация: [`docs/frontend/tasks/013-full-stack-payment-confirmation-e2e/task.md`](../../frontend/tasks/013-full-stack-payment-confirmation-e2e/task.md)
+
+---
+
 ## Статус реализации FS-002
 
 **FS-002 реализован:** `Frontend/Frontend3/e2e/fullstack-checkout-payment-session.spec.js`

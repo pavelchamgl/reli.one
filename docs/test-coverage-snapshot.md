@@ -263,6 +263,19 @@
 | FS-002a | API chain: input validation → SKU lookup → CZ origin → Packeta shipping → PSP boundary (500 Stripe expected) | Backend API |
 | FS-002b | UI section 3 с seeded Redux state → mocked create-stripe-payment → верификация payload (seller_id + SKU + delivery) | Full-stack UI |
 
+#### `e2e/fullstack-payment-confirmation.spec.js` — FS-003, full-stack (требует backend)
+
+Тесты автоматически **пропускаются**, если бэкенд недоступен или `ENABLE_E2E_ENDPOINTS` не активен.
+
+Стратегия: `STRIPE_WEBHOOK_SKIP_SIGNATURE=true` → webhook без реальной подписи; E2E endpoints (`/api/e2e/payment/*`) для setup данных; `page.route()` proxy + JWT seed для UI части.
+
+Дополнительные backend изменения: `STRIPE_WEBHOOK_SKIP_SIGNATURE` setting, `ENABLE_E2E_ENDPOINTS` setting, `backend/payment/e2e_views.py` с двумя test-only views.
+
+| # | Сценарий | Тип |
+|---|---------|-----|
+| FS-003a | Webhook lifecycle: StripeMetadata → POST /api/stripe-webhook/ → Order + Payment + Invoice в DB → conversion-payload ready | Backend API |
+| FS-003b | UI: после webhook → /my_orders отображает заказ для customer (HistorySmallCard) | Full-stack UI |
+
 ---
 
 #### `e2e/fullstack-seller-onboarding.spec.js` — FS-001, full-stack (требует backend)
@@ -284,7 +297,7 @@
 
 | Область | Что не покрыто |
 |---|---|
-| Checkout | Payment session — **покрыто FS-002 (PSP mocked)**. Полный webhook lifecycle (FS-003) — follow-up |
+| Checkout | Payment session — **покрыто FS-002 (PSP mocked)**. Webhook lifecycle — **покрыто FS-003** (Order/Invoice в DB + UI). Подробности заказа на `/payment_end` — follow-up (страница показывает только generic success) |
 | Страница продукта | Выбор варианта, добавление в корзину |
 | Профиль пользователя | Редактирование данных, смена пароля |
 | Seller dashboard | Управление товарами, обработка заказов |

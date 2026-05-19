@@ -53,3 +53,18 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+if getattr(settings, "ENABLE_E2E_ENDPOINTS", False):
+    from payment.e2e_views import E2ECreateStripeMetadataView, E2ESetupOrderDataView
+    urlpatterns += [
+        path(
+            "api/e2e/payment/setup-order-data/",
+            E2ESetupOrderDataView.as_view(),
+            name="e2e_setup_order_data",
+        ),
+        path(
+            "api/e2e/payment/create-stripe-metadata/",
+            E2ECreateStripeMetadataView.as_view(),
+            name="e2e_create_stripe_metadata",
+        ),
+    ]

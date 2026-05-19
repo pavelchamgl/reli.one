@@ -138,6 +138,7 @@
 | 4.4 | — | Расширение матрицы P1 e2e по [test-matrix.md](./test-matrix.md) |
 | 4.5 ✅ | FE-011 | Full-stack e2e: seller onboarding FS-001 (3 теста, Django + Postgres, proxy-forwarding, skip без бэкенда) |
 | 4.6 ✅ | FE-012 | Full-stack e2e: checkout until payment session FS-002 (2 теста, real backend, PSP mocked, Redux state seeding, skip без бэкенда) |
+| 4.7 ✅ | FE-013 | Full-stack e2e: payment confirmation + webhook lifecycle FS-003 (2 теста, webhook mock, Order/Invoice в DB, /my_orders UI, skip без бэкенда) |
 
 ---
 

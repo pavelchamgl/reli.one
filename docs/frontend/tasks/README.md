@@ -40,6 +40,7 @@
 | **FE-010** | [Seller Onboarding E2E Smoke](./010-seller-onboarding-e2e-smoke/task.md) | 4 | P3 | **Done** |
 | **FE-011** | Full-Stack Seller Onboarding E2E (FS-001) | 5 | P2 | **Done** — `e2e/fullstack-seller-onboarding.spec.js`; авто-skip без бэкенда |
 | **FE-012** | [Full-Stack Checkout Until Payment Session E2E (FS-002)](./012-full-stack-checkout-payment-session-e2e/task.md) | 5 | P2 | **Done** — `e2e/fullstack-checkout-payment-session.spec.js`; PSP mocked; авто-skip без бэкенда |
+| **FE-013** | [Full-Stack Payment Confirmation E2E (FS-003)](./013-full-stack-payment-confirmation-e2e/task.md) | 5 | P2 | **Done** — `e2e/fullstack-payment-confirmation.spec.js`; webhook lifecycle + UI /my_orders; авто-skip без бэкенда |
 
 ---
 
