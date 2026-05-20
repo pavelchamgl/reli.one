@@ -87,6 +87,13 @@ class StockReservation(models.Model):
         db_index=True,
         help_text="Reservation TTL; cleanup job releases PENDING rows past this timestamp",
     )
+    provider_checkout_id = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Stripe Checkout Session ID (cs_…) or PayPal order ID for TTL cleanup",
+    )
     created_at   = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
     released_at  = models.DateTimeField(null=True, blank=True)

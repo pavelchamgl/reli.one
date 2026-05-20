@@ -12,6 +12,9 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from payment.services.reservation_payment import (
+    expire_provider_checkout_after_reservation_release,
+)
 from warehouses.models import StockReservation
 from warehouses.services.reservation import StockReservationService
 
@@ -53,7 +56,9 @@ class Command(BaseCommand):
 
         if dry_run:
             qs = base_qs[:limit] if limit is not None else base_qs
-            candidates = list(qs.only("session_key", "expires_at"))
+            candidates = list(
+                qs.only("session_key", "expires_at", "payment_system", "provider_checkout_id")
+            )
             for reservation in candidates:
                 self.stdout.write(
                     f"Would expire: {reservation.session_key} "
@@ -75,9 +80,16 @@ class Command(BaseCommand):
 
         released = 0
         for reservation in reservations:
+            provider_id = reservation.provider_checkout_id
+            payment_system = reservation.payment_system
             StockReservationService.release_reservation(
                 reservation.session_key,
                 final_status=StockReservation.Status.EXPIRED,
+            )
+            expire_provider_checkout_after_reservation_release(
+                session_key=reservation.session_key,
+                payment_system=payment_system,
+                provider_checkout_id=provider_id,
             )
             released += 1
             logger.info(

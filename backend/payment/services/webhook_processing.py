@@ -22,7 +22,9 @@ from django.db import IntegrityError, transaction
 from rest_framework.exceptions import ValidationError
 
 from payment.services.checkout_shared import confirm_checkout_stock_reservation_if_enabled
+from payment.services.reservation_payment import reservation_blocks_late_checkout_completion
 from warehouses.exceptions import InsufficientStockError
+from warehouses.models import StockReservation
 
 from accounts.models import CustomUser
 from delivery.models import DeliveryAddress
@@ -111,6 +113,7 @@ class WebhookProcessingResult:
     is_replay: bool = False
     invoice_created: bool = False
     origin_blocked: bool = False
+    late_payment_blocked: bool = False
 
 
 @dataclass
@@ -139,7 +142,12 @@ class _ConcurrentPaymentReplay:
     """Внутренний маркер: insert Payment проиграл гонку по unique (payment_system, session_id)."""
 
 
+class _LatePaymentBlocked:
+    """Внутренний маркер: success webhook after reservation left PENDING (EXPIRED/RELEASED/…)."""
+
+
 _CONCURRENT_PAYMENT_REPLAY = _ConcurrentPaymentReplay()
+_LATE_PAYMENT_BLOCKED = _LatePaymentBlocked()
 
 
 # ---------------------------------------------------------------------------
@@ -312,6 +320,27 @@ def _persist_checkout_in_atomic(
 
     orders_created: list[Order] = []
     invoice_created = False
+
+    blocked, reservation_status = reservation_blocks_late_checkout_completion(data.session_key)
+    if blocked:
+        reservation = (
+            StockReservation.objects.filter(session_key=data.session_key)
+            .only("provider_checkout_id")
+            .first()
+        )
+        logger.error(
+            "[%s] Late payment blocked (manual review): session_key=%s reservation_status=%s "
+            "payment_system=%s provider_checkout_id=%s session_id=%s amount=%s %s",
+            source,
+            data.session_key,
+            reservation_status,
+            data.payment_system,
+            getattr(reservation, "provider_checkout_id", None) if reservation else None,
+            data.session_id,
+            data.amount,
+            data.currency,
+        )
+        return _LATE_PAYMENT_BLOCKED
 
     try:
         with transaction.atomic():
@@ -565,6 +594,8 @@ def create_orders_and_payment(
     persist = _persist_checkout_in_atomic(data, ctx, source)
     if persist is None:
         return None
+    if persist is _LATE_PAYMENT_BLOCKED:
+        return WebhookProcessingResult(orders=[], late_payment_blocked=True)
     if persist is _CONCURRENT_PAYMENT_REPLAY:
         return WebhookProcessingResult(orders=[], is_replay=True)
 

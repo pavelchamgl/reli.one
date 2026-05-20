@@ -164,3 +164,52 @@ def create_paypal_checkout_session(
         raise RuntimeError("Failed to retrieve approval URL or order ID")
 
     return approval_url, order_id
+
+
+def void_paypal_checkout_order(paypal_order_id: str, *, session_key: str = "") -> None:
+    """
+    Best-effort void of a PayPal checkout order after reservation TTL.
+
+    Works only for orders in APPROVED state (CAPTURE intent). CREATED orders cannot be
+    voided via API — rely on PayPal expiry and webhook-side late-payment guard.
+    """
+    access_token = get_paypal_access_token()
+    if not access_token:
+        logger.warning(
+            "void_paypal_checkout_order: no token for order %s session_key=%s",
+            paypal_order_id,
+            session_key,
+        )
+        return
+
+    api_url = settings.PAYPAL_API_URL
+    try:
+        response = requests.post(
+            f"{api_url}/v2/checkout/orders/{paypal_order_id}/void",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {access_token}",
+            },
+            timeout=10,
+        )
+        if response.status_code in (200, 204):
+            logger.info(
+                "Voided PayPal order %s for session_key=%s",
+                paypal_order_id,
+                session_key,
+            )
+            return
+        logger.warning(
+            "PayPal void returned %s for order %s session_key=%s: %s",
+            response.status_code,
+            paypal_order_id,
+            session_key,
+            response.text[:500],
+        )
+    except RequestException as exc:
+        logger.warning(
+            "PayPal void failed for order %s session_key=%s: %s",
+            paypal_order_id,
+            session_key,
+            exc,
+        )

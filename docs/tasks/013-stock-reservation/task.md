@@ -2,7 +2,7 @@
 
 **Priority:** P0 (блокирует корректное списание в webhook)
 **Complexity:** High
-**Status:** Phase 6 — local smoke ✅; staging rollout runbook ready ([`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md)); выполнение на сервере — ops
+**Status:** Phase 6 — local smoke ✅; staging rollout runbook ready; **payment TTL follow-up** ✅ (Stripe `expires_at`, cleanup `Session.expire`, late-webhook guard); выполнение на сервере — ops
 
 ---
 
@@ -552,19 +552,26 @@ RELEASED → log warning (webhook arrived after we released) → noop
 
 ### 8.3 Webhook успешной оплаты приходит после истечения TTL
 
-Сценарий: reservation EXPIRED (cleanup), потом webhook success.
+Сценарий: reservation `EXPIRED` (cleanup), потом webhook success (редко — оплата по старой ссылке).
 
-`confirm_reservation` находит reservation в статусе EXPIRED.
-Рекомендуемое поведение:
-```python
-if reservation.status == StockReservation.Status.EXPIRED:
-    # Пытаемся атомарно re-reserve + confirm
-    # Если stock есть — confirm (редкий случай; лучше выполнить заказ)
-    # Если stock нет — InsufficientStockError → webhook возвращает 200 (чтобы Stripe не повторял),
-    #                   но Order не создаётся; нужен manual review
-```
+**Реализованная политика (follow-up 2026-05-20):**
 
-Это **бизнес-решение** — зафиксировать в config: `CONFIRM_AFTER_EXPIRY = True/False`.
+- `reservation_blocks_late_checkout_completion()` в `payment/services/reservation_payment.py`:
+  если резерв существует и статус **не** `PENDING` → заказ **не создаётся**, stock **не списывается**.
+- Webhook отвечает **200** с `status=payment_received_reservation_expired_manual_review` (Stripe/PayPal не ретраят бесконечно).
+- В лог пишется `ERROR` с `session_key`, `reservation_status`, `provider_checkout_id`, суммой — для ручного разбора (возврат/refund).
+- Re-reserve + auto-fulfill **не** делается (`CONFIRM_AFTER_EXPIRY` не включён).
+
+### 8.8 Payment link TTL (Stripe / PayPal)
+
+| Провайдер | На создании сессии | На cleanup (`release_expired_reservations`) | Поздний success webhook |
+|-----------|-------------------|-------------------------------------------|-------------------------|
+| **Stripe** | `checkout.Session.create(..., expires_at=reservation.expires_at)` | `Session.expire(provider_checkout_id)` best-effort | Guard §8.3 |
+| **PayPal** | TTL заказа задаёт PayPal (~3h); наш TTL только через резерв | `POST …/orders/{id}/void` только для `APPROVED`; для `CREATED` — noop + лог | Guard §8.3 (основная защита) |
+
+`StockReservation.provider_checkout_id` — Stripe `cs_…` или PayPal order id (миграция `0003_stockreservation_provider_checkout_id`).
+
+Минимальный Stripe TTL — ~30 минут; `STOCK_RESERVATION_TTL_MINUTES` по умолчанию **35** — совместимо.
 
 ### 8.4 Частичный сбой резервирования
 
@@ -876,13 +883,14 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 
 | Шаг | Действие |
 |-----|----------|
-| 1 | Deploy + `migrate` (`0002_stock_reservation`) |
+| 1 | Deploy + `migrate` (`0002_stock_reservation`, `0003_stockreservation_provider_checkout_id`) |
 | 2 | `STOCK_RESERVATION_ENABLED=True` + restart backend |
 | 3 | Cron `*/5 * * * * … release_expired_reservations` |
 | 4 | `python manage.py smoke_stock_reservation` |
 | 5 | Manual sandbox: Stripe/PayPal success, 409, replay, abandoned → evidence table в runbook |
 | 6 | `python manage.py report_stock_reservation_health` (+ SQL в runbook) |
-| 7 | При инциденте: флаг `False`, restart, cron **оставить** |
+| 7 | Проверить late-payment guard: после `release_expired_reservations` success webhook не создаёт Order (см. `payment/tests_reservation_payment_ttl.py`) |
+| 8 | При инциденте: флаг `False`, restart, cron **оставить** |
 
 ### Rollback checklist (staging/prod)
 
@@ -921,6 +929,9 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 - [x] Интеграция в `create_orders_and_payment` (webhook success): confirm (Phase 4, 2026-05-19)
 - [x] Обработчики failure/cancel/expired webhook: release (Phase 4, 2026-05-19)
 - [x] Cleanup command `release_expired_reservations` с `skip_locked` (Phase 5, 2026-05-19)
+- [x] Stripe Checkout `expires_at` = `StockReservation.expires_at`; `provider_checkout_id` + `Session.expire` on cleanup (follow-up, 2026-05-20)
+- [x] Late success webhook: no Order/stock decrement; 200 + manual review log (follow-up, 2026-05-20)
+- [x] PayPal: webhook guard; void on cleanup documented as best-effort only (follow-up, 2026-05-20)
 - [x] Feature flag `STOCK_RESERVATION_ENABLED` работает как kill-switch (Phase 3, 2026-05-19)
 - [x] Unit tests: create/confirm/release + idempotency (29 unit tests, Phase 2, 2026-05-19)
 - [x] Concurrency test: два сессии → только один успех на последний item (2 tests, Phase 2, 2026-05-19)
@@ -936,8 +947,8 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 | Вопрос | Рекомендация |
 |--------|-------------|
 | Политика для WarehouseItem-отсутствующих SKU | ✅ **Закрыто (2026-05-19):** strict — нет `WarehouseItem` → `available=0`, 409 на checkout. Digital/dropship — отдельная модель позже, если потребуется |
-| Политика `CONFIRM_AFTER_EXPIRY` | Default: `True` (попытка re-confirm если stock есть) |
-| TTL для PayPal (3ч vs 35мин) | Использовать 35 мин как минимум; расширить по необходимости |
+| Политика `CONFIRM_AFTER_EXPIRY` | ✅ **Закрыто (2026-05-20):** `False` — late webhook блокируется, manual review |
+| TTL для PayPal (3ч vs 35мин) | Резерв 35 мин; PayPal order TTL на стороне PSP; защита — webhook guard §8.3 |
 | Синхронизация с внешним WMS | Внешняя система — master; `quantity_in_stock` синхронизируется отдельным job'ом |
 | UX ошибки 409 | Фронтенд должен показать «товар закончился» с деталями по SKU |
 | Несколько складов одного продавца | Phase 1: берём первый доступный WarehouseItem по `available_quantity >= qty` |
@@ -959,3 +970,4 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 | 2026-05-19 | Phase 6 prep: `smoke_reservation_rollout.py`, pytest `tests_stock_reservation_smoke.py`, `manage.py smoke_stock_reservation`, env examples (`STOCK_RESERVATION_*`), раздел 13.1 (Docker checklist, Stripe/PayPal manual, rollback). |
 | 2026-05-19 | Phase 6 staging runbook: [`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md), `report_stock_reservation_health`, admin для `StockReservation` / `reserved_quantity`. |
 | 2026-05-19 | Strict policy: SKU без `WarehouseItem` → `InsufficientStockError` (`available=0`), checkout 409; тесты + §8.6 / open question закрыты. |
+| 2026-05-20 | Payment TTL follow-up: `provider_checkout_id`, Stripe `expires_at` + `Session.expire`, `reservation_payment.py`, late-webhook block, `payment/tests_reservation_payment_ttl.py`, §8.8. |

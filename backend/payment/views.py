@@ -21,6 +21,10 @@ from .services import (
     create_paypal_checkout_session,
     get_orders_by_payment_session_id,
 )
+from .services.reservation_payment import (
+    save_provider_checkout_id,
+    stripe_checkout_expires_at_unix,
+)
 from .services.stripe_webhook import (
     _STRIPE_HANDLED_TYPES,
     _STRIPE_RELEASE_TYPES,
@@ -298,11 +302,17 @@ class CreateStripePaymentView(APIView):
             return Response(exc.detail, status=exc.http_status)
 
         try:
+            stripe_expires_at = None
+            if ctx.checkout_expires_at is not None:
+                stripe_expires_at = stripe_checkout_expires_at_unix(ctx.checkout_expires_at)
+
             checkout_session = create_stripe_checkout_session(
                 line_items=ctx.line_items,
                 session_key=ctx.session_key,
                 invoice_number=ctx.invoice_number,
+                expires_at=stripe_expires_at,
             )
+            save_provider_checkout_id(ctx.session_key, checkout_session.id)
 
             logger.info(
                 "Stripe Checkout session created: %s for user %s, session_key: %s",
@@ -411,6 +421,16 @@ class StripeWebhookView(APIView):
         if result.is_replay:
             logger.info("[StripeWebhook] Idempotent replay for session %s", session_id)
             return Response(status=200)
+
+        if result.late_payment_blocked:
+            logger.warning(
+                "[StripeWebhook] Late payment acknowledged without order creation session=%s",
+                session_id,
+            )
+            return Response(
+                {"status": "payment_received_reservation_expired_manual_review"},
+                status=200,
+            )
 
         return Response(
             {"status": f"{len(result.orders)} order(s) created successfully"},
@@ -617,6 +637,8 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
                 session_key=ctx.session_key,
                 invoice_number=ctx.invoice_number,
             )
+            save_provider_checkout_id(ctx.session_key, order_id)
+
             logger.info(
                 "PayPal Checkout session created: %s for user %s, session_key: %s",
                 order_id,
@@ -694,6 +716,16 @@ class PayPalWebhookView(PayPalMixin, APIView):
 
         if result.is_replay:
             logger.info("[PayPalWebhook] Idempotent replay for order %s", webhook_data.session_id)
+
+        if result.late_payment_blocked:
+            logger.warning(
+                "[PayPalWebhook] Late payment acknowledged without order creation order=%s",
+                webhook_data.session_id,
+            )
+            return Response(
+                {"status": "payment_received_reservation_expired_manual_review"},
+                status=200,
+            )
 
         return Response(
             {"status": f"{len(result.orders)} order(s) created successfully"},

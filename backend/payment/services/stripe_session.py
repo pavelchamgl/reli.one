@@ -15,6 +15,7 @@ from __future__ import annotations
 import logging
 import uuid
 from dataclasses import dataclass, field
+from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
 from typing import Optional
 
@@ -42,6 +43,7 @@ from payment.services.checkout_shared import (
     check_cz_origin_for_checkout,
     create_checkout_stock_reservation_if_enabled,
 )
+from payment.services.reservation_payment import get_checkout_reservation_expires_at
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +61,7 @@ class StripeCheckoutContext:
     invoice_number: str
     variable_symbol: str
     groups: list = field(default_factory=list)
+    checkout_expires_at: Optional[datetime] = None
 
 
 # ---------------------------------------------------------------------------
@@ -399,10 +402,13 @@ def build_stripe_checkout_context(
         user.id,
     )
 
+    checkout_expires_at = get_checkout_reservation_expires_at(session_key)
+
     return StripeCheckoutContext(
         line_items=line_items,
         session_key=session_key,
         invoice_number=invoice_number,
         variable_symbol=variable_symbol,
         groups=groups,
+        checkout_expires_at=checkout_expires_at,
     )
