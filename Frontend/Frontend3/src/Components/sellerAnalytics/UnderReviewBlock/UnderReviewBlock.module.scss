@@ -1,0 +1,140 @@
+.main {
+  border: 1.48px solid #8ec5ff;
+  border-radius: 14px;
+  padding: 32px;
+  width: 100%;
+
+  box-shadow:
+    0 1px 2px -1px rgba(0, 0, 0, 0.1),
+    0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background: #eff6ff;
+}
+
+.mailnTitleWrap {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 48px;
+
+  & img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  & h3 {
+    font-weight: 500;
+    font-size: 30px;
+    color: #1c398e;
+    margin-bottom: 7px;
+  }
+
+  & p {
+    font-weight: 400;
+    font-size: 16px;
+    color: #1447e6;
+  }
+}
+
+.timelineWrap {
+  border: 1.48px solid #bedbff;
+  border-radius: 10px;
+  padding: 25px;
+  width: 100%;
+  background-color: white;
+
+  & h5 {
+    font-weight: 600;
+    font-size: 18px;
+    color: #1c398e;
+  }
+}
+
+// ! статусные стили
+
+.status {
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  margin-top: 16px;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 26px auto;
+  column-gap: 14px;
+  position: relative;
+  padding-bottom: 24px;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+
+  &:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    top: 3px;
+
+    width: 2px;
+    height: calc(100% - 2px);
+
+    background: #e5e7eb;
+  }
+}
+
+.circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+  z-index: 2;
+  background: white;
+}
+
+.content {
+  h4 {
+    margin: 0;
+
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #1f2937;
+  }
+
+  p {
+    margin: 4px 0 0;
+
+    font-size: 14px;
+    line-height: 18px;
+    color: #9ca3af;
+  }
+}
+
+.completed {
+  .circle {
+    background: #22c55e;
+  }
+}
+
+.review {
+  .circle {
+    background: #2563eb;
+  }
+
+  h4 {
+    color: #2563eb;
+  }
+}
+
+.pending {
+  .circle {
+    border: 2px solid #d1d5db;
+    background: #fff;
+  }
+}
