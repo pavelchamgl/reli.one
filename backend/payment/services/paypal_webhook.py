@@ -18,6 +18,11 @@ from django.conf import settings
 from payment.models import PayPalMetadata
 from payment.services.checkout_shared import release_checkout_stock_reservation_if_enabled
 from payment.services.paypal_checkout import get_paypal_access_token
+from payment.services.reservation_payment import (
+    PAYPAL_CAPTURE_SKIPPED_STATUS,
+    log_paypal_capture_skipped,
+    reservation_blocks_late_checkout_completion,
+)
 from payment.services.webhook_processing import WebhookPaymentData
 
 logger = logging.getLogger(__name__)
@@ -202,6 +207,43 @@ def paypal_payload_to_webhook_payment_data(
 
     elif event_type == "CHECKOUT.ORDER.APPROVED":
         order_id = resource.get("id")
+        pu = (resource.get("purchase_units") or [{}])[0]
+        session_key = pu.get("reference_id")
+        if not session_key and order_id:
+            try:
+                order_details = api_get(f"/v2/checkout/orders/{order_id}")
+                pu = (order_details.get("purchase_units") or [{}])[0]
+                session_key = pu.get("reference_id")
+            except Exception as exc:
+                logger.exception(
+                    "Failed to load PayPal order %s before capture guard: %s",
+                    order_id,
+                    exc,
+                )
+                return PayPalWebhookBuildResult(
+                    early_status=500,
+                    early_body={"error": "Order lookup failed"},
+                )
+
+        if not session_key:
+            logger.error("No reference_id in CHECKOUT.ORDER.APPROVED for order %s", order_id)
+            return PayPalWebhookBuildResult(
+                early_status=400,
+                early_body={"error": "No reference_id"},
+            )
+
+        blocked, reservation_status = reservation_blocks_late_checkout_completion(session_key)
+        if blocked:
+            log_paypal_capture_skipped(
+                session_key=session_key,
+                reservation_status=reservation_status,
+                order_id=order_id,
+            )
+            return PayPalWebhookBuildResult(
+                early_status=200,
+                early_body={"status": PAYPAL_CAPTURE_SKIPPED_STATUS},
+            )
+
         try:
             capture_res = api_capture(order_id)
             purchase_units = capture_res.get("purchase_units") or []

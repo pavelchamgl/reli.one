@@ -2,7 +2,9 @@
 Align PSP checkout sessions with StockReservation TTL (Task 013 follow-up).
 
 - Stripe: pass ``expires_at`` on Checkout Session create; optionally ``Session.expire`` on cleanup.
-- PayPal: no server-side TTL on order create — void is best-effort on cleanup; webhook guard is primary.
+- PayPal: CAPTURE orders cannot be force-expired like Stripe Checkout Session. The business-safe
+  equivalent is **server-side capture blocking** on ``CHECKOUT.ORDER.APPROVED`` when the reservation
+  is not PENDING, plus late ``COMPLETED`` / ``CAPTURE.COMPLETED`` webhook guard as secondary protection.
 """
 from __future__ import annotations
 
@@ -46,6 +48,10 @@ def save_provider_checkout_id(session_key: str, provider_checkout_id: str) -> No
         )
 
 
+PAYPAL_CAPTURE_SKIPPED_STATUS = "paypal_capture_skipped_reservation_expired"
+LATE_PAYMENT_MANUAL_REVIEW_STATUS = "payment_received_reservation_expired_manual_review"
+
+
 def reservation_blocks_late_checkout_completion(session_key: str) -> tuple[bool, str | None]:
     """
     True when a reservation exists and is not PENDING (expired/released/confirmed).
@@ -64,6 +70,30 @@ def reservation_blocks_late_checkout_completion(session_key: str) -> tuple[bool,
     if reservation.status == StockReservation.Status.PENDING:
         return False, None
     return True, reservation.status
+
+
+def log_paypal_capture_skipped(
+    *,
+    session_key: str,
+    reservation_status: str | None,
+    order_id: str | None,
+    event_type: str = "CHECKOUT.ORDER.APPROVED",
+) -> None:
+    """Log late PayPal approval/capture attempt for manual review (no funds captured)."""
+    reservation = (
+        StockReservation.objects.filter(session_key=session_key)
+        .only("provider_checkout_id", "payment_system")
+        .first()
+    )
+    logger.error(
+        "[PayPalWebhook] Capture skipped (manual review, no refund needed): event=%s "
+        "session_key=%s reservation_status=%s order_id=%s provider_checkout_id=%s",
+        event_type,
+        session_key,
+        reservation_status,
+        order_id,
+        getattr(reservation, "provider_checkout_id", None) if reservation else None,
+    )
 
 
 def expire_provider_checkout_after_reservation_release(

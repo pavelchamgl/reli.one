@@ -18,7 +18,8 @@ from rest_framework.test import APIClient
 
 from order.models import Order
 from payment.mixins import PayPalMixin
-from payment.models import PayPalMetadata, StripeMetadata
+from payment.models import Payment, PayPalMetadata, StripeMetadata
+from payment.services.reservation_payment import PAYPAL_CAPTURE_SKIPPED_STATUS
 from payment.services.reservation_payment import stripe_checkout_expires_at_unix
 from payment.test_checkout_flow import (
     CheckoutCatalogMixin,
@@ -314,6 +315,236 @@ class LatePaymentWebhookBlockTests(CheckoutCatalogMixin, TestCase):
             "payment_received_reservation_expired_manual_review",
         )
         self.assertEqual(Order.objects.count(), 0)
+
+
+class PayPalCaptureReservationGuardTests(CheckoutCatalogMixin, TestCase):
+    """PayPal CHECKOUT.ORDER.APPROVED — capture only while reservation is PENDING."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.setUpCatalog()
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def _group_meta(self, qty: int, delivery_opt: Decimal, group_total: Decimal):
+        return {
+            "seller_id": self.seller_profile.id,
+            "delivery_type": 2,
+            "courier_service": 2,
+            "delivery_address": {
+                "street": "Test 9",
+                "city": "Praha",
+                "zip": "11000",
+                "country": "CZ",
+            },
+            "products": [{"sku": self.variant.sku, "quantity": qty}],
+            "calculated_delivery_cost": str(delivery_opt),
+            "calculated_total_parcels": 1,
+            "calculated_group_total": str(group_total),
+        }
+
+    def _capture_response(self, session_key: str, amount: str = "100.00"):
+        return {
+            "purchase_units": [
+                {
+                    "reference_id": session_key,
+                    "payments": {
+                        "captures": [
+                            {
+                                "status": "COMPLETED",
+                                "amount": {"value": amount, "currency_code": "EUR"},
+                            }
+                        ]
+                    },
+                }
+            ]
+        }
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.paypal_webhook.default_paypal_api_capture")
+    @patch.object(PayPalMixin, "verify_webhook", return_value=True)
+    def test_order_approved_after_expired_reservation_skips_capture(
+        self,
+        _mock_verify,
+        mock_capture,
+    ):
+        session_key = "paypal-approved-expired-key"
+        order_id = "PP-APP-EXPIRED"
+        StockReservationService.create_reservation(
+            session_key=session_key,
+            payment_system="paypal",
+            groups=[{"products": [{"sku": self.variant.sku, "quantity": 1}]}],
+            variant_map={self.variant.sku: self.variant},
+        )
+        StockReservationService.release_reservation(
+            session_key,
+            final_status=StockReservation.Status.EXPIRED,
+        )
+
+        PayPalMetadata.objects.create(
+            session_key=session_key,
+            custom_data={"user_id": str(self.customer.id), "email": self.customer.email},
+            invoice_data={"invoice_number": "2026003201", "groups": []},
+            description_data={},
+        )
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.APPROVED",
+            "resource": {
+                "id": order_id,
+                "purchase_units": [{"reference_id": session_key}],
+            },
+        }
+        response = self.client.post(
+            reverse("paypal_webhook"),
+            data=json.dumps(payload).encode("utf-8"),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("status"), PAYPAL_CAPTURE_SKIPPED_STATUS)
+        mock_capture.assert_not_called()
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(Payment.objects.count(), 0)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50)
+        self.assertEqual(wi.reserved_quantity, 0)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.webhook_processing.async_parcels_and_seller_email")
+    @patch("payment.services.webhook_processing.async_send_client_email")
+    @patch(
+        "payment.services.webhook_processing.generate_invoice_pdf",
+        return_value=ContentFile(b"%PDF-1.4 test", name="inv.pdf"),
+    )
+    @patch("payment.services.paypal_webhook.default_paypal_api_capture")
+    @patch.object(PayPalMixin, "verify_webhook", return_value=True)
+    def test_order_approved_with_pending_reservation_captures_and_creates_order(
+        self,
+        _mock_verify,
+        mock_capture,
+        _mock_pdf,
+        _mock_email,
+        _mock_parcels,
+    ):
+        qty = 1
+        delivery_opt = Decimal("5.21")
+        group_total = (self.variant.price_with_acquiring * qty + delivery_opt).quantize(
+            Decimal("0.01")
+        )
+        session_key = "paypal-approved-pending-key"
+        order_id = "PP-APP-PENDING"
+
+        StockReservationService.create_reservation(
+            session_key=session_key,
+            payment_system="paypal",
+            groups=[{"products": [{"sku": self.variant.sku, "quantity": qty}]}],
+            variant_map={self.variant.sku: self.variant},
+        )
+        mock_capture.return_value = self._capture_response(
+            session_key, amount=str(group_total)
+        )
+
+        PayPalMetadata.objects.create(
+            session_key=session_key,
+            custom_data={
+                "user_id": str(self.customer.id),
+                "email": self.customer.email,
+                "first_name": "Buyer",
+                "last_name": "Test",
+                "phone": "+420777123456",
+                "delivery_address": {"country": "CZ"},
+            },
+            invoice_data={
+                "invoice_number": "2026003202",
+                "groups": [self._group_meta(qty, delivery_opt, group_total)],
+            },
+            description_data={
+                "gross_total": str(group_total),
+                "delivery_total": str(delivery_opt),
+                "variable_symbol": "2026003202",
+            },
+        )
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.APPROVED",
+            "resource": {
+                "id": order_id,
+                "purchase_units": [{"reference_id": session_key}],
+            },
+        }
+        response = self.client.post(
+            reverse("paypal_webhook"),
+            data=json.dumps(payload).encode("utf-8"),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_capture.assert_called_once_with(order_id)
+        self.assertEqual(Order.objects.count(), 1)
+        self.assertEqual(Payment.objects.count(), 1)
+
+        reservation = StockReservation.objects.get(session_key=session_key)
+        self.assertEqual(reservation.status, StockReservation.Status.CONFIRMED)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50 - qty)
+        self.assertEqual(wi.reserved_quantity, 0)
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    @patch("payment.services.paypal_webhook.default_paypal_api_capture")
+    @patch.object(PayPalMixin, "verify_webhook", return_value=True)
+    def test_old_approval_url_after_cleanup_cannot_decrement_stock(
+        self,
+        _mock_verify,
+        mock_capture,
+    ):
+        """Simulates user opening approval URL after release_expired_reservations."""
+        session_key = "paypal-old-url-key"
+        order_id = "PP-OLD-URL"
+
+        StockReservationService.create_reservation(
+            session_key=session_key,
+            payment_system="paypal",
+            groups=[{"products": [{"sku": self.variant.sku, "quantity": 2}]}],
+            variant_map={self.variant.sku: self.variant},
+        )
+        reservation = StockReservation.objects.get(session_key=session_key)
+        reservation.expires_at = timezone.now() - timedelta(minutes=10)
+        reservation.save(update_fields=["expires_at"])
+        call_command("release_expired_reservations")
+
+        PayPalMetadata.objects.create(
+            session_key=session_key,
+            custom_data={"user_id": str(self.customer.id), "email": self.customer.email},
+            invoice_data={"invoice_number": "2026003203", "groups": []},
+            description_data={},
+        )
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.APPROVED",
+            "resource": {
+                "id": order_id,
+                "purchase_units": [{"reference_id": session_key}],
+            },
+        }
+        response = self.client.post(
+            reverse("paypal_webhook"),
+            data=json.dumps(payload).encode("utf-8"),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data.get("status"), PAYPAL_CAPTURE_SKIPPED_STATUS)
+        mock_capture.assert_not_called()
+        self.assertEqual(Order.objects.count(), 0)
+        self.assertEqual(Payment.objects.count(), 0)
+
+        wi = WarehouseItem.objects.get(product_variant=self.variant)
+        self.assertEqual(wi.quantity_in_stock, 50)
+        self.assertEqual(wi.reserved_quantity, 0)
 
 
 class ExpiredCleanupStripeExpireTests(CheckoutCatalogMixin, TestCase):

@@ -567,7 +567,7 @@ RELEASED → log warning (webhook arrived after we released) → noop
 | Провайдер | На создании сессии | На cleanup (`release_expired_reservations`) | Поздний success webhook |
 |-----------|-------------------|-------------------------------------------|-------------------------|
 | **Stripe** | `checkout.Session.create(..., expires_at=reservation.expires_at)` | `Session.expire(provider_checkout_id)` best-effort | Guard §8.3 |
-| **PayPal** | TTL заказа задаёт PayPal (~3h); наш TTL только через резерв | `POST …/orders/{id}/void` только для `APPROVED`; для `CREATED` — noop + лог | Guard §8.3 (основная защита) |
+| **PayPal** | TTL заказа задаёт PayPal (~3h); наш TTL только через резерв | `void` best-effort; **нельзя** expire как Stripe | **Primary:** `CHECKOUT.ORDER.APPROVED` — capture не вызывается, если резерв ≠ `PENDING` → `paypal_capture_skipped_reservation_expired` (200, refund не нужен). **Secondary:** §8.3 на `COMPLETED` / `CAPTURE.COMPLETED` |
 
 `StockReservation.provider_checkout_id` — Stripe `cs_…` или PayPal order id (миграция `0003_stockreservation_provider_checkout_id`).
 
@@ -931,7 +931,7 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 - [x] Cleanup command `release_expired_reservations` с `skip_locked` (Phase 5, 2026-05-19)
 - [x] Stripe Checkout `expires_at` = `StockReservation.expires_at`; `provider_checkout_id` + `Session.expire` on cleanup (follow-up, 2026-05-20)
 - [x] Late success webhook: no Order/stock decrement; 200 + manual review log (follow-up, 2026-05-20)
-- [x] PayPal: webhook guard; void on cleanup documented as best-effort only (follow-up, 2026-05-20)
+- [x] PayPal: capture block on `ORDER.APPROVED` when reservation expired + late webhook guard (follow-up, 2026-05-20)
 - [x] Feature flag `STOCK_RESERVATION_ENABLED` работает как kill-switch (Phase 3, 2026-05-19)
 - [x] Unit tests: create/confirm/release + idempotency (29 unit tests, Phase 2, 2026-05-19)
 - [x] Concurrency test: два сессии → только один успех на последний item (2 tests, Phase 2, 2026-05-19)
@@ -971,3 +971,4 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 | 2026-05-19 | Phase 6 staging runbook: [`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md), `report_stock_reservation_health`, admin для `StockReservation` / `reserved_quantity`. |
 | 2026-05-19 | Strict policy: SKU без `WarehouseItem` → `InsufficientStockError` (`available=0`), checkout 409; тесты + §8.6 / open question закрыты. |
 | 2026-05-20 | Payment TTL follow-up: `provider_checkout_id`, Stripe `expires_at` + `Session.expire`, `reservation_payment.py`, late-webhook block, `payment/tests_reservation_payment_ttl.py`, §8.8. |
+| 2026-05-20 | PayPal capture guard: `CHECKOUT.ORDER.APPROVED` skips capture when reservation ≠ PENDING; `paypal_capture_skipped_reservation_expired`. |

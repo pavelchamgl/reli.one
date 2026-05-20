@@ -22,6 +22,7 @@ from .services import (
     get_orders_by_payment_session_id,
 )
 from .services.reservation_payment import (
+    LATE_PAYMENT_MANUAL_REVIEW_STATUS,
     save_provider_checkout_id,
     stripe_checkout_expires_at_unix,
 )
@@ -428,7 +429,7 @@ class StripeWebhookView(APIView):
                 session_id,
             )
             return Response(
-                {"status": "payment_received_reservation_expired_manual_review"},
+                {"status": LATE_PAYMENT_MANUAL_REVIEW_STATUS},
                 status=200,
             )
 
@@ -668,7 +669,9 @@ class CreatePayPalPaymentView(PayPalMixin, APIView):
     summary="Handle PayPal Webhook for Successful Payment",
     description=(
             "Processes PayPal payment webhooks. Accepts PAYMENT.CAPTURE.COMPLETED and CHECKOUT.ORDER.COMPLETED.\n"
-            "If CHECKOUT.ORDER.APPROVED is received, captures the order and then proceeds.\n\n"
+            "If CHECKOUT.ORDER.APPROVED is received, captures the order only when the stock "
+            "reservation is still PENDING; otherwise capture is skipped (200, no refund needed). "
+            "Late COMPLETED/CAPTURE.COMPLETED events are blocked the same way as Stripe.\n\n"
             "Creates orders grouped by seller, a single Payment per order, generates invoice, "
             "sends emails and updates the conversion cache (session_key) after commit."
     ),
@@ -723,7 +726,7 @@ class PayPalWebhookView(PayPalMixin, APIView):
                 webhook_data.session_id,
             )
             return Response(
-                {"status": "payment_received_reservation_expired_manual_review"},
+                {"status": LATE_PAYMENT_MANUAL_REVIEW_STATUS},
                 status=200,
             )
 

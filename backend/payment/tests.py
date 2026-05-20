@@ -1436,7 +1436,10 @@ class TestPayPalWebhookService(SimpleTestCase):
 
         payload = {
             "event_type": "CHECKOUT.ORDER.APPROVED",
-            "resource": {"id": "ORD-APP"},
+            "resource": {
+                "id": "ORD-APP",
+                "purchase_units": [{"reference_id": "sk-app"}],
+            },
         }
         meta = MagicMock()
         meta.custom_data = {"user_id": 1}
@@ -1461,13 +1464,47 @@ class TestPayPalWebhookService(SimpleTestCase):
 
         payload = {
             "event_type": "CHECKOUT.ORDER.APPROVED",
-            "resource": {"id": "ORD-BAD"},
+            "resource": {
+                "id": "ORD-BAD",
+                "purchase_units": [{"reference_id": "sk-bad"}],
+            },
         }
         br = paypal_payload_to_webhook_payment_data(
             payload, api_capture=api_capture
         )
         self.assertEqual(br.early_status, 500)
         self.assertEqual(br.early_body, {"error": "Capture failed"})
+
+    def test_build_order_approved_skips_capture_when_reservation_expired(self):
+        capture_called = []
+
+        def api_capture(order_id):
+            capture_called.append(order_id)
+            return {}
+
+        payload = {
+            "event_type": "CHECKOUT.ORDER.APPROVED",
+            "resource": {
+                "id": "ORD-EXP",
+                "purchase_units": [{"reference_id": "sk-expired-capture"}],
+            },
+        }
+        with (
+            patch(
+                "payment.services.paypal_webhook.reservation_blocks_late_checkout_completion",
+                return_value=(True, "expired"),
+            ),
+            patch("payment.services.paypal_webhook.log_paypal_capture_skipped"),
+        ):
+            br = paypal_payload_to_webhook_payment_data(
+                payload, api_capture=api_capture
+            )
+        self.assertEqual(br.early_status, 200)
+        self.assertEqual(
+            br.early_body,
+            {"status": "paypal_capture_skipped_reservation_expired"},
+        )
+        self.assertEqual(capture_called, [])
 
     def test_build_capture_completed_api_get_propagates_http_error(self):
         """Текущее поведение: ошибка api_get не перехватывается — исключение уходит наверх."""
