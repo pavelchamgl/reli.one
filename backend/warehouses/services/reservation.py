@@ -147,12 +147,19 @@ class StockReservationService:
                 candidates = wh_items_by_variant.get(variant.id, [])
 
                 if not candidates:
-                    # Soft policy: no WarehouseItem → skip (digital / dropship SKU)
                     logger.warning(
-                        "create_reservation: no WarehouseItem for SKU %s — skipping stock check",
+                        "create_reservation: no WarehouseItem for SKU %s — "
+                        "strict policy: available=0 session_key=%s",
                         sku,
+                        session_key,
                     )
-                    continue
+                    raise InsufficientStockError(
+                        detail={
+                            "sku": sku,
+                            "requested": qty,
+                            "available": 0,
+                        }
+                    )
 
                 # Pick first warehouse item with sufficient availability
                 chosen: WarehouseItem | None = None

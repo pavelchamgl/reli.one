@@ -580,14 +580,15 @@ if reservation.status == StockReservation.Status.EXPIRED:
 
 ### 8.6 WarehouseItem отсутствует (нет записи в БД)
 
-Текущее поведение webhook: fallback к `Warehouse.objects.first()`.
+**Политика (с 2026-05-19, strict):** физический SKU без строки `WarehouseItem` трактуется как `available=0`.
+`StockReservationService.create_reservation()` поднимает `InsufficientStockError` с
+`detail={sku, requested, available: 0}` → checkout возвращает **409** через существующий mapping.
 
-При включённом stock-check: SKU без `WarehouseItem` означает `available_quantity = 0`.
-Политика:
-- **Вариант «строгий»**: InsufficientStockError → 409 (нет записи = нет товара)
-- **Вариант «мягкий»**: если `WarehouseItem` не существует — skip reservation, пропустить check для этого SKU (обратная совместимость для цифровых / dropship товаров)
+Webhook по-прежнему использует fallback `Warehouse.objects.first()` для legacy-заказов
+(когда резервирование выключено или заказ создан до включения фичи).
 
-Рекомендуется **мягкий вариант** как начальный (phase 1), чтобы не ломать существующие заказы; переход к строгому — отдельное изменение политики.
+Digital/dropship без складской записи **не поддерживается** — отдельная модель/флаг на SKU или
+продавца — будущая задача, если понадобится.
 
 ### 8.7 Webhook `payment_intent.canceled` для уже CONFIRMED reservation
 
@@ -934,7 +935,7 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 
 | Вопрос | Рекомендация |
 |--------|-------------|
-| Политика для WarehouseItem-отсутствующих SKU (dropship/digital) | Начать с мягкой (skip check); добавить флаг на продавца/SKU позже |
+| Политика для WarehouseItem-отсутствующих SKU | ✅ **Закрыто (2026-05-19):** strict — нет `WarehouseItem` → `available=0`, 409 на checkout. Digital/dropship — отдельная модель позже, если потребуется |
 | Политика `CONFIRM_AFTER_EXPIRY` | Default: `True` (попытка re-confirm если stock есть) |
 | TTL для PayPal (3ч vs 35мин) | Использовать 35 мин как минимум; расширить по необходимости |
 | Синхронизация с внешним WMS | Внешняя система — master; `quantity_in_stock` синхронизируется отдельным job'ом |
@@ -957,3 +958,4 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 | 2026-05-19 | Phase 5 реализована: `python manage.py release_expired_reservations` (`--dry-run`, `--limit`), `select_for_update(skip_locked=True)`, cron `*/5 * * * *`, 8 тестов команды. `pytest warehouses/ -q` → 41 passed; `pytest payment/ order/ warehouses/ -q` → 164 passed, exit 0. |
 | 2026-05-19 | Phase 6 prep: `smoke_reservation_rollout.py`, pytest `tests_stock_reservation_smoke.py`, `manage.py smoke_stock_reservation`, env examples (`STOCK_RESERVATION_*`), раздел 13.1 (Docker checklist, Stripe/PayPal manual, rollback). |
 | 2026-05-19 | Phase 6 staging runbook: [`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md), `report_stock_reservation_health`, admin для `StockReservation` / `reserved_quantity`. |
+| 2026-05-19 | Strict policy: SKU без `WarehouseItem` → `InsufficientStockError` (`available=0`), checkout 409; тесты + §8.6 / open question закрыты. |

@@ -2,7 +2,7 @@
 Regression tests for StockReservationService (Task 013 Phase 2).
 
 Covers:
-  - create_reservation: happy path, idempotency, insufficient stock, missing WarehouseItem
+  - create_reservation: happy path, idempotency, insufficient stock, missing WarehouseItem (strict)
   - confirm_reservation: stock decrement, status update, idempotency, unknown session
   - release_reservation: reserved_quantity restore, status update, idempotency, EXPIRED status
   - Concurrency (PostgreSQL only):
@@ -19,7 +19,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import connection
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 from unittest import skipUnless
 
@@ -204,20 +204,54 @@ class StockReservationCreateTests(ReservationTestMixin, TestCase):
                 variant_map=self.variant_map,
             )
 
-    def test_create_skips_missing_warehouse_item(self):
-        """SKU without WarehouseItem → soft policy: reservation created, no item row."""
+    def test_create_raises_when_warehouse_item_missing(self):
+        """SKU without WarehouseItem → strict policy: InsufficientStockError, available=0."""
         WarehouseItem.objects.filter(
             warehouse=self.warehouse, product_variant=self.variant
         ).delete()
         sk = self._session_key()
-        reservation = StockReservationService.create_reservation(
-            session_key=sk,
-            payment_system="stripe",
-            groups=self._groups(qty=1),
-            variant_map=self.variant_map,
+        with self.assertRaises(InsufficientStockError) as ctx:
+            StockReservationService.create_reservation(
+                session_key=sk,
+                payment_system="stripe",
+                groups=self._groups(qty=1),
+                variant_map=self.variant_map,
+            )
+        self.assertEqual(ctx.exception.detail["sku"], self.variant.sku)
+        self.assertEqual(ctx.exception.detail["requested"], 1)
+        self.assertEqual(ctx.exception.detail["available"], 0)
+        self.assertFalse(StockReservation.objects.filter(session_key=sk).exists())
+
+    @override_settings(STOCK_RESERVATION_ENABLED=True)
+    def test_checkout_hook_maps_missing_warehouse_item_to_409(self):
+        """create_checkout_stock_reservation_if_enabled → HTTP 409 when no WarehouseItem."""
+        from payment.services.checkout_shared import (
+            create_checkout_stock_reservation_if_enabled,
         )
-        self.assertEqual(reservation.status, StockReservation.Status.PENDING)
-        self.assertEqual(reservation.items.count(), 0)
+        from payment.services.stripe_session import StripeSessionBuildError
+
+        WarehouseItem.objects.filter(
+            warehouse=self.warehouse, product_variant=self.variant
+        ).delete()
+        with self.assertRaises(StripeSessionBuildError) as ctx:
+            create_checkout_stock_reservation_if_enabled(
+                session_key=self._session_key(),
+                payment_system="stripe",
+                groups=self._groups(qty=2),
+                variant_map=self.variant_map,
+                error_cls=StripeSessionBuildError,
+            )
+        self.assertEqual(ctx.exception.http_status, 409)
+        self.assertEqual(
+            ctx.exception.detail,
+            {
+                "stock": {
+                    "sku": self.variant.sku,
+                    "requested": 2,
+                    "available": 0,
+                }
+            },
+        )
 
     def test_create_does_not_raise_for_no_groups(self):
         """Empty groups → reservation with zero items, no error."""
