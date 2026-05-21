@@ -7,7 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter, OpenApiExample
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from django.db.models import Q, Min, F, Sum, DecimalField, ExpressionWrapper, OuterRef, Subquery, Value
+from django.db.models import Q, Min, F, Sum, DecimalField, ExpressionWrapper, OuterRef, Subquery, Value, Prefetch
 from django.db.models.functions import Coalesce
 
 from .pagination import StandardResultsSetPagination
@@ -27,6 +27,11 @@ from order.models import OrderProduct
 from accounts.choices import UserRole
 
 from .constants import ACQUIRING_RATE
+from .models import ProductVariant
+from .stock_availability import (
+    annotate_products_with_total_available,
+    annotate_variant_queryset_with_available,
+)
 
 
 def build_public_products_queryset(base_qs):
@@ -64,6 +69,8 @@ def build_public_products_queryset(base_qs):
     qs = qs.annotate(
         ordered_quantity=Coalesce(Subquery(ordered_total_sq), 0)
     )
+
+    qs = annotate_products_with_total_available(qs)
 
     return qs.prefetch_related(
         "images",
@@ -429,7 +436,12 @@ class BaseProductDetailAPIView(PublicVisibilityMixin, generics.RetrieveAPIView):
                 "license_files",
                 "product_parameters",
                 "images",
-                "variants",
+                Prefetch(
+                    "variants",
+                    queryset=annotate_variant_queryset_with_available(
+                        ProductVariant.objects.all()
+                    ),
+                ),
                 "variants__variant_reviews",
             )
             .distinct()
