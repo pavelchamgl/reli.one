@@ -28,7 +28,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
 
 
     const handleChangeFile = (e) => {
-        setType("image")
+        setType({ type: "image" })
         setErr(false)
         const newFile = e.target.files[0]; // Получаем только один файл
         if (!newFile) return;
@@ -74,7 +74,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                     onChange={(e) => {
                         setNewVariant({ ...newVariant, text: e.target.value }
                         )
-                        setType("text")
+                        setType({ type: "text" })
                         setErr(false)
                     }}
                     placeholder={t('item.color_name')}

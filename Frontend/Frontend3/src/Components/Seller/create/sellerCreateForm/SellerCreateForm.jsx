@@ -29,12 +29,11 @@
       const [parametersErr, setParametersErr] = useState(false)
       const [varNameErr, setVarNameErr] = useState(false)
       const [varErr, setVarErr] = useState(false)
-      const [type, setType] = useState(null)
 
 
-      const { name, lengthMain, product_description, widthMain, heightMain, weightMain, category, variantsName, variantsMain, images, product_parameters, item, barcode, additional_details, vat_rate, is_age } = useSelector(state => state.create_prev)
+      const { name, lengthMain, product_description, widthMain, heightMain, weightMain, category, variantsName, variantsMain, images, product_parameters, item, barcode, additional_details, vat_rate, is_age, type } = useSelector(state => state.create_prev)
 
-      const { setName, setDescription, setCategory, setParametersPrev, setLength, setWidth, setHeigth, setWeight, setValues } = useActionCreatePrev()
+      const { setName, setDescription, setCategory, setParametersPrev, setLength, setWidth, setHeigth, setWeight, setValues, setType } = useActionCreatePrev()
 
       const { categoriesStage } = useSelector(state => state.create)
 
@@ -90,6 +89,10 @@
         const isVarNameErrValid = variantsName.length > 0
         let isVariantValid;
 
+      
+        console.log(type);
+        
+
         if (type === "text") {
           isVariantValid =
             variantsMain?.length > 0 &&
@@ -109,6 +112,11 @@
                 item.image?.trim()
             );
         }
+
+          console.log(isVariantValid);
+
+        console.log(variantsMain);
+        
 
 
 
@@ -177,6 +185,7 @@
             handleChange={formik.handleChange}
             required={true}
             error={formik.errors.item}
+            num={true}
           />
 
           <CreateFormInp
@@ -202,6 +211,7 @@
             handleChange={formik.handleChange}
             required={true}
             error={formik.errors.vat_rate}
+            num={true}
           />
 
           <label className={styles.isAgeLabel}>
