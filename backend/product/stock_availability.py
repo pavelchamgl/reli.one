@@ -1,5 +1,5 @@
 """
-Public stock availability helpers for catalog API (Task 014).
+Public stock availability helpers for catalog API (Task 020).
 
 Formula: available = max(0, quantity_in_stock - reserved_quantity) per WarehouseItem row,
 aggregated per variant (sum across warehouses) and per BaseProduct (sum across variants).
