@@ -56,6 +56,7 @@ if settings.DEBUG:
 
 if getattr(settings, "ENABLE_E2E_ENDPOINTS", False):
     from payment.e2e_views import E2ECreateStripeMetadataView, E2ESetupOrderDataView
+    from sellers.e2e_views import E2ESyncSellerDefaultWarehouseView
     urlpatterns += [
         path(
             "api/e2e/payment/setup-order-data/",
@@ -66,5 +67,10 @@ if getattr(settings, "ENABLE_E2E_ENDPOINTS", False):
             "api/e2e/payment/create-stripe-metadata/",
             E2ECreateStripeMetadataView.as_view(),
             name="e2e_create_stripe_metadata",
+        ),
+        path(
+            "api/e2e/sellers/sync-default-warehouse/",
+            E2ESyncSellerDefaultWarehouseView.as_view(),
+            name="e2e_sync_seller_default_warehouse",
         ),
     ]

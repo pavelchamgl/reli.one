@@ -79,7 +79,7 @@ async function proxyToBackend(page) {
 async function registerSellerWithWarehouse(request) {
   const ts = Date.now();
   const email = `fs003-seller-${ts}@test.example`;
-  const phone = `+4207${String(ts).slice(-7)}`;
+  const phone = `+420730${String(ts % 1_000_000).padStart(6, '0')}`;
 
   const reg = await request.post(`${API}/accounts/register/seller/`, {
     data: {
@@ -122,6 +122,9 @@ async function registerSellerWithWarehouse(request) {
   });
   expect(r1.ok(), `warehouse: ${await r1.text()}`).toBeTruthy();
 
+  const rWh = await request.post(`${API}/e2e/sellers/sync-default-warehouse/`, { headers: h });
+  expect(rWh.ok(), `sync default warehouse: ${await rWh.text()}`).toBeTruthy();
+
   const stateResp = await request.get(`${API}/sellers/onboarding/state/`, { headers: h });
   expect(stateResp.ok(), `onboarding state: ${await stateResp.text()}`).toBeTruthy();
   const state = await stateResp.json();
@@ -132,11 +135,37 @@ async function registerSellerWithWarehouse(request) {
 }
 
 /**
+ * Pick first category id from public category tree (required for product create).
+ */
+async function getFirstCategoryId(request) {
+  const resp = await request.get(`${API}/products/category/`);
+  if (!resp.ok()) {
+    throw new Error(`categories fetch failed ${resp.status()}: ${await resp.text()}`);
+  }
+  const tree = await resp.json();
+  const walk = (nodes) => {
+    for (const node of nodes || []) {
+      if (node?.id) return node.id;
+      const nested = walk(node.children);
+      if (nested) return nested;
+    }
+    return null;
+  };
+  const categoryId = walk(tree);
+  if (!categoryId) {
+    throw new Error('No product categories in DB — seed E2E category before full-stack tests');
+  }
+  return categoryId;
+}
+
+/**
  * Create a base product and one variant. Returns variantSku and variantPrice.
  */
 async function createProductVariant(request, sellerAccess) {
   const h = { Authorization: `Bearer ${sellerAccess}` };
   const ts = Date.now();
+  const categoryId = await getFirstCategoryId(request);
+  const article = String(ts % 10_000_000_000).padStart(10, '0');
 
   const productResp = await request.post(`${API}/sellers/products/`, {
     headers: h,
@@ -144,7 +173,8 @@ async function createProductVariant(request, sellerAccess) {
       name: 'FS003 Test Product',
       product_description: 'Full-stack E2E payment confirmation test product',
       vat_rate: '21.00',
-      article: `FS003-${ts}`,
+      category: categoryId,
+      article,
     },
   });
   if (!productResp.ok()) {
@@ -154,23 +184,20 @@ async function createProductVariant(request, sellerAccess) {
 
   const variantResp = await request.post(`${API}/sellers/products/${product.id}/variants/`, {
     headers: h,
-    data: [
-      {
-        name: 'Standard',
-        text: 'Default',
-        price: '15.00',
-        weight_grams: 500,
-        length_mm: 200,
-        width_mm: 150,
-        height_mm: 100,
-      },
-    ],
+    data: {
+      name: 'Standard',
+      text: 'Default',
+      price: '15.00',
+      weight_grams: 500,
+      length_mm: 200,
+      width_mm: 150,
+      height_mm: 100,
+    },
   });
   if (variantResp.status() !== 201) {
     throw new Error(`Variant create failed ${variantResp.status()}: ${await variantResp.text()}`);
   }
-  const variants = await variantResp.json();
-  const variant = Array.isArray(variants) ? variants[0] : variants;
+  const variant = await variantResp.json();
 
   return {
     variantSku: variant.sku,
@@ -184,7 +211,7 @@ async function createProductVariant(request, sellerAccess) {
 async function registerCustomer(request) {
   const ts = Date.now();
   const email = `fs003-customer-${ts}@test.example`;
-  const phone = `+4208${String(ts).slice(-7)}`;
+  const phone = `+420810${String(ts % 1_000_000).padStart(6, '0')}`;
 
   const reg = await request.post(`${API}/accounts/register/customer/`, {
     data: {
@@ -513,7 +540,7 @@ test.describe('FS-003 — Full-stack payment confirmation E2E', () => {
         merged._persist = JSON.stringify({ version: persistVersion, rehydrated: true });
         localStorage.setItem(persistKey, JSON.stringify(merged));
         localStorage.setItem('token', JSON.stringify({ access: token, refresh }));
-        localStorage.setItem('cookieVersion', cookieVersion);
+        localStorage.setItem('COOKIE_VERSION', cookieVersion);
       },
       {
         token: customerAccess,
@@ -524,7 +551,7 @@ test.describe('FS-003 — Full-stack payment confirmation E2E', () => {
     );
 
     await proxyToBackend(page);
-    await page.goto('https://reli.one/my_orders');
+    await page.goto('/my_orders');
 
     // Wait for the orders to load — the HistorySmallCard renders order_number and total_amount
     // Selector: text matching pattern like "order {number}" rendered by HistorySmallCard

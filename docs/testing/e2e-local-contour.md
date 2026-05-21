@@ -157,6 +157,26 @@ SMTP-порт **1025** при необходимости проброшен на
 - **Не распространять** через git каталоги **`media_e2e`** / **`static_e2e`**, если туда попали загрузки с персональными данными (документы, адреса в файлах и т.д.).
 - В репозитории допустимы только **`*.env.example`** с плейсхолдерами и документация без секретов.
 
+## CI (GitHub Actions)
+
+Job **`e2e_fullstack`** в [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) — отдельно от лёгкого **`e2e_frontend3`** (smoke без backend).
+
+| Шаг | Действие |
+|-----|----------|
+| Env | `cp envs/database.e2e.env.example envs/database.e2e.env` и `cp envs/backend.e2e.env.example envs/backend.e2e.env` |
+| Stack | `docker compose -f docker-compose.e2e.yml up -d --build` |
+| Health | retry loop: `curl -sf http://localhost:8000/health/` (до 60 × 5s) |
+| Seed | `Category.objects.get_or_create(name='E2E Category')` через `docker compose exec backend_e2e python manage.py shell` |
+| Playwright | `Frontend/Frontend3`: `npm ci`, `npm run build`, `npx playwright test e2e/fullstack-*.spec.js` |
+| Env vars job | `CI=true`, `FULLSTACK_BACKEND_URL=http://localhost:8000` |
+| Cleanup | `docker compose -f docker-compose.e2e.yml down -v` (`if: always()`) |
+
+**Safety:** e2e flags (`ENABLE_E2E_ENDPOINTS`, `STRIPE_WEBHOOK_SKIP_SIGNATURE`) берутся только из `backend.e2e.env.example`; PSP keys пустые. Production/test env templates не меняются.
+
+**Specs в CI:** FS-001 (`fullstack-seller-onboarding.spec.js`, 3 теста), FS-002 (`fullstack-checkout-payment-session.spec.js`, 2), FS-003 (`fullstack-payment-confirmation.spec.js`, 2).
+
+Подробности: [`docs/tasks/018-full-stack-e2e-ci-implementation/task.md`](../tasks/018-full-stack-e2e-ci-implementation/task.md).
+
 ## Файлы репозитория
 
 | Файл | Назначение |

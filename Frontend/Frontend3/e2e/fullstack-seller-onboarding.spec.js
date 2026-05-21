@@ -67,7 +67,7 @@ async function proxyToBackend(page) {
 async function registerSellerUser(request) {
   const ts = Date.now();
   const email = `fs001-${ts}@test.example`;
-  const phone = `+4207${String(ts).slice(-7)}`;
+  const phone = `+420730${String(ts % 1_000_000).padStart(6, '0')}`;
 
   const reg = await request.post(`${API}/accounts/register/seller/`, {
     data: {

@@ -223,6 +223,15 @@
 
 Конфиг: `playwright.config.js` — `baseURL: http://127.0.0.1:4173`, `webServer: npm run preview`
 
+#### CI jobs (GitHub Actions)
+
+| Job | Specs | Backend | Примечание |
+|-----|-------|---------|------------|
+| `e2e_frontend3` | все `e2e/*.spec.js` (smoke, checkout, seller-onboarding mock) | Нет | Full-stack specs **auto-skip** |
+| `e2e_fullstack` | только `fullstack-*.spec.js` (FS-001/002/003, 7 тестов) | `docker-compose.e2e.yml` | e2e env flags; PSP keys пустые |
+
+См. [`docs/tasks/018-full-stack-e2e-ci-implementation/task.md`](tasks/018-full-stack-e2e-ci-implementation/task.md).
+
 #### `e2e/smoke.spec.js` — без бэкенда
 
 | Сценарий |

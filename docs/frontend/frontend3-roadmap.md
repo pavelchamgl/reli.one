@@ -139,6 +139,7 @@
 | 4.5 ✅ | FE-011 | Full-stack e2e: seller onboarding FS-001 (3 теста, Django + Postgres, proxy-forwarding, skip без бэкенда) |
 | 4.6 ✅ | FE-012 | Full-stack e2e: checkout until payment session FS-002 (2 теста, real backend, PSP mocked, Redux state seeding, skip без бэкенда) |
 | 4.7 ✅ | FE-013 | Full-stack e2e: payment confirmation + webhook lifecycle FS-003 (2 теста, webhook mock, Order/Invoice в DB, /my_orders UI, skip без бэкенда) |
+| 4.8 ✅ | Task 018 | Full-stack e2e CI gate: job `e2e_fullstack` (FS-001/002/003, docker-compose e2e, отдельно от `e2e_frontend3`) |
 
 ---
 
