@@ -71,7 +71,7 @@ sequenceDiagram
     loop 60 x 5s
         GHA->>BE: GET /health/
     end
-    GHA->>BE: seed E2E Category (manage.py shell)
+    GHA->>BE: loaddata product/fixtures/e2e_categories.json
     GHA->>PW: npm ci + build + playwright test fullstack-*.spec.js
     GHA->>DC: down -v (always)
 ```
@@ -186,3 +186,4 @@ Job запускается автоматически на `push` и `pull_reque
 | FU-018-01 | Кэш Docker layers для backend_e2e в CI |
 | FU-018-02 | Optional/nightly trigger если job слишком медленный |
 | FU-018-03 | Startup warning при e2e flags (из Task 017 FU-017-01) |
+| ~~FU-018-04~~ | ~~Runtime seed одной категории~~ → **Task 019** (fixture `e2e_categories.json`) |

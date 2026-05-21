@@ -154,12 +154,10 @@ jobs:
           docker compose -f docker-compose.e2e.yml logs backend_e2e
           exit 1
 
-      - name: Seed e2e catalog category
+      - name: Load e2e catalog fixture
         run: |
-          docker compose -f docker-compose.e2e.yml exec -T backend_e2e python manage.py shell -c "
-          from product.models import Category
-          Category.objects.get_or_create(name='E2E Category')
-          "
+          docker compose -f docker-compose.e2e.yml exec -T backend_e2e \
+            python manage.py loaddata product/fixtures/e2e_categories.json
 
       - uses: actions/setup-node@v4
         with:

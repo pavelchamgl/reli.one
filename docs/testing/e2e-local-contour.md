@@ -76,6 +76,25 @@ docker compose -f docker-compose.e2e.yml down
 
 При необходимости сбросить загруженные медиа e2e: каталог **`./media_e2e`**.
 
+## Каталог для full-stack E2E (fixture)
+
+После **полного сброса** e2e-БД (или на fresh CI VM) дерево категорий пустое — FS-002/FS-003 не смогут создать продукт без `category`.
+
+Загрузите fixture из репозитория (165 категорий, вложенное MPTT-дерево, без PII и без товаров):
+
+```bash
+docker compose -f docker-compose.e2e.yml exec -T backend_e2e \
+  python manage.py loaddata product/fixtures/e2e_categories.json
+```
+
+Проверка:
+
+```bash
+curl -sf http://localhost:8000/api/products/category/ | python3 -m json.tool | head
+```
+
+Файл: `backend/product/fixtures/e2e_categories.json`. Обновление fixture — см. [`docs/tasks/019-e2e-catalog-fixture/task.md`](../tasks/019-e2e-catalog-fixture/task.md).
+
 ## Подключение к PostgreSQL
 
 С хоста (например, `psql`, DBeaver, DataGrip):
@@ -166,7 +185,7 @@ Job **`e2e_fullstack`** в [`.github/workflows/ci.yml`](../../.github/workflows/
 | Env | `cp envs/database.e2e.env.example envs/database.e2e.env` и `cp envs/backend.e2e.env.example envs/backend.e2e.env` |
 | Stack | `docker compose -f docker-compose.e2e.yml up -d --build` |
 | Health | retry loop: `curl -sf http://localhost:8000/health/` (до 60 × 5s) |
-| Seed | `Category.objects.get_or_create(name='E2E Category')` через `docker compose exec backend_e2e python manage.py shell` |
+| Seed | `python manage.py loaddata product/fixtures/e2e_categories.json` (165 nested categories, без PII) |
 | Playwright | `Frontend/Frontend3`: `npm ci`, `npm run build`, `npx playwright test e2e/fullstack-*.spec.js` |
 | Env vars job | `CI=true`, `FULLSTACK_BACKEND_URL=http://localhost:8000` |
 | Cleanup | `docker compose -f docker-compose.e2e.yml down -v` (`if: always()`) |

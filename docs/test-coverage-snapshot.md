@@ -228,7 +228,7 @@
 | Job | Specs | Backend | Примечание |
 |-----|-------|---------|------------|
 | `e2e_frontend3` | все `e2e/*.spec.js` (smoke, checkout, seller-onboarding mock) | Нет | Full-stack specs **auto-skip** |
-| `e2e_fullstack` | только `fullstack-*.spec.js` (FS-001/002/003, 7 тестов) | `docker-compose.e2e.yml` | e2e env flags; PSP keys пустые |
+| `e2e_fullstack` | только `fullstack-*.spec.js` (FS-001/002/003, 7 тестов) | `docker-compose.e2e.yml` | e2e env flags; catalog via `loaddata e2e_categories.json` |
 
 См. [`docs/tasks/018-full-stack-e2e-ci-implementation/task.md`](tasks/018-full-stack-e2e-ci-implementation/task.md).
 

@@ -1,0 +1,2147 @@
+[
+{
+  "model": "product.category",
+  "pk": 1,
+  "fields": {
+    "name": "Electronics",
+    "parent": null,
+    "image": "category_images/Group_1123_15t6NKv.png",
+    "lft": 1,
+    "rght": 24,
+    "tree_id": 7,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 2,
+  "fields": {
+    "name": "Clothes and shoes",
+    "parent": null,
+    "image": "category_images/clothes.png",
+    "lft": 1,
+    "rght": 38,
+    "tree_id": 4,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 3,
+  "fields": {
+    "name": "House and garden",
+    "parent": null,
+    "image": "category_images/homeThings.png",
+    "lft": 1,
+    "rght": 22,
+    "tree_id": 14,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 4,
+  "fields": {
+    "name": "Children's goods",
+    "parent": null,
+    "image": "category_images/babyThings.png",
+    "lft": 1,
+    "rght": 12,
+    "tree_id": 3,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 5,
+  "fields": {
+    "name": "Luggage",
+    "parent": null,
+    "image": "category_images/ифп.png",
+    "lft": 1,
+    "rght": 14,
+    "tree_id": 16,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 6,
+  "fields": {
+    "name": "Beauty and health",
+    "parent": null,
+    "image": "category_images/beauty.png",
+    "lft": 1,
+    "rght": 12,
+    "tree_id": 1,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 7,
+  "fields": {
+    "name": "Sport and relaxation",
+    "parent": null,
+    "image": "category_images/sport.png",
+    "lft": 1,
+    "rght": 16,
+    "tree_id": 23,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 8,
+  "fields": {
+    "name": "Pet products",
+    "parent": null,
+    "image": "category_images/pet.png",
+    "lft": 1,
+    "rght": 10,
+    "tree_id": 20,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 9,
+  "fields": {
+    "name": "Furniture",
+    "parent": null,
+    "image": "category_images/mebel.png",
+    "lft": 1,
+    "rght": 16,
+    "tree_id": 10,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 10,
+  "fields": {
+    "name": "Office",
+    "parent": null,
+    "image": "category_images/kancTobar.png",
+    "lft": 1,
+    "rght": 8,
+    "tree_id": 18,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 11,
+  "fields": {
+    "name": "Toys/games",
+    "parent": null,
+    "image": "category_images/toys.png",
+    "lft": 1,
+    "rght": 8,
+    "tree_id": 24,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 12,
+  "fields": {
+    "name": "Jewelery",
+    "parent": null,
+    "image": "category_images/Jewelry_1_xHxtIDr.png",
+    "lft": 1,
+    "rght": 12,
+    "tree_id": 15,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 13,
+  "fields": {
+    "name": "Watches",
+    "parent": null,
+    "image": "category_images/Vector.png",
+    "lft": 1,
+    "rght": 6,
+    "tree_id": 25,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 21,
+  "fields": {
+    "name": "Women",
+    "parent": 2,
+    "image": "category_images/00133-2682337464_1.png",
+    "lft": 26,
+    "rght": 37,
+    "tree_id": 4,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 22,
+  "fields": {
+    "name": "Men",
+    "parent": 2,
+    "image": "category_images/00133-268233746d4_2.png",
+    "lft": 14,
+    "rght": 25,
+    "tree_id": 4,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 23,
+  "fields": {
+    "name": "Children",
+    "parent": 2,
+    "image": "category_images/00133-2682337464_2.png",
+    "lft": 2,
+    "rght": 13,
+    "tree_id": 4,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 24,
+  "fields": {
+    "name": "Clothing",
+    "parent": 21,
+    "image": "",
+    "lft": 29,
+    "rght": 30,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 25,
+  "fields": {
+    "name": "Shoes",
+    "parent": 22,
+    "image": "",
+    "lft": 21,
+    "rght": 22,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 26,
+  "fields": {
+    "name": "Accessories",
+    "parent": 23,
+    "image": "",
+    "lft": 3,
+    "rght": 4,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 27,
+  "fields": {
+    "name": "Jewelry",
+    "parent": 21,
+    "image": "",
+    "lft": 31,
+    "rght": 32,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 28,
+  "fields": {
+    "name": "Accessories",
+    "parent": 1,
+    "image": "category_images/00133-268s2337464_2.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 29,
+  "fields": {
+    "name": "Photography equipment",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_s2.png",
+    "lft": 14,
+    "rght": 15,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 30,
+  "fields": {
+    "name": "Smart phones",
+    "parent": 1,
+    "image": "category_images/00133-26823s37464_2.png",
+    "lft": 16,
+    "rght": 17,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 31,
+  "fields": {
+    "name": "Tablets",
+    "parent": 1,
+    "image": "category_images/00133-2682d337464_2.png",
+    "lft": 20,
+    "rght": 21,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 32,
+  "fields": {
+    "name": "Laptops",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_2-6.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 33,
+  "fields": {
+    "name": "Televisions",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_2-3.png",
+    "lft": 22,
+    "rght": 23,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 34,
+  "fields": {
+    "name": "Smart watches",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_2-4.png",
+    "lft": 18,
+    "rght": 19,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 35,
+  "fields": {
+    "name": "Computers",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_2-5.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 36,
+  "fields": {
+    "name": "Office equipment",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_2_jZgmNLJ.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 37,
+  "fields": {
+    "name": "Gaming consoles",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_2-1.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 38,
+  "fields": {
+    "name": "E-books",
+    "parent": 1,
+    "image": "category_images/00133-2682337464_2-2.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 7,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 39,
+  "fields": {
+    "name": "Kitchen and dining",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2_TOi2gRy.png",
+    "lft": 16,
+    "rght": 17,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 40,
+  "fields": {
+    "name": "Home textiles",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-6_isJIE0s.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 41,
+  "fields": {
+    "name": "Bathroom goods",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-7.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 42,
+  "fields": {
+    "name": "Home decoration",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-8.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 43,
+  "fields": {
+    "name": "Home and garden lighting",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-9.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 44,
+  "fields": {
+    "name": "Party goods",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-3_PJPmRH3.png",
+    "lft": 18,
+    "rght": 19,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 45,
+  "fields": {
+    "name": "Storage items",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-4_odHZB6y.png",
+    "lft": 20,
+    "rght": 21,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 46,
+  "fields": {
+    "name": "Cleaning products",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-5_1yhBaMc.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 47,
+  "fields": {
+    "name": "Household appliances",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-1_nippVJq.png",
+    "lft": 14,
+    "rght": 15,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 48,
+  "fields": {
+    "name": "Garden goods",
+    "parent": 3,
+    "image": "category_images/00133-2682337464_2-2_GbvLCL9.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 14,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 49,
+  "fields": {
+    "name": "Toys and games",
+    "parent": 4,
+    "image": "category_images/00133-2682337464_2_EsvEejp.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 3,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 50,
+  "fields": {
+    "name": "Outdoor sports and games",
+    "parent": 4,
+    "image": "category_images/00133-2682337464_2-1_LMdcUOz.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 3,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 51,
+  "fields": {
+    "name": "Children's creativity",
+    "parent": 4,
+    "image": "category_images/00133-2682337464_2-2_0cCwyi2.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 3,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 52,
+  "fields": {
+    "name": "Infant nutrition",
+    "parent": 4,
+    "image": "category_images/00133-2682337464_2-3_BRZLzZY.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 3,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 53,
+  "fields": {
+    "name": "Strollers and car seats",
+    "parent": 4,
+    "image": "category_images/00133-2682337464_2-4_tJg3Zwc.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 3,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 54,
+  "fields": {
+    "name": "Carry-on luggage",
+    "parent": 5,
+    "image": "category_images/00133-2682337464_2_O4fxlFf.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 16,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 55,
+  "fields": {
+    "name": "Backpacks",
+    "parent": 5,
+    "image": "category_images/00133-2682337464_2-1_LEVcKdX.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 16,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 56,
+  "fields": {
+    "name": "Suitcases",
+    "parent": 5,
+    "image": "category_images/00133-2682337464_2-2_hQiC8UI.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 16,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 57,
+  "fields": {
+    "name": "Laptop bags",
+    "parent": 5,
+    "image": "category_images/00133-2682337464_2-3_uwUnt7P.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 16,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 58,
+  "fields": {
+    "name": "Briefcases",
+    "parent": 5,
+    "image": "category_images/00133-2682337464_2-4_keDWIwf.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 16,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 59,
+  "fields": {
+    "name": "Sports bags",
+    "parent": 5,
+    "image": "category_images/00133-2682337464_2-5_SyUESWo.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 16,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 60,
+  "fields": {
+    "name": "Construction and repairs",
+    "parent": null,
+    "image": "category_images/кузфшкыШсщт.png",
+    "lft": 1,
+    "rght": 14,
+    "tree_id": 5,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 61,
+  "fields": {
+    "name": "Bathrooms and toilets",
+    "parent": 60,
+    "image": "category_images/00133-2682337464_2-1_kQsJjk4.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 5,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 62,
+  "fields": {
+    "name": "Tools",
+    "parent": 60,
+    "image": "category_images/00133-2682337464_2_gYtCQzF.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 5,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 63,
+  "fields": {
+    "name": "Building materials",
+    "parent": 60,
+    "image": "category_images/00133-2682337464_3.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 5,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 64,
+  "fields": {
+    "name": "Electricity and accessories",
+    "parent": 60,
+    "image": "category_images/00133-2682337464_2-2_OJABji1.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 5,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 65,
+  "fields": {
+    "name": "Renovation materials",
+    "parent": 60,
+    "image": "category_images/00133-268d2337464_2.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 5,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 66,
+  "fields": {
+    "name": "Lightning",
+    "parent": 60,
+    "image": "category_images/00133-2682337464_2-4_YJWdAwt.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 5,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 67,
+  "fields": {
+    "name": "Facial care",
+    "parent": 6,
+    "image": "category_images/00133-2682337464_2-1_86C6S5l.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 1,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 68,
+  "fields": {
+    "name": "Body care",
+    "parent": 6,
+    "image": "category_images/00133-2682337464_2_r5f9P2F.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 1,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 69,
+  "fields": {
+    "name": "Hair care",
+    "parent": 6,
+    "image": "category_images/00133-2682337464_3_RUEzDyx.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 1,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 70,
+  "fields": {
+    "name": "Decorative cosmetics",
+    "parent": 6,
+    "image": "category_images/00133-2682337464_2-2_EFiNiBR.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 1,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 71,
+  "fields": {
+    "name": "Gift sets",
+    "parent": 6,
+    "image": "category_images/00133-2682337464_2-3_EqmqnLM.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 1,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 72,
+  "fields": {
+    "name": "Winter sports",
+    "parent": 7,
+    "image": "category_images/00133-2682337464_2-1_lq4Ut72.png",
+    "lft": 14,
+    "rght": 15,
+    "tree_id": 23,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 73,
+  "fields": {
+    "name": "Martial arts",
+    "parent": 7,
+    "image": "category_images/00133-2682337464_2_yoiqeEs.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 23,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 74,
+  "fields": {
+    "name": "Fitness and yoga",
+    "parent": 7,
+    "image": "category_images/00133-2682337464_3_gV8ocuG.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 23,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 75,
+  "fields": {
+    "name": "Protection and equipment",
+    "parent": 7,
+    "image": "category_images/00133-2682337464_2-2_JsKhz7c.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 23,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 76,
+  "fields": {
+    "name": "Cycling",
+    "parent": 7,
+    "image": "category_images/00133-2682337464_2-3_5Xd38Es.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 23,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 77,
+  "fields": {
+    "name": "Water sports",
+    "parent": 7,
+    "image": "category_images/glass.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 23,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 78,
+  "fields": {
+    "name": "Food and treats",
+    "parent": 8,
+    "image": "category_images/Remove-bg_6.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 20,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 79,
+  "fields": {
+    "name": "Hygiene",
+    "parent": 8,
+    "image": "category_images/Remove-bg_8.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 20,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 80,
+  "fields": {
+    "name": "Toys",
+    "parent": 8,
+    "image": "category_images/00133-2682337464_3_KDXcwXW.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 20,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 81,
+  "fields": {
+    "name": "Other needs",
+    "parent": 8,
+    "image": "category_images/00133-2682337464_2_sLLEGkp.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 20,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 82,
+  "fields": {
+    "name": "Car parts",
+    "parent": null,
+    "image": "category_images/oil.png",
+    "lft": 1,
+    "rght": 16,
+    "tree_id": 2,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 83,
+  "fields": {
+    "name": "Oils and additives",
+    "parent": 82,
+    "image": "category_images/oil_k56ZoCt.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 2,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 84,
+  "fields": {
+    "name": "Car accessories",
+    "parent": 82,
+    "image": "category_images/Group_1204.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 2,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 85,
+  "fields": {
+    "name": "Automotive parts",
+    "parent": 82,
+    "image": "category_images/Remove-bg_3.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 2,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 86,
+  "fields": {
+    "name": "Tires",
+    "parent": 82,
+    "image": "category_images/00133-2682337464_2_6k9EuLc.png",
+    "lft": 14,
+    "rght": 15,
+    "tree_id": 2,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 87,
+  "fields": {
+    "name": "Car care",
+    "parent": 82,
+    "image": "category_images/00133-2682337464_2-1_UliciyJ.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 2,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 88,
+  "fields": {
+    "name": "Car electronics",
+    "parent": 82,
+    "image": "category_images/00133-2682337464_2-2_6WzJIHC.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 2,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 89,
+  "fields": {
+    "name": "Car tools",
+    "parent": 82,
+    "image": "category_images/Remove-bg_4.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 2,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 90,
+  "fields": {
+    "name": "Furniture for storage",
+    "parent": 9,
+    "image": "category_images/00133-2682337464_3_3dtjy1r.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 10,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 91,
+  "fields": {
+    "name": "Bedroom furniture",
+    "parent": 9,
+    "image": "category_images/Remove-bg_2.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 10,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 92,
+  "fields": {
+    "name": "Upholstered furniture",
+    "parent": 9,
+    "image": "category_images/Remove-bg_3_1hZPL4Q.png",
+    "lft": 14,
+    "rght": 15,
+    "tree_id": 10,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 93,
+  "fields": {
+    "name": "Office furniture",
+    "parent": 9,
+    "image": "category_images/00133-2682337464_2_Zq9JcTI.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 10,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 94,
+  "fields": {
+    "name": "Bathroom furniture",
+    "parent": 9,
+    "image": "category_images/00133-2682337464_2-1_qMsKYsL.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 10,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 95,
+  "fields": {
+    "name": "Kitchen furniture",
+    "parent": 9,
+    "image": "category_images/00133-2682337464_2-2_Vww4G39.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 10,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 96,
+  "fields": {
+    "name": "Garden furniture",
+    "parent": 9,
+    "image": "category_images/Remove-bg_5.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 10,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 97,
+  "fields": {
+    "name": "Hiking, fishing, hunting",
+    "parent": null,
+    "image": "category_images/watch_HMPk6n6.png",
+    "lft": 1,
+    "rght": 12,
+    "tree_id": 11,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 98,
+  "fields": {
+    "name": "Fishing",
+    "parent": 97,
+    "image": "category_images/00133-2682337464_4.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 11,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 99,
+  "fields": {
+    "name": "Clothing for fishing and hunting",
+    "parent": 97,
+    "image": "category_images/Remove-bg_2_Z4N1vKP.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 11,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 100,
+  "fields": {
+    "name": "Tents and awnings",
+    "parent": 97,
+    "image": "category_images/Remove-bg_3_j1XJ9j2.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 11,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 101,
+  "fields": {
+    "name": "Folding furniture",
+    "parent": 97,
+    "image": "category_images/00133-2682337464_2_xQ7BcRv.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 11,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 102,
+  "fields": {
+    "name": "Lamps and accessories",
+    "parent": 97,
+    "image": "category_images/00133-2682337464_2-1_p4MOPE4.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 11,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 103,
+  "fields": {
+    "name": "Notebooks",
+    "parent": 10,
+    "image": "category_images/00133-2682337464_4_A8R7k7s.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 18,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 104,
+  "fields": {
+    "name": "Writing accessories",
+    "parent": 10,
+    "image": "category_images/целый.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 18,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 105,
+  "fields": {
+    "name": "Office supplies",
+    "parent": 10,
+    "image": "category_images/Remove-bg_3_dyTZKo2.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 18,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 109,
+  "fields": {
+    "name": "Photovoltaics",
+    "parent": null,
+    "image": "category_images/sun.png",
+    "lft": 1,
+    "rght": 14,
+    "tree_id": 21,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 110,
+  "fields": {
+    "name": "Solar panels",
+    "parent": 109,
+    "image": "category_images/00133-2682337464_4_zuWjPh8.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 21,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 111,
+  "fields": {
+    "name": "Battery",
+    "parent": 109,
+    "image": "category_images/Remove-bg_2_E8EW66M.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 21,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 112,
+  "fields": {
+    "name": "Inverters",
+    "parent": 109,
+    "image": "category_images/Remove-bg_3_5rKS9an.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 21,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 113,
+  "fields": {
+    "name": "Mounting systems",
+    "parent": 109,
+    "image": "category_images/00133-2682337464_2_vwZARwl.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 21,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 114,
+  "fields": {
+    "name": "Charging station",
+    "parent": 109,
+    "image": "category_images/00133-2682337464_2-1_z2ItmTL.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 21,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 115,
+  "fields": {
+    "name": "Accessories",
+    "parent": 109,
+    "image": "category_images/00133-2682337464_2-2_ppeNVTt.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 21,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 116,
+  "fields": {
+    "name": "Services",
+    "parent": null,
+    "image": "category_images/slushba.png",
+    "lft": 1,
+    "rght": 10,
+    "tree_id": 22,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 117,
+  "fields": {
+    "name": "Photovoltaic services",
+    "parent": 116,
+    "image": "category_images/00133-2682337464_4_b3exEJK.png",
+    "lft": 6,
+    "rght": 9,
+    "tree_id": 22,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 118,
+  "fields": {
+    "name": "Another services",
+    "parent": 116,
+    "image": "category_images/00133-2682337464_3_tLCnFSm.png",
+    "lft": 2,
+    "rght": 5,
+    "tree_id": 22,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 119,
+  "fields": {
+    "name": "Installation and operation",
+    "parent": 117,
+    "image": "",
+    "lft": 7,
+    "rght": 8,
+    "tree_id": 22,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 120,
+  "fields": {
+    "name": "Installation and operation",
+    "parent": 118,
+    "image": "",
+    "lft": 3,
+    "rght": 4,
+    "tree_id": 22,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 121,
+  "fields": {
+    "name": "Medical supplies and pharmacy",
+    "parent": null,
+    "image": "category_images/med.png",
+    "lft": 1,
+    "rght": 14,
+    "tree_id": 17,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 122,
+  "fields": {
+    "name": "Medicines",
+    "parent": 121,
+    "image": "category_images/00133-2682337464_2_r4zeJ1R.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 17,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 123,
+  "fields": {
+    "name": "Medical equipment",
+    "parent": 121,
+    "image": "category_images/00133-2682337464_2-1_aUiwicQ.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 17,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 125,
+  "fields": {
+    "name": "Rehabilitation aids",
+    "parent": 121,
+    "image": "category_images/00133-2682337464_2-2_FanYZ19.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 17,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 126,
+  "fields": {
+    "name": "Optical",
+    "parent": 121,
+    "image": "category_images/00133-2682337464_2-3_TrQRTdm.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 17,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 127,
+  "fields": {
+    "name": "Vitamins",
+    "parent": 121,
+    "image": "category_images/00133-2682337464_3_okyJKSA.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 17,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 128,
+  "fields": {
+    "name": "Clothing",
+    "parent": 22,
+    "image": "",
+    "lft": 17,
+    "rght": 18,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 129,
+  "fields": {
+    "name": "Accessories",
+    "parent": 22,
+    "image": "",
+    "lft": 15,
+    "rght": 16,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 130,
+  "fields": {
+    "name": "Jewelry",
+    "parent": 22,
+    "image": "",
+    "lft": 19,
+    "rght": 20,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 131,
+  "fields": {
+    "name": "Underwear",
+    "parent": 22,
+    "image": "",
+    "lft": 23,
+    "rght": 24,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 132,
+  "fields": {
+    "name": "Accessories",
+    "parent": 21,
+    "image": "",
+    "lft": 27,
+    "rght": 28,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 133,
+  "fields": {
+    "name": "Underwear",
+    "parent": 21,
+    "image": "",
+    "lft": 35,
+    "rght": 36,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 134,
+  "fields": {
+    "name": "Shoes",
+    "parent": 21,
+    "image": "",
+    "lft": 33,
+    "rght": 34,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 135,
+  "fields": {
+    "name": "Clothing",
+    "parent": 23,
+    "image": "",
+    "lft": 5,
+    "rght": 6,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 136,
+  "fields": {
+    "name": "Shoes",
+    "parent": 23,
+    "image": "",
+    "lft": 9,
+    "rght": 10,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 137,
+  "fields": {
+    "name": "Jewelry",
+    "parent": 23,
+    "image": "",
+    "lft": 7,
+    "rght": 8,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 138,
+  "fields": {
+    "name": "Underwear",
+    "parent": 23,
+    "image": "",
+    "lft": 11,
+    "rght": 12,
+    "tree_id": 4,
+    "level": 2
+  }
+},
+{
+  "model": "product.category",
+  "pk": 139,
+  "fields": {
+    "name": "Equipment",
+    "parent": null,
+    "image": "category_images/icon.png",
+    "lft": 1,
+    "rght": 10,
+    "tree_id": 8,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 140,
+  "fields": {
+    "name": "Equipment for gyms",
+    "parent": 139,
+    "image": "category_images/Equipment_for_gyms.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 8,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 141,
+  "fields": {
+    "name": "Beauty equipment",
+    "parent": 139,
+    "image": "category_images/Beauty_equipment.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 8,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 143,
+  "fields": {
+    "name": "Paintings",
+    "parent": null,
+    "image": "category_images/Frame_40036.png",
+    "lft": 1,
+    "rght": 18,
+    "tree_id": 19,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 145,
+  "fields": {
+    "name": "Paintings",
+    "parent": 143,
+    "image": "category_images/PAINTINGS_TMPjdSj.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 146,
+  "fields": {
+    "name": "Drawings, illustrations, posters",
+    "parent": 143,
+    "image": "category_images/Drawings_JblCDry.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 147,
+  "fields": {
+    "name": "Sculptures",
+    "parent": 143,
+    "image": "category_images/Group_1328_AMYX0tF.png",
+    "lft": 16,
+    "rght": 17,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 148,
+  "fields": {
+    "name": "Photography",
+    "parent": 143,
+    "image": "category_images/Photography_jOm9XmW.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 149,
+  "fields": {
+    "name": "Handmade decor",
+    "parent": 143,
+    "image": "category_images/Handmade_Decor_Y98bL2x.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 150,
+  "fields": {
+    "name": "Handmade accessories",
+    "parent": 143,
+    "image": "category_images/Handmade_Accessories_Dzgs5so.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 151,
+  "fields": {
+    "name": "Personalized items",
+    "parent": 143,
+    "image": "category_images/Personalized_items_fOAeRb9.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 152,
+  "fields": {
+    "name": "Food",
+    "parent": null,
+    "image": "category_images/icin_food_qI69PAX.png",
+    "lft": 1,
+    "rght": 10,
+    "tree_id": 9,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 153,
+  "fields": {
+    "name": "Packaged food",
+    "parent": 152,
+    "image": "category_images/PACKAGED_FOOD_uZqHoua.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 9,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 154,
+  "fields": {
+    "name": "Pantry essentials",
+    "parent": 152,
+    "image": "category_images/Pantry_essentials_zXBvjky.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 9,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 155,
+  "fields": {
+    "name": "Drinks",
+    "parent": 152,
+    "image": "category_images/drink_ZgXm1Um.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 9,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 156,
+  "fields": {
+    "name": "Health and  wellness foods",
+    "parent": 152,
+    "image": "category_images/Health_and_wellness_foods_m1Rna5u.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 9,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 157,
+  "fields": {
+    "name": "Construction equipment",
+    "parent": 139,
+    "image": "category_images/Construction_equipment_VTIhWmx.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 8,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 158,
+  "fields": {
+    "name": "Home and garden equipment",
+    "parent": 139,
+    "image": "category_images/Home_and_garden_equipment_aYf9hNi.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 8,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 159,
+  "fields": {
+    "name": "Board games",
+    "parent": 11,
+    "image": "category_images/00133-2682337464_5_kT4hJ6o.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 24,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 160,
+  "fields": {
+    "name": "Prints",
+    "parent": 143,
+    "image": "category_images/prints_gleYplP.png",
+    "lft": 14,
+    "rght": 15,
+    "tree_id": 19,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 161,
+  "fields": {
+    "name": "Puzzles and brain teasers",
+    "parent": 11,
+    "image": "category_images/Puzzles_and_brain_teasers_O7Fc63E.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 24,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 162,
+  "fields": {
+    "name": "Construction sets",
+    "parent": 11,
+    "image": "category_images/3_FZUr1QJ.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 24,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 163,
+  "fields": {
+    "name": "Hobbies and creativity",
+    "parent": null,
+    "image": "category_images/Group_1338_q9pgcc1.png",
+    "lft": 1,
+    "rght": 14,
+    "tree_id": 13,
+    "level": 0
+  }
+},
+{
+  "model": "product.category",
+  "pk": 164,
+  "fields": {
+    "name": "DIY kits",
+    "parent": 163,
+    "image": "category_images/1_CrxPvdE.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 13,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 165,
+  "fields": {
+    "name": "Sewing and textile",
+    "parent": 163,
+    "image": "category_images/2_IrAwvKX.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 13,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 166,
+  "fields": {
+    "name": "Modeling",
+    "parent": 163,
+    "image": "category_images/3-removebg-preview_87N8rrH.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 13,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 167,
+  "fields": {
+    "name": "Educational kits",
+    "parent": 163,
+    "image": "category_images/4-removebg-preview_ZQesmDr.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 13,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 168,
+  "fields": {
+    "name": "Supplies",
+    "parent": 163,
+    "image": "category_images/5-removebg-preview.png",
+    "lft": 12,
+    "rght": 13,
+    "tree_id": 13,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 169,
+  "fields": {
+    "name": "Collectibles",
+    "parent": 163,
+    "image": "category_images/6_aF8yRRT.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 13,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 170,
+  "fields": {
+    "name": "Sport nutrition",
+    "parent": 7,
+    "image": "category_images/Frame_40044.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 23,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 171,
+  "fields": {
+    "name": "Necklaces",
+    "parent": 12,
+    "image": "category_images/Remove-bg.ai_1748042542290.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 15,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 172,
+  "fields": {
+    "name": "Bracelets",
+    "parent": 12,
+    "image": "category_images/Remove-bg.ai_1748042719089_1.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 15,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 173,
+  "fields": {
+    "name": "Rings",
+    "parent": 12,
+    "image": "category_images/Remove-bg.ai_1748042820780.png",
+    "lft": 10,
+    "rght": 11,
+    "tree_id": 15,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 174,
+  "fields": {
+    "name": "Earrings",
+    "parent": 12,
+    "image": "category_images/Remove-bg.ai_1748042989777_1.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 15,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 175,
+  "fields": {
+    "name": "Jewelry sets",
+    "parent": 12,
+    "image": "category_images/Remove-bg.ai_1748054406616.png",
+    "lft": 6,
+    "rght": 7,
+    "tree_id": 15,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 176,
+  "fields": {
+    "name": "Analog watches",
+    "parent": 13,
+    "image": "category_images/Remove-bg.ai_1748043650195_1.png",
+    "lft": 2,
+    "rght": 3,
+    "tree_id": 25,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 177,
+  "fields": {
+    "name": "Digital watches",
+    "parent": 13,
+    "image": "category_images/Remove-bg.ai_1748043775556_1.png",
+    "lft": 4,
+    "rght": 5,
+    "tree_id": 25,
+    "level": 1
+  }
+},
+{
+  "model": "product.category",
+  "pk": 178,
+  "fields": {
+    "name": "Personal healthcare",
+    "parent": 121,
+    "image": "category_images/pers.png",
+    "lft": 8,
+    "rght": 9,
+    "tree_id": 17,
+    "level": 1
+  }
+}
+]
