@@ -15,6 +15,11 @@ import { addToBasket } from "../../../../redux/basketSlice";
 
 import styles from "./ProductImageAndName.module.scss";
 import ProdCharackButtons from "../../ProdCharakButtons/ProdCharackButtons";
+import StockBadge from "../../StockBadge/StockBadge";
+import {
+  getVariantStockStatus,
+  isItemAvailable,
+} from "../../../../utils/stockAvailability";
 
 const ProductImageAndName = () => {
   const product = useSelector((state) => state.products.product);
@@ -32,6 +37,10 @@ const ProductImageAndName = () => {
 
   const basket = useSelector((state) => state.basket.basket);
 
+  const selectedVariant = product?.variants?.find((item) => item.sku === sku);
+  const selectedVariantAvailable = isItemAvailable(selectedVariant);
+  const selectedVariantStockStatus = getVariantStockStatus(selectedVariant);
+
   const navigate = useNavigate();
 
   const { id } = useParams();
@@ -41,6 +50,10 @@ const ProductImageAndName = () => {
   const dispatch = useDispatch();
 
   const handleAddBasket = () => {
+    if (!selectedVariantAvailable) {
+      return;
+    }
+
     const firstVariant = product.variants[0];
 
     dispatch(
@@ -147,9 +160,17 @@ const ProductImageAndName = () => {
           {/* <span>400.00 Kč</span> */}
         </div>
         <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVatMain} €</span></p>
-        <button className={styles.basketBtn} onClick={handleAddBasket}>
+        {selectedVariantStockStatus && (
+          <StockBadge stockStatus={selectedVariantStockStatus} />
+        )}
+        <button
+          className={styles.basketBtn}
+          onClick={handleAddBasket}
+          disabled={!selectedVariantAvailable}
+          aria-disabled={!selectedVariantAvailable}
+        >
           {inBasket && <img src={addBasketCheckIcon} alt="" />}
-          {t("add_basket")}
+          {selectedVariantAvailable ? t("add_basket") : t("out_of_stock")}
         </button>
         <button className={styles.deliveryBtn}>
           <img src={prodDelivery} alt="" />

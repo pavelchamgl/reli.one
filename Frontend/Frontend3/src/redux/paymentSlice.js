@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { createStripeSession, createPayPalSession, calculateDelivery } from "../api/payment";
-import { object } from "yup";
+import { getCheckoutPaymentErrorKey } from "../utils/paymentErrors";
 
 const initialPaymentInfo = JSON.parse(localStorage.getItem("payment")) || {};
 
@@ -288,7 +288,7 @@ const paymentSlice = createSlice({
             })
             .addCase(fetchCreateStripeSession.rejected, (state, action) => {
                 state.loading = false;
-                state.error = "Error executing request";
+                state.error = getCheckoutPaymentErrorKey(action.payload);
             })
             .addCase(fetchCreatePayPalSession.pending, (state) => {
                 state.loading = true;
@@ -300,7 +300,7 @@ const paymentSlice = createSlice({
             })
             .addCase(fetchCreatePayPalSession.rejected, (state, action) => {
                 state.loading = false;
-                state.error = "Error executing request";
+                state.error = getCheckoutPaymentErrorKey(action.payload);
             })
             .addCase(postCalculateDelivery.pending, (state, action) => {
                 state.deliveryStatus = "pending"

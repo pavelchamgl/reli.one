@@ -6,14 +6,12 @@ import prodTestImg from "../../../assets/Product/ProductTestImage.svg";
 
 import styles from "./ProdCharackButtons.module.scss";
 import { useTranslation } from "react-i18next";
+import { isItemAvailable } from "../../../utils/stockAvailability";
 
 const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPriceVat }) => {
   const { image, name, text, price } = variants[0] || {};
 
   const basket = useSelector((state) => state.basket.basket);
-
-  console.log(sku, variants);
-
 
   const [varPack, setVarPack] = useState(null);
   const [selected, setSelected] = useState(
@@ -47,6 +45,33 @@ const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPrice
   //   }
   // }, [basket, variants, setPrice, setSku]);
 
+  const renderVariantButton = (item, content) => {
+    const available = isItemAvailable(item);
+
+    return (
+      <button
+        type="button"
+        className={`${available ? "" : styles.unavailableVariant}`.trim()}
+        style={{
+          borderColor: selected === item.sku ? "black" : "#64748b",
+        }}
+        aria-disabled={!available}
+        onClick={() => {
+          setSelected(item.sku);
+          setPrice(item.price);
+          setSku(item.sku);
+          setPriceVat(item?.price_without_vat);
+        }}
+        key={item?.sku}
+      >
+        {content}
+        {!available && (
+          <span className={styles.unavailableLabel}>{t("out_of_stock")}</span>
+        )}
+      </button>
+    );
+  };
+
   if (varPack === "pack3") {
     return (
       <div className={styles.main}>
@@ -57,28 +82,15 @@ const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPrice
           </p>
           <div className={styles.stylePackVThreeButtons}>
             {variants && variants.length > 0
-              ? variants.map((item, index) => (
-                <button
-                  style={{
-                    borderColor: selected === item.sku ? "black" : "#64748b",
-                  }}
-                  onClick={() => {
-                    setSelected(item.sku);
-                    setPrice(item.price);
-                    setSku(item.sku);
-                    setPriceVat(item?.price_without_vat)
-                    // changeVariants({
-                    //   id: id,
-                    //   price: item.price,
-                    //   sku: item.sku,
-                    // });
-                  }}
-                  key={item?.sku}
-                >
-                  <p>{item.text}</p>
-                  <span>{item.price}€</span>
-                </button>
-              ))
+              ? variants.map((item) =>
+                  renderVariantButton(
+                    item,
+                    <>
+                      <p>{item.text}</p>
+                      <span>{item.price}€</span>
+                    </>
+                  )
+                )
               : null}
           </div>
         </div>
@@ -94,28 +106,15 @@ const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPrice
           </p>
           <div className={styles.stylePackVTwoButtons}>
             {variants && variants.length > 0
-              ? variants.map((item) => (
-                <button
-                  style={{
-                    borderColor: selected === item.sku ? "black" : "#64748b",
-                  }}
-                  onClick={() => {
-                    setSelected(item.sku);
-                    setPrice(item.price);
-                    setPriceVat(item?.price_without_vat)
-                    setSku(item.sku);
-                    // changeVariants({
-                    //   id: id,
-                    //   price: item.price,
-                    //   sku: item.sku,
-                    // });
-                  }}
-                  key={item?.sku}
-                >
-                  <img src={item?.image} alt="" />
-                  <p>{item?.price}€</p>
-                </button>
-              ))
+              ? variants.map((item) =>
+                  renderVariantButton(
+                    item,
+                    <>
+                      <img src={item?.image} alt="" />
+                      <p>{item?.price}€</p>
+                    </>
+                  )
+                )
               : null}
           </div>
         </div>

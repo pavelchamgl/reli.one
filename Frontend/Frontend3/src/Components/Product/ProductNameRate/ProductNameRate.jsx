@@ -13,7 +13,12 @@ import styles from "./ProductNameRate.module.scss";
 import { useEffect, useState } from "react";
 import ProdCharackButtons from "../ProdCharakButtons/ProdCharackButtons";
 import BasketModal from "../../Basket/BasketModal/BasketModal";
+import StockBadge from "../StockBadge/StockBadge";
 import { useMediaQuery } from "react-responsive";
+import {
+  getVariantStockStatus,
+  isItemAvailable,
+} from "../../../utils/stockAvailability";
 
 const ProductNameRate = () => {
   const [inBasket, setInBasket] = useState(false);
@@ -40,8 +45,12 @@ const ProductNameRate = () => {
 
   const basket = useSelector((state) => state.basket.basket);
 
+  const selectedVariant = product?.variants?.find((item) => item.sku === sku);
+  const selectedVariantAvailable = isItemAvailable(selectedVariant);
+  const selectedVariantStockStatus = getVariantStockStatus(selectedVariant);
+
   const handleAddBasket = () => {
-    if (!product || !sku || !endPrice) return;
+    if (!product || !sku || !endPrice || !selectedVariantAvailable) return;
     const firstVariant = product.variants[0];
 
 
@@ -178,9 +187,17 @@ const ProductNameRate = () => {
         variants={product?.variants}
         id={product?.id}
       />
-      <button className={styles.addBasketBtn} onClick={handleAddBasket}>
+      {selectedVariantStockStatus && (
+        <StockBadge stockStatus={selectedVariantStockStatus} />
+      )}
+      <button
+        className={styles.addBasketBtn}
+        onClick={handleAddBasket}
+        disabled={!selectedVariantAvailable}
+        aria-disabled={!selectedVariantAvailable}
+      >
         {inBasket && <img src={addBasketCheckIcon} alt="" />}
-        {t("add_basket")}
+        {selectedVariantAvailable ? t("add_basket") : t("out_of_stock")}
       </button>
       <button className={styles.deliveryBtn}>
         <img src={ProductDeliveryCar} alt="" />

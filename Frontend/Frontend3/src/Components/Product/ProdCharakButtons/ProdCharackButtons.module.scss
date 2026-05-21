@@ -252,3 +252,15 @@
     }
   }
 }
+
+.unavailableVariant {
+  opacity: 0.55;
+  position: relative;
+}
+
+.unavailableLabel {
+  font-size: clamp(10px, 2vw, 12px);
+  font-weight: 600;
+  color: #b91c1c;
+  text-transform: uppercase;
+}
