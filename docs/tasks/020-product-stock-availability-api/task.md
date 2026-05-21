@@ -1,10 +1,10 @@
-# Task 014 — Product Stock Availability API
+# Task 020 — Product Stock Availability API
 
 **Priority:** P1  
 **Status:** Implemented (2026-05-20)  
 **Depends on:** Task 013 (`WarehouseItem.reserved_quantity`, reservation TTL)
 
-> **Note:** folder slug `014-product-stock-availability-api` — отдельно от [`014-frontend3-stabilization-audit`](./014-frontend3-stabilization-audit/task.md).
+> **Note:** folder slug `020-product-stock-availability-api` (renumbered from `014-…` to avoid collision with [`014-frontend3-stabilization-audit`](../014-frontend3-stabilization-audit/task.md)).
 
 ---
 
@@ -153,3 +153,4 @@ Query pattern:
 | Дата | Изменение |
 |------|-----------|
 | 2026-05-20 | Initial implementation + API contract |
+| 2026-05-21 | Renumbered task docs `014` → `020` (collision with Frontend3 audit task 014) |

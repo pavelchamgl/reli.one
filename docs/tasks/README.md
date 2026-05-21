@@ -125,6 +125,7 @@ graph TD
 | **017** | [**e2e-safety-ci-readiness-audit**](./017-e2e-safety-ci-readiness-audit/task.md) | P1 | Low | 015, 016, FS-003 | **DONE (documentation-only):** safety audit PASS; CI proposal → реализован в **018** |
 | **018** | [**full-stack-e2e-ci-implementation**](./018-full-stack-e2e-ci-implementation/task.md) | P2 | Medium | 015, 017, FS-001–003 | **DONE:** job `e2e_fullstack` в CI; FS-001/002/003 против docker-compose e2e |
 | **019** | [**e2e-catalog-fixture**](./019-e2e-catalog-fixture/task.md) | P2 | Low–Med | 018, FS-002/003 | **DONE:** `e2e_categories.json` + `loaddata` в CI вместо runtime seed |
+| **020** | [**product-stock-availability-api**](./020-product-stock-availability-api/task.md) | P1 | Low–Med | 013 | **DONE (repo-scope):** catalog API fields `total_available_quantity`, `stock_status`; см. `task.md` |
 
 ## Рекомендуемый порядок выполнения
 
@@ -256,6 +257,7 @@ docs/tasks/
 ├── 017-e2e-safety-ci-readiness-audit/task.md
 └── 018-full-stack-e2e-ci-implementation/task.md
 └── 019-e2e-catalog-fixture/task.md
+└── 020-product-stock-availability-api/task.md
 ```
 
 См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).
