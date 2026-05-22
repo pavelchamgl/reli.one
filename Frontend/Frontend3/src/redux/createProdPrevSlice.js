@@ -99,6 +99,7 @@ const createProdPrevSlice = createSlice({
         variantsMain: [],
         variantsName: "",
         category_name: "",
+        type:"",
         // filesMain: null,
         product_parameters: null,
         status: null,
@@ -210,6 +211,12 @@ const createProdPrevSlice = createSlice({
                 ...state,
                 ...action.payload
             }
+        },
+        setType:(state, action)=>{
+            return{
+                ...state, 
+                type:action.payload.type
+            }
         }
     },
     extraReducers: build => {
@@ -230,5 +237,5 @@ const createProdPrevSlice = createSlice({
     }
 })
 
-export const { addLicense, deleteLicense, setName, setDescription, setCategory, setParametersPrev, setImages, setVariantsPrev, setLength, setWidth, setHeigth, setWeight, setFilesMain, deleteImage, setVariantsName, setPreviewProduct, setValues } = createProdPrevSlice.actions
+export const { addLicense, deleteLicense, setName, setDescription, setCategory, setParametersPrev, setImages, setVariantsPrev, setLength, setWidth, setHeigth, setWeight, setFilesMain, deleteImage, setVariantsName, setPreviewProduct, setValues, setType } = createProdPrevSlice.actions
 export const { reducer } = createProdPrevSlice
