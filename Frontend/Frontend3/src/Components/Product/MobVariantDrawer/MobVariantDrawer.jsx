@@ -59,19 +59,25 @@ const MobVariantDrawer = ({
       setVarPack("pack3");
     } else if (image && price) {
       setVarPack("pack2");
+    } else if (variants?.length > 0 && price) {
+      setVarPack("generic");
+    } else {
+      setVarPack(null);
     }
   }, [variants, image, text, price]);
 
-  const renderVariantButton = (item, content) => {
+  const renderVariantButton = (item, content, className = "") => {
     const available = isItemAvailable(item);
 
     return (
       <button
         type="button"
+        className={className}
         style={{
           borderColor: selected === item.sku ? "black" : "#64748b",
           opacity: available ? 1 : 0.55,
         }}
+        aria-disabled={!available}
         onClick={() => {
           if (!available) {
             return;
@@ -85,6 +91,13 @@ const MobVariantDrawer = ({
       </button>
     );
   };
+
+  const renderGenericVariantContent = (item) => (
+    <>
+      <p>{item.name || item.sku}</p>
+      <span>{item.price}€</span>
+    </>
+  );
 
   return (
     <div>
@@ -130,6 +143,13 @@ const MobVariantDrawer = ({
                         )
                       )
                     : null}
+                </div>
+              )}
+              {varPack === "generic" && (
+                <div className={styles.stylePackVThreeButtons}>
+                  {variants.map((item) =>
+                    renderVariantButton(item, renderGenericVariantContent(item))
+                  )}
                 </div>
               )}
             </div>

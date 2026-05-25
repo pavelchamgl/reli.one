@@ -87,6 +87,39 @@ describe("basketSlice — addToBasket", () => {
       "There should be no more than 55 items in the basket"
     );
   });
+
+  it("rejects out_of_stock variant payload", () => {
+    const item = makeItem({
+      sku: "SKU-OOS",
+      product: {
+        id: 1,
+        name: "Widget",
+        price: 10,
+        variants: [
+          {
+            sku: "SKU-OOS",
+            is_available: false,
+            stock_status: "out_of_stock",
+          },
+        ],
+      },
+    });
+    const state = reducer(initialState, addToBasket(item));
+    expect(state.basket).toHaveLength(0);
+  });
+
+  it("allows legacy payload without stock fields", () => {
+    const item = makeItem({
+      product: {
+        id: 1,
+        name: "Widget",
+        price: 10,
+        variants: [{ sku: "SKU-001", price: 10 }],
+      },
+    });
+    const state = reducer(initialState, addToBasket(item));
+    expect(state.basket).toHaveLength(1);
+  });
 });
 
 // ── deleteFromBasket ──────────────────────────────────────────────────────────

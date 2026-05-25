@@ -118,4 +118,23 @@ describe("ProductNameRate stock availability", () => {
     await userEvent.click(addButton);
     expect(store.getState().basket.basket).toHaveLength(0);
   });
+
+  it("initializes selected sku after product loads", async () => {
+    const store = makeStore({});
+    renderWithProviders(<ProductNameRate />, {
+      storeInstance: store,
+      route: "/product/42",
+    });
+
+    store.dispatch({
+      type: "products/fetchGetProductById/fulfilled",
+      payload: { data: productWithVariants },
+    });
+
+    expect(await screen.findByTestId("stock-badge")).toHaveAttribute(
+      "data-stock-status",
+      "in_stock"
+    );
+    expect(screen.getByRole("button", { name: "add_basket" })).not.toBeDisabled();
+  });
 });

@@ -116,31 +116,30 @@ const ProductNameRate = () => {
   // }, [product, basket]);
 
   useEffect(() => {
+    if (!product?.variants?.length) {
+      return;
+    }
 
-    const sku = new URLSearchParams(search).get("variant")
-    const firstVariant = product.variants?.[0];
+    const variantParam = new URLSearchParams(search).get("variant");
+    const firstVariant = product.variants[0];
 
-    if (sku) {
-      const searchVariant = product.variants?.find((item) => item.sku === sku)
+    if (variantParam) {
+      const searchVariant = product.variants.find((item) => item.sku === variantParam);
 
       if (searchVariant) {
-        setPrice(searchVariant?.price)
-        setEndPice(searchVariant?.price)
-        setPriceVat(searchVariant?.price_without_vat)
-        setSku(sku)
-      } else {
-        setPrice(firstVariant?.price)
-        setEndPice(firstVariant?.price)
-        setPriceVat(firstVariant?.price_without_vat)
-        setSku(firstVariant?.sku)
+        setPrice(searchVariant?.price);
+        setEndPice(searchVariant?.price);
+        setPriceVat(searchVariant?.price_without_vat);
+        setSku(variantParam);
+        return;
       }
-    } else {
-      setPrice(firstVariant?.price)
-      setEndPice(firstVariant?.price)
-      setPriceVat(firstVariant?.price_without_vat)
-      setSku(firstVariant?.sku)
     }
-  }, [])
+
+    setPrice(firstVariant?.price);
+    setEndPice(firstVariant?.price);
+    setPriceVat(firstVariant?.price_without_vat);
+    setSku(firstVariant?.sku);
+  }, [product?.id, search]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const setVariant = (newVariant) => {

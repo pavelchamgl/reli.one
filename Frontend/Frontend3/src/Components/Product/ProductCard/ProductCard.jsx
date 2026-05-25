@@ -22,6 +22,7 @@ import {
 } from "../../../redux/basketSlice";
 import StockBadge from "../StockBadge/StockBadge";
 import {
+  getListItemStockSource,
   getProductStockStatus,
   isItemAvailable,
 } from "../../../utils/stockAvailability";
@@ -53,8 +54,9 @@ const ProductCard = ({ data = null, sellerProducts }) => {
   const statusFav = useSelector((state) => state.favorites.status);
   const basket = useSelector((state) => state.basket.basket);
 
-  const productAvailable = isItemAvailable(data);
-  const stockStatus = getProductStockStatus(data);
+  const stockSource = getListItemStockSource(data, allData);
+  const productAvailable = isItemAvailable(stockSource);
+  const stockStatus = getProductStockStatus(stockSource);
 
   const handleBuy = () => {
     if (!productAvailable) {

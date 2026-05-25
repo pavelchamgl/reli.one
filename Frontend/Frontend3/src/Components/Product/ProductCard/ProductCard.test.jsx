@@ -137,4 +137,29 @@ describe("ProductCard stock availability", () => {
     await userEvent.click(buyButton);
     expect(store.getState().basket.basket).toHaveLength(0);
   });
+
+  it("uses detail API stock fields when list item omits them", async () => {
+    const { getProductById } = await import("../../../api/productsApi");
+    getProductById.mockResolvedValueOnce({
+      data: {
+        id: 1,
+        seller_id: 10,
+        is_available: false,
+        stock_status: "out_of_stock",
+        total_available_quantity: 0,
+        variants: [{ sku: "SKU-1", price: "10.00", price_without_vat: "8.00" }],
+      },
+    });
+
+    const store = makeStore();
+    renderWithProviders(<ProductCard data={baseProduct} />, {
+      storeInstance: store,
+    });
+
+    expect(await screen.findByTestId("stock-badge")).toHaveAttribute(
+      "data-stock-status",
+      "out_of_stock"
+    );
+    expect(screen.getByRole("button", { name: "out_of_stock" })).toBeDisabled();
+  });
 });

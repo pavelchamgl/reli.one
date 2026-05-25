@@ -1,7 +1,17 @@
 """Парсинг env для Django settings. Без импорта Django — удобно для юнит-тестов."""
 
 import os
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Sequence
+
+DEFAULT_CORS_ALLOWED_ORIGINS = (
+    "https://reli.one",
+    "https://www.reli.one",
+    "http://45.147.248.21:8081",
+)
+LOCAL_DEV_CORS_ORIGINS = (
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+)
 
 
 def str_to_bool(value) -> bool:
@@ -41,3 +51,29 @@ def int_from_env(
         return int(str(raw).strip())
     except ValueError:
         return default
+
+
+def resolve_cors_allowed_origins(
+    *,
+    debug: bool,
+    enable_e2e_endpoints: bool,
+    cors_allowed_origins_env: str = "",
+    default_origins: Sequence[str] = DEFAULT_CORS_ALLOWED_ORIGINS,
+    local_dev_origins: Sequence[str] = LOCAL_DEV_CORS_ORIGINS,
+) -> List[str]:
+    """Build CORS allowlist: env override, then optional local Vite origins for dev/e2e."""
+    if cors_allowed_origins_env.strip():
+        origins = [
+            origin.strip()
+            for origin in cors_allowed_origins_env.split(",")
+            if origin.strip()
+        ]
+    else:
+        origins = list(default_origins)
+
+    if debug or enable_e2e_endpoints:
+        for origin in local_dev_origins:
+            if origin not in origins:
+                origins.append(origin)
+
+    return origins

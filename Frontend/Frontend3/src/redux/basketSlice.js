@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { ErrToast } from "../ui/Toastify";
 import { trackAddToCart } from "../analytics/analytics";
+import { canAddToBasket } from "../utils/stockAvailability.js";
 
 const initialState = {
     basket: [],       // Корзина текущего пользователя
@@ -21,6 +22,10 @@ const basketSlice = createSlice({
     reducers: {
         // Добавление товара в корзину
         addToBasket: (state, action) => {
+            if (!canAddToBasket(action.payload)) {
+                return;
+            }
+
             if (state.basket.length < 55) {
                 if (state.basket.every((item) => item.sku !== action.payload.sku)) {
                     state.basket.push(action.payload);

@@ -78,25 +78,23 @@ const ProductImageAndName = () => {
   }, [id, basket, sku]);
 
   useEffect(() => {
-    if (product && product.variants && product.variants.length > 0) {
-      // Проверка, есть ли продукт с текущим id в корзине
-      const existingProduct = basket.find((item) => item.id === product.id);
-
-      if (!existingProduct) {
-        // Если продукта нет в корзине, установить значения первого варианта
-        const firstVariant = product.variants[0];
-        setPrice(firstVariant.price);
-        setEndPice(firstVariant.price);
-        setSku(firstVariant.sku);
-        // setPriceVat(firstVariant.price_without_vat)
-      } else {
-        // Если продукт уже в корзине, использовать данные из корзины
-        setEndPice(existingProduct.product.price);
-        setSku(existingProduct.sku);
-        // setPriceVat(existingProduct?.price_without_vat)
-      }
+    if (!product?.variants?.length) {
+      return;
     }
-  }, [product, basket]);
+
+    const existingProduct = basket.find((item) => item.id === product.id);
+
+    if (existingProduct) {
+      setEndPice(existingProduct.product.price);
+      setSku(existingProduct.sku);
+    } else {
+      const firstVariant = product.variants[0];
+      setPrice(firstVariant.price);
+      setEndPice(firstVariant.price);
+      setSku(firstVariant.sku);
+    }
+    // deps: product?.id only — basket changes must not reset the user's variant selection
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLikeClick = async () => {
     const newLike = !like;
@@ -149,6 +147,7 @@ const ProductImageAndName = () => {
       <div className={styles.descAndBtnWrap}>
         <p className={styles.title}>{formattedText}</p>
         <ProdCharackButtons
+          sku={sku}
           setPrice={setEndPice}
           setPriceVat={setPriceVatMain}
           setSku={setSku}

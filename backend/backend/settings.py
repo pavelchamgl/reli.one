@@ -6,7 +6,12 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from env_parse import cookie_samesite_from_env, int_from_env, str_to_bool
+from env_parse import (
+    cookie_samesite_from_env,
+    int_from_env,
+    resolve_cors_allowed_origins,
+    str_to_bool,
+)
 
 # Build paths inside this folder: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -332,11 +337,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIRECT_DOMAIN = 'https://reli.one/'
 
 CORS_ALLOW_ALL_ORIGINS = False
-CORS_ALLOWED_ORIGINS = [
-    "https://reli.one",
-    "https://www.reli.one",
-    "http://45.147.248.21:8081",
-]
+CORS_ALLOWED_ORIGINS = resolve_cors_allowed_origins(
+    debug=DEBUG,
+    enable_e2e_endpoints=ENABLE_E2E_ENDPOINTS,
+    cors_allowed_origins_env=os.getenv("CORS_ALLOWED_ORIGINS", ""),
+)
 
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
