@@ -169,6 +169,7 @@ const LoginModal = ({ open, handleClose, text, basket = false }) => {
 
             <div className={styles.btnDiv}>
               <button
+                type="button"
                 disabled={!formik.isValid}
                 onClick={formik.handleSubmit}
                 className={styles.submitBtn}

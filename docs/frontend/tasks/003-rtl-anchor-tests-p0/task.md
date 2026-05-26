@@ -77,3 +77,5 @@ Backend уже проверяет бизнес-инварианты; фронт 
 - [x] `LoginModal.test.jsx` — Yup validation (required, email, password), valid submit → mock `login`, 401 → `regErr`.
 - [x] `SignUpForm.test.jsx` — Yup validation, valid submit → mock `register`, 400 → `regErr`.
 - [x] `src/api/index.test.js` — response interceptors: network toast dedup + reset on success, 401 refresh + retry, failed refresh → session toast + `clearToken`.
+
+**Follow-up (optional, не блокирует FE-T003):** concurrent 401 refresh queue (`isRefreshing` / `failedQueue` в `api/index.js`) — отдельный unit-тест при рефакторинге interceptors.

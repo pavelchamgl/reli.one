@@ -198,6 +198,7 @@ const SignUpForm = () => {
       </label>
       <p className={styles.errText}>{regErr}</p>
       <button
+        type="button"
         disabled={!formik.isValid || !agreeRules} // Логика: кнопка активна только если форма валидна и чекбокс выбран
         onClick={formik.handleSubmit}
         className={styles.subBtn}
