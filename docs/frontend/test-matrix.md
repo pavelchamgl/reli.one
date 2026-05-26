@@ -37,8 +37,8 @@
 | `handleError` + onboarding API endpoints | P0 | Unit | Покрыто | [`src/api/seller/onboarding.test.js`](../../Frontend/Frontend3/src/api/seller/onboarding.test.js) |
 | Seller type selection (RTL) | P1 | RTL | Покрыто | [`src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx`](../../Frontend/Frontend3/src/Components/Seller/auth/sellerTypeContent/SellerTypeContent.test.jsx) |
 | Дым обёртки `renderWithProviders` + i18n provider | P0 | RTL | Покрыто | [`src/test/renderWithProviders.test.jsx`](../../Frontend/Frontend3/src/test/renderWithProviders.test.jsx) |
-| Логин / регистрация (Yup) | P0 | RTL | Backlog | — |
-| Ошибки API / retry, тосты | P0 | RTL | Backlog | — |
+| Логин / регистрация (Yup) | P0 | RTL | Покрыто | [`LoginModal.test.jsx`](../../Frontend/Frontend3/src/Components/LoginModal/LoginModal.test.jsx), [`SignUpForm.test.jsx`](../../Frontend/Frontend3/src/Components/ProfileNav/SignUp/SignUpForm.test.jsx) |
+| Ошибки API / retry, тосты | P0 | Unit | Покрыто | [`src/api/index.test.js`](../../Frontend/Frontend3/src/api/index.test.js) — network toast dedup, 401 refresh/retry, failed refresh → session toast + clearToken |
 | Корзина / чекаут (basketSlice + BasketCardBlock) | P0 | Unit + RTL | Покрыто (частично) | [`src/redux/basketSlice.test.js`](../../Frontend/Frontend3/src/redux/basketSlice.test.js), [`BasketCardBlock.test.jsx`](../../Frontend/Frontend3/src/Components/Basket/BasketCardBlock/BasketCardBlock.test.jsx) |
 | Smoke: корень SPA открывается | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js), CI job `e2e_frontend3` |
 | Smoke: home page app shell mount | P1 | e2e | Покрыто | [`e2e/smoke.spec.js`](../../Frontend/Frontend3/e2e/smoke.spec.js) |

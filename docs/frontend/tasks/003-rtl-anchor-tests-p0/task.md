@@ -2,7 +2,7 @@
 
 **Priority:** P0  
 **Complexity:** Medium–High  
-**Status:** In progress
+**Status:** Done
 
 ## Цель
 
@@ -39,7 +39,7 @@ Backend уже проверяет бизнес-инварианты; фронт 
 
 ## Definition of Done
 
-- [ ] Все строки P0 в [test-matrix.md](../../test-matrix.md) закрыты тестами или помечены как отложено.
+- [x] Все строки P0 в [test-matrix.md](../../test-matrix.md) закрыты тестами или помечены как отложено.
 - [x] Прогон `npm run test` в Frontend3 зелёный в CI.
 - [x] Нет секретов в фикстурах.
 
@@ -74,4 +74,6 @@ Backend уже проверяет бизнес-инварианты; фронт 
 
 ### Статус
 
-- [ ] 
+- [x] `LoginModal.test.jsx` — Yup validation (required, email, password), valid submit → mock `login`, 401 → `regErr`.
+- [x] `SignUpForm.test.jsx` — Yup validation, valid submit → mock `register`, 400 → `regErr`.
+- [x] `src/api/index.test.js` — response interceptors: network toast dedup + reset on success, 401 refresh + retry, failed refresh → session toast + `clearToken`.
