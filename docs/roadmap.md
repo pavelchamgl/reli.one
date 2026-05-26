@@ -13,7 +13,7 @@
 
 ## Current status snapshot
 
-- **Task 009** — **завершена по заявленному scope** в репозитории; follow-up по **`reserved_quantity`**, резерву на складе и списанию остатка в webhook — в **[Task 013](tasks/013-stock-reservation/task.md)** (сейчас design-only / вне обязательного трека). См. также **[Task 009](tasks/009-db-model-improvements/task.md)**.
+- **Task 009** — **завершена по заявленному scope** в репозитории; **`reserved_quantity`**, резерв на складе и списание в webhook — реализованы в **[Task 013](tasks/013-stock-reservation/task.md)** (**DONE repo-scope**; **OPEN ops rollout**). См. также **[Task 009](tasks/009-db-model-improvements/task.md)**.
 - **Task 011** — **Done (repo-scope)** — см. **[`tasks/011-order-product-received-at-timezone/task.md`](tasks/011-order-product-received-at-timezone/task.md)**.
 - **Task 012** — **Done (repo-scope)** по заголовку и основному DoD в **[`tasks/012-order-lifecycle-extended-tests/task.md`](tasks/012-order-lifecycle-extended-tests/task.md)**; в том же файле остаётся пометка про сценарии без публичных действий в коде — **verify in task file**.
 - **Frontend3** — зафиксирован фундамент **Vitest + RTL** (`npm run test`), плюс узкий Playwright smoke; снимок: **[`docs/frontend/README.md`](frontend/README.md)**, `Frontend/Frontend3/package.json`.
@@ -28,8 +28,8 @@
 Рекомендуемая логика (высокий уровень):
 
 1. Закрытие хвостов и регрессий вокруг order/lifecycle — **Task 012** (**verify in task file** при расхождении с доской).
-2. Структурный backlog **Order Consistency** и связанное — **[Task 004](tasks/004-order-consistency/task.md)** (секция backlog в `task.md`).
-3. **[Task 013](tasks/013-stock-reservation/task.md)** — **только после отдельного проектирования** и явного включения складского трека: резерв, `reserved_quantity`, списание в webhook и согласование с платежами/заказом.
+2. **Task 004** — **DONE repo-scope** (payment cleanup + structural Order Consistency); **OPEN (ops/manual):** production/live PSP acceptance и production migration verification — см. [`task.md`](tasks/004-order-consistency/task.md). Future order lifecycle extensions — отдельный backlog.
+3. **[Task 013](tasks/013-stock-reservation/task.md)** — **DONE repo-scope implementation**; **OPEN ops rollout:** `STOCK_RESERVATION_ENABLED=True` на staging/prod, cron/Celery cleanup, monitoring, production evidence. Git **не** утверждает production rollout.
 
 Прочие номера (003, 005, 006, 008, 010 и т.д.) — см. таблицу и пояснения в **[`docs/tasks/README.md`](tasks/README.md)**.
 
@@ -65,7 +65,7 @@
 
 ## Deferred / explicitly out of scope (на уровне roadmap)
 
-- **Task 013** — имплементация резерва/списания **не** в текущем обязательном треке до решения и дизайна (см. **`task.md`**).
+- **Task 013 ops rollout** — включение флага на staging/prod, cron, monitoring и production evidence **не** входит в repo-scope closure; см. **[`task.md`](tasks/013-stock-reservation/task.md)**. Имплементация в коде **уже есть**.
 - Массовый рефакторинг фронта — **вне** Phase 1/2; старт только после гейтов G1–G4 из [refactoring-readiness-plan.md](frontend/refactoring-readiness-plan.md).
 - Полный e2e чекаута, прод-изменения оплаты — Phase 4 после стабилизации; промокоды и конкурентный склад — по соответствующим задачам и **[`docs/tasks/README.md`](tasks/README.md)**.
 

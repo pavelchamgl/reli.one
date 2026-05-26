@@ -5,7 +5,7 @@
 **Status:** **DONE (репозиторий)** — deliverables ниже выполнены; детально см. **[Финальный аудит и таблица DoD](#финальный-аудит-и-таблица-dod)**. **OPEN / Partial (операционно):** боевые **staging/production** приёмка, `check --deploy`, активация Sentry/monitors/alerts только **вручную на контуре** (git **не** утверждает «production verified»).
 
 ## Цель
-Закрепить эксплуатационный контур: health-check, Sentry, мониторинг/логи/алерты **в документации** ([`docs/operations/monitoring-alerts.md`](../../operations/monitoring-alerts.md), без навязывания observability‑стека в коде), документацию деплоя и безопасности, backup/restore, локальный e2e и шаблоны env, CI; без привязки к неиспользуемым в продукте доменам (промокоды, складской резерв — см. **Deferred** ниже).
+Закрепить эксплуатационный контур: health-check, Sentry, мониторинг/логи/алерты **в документации** ([`docs/operations/monitoring-alerts.md`](../../operations/monitoring-alerts.md), без навязывания observability‑стека в коде), документацию деплоя и безопасности, backup/restore, локальный e2e и шаблоны env, CI; без привязки к неиспользуемым в продукте доменам (промокоды — см. **Deferred** ниже). **Task 013** rollout **не** входит в DoD **010**, хотя repo-scope implementation уже есть.
 
 ## Контекст
 
@@ -33,7 +33,7 @@
 ## Deferred / Future (не входит в roadmap Task 010, не блокирует закрытие)
 
 - **Промокоды:** в текущем продуктовом контуре **не используются**; тесты атомарности `PromoCode` / **Task 002 Extended** по промокодам **не** являются DoD для **010**. При возврате фичи — вынести в отдельную задачу / **003** по коду.
-- **Складской резерв / stock reservation / Task 013:** остаётся **design-only / future**; **010 не зависит** от **013** и не требует реализации резерва или доработок `WarehouseItem` для своего DoD.
+- **Складской резерв / stock reservation / Task 013:** **DONE repo-scope implementation** в коде; **OPEN ops rollout** (флаг на staging/prod, cron, monitoring). **010 не зависит** от rollout **013** и **не** требует включения `STOCK_RESERVATION_ENABLED` для своего repo-scope DoD. Git **не** утверждает production rollout.
 
 ## Не входит в задачу
 
@@ -91,7 +91,7 @@
 | Startup prod env validation (proposal Iter. 5) | **Не в этом закрытии** | см. ниже Iteration 5 — код опционально | Отдельный PR при нужде |
 | RTO/RPO, backup медиа (Iteration 6) | **Не в этом закрытии** | `07-deployment.md`, Iteration 6 | Доп. док при продуктовой нужде |
 | **PromoCode** | **Excluded** | [Deferred §](#deferred--future-не-входит-в-roadmap-task-010-не-блокирует-закрытие) | — |
-| **Stock reservation / Task 013** | **Excluded** | [Deferred §](#deferred--future-не-входит-в-roadmap-task-010-не-блокирует-закрытие) | — |
+| **Stock reservation / Task 013** | **Excluded from 010 DoD** | [Deferred §](#deferred--future-не-входит-в-roadmap-task-010-не-блокирует-закрытие); repo implementation **Done**, rollout **ops open** | Включение флага / cron / monitoring — см. Task 013 |
 
 ---
 

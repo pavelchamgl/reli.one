@@ -68,7 +68,7 @@
 | # | Сценарий | Описание |
 |---|---------|---------|
 | **BE-I-001** | Webhook idempotency | Повторная доставка одного события → второй заказ не создаётся |
-| **BE-I-002** | Stock check при create session | При отключённом учёте остатков — fallback поведение; при включённом — 400/409 при нуле (заготовка для Task 013) |
+| **BE-I-002** | Stock check при create session | При `STOCK_RESERVATION_ENABLED=False` — fallback; при `True` — 409 при нехватке (Task 013 repo-scope; rollout ops open) |
 | **BE-I-003** | Seller order actions lifecycle | Полный переход Pending → Processing → Shipped через API (актуальный коннектор к Task 012) |
 
 ### Tier 3 — External provider (ручные / sandbox, вне CI)
@@ -96,7 +96,7 @@
 2. **Проверяет критичную цепочку.** Cart → address form → delivery → `Payment` запись в БД — это интеграция frontend Redux state + backend serializers + Django ORM в одном тесте.
 3. **Зависит только от FS-001 по части инфраструктуры** (auth, user fixture), но не по сценарию.
 4. **Прокладывает путь к FS-003** (webhook lifecycle) — после FS-002 известен `session_id`, который webhook может подтвердить.
-5. Не блокируется Task 013 (stock reservation) — проверка остатков не входит в minimal happy path; когда появится Task 013, добавляется отдельный branch FS-002b.
+5. Не блокируется Task 013 rollout для minimal happy path; stock e2e branch **FS-002b / BE-I-002** можно добавить при необходимости (repo implementation есть; production rollout не утверждён git).
 
 ---
 
@@ -139,7 +139,7 @@
 - Переходы статусов: `OrderStatus`, `SellerOnboardingState.status`.
 - FK консистентность: `OrderProduct → WarehouseItem` привязка.
 - Авторизация: 401/403 без токена или с чужим токеном.
-- Граничные условия валидации (пустая корзина, нулевой остаток — при включённом Task 013).
+- Граничные условия валидации (пустая корзина, нулевой остаток — при `STOCK_RESERVATION_ENABLED=True`, см. Task 013).
 
 ---
 
@@ -150,20 +150,22 @@
 Task 012 DONE (repo-scope): `SellerOrderActionsLifecycleTests`, `OrderStatusStringFragilityTests`. Открытое:
 
 - [ ] Переходы через `delivered` / `closed` endpoint — нет публичных action в `SellerOrderActionsService` на момент написания. **FS-003 и BE-I-003** зависят от их появления для полного lifecycle e2e.
-- [ ] `OrderStatusStringFragilityTests` фиксирует хрупкость строк — связана с **Task 004 backlog** (константы статусов). До закрытия 004 backlog full-stack e2e по переходам статусов может быть хрупким.
+- [ ] `OrderStatusStringFragilityTests` фиксирует хрупкость строк — **Task 004 repo-scope закрыт** (константы, миграция `0009`); оставшийся риск — **future order lifecycle extensions** (новые публичные actions), не structural Task 004.
 
-### Task 004 backlog (Order domain)
+### Task 004 — Order Consistency (repo-scope closed)
 
-- Структурные правки: константы статусов, индексы, FK constraints.
-- **Рекомендация:** завершить Task 004 backlog **до** реализации full-stack e2e по lifecycle заказа (BE-I-003, FS-003), чтобы тесты не зависели от строковых литералов.
-- Не блокирует FS-001 (seller onboarding) и FS-002 (checkout до payment session).
+- Structural Order Consistency **Done (repo-scope):** константы статусов, индексы, `SET_NULL`, миграция `0009_order_consistency` — см. [Task 004](../004-order-consistency/task.md).
+- **OPEN (ops/manual):** production/live PSP acceptance и production migration verification.
+- **Future order lifecycle extensions** (новые published actions для `delivered`/`closed`) — отдельный backlog; не блокирует FS-001 и FS-002.
+- BE-I-003 / FS-003 lifecycle e2e зависят от **published seller actions**, не от незакрытого Task 004.
 
 ### Task 013 — stock/reservation/payment lifecycle
 
-- **Не блокирует** FS-001 и FS-002 в minimal версии.
-- FS-002 получает отдельный branch **FS-002b** (checkout с проверкой остатков) — только после реализации Task 013.
-- BE-I-002 (stock check at create session) является заготовкой-документом для 013: тест пишется после реализации reservation.
-- **Webhook списание** (`decrease_stock`) — нельзя включать без резерва на этапе сессии (см. Task 013, явное правило). BE-I-001 (idempotency) не зависит от этого — тест на идемпотентность создания `Order` корректен без списания.
+- **Repo-scope implementation Done:** reservation at checkout, webhook confirm/release, cleanup command, tests — см. [Task 013](../013-stock-reservation/task.md).
+- **OPEN ops rollout:** `STOCK_RESERVATION_ENABLED=True` на staging/prod, cron, monitoring; git **не** утверждает production enablement.
+- **Не блокирует** FS-001 и FS-002 minimal happy path.
+- **FS-002b / BE-I-002** (stock scenarios at create session) — опциональный branch; можно писать против repo implementation с `@override_settings` / test env; production rollout evidence — ops.
+- **Webhook списание** (`decrease_stock`) идёт через `confirm_reservation` в Task 013 при включённом флаге. BE-I-001 (idempotency) не зависит от rollout.
 
 ---
 
@@ -177,8 +179,8 @@ graph TD
     FS001 --> FS002["FS-002: Checkout до payment session\n(Playwright + Django, PSP mock)"]
     FS002 --> FS003["FS-003: UI после оплаты\n(Order confirmed page — follow-up)"]
     BEI001 --> FS003
-    T004["Task 004 backlog\n(Order domain constants)"] --> BEI003["BE-I-003: Full lifecycle через API\n(зависит от published actions)"]
-    T013["Task 013\n(Stock reservation)"] --> BEI002["BE-I-002: Stock check\nat create session"]
+    T004["Task 004\n(DONE repo-scope;\nfuture lifecycle ext)"] --> BEI003["BE-I-003: Full lifecycle через API\n(зависит от published actions)"]
+    T013["Task 013\n(DONE repo;\nrollout ops open)"] --> BEI002["BE-I-002: Stock check\nat create session"]
 ```
 
 **Приоритет реализации:**
@@ -186,8 +188,8 @@ graph TD
 1. **FS-001** — seller onboarding (нет внешних блокеров).
 2. **BE-I-001** — webhook idempotency (нет внешних блокеров, backend уже есть).
 3. **FS-002** — checkout до PSP (нет блокеров, PSP мокируется).
-4. **BE-I-003** — полный order lifecycle (после Task 004 backlog).
-5. **FS-002b / BE-I-002** — stock scenarios (после Task 013).
+4. **BE-I-003** — полный order lifecycle (зависит от published seller actions; Task 004 structural — repo done).
+5. **FS-002b / BE-I-002** — stock scenarios (Task 013 repo done; optional; production rollout — ops).
 6. **FS-003** — UI после оплаты (follow-up, требует FS-002 + webhook mock).
 
 ---
@@ -210,7 +212,7 @@ graph TD
 - [x] Границы уровней тестирования зафиксированы (таблица выше).
 - [x] Candidate scenarios с обоснованием приоритетов задокументированы.
 - [x] Мок-стратегии описаны.
-- [x] Связь с Task 004 backlog, Task 012 follow-ups, Task 013 явно указана.
+- [x] Связь с Task 004 (repo-scope closed), future order lifecycle extensions, Task 012 follow-ups, Task 013 (repo done / rollout ops) явно указана.
 - [x] Non-goals явные и полные.
 - [x] Рекомендуемый порядок реализации зафиксирован.
 - [ ] Дизайн согласован с командой (review PR).
@@ -274,8 +276,8 @@ graph TD
 - [`docs/testing/stripe-e2e-checklist.md`](../../testing/stripe-e2e-checklist.md) — ручной Stripe sandbox чеклист
 - [`docs/testing/paypal-e2e-checklist.md`](../../testing/paypal-e2e-checklist.md) — ручной PayPal sandbox чеклист
 - [`docs/tasks/012-order-lifecycle-extended-tests/task.md`](../012-order-lifecycle-extended-tests/task.md) — backend lifecycle tests
-- [`docs/tasks/013-stock-reservation/task.md`](../013-stock-reservation/task.md) — stock reservation proposal
-- [`docs/tasks/004-order-consistency/task.md`](../004-order-consistency/task.md) — order domain backlog
+- [`docs/tasks/013-stock-reservation/task.md`](../013-stock-reservation/task.md) — stock reservation (**DONE repo-scope**; **OPEN ops rollout**)
+- [`docs/tasks/004-order-consistency/task.md`](../004-order-consistency/task.md) — Order Consistency (**DONE repo-scope**; ops/manual PSP + migration verification)
 - [`docs/tasks/008-seller-onboarding-stabilization/task.md`](../008-seller-onboarding-stabilization/task.md) — seller onboarding backend
 - [`docs/frontend/tasks/010-seller-onboarding-e2e-smoke/task.md`](../../frontend/tasks/010-seller-onboarding-e2e-smoke/task.md) — frontend smoke (FE-010)
 - [`docs/frontend/tasks/009-checkout-happy-path-e2e/task.md`](../../frontend/tasks/009-checkout-happy-path-e2e/task.md) — frontend checkout smoke (FE-009)
