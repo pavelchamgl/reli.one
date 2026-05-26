@@ -30,7 +30,7 @@
 |-----|----------|----------------------|---------------------|
 | 0.1 | Убедиться, что **`frontend3`** и **`e2e_frontend3`** в CI зелёные на `main` | При необходимости — отдельный `fix` | Зелёный pipeline на целевой ветке |
 | 0.2 | Локально: `npm run test` в `Frontend/Frontend3`; при работе над e2e — `npm run build && npm run test:e2e` | — | Без регрессий перед фазой 1 |
-| 0.3 | **Frontend2:** job **`frontend2`** сейчас часто падает на **ESLint** (см. [README](./README.md)) | Не смешивать с рефактором Frontend3; закрывать отдельной дорожкой **FE-T005** (чанками: baseline eslint-disable, правки правил, или поэтапное исправление файлов) | Понятная запись в задаче FE-T005 / debt, если полный зелёный lint откладывается |
+| 0.3 | **Frontend2:** job **`frontend2`** — lint → test → build зелёный (ESLint parity с Frontend3, 2026-05) | Не смешивать с рефактором Frontend3 | Optional follow-up: jsx-key / unused-imports cleanup (~133 warnings) |
 
 ---
 

@@ -74,7 +74,7 @@
 | Формы лендинга (Formik) | P1 | Unit / RTL | Backlog | — |
 | Ключевые CTA и навигация | P1 | e2e | Backlog | — |
 
-**CI:** см. предупреждение в [README ./README.md](./README.md) — `lint` во Frontend2 сейчас **не зелёный**, job **`frontend2`** обычно падает до `test`.
+**CI:** job **`frontend2`** — lint → test → build (ESLint 0 errors; warnings допустимы, см. [README ./README.md](./README.md)).
 
 ## Связанные таски
 

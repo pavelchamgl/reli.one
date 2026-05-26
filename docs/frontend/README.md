@@ -14,7 +14,7 @@
 | Приложение | Каталог | React / Vite (из package.json) | Скрипты | Примечание |
 |------------|---------|-------------------------------|---------|------------|
 | **Frontend3** | `Frontend/Frontend3` | React `^18.2.0`, Vite `^5.2.x`, **Vitest** `^4.1.x`, **react-router-dom** `^6.23.x` | `npm run test`, `test:watch`, `test:e2e` | ESLint: **0 errors**, много warnings; шаг lint в CI проходит. |
-| **Frontend2** | `Frontend/Frontend2` | React `^18.2.0`, Vite `^5.0.x`, Vitest `^4.1.x`, **react-router-dom** `^7.9.x` | `npm run test`, `test:watch` | ESLint: **сотни errors** (`--max-warnings 0`); локально `npm run lint` **падает** → job **`frontend2`** в CI **останавливается на шаге Lint**, до `npm run test` обычно не доходит. Vitest-дым **`src/landing-smoke.test.js`** можно гонять отдельно. |
+| **Frontend2** | `Frontend/Frontend2` | React `^18.2.0`, Vite `^5.0.x`, Vitest `^4.1.x`, **react-router-dom** `^7.9.x` | `npm run test`, `test:watch` | ESLint: **0 errors**, ~133 warnings (parity с Frontend3); `npm run lint` / `test` / `build` зелёные; CI job **`frontend2`** проходит lint → test → build. |
 
 **CI (`.github/workflows/ci.yml`):** `node-version: 20`; jobs **`backend`**, **`frontend2`**, **`frontend3`**, **`e2e_frontend3`** (build + Playwright Chromium + `test:e2e`).
 

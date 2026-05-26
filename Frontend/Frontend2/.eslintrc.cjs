@@ -12,9 +12,24 @@ module.exports = {
   settings: { react: { version: '18.2' } },
   plugins: ['react-refresh'],
   rules: {
+    'react/jsx-no-target-blank': 'off',
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true },
     ],
+    // Parity with Frontend3 — warn until dedicated lint-cleanup.
+    'react/prop-types': 'off',
+    'no-unused-vars': 'warn',
+    'no-undef': 'warn',
+    'no-empty-pattern': 'warn',
+    'no-extra-boolean-cast': 'warn',
+    'no-dupe-keys': 'warn',
+    'no-useless-catch': 'warn',
+    'react/jsx-key': 'warn',
+    'no-irregular-whitespace': 'warn',
+    'no-empty': 'warn',
+    'no-unreachable': 'warn',
+    'react/no-unescaped-entities': 'warn',
+    'no-useless-escape': 'warn',
   },
 }

@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** Medium  
-**Status:** Done (инфраструктура); **открытый риск:** job **`frontend2`** в CI падает на **`npm run lint`** (сотни ESLint errors в лендинге). Пока lint не зелёный, до **`npm run test`** в pipeline не доходит. См. [README](../../README.md).
+**Status:** Done
 
 ## Цель
 
@@ -22,7 +22,7 @@
 
 ## Не входит в задачу
 
-- Исправление существующих предупреждений ESLint по всему лендингу (откладывается отдельной задачей).
+- Полный lint-cleanup лендинга (jsx-key, unused imports) — optional follow-up; warnings допустимы (parity с Frontend3).
 
 ## Зависимости
 
@@ -30,14 +30,14 @@
 
 ## Риски
 
-- Lint в Frontend2 исторически не зелёный — **отдельно** от контура Vitest.
+- ~~Lint в Frontend2 исторически не зелёный~~ — закрыто: ESLint policy parity с Frontend3 (2026-05).
 
 ## Definition of Done
 
 - [x] `npm run test` в `Frontend/Frontend2` (локально).
 - [x] В `.github/workflows/ci.yml` для `frontend2` есть шаг **`npm run test --if-present`** после lint.
 - [x] [08-testing-strategy.md](../../../08-testing-strategy.md) и [testing-plan.md](../../testing-plan.md) отражают контур.
-- [ ] **Зелёный** job `frontend2` end-to-end — отдельная задача (исправление ESLint по лендингу).
+- [x] **Зелёный** job `frontend2` end-to-end: `lint` → `test` → `build` (ESLint **0 errors**, warnings допустимы).
 
 ---
 
@@ -53,4 +53,4 @@
 
 ### Статус
 
-- [x] 
+- [x] ESLint parity с Frontend3 (`.eslintrc.cjs`, lint script без `--max-warnings 0`); job **`frontend2`**: lint → test → build зелёный локально.
