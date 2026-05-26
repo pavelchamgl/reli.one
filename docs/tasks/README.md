@@ -10,7 +10,7 @@
 
 ## Состояние после e2e-контура и DevOps-доков (май 2026)
 
-Краткая сводка **только по артефактам в `docs/` и smoke-результатам**, без новых архитектурных решений за рамками уже зафиксированных proposals. **Task 010 (DevOps)** в текущем roadmap **не** блокируется **Task 013** (stock reservation) ни промокодами: **013** и складской резерв — **future / design-only**; промокоды в продукте сейчас **не используются** (см. [`010-devops-infrastructure/task.md`](./010-devops-infrastructure/task.md) → Deferred).
+Краткая сводка **только по артефактам в `docs/` и smoke-результатам**, без новых архитектурных решений за рамками уже зафиксированных proposals. **Task 010 (DevOps)** в текущем roadmap **не** блокируется **Task 013** (stock reservation) ни промокодами: **013** — **DONE repo-scope implementation**, **OPEN ops rollout**; промокоды в продукте сейчас **не используются** (см. [`010-devops-infrastructure/task.md`](./010-devops-infrastructure/task.md) → Deferred).
 
 ### Задокументировано и проверено руками в sandbox/e2e
 
@@ -19,39 +19,39 @@
 | Локальный e2e Docker | [`docs/testing/e2e-local-contour.md`](../testing/e2e-local-contour.md) |
 | Stripe smoke (не prod) | [`docs/testing/stripe-e2e-checklist.md`](../testing/stripe-e2e-checklist.md) — *Verification evidence* |
 | PayPal sandbox smoke (не prod) | [`docs/testing/paypal-e2e-checklist.md`](../testing/paypal-e2e-checklist.md) — *Verification evidence — latest local smoke result* |
-| Склад / резерв до оплаты (design-only) | [**Task 013**](./013-stock-reservation/task.md) — **не** блокирует **010**; имплементации нет; связь с **009** по метрикам/блокировкам — только если вернуть склад в roadmap |
+| Склад / резерв до оплаты | [**Task 013**](./013-stock-reservation/task.md) — **DONE repo-scope** (модели, сервис, checkout/webhook, cleanup, tests); **OPEN ops rollout** (флаг на staging/prod, cron, monitoring). **Не** блокирует **010** repo-scope |
 | `/health/`, deployment + Sentry + **operational monitoring** runbooks | [`docs/07-deployment.md`](../07-deployment.md), [`docs/operations/monitoring-alerts.md`](../operations/monitoring-alerts.md) |
 | Health regression tests | `backend/test_health_endpoint.py` |
 | PostgreSQL backup / restore в e2e | [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) |
 
 ### Статус задач (аудиторская формулировка)
 
-Задачи **не закрыты целиком** по продуктовому смыслу, если в их `task.md` остаются обязательные **кодовые** чекбоксы. **Исключения по закрытию для git без боевой приёмки:** **[Task 010 — DevOps](./010-devops-infrastructure/task.md)** (**DONE git**), см. [финальную таблицу DoD](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); **[Payment cleanup](./004-order-consistency/task.md#final-dod-table)** — **DONE repo-scope** в **[Task 004](./004-order-consistency/task.md)** при этом **структурный backlog Order Consistency** в том же файле остаётся **OPEN**; **[Task 005 — Delivery cleanup](./005-delivery-cleanup/task.md)** — **DONE repo-scope**, см. [Final DoD table](./005-delivery-cleanup/task.md#final-dod-table-task-005), при этом **ручная приёмка перевозчиков в production** — **pending (ops)** и этим репозиторием **не утверждается**; **[Task 006 — Security hardening](./006-security-hardening/task.md)** — **DONE (repo-scope)**, см. [Final Audit Summary](./006-security-hardening/task.md#final-audit-summary-task-006-repo-scope); **Ops follow-up required:** ротация credentials в production и выполнение git history rewrite — см. [`docs/security-incident-response.md`](../security-incident-response.md). **[Task 008 — Seller onboarding](./008-seller-onboarding-stabilization/task.md)** — **DONE (repo-scope)**, см. [Final DoD table](./008-seller-onboarding-stabilization/task.md#final-dod-table-task-008), при этом **ручная UI/staging-приёмка онбординга** и **Frontend3 e2e** — **pending / deferred** и этим репозиторием **не утверждаются**. Эксплуатационная приёмка описана как **pending** и не отменяет эти закрытия.
+Задачи **не закрыты целиком** по продуктовому смыслу, если в их `task.md` остаются обязательные **кодовые** чекбоксы. **Исключения по закрытию для git без боевой приёмки:** **[Task 010 — DevOps](./010-devops-infrastructure/task.md)** (**DONE git**), см. [финальную таблицу DoD](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); **[Task 004](./004-order-consistency/task.md)** — **DONE repo-scope** для **Payment cleanup** и **structural Order Consistency**, при этом **production/live PSP acceptance** и **production migration verification** остаются **manual/ops** и этим репозиторием **не утверждаются**; **[Task 005 — Delivery cleanup](./005-delivery-cleanup/task.md)** — **DONE repo-scope**, см. [Final DoD table](./005-delivery-cleanup/task.md#final-dod-table-task-005), при этом **ручная приёмка перевозчиков в production** — **pending (ops)** и этим репозиторием **не утверждается**; **[Task 006 — Security hardening](./006-security-hardening/task.md)** — **DONE (repo-scope)**, см. [Final Audit Summary](./006-security-hardening/task.md#final-audit-summary-task-006-repo-scope); **Ops follow-up required:** ротация credentials в production и выполнение git history rewrite — см. [`docs/security-incident-response.md`](../security-incident-response.md). **[Task 008 — Seller onboarding](./008-seller-onboarding-stabilization/task.md)** — **DONE (repo-scope)**, см. [Final DoD table](./008-seller-onboarding-stabilization/task.md#final-dod-table-task-008), при этом **ручная UI/staging-приёмка онбординга** и **Frontend3 e2e** — **pending / deferred** и этим репозиторием **не утверждаются**. Эксплуатационная приёмка описана как **pending** и не отменяет эти закрытия.
 
 | # | После аудита |
 |---|----------------|
 | **010** | **DONE (репозиторий):** e2e-compose, env examples, Mailpit, Stripe/PayPal **local/sandbox** smoke (evidence в docs), `/health/` + тесты, backup/restore runbook, migrations+CI, deployment A–G, cookies env, Sentry+monitoring **runbooks в `docs/`**. **OPEN (ops):** прогон тех же runbook на **staging/prod**, evidence, `check --deploy`, включение алертов — см. [DoD-таблицу 010](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod). **Не входит в закрытие 010:** промокоды, **013**. Опционально позже: startup env validation (Iter. 5), RTO/RPO+медиа (Iter. 6). |
 | **003** | **DONE (repo-scope)** платежного контура и cleanup — см. **[task.md](./003-payment-refactor/task.md)** и **[Final DoD table Task 004](./004-order-consistency/task.md#final-dod-table)**. **OPEN:** необязательный polish (не блокирует closure). Промокоды и **013** не блокируют. |
-| **004** | **DONE (repo-scope)** для **Payment cleanup** (аудит, regression, ссылки на evidence). **OPEN / backlog:** структурная **Order Consistency** (миграции, константы статусов) — см. [task.md](./004-order-consistency/task.md#order-domain-backlog). |
-| **013** | **Только документация** (baseline риска + целевой proposal). Имплементации **нет**. **Вне текущего roadmap** как обязательного трека; **не** зависимость для **010**. **Приоритизация:** см. блок *Рекомендуемая приоритизация* в [`013-stock-reservation/task.md`](./013-stock-reservation/task.md) (004 backlog → резерв → только потом списание в webhook). |
-| **009** | **DONE (repo-scope)** по [`009-db-model-improvements/task.md`](./009-db-model-improvements/task.md) Iteration 5 — см. финальный аудит в `task.md`; follow-up (**reserved_quantity**, списание в webhook) — [**Task 013**](./013-stock-reservation/task.md). |
+| **004** | **DONE (repo-scope)** для **Payment cleanup** и **structural Order Consistency** (миграция `0009_order_consistency`, константы статусов, `SET_NULL`, индексы, timezone-aware `received_at`, order/reviews evidence). **OPEN (ops/manual):** production/live PSP acceptance и production migration verification — см. [task.md](./004-order-consistency/task.md). |
+| **013** | **DONE (repo-scope implementation):** `StockReservation*`, `StockReservationService`, checkout 409, webhook confirm/release, cleanup command, tests, FE-014 UX 409. **OPEN (ops rollout):** `STOCK_RESERVATION_ENABLED=True` на staging/prod, cron/Celery, monitoring, production evidence — см. [task.md](./013-stock-reservation/task.md). **Не** блокирует **010** repo-scope. |
+| **009** | **DONE (repo-scope)** по [`009-db-model-improvements/task.md`](./009-db-model-improvements/task.md) Iteration 5 — см. финальный аудит в `task.md`; reservation/spisanie реализованы в [**Task 013**](./013-stock-reservation/task.md) (rollout — ops). |
 | **002** | **Core — done** по прежнему определению задачи; extended части исторически делегированы другим задачам. |
 | **005** | **DONE (repo-scope):** dev-gating курьерских dev-endpoints, изоляция сбоев post-payment parcels, [`test_async_parcels_errors.py`](../../backend/delivery/test_async_parcels_errors.py), playbook retry/follow-up в [`payment-flow.md`](../payment-flow.md), связка с [`monitoring-alerts.md`](../operations/monitoring-alerts.md) — см. **[Final DoD table](./005-delivery-cleanup/task.md#final-dod-table-task-005)**. **OPEN (ops):** ручная приёмка перевозчиков в **production** (**pending**). **Deferred:** Celery, automatic retry, идемпотентность у перевозчика — в `task.md`. **Не** смешивать с PromoCode и **013**. |
 
-Остальные задачи (**007, 011, 012** и др.) этим проходом **не перепроверялись построчно** в коде — их статус следует брать из соответствующих `task.md`, пока те файлы явно не обновлены (**003**, **004**, **005**, **006**, **008** — repo-scope closed; **010** обновлены май 2026).
+Остальные задачи (**007, 011, 012** и др.) этим проходом **не перепроверялись построчно** в коде — их статус следует брать из соответствующих `task.md`, пока те файлы явно не обновлены (**003**, **004**, **005**, **006**, **008**, **013** — repo-scope closed; **010** обновлены май 2026).
 
 ### Next priority (рекомендация аудита — не смешивать с выполненными фактами)
 
 **P0 — продуктовые и финансово значимые риски без полной закрывающей реализации в коде**
 
-1. [**Task 013**](./013-stock-reservation/task.md) — **deferred / future:** при возврате продукта с учётом остатков — планирование итераций и согласование с **003**; до решения **не** трактовать как блокер **010** или текущего релиза.
-2. [**Task 003**](./003-payment-refactor/task.md) **(payment):** **DONE (repo-scope)** — см. также **[Task 004 — Final DoD](./004-order-consistency/task.md#final-dod-table)**; открыт только **необязательный** polish в `task.md` **003**. Промокоды и склад (**013**) — **не** блокеры.
+1. [**Task 013**](./013-stock-reservation/task.md) — **DONE repo-scope**; **OPEN ops rollout:** включение флага на staging/prod, cron, monitoring, production evidence. **Не** блокирует **010** repo-scope.
+2. [**Task 003**](./003-payment-refactor/task.md) **(payment):** **DONE (repo-scope)** — см. также **[Task 004 — Final DoD](./004-order-consistency/task.md#final-dod-table)**; открыт только **необязательный** polish в `task.md` **003**. Промокоды — **не** блокеры.
 3. [**006**](./006-security-hardening/task.md) — **DONE (repo-scope)** — см. [Final Audit Summary](./006-security-hardening/task.md#final-audit-summary-task-006-repo-scope). **Ops follow-up required:** credential rotation and git history rewrite execution — [`docs/security-incident-response.md`](../security-incident-response.md).
 
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
 
-1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). Промокоды и **013** — не DoD **010**.
-2. [**004**](./004-order-consistency/task.md) — структурная **Order Consistency** (backlog в `task.md`); платежный audit там же уже **DONE repo-scope**. [**005**](./005-delivery-cleanup/task.md) — **DONE repo-scope**; остаётся **ops:** приёмка перевозчиков в production (**manual/pending**) — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005). [**008**](./008-seller-onboarding-stabilization/task.md) — **DONE (repo-scope)** — см. [Final DoD](./008-seller-onboarding-stabilization/task.md#final-dod-table-task-008); **manual/staging UI** онбординга остаётся **pending (ops)**; **автоматизированный** полный онбординг во Frontend3 **не** в scope; узкий Playwright smoke (корень SPA) — job **`e2e_frontend3`**. **Не зависит** от PromoCode, **013**, **005** (кроме общего payment/order фундамента) — см. [task.md](./008-seller-onboarding-stabilization/task.md).
+1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). **[013](./013-stock-reservation/task.md) ops rollout** (флаг, cron, monitoring) — отдельно от DoD **010**.
+2. [**004**](./004-order-consistency/task.md) — **DONE repo-scope** для payment cleanup и structural Order Consistency; остаётся **ops/manual:** production/live PSP acceptance и production migration verification. Future order lifecycle extensions вести отдельным backlog, не как незакрытый Task 004. [**013**](./013-stock-reservation/task.md) — **DONE repo-scope**; **OPEN ops rollout.** [**005**](./005-delivery-cleanup/task.md) — **DONE repo-scope**; остаётся **ops:** приёмка перевозчиков в production (**manual/pending**) — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005). [**008**](./008-seller-onboarding-stabilization/task.md) — **DONE (repo-scope)** — см. [Final DoD](./008-seller-onboarding-stabilization/task.md#final-dod-table-task-008); **manual/staging UI** онбординга остаётся **pending (ops)**; **автоматизированный** полный онбординг во Frontend3 **не** в scope; узкий Playwright smoke (корень SPA) — job **`e2e_frontend3`**. **Не зависит** от PromoCode, **005** (кроме общего payment/order фундамента) — см. [task.md](./008-seller-onboarding-stabilization/task.md).
 3. **Регулярные Postgres backups на проде и проверки восстановления** — описать в **`docs/07-deployment.md`** (runbook уже покрывает технологию дампа).
 
 **P2**
@@ -79,7 +79,7 @@ graph TD
 
     subgraph P1["🟠 P1 — Высокие"]
         T003["003 Payment Refactor\nBE-2: views 2198 строк\nPAY-4: invoice race"]
-        T004["004 Order Consistency\nDB-3,4,5,7"]
+        T004["004 Order Consistency\nDONE repo-scope;\nprod migration ops"]
         T005["005 Delivery Cleanup\nDONE repo-scope;\nops courier pending"]
         T007["007 Frontend Fixes\nFE-1..7: утечки, баги API"]
         T008["008 Seller Onboarding\nDONE repo-scope (manual pending)"]
@@ -89,7 +89,7 @@ graph TD
     subgraph P2["🟡 P2 — Улучшения"]
         T009["009 DB Models\nAnalytics, pricing"]
         T006P2["006 Security\nthrottle, CSP (done)"]
-        T013F["013 Stock Reservation\n(deferred / future)"]
+        T013F["013 Stock Reservation\nDONE repo-scope;\nops rollout open"]
     end
 
     T001 --> T002
@@ -109,23 +109,23 @@ graph TD
 | 001 | [system-stabilization](./001-system-stabilization/task.md) | **P0** | Medium | — | GO |
 | 002 | [testing-foundation](./002-testing-foundation/task.md) | **P0** | High | 001 | **DONE (Core)**; Extended → 009, 010, 012 |
 | 003 | [payment-refactor](./003-payment-refactor/task.md) | **P0/P1** | High | **002** | **DONE (repo-scope)**; см. [004 Final DoD](./004-order-consistency/task.md#final-dod-table); polish — опционально |
-| 004 | [order-consistency](./004-order-consistency/task.md) | P1 | Medium | 002 | **DONE (repo-scope)** payment audit; **OPEN** order backlog — см. [Order domain backlog](./004-order-consistency/task.md#order-domain-backlog) |
+| 004 | [order-consistency](./004-order-consistency/task.md) | P1 | Medium | 002 | **DONE (repo-scope)** payment audit + structural Order Consistency; **ops/manual:** production PSP acceptance + production migration verification |
 | 005 | [delivery-cleanup](./005-delivery-cleanup/task.md) | P1 | Medium | 002 | **DONE (repo-scope)** — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005); **ops:** courier acceptance pending |
 | 006 | [security-hardening](./006-security-hardening/task.md) | **P0/P1** | Medium | — | **DONE (repo-scope)** — см. [Final Audit Summary](./006-security-hardening/task.md#final-audit-summary-task-006-repo-scope); **ops:** credential rotation + history rewrite per [`security-incident-response.md`](../security-incident-response.md) |
 | 007 | [frontend-critical-fixes](./007-frontend-critical-fixes/task.md) | P1 | Low | 006 | GO |
 | 008 | [seller-onboarding-stabilization](./008-seller-onboarding-stabilization/task.md) | P1 | High | 002 (Core **done**) | **DONE (repo-scope)** — см. [Final DoD](./008-seller-onboarding-stabilization/task.md#final-dod-table-task-008); manual UI/staging — **ops**; полный Frontend3 e2e онбординга — **не** в закрытии repo; smoke корня SPA — CI **`e2e_frontend3`** |
-| 009 | [db-model-improvements](./009-db-model-improvements/task.md) | **P0**/P2 | Medium | 002 | **DONE (repo-scope)** — см. Iteration 5 в `task.md`; **013** — резерв/spisanie |
+| 009 | [db-model-improvements](./009-db-model-improvements/task.md) | **P0**/P2 | Medium | 002 | **DONE (repo-scope)** — см. Iteration 5 в `task.md`; reservation/spisanie — **013** (repo done, rollout ops) |
 | 010 | [devops-infrastructure](./010-devops-infrastructure/task.md) | P1 | Medium | 002 | **DONE (git)**; см. [DoD-таблицу](./010-devops-infrastructure/task.md#финальный-аудит-и-таблица-dod); ops acceptance — отдельно |
 | 011 | [order-product-received-at-timezone](./011-order-product-received-at-timezone/task.md) | P2 | Low | 002 | **DONE (repo-scope)** |
 | 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | **DONE (repo-scope)** — см. [`task.md`](./012-order-lifecycle-extended-tests/task.md) |
-| **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **Future** / design-only | High | при старте: **002**, **003**, **004** (константы/миграции статусов желательно раньше) | **Не** в текущем roadmap; **не** блокирует **010**; в коде нет целевого резерва (см. `task.md`, приоритизация) |
+| **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **P0**/P1 | High | **002**, **003**, **004** | **DONE (repo-scope)** implementation; **OPEN (ops rollout):** staging/prod flag, cron, monitoring; **не** блокирует **010** repo-scope |
 | **014** | [**frontend3-stabilization-audit**](./014-frontend3-stabilization-audit/task.md) | P1 | Medium | — | **Done** — аудит Frontend3 + roadmap стабилизации (аналитика; см. `task.md`) |
-| **015** | [**full-stack-e2e-design**](./015-full-stack-e2e-design/task.md) | P2 | Medium | FE-008–010, 012, 004 backlog | **Planned (design-only):** стратегия full-stack e2e; без runtime-кода |
+| **015** | [**full-stack-e2e-design**](./015-full-stack-e2e-design/task.md) | P2 | Medium | FE-008–010, 012, future order lifecycle extensions | **Planned (design-only):** стратегия full-stack e2e; без runtime-кода |
 | **016** | [**webhook-idempotency-verification**](./016-webhook-idempotency-verification/task.md) | P1 | Low | 003, 004, 012, 015 | **DONE (documentation-only):** аудит подтвердил полное покрытие; новые тесты не потребовались |
 | **017** | [**e2e-safety-ci-readiness-audit**](./017-e2e-safety-ci-readiness-audit/task.md) | P1 | Low | 015, 016, FS-003 | **DONE (documentation-only):** safety audit PASS; CI proposal → реализован в **018** |
 | **018** | [**full-stack-e2e-ci-implementation**](./018-full-stack-e2e-ci-implementation/task.md) | P2 | Medium | 015, 017, FS-001–003 | **DONE:** job `e2e_fullstack` в CI; FS-001/002/003 против docker-compose e2e |
 | **019** | [**e2e-catalog-fixture**](./019-e2e-catalog-fixture/task.md) | P2 | Low–Med | 018, FS-002/003 | **DONE:** `e2e_categories.json` + `loaddata` в CI вместо runtime seed |
-| **020** | [**product-stock-availability-api**](./020-product-stock-availability-api/task.md) | P1 | Low–Med | 013 | **DONE (repo-scope):** catalog API fields `total_available_quantity`, `stock_status`; см. `task.md` |
+| **020** | [**product-stock-availability-api**](./020-product-stock-availability-api/task.md) | P1 | Low–Med | 013 (repo), FE-014 | **DONE (repo-scope):** catalog API fields `total_available_quantity`, `stock_status`; см. `task.md` |
 
 ## Рекомендуемый порядок выполнения
 
@@ -168,13 +168,13 @@ gantt
 | `promocode` | Код и тесты остаются в репозитории; **промокоды не в продуктовом roadmap** — конкурентные сценарии / **DB-6** не блокируют **010**; при возврате фичи — **003** или отдельная задача |
 | Frontend3 | **`npm run test`** (Vitest + RTL) в `Frontend3/package.json`; CI job `frontend3` выполняет `npm run test` после lint |
 
-Вывод аудита январского отчёта «≈ 0% покрытие» по backend **устарел**; отдельные **P0**-риски по складу (**013**) и платежам остаются предметом соответствующих `task.md` и **не** продлевают **010**, пока **013**/промокоды вне текущего roadmap.
+Вывод аудита январского отчёта «≈ 0% покрытие» по backend **устарел**; **013** repo-scope закрыт, открыт только ops rollout; **не** продлевает **010** repo-scope.
 
 ### 2. Какие критические сценарии НЕ покрыты / требуют внимания?
 
 - Контролируемая идемпотентность платёжных webhook в продукте — есть **автотестовая база** в `payment` (Stripe/PayPal flow), см. задачи и CI; регрессии держать при изменениях **003**.
-- Отсутствие **inventory reservation** до оплаты (**Task 013** — только proposal + baseline по коду): значимо **если** склад/остатки снова станут обязательным продуктовым треком; в **текущем roadmap** — **deferred**, **не** блокер **010**.
-- Конкурентный **`decrease_stock`** — актуально **после** возврата списания в webhook и наличия **013** (**Task 009** — технические элементы блокировок).
+- **Inventory reservation** до оплаты (**Task 013**) — **реализовано repo-scope** под `STOCK_RESERVATION_ENABLED`; **OPEN:** staging/prod rollout, cron, monitoring. **Не** блокер **010** repo-scope.
+- **`decrease_stock` через reservation confirm** — реализовано в **013** repo-scope; конкурентность покрыта тестами при включённом флаге.
 - Конкурентный `increment_used_count` / промокоды (**DB-6**) — **не** блокер **010**; при возврате промокодов в продукт — верифицировать **003**/код и покрытие отдельно.
 - Параллельная генерация инвойсов / жизненный цикл заказа / смежные сценарии — см. **004**, **012** и расширенное покрытие (**002**/домены).
 
@@ -184,7 +184,7 @@ gantt
 РИСК 1 (DB-1): Payment.session_id не уникален
 → Stripe может доставить webhook дважды → 2 заказа, 2 списания промокода
 
-РИСК 2 (DB-2): Нет end-to-end учёта остатка до оплаты; списание в webhook отключено → см. Task 013. При возврате списания без `select_for_update()` — параллельные подтверждения могут испортить `quantity_in_stock`
+РИСК 2 (DB-2): Oversell без reservation — **смягчён в repo** Task 013 при `STOCK_RESERVATION_ENABLED=True`; **OPEN:** production rollout и мониторинг. Списание через `confirm_reservation` + `decrease_stock` покрыто тестами.
 
 РИСК 3 (DB-6): PromoCode.increment_used_count не атомарный
 → Промокод применяется больше max_usage раз

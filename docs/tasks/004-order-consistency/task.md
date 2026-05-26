@@ -3,9 +3,9 @@
 **Priority:** P1  
 **Complexity:** Medium  
 
-> **Именование:** обсуждаемое как «**Task 004 Payment Cleanup**» здесь сведено к **закрытию платежного контура по repo-scope**. Канон постановки и истории кода — **[Task 003 — Payment refactor](../003-payment-refactor/task.md)**. Этот файл исторически описывает **Order Consistency**; сверху зафиксирован **финальный аудит payment cleanup**, ниже — **backlog домена заказа** (не смешивать с закрытием платежей).
+> **Именование:** обсуждаемое как «**Task 004 Payment Cleanup**» здесь сведено к **закрытию платежного контура по repo-scope**. Канон постановки и истории кода — **[Task 003 — Payment refactor](../003-payment-refactor/task.md)**. Этот файл исторически описывает **Order Consistency**; сверху зафиксирован **финальный аудит payment cleanup**, ниже — **финальное состояние structural Order Consistency** и сохранённый historical plan.
 
-**Status:** **DONE (repo-scope)** для **Payment cleanup** — см. [Final DoD table](#final-dod-table). **Production / live PSP acceptance** репозиторий **не** утверждает (проводится вручную на боевом контуре; зафиксирован только sandbox/local smoke в `docs/testing/*`). **Структурная Order Consistency** (миграции, константы статусов и т.д.) — **[не закрыта](#order-domain-backlog)**.
+**Status:** **DONE (repo-scope)** для **Payment cleanup** и **DONE (repo-scope)** для **structural Order Consistency** — см. [Final DoD table](#final-dod-table) и [Order domain final state](#order-domain-final-state-and-historical-plan). **Production / live PSP acceptance** и **production migration verification** репозиторий **не** утверждает: это ручные ops/manual проверки на соответствующих контурах.
 
 ---
 
@@ -25,13 +25,13 @@
 | Full `pytest` backend | **Done** | `docker-compose.test.yml` → `pytest -q`; CI | Держать зелёным в PR |
 | **PromoCode** в цепочке оплаты | **Исключено из scope** | Task 003 Deferred; Task 010 Deferred | Отдельная задача при возврате фичи |
 | **Stock reservation / [Task 013](../013-stock-reservation/task.md)** | **Исключено из scope** | design-only / future; Task 010 | Не блокирует платежный контур |
-| Order domain (структурная консистентность) | **Deferred / backlog** | Раздел [Order domain backlog](#order-domain-backlog) ниже | Отдельная продуктовая итерация |
+| Order domain (структурная консистентность) | **Done (repo-scope)** | `backend/order/migrations/0009_order_consistency.py`, `backend/order/constants.py`, `backend/order/order_status_names.py`; DoD ниже | Production migration verification — manual/ops |
 
 ---
 
 ## Regression gate — Docker test matrix + e2e (2026-05-12)
 
-Интеграционный regression pass по связке **payment ↔ order** (Docker test matrix). Цель — зафиксировать состояние репозитория перед закрытием проверок по scope; **структурные** пункты Order Consistency (ниже) с этим gate **не** смешиваются.
+Интеграционный regression pass по связке **payment ↔ order** (Docker test matrix). Цель — зафиксировать состояние репозитория перед закрытием payment cleanup; structural Order Consistency закрыта отдельным repo-scope evidence ниже.
 
 ### Commands run
 
@@ -97,9 +97,16 @@ docker compose -f docker-compose.e2e.yml logs backend_e2e --tail 150
 
 ---
 
-## Order domain backlog
+## Order domain final state and historical plan
 
-**Структурная часть Task 004 — не закрыта repo-scope.** Ниже — **оригинальная постановка** по консистентности домена заказа (статусы, `Order.user`, `received_at`, индексы). Это **не** входило в критерии **Payment cleanup** и остаётся в работе по приоритету продукта.
+**Структурная часть Task 004 — закрыта repo-scope.** Фактическое состояние репозитория:
+
+- `backend/order/migrations/0009_order_consistency.py` фиксирует `Order.user → SET_NULL`, `OrderStatus.name unique=True` и индексы на `Order` / `OrderProduct`.
+- `backend/order/constants.py` и `backend/order/order_status_names.py` централизуют доменные статусы.
+- `OrderProduct.received_at` использует timezone-aware значение.
+- `order/` и `reviews/` тесты проходили по task evidence (`40 passed`, 2026-05-18).
+
+Ниже сохранён historical plan по консистентности домена заказа. Production migration verification не утверждается этим документом без отдельного ops evidence.
 
 ## Цель
 
@@ -299,8 +306,8 @@ docker compose -f docker-compose.test.yml run --rm backend_test pytest order/ re
 **Статус:**
 - [x] `constants.py` создан
 - [x] Raw-строка в `delivery/utils.py` заменена на константу
-- [ ] Docker-тесты order/ reviews/ (выполнить при запущенном Docker)
-- [ ] Миграции — следующая итерация
+- [x] Docker-тесты `order/ reviews/` — закрыто evidence в Iteration 2/3b (`40 passed`, 2026-05-18)
+- [x] Миграции — закрыто `backend/order/migrations/0009_order_consistency.py`
 
 ---
 
@@ -443,9 +450,9 @@ self.received_at = timezone.now()
 ### Статус
 - [x] constants.py created (2026-05-18)
 - [x] Raw-string в delivery/utils.py заменена на константу (2026-05-18)
-- [ ] All string comparisons updated (analytics dict-keys — deferred, API contract)
-- [ ] timezone.now() fix applied (уже применён в models.py — `timezone.now()`)
-- [ ] Migrations written
+- [x] All business-logic string comparisons updated; analytics dict keys / OpenAPI examples intentionally remain API/docs strings
+- [x] timezone-aware `received_at` confirmed in models.py
+- [x] Migrations written — `backend/order/migrations/0009_order_consistency.py`
 
 ---
 
@@ -457,16 +464,21 @@ pytest backend/order/ -v
 pytest backend/reviews/ -v
 ```
 
-### Сценарии для проверки
-- [ ] `OrderStatus.name` поиск по точной строке работает
-- [ ] Константы в `constants.py` совпадают с данными в БД
-- [ ] `Order.user.delete()` → order сохраняется с `user=None`
-- [ ] `order.received_at` в создаваемых заказах — timezone-aware
-- [ ] Нет дублирующихся `OrderStatus` записей в БД
-- [ ] Запросы списка заказов с индексами быстрее (EXPLAIN ANALYZE)
+### Repo-scope validation
+- [x] `OrderStatus.name` поиск по точной строке работает
+- [x] Константы в `constants.py` совпадают с canonical `order_status_names.py`
+- [x] `Order.user.delete()` → order сохраняется с `user=None`
+- [x] `order.received_at` в создаваемых заказах — timezone-aware
+- [x] Индексы для `Order` / `OrderProduct` добавлены миграцией `0009_order_consistency.py`
+
+### Production/manual validation
+- [ ] Проверить отсутствие дублей `OrderStatus.name` на production DB перед применением unique migration
+- [ ] Проверить production migration apply и, при больших таблицах, стратегию индексов без долгих блокировок
+- [ ] Подтвердить performance impact через production/staging `EXPLAIN ANALYZE`, если понадобится
 
 ### Статус
-- [ ] Validation complete
+- [x] Repo-scope validation complete
+- [ ] Production migration verification — manual/ops, не подтверждается git evidence
 
 ---
 

@@ -2,7 +2,39 @@
 
 **Priority:** P0 (блокирует корректное списание в webhook)
 **Complexity:** High
-**Status:** Phase 6 — local smoke ✅; staging rollout runbook ready; **payment TTL follow-up** ✅ (Stripe `expires_at`, cleanup `Session.expire`, late-webhook guard); выполнение на сервере — ops
+**Status:** **DONE (repo-scope implementation)**; **OPEN (ops rollout):** staging/prod enablement (`STOCK_RESERVATION_ENABLED=True`), cron/Celery для cleanup, monitoring 409 rate и pending/expired reservations, production evidence. Репозиторий **не** утверждает, что флаг уже включён на staging/prod.
+
+---
+
+## Финальное состояние (repo-scope vs ops)
+
+### DONE — repo-scope implementation
+
+Реализовано в коде и покрыто тестами (флаг по умолчанию `False`; включается через `STOCK_RESERVATION_ENABLED`):
+
+| Область | Артефакты |
+|---------|-----------|
+| Модели / миграции | `WarehouseItem.reserved_quantity`; `StockReservation`, `StockReservationItem`; миграции `0002_stock_reservation`, `0003_stockreservation_provider_checkout_id` |
+| Сервис | `warehouses/services/reservation.py` — `StockReservationService` (create / confirm / release) |
+| Checkout | Stripe/PayPal session builders создают reservation при `STOCK_RESERVATION_ENABLED=True`; insufficient stock → HTTP **409** |
+| Webhook | success → confirm + `decrease_stock`; failure / expired / cancel → release |
+| Cleanup | `python manage.py release_expired_reservations` (`--dry-run`, `--limit`, `skip_locked`) |
+| Payment TTL | Stripe `expires_at`, `Session.expire` on cleanup, late-webhook guard, PayPal capture guard |
+| Tests | unit + concurrency + integration (webhook, TTL, cleanup command, rollout smoke) |
+| Frontend UX 409 | **Done** — [FE-014](../frontend/tasks/014-stock-availability-display/task.md) |
+
+### OPEN — ops rollout (не подтверждается git)
+
+| # | Действие | Статус |
+|---|----------|--------|
+| 1 | Deploy migrations на staging/prod | ops |
+| 2 | `STOCK_RESERVATION_ENABLED=True` + restart backend | ops |
+| 3 | Cron `*/5 * * * * … release_expired_reservations` (или Celery beat) | ops |
+| 4 | Manual sandbox smoke на staging (Stripe/PayPal success, 409, replay, abandoned) | ops |
+| 5 | Monitoring: HTTP 409 rate на checkout; `StockReservation(PENDING, expires_at < now())` | ops |
+| 6 | Production evidence / rollback drill | ops |
+
+Runbook: [`docs/testing/stock-reservation-staging-rollout.md`](../testing/stock-reservation-staging-rollout.md).
 
 ---
 
@@ -797,7 +829,7 @@ test_webhook_after_expiry_policy_correct
 | **Phase 3** ✅ | Интеграция в session builders (Stripe + PayPal) под feature flag | Phase 2 | Средний (регрессии checkout) |
 | **Phase 4** ✅ | Интеграция в webhook success/failure handlers | Phase 2–3 | Высокий (payment-critical path) |
 | **Phase 5** ✅ | Cleanup management command + cron | Phase 2 | Низкий |
-| **Phase 6** 🔄 | Local Docker smoke automation ✅; включение флага staging → prod — ops | Phase 3–5 зелёные | Высокий (первый production deploy) |
+| **Phase 6** ✅ repo / 🔄 ops | Local Docker smoke automation ✅; staging/prod enablement, cron, monitoring — **ops (open)** | Phase 3–5 зелёные | Высокий (первый production deploy) |
 
 ---
 
@@ -919,6 +951,8 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 
 ## 14. Definition of Done
 
+### Repo-scope implementation
+
 - [x] `WarehouseItem.reserved_quantity` добавлен и мигрирован (Phase 1, 2026-05-19)
 - [x] Модели `StockReservation`, `StockReservationItem` созданы (Phase 1, 2026-05-19)
 - [x] `StockReservationService.create_reservation()` — атомарно, deadlock-safe, idempotent (Phase 2, 2026-05-19)
@@ -938,7 +972,15 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 - [x] Integration test: webhook success/failure/replay (Phase 4, 2026-05-19)
 - [x] Regression: `pytest payment/ order/ warehouses/ -q` зелёный (Phase 4, 2026-05-19; флаг включается в тестах через `@override_settings`)
 - [x] `makemigrations --check` exit 0 (Phase 1, 2026-05-19)
-- [ ] Документация ошибки 409 для фронтенда (UX: «товар только что закончился»)
+- [x] Документация ошибки 409 для фронтенда (UX: «товар только что закончился») — закрыто в FE-014
+
+### Remaining ops / rollout
+
+- [ ] `STOCK_RESERVATION_ENABLED=True` на staging и prod (с restart backend)
+- [ ] Cron или Celery beat для `release_expired_reservations`
+- [ ] Monitoring: 409 rate на checkout; pending/expired `StockReservation`
+- [ ] Staging/prod manual sandbox evidence (Stripe/PayPal, rollback checklist)
+- [ ] Admin-view audit filters — опционально; не блокирует rollout
 
 ---
 
@@ -950,7 +992,7 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 | Политика `CONFIRM_AFTER_EXPIRY` | ✅ **Закрыто (2026-05-20):** `False` — late webhook блокируется, manual review |
 | TTL для PayPal (3ч vs 35мин) | Резерв 35 мин; PayPal order TTL на стороне PSP; защита — webhook guard §8.3 |
 | Синхронизация с внешним WMS | Внешняя система — master; `quantity_in_stock` синхронизируется отдельным job'ом |
-| UX ошибки 409 | Фронтенд должен показать «товар закончился» с деталями по SKU |
+| UX ошибки 409 | ✅ **Закрыто FE-014 (2026-05-26):** frontend показывает user-friendly stale-cart message при checkout 409; rollout/ops риск остаётся в Phase 6 |
 | Несколько складов одного продавца | Phase 1: берём первый доступный WarehouseItem по `available_quantity >= qty` |
 | Аудит лога резервирований для admin | Admin-view на `StockReservation` с фильтрами по статусу/дате — Phase 6 |
 
@@ -972,3 +1014,5 @@ docker compose -f docker-compose.test.yml run --rm backend_test \
 | 2026-05-19 | Strict policy: SKU без `WarehouseItem` → `InsufficientStockError` (`available=0`), checkout 409; тесты + §8.6 / open question закрыты. |
 | 2026-05-20 | Payment TTL follow-up: `provider_checkout_id`, Stripe `expires_at` + `Session.expire`, `reservation_payment.py`, late-webhook block, `payment/tests_reservation_payment_ttl.py`, §8.8. |
 | 2026-05-20 | PayPal capture guard: `CHECKOUT.ORDER.APPROVED` skips capture when reservation ≠ PENDING; `paypal_capture_skipped_reservation_expired`. |
+| 2026-05-26 | Синхронизация с FE-014: frontend UX 409 задокументирован и покрыт; Phase 6 rollout/ops (`STOCK_RESERVATION_ENABLED=True`, cron, monitoring) остаётся открытым. |
+| 2026-05-26 | Docs audit: Task 013 = **DONE repo-scope implementation**; rollout/ops явно отделён; design-only формулировки сняты. |

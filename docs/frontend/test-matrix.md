@@ -55,6 +55,17 @@
 | Seller onboarding: seller-type page рендерит выбор типа (мок API) | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
 | Seller onboarding: application-sub показывает confirmation (мок API) | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
 
+## FE-014 — Stock Availability Display
+
+| Сценарий | Приоритет | Уровень | Статус | Файлы в репо |
+|----------|-----------|---------|--------|----------------|
+| Catalog/list card stock badge, disabled Buy, detail-stock fallback | P1 | RTL | Покрыто | [`ProductCard.test.jsx`](../../Frontend/Frontend3/src/Components/Product/ProductCard/ProductCard.test.jsx) |
+| Product detail selected variant availability, sku init, Add-to-cart guard | P1 | RTL | Покрыто | [`ProductNameRate.test.jsx`](../../Frontend/Frontend3/src/Components/Product/ProductNameRate/ProductNameRate.test.jsx), [`ProdCharackButtons.test.jsx`](../../Frontend/Frontend3/src/Components/Product/ProdCharakButtons/ProdCharackButtons.test.jsx), [`ProductPage.test.jsx`](../../Frontend/Frontend3/src/pages/ProductPage.test.jsx) |
+| Mobile/generic variant drawer stock guard | P1 | RTL | Покрыто | [`MobVariantDrawer.test.jsx`](../../Frontend/Frontend3/src/Components/Product/MobVariantDrawer/MobVariantDrawer.test.jsx) |
+| Basket modal and basket page stale out-of-stock handling | P1 | RTL | Покрыто | [`BasketModalCard.test.jsx`](../../Frontend/Frontend3/src/Components/Basket/BasketModalCard/BasketModalCard.test.jsx), [`BasketCard.test.jsx`](../../Frontend/Frontend3/src/Components/Basket/BasketCard/BasketCard.test.jsx) |
+| Shared stock availability helpers and basket reducer guard | P1 | Unit | Покрыто | [`stockAvailability.test.js`](../../Frontend/Frontend3/src/utils/stockAvailability.test.js), [`basketSlice.test.js`](../../Frontend/Frontend3/src/redux/basketSlice.test.js) |
+| Checkout 409 stock error mapping and UI message | P0 | Unit + RTL | Покрыто | [`paymentSlice.test.js`](../../Frontend/Frontend3/src/redux/paymentSlice.test.js), [`PaymentPlataBlock.test.jsx`](../../Frontend/Frontend3/src/Components/Payment/PaymentPlataBlock/PaymentPlataBlock.test.jsx) |
+
 ## Frontend2 — сценарии
 
 | Сценарий | Приоритет | Уровень | Статус | Файлы в репо |
