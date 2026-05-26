@@ -139,7 +139,7 @@ sequenceDiagram
 | Тема | Примечание |
 |------|------------|
 | **PromoCode** | В продукте не используется; код в репозитории может существовать, но не входит в описываемый user-facing checkout flow. |
-| **Stock reservation / списание остатков при оплате** | Не реализовано как обязательный трек; см. [Task 013 — stock reservation](tasks/013-stock-reservation/task.md) (design / future). |
+| **Stock reservation / списание остатков при оплате** | Реализовано **repo-scope** в [Task 013 — stock reservation](tasks/013-stock-reservation/task.md) при `STOCK_RESERVATION_ENABLED=True`; **OPEN ops rollout** на staging/prod. Не обязательный production track, пока флаг **не** включён на окружении. |
 
 ---
 

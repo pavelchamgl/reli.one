@@ -24,7 +24,7 @@
 | Документация payment flow | **Done** | [`payment-flow.md`](../../payment-flow.md) → локальный e2e, Task 003 | Обновлять при смене контрактов |
 | Full `pytest` backend | **Done** | `docker-compose.test.yml` → `pytest -q`; CI | Держать зелёным в PR |
 | **PromoCode** в цепочке оплаты | **Исключено из scope** | Task 003 Deferred; Task 010 Deferred | Отдельная задача при возврате фичи |
-| **Stock reservation / [Task 013](../013-stock-reservation/task.md)** | **Исключено из scope** | design-only / future; Task 010 | Не блокирует платежный контур |
+| **Stock reservation / [Task 013](../013-stock-reservation/task.md)** | **Исключено из scope Task 004** | repo-scope **Done**; rollout **ops open**; Task 010 | Не блокирует payment cleanup repo-scope |
 | Order domain (структурная консистентность) | **Done (repo-scope)** | `backend/order/migrations/0009_order_consistency.py`, `backend/order/constants.py`, `backend/order/order_status_names.py`; DoD ниже | Production migration verification — manual/ops |
 
 ---

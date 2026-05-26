@@ -102,7 +102,7 @@ flowchart LR
 6. **order** — итоговая модель после оплаты и ручных потоков.
 7. **sellers** — онбординг: валидация, API, переходы **submit / approve / reject** (покрыто).
 
-Остальные apps: **promocode** — базовые тесты есть; промокоды **не** в текущем продуктовом roadmap и **не** блокируют **[Task 003](./tasks/003-payment-refactor/task.md)** cleanup (**Deferred** в её `task.md`); при возврате фичи — отдельная верификация и **002 Extended** по необходимости. **[Task 010](./tasks/010-devops-infrastructure/task.md)** промокоды в scope не включает. **warehouses** — тесты склада / конкурентности — **Task 009**; **резерв до оплаты** — **Task 013** (future). **Расширенный order lifecycle** (переходы статусов продавцом, отмена, parcel) — **Task 012**. **favorites**, **reviews** — после стабилизации P0.
+Остальные apps: **promocode** — базовые тесты есть; промокоды **не** в текущем продуктовом roadmap и **не** блокируют **[Task 003](./tasks/003-payment-refactor/task.md)** cleanup (**Deferred** в её `task.md`); при возврате фичи — отдельная верификация и **002 Extended** по необходимости. **[Task 010](./tasks/010-devops-infrastructure/task.md)** промокоды в scope не включает. **warehouses** — тесты склада / конкурентности — **Task 009**; **резерв до оплаты** — **[Task 013](./tasks/013-stock-reservation/task.md)** (**DONE repo-scope**; tests в `payment/` / `warehouses/`; **OPEN ops rollout**). **Расширенный order lifecycle** — **[Task 012](./tasks/012-order-lifecycle-extended-tests/task.md)** (**DONE repo-scope**; follow-up только для сценариев без published actions). **favorites**, **reviews** — после стабилизации P0.
 
 ---
 
@@ -254,7 +254,7 @@ flowchart TB
 |------|--------|
 | Конкурентность склада / `decrease_stock` | **Task 009** |
 | Атомарность `PromoCode.increment_used_count` | **не Task 010** (DevOps); **003 / продуктовый backlog / 002 Extended** |
-| Расширенный order lifecycle (статусы, отмена, parcel и т.д.) | **Task 012** |
+| Расширенный order lifecycle (статусы, отмена, parcel и т.д.) | **Task 012** (**DONE repo-scope**) |
 
 **Task 011** (`order-product-received-at-timezone`) — только исправление naive datetime для `OrderProduct.received_at`; **не** заменяет Task 012.
 
