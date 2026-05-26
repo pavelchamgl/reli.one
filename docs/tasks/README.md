@@ -44,11 +44,15 @@
 
 **P0 — продуктовые и финансово значимые риски без полной закрывающей реализации в коде**
 
+> **Master ops checklist (ручные шаги, evidence вне git):** [`docs/operations/repo-ops-followup-checklist.md`](../operations/repo-ops-followup-checklist.md)
+
 1. [**Task 013**](./013-stock-reservation/task.md) — **DONE repo-scope**; **OPEN ops rollout:** включение флага на staging/prod, cron, monitoring, production evidence. **Не** блокирует **010** repo-scope.
 2. [**Task 003**](./003-payment-refactor/task.md) **(payment):** **DONE (repo-scope)** — см. также **[Task 004 — Final DoD](./004-order-consistency/task.md#final-dod-table)**; открыт только **необязательный** polish в `task.md` **003**. Промокоды — **не** блокеры.
 3. [**006**](./006-security-hardening/task.md) — **DONE (repo-scope)** — см. [Final Audit Summary](./006-security-hardening/task.md#final-audit-summary-task-006-repo-scope). **Ops follow-up required:** credential rotation and git history rewrite execution — [`docs/security-incident-response.md`](../security-incident-response.md).
 
 **P1 — эксплуатация, консистентность и закрытие «хвостов» после доков**
+
+> **Master ops checklist:** [`docs/operations/repo-ops-followup-checklist.md`](../operations/repo-ops-followup-checklist.md)
 
 1. Эксплуатация: прогнать runbook [`07-deployment.md`](../07-deployment.md) и [monitoring](../operations/monitoring-alerts.md) на **вашем** staging/prod при выкатах; evidence **вне git** (задача **[010](./010-devops-infrastructure/task.md)** по **коду/докам** уже **DONE** — см. её DoD-таблицу). **[013](./013-stock-reservation/task.md) ops rollout** (флаг, cron, monitoring) — отдельно от DoD **010**.
 2. [**004**](./004-order-consistency/task.md) — **DONE repo-scope** для payment cleanup и structural Order Consistency; остаётся **ops/manual:** production/live PSP acceptance и production migration verification. Future order lifecycle extensions вести отдельным backlog, не как незакрытый Task 004. [**013**](./013-stock-reservation/task.md) — **DONE repo-scope**; **OPEN ops rollout.** [**005**](./005-delivery-cleanup/task.md) — **DONE repo-scope**; остаётся **ops:** приёмка перевозчиков в production (**manual/pending**) — см. [Final DoD](./005-delivery-cleanup/task.md#final-dod-table-task-005). [**008**](./008-seller-onboarding-stabilization/task.md) — **DONE (repo-scope)** — см. [Final DoD](./008-seller-onboarding-stabilization/task.md#final-dod-table-task-008); **manual/staging UI** онбординга остаётся **pending (ops)**; **автоматизированный** полный онбординг во Frontend3 **не** в scope; узкий Playwright smoke (корень SPA) — job **`e2e_frontend3`**. **Не зависит** от PromoCode, **005** (кроме общего payment/order фундамента) — см. [task.md](./008-seller-onboarding-stabilization/task.md).
