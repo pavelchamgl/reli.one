@@ -120,7 +120,7 @@ graph TD
 | 012 | [order-lifecycle-extended-tests](./012-order-lifecycle-extended-tests/task.md) | P1 | Medium | 002 (Core) | **DONE (repo-scope)** — см. [`task.md`](./012-order-lifecycle-extended-tests/task.md) |
 | **013** | [**stock-reservation**](./013-stock-reservation/task.md) | **P0**/P1 | High | **002**, **003**, **004** | **DONE (repo-scope)** implementation; **OPEN (ops rollout):** staging/prod flag, cron, monitoring; **не** блокирует **010** repo-scope |
 | **014** | [**frontend3-stabilization-audit**](./014-frontend3-stabilization-audit/task.md) | P1 | Medium | — | **Done** — аудит Frontend3 + roadmap стабилизации (аналитика; см. `task.md`) |
-| **015** | [**full-stack-e2e-design**](./015-full-stack-e2e-design/task.md) | P2 | Medium | FE-008–010, 012, future order lifecycle extensions | **Planned (design-only):** стратегия full-stack e2e; без runtime-кода |
+| **015** | [**full-stack-e2e-design**](./015-full-stack-e2e-design/task.md) | P2 | Medium | FE-008–010, 012, future order lifecycle extensions | **Done (design);** FS-001–003 via **018/019**; optional follow-ups remain |
 | **016** | [**webhook-idempotency-verification**](./016-webhook-idempotency-verification/task.md) | P1 | Low | 003, 004, 012, 015 | **DONE (documentation-only):** аудит подтвердил полное покрытие; новые тесты не потребовались |
 | **017** | [**e2e-safety-ci-readiness-audit**](./017-e2e-safety-ci-readiness-audit/task.md) | P1 | Low | 015, 016, FS-003 | **DONE (documentation-only):** safety audit PASS; CI proposal → реализован в **018** |
 | **018** | [**full-stack-e2e-ci-implementation**](./018-full-stack-e2e-ci-implementation/task.md) | P2 | Medium | 015, 017, FS-001–003 | **DONE:** job `e2e_fullstack` в CI; FS-001/002/003 против docker-compose e2e |

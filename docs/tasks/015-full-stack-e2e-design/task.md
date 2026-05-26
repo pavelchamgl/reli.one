@@ -1,9 +1,25 @@
 # Task 015 — Full-Stack E2E Design
 
-**Status:** Planned (design-only)  
+**Status:** **Done (design)**; **FS-001–003 implemented** via follow-up tasks **[018](./018-full-stack-e2e-ci-implementation/task.md)** (CI job `e2e_fullstack`) and **[019](./019-e2e-catalog-fixture/task.md)** (catalog fixture). External Stripe/PayPal sandbox acceptance — **manual/ops**, не автоматизирована в CI.
 **Priority:** P2  
 **Complexity:** Medium  
-**Type:** Design document — без runtime-кода
+**Type:** Design document (исходный scope) + зафиксированная реализация follow-up tasks
+
+---
+
+## Финальное состояние (design vs implementation)
+
+| Слой | Статус |
+|------|--------|
+| **Design scope (Task 015)** | **Done** — границы уровней, candidate scenarios, mock/UI/backend-only split, non-goals |
+| **FS-001** seller onboarding full-stack | **Done** — `e2e/fullstack-seller-onboarding.spec.js` |
+| **FS-002** checkout до payment session | **Done** — `e2e/fullstack-checkout-payment-session.spec.js` (PSP mocked) |
+| **FS-003** payment confirmation + UI | **Done** — `e2e/fullstack-payment-confirmation.spec.js` (e2e endpoints + webhook skip) |
+| **CI integration** | **Done** — Task **018**: job `e2e_fullstack` в `.github/workflows/ci.yml` |
+| **Catalog fixture** | **Done** — Task **019**: `e2e_categories.json` + `loaddata` в CI |
+| **Optional / future** | BE-I-003 full lifecycle (новые published seller actions); FS-002b stock-at-checkout при необходимости; Tier 3 EXT Stripe/PayPal sandbox — **manual** |
+
+**Historical note:** формальный design review PR (`Дизайн согласован с командой`) не зафиксирован отдельным артефактом; фактическая приёмка — через реализацию FS-001–003 и CI job **018**.
 
 ---
 
@@ -11,7 +27,7 @@
 
 Спроектировать **full-stack e2e стратегию**: определить границы между уровнями тестирования, выбрать candidate scenarios, обосновать приоритеты, зафиксировать, что мокать, что проверять через UI, что проверять backend-only — **до** начала реализации.
 
-Результат задачи — документ, на который можно опереться при последовательной реализации full-stack e2e тестов в рамках будущих задач.
+Результат задачи — документ, на который опирались при реализации full-stack e2e (FS-001–003) и CI job **018**. Сам Task 015 **не** добавляет runtime-код.
 
 ---
 
@@ -24,7 +40,9 @@
 - **E2E Docker contour**: `docs/testing/e2e-local-contour.md` — локальный `docker-compose` с Mailpit, Postgres, Django, без Playwright UI.
 - **Ручные e2e-чеклисты**: `docs/testing/stripe-e2e-checklist.md`, `docs/testing/paypal-e2e-checklist.md`.
 
-Пробел: отсутствует автоматизированный сценарий, в котором Playwright управляет UI, а реальный Django backend (в тесте) обрабатывает запросы — **full-stack e2e в CI-контексте**.
+Пробел **на момент создания** (май 2026): отсутствовал автоматизированный сценарий Playwright UI + реальный Django backend в CI.
+
+**Закрыто follow-up tasks:** FS-001–003 specs + Task **018** (`e2e_fullstack` job) + Task **019** (catalog fixture). Лёгкий smoke job `e2e_frontend3` по-прежнему **без** backend — намеренно.
 
 ---
 
@@ -44,8 +62,8 @@
 
 ## Non-goals (явные)
 
-- **Нет реализации runtime-кода** в этой задаче.
-- **Нет реализации Playwright тестов** в этой задаче.
+- **Нет реализации runtime-кода** в исходном design scope Task 015 (реализация — follow-up tasks и frontend e2e specs).
+- **Нет реализации Playwright тестов** в рамках Task 015 как design-only deliverable (specs добавлены в FS-001–003 / FE-011–013).
 - **Нет изменений `docker-compose`** — только документирование; если понадобится новый compose-профиль, он описывается как план в `docs/`, но не создаётся.
 - **Нет интеграции с provider sandbox** (Stripe/PayPal) в рамках CI — остаётся на ручных чеклистах.
 - **Нет обновления `docs/test-coverage-snapshot.md`** — снимок обновляется только при добавлении фактических тестов.
@@ -202,12 +220,12 @@ graph TD
 |-----------|-----------|---------|
 | Docker-compose с Django + Postgres | Есть (`docs/testing/e2e-local-contour.md`) | Добавить Playwright в compose или запускать Playwright хостово против поднятого контура |
 | Django тестовая БД | Стандартный `--keepdb` или `pytest-django` | Конфигурация `pytest.ini` / `conftest.py` |
-| Playwright в CI job | Отдельный job или extend `e2e_frontend3` | Задокументировать в CI workflow (не менять без отдельного PR) |
+| Playwright в CI job | **Done (Task 018)** | Job `e2e_fullstack`: `fullstack-*.spec.js` против `docker-compose.e2e.yml` |
 | Переменные окружения | `.env.test` пример | Не коммитить реальные ключи; mock Stripe key достаточен |
 
 ---
 
-## Definition of Done (для этой задачи — design-only)
+## Definition of Done (design scope)
 
 - [x] Границы уровней тестирования зафиксированы (таблица выше).
 - [x] Candidate scenarios с обоснованием приоритетов задокументированы.
@@ -215,9 +233,10 @@ graph TD
 - [x] Связь с Task 004 (repo-scope closed), future order lifecycle extensions, Task 012 follow-ups, Task 013 (repo done / rollout ops) явно указана.
 - [x] Non-goals явные и полные.
 - [x] Рекомендуемый порядок реализации зафиксирован.
-- [ ] Дизайн согласован с командой (review PR).
+- [x] Follow-up implementation: FS-001–003 + CI **018** + fixture **019** — см. секции ниже.
+- [ ] Формальный design review PR — **не зафиксирован**; historical/manual note (реализация принята через follow-up tasks).
 
-## Статус реализации FS-003
+## Реализация follow-up (Tasks 018/019)
 
 **FS-003 реализован:** `Frontend/Frontend3/e2e/fullstack-payment-confirmation.spec.js`
 
@@ -281,5 +300,7 @@ graph TD
 - [`docs/tasks/008-seller-onboarding-stabilization/task.md`](../008-seller-onboarding-stabilization/task.md) — seller onboarding backend
 - [`docs/frontend/tasks/010-seller-onboarding-e2e-smoke/task.md`](../../frontend/tasks/010-seller-onboarding-e2e-smoke/task.md) — frontend smoke (FE-010)
 - [`docs/frontend/tasks/009-checkout-happy-path-e2e/task.md`](../../frontend/tasks/009-checkout-happy-path-e2e/task.md) — frontend checkout smoke (FE-009)
-- [`docs/08-testing-strategy.md`](../../08-testing-strategy.md) — общая стратегия тестирования
+- [`docs/tasks/018-full-stack-e2e-ci-implementation/task.md`](./018-full-stack-e2e-ci-implementation/task.md) — CI job `e2e_fullstack`
+- [`docs/tasks/019-e2e-catalog-fixture/task.md`](./019-e2e-catalog-fixture/task.md) — catalog fixture в CI
+- [`docs/tasks/017-e2e-safety-ci-readiness-audit/task.md`](./017-e2e-safety-ci-readiness-audit/task.md) — safety audit; CI proposal → **018**
 - [`docs/test-coverage-snapshot.md`](../../test-coverage-snapshot.md) — текущий снимок покрытия (не обновляется этой задачей)
