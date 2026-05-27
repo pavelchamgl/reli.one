@@ -6,17 +6,27 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Import .env.dev vars
-load_dotenv()
+from env_parse import (
+    cookie_samesite_from_env,
+    int_from_env,
+    resolve_cors_allowed_origins,
+    str_to_bool,
+)
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Build paths inside this folder: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+# Корень репозитория (родитель каталога backend/, где лежит manage.py).
+REPO_ROOT = BASE_DIR.parent
 
-SECURE_SSL_REDIRECT = False
+# Переменные окружения: сначала общие файлы в repo/envs/ (как на проде), затем локальный backend/.env.
+# По умолчанию load_dotenv не перезаписывает уже заданные в процессе переменные (systemd/Docker).
+load_dotenv(REPO_ROOT / "envs" / "database.env")
+load_dotenv(REPO_ROOT / "envs" / "backend.env")
+load_dotenv(BASE_DIR / ".env")
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Media files (override via env for Docker e2e и др.; дефолты как на production)
+MEDIA_URL = os.getenv("MEDIA_URL", "/media/")
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, "media"))
 
 CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 
@@ -24,7 +34,27 @@ CLOUDINARY_URL = os.getenv('CLOUDINARY_URL')
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG")
+DEBUG = os.getenv("DEBUG", "False").lower() in ("1", "true", "yes")
+
+# Dev-only HTTP-маршруты курьеров (MyGLS/DPD) в delivery.urls — см. delivery.dev_access.
+# В production держать False. Для стенда без DEBUG можно выставить True явно.
+ENABLE_DELIVERY_DEV_ENDPOINTS = os.getenv(
+    "ENABLE_DELIVERY_DEV_ENDPOINTS", "False"
+).lower() in ("1", "true", "yes")
+
+# Task 013: stock reservation at checkout session creation (Phase 3+).
+# Default False — deploy code/migrations without changing checkout behaviour.
+STOCK_RESERVATION_ENABLED = str_to_bool(os.getenv("STOCK_RESERVATION_ENABLED", "False"))
+
+# E2E test helpers. NEVER enable in production. Default False.
+# STRIPE_WEBHOOK_SKIP_SIGNATURE — skip Stripe signature verification in webhook view.
+# ENABLE_E2E_ENDPOINTS — expose /api/e2e/* test-setup endpoints.
+STRIPE_WEBHOOK_SKIP_SIGNATURE = os.getenv(
+    "STRIPE_WEBHOOK_SKIP_SIGNATURE", "False"
+).lower() in ("1", "true", "yes")
+ENABLE_E2E_ENDPOINTS = os.getenv(
+    "ENABLE_E2E_ENDPOINTS", "False"
+).lower() in ("1", "true", "yes")
 
 CSRF_TRUSTED_ORIGINS = [
     'https://reli.one',
@@ -38,10 +68,42 @@ USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
 
-ALLOWED_HOSTS = ['*']
+# --- HTTPS / HSTS / cookies (env; безопасные дефолты для local и HTTP e2e) ---
+# Production: см. docs/07-deployment.md и envs/backend.env.example
+SECURE_SSL_REDIRECT = str_to_bool(os.getenv("SECURE_SSL_REDIRECT", "False"))
+SECURE_HSTS_SECONDS = int_from_env("SECURE_HSTS_SECONDS", 0)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = str_to_bool(
+    os.getenv("SECURE_HSTS_INCLUDE_SUBDOMAINS", "True")
+)
+SECURE_HSTS_PRELOAD = str_to_bool(os.getenv("SECURE_HSTS_PRELOAD", "True"))
+
+SESSION_COOKIE_SECURE = str_to_bool(os.getenv("SESSION_COOKIE_SECURE", "False"))
+CSRF_COOKIE_SECURE = str_to_bool(os.getenv("CSRF_COOKIE_SECURE", "False"))
+SESSION_COOKIE_HTTPONLY = str_to_bool(os.getenv("SESSION_COOKIE_HTTPONLY", "True"))
+# CSRF_COOKIE_HTTPONLY не задаём: при True JS не прочитает csrftoken (ломает типичные SPA).
+SESSION_COOKIE_SAMESITE = cookie_samesite_from_env("SESSION_COOKIE_SAMESITE", "Lax")
+CSRF_COOKIE_SAMESITE = cookie_samesite_from_env("CSRF_COOKIE_SAMESITE", "Lax")
+
+ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "")
+
+if ALLOWED_HOSTS_ENV == "*":
+    ALLOWED_HOSTS = ["*"]
+elif ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in ALLOWED_HOSTS_ENV.split(",")
+        if host.strip()
+    ]
+else:
+    ALLOWED_HOSTS = [
+        "reli.one",
+        "www.reli.one",
+        "info.reli.one",
+        "45.147.248.21",
+        "localhost",
+        "127.0.0.1",
+    ]
 
 # Application definition
 
@@ -186,7 +248,7 @@ REST_AUTH = {
     'REGISTER_SERIALIZER': 'accounts.serializers.UserRegistrationSerializer',
 
     'USE_JWT': True,
-    'JWT_AUTH_SECURE': False,  # True если только через HTTPS
+    'JWT_AUTH_SECURE': True,
     'JWT_AUTH_SAMESITE': 'Lax',
 
     'TOKEN_MODEL': None,
@@ -212,6 +274,15 @@ REST_FRAMEWORK = {
     'DATE_FORMAT': '%d.%m.%Y',
     'TIME_FORMAT': '%H:%M',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+        'otp': '5/minute',
+    },
 }
 
 MAX_UPLOAD_SIZE = 13 * 1024 * 1024  # 13 MB
@@ -227,8 +298,8 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/reli.one/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = os.getenv("STATIC_URL", "/reli.one/static/")
+STATIC_ROOT = os.getenv("STATIC_ROOT", os.path.join(BASE_DIR, "static"))
 
 DEFAULT_PROJECT_MANAGERS = ["office@reli.one"]
 
@@ -241,10 +312,6 @@ if PROJECT_MANAGERS_EMAILS_RAW:
         PROJECT_MANAGERS_EMAILS = DEFAULT_PROJECT_MANAGERS
 else:
     PROJECT_MANAGERS_EMAILS = DEFAULT_PROJECT_MANAGERS
-
-
-def str_to_bool(value):
-    return value.lower() in ('true', '1', 'yes')
 
 
 EMAIL_BACKEND = os.getenv("EMAIL_BACKEND")
@@ -269,11 +336,12 @@ SPECTACULAR_SETTINGS = {
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REDIRECT_DOMAIN = 'https://reli.one/'
 
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOWED_ORIGINS = [
-    "https://reli.one",
-    "http://45.147.248.21:8081",
-]
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = resolve_cors_allowed_origins(
+    debug=DEBUG,
+    enable_e2e_endpoints=ENABLE_E2E_ENDPOINTS,
+    cors_allowed_origins_env=os.getenv("CORS_ALLOWED_ORIGINS", ""),
+)
 
 PAYPAL_CLIENT_ID = os.getenv("PAYPAL_CLIENT_ID")
 PAYPAL_CLIENT_SECRET = os.getenv("PAYPAL_CLIENT_SECRET")
@@ -369,6 +437,8 @@ CACHES = {
         "TIMEOUT": 60 * 60 * 24,  # час, можно None
     },
 }
+
+os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
 
 LOGGING = {
     'version': 1,
@@ -538,3 +608,44 @@ GMC_ONLY_SELLER_IDS = [43]
 GMC_STATIC_BRANDS = {
     43: "Nutristar",
 }
+
+# ---------------------------------------------------------------------------
+# Sentry — error monitoring
+# Активируется только при наличии SENTRY_DSN и DEBUG=False.
+# DSN никогда не хардкодится; PII не передаётся.
+# ---------------------------------------------------------------------------
+_SENTRY_DSN = os.getenv("SENTRY_DSN", "")
+
+if _SENTRY_DSN and not DEBUG:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    _SENSITIVE_KEYS = frozenset(
+        {
+            "password", "token", "access_token", "refresh_token",
+            "card_number", "cvv", "iban", "secret", "api_key",
+        }
+    )
+
+    def _sentry_before_send(event, hint):  # noqa: ARG001
+        """Strip sensitive fields from request body before sending to Sentry."""
+        request = event.get("request", {})
+        data = request.get("data")
+        if isinstance(data, dict):
+            request["data"] = {
+                k: "[Filtered]" if k.lower() in _SENSITIVE_KEYS else v
+                for k, v in data.items()
+            }
+        return event
+
+    sentry_sdk.init(
+        dsn=_SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(transaction_style="url"),
+            LoggingIntegration(level=None, event_level="ERROR"),
+        ],
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        before_send=_sentry_before_send,
+    )

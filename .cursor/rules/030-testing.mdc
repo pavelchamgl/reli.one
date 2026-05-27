@@ -1,0 +1,17 @@
+---
+description: Testing rules
+globs:
+  - "backend/**/*.py"
+  - "Frontend/**/*"
+alwaysApply: false
+---
+
+# Testing rules
+
+- Add regression tests before risky refactors.
+- For backend critical flows, prefer API/integration tests plus focused unit tests.
+- Mock external providers: Stripe, PayPal, DPD, GLS, Packeta.
+- Payment webhook tests must check idempotency.
+- Order creation tests must verify totals, items, user, delivery metadata, and payment metadata.
+- Delivery tests must verify provider-specific edge cases.
+- Do not remove tests unless the behavior was intentionally removed and documented.

@@ -1,8 +1,9 @@
 import { Drawer } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { getProductById } from "../../../api/productsApi";
 import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { addToBasket, plusCount } from "../../../redux/basketSlice";
+import { isItemAvailable } from "../../../utils/stockAvailability";
 import styles from "./MobVariantDrawer.module.scss";
 
 const MobVariantDrawer = ({
@@ -21,12 +22,13 @@ const MobVariantDrawer = ({
 
   const dispatch = useDispatch();
   const basket = useSelector((state) => state.basket.basket);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const variant = variants?.find((item) => item.sku === selected);
     const basketVariant = basket.find((item) => item.sku === selected);
 
-    if (selected) {
+    if (selected && variant && isItemAvailable(variant)) {
       if (basketVariant) {
         dispatch(
           plusCount({
@@ -57,8 +59,45 @@ const MobVariantDrawer = ({
       setVarPack("pack3");
     } else if (image && price) {
       setVarPack("pack2");
+    } else if (variants?.length > 0 && price) {
+      setVarPack("generic");
+    } else {
+      setVarPack(null);
     }
   }, [variants, image, text, price]);
+
+  const renderVariantButton = (item, content, className = "") => {
+    const available = isItemAvailable(item);
+
+    return (
+      <button
+        type="button"
+        className={className}
+        style={{
+          borderColor: selected === item.sku ? "black" : "#64748b",
+          opacity: available ? 1 : 0.55,
+        }}
+        aria-disabled={!available}
+        onClick={() => {
+          if (!available) {
+            return;
+          }
+          setSelected(item.sku);
+        }}
+        key={item?.sku}
+      >
+        {content}
+        {!available && <span>{t("out_of_stock")}</span>}
+      </button>
+    );
+  };
+
+  const renderGenericVariantContent = (item) => (
+    <>
+      <p>{item.name || item.sku}</p>
+      <span>{item.price}€</span>
+    </>
+  );
 
   return (
     <div>
@@ -79,52 +118,38 @@ const MobVariantDrawer = ({
               {varPack && varPack === "pack2" && (
                 <div className={styles.stylePackVTwoButtons}>
                   {variants && variants.length > 0
-                    ? variants.map((item) => (
-                      <button
-                        style={{
-                          borderColor:
-                            selected === item.sku ? "black" : "#64748b",
-                        }}
-                        onClick={() => {
-                          setSelected(item.sku);
-                          // setPrice(item.price);
-                          // setSku(item.sku);
-                          // // changeVariants({
-                          // //   id: id,
-                          // //   price: item.price,
-                          // //   sku: item.sku,
-                          // // });
-                        }}
-                        key={item?.sku}
-                      >
-                        <img src={item?.image} alt="" />
-                        <p>{item?.price}€</p>
-                      </button>
-                    ))
+                    ? variants.map((item) =>
+                        renderVariantButton(
+                          item,
+                          <>
+                            <img src={item?.image} alt="" />
+                            <p>{item?.price}€</p>
+                          </>
+                        )
+                      )
                     : null}
                 </div>
               )}
               {varPack && varPack === "pack3" && (
                 <div className={styles.stylePackVThreeButtons}>
                   {variants && variants.length > 0
-                    ? variants.map((item) => (
-                      <button
-                        style={{
-                          borderColor:
-                            selected === item.sku ? "black" : "#64748b",
-                        }}
-                        onClick={() => {
-                          setSelected(item.sku);
-                          // setPrice(item.price);
-                          // setSku(item.sku);
-                        }}
-                        key={item?.sku}
-                      >
-                        <p>{item?.text}</p>
-                        <span>{item?.price}€</span>
-                      </button>
-                    ))
+                    ? variants.map((item) =>
+                        renderVariantButton(
+                          item,
+                          <>
+                            <p>{item?.text}</p>
+                            <span>{item?.price}€</span>
+                          </>
+                        )
+                      )
                     : null}
+                </div>
+              )}
+              {varPack === "generic" && (
+                <div className={styles.stylePackVThreeButtons}>
+                  {variants.map((item) =>
+                    renderVariantButton(item, renderGenericVariantContent(item))
+                  )}
                 </div>
               )}
             </div>

@@ -15,6 +15,11 @@ import { addToBasket } from "../../../../redux/basketSlice";
 
 import styles from "./ProductImageAndName.module.scss";
 import ProdCharackButtons from "../../ProdCharakButtons/ProdCharackButtons";
+import StockBadge from "../../StockBadge/StockBadge";
+import {
+  getVariantStockStatus,
+  isItemAvailable,
+} from "../../../../utils/stockAvailability";
 
 const ProductImageAndName = () => {
   const product = useSelector((state) => state.products.product);
@@ -32,6 +37,10 @@ const ProductImageAndName = () => {
 
   const basket = useSelector((state) => state.basket.basket);
 
+  const selectedVariant = product?.variants?.find((item) => item.sku === sku);
+  const selectedVariantAvailable = isItemAvailable(selectedVariant);
+  const selectedVariantStockStatus = getVariantStockStatus(selectedVariant);
+
   const navigate = useNavigate();
 
   const { id } = useParams();
@@ -41,6 +50,10 @@ const ProductImageAndName = () => {
   const dispatch = useDispatch();
 
   const handleAddBasket = () => {
+    if (!selectedVariantAvailable) {
+      return;
+    }
+
     const firstVariant = product.variants[0];
 
     dispatch(
@@ -65,25 +78,23 @@ const ProductImageAndName = () => {
   }, [id, basket, sku]);
 
   useEffect(() => {
-    if (product && product.variants && product.variants.length > 0) {
-      // Проверка, есть ли продукт с текущим id в корзине
-      const existingProduct = basket.find((item) => item.id === product.id);
-
-      if (!existingProduct) {
-        // Если продукта нет в корзине, установить значения первого варианта
-        const firstVariant = product.variants[0];
-        setPrice(firstVariant.price);
-        setEndPice(firstVariant.price);
-        setSku(firstVariant.sku);
-        // setPriceVat(firstVariant.price_without_vat)
-      } else {
-        // Если продукт уже в корзине, использовать данные из корзины
-        setEndPice(existingProduct.product.price);
-        setSku(existingProduct.sku);
-        // setPriceVat(existingProduct?.price_without_vat)
-      }
+    if (!product?.variants?.length) {
+      return;
     }
-  }, [product, basket]);
+
+    const existingProduct = basket.find((item) => item.id === product.id);
+
+    if (existingProduct) {
+      setEndPice(existingProduct.product.price);
+      setSku(existingProduct.sku);
+    } else {
+      const firstVariant = product.variants[0];
+      setPrice(firstVariant.price);
+      setEndPice(firstVariant.price);
+      setSku(firstVariant.sku);
+    }
+    // deps: product?.id only — basket changes must not reset the user's variant selection
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLikeClick = async () => {
     const newLike = !like;
@@ -136,6 +147,7 @@ const ProductImageAndName = () => {
       <div className={styles.descAndBtnWrap}>
         <p className={styles.title}>{formattedText}</p>
         <ProdCharackButtons
+          sku={sku}
           setPrice={setEndPice}
           setPriceVat={setPriceVatMain}
           setSku={setSku}
@@ -147,9 +159,17 @@ const ProductImageAndName = () => {
           {/* <span>400.00 Kč</span> */}
         </div>
         <p className={styles.ndcPrice}>{t("without_vat")} <span>{priceVatMain} €</span></p>
-        <button className={styles.basketBtn} onClick={handleAddBasket}>
+        {selectedVariantStockStatus && (
+          <StockBadge stockStatus={selectedVariantStockStatus} />
+        )}
+        <button
+          className={styles.basketBtn}
+          onClick={handleAddBasket}
+          disabled={!selectedVariantAvailable}
+          aria-disabled={!selectedVariantAvailable}
+        >
           {inBasket && <img src={addBasketCheckIcon} alt="" />}
-          {t("add_basket")}
+          {selectedVariantAvailable ? t("add_basket") : t("out_of_stock")}
         </button>
         <button className={styles.deliveryBtn}>
           <img src={prodDelivery} alt="" />

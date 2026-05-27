@@ -1,0 +1,21 @@
+---
+description: React frontend rules
+globs:
+  - "Frontend/**/*.js"
+  - "Frontend/**/*.jsx"
+  - "Frontend/**/*.ts"
+  - "Frontend/**/*.tsx"
+  - "Frontend/**/*.css"
+alwaysApply: false
+---
+
+# Frontend rules
+
+- Preserve existing routing unless the task explicitly asks to change it.
+- Do not break API integrations.
+- Keep UI state predictable.
+- Avoid duplicating API client logic.
+- Reuse existing components when possible.
+- Improve UX incrementally.
+- For checkout, payment, delivery, auth, and seller flows, identify the full user journey before making changes.
+- Do not silently change validation behavior.

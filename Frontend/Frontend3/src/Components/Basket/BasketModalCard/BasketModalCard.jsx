@@ -18,6 +18,8 @@ import minusIcon from "../../../assets/Basket/minusIcon.svg";
 
 import styles from "./BasketModalCard.module.scss";
 import { getProductById } from "../../../api/productsApi";
+import { isItemAvailable } from "../../../utils/stockAvailability";
+import { useTranslation } from "react-i18next";
 
 const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
   const [countsBySku, setCountsBySku] = useState({}); // объект для хранения количества по каждому SKU
@@ -34,6 +36,25 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
 
   const dispatch = useDispatch();
   const basket = useSelector((state) => state.basket.basket);
+  const { t } = useTranslation();
+
+  const addVariantToBasket = (variant, resData, count = 1) => {
+    if (!variant || !isItemAvailable(variant)) {
+      return;
+    }
+
+    dispatch(
+      addToBasket({
+        id: resData.id,
+        product: { ...resData, price: variant?.price },
+        count,
+        selected: false,
+        sku: variant.sku,
+        seller_id: resData.seller_id,
+        price_without_vat: variant.price_without_vat,
+      })
+    );
+  };
 
   const handleDelete = () => {
     dispatch(deleteFromBasket({ sku: selected }));
@@ -100,16 +121,10 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
               setSku(variant.sku);
               setSelected(variant.sku);
               setVariant(variant);
-              dispatch(
-                addToBasket({
-                  id: resData.id,
-                  product: { ...resData, price: variant?.price },
-                  count: countsBySku[variant.sku] || 1,
-                  selected: false,
-                  sku: variant.sku,
-                  seller_id: resData.seller_id,
-                  price_without_vat: variant.price_without_vat
-                })
+              addVariantToBasket(
+                variant,
+                resData,
+                countsBySku[variant.sku] || 1
               );
             } else {
               if (resData?.variants?.length > 0) {
@@ -117,16 +132,10 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
                 setSku(firstVariant.sku);
                 setSelected(firstVariant.sku);
                 setVariant(firstVariant);
-                dispatch(
-                  addToBasket({
-                    id: resData.id,
-                    product: { ...resData, price: firstVariant?.price },
-                    count: countsBySku[firstVariant.sku] || 1,
-                    selected: false,
-                    sku: variant.sku,
-                    seller_id: resData.seller_id,
-                    price_without_vat: firstVariant.price_without_vat
-                  })
+                addVariantToBasket(
+                  firstVariant,
+                  resData,
+                  countsBySku[firstVariant.sku] || 1
                 );
               } else {
                 console.error("Не найдено совпадений по цене");
@@ -141,18 +150,8 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
 
   useEffect(() => {
     const variant = variants?.find((item) => item.sku === selected);
-    if (selected) {
-      dispatch(
-        addToBasket({
-          id: data.id,
-          product: { ...allData, price: variant?.price },
-          count: countsBySku[selected] || 1,
-          selected: false,
-          sku: selected,
-          seller_id: allData.seller_id,
-          price_without_vat: variant.price_without_vat
-        })
-      );
+    if (selected && variant && isItemAvailable(variant)) {
+      addVariantToBasket(variant, allData, countsBySku[selected] || 1);
     }
   }, [selected]);
 
@@ -173,6 +172,10 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
       setVarPack("pack3");
     } else if (image && price) {
       setVarPack("pack2");
+    } else if (variants?.length > 0 && price) {
+      setVarPack("generic");
+    } else {
+      setVarPack(null);
     }
   }, [variants, image, text, price]);
 
@@ -193,6 +196,33 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
 
     updateBasketItem();
   }, [selected, basket]);
+
+  const handleVariantSelect = (item) => {
+    if (!isItemAvailable(item)) {
+      return;
+    }
+    setSelected(item.sku);
+  };
+
+  const renderVariantButton = (item, content) => {
+    const available = isItemAvailable(item);
+
+    return (
+      <button
+        type="button"
+        style={{
+          borderColor: selected === item.sku ? "black" : "#64748b",
+          opacity: available ? 1 : 0.55,
+        }}
+        aria-disabled={!available}
+        onClick={() => handleVariantSelect(item)}
+        key={item.sku}
+      >
+        {content}
+        {!available && <span>{t("out_of_stock")}</span>}
+      </button>
+    );
+  };
 
   const isMobile = useMediaQuery({ maxWidth: 700 });
 
@@ -281,43 +311,44 @@ const BasketModalCard = ({ data, handleClose, setMainCount, setMainSku }) => {
           {varPack && varPack === "pack2" && (
             <div className={styles.stylePackVTwoButtons}>
               {variants && variants.length > 0
-                ? variants.map((item) => (
-                  <button
-                    style={{
-                      borderColor:
-                        selected === item.sku ? "black" : "#64748b",
-                    }}
-                    onClick={() => {
-                      setSelected(item.sku);
-                    }}
-                    key={item.sku}
-                  >
-                    <img src={item?.image} alt="" />
-                    <p>{item?.price}€</p>
-                  </button>
-                ))
+                ? variants.map((item) =>
+                    renderVariantButton(
+                      item,
+                      <>
+                        <img src={item?.image} alt="" />
+                        <p>{item?.price}€</p>
+                      </>
+                    )
+                  )
                 : null}
             </div>
           )}
           {varPack && varPack === "pack3" && (
             <div className={styles.stylePackVThreeButtons}>
               {variants && variants.length > 0
-                ? variants.map((item) => (
-                  <button
-                    style={{
-                      borderColor:
-                        selected === item.sku ? "black" : "#64748b",
-                    }}
-                    onClick={() => {
-                      setSelected(item.sku);
-                    }}
-                    key={item.sku}
-                  >
-                    <p>{item?.text}</p>
-                    <span>{item?.price}€</span>
-                  </button>
-                ))
+                ? variants.map((item) =>
+                    renderVariantButton(
+                      item,
+                      <>
+                        <p>{item?.text}</p>
+                        <span>{item?.price}€</span>
+                      </>
+                    )
+                  )
                 : null}
+            </div>
+          )}
+          {varPack === "generic" && (
+            <div className={styles.stylePackVThreeButtons}>
+              {variants.map((item) =>
+                renderVariantButton(
+                  item,
+                  <>
+                    <p>{item.name || item.sku}</p>
+                    <span>{item?.price}€</span>
+                  </>
+                )
+              )}
             </div>
           )}
         </div>

@@ -1,12 +1,12 @@
 import mainInstance from ".."
 
 
-export const getOrders = async () => {
+export const getOrders = async (params = {}) => {
     try {
-        const res = await mainInstance.get("sellers/orders/?courier_service=2")
+        const res = await mainInstance.get("sellers/orders/", { params })
         return res
     } catch (error) {
-
+        throw error
     }
 }
 
@@ -15,7 +15,7 @@ export const getOrderDetails = async (id) => {
         const res = await mainInstance.get(`sellers/orders/${id}/`)
         return res
     } catch (error) {
-
+        throw error
     }
 }
 

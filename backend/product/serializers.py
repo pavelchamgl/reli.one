@@ -10,6 +10,12 @@ from .models import (
 from favorites.models import Favorite
 from order.models import OrderProduct
 
+from .stock_availability import (
+    compute_is_available,
+    compute_stock_status,
+    variant_available_quantity,
+)
+
 
 class ProductParameterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -35,6 +41,9 @@ class BaseProductImageSerializer(serializers.ModelSerializer):
 class ProductVariantSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(source="price_with_acquiring", max_digits=10, decimal_places=2)
     price_without_vat = serializers.SerializerMethodField()
+    available_quantity = serializers.SerializerMethodField()
+    is_available = serializers.SerializerMethodField()
+    stock_status = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductVariant
@@ -46,10 +55,22 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             'image',
             'price',
             'price_without_vat',
+            'available_quantity',
+            'is_available',
+            'stock_status',
         ]
 
     def get_price_without_vat(self, obj):
         return obj.price_without_vat
+
+    def get_available_quantity(self, obj):
+        return variant_available_quantity(obj)
+
+    def get_is_available(self, obj):
+        return compute_is_available(variant_available_quantity(obj))
+
+    def get_stock_status(self, obj):
+        return compute_stock_status(variant_available_quantity(obj))
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -151,6 +172,9 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     ordered_count = serializers.IntegerField(source='ordered_quantity', read_only=True)
     seller_id = serializers.IntegerField(source='seller.id', read_only=True)
     is_age_restricted = serializers.BooleanField(read_only=True)
+    total_available_quantity = serializers.IntegerField(read_only=True)
+    is_available = serializers.SerializerMethodField()
+    stock_status = serializers.SerializerMethodField()
 
     class Meta:
         model = BaseProduct
@@ -167,7 +191,19 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'ordered_count',
             'seller_id',
             'is_age_restricted',
+            'total_available_quantity',
+            'is_available',
+            'stock_status',
         ]
+
+    def _total_available(self, obj) -> int:
+        return int(getattr(obj, "total_available_quantity", 0) or 0)
+
+    def get_is_available(self, obj):
+        return compute_is_available(self._total_available(obj))
+
+    def get_stock_status(self, obj):
+        return compute_stock_status(self._total_available(obj))
 
     def get_image(self, obj):
         request = self.context.get('request')

@@ -90,8 +90,13 @@
   transition: 0.5s ease;
 }
 
-.buyBtn:hover{
+.buyBtn:hover:not(:disabled){
 background-color: #06664B;
+}
+
+.buyBtn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
 

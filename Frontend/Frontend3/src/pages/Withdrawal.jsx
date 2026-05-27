@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 
 import Container from "../ui/Container/Container"
 import timeIc from "../assets/claim/time.svg"
-import file from "../../public/Odstoupení od smlouvy a vrácení zboží reli.one (1).pdf"
+import file from "../../public/withdrawal-form-reli-one.pdf"
 
 import styles from "../styles/ClaimsAndRightsPage.module.scss"
 

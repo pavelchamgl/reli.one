@@ -1,0 +1,52 @@
+# Задачи: внедрение тестирования фронтенда
+
+Декомпозиция **[плана тестирования](../testing-plan.md)**. Выполнять в порядке зависимостей (столбец «После»).
+
+**Навигация:**
+- Точка входа в документацию: [docs/README.md](../../README.md)
+- Общий roadmap треков: [docs/roadmap.md](../../roadmap.md)
+- Детальный roadmap Frontend3: [frontend3-roadmap.md](../frontend3-roadmap.md)
+- Аудит Frontend3 + findings: [frontend3-audit.md](../frontend3-audit.md)
+
+---
+
+## Задачи тестовой инфраструктуры (FE-T*)
+
+| ID | Задача | После | Статус |
+|----|--------|-------|--------|
+| **FE-T001** | [Матрица сценариев и конвенции](./001-test-matrix-and-conventions/task.md) | — | **Done** — артефакт: [test-matrix.md](../test-matrix.md) |
+| **FE-T002** | [Пилот Vitest + RTL в Frontend3](./002-vitest-rtl-pilot-frontend3/task.md) | FE-T001 | **Done** — Vitest, хелперы, smoke, CI `frontend3` |
+| **FE-T003** | [Якорные RTL-тесты P0](./003-rtl-anchor-tests-p0/task.md) | FE-T002 | **Done** — P0 матрица закрыта: ProtectedRoute, basket, login/register Yup, API interceptors |
+| **FE-T004** | [Playwright: фундамент и smoke](./004-playwright-e2e-foundation/task.md) | FE-T002 | **Done** — `e2e/`, `npm run test:e2e`, job `e2e_frontend3` в CI |
+| **FE-T005** | [Frontend2 и интеграция в CI](./005-frontend2-and-ci-integration/task.md) | FE-T002 | **Done** — Vitest smoke, CI `frontend2` lint → test → build |
+
+---
+
+## Задачи стабилизации Frontend3 (FE-* из Task 014)
+
+Результат аудита [Task 014](../../../tasks/014-frontend3-stabilization-audit/task.md). Порядок реализации: [frontend3-roadmap.md](../frontend3-roadmap.md).
+
+| ID | Задача | Phase | Priority | Статус |
+|----|--------|-------|----------|--------|
+| **FE-001** | [Auth & Routing Stabilization](./001-auth-and-routing-stabilization/task.md) | 1 | **P0** | **Done** |
+| **FE-002** | [API Layer Hardening](./002-api-layer-hardening/task.md) | 1 | **P0** | **Done** |
+| **FE-003** | [Seller Onboarding Tests](./003-seller-onboarding-tests/task.md) | 2 | P1 | **Done** |
+| **FE-004** | [Products & Search Tests](./004-products-and-search-tests/task.md) | 2 | P1 | **Done** |
+| **FE-005** | [Orders Flow Tests](./005-orders-flow-tests/task.md) | 2 | P1 | **Done** |
+| **FE-006** | [Refactoring Foundation](./006-refactoring-foundation/task.md) | 3 | P2 | **Done** |
+| **FE-007** | Test Infra i18n Provider & Docs Sync | 2 | P1 | **Done** |
+| **FE-008** | [Playwright E2E Foundation](./008-playwright-e2e-foundation/task.md) | 4 | P3 | **Done** |
+| **FE-009** | [Checkout Happy Path E2E](./009-checkout-happy-path-e2e/task.md) | 4 | P3 | **Done** |
+| **FE-010** | [Seller Onboarding E2E Smoke](./010-seller-onboarding-e2e-smoke/task.md) | 4 | P3 | **Done** |
+| **FE-011** | Full-Stack Seller Onboarding E2E (FS-001) | 5 | P2 | **Done** — `e2e/fullstack-seller-onboarding.spec.js`; авто-skip без бэкенда |
+| **FE-012** | [Full-Stack Checkout Until Payment Session E2E (FS-002)](./012-full-stack-checkout-payment-session-e2e/task.md) | 5 | P2 | **Done** — `e2e/fullstack-checkout-payment-session.spec.js`; PSP mocked; авто-skip без бэкенда |
+| **FE-013** | [Full-Stack Payment Confirmation E2E (FS-003)](./013-full-stack-payment-confirmation-e2e/task.md) | 5 | P2 | **Done** — `e2e/fullstack-payment-confirmation.spec.js`; webhook lifecycle + UI /my_orders; авто-skip без бэкенда |
+| **FE-014** | [Stock Availability Display](./014-stock-availability-display/task.md) | 6 | P1 | **Done** — Task 020 fields on cards/detail; checkout 409 message |
+
+---
+
+**Примечания.**
+
+- **FE-T003** и **FE-T004** изначально допускали параллельную работу после FE-T002.
+- Расширение RTL по матрице — FE-003, FE-004, FE-005 (продолжение линии FE-T003).
+- Порядок фаз, PR и критерии готовности к рефакторингу: **[refactoring-readiness-plan.md](../refactoring-readiness-plan.md)**.

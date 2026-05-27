@@ -1,0 +1,21 @@
+---
+description: Architecture rules
+alwaysApply: false
+---
+
+# Architecture rules
+
+Target architecture: modular monolith.
+
+Preferred backend layering:
+- views: HTTP layer
+- serializers: request/response validation
+- services: business actions and writes
+- selectors: read/query logic
+- validators: reusable business validation
+- tasks: async/background work
+
+Do not introduce microservices.
+Do not introduce event-driven complexity unless explicitly requested.
+Do not rewrite full domains in one step.
+For large files, extract one business capability at a time.

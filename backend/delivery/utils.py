@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db import transaction
 from django.core.files.base import ContentFile
 
-from order.models import Order
+from order.models import Order, ProductStatus
 from warehouses.models import Warehouse
 from delivery.models import DeliveryParcel, DeliveryParcelItem
 from delivery.validators.validators import validate_phone_matches_country
@@ -153,7 +153,7 @@ def generate_parcels_for_order(order_id: int):
 
     raw_items = [
         {"sku": op.product.sku, "quantity": op.quantity}
-        for op in order.order_products.filter(status="awaiting_shipment")
+        for op in order.order_products.filter(status=ProductStatus.AWAITING_SHIPMENT)
         if hasattr(op, "product") and hasattr(op.product, "sku")
     ]
     logger.info(

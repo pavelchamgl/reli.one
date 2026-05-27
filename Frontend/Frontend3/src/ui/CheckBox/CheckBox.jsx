@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import checkBoxAccImg from "../../assets/checkbox/checkboxAcc.svg";
 import styles from "./checkBox.module.scss";
 
-const CheckBox = ({ check, onChange, style }) => {
-  const [isChecked, setIsChecked] = useState(false);
+const CheckBox = ({ check = false, onChange, style }) => {
+  const [isChecked, setIsChecked] = useState(Boolean(check));
 
   useEffect(() => {
-    setIsChecked(check);
+    setIsChecked(Boolean(check));
   }, [check]);
 
   // Обработчик изменения состояния чекбокса

@@ -13,7 +13,12 @@ import styles from "./ProductNameRate.module.scss";
 import { useEffect, useState } from "react";
 import ProdCharackButtons from "../ProdCharakButtons/ProdCharackButtons";
 import BasketModal from "../../Basket/BasketModal/BasketModal";
+import StockBadge from "../StockBadge/StockBadge";
 import { useMediaQuery } from "react-responsive";
+import {
+  getVariantStockStatus,
+  isItemAvailable,
+} from "../../../utils/stockAvailability";
 
 const ProductNameRate = () => {
   const [inBasket, setInBasket] = useState(false);
@@ -40,8 +45,12 @@ const ProductNameRate = () => {
 
   const basket = useSelector((state) => state.basket.basket);
 
+  const selectedVariant = product?.variants?.find((item) => item.sku === sku);
+  const selectedVariantAvailable = isItemAvailable(selectedVariant);
+  const selectedVariantStockStatus = getVariantStockStatus(selectedVariant);
+
   const handleAddBasket = () => {
-    if (!product || !sku || !endPrice) return;
+    if (!product || !sku || !endPrice || !selectedVariantAvailable) return;
     const firstVariant = product.variants[0];
 
 
@@ -107,31 +116,30 @@ const ProductNameRate = () => {
   // }, [product, basket]);
 
   useEffect(() => {
+    if (!product?.variants?.length) {
+      return;
+    }
 
-    const sku = new URLSearchParams(search).get("variant")
-    const firstVariant = product.variants?.[0];
+    const variantParam = new URLSearchParams(search).get("variant");
+    const firstVariant = product.variants[0];
 
-    if (sku) {
-      const searchVariant = product.variants?.find((item) => item.sku === sku)
+    if (variantParam) {
+      const searchVariant = product.variants.find((item) => item.sku === variantParam);
 
       if (searchVariant) {
-        setPrice(searchVariant?.price)
-        setEndPice(searchVariant?.price)
-        setPriceVat(searchVariant?.price_without_vat)
-        setSku(sku)
-      } else {
-        setPrice(firstVariant?.price)
-        setEndPice(firstVariant?.price)
-        setPriceVat(firstVariant?.price_without_vat)
-        setSku(firstVariant?.sku)
+        setPrice(searchVariant?.price);
+        setEndPice(searchVariant?.price);
+        setPriceVat(searchVariant?.price_without_vat);
+        setSku(variantParam);
+        return;
       }
-    } else {
-      setPrice(firstVariant?.price)
-      setEndPice(firstVariant?.price)
-      setPriceVat(firstVariant?.price_without_vat)
-      setSku(firstVariant?.sku)
     }
-  }, [])
+
+    setPrice(firstVariant?.price);
+    setEndPice(firstVariant?.price);
+    setPriceVat(firstVariant?.price_without_vat);
+    setSku(firstVariant?.sku);
+  }, [product?.id, search]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const setVariant = (newVariant) => {
@@ -178,9 +186,17 @@ const ProductNameRate = () => {
         variants={product?.variants}
         id={product?.id}
       />
-      <button className={styles.addBasketBtn} onClick={handleAddBasket}>
+      {selectedVariantStockStatus && (
+        <StockBadge stockStatus={selectedVariantStockStatus} />
+      )}
+      <button
+        className={styles.addBasketBtn}
+        onClick={handleAddBasket}
+        disabled={!selectedVariantAvailable}
+        aria-disabled={!selectedVariantAvailable}
+      >
         {inBasket && <img src={addBasketCheckIcon} alt="" />}
-        {t("add_basket")}
+        {selectedVariantAvailable ? t("add_basket") : t("out_of_stock")}
       </button>
       <button className={styles.deliveryBtn}>
         <img src={ProductDeliveryCar} alt="" />

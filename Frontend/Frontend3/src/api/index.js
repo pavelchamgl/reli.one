@@ -1,7 +1,9 @@
 import axios from "axios"
 import { ErrToast } from "../ui/Toastify";
+import { getInjectedStore } from "../redux/storeInjector";
+import { setToken, clearToken } from "../redux/authSlice";
 
-export const BaseURL = "" || "https://reli.one/api"
+export const BaseURL = import.meta.env.VITE_API_URL || "https://reli.one/api"
 
 
 // Создание axios экземпляра
@@ -15,6 +17,15 @@ export const mainInstance = axios.create({
 let isRefreshing = false;
 let failedQueue = [];
 let networkToastShown = false;
+
+/**
+ * Сбрасывает module-level флаг networkToastShown.
+ * Использовать только в тестах (beforeEach/afterEach).
+ * @see docs/frontend/frontend3-audit.md FE-P1-005
+ */
+export function resetNetworkToastShown() {
+  networkToastShown = false;
+}
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
@@ -129,12 +140,13 @@ const responseInterceptor = async (err) => {
       const parsedToken = JSON.parse(tokenData);
 
       const { data } = await axios.post(
-        "https://reli.one/api/accounts/token/refresh/",
+        `${BaseURL}/accounts/token/refresh/`,
         { refresh: parsedToken.refresh }
       );
 
       const newToken = { ...parsedToken, access: data.access };
       localStorage.setItem("token", JSON.stringify(newToken));
+      getInjectedStore()?.dispatch(setToken(newToken));
 
       processQueue(null, data.access);
 
@@ -148,6 +160,7 @@ const responseInterceptor = async (err) => {
       ErrToast("Сессия истекла. Пожалуйста, войдите заново");
 
       localStorage.removeItem("token");
+      getInjectedStore()?.dispatch(clearToken());
       // window.location.href = "/login";
 
       return Promise.reject(refreshError);

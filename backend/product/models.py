@@ -14,6 +14,8 @@ from django.core.files.base import ContentFile
 
 from sellers.models import SellerProfile
 
+from .constants import ACQUIRING_RATE
+
 
 class ProductStatus(models.TextChoices):
     PENDING = 'pending', 'Pending'
@@ -114,7 +116,7 @@ class BaseProduct(models.Model):
         if self.variants.exists():
             base_min = self.variants.aggregate(Min("price"))["price__min"]
             if base_min is not None:
-                return (base_min * Decimal("1.04")).quantize(Decimal("0.01"))
+                return (base_min * ACQUIRING_RATE).quantize(Decimal("0.01"))
         return None
 
 
@@ -234,12 +236,12 @@ class ProductVariant(models.Model):
         else:
             base_price_wo_vat = price
 
-        return (base_price_wo_vat * Decimal("1.04")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return (base_price_wo_vat * ACQUIRING_RATE).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     @property
     def price_with_acquiring(self):
         price = self.price or Decimal("0.00")
-        return (price * Decimal("1.04")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return (price * ACQUIRING_RATE).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def __str__(self):
         return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"

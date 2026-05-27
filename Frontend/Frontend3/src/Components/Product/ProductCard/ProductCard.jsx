@@ -20,6 +20,12 @@ import {
   minusCardCount,
   plusCardCount,
 } from "../../../redux/basketSlice";
+import StockBadge from "../StockBadge/StockBadge";
+import {
+  getListItemStockSource,
+  getProductStockStatus,
+  isItemAvailable,
+} from "../../../utils/stockAvailability";
 
 const ProductCard = ({ data = null, sellerProducts }) => {
   const [value, setValue] = useState(data ? data.rating : 0);
@@ -48,7 +54,15 @@ const ProductCard = ({ data = null, sellerProducts }) => {
   const statusFav = useSelector((state) => state.favorites.status);
   const basket = useSelector((state) => state.basket.basket);
 
+  const stockSource = getListItemStockSource(data, allData);
+  const productAvailable = isItemAvailable(stockSource);
+  const stockStatus = getProductStockStatus(stockSource);
+
   const handleBuy = () => {
+    if (!productAvailable) {
+      return;
+    }
+
     if (isMobile) {
       if (variants.length === 1) {
         const firstVariant = variants[0] || {};
@@ -227,6 +241,7 @@ const ProductCard = ({ data = null, sellerProducts }) => {
           />
           <p>{data.total_reviews}</p>
         </div>
+        {stockStatus && <StockBadge stockStatus={stockStatus} />}
         {countOpen ? (
           <div className={styles.mobCountDiv}>
             <button onClick={handleMinus}>-</button>
@@ -234,8 +249,13 @@ const ProductCard = ({ data = null, sellerProducts }) => {
             <button onClick={handlePlus}>+</button>
           </div>
         ) : (
-          <button onClick={handleBuy} className={styles.buyBtn}>
-            {t("buy")}
+          <button
+            onClick={handleBuy}
+            className={styles.buyBtn}
+            disabled={!productAvailable}
+            aria-disabled={!productAvailable}
+          >
+            {productAvailable ? t("buy") : t("out_of_stock")}
           </button>
         )}
       </div>

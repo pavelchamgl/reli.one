@@ -2,18 +2,14 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useActions } from "../../../hook/useAction";
 
-import prodTestImg from "../../../assets/Product/ProductTestImage.svg";
-
 import styles from "./ProdCharackButtons.module.scss";
 import { useTranslation } from "react-i18next";
+import { isItemAvailable } from "../../../utils/stockAvailability";
 
 const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPriceVat }) => {
   const { image, name, text, price } = variants[0] || {};
 
   const basket = useSelector((state) => state.basket.basket);
-
-  console.log(sku, variants);
-
 
   const [varPack, setVarPack] = useState(null);
   const [selected, setSelected] = useState(
@@ -29,8 +25,12 @@ const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPrice
       setVarPack("pack3");
     } else if (image && price) {
       setVarPack("pack2");
+    } else if (variants.length > 0 && price) {
+      setVarPack("generic");
+    } else {
+      setVarPack(null);
     }
-  }, [text, price, image]);
+  }, [text, price, image, variants.length]);
 
 
   useEffect(() => {
@@ -39,13 +39,42 @@ const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPrice
     }
   }, [sku])
 
-  // useEffect(() => {
-  //   const selectedProduct = basket.find((item) => item.id === id);
+  const renderVariantButton = (item, content, buttonClassName = "") => {
+    const available = isItemAvailable(item);
 
-  //   if (selectedProduct) {
-  //     setSelected(selectedProduct.sku);
-  //   }
-  // }, [basket, variants, setPrice, setSku]);
+    return (
+      <button
+        type="button"
+        className={`${buttonClassName} ${available ? "" : styles.unavailableVariant}`.trim()}
+        style={{
+          borderColor: selected === item.sku ? "black" : "#64748b",
+        }}
+        aria-disabled={!available}
+        onClick={() => {
+          if (!available) {
+            return;
+          }
+          setSelected(item.sku);
+          setPrice(item.price);
+          setSku(item.sku);
+          setPriceVat(item?.price_without_vat);
+        }}
+        key={item?.sku}
+      >
+        {content}
+        {!available && (
+          <span className={styles.unavailableLabel}>{t("out_of_stock")}</span>
+        )}
+      </button>
+    );
+  };
+
+  const renderGenericVariantContent = (item) => (
+    <>
+      <p>{item.name || item.sku}</p>
+      <span>{item.price}€</span>
+    </>
+  );
 
   if (varPack === "pack3") {
     return (
@@ -57,28 +86,15 @@ const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPrice
           </p>
           <div className={styles.stylePackVThreeButtons}>
             {variants && variants.length > 0
-              ? variants.map((item, index) => (
-                <button
-                  style={{
-                    borderColor: selected === item.sku ? "black" : "#64748b",
-                  }}
-                  onClick={() => {
-                    setSelected(item.sku);
-                    setPrice(item.price);
-                    setSku(item.sku);
-                    setPriceVat(item?.price_without_vat)
-                    // changeVariants({
-                    //   id: id,
-                    //   price: item.price,
-                    //   sku: item.sku,
-                    // });
-                  }}
-                  key={item?.sku}
-                >
-                  <p>{item.text}</p>
-                  <span>{item.price}€</span>
-                </button>
-              ))
+              ? variants.map((item) =>
+                  renderVariantButton(
+                    item,
+                    <>
+                      <p>{item.text}</p>
+                      <span>{item.price}€</span>
+                    </>
+                  )
+                )
               : null}
           </div>
         </div>
@@ -94,115 +110,39 @@ const ProdCharackButtons = ({ variants = [], setPrice, sku, setSku, id, setPrice
           </p>
           <div className={styles.stylePackVTwoButtons}>
             {variants && variants.length > 0
-              ? variants.map((item) => (
-                <button
-                  style={{
-                    borderColor: selected === item.sku ? "black" : "#64748b",
-                  }}
-                  onClick={() => {
-                    setSelected(item.sku);
-                    setPrice(item.price);
-                    setPriceVat(item?.price_without_vat)
-                    setSku(item.sku);
-                    // changeVariants({
-                    //   id: id,
-                    //   price: item.price,
-                    //   sku: item.sku,
-                    // });
-                  }}
-                  key={item?.sku}
-                >
-                  <img src={item?.image} alt="" />
-                  <p>{item?.price}€</p>
-                </button>
-              ))
+              ? variants.map((item) =>
+                  renderVariantButton(
+                    item,
+                    <>
+                      <img src={item?.image} alt="" />
+                      <p>{item?.price}€</p>
+                    </>
+                  )
+                )
               : null}
           </div>
         </div>
       </div>
     );
-  } else {
+  } else if (varPack === "generic") {
     return (
       <div className={styles.main}>
         <div>
           <p className={styles.styleText}>
             <span>{t("style")}: </span>
-          </p>
-          <div className={styles.buttonsDiv}>
-            {[...Array(8)].map((_, index) => (
-              <button key={index}>
-                <img src={prodTestImg} alt="" />
-              </button>
-            ))}
-          </div>
-        </div>
-        <div>
-          <p className={styles.styleText}>
-            <span>Size: </span>Big
-          </p>
-          <div className={styles.sizeButtonsDiv}>
-            <button>big</button>
-            <button>medium</button>
-            <button>large</button>
-            <button>medium</button>
-            <button>large</button>
-            <button>big</button>
-          </div>
-        </div>
-        <div>
-          <p className={styles.styleText}>
-            <span>Style: </span>3 Pack
-          </p>
-          <div className={styles.stylePackVOneButtons}>
-            <button>
-              <img src={prodTestImg} alt="" />
-              <div>
-                <p>$35.99</p>
-                <p>($0.15/Ounce)</p>
-              </div>
-            </button>
-            <button>
-              <img src={prodTestImg} alt="" />
-              <div>
-                <p>$35.99</p>
-                <p>($0.15/Ounce)</p>
-              </div>
-            </button>
-          </div>
-        </div>
-        <div>
-          <p className={styles.styleText}>
-            <span>Style: </span>3 Pack
-          </p>
-          <div className={styles.stylePackVTwoButtons}>
-            <button>
-              <img src={prodTestImg} alt="" />
-              <p>$35.99</p>
-            </button>
-            <button>
-              <img src={prodTestImg} alt="" />
-              <p>$35.99</p>
-            </button>
-          </div>
-        </div>
-        <div>
-          <p className={styles.styleText}>
-            <span>Style: </span>4 Pack
+            {name || variants[0]?.name || t("style")}
           </p>
           <div className={styles.stylePackVThreeButtons}>
-            <button>
-              <p>var1</p>
-              <span>$35.99</span>
-            </button>
-            <button>
-              <p>var2</p>
-              <span>$35.99</span>
-            </button>
+            {variants.map((item) =>
+              renderVariantButton(item, renderGenericVariantContent(item))
+            )}
           </div>
         </div>
       </div>
     );
   }
+
+  return null;
 };
 
 export default ProdCharackButtons;

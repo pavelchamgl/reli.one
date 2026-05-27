@@ -1,7 +1,7 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import F
 from django.utils import timezone
-import stripe
-from backend import settings
 
 
 
@@ -19,22 +19,22 @@ class PromoCode(models.Model):
         start_date = self.valid_from
         end_date = self.valid_until
         if end_date < start_date:
-            raise PromoCode.ValidationError("End date should be greater than start date.")
+            raise ValidationError("End date should be greater than start date.")
 
     def increment_used_count(self):
-        if self.used_count is not None:
+        if self.used_count is None:
+            return
+        if self.pk is None:
             self.used_count += 1
             self.save()
+            return
+        PromoCode.objects.filter(pk=self.pk).update(used_count=F("used_count") + 1)
+        self.refresh_from_db(fields=["used_count"])
 
     def stripePromoCode(self):
-        stripe.api_key = settings.STRIPE_SECRET_KEY_TEST
-        stripe.Coupon.create(
-            id=self.code,
-            percent_off=self.discount_percentage,
-            duration_in_months=3,
-            max_redemptions=self.max_usage,
-            redeem_by=self.valid_until,
-        )
+        # TODO (task-003): метод не используется, синхронизация перенесена в signal.py.
+        # Оставлен для совместимости.
+        pass
 
     def __str__(self):
         return self.code

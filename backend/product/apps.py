@@ -1,5 +1,4 @@
 from django.apps import AppConfig
-from django.core.signals import setting_changed
 
 
 class ProductConfig(AppConfig):
@@ -7,6 +6,4 @@ class ProductConfig(AppConfig):
     name = 'product'
 
     def ready(self):
-        from .signals import update_product_rating_and_reviews
-
-        setting_changed.connect(update_product_rating_and_reviews)
+        import product.signals  # noqa: F401 — registers @receiver decorators

@@ -6,11 +6,31 @@ Frontend/node_modules
 Frontend/Frontend1/node_modules
 Frontend/Frontend2/node_modules
 Frontend/Frontend3/node_modules
+
+# Playwright (Frontend3 e2e)
+Frontend/Frontend3/test-results/
+Frontend/Frontend3/playwright-report/
+
+# TLS / сертификаты и приватные ключи
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
 Frontend/nginx/reli.crt
 Frontend/nginx/reli.key
+
+# Env-файлы сервисов (реальные значения, не .example)
+envs/*
+!envs/*.example
+
+# Временные файлы редакторов
+*.swp
+*.swo
+*.orig
+*~
 Frontend/dist
 */__pycache__
-*/migrations
 */migrations/__pycache__
 *.DS_Store
 # Byte-compiled / optimized / DLL files
@@ -175,3 +195,20 @@ cython_debug/
 .idea/
 
 #test
+
+# User-generated media files
+backend/media/
+
+# Local E2E stack (docker-compose.e2e.yml)
+media_e2e/
+static_e2e/
+.reli_e2e_db/
+# Локальные дампы для pg_restore в e2e (см. docs/operations/database-backup-restore.md)
+backups/
+
+# PostgreSQL integration tests (docker-compose.test.yml)
+.reli_test_db/
+
+# Локальные дампы БД (не коммитить)
+*.pgdump
+*.dump

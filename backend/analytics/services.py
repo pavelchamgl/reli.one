@@ -5,6 +5,34 @@ from django.db.models import Sum
 from order.models import OrderProduct, ProductStatus
 from warehouses.models import Warehouse
 
+VENDOR_WAREHOUSE_NAME = "Vendor warehouse"
+RELI_WAREHOUSE_NAME = "Reli warehouse"
+
+
+def zero_warehouse_order_stats():
+    """
+    Тот же набор ключей, что возвращает get_warehouse_orders_stats, — нулевые агрегаты.
+    Используется при отсутствии/переименовании складов с каноническими именами (Task 009 Step 4).
+    """
+    return {
+        "awaiting_assembly": 0,
+        "awaiting_shipment": 0,
+        "controversial": 0,
+        "awaiting_assembly_and_shipment": 0,
+        "deliverable": 0,
+        "delivered": 0,
+        "canceled": 0,
+        "all": 0,
+    }
+
+
+def _warehouse_by_canonical_name(name):
+    """Возвращает Warehouse или None, без Warehouse.DoesNotExist."""
+    try:
+        return Warehouse.objects.get(name=name)
+    except Warehouse.DoesNotExist:
+        return None
+
 
 def get_warehouse_orders_stats(warehouse, seller_profile, days=15):
     """
@@ -80,13 +108,23 @@ def get_stats_for_two_warehouses(seller_profile, days=15):
       - Reli warehouse
     Но только для товаров, принадлежащих `seller_profile`.
 
-    1. Ищем объекты Warehouse с названиями "Vendor warehouse" и "Reli warehouse".
-    2. Для каждого из них вызываем get_warehouse_orders_stats(...).
+    Склады резолвятся по историческим именам. Если склад отсутствует или переименован —
+    возвращается нулевая статистика с тем же набором полей для соответствующей стороны.
+    Формат ответа и ключи статистики не меняются.
     """
-    vendor = Warehouse.objects.get(name="Vendor warehouse")
-    reli = Warehouse.objects.get(name="Reli warehouse")
+    vendor_wh = _warehouse_by_canonical_name(VENDOR_WAREHOUSE_NAME)
+    reli_wh = _warehouse_by_canonical_name(RELI_WAREHOUSE_NAME)
+    tmpl = zero_warehouse_order_stats()
 
     return {
-        "vendor_warehouse": get_warehouse_orders_stats(vendor, seller_profile, days=days),
-        "reli_warehouse": get_warehouse_orders_stats(reli, seller_profile, days=days),
+        "vendor_warehouse": (
+            get_warehouse_orders_stats(vendor_wh, seller_profile, days=days)
+            if vendor_wh is not None
+            else {**tmpl}
+        ),
+        "reli_warehouse": (
+            get_warehouse_orders_stats(reli_wh, seller_profile, days=days)
+            if reli_wh is not None
+            else {**tmpl}
+        ),
     }

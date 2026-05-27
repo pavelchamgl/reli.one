@@ -28,57 +28,57 @@ const ProductPage = () => {
 
   const { fetchGetProductById, fetchGetComments } = useActions();
   const { product, status } = useSelector((state) => state.products);
+  const isCurrentProduct = String(product?.id) === String(id);
 
   useEffect(() => {
     fetchGetProductById(id);
     fetchGetComments(id);
   }, [id]);
 
+  if (status === "error") {
+    return null;
+  }
 
-  
-
-
-
-  if (status !== "loading") {
-    return (
-      <Container>
-        <div className={styles.main}>
-          {isMobile ? (
-            <div>
-              <ProductImageAndName />
-              <ProdMobileSwitch />
-            </div>
-          ) : (
-            <>
-              <CustomBreadcrumbs />
-              <div className={styles.imageRateDiv}>
-                <ProductImages />
-                <div className={styles.detalPageWrap}>
-                  <ProductNameRate />
-                  <ProductTab setTab={setSection} />
-                  {
-                    section === "Charakteristika" ?
-                      <ProductCharak /> :
-                      <ProductComments />
-                  }
-                </div>
-              </div>
-            </>
-          )}
-          <>
-            {isMobile && section === "Charakteristika" && <ProductCharak />}
-            {isMobile && section === "Recenze" && <ProductComments />}
-          </>
-        </div>
-      </Container>
-    );
-  } else {
+  if (status === "loading" || !isCurrentProduct) {
     return (
       <div className={styles.loaderWrap}>
         <Loader />
       </div>
     );
   }
+
+  return (
+    <Container>
+      <div className={styles.main}>
+        {isMobile ? (
+          <div>
+            <ProductImageAndName />
+            <ProdMobileSwitch />
+          </div>
+        ) : (
+          <>
+            <CustomBreadcrumbs />
+            <div className={styles.imageRateDiv}>
+              <ProductImages />
+              <div className={styles.detalPageWrap}>
+                <ProductNameRate />
+                <ProductTab setTab={setSection} />
+                {
+                  section === "Charakteristika" ?
+                    <ProductCharak /> :
+                    <ProductComments />
+                }
+              </div>
+            </div>
+          </>
+        )}
+        <>
+          {isMobile && section === "Charakteristika" && <ProductCharak />}
+          {isMobile && section === "Recenze" && <ProductComments />}
+        </>
+      </div>
+    </Container>
+  );
 };
 
 export default ProductPage;

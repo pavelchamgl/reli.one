@@ -91,7 +91,7 @@ export const getInfoForG = async (token) => {
         })
         return data
     } catch (error) {
-        console.log(error);
+        // intentionally silent — caller handles undefined return
     }
 }
 
@@ -99,14 +99,10 @@ export const googleLogin = async (token) => {
     try {
         const data = await mainInstance.post("/accounts/auth/social/google/", {
             access_token: token
-        }
-        )
-        console.log(data);
-
+        })
         return data
     } catch (error) {
-        console.log(error);
-
+        throw error
     }
 }
 
@@ -114,13 +110,9 @@ export const facebookLogin = async (token) => {
     try {
         const data = await mainInstance.post("/accounts/auth/social/facebook/", {
             access_token: token
-        }
-        )
-        console.log(data);
-
+        })
         return data
     } catch (error) {
-        console.log(error);
-
+        throw error
     }
 }
