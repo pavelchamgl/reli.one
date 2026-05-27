@@ -131,6 +131,14 @@ graph TD
 | **019** | [**e2e-catalog-fixture**](./019-e2e-catalog-fixture/task.md) | P2 | Low–Med | 018, FS-002/003 | **DONE:** `e2e_categories.json` + `loaddata` в CI вместо runtime seed |
 | **020** | [**product-stock-availability-api**](./020-product-stock-availability-api/task.md) | P1 | Low–Med | 013 (repo), FE-014 | **DONE (repo-scope):** catalog API fields `total_available_quantity`, `stock_status`; см. `task.md` |
 
+## Отложенные задачи (Deferred / backlog)
+
+Не блокируют CI и merge; брать в «тихий» спринт или при наведении порядка в Annotations.
+
+| ID | Задача | Приоритет | Статус |
+|----|--------|-----------|--------|
+| **021** | [**ci-annotations-lint-warnings**](./021-ci-annotations-lint-warnings/task.md) | **P3** | **Deferred** — 25 warnings в GitHub Actions Annotations (ESLint warn + Node 20 actions deprecation); CI зелёный |
+
 ## Рекомендуемый порядок выполнения
 
 ```mermaid

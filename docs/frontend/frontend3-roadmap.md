@@ -111,6 +111,7 @@
 | 3.7 ✅ | FE-P3-003 | `src/pages/Test.jsx` удалён |
 
 **Отложено (следующие фазы):**
+- CI Annotations: 25 ESLint/Actions warnings — [**Task 021**](../../tasks/021-ci-annotations-lint-warnings/task.md) (P3, не блокирует CI)
 - FE-P2-003: `buildPaymentGroups` DRY в paymentSlice
 - FE-P2-004: `applyInterceptors` DRY
 - FE-P2-002: email-sync из basket reducers

@@ -68,6 +68,7 @@
 - **Task 013 ops rollout** — включение флага на staging/prod, cron, monitoring и production evidence **не** входит в repo-scope closure; см. **[`task.md`](tasks/013-stock-reservation/task.md)**. Имплементация в коде **уже есть**.
 - Массовый рефакторинг фронта — **вне** Phase 1/2; старт только после гейтов G1–G4 из [refactoring-readiness-plan.md](frontend/refactoring-readiness-plan.md).
 - Полный e2e чекаута, прод-изменения оплаты — Phase 4 после стабилизации; промокоды и конкурентный склад — по соответствующим задачам и **[`docs/tasks/README.md`](tasks/README.md)**.
+- **[Task 021](tasks/021-ci-annotations-lint-warnings/task.md)** — убрать **25** non-blocking warnings в CI Annotations (Frontend2/3 lint + GitHub Actions Node 20 deprecation); **P3 / Deferred**, не блокирует merge.
 
 ---
 
