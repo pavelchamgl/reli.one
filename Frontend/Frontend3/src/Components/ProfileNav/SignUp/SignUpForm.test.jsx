@@ -36,6 +36,8 @@ import SignUpForm from "./SignUpForm.jsx";
 import { register } from "../../../api/auth";
 
 const VALID_PASSWORD = "Test1234!";
+// SignUpForm Yup: 10–15 digits after stripping non-digits; input allows +digits only.
+const VALID_PHONE = "420123456789";
 
 const fillValidForm = async (user) => {
   await user.type(screen.getByRole("textbox", { name: /first_name/i }), "John");
@@ -44,7 +46,10 @@ const fillValidForm = async (user) => {
     screen.getByRole("textbox", { name: /sign_email/i }),
     "john@example.com"
   );
-  await user.type(screen.getByRole("textbox", { name: /telefon/i }), "123456789");
+  await user.type(
+    screen.getByRole("textbox", { name: /telefon/i }),
+    VALID_PHONE
+  );
   await user.type(
     document.querySelector('input[name="password"]'),
     VALID_PASSWORD
@@ -109,14 +114,17 @@ describe("SignUpForm", () => {
 
     renderWithProviders(<SignUpForm />);
     await fillValidForm(user);
-    await user.click(screen.getByRole("button", { name: "sign_up" }));
+
+    const submitBtn = screen.getByRole("button", { name: "sign_up" });
+    await waitFor(() => expect(submitBtn).not.toBeDisabled());
+    await user.click(submitBtn);
 
     await waitFor(() => {
       expect(register).toHaveBeenCalledWith({
         first_name: "John",
         last_name: "Doe",
         email: "john@example.com",
-        phone: "123456789",
+        phone_number: `+${VALID_PHONE}`,
         password: VALID_PASSWORD,
         confirm_password: VALID_PASSWORD,
       });
@@ -134,7 +142,10 @@ describe("SignUpForm", () => {
 
     renderWithProviders(<SignUpForm />);
     await fillValidForm(user);
-    await user.click(screen.getByRole("button", { name: "sign_up" }));
+
+    const submitBtn = screen.getByRole("button", { name: "sign_up" });
+    await waitFor(() => expect(submitBtn).not.toBeDisabled());
+    await user.click(submitBtn);
 
     await waitFor(() => {
       expect(
