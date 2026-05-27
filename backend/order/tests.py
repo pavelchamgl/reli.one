@@ -19,8 +19,9 @@ from __future__ import annotations
 import re
 from concurrent.futures import ThreadPoolExecutor
 from decimal import Decimal
+from unittest import skipIf
 
-from django.db import close_old_connections
+from django.db import close_old_connections, connection
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -291,6 +292,7 @@ class NextInvoiceIdentifiersTests(TestCase):
 class NextInvoiceIdentifiersConcurrencyTests(TransactionTestCase):
     """Параллельные вызовы — отдельные коммиты; обычный TestCase держит транзакцию и мешает потокам."""
 
+    @skipIf(connection.vendor == "sqlite", "SQLite locks table on concurrent invoice sequence writes")
     def test_concurrent_calls_produce_unique_identifiers(self):
         n = 25
 
