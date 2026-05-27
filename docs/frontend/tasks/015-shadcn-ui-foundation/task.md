@@ -1,0 +1,176 @@
+# FE-015 — Tailwind + shadcn/ui Foundation (Frontend3)
+
+**Status:** Planned  
+**Priority:** P0  
+**Phase:** 5 — UI migration  
+**Depends on:** FE-006 (refactoring foundation Done)  
+**Blocks:** FE-016 … FE-021
+
+## Цель
+
+Подключить **Tailwind CSS** и **shadcn/ui** в `Frontend/Frontend3` параллельно с существующими MUI + SCSS, не ломая текущие экраны и CI.
+
+## Контекст
+
+Пилот миграции UI начинается с seller onboarding. Без общего foundation (tokens, `components/ui`, alias `@/`) каждый PR будет дублировать конфиг и стили. `Frontend2` уже использует Tailwind 3, но **не является source of truth** для магазина — конфиг делаем в Frontend3 отдельно.
+
+## Scope
+
+- Tailwind + PostCSS в `Frontend/Frontend3`.
+- shadcn/ui init (`components.json`, path alias `@/` → `src/`).
+- **JS/JSX only:** `components.json` с `"tsx": false` (или эквивалент CLI `--no-typescript`); все shadcn-компоненты — `.jsx`, без новых `.tsx` в `Frontend/Frontend3`.
+- Базовые primitives: `Button`, `Input`, `Label`, `Textarea`, `Select`, `Checkbox`, `RadioGroup`, `Card`, `Dialog`, `Alert`, `Badge`, `Separator`, `Skeleton`, `Toast`/`Sonner` (один вариант — зафиксировать в PR).
+- Utility `src/lib/utils.js` с `cn()` (clsx + tailwind-merge).
+- CSS variables для light theme (dark — optional backlog).
+- Документировать coexistence: MUI остаётся до FE-021 в onboarding-зоне.
+
+## Не входит в задачу
+
+- Миграция любых production-экранов.
+- Удаление MUI из `package.json`.
+- Изменение `main.jsx`, роутов, Redux, API.
+- Frontend2.
+
+## Зависимости
+
+- Node 20 (как в CI).
+- Vite 5 + React 18 (текущие версии Frontend3).
+
+## Риски
+
+| Риск | Митигация |
+|------|-----------|
+| Конфликт глобальных стилей SCSS vs Tailwind preflight | **Стартовое решение: `corePlugins: { preflight: false }`** в `tailwind.config.js`. В `src/index.css` уже есть глобальные правила для `body`, `button`, `h1`, `a` — preflight on даёт высокий риск регресса. Включение preflight — отдельный follow-up PR после smoke всех ключевых экранов |
+| Рост bundle | tree-shaking shadcn; не импортировать всю библиотеку |
+| ESLint на новые alias | обновить eslint/import resolver при необходимости |
+
+## Definition of Done
+
+- [ ] `npm run dev` — приложение открывается, старые страницы без визуального регресса на smoke-проверке (home, seller login).
+- [ ] `npm run build` — успех.
+- [ ] `npm run test` — без регрессий.
+- [ ] **JSX mode:** в репозитории нет новых `.tsx` из FE-015; `components.json` зафиксирован как JS (`tsx: false`); shadcn components — `.jsx`.
+- [ ] **Tailwind preflight:** `tailwind.config.js` содержит `corePlugins: { preflight: false }`; в PR описано, почему (конфликт с `src/index.css`).
+- [ ] Demo-страница или Story-like компонент `_ShadcnPreview` (dev-only, не в routes) **или** минимальный unit-тест на `Button` render.
+- [ ] В PR описаны: версии tailwind, путь alias, список установленных shadcn components.
+- [ ] Ссылка на этот task и [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md) в PR.
+
+---
+
+# Iterations
+
+## Iteration 1 — Analysis
+
+### Цель
+
+Зафиксировать текущие глобальные стили и точки входа CSS.
+
+### Действия
+
+1. Прочитать `Frontend/Frontend3/vite.config.js`, entry CSS/SCSS (часто `main.jsx` import).
+2. Зафиксировать глобальные правила в `src/index.css` (`body`, `button`, `h1`, `a`) — конфликт с Tailwind preflight.
+3. Сверить с `Frontend/Frontend2/tailwind.config.js` — **не копировать слепо**, только идеи (content paths).
+
+### Output
+
+- Краткая заметка в PR: **`preflight: false` (решение зафиксировано)**, список глобальных CSS файлов.
+
+### Статус
+
+- [ ]
+
+---
+
+## Iteration 2 — Tooling setup
+
+### Цель
+
+Установить зависимости и конфиги без изменения UI.
+
+### Действия
+
+1. `npm install -D tailwindcss postcss autoprefixer` (версии совместимые с Vite 5).
+2. Создать `tailwind.config.js` с **`corePlugins: { preflight: false }`**, `postcss.config.js`.
+3. Добавить `@tailwind base/components/utilities` в entry CSS (новый `src/index.css` или существующий).
+4. Настроить alias `@` → `./src` в `vite.config.js`.
+5. `npx shadcn@latest init` — style: default/new-york, baseColor по бренду reli.one; **JS mode:** `tsx: false`, без TypeScript paths.
+
+### Output
+
+- Файлы конфигурации в `Frontend/Frontend3/`.
+
+### Статус
+
+- [ ]
+
+---
+
+## Iteration 3 — Base components
+
+### Цель
+
+Добавить минимальный набор shadcn primitives для onboarding.
+
+### Действия
+
+1. `npx shadcn@latest add button input label textarea select checkbox radio-group card dialog alert badge separator skeleton toast` — CLI должен создавать **`.jsx`** (при init уже `tsx: false`).
+2. Создать `src/lib/utils.js` с `cn()`.
+3. Проверить, что компоненты импортируются как `@/components/ui/button` и файлы имеют расширение `.jsx`, не `.tsx`.
+
+### Output
+
+- `src/components/ui/*`
+- `components.json`
+
+### Статус
+
+- [ ]
+
+---
+
+## Iteration 4 — Validation
+
+### Цель
+
+Убедиться, что foundation не ломает CI.
+
+### Действия
+
+```bash
+cd Frontend/Frontend3
+npm run lint
+npm run test
+npm run build
+```
+
+Ручной smoke: `/`, `/seller/login` — layout не «поехал».
+
+### Статус
+
+- [ ]
+
+---
+
+## Файлы (ожидаемые изменения)
+
+| Файл | Действие |
+|------|----------|
+| `Frontend/Frontend3/package.json` | devDeps + radix/shadcn deps |
+| `Frontend/Frontend3/tailwind.config.js` | create |
+| `Frontend/Frontend3/postcss.config.js` | create |
+| `Frontend/Frontend3/components.json` | create |
+| `Frontend/Frontend3/vite.config.js` | alias `@` |
+| `Frontend/Frontend3/src/index.css` или аналог | Tailwind directives |
+| `Frontend/Frontend3/src/lib/utils.js` | create |
+| `Frontend/Frontend3/src/components/ui/*` | create |
+
+## Agent prompt (для Cursor)
+
+```text
+Task FE-015: Add Tailwind + shadcn/ui foundation to Frontend/Frontend3 only.
+Do not migrate seller pages yet. Do not remove MUI.
+Use tailwind.config.js with corePlugins.preflight = false (conflict with src/index.css globals).
+shadcn: JS/JSX only — components.json tsx false, no new .tsx files.
+Follow docs/frontend/tasks/015-shadcn-ui-foundation/task.md iterations 1-4.
+After changes run lint, test, build.
+```

@@ -144,6 +144,30 @@
 
 ---
 
+## Phase 5 — UI Migration (Tailwind + shadcn/ui)
+
+**Цель:** пилот миграции UI на seller onboarding без изменения API/Redux/маршрутов.
+
+**Гейт входа:** Phase 3 (FE-006) Done; onboarding tests/e2e (FE-003, FE-010, FE-011) зелёные.
+
+**Master plan:** [shadcn-ui-migration-plan.md](./shadcn-ui-migration-plan.md)
+
+| PR / Task | Содержание | Статус |
+|-----------|------------|--------|
+| FE-015 | Tailwind + shadcn foundation | Planned |
+| FE-016 | Audit + inventory + test gates | Planned |
+| FE-017 | Layout shell + form primitives | Planned |
+| FE-018 | Auth & entry steps (9 routes) | Planned |
+| FE-019 | Data collection (seller-info, seller-company) | Planned |
+| FE-020 | Review, submit, status pages | Planned |
+| FE-021 | Validation + MUI cleanup in onboarding zone | Planned |
+
+**Критерий закрытия Phase 5:** FE-021 Done; gates G-UI-1…G-UI-7 в [test-matrix.md](./test-matrix.md) — Done или Partial с обоснованием.
+
+**Wave 2 (не в Phase 5):** catalog → basket → checkout → seller cabinet — см. FE-021 backlog.
+
+---
+
 ## Сводная диаграмма
 
 ```mermaid

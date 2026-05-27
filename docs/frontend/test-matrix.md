@@ -76,6 +76,24 @@
 
 **CI:** job **`frontend2`** — lint → test → build (ESLint 0 errors; warnings допустимы, см. [README ./README.md](./README.md)).
 
+---
+
+## UI migration gates — Seller onboarding (shadcn/ui)
+
+Связь с [shadcn-ui-migration-plan.md](./shadcn-ui-migration-plan.md) и [seller-onboarding-ui-inventory.md](./seller-onboarding-ui-inventory.md). Статусы обновляются по мере выполнения FE-015–FE-021.
+
+| Gate | Сценарий | Уровень | Статус | Задача |
+|------|----------|---------|--------|--------|
+| G-UI-1 | shadcn foundation: build + smoke routes не регрессят | build/manual | Backlog | FE-015 |
+| G-UI-2 | Inventory onboarding + test gap list | docs | Backlog | FE-016 |
+| G-UI-3 | Layout shell RTL smoke | RTL | Backlog | FE-017 |
+| G-UI-4 | Auth/entry: `seller-onboarding.spec.js` 4/4 | e2e | Partial — покрыто до UI migration | FE-018 |
+| G-UI-5 | Data steps: bank/personal RTL + FS-001 | RTL + e2e | Backlog | FE-019 |
+| G-UI-6 | Review submit error + status pages | RTL + e2e | Backlog | FE-020 |
+| G-UI-7 | No `@mui` in onboarding zone | grep audit | Backlog | FE-021 |
+
+**Правило:** перед merge PR миграции экрана — соответствующий gate минимум **Partial** (RTL/e2e зелёные); после FE-021 — **Done**.
+
 ## Связанные таски
 
 - [FE-T001–FE-T005](./tasks/README.md)
