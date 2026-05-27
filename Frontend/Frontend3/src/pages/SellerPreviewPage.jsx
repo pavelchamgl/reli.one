@@ -44,7 +44,7 @@ const SellerPreviewPage = () => {
   }, [product?.status]);
 
   useEffect(() => {
-    if (Boolean(id)) {
+    if (id) {
       getProductById(id).then((res) => {
         console.log(res);
 

@@ -37,7 +37,7 @@ const EditLicense = () => {
 
 
     useEffect(() => {
-        if (!!license_file) {
+        if (license_file) {
             setIsDisabled(true)
         } else {
             setIsDisabled(false)
