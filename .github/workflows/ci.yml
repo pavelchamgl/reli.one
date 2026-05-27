@@ -57,6 +57,9 @@ jobs:
           cache: npm
           cache-dependency-path: Frontend/Frontend2/package-lock.json
 
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
+
       - name: Install
         run: npm ci
 
@@ -82,6 +85,9 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: Frontend/Frontend3/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
 
       - name: Install
         run: npm ci
@@ -110,6 +116,9 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: Frontend/Frontend3/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
 
       - name: Install
         run: npm ci
@@ -164,6 +173,9 @@ jobs:
           node-version: "20"
           cache: npm
           cache-dependency-path: Frontend/Frontend3/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
 
       - name: Install frontend dependencies
         working-directory: Frontend/Frontend3
