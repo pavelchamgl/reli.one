@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 
-import formular from "../../public/Formulář pro uplatnění reklamace Reli.one (1).pdf"
+import formular from "../../public/claim-form-reli-one.pdf"
 
 import Container from "../ui/Container/Container"
 

@@ -16,8 +16,8 @@ import googlePay from "../../assets/Footer/googlePay.svg"
 import visa from "../../assets/Footer/visa.svg"
 import mastercard from "../../assets/Footer/mastercard.svg"
 import maestro from "../../assets/Footer/maestro.svg"
-import formular from "../../../public/Formulář pro uplatnění reklamace Reli.one (1).pdf"
-import file from "../../../public/Odstoupení od smlouvy a vrácení zboží reli.one (1).pdf"
+import formular from "../../../public/claim-form-reli-one.pdf"
+import file from "../../../public/withdrawal-form-reli-one.pdf"
 
 import LoginModal from "../LoginModal/LoginModal";
 

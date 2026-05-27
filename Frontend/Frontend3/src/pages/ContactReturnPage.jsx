@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next"
 import Container from "../ui/Container/Container"
 import emailIc from "../assets/claim/mail.svg"
 import phoneIc from "../assets/claim/phone.svg"
-import file from "../../public/Odstoupení od smlouvy a vrácení zboží reli.one (1).pdf"
-import formular from "../../public/Formulář pro uplatnění reklamace Reli.one (1).pdf"
+import file from "../../public/withdrawal-form-reli-one.pdf"
+import formular from "../../public/claim-form-reli-one.pdf"
 
 import styles from "../styles/ClaimsAndRightsPage.module.scss"
 
