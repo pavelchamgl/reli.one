@@ -34,8 +34,8 @@
 | `/seller/create-verify` | `sellerPages/CreateVerifyEmail/CreateVerifyEmail.jsx` | `auth/createAccount/verifyEmail/VerifyEmail` | `auth.emailConfirm`, `auth.sendOtp` | `authSlice` | Mixed | FE-018 | Gap P1 | — | — | Yes |
 | `/seller/seller-type` | `sellerPages/SellerTypePage/SellerType.jsx` | `auth/sellerTypeContent/SellerTypeContent` | `postSellerType`, `getOnboardingStatus` | — | Mixed | FE-018 | **FE-003 ✓** | FE-010 ✓ | — | Yes |
 | `/seller/application-sub` | `sellerPages/ApplicationSubmited/ApplicationSubmited.jsx` | `auth/applicationSubmited/ApplicationSubmited` | `getOnboardingStatus` | — | Mixed | FE-018 | Gap P1 | FE-010 ✓ | — | Yes |
-| `/seller/seller-info` | `sellerPages/SellerInformation/SellerInformation.jsx` | personal/tax/address/bank/warehouse/return blocks | `putPersonalData`, `putTax`, `putSelfAddress`, `putOnboardingBank`, `putWarehouse`, `putReturnAddress`, `uploadSingleDocument` | `selfEmploed.selfData` | Mixed | FE-019 | Gap P0 | — | ✓ | No |
-| `/seller/seller-company` | `sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx` | company/rep/address/bank/warehouse/return | `putCompanyInfo`, `putRepresentative`, `putCompanyAddress`, … | `selfEmploed.companyData` | Mixed | FE-019 | Gap P1 | — | ✓ | No |
+| `/seller/seller-info` | `sellerPages/SellerInformation/SellerInformation.jsx` | personal/tax/address/bank/warehouse/return blocks | `putPersonalData`, `putTax`, `putSelfAddress`, `putOnboardingBank`, `putWarehouse`, `putReturnAddress`, `uploadSingleDocument` | `selfEmploed.selfData` | **FE-019 ✓** | FE-019 | **FE-019 ✓** | — | ✓ | Yes |
+| `/seller/seller-company` | `sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx` | company/rep/address/bank/warehouse/return | `putCompanyInfo`, `putRepresentative`, `putCompanyAddress`, … | `selfEmploed.companyData` | **FE-019 ✓** | FE-019 | **FE-019 ✓** | — | ✓ | Yes |
 | `/seller/seller-review` | `sellerPages/ReviewInfoPage/ReviewInfoPage.jsx` | review/* + submit | `getReviewOnboarding`, `postSubmitOnboarding`, PUT blocks | `selfEmploed` | Mixed | FE-020 | partial API ✓ | — | ✓ | No |
 | `/seller/seller-review-company` | `sellerPages/SellerReviewCompany/SellerReviewCompany.jsx` | review/* + submit | same | `selfEmploed` | Mixed | FE-020 | Gap P0 | — | ✓ | No |
 | `/seller/finish-verification` | `sellerPages/FinishVerificationPage/FinishVerificationPage.jsx` | `sellerAnalytics/*` | — | — | View (page) | FE-020 | Gap P2 | — | — | No |
@@ -68,23 +68,23 @@
 | `createAccount/verifyEmail/VerifyEmail` | Mixed | emailConfirm, dispatch, navigate | Yes | — | `VerifyEmail` → `CreateVerifyEmailView` | FE-018 |
 | `sellerTypeContent/SellerTypeContent` | Mixed | postSellerType, getOnboardingStatus, navigate | Yes | — | `SellerTypeContent` → `SellerTypeContentView` | FE-018 |
 | `applicationSubmited/ApplicationSubmited` | Mixed | getOnboardingStatus, navigate, routing by status | Yes | — | `ApplicationSubmited` → `ApplicationSubmittedView` | FE-018 |
-| `sellerInfo/PersonalDetails` | Mixed | putPersonalData, upload, Formik | Yes | — | block view + container | FE-019 |
-| `sellerInfo/TaxInfo` | Mixed | putTax, putSelfAddress | Yes | — | block view | FE-019 |
-| `sellerInfo/address/AddressBlock` | Mixed | putSelfAddress, upload | Yes | — | `AddressFieldsView` shared | FE-019 |
-| `sellerInfo/BankAccount` | Mixed | putOnboardingBank | Yes | — | `BankAccountFieldsView` | FE-019 |
-| `sellerInfo/WareHouseAddress` | Mixed | putWarehouse, upload | Yes | — | block view | FE-019 |
-| `sellerInfo/ReturnAddress` | Mixed | putReturnAddress, upload | Yes | — | block view | FE-019 |
-| `sellerInfo/CompanyInfo` | Mixed | putCompanyInfo, upload | Yes | — | block view | FE-019 |
-| `sellerInfo/Representative` | Mixed | putRepresentative, upload | Yes | — | block view | FE-019 |
-| `sellerInfo/CompanyAddress` | Mixed | putCompanyAddress, upload | Yes | — | block view | FE-019 |
-| `sellerInfo/dateInp/DateInp` | Mixed | — | Yes | **@mui/x-date-pickers** | Keep MUI in container until FE-019 decision; view wrapper | FE-019 |
-| `sellerInfo/uploadInp/UploadInp` | Mixed | multipart | Yes | — | use `FileUploadZone` (FE-017) | FE-019 |
-| `identDocumInp/IdentDocumInp` | Mixed | uploadSingleDocument | Yes | — | `FileUploadZone` | FE-019 |
+| `sellerInfo/PersonalDetails` | Mixed | putPersonalData, upload, Formik | Yes | — | **FE-019 ✓** shadcn + `OnboardingDataSection` | FE-019 |
+| `sellerInfo/TaxInfo` | Mixed | putTax, putSelfAddress | Yes | — | **FE-019 ✓** | FE-019 |
+| `sellerInfo/address/AddressBlock` | Mixed | putSelfAddress, upload | Yes | — | **FE-019 ✓** `AddressFieldsView` | FE-019 |
+| `sellerInfo/BankAccount` | Mixed | putOnboardingBank | Yes | — | **FE-019 ✓** `BankAccountFieldsView` | FE-019 |
+| `sellerInfo/WareHouseAddress` | Mixed | putWarehouse, upload | Yes | — | **FE-019 ✓** | FE-019 |
+| `sellerInfo/ReturnAddress` | Mixed | putReturnAddress, upload | Yes | — | **FE-019 ✓** | FE-019 |
+| `sellerInfo/CompanyInfo` | Mixed | putCompanyInfo, upload | Yes | — | **FE-019 ✓** | FE-019 |
+| `sellerInfo/Representative` | Mixed | putRepresentative, upload | Yes | — | **FE-019 ✓** | FE-019 |
+| `sellerInfo/CompanyAddress` | Mixed | putCompanyAddress, upload | Yes | — | **FE-019 ✓** `AddressFieldsView` | FE-019 |
+| `sellerInfo/dateInp/DateInp` | Mixed | — | Yes | — | **FE-019 ✓** `DateOfBirthFieldView` (InputMask, no MUI) | FE-019 |
+| `sellerInfo/uploadInp/UploadInp` | Mixed | multipart | Yes | — | **FE-019 ✓** `FileUploadZone` | FE-019 |
+| `identDocumInp/IdentDocumInp` | Mixed | uploadSingleDocument | Yes | — | legacy UI (UploadInp внутри); FE-021 follow-up | FE-019 |
 | `review/*` (6 blocks) | View-heavy | read-only props from page | Yes | — | `ReviewSectionCard` | FE-020 |
 | `verifyPinInput/VerifyPinInput` | Mixed | — | No SCSS file | — | shadcn Input OTP or keep | FE-018 |
 | `sellerInfo/sellerinfoSellect/SellerInfoSellect` | View | — | Yes | — | shadcn Select | FE-019 |
 
-**MUI в onboarding-зоне:** только `sellerInfo/dateInp/DateInp.jsx` (`@mui/material` Popper/Paper + `@mui/x-date-pickers`). Удаление MUI из зоны — FE-021 после замены date picker.
+**MUI в onboarding-зоне:** удалён из `sellerInfo/dateInp/DateInp` (FE-019). Оставшийся `@mui` вне sellerInfo onboarding — FE-021 grep audit.
 
 ---
 
@@ -164,8 +164,8 @@ Frontend/Frontend3/src/
 | `CreateForm` | RTL: Yup errors, agree checkbox | **P0** | FE-018 PR 18.2 | validation keys, submit blocked |
 | `ApplicationSubmited` | RTL: status badges / title | P1 | FE-018 PR 18.1 | mocked `getOnboardingStatus` |
 | `ResetForm`, `VerifyForm` | RTL smoke | P1 | FE-018 PR 18.3 | OTP fields render |
-| `BankAccount` | RTL: API validation errors on screen | **P0** | FE-019 PR 19.3 | mock rejected putOnboardingBank |
-| `PersonalDetails` | RTL: required fields | P1 | FE-019 PR 19.1 | Formik errors |
+| `BankAccount` | RTL: API validation errors on screen | **P0** | **FE-019 ✓** | `BankAccount.test.jsx` |
+| `PersonalDetails` | RTL: required fields | P1 | **FE-019 ✓** | `PersonalDetails.test.jsx` |
 | `ReviewInfoPage` submit | RTL: failed submit shows completeness | **P0** | FE-020 PR 20.3 | mock 400 + completeness flags |
 | Status pages | e2e smoke (optional) | P2 | FE-020 | static text / layout mount |
 | `DateInp` | decision doc: MUI vs shadcn Calendar | P1 | FE-019 | — |

@@ -7,3 +7,4 @@ export { VerifyFormView } from './VerifyFormView';
 export { CreatePassFormView } from './CreatePassFormView';
 export { CreateVerifyEmailView } from './CreateVerifyEmailView';
 export { SellerSuccessfullyResetView } from './SellerSuccessfullyResetView';
+export * from './data';

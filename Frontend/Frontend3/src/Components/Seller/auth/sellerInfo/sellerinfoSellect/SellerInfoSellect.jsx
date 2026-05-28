@@ -1,99 +1,42 @@
-import { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { SellerCountrySelectView } from '@/components/seller/onboarding/views/data';
 
-import arrBottom from "../../../../../assets/Seller/register/arrowBottom.svg"
+const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, errText }) => {
+  const firstRender = useRef(true);
+  const { t } = useTranslation('onbording');
+  const [touched, setTouched] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
-import styles from "./SellerInfoSelect.module.scss"
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    setHasError(!value || value.length === 0);
+  }, [value]);
 
+  const options = arr?.map((item) => ({
+    value: item.value,
+    label: item.key ? t(item.key) : item.text,
+  }));
 
+  const showError = touched && hasError ? errText : undefined;
 
-const SellerInfoSellect = ({ arr, value, setValue, title, titleSellect, required, errText, style }) => {
+  return (
+    <div onBlur={() => setTouched(true)}>
+      <SellerCountrySelectView
+        id={`select-${title}`}
+        label={title}
+        placeholder={titleSellect}
+        value={value}
+        options={options}
+        onChange={setValue}
+        error={showError}
+        required
+      />
+    </div>
+  );
+};
 
-    const [open, setOpen] = useState(false)
-    const [error, setError] = useState(null)
-    const [touched, setTouched] = useState(false);
-
-    const firstRender = useRef(true);
-
-    const blockRef = useRef(null)
-
-    const { t } = useTranslation('onbording')
-
-    const selectText = arr?.find((item) => item?.value === value)
-
-    useEffect(() => {
-        if (firstRender.current) {
-            firstRender.current = false; // пропускаем первый рендер
-            return;
-        }
-
-        if (!value || value.length === 0) {
-            setError(true);
-        } else {
-            setError(false);
-        }
-    }, [value]);
-
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (blockRef.current && !blockRef.current.contains(event.target)) {
-                setOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
-
-    const showErr = touched && error
-
-
-    return (
-        <div className={styles.wrap} ref={blockRef}>
-
-            <p className={styles.title}>{title}</p>
-
-            <div className={`${styles.main} ${showErr ? styles.error : null}`}>
-                <button type="button" onClick={() => {
-                    setTouched(true)
-                    setOpen(!open)
-                }}
-                    className={`${styles.selectBtn} ${showErr ? styles.error : null}`}
-                    style={{
-                        borderRadius: open ? "16px 16px 0 0" : "16px"
-                    }}
-                >
-                    <p>{value ?
-                        selectText?.key ?
-                            t(selectText?.key) :
-                            selectText?.text : titleSellect}</p>
-                    <img className={!open ? styles.activeArrow : ""} src={arrBottom} alt="" />
-                </button>
-
-                {open &&
-                    <div
-                        style={style}
-                        className={`${styles.btnsWrap} ${showErr ? styles.errorNew : null}`}>
-                        {arr.map((item) => (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setValue(item?.value)
-                                    setOpen(false)
-                                    setTouched(false)
-                                }} className={styles.selectItem}>{item?.key ? t(item.key) : item?.text}</button>
-                        ))}
-                    </div>
-                }
-            </div>
-            {showErr && <p className={styles.errorText}>{errText}</p>}
-        </div>
-    )
-}
-
-export default SellerInfoSellect
+export default SellerInfoSellect;

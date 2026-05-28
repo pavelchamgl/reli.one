@@ -56,7 +56,7 @@
 | **FE-016** | [Onboarding audit & test gates](./016-seller-onboarding-migration-audit/task.md) | P0 | FE-015 | **Done** |
 | **FE-017** | [Layout shell & form primitives](./017-seller-onboarding-layout-shell/task.md) | P1 | FE-016 | **Done** |
 | **FE-018** | [Auth & entry steps UI](./018-seller-onboarding-auth-entry-ui/task.md) | P1 | FE-017 | **Done** |
-| **FE-019** | [Data collection steps UI](./019-seller-onboarding-data-steps-ui/task.md) | P0 | FE-018 | **Planned** |
+| **FE-019** | [Data collection steps UI](./019-seller-onboarding-data-steps-ui/task.md) | P0 | FE-018 | **Done** |
 | **FE-020** | [Review, submit & status UI](./020-seller-onboarding-review-status-ui/task.md) | P0 | FE-019 | **Planned** |
 | **FE-021** | [Validation & MUI cleanup (onboarding zone)](./021-seller-onboarding-migration-validation/task.md) | P1 | FE-020 | **Planned** |
 

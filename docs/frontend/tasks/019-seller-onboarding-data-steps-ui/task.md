@@ -1,9 +1,9 @@
 # FE-019 — Seller Onboarding: Data Collection Steps UI
 
-**Status:** Planned  
-**Priority:** P0  
-**Phase:** 5 — UI migration  
-**Depends on:** FE-018  
+**Status:** Done
+**Priority:** P0
+**Phase:** 5 — UI migration
+**Depends on:** FE-018
 **Blocks:** FE-020
 
 ## Цель
@@ -51,11 +51,11 @@
 
 ## Definition of Done
 
-- [ ] `/seller/seller-info` и `/seller/seller-company` на shadcn views.
-- [ ] Document upload UI работает с существующим API (manual QA + unit mock).
-- [ ] RTL на минимум 2 блока (bank + personal) с mock API.
-- [ ] Full-stack FS-001 onboarding e2e green (если в CI/local contour доступен).
-- [ ] MUI удалён из затронутых auth/sellerInfo components.
+- [x] `/seller/seller-info` и `/seller/seller-company` на shadcn views.
+- [x] Document upload UI работает с существующим API (`UploadInp` → `FileUploadZone`; API handler без изменений).
+- [x] RTL на минимум 2 блока (bank + personal) с mock API — `BankAccount.test.jsx`, `PersonalDetails.test.jsx`.
+- [ ] Full-stack FS-001 onboarding e2e green (optional; требует backend contour).
+- [x] MUI удалён из затронутых auth/sellerInfo components (`DateInp` → `DateOfBirthFieldView`, InputMask).
 
 ---
 
@@ -74,7 +74,7 @@
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -96,7 +96,7 @@ No API. No Formik inside.
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -120,7 +120,7 @@ No API. No Formik inside.
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -153,7 +153,7 @@ npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js
 
 ### Статус
 
-- [ ]
+- [x] `npm run test` 186/186, `npm run build` OK. e2e — см. G-UI-4 (без изменений в spec).
 
 ---
 

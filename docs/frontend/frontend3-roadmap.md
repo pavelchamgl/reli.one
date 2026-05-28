@@ -158,7 +158,7 @@
 | FE-016 | Audit + inventory + test gates | Planned |
 | FE-017 | Layout shell + form primitives | Done |
 | FE-018 | Auth & entry steps (9 routes) | Done |
-| FE-019 | Data collection (seller-info, seller-company) | Planned |
+| FE-019 | Data collection (seller-info, seller-company) | Done |
 | FE-020 | Review, submit, status pages | Planned |
 | FE-021 | Validation + MUI cleanup in onboarding zone | Planned |
 
