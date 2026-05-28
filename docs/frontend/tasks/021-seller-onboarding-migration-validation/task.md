@@ -140,7 +140,7 @@ rg "\.module\.scss" src/Components/Seller/auth \
 
 - [x] `@mui` в `Components/Seller/auth` — **0**
 - [x] `@mui` в 17 onboarding page dirs — **0**
-- [ ] SCSS audit — review subcomponents + data steps (Iteration 2)
+- [x] SCSS audit — orphan modules removed; `IdentDocumInp` migrated to Tailwind (Iteration 2)
 
 ---
 
@@ -154,7 +154,13 @@ rg "\.module\.scss" src/Components/Seller/auth \
 
 ### Статус
 
-- [ ]
+- [x] Удалён мёртвый `auth/review/` (legacy read-only components, 12 файлов)
+- [x] Удалены orphan `*.module.scss` в `Components/Seller/auth` (28 файлов)
+- [x] `IdentDocumInp.jsx` — последний SCSS-import заменён на Tailwind
+- [x] Удалены orphan SCSS в onboarding `sellerPages` (ReviewInfo, SellerReviewCompany, SellerInformation, SellerCompanyInfo)
+- [x] **Не тронуто:** `NewSellerOrder*`, catalog/dashboard/order pages
+- [x] Verification: `npm run test` 197/197, `build` OK, e2e 9/9
+- [x] `rg .module.scss` в onboarding zone: **0 в auth**, только `NewSellerOrder*` в sellerPages
 
 ---
 
