@@ -21,7 +21,7 @@ const MainPage = () => {
   );
 
 const mainCategoriesIdArr = [68,67,69,146,150,149,151,148,160,147,70,71,85,84,87]
-const visibleIds = [145, 44];
+const visibleIds = [145, 44, 181, 182, 183];
 
   const isMobile = useMediaQuery({ maxWidth: 500 })
 
@@ -37,9 +37,9 @@ const visibleIds = [145, 44];
   }, [i18n.language]);
 
   useEffect(() => {
-    const filtered = mainCategories?.filter(
-    (item) => visibleIds.includes(item.id)
-  );
+    const filtered = mainCategories
+      ?.filter((item) => visibleIds.includes(item.id))
+      ?.sort((a, b) => visibleIds.indexOf(a.id) - visibleIds.indexOf(b.id));
     if (isMobile) {
       setCategories(filtered?.slice(0, 18))
     } else {

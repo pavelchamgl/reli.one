@@ -42,6 +42,7 @@
 | **FE-012** | [Full-Stack Checkout Until Payment Session E2E (FS-002)](./012-full-stack-checkout-payment-session-e2e/task.md) | 5 | P2 | **Done** — `e2e/fullstack-checkout-payment-session.spec.js`; PSP mocked; авто-skip без бэкенда |
 | **FE-013** | [Full-Stack Payment Confirmation E2E (FS-003)](./013-full-stack-payment-confirmation-e2e/task.md) | 5 | P2 | **Done** — `e2e/fullstack-payment-confirmation.spec.js`; webhook lifecycle + UI /my_orders; авто-skip без бэкенда |
 | **FE-014** | [Stock Availability Display](./014-stock-availability-display/task.md) | 6 | P1 | **Done** — Task 020 fields on cards/detail; checkout 409 message |
+| **FE-022** | [Doors Category Display](./022-doors-category-display/task.md) | 6 | P1 | **Done** — Door (180), подкатегории на главной, i18n, фикс. порядок плиток |
 
 ---
 

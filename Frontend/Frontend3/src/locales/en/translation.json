@@ -764,7 +764,11 @@
         "giftSets": "Gift sets",
         "automotiveParts": "Automotive parts",
         "carAccessories": "Car accessories",
-        "carCare": "Car care"
+        "carCare": "Car care",
+        "180": "Doors",
+        "181": "Entrance doors",
+        "182": "Interior doors",
+        "183": "Glass doors"
     },
     "style": "Style",
     "iAgreeToTerms": {
