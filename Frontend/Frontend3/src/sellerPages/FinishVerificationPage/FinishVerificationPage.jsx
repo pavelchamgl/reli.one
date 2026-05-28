@@ -13,9 +13,12 @@ import {
 const FinishVerificationPage = () => {
   const navigate = useNavigate();
   const [onboardingStatus, setOnboardingStatus] = useState(null);
+  const [statusLoaded, setStatusLoaded] = useState(false);
 
   useEffect(() => {
-    getOnboardingStatus().then(setOnboardingStatus);
+    getOnboardingStatus()
+      .then((res) => setOnboardingStatus(res ?? null))
+      .finally(() => setStatusLoaded(true));
   }, []);
 
   const continuePath = useMemo(
@@ -62,7 +65,7 @@ const FinishVerificationPage = () => {
         steps={steps}
         documents={documents}
         onPrimaryAction={handleContinue}
-        isPrimaryActionDisabled={!continuePath}
+        isPrimaryActionDisabled={statusLoaded && !continuePath}
       />
     </SellerOnboardingLayout>
   );

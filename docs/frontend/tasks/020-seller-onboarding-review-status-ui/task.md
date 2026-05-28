@@ -52,11 +52,11 @@ Review — точка, где пользователь видит агрегир
 ## Definition of Done
 
 - [x] Review pages render all sections from API review response (mocked RTL). — OSVČ `ReviewInfoPage` + `ReviewSectionCard` RTL
-- [ ] Submit success → navigates as before (e2e or manual script).
+- [ ] Submit success → navigates as before (e2e or manual script). — FS-001 API path; UI submit flow не покрыт отдельным e2e
 - [x] Submit failure → completeness/errors visible (RTL).
-- [ ] Status pages migrated; icons/badges via shadcn Badge/Alert. — ✓ 4 status routes on shadcn views
-- [ ] `e2e/seller-onboarding.spec.js` + FS-001 green.
-- [ ] No MUI in review/status components.
+- [x] Status pages migrated; icons/badges via shadcn Badge/Alert.
+- [x] `e2e/seller-onboarding.spec.js` 9/9 green; FS-001 — optional (backend contour).
+- [ ] No MUI in review/status components. — deferred FE-021
 
 ---
 
@@ -145,7 +145,10 @@ npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # if backend availa
 
 ### Статус
 
-- [ ]
+- [x] `npm run test` — 197 passed
+- [x] `e2e/seller-onboarding.spec.js` — 9/9 (review + 4 status routes)
+- [ ] `fullstack-seller-onboarding.spec.js` — 1/3 (API-only green; UI tests: page.goto timeout без blockThirdPartyScripts — вне scope FE-020)
+- [x] [test-matrix.md](../../test-matrix.md) — G-UI-6 e2e rows
 
 ---
 

@@ -1,54 +1,94 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * FE-010 — Seller Onboarding E2E Smoke
+ * FE-010 / FE-020 — Seller Onboarding E2E Smoke
  *
  * Покрывает frontend-only сценарий: точки входа seller onboarding flow.
- * Backend не поднимается. Вызовы к reli.one/api/sellers/onboarding/state/
+ * Backend не поднимается. Вызовы к reli.one/api/sellers/onboarding/*
  * замоканы через Playwright route.fulfill().
- * Реальные KYC/документы не отправляются — тест не доходит до submit.
  *
  * Маршруты (из main.jsx — без ProtectedRoute):
- *   /seller/login         — публичный, API не вызывается на монтировании
- *   /seller/create-account — публичный, API не вызывается на монтировании
- *   /seller/seller-type    — вызывает GET /sellers/onboarding/state/ на монтировании
- *   /seller/application-sub — вызывает GET /sellers/onboarding/state/ на монтировании
+ *   /seller/login              — публичный
+ *   /seller/create-account      — публичный
+ *   /seller/seller-type         — GET onboarding/state/
+ *   /seller/application-sub     — GET onboarding/state/
+ *   /seller/seller-review       — review + submit UI (FE-020)
+ *   /seller/under-review        — status UI (FE-020)
+ *   /seller/action-required     — status UI + GET onboarding/state/
+ *   /seller/finish-verification — status UI + GET onboarding/state/
+ *   /seller/verified-analyt     — approved status UI (FE-020)
  */
 
 // ── Вспомогательные функции ──────────────────────────────────────────────────
 
 /**
- * Мокирует GET /sellers/onboarding/state/ через Playwright route.fulfill().
- * Вызывать до page.goto().
+ * Единый handler для backend API: fulfill для переданных onboarding endpoints, abort для остального.
+ * Покрывает и https://reli.one/api (CI/preview) и http://localhost:8000/api (.env.local).
  */
-async function mockOnboardingState(page, state) {
-  await page.route(/reli\.one\/api\/sellers\/onboarding\/state\//, (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(state),
-    }),
+async function setupSellerOnboardingApi(page, { state, review } = {}) {
+  await page.route(/\/api\//, (route) => {
+    const url = route.request().url();
+
+    if (state && /\/sellers\/onboarding\/state\//.test(url)) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(state),
+      });
+    }
+
+    if (review && /\/sellers\/onboarding\/review\//.test(url)) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(review),
+      });
+    }
+
+    return route.abort();
+  });
+}
+
+/** Прерывает все вызовы к backend API без onboarding mocks. */
+async function blockBackendApi(page) {
+  await setupSellerOnboardingApi(page);
+}
+
+/** Блокирует внешние скрипты (GTM, Packeta, FB), которые тормозят navigation в e2e. */
+async function blockThirdPartyScripts(page) {
+  await page.route(
+    /googletagmanager|googlesyndication|google-analytics|connect\.facebook|widget\.packeta/,
+    (route) => route.abort(),
   );
 }
 
-/**
- * Прерывает все вызовы к backend API (reli.one/api).
- * Используется как страховка там, где конкретный endpoint не нужен.
- */
-async function blockBackendApi(page) {
-  await page.route(/reli\.one\/api\//, (route) => route.abort());
+
+async function seedReviewLocalStorage(page) {
+  await page.addInitScript(() => {
+    localStorage.setItem('first_name', JSON.stringify('Jan'));
+    localStorage.setItem('last_name', JSON.stringify('Novak'));
+    localStorage.setItem('phone', JSON.stringify('+420123456789'));
+    localStorage.setItem('email', JSON.stringify('jan@example.com'));
+  });
 }
 
 // ── Тесты ────────────────────────────────────────────────────────────────────
 
+async function gotoSellerPage(page, path) {
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+}
+
 test.describe('FE-010 — Seller Onboarding smoke', () => {
+  test.beforeEach(async ({ page }) => {
+    await blockThirdPartyScripts(page);
+  });
 
   // ── Публичные страницы (без API на mount) ────────────────────────────────────
 
   test('seller login page: loads with login form', async ({ page }) => {
     page.on('requestfailed', () => { /* no backend — expected */ });
 
-    await page.goto('/seller/login');
+    await gotoSellerPage(page, '/seller/login');
 
     await expect(page.locator('#root')).toBeAttached();
     await expect(page).toHaveURL(/\/seller\/login/);
@@ -64,7 +104,7 @@ test.describe('FE-010 — Seller Onboarding smoke', () => {
   test('seller create-account page: loads with registration form', async ({ page }) => {
     page.on('requestfailed', () => {});
 
-    await page.goto('/seller/create-account');
+    await gotoSellerPage(page, '/seller/create-account');
 
     await expect(page.locator('#root')).toBeAttached();
     await expect(page).toHaveURL(/\/seller\/create-account/);
@@ -76,18 +116,17 @@ test.describe('FE-010 — Seller Onboarding smoke', () => {
   // ── Страница выбора типа продавца (с мок API) ────────────────────────────────
 
   test('seller-type page: shows type selection from mocked onboarding state', async ({ page }) => {
-    // Мокируем GET /sellers/onboarding/state/ — возвращаем состояние "нужен выбор типа"
-    await mockOnboardingState(page, {
-      requires_onboarding: true,
-      is_editable: true,
-      next_step: 'seller_type',
-      status: 'new',
-      seller_type: null,
+    await setupSellerOnboardingApi(page, {
+      state: {
+        requires_onboarding: true,
+        is_editable: true,
+        next_step: 'seller_type',
+        status: 'new',
+        seller_type: null,
+      },
     });
-    // Всё остальное API — блокируем
-    await blockBackendApi(page);
 
-    await page.goto('/seller/seller-type');
+    await gotoSellerPage(page, '/seller/seller-type');
 
     await expect(page.locator('#root')).toBeAttached();
     await expect(page).toHaveURL(/\/seller\/seller-type/);
@@ -105,19 +144,17 @@ test.describe('FE-010 — Seller Onboarding smoke', () => {
   // ── Страница "заявка подана" (с мок API — pending_verification) ──────────────
 
   test('application-sub page: shows submitted confirmation from mocked state', async ({ page }) => {
-    // Мокируем GET /sellers/onboarding/state/ — статус pending_verification (заявка на ревью)
-    // При requires_onboarding:true + is_editable:false → navigate("/seller/application-sub")
-    // Мы уже на /seller/application-sub, поэтому re-navigate безвреден
-    await mockOnboardingState(page, {
-      requires_onboarding: true,
-      is_editable: false,
-      next_step: null,
-      status: 'pending_verification',
-      seller_type: 'self_employed',
+    await setupSellerOnboardingApi(page, {
+      state: {
+        requires_onboarding: true,
+        is_editable: false,
+        next_step: null,
+        status: 'pending_verification',
+        seller_type: 'self_employed',
+      },
     });
-    await blockBackendApi(page);
 
-    await page.goto('/seller/application-sub');
+    await gotoSellerPage(page, '/seller/application-sub');
 
     await expect(page.locator('#root')).toBeAttached();
     await expect(page).toHaveURL(/\/seller\/application-sub/);
@@ -130,5 +167,121 @@ test.describe('FE-010 — Seller Onboarding smoke', () => {
 
     // t('onboard.status.pending_status') → "Pending Verification"
     await expect(page.getByText('Pending Verification')).toBeVisible({ timeout: 10_000 });
+  });
+
+  // ── FE-020: review page (mock review API) ───────────────────────────────────
+
+  test('seller-review page: shows review sections and submit CTA from mocked review API', async ({
+    page,
+  }) => {
+    await seedReviewLocalStorage(page);
+    await setupSellerOnboardingApi(page, {
+      review: {
+        personal_complete: 'true',
+        tax_complete: 'true',
+        address_complete: 'true',
+        bank_complete: 'true',
+      },
+    });
+
+    await gotoSellerPage(page, '/seller/seller-review');
+
+    await expect(page.locator('#root')).toBeAttached();
+    await expect(page).toHaveURL(/\/seller\/seller-review/);
+    await expect(page.getByText('Review your information')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: 'Submit for Verification' })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByText('Account information')).toBeVisible({ timeout: 10_000 });
+  });
+
+  // ── FE-020: post-submit status pages ────────────────────────────────────────
+
+  test('under-review page: shows pending verification status UI', async ({ page }) => {
+    await blockBackendApi(page);
+
+    await gotoSellerPage(page, '/seller/under-review');
+
+    await expect(page.locator('#root')).toBeAttached();
+    await expect(page).toHaveURL(/\/seller\/under-review/);
+    await expect(page.getByRole('heading', { name: 'Under review' })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByText('Pending verification')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('action-required page: shows rejected state CTA from mocked onboarding state', async ({
+    page,
+  }) => {
+    await setupSellerOnboardingApi(page, {
+      state: {
+        requires_onboarding: true,
+        is_editable: true,
+        next_step: 'personal',
+        status: 'rejected',
+        seller_type: 'self_employed',
+      },
+    });
+
+    await gotoSellerPage(page, '/seller/action-required');
+
+    await expect(page.locator('#root')).toBeAttached();
+    await expect(page).toHaveURL(/\/seller\/action-required/);
+    await expect(page.getByRole('heading', { name: 'Action required' })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByRole('button', { name: 'Fix and resubmit' })).toBeVisible({
+      timeout: 10_000,
+    });
+  });
+
+  test('finish-verification page: shows progress and continue CTA from mocked state', async ({
+    page,
+  }) => {
+    await setupSellerOnboardingApi(page, {
+      state: {
+        requires_onboarding: true,
+        is_editable: true,
+        next_step: 'bank',
+        status: 'draft',
+        seller_type: 'self_employed',
+        completeness: {
+          personal_complete: 'true',
+          tax_complete: 'true',
+          address_complete: 'false',
+          bank_complete: 'false',
+        },
+      },
+    });
+
+    await gotoSellerPage(page, '/seller/finish-verification');
+
+    await expect(page.locator('#root')).toBeAttached();
+    await expect(page).toHaveURL(/\/seller\/finish-verification/);
+    await expect(page.getByRole('heading', { name: 'Finish your verification' })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByRole('button', { name: 'Continue onboarding' })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByRole('button', { name: 'Continue onboarding' })).toBeEnabled({
+      timeout: 15_000,
+    });
+  });
+
+  test('verified-analyt page: shows approved seller status UI', async ({ page }) => {
+    await blockBackendApi(page);
+
+    await gotoSellerPage(page, '/seller/verified-analyt');
+
+    await expect(page.locator('#root')).toBeAttached();
+    await expect(page).toHaveURL(/\/seller\/verified-analyt/);
+    await expect(page.getByRole('heading', { name: "You're verified!" })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(page.getByText('Verified Seller', { exact: true })).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: 'Go to dashboard' })).toBeVisible({
+      timeout: 10_000,
+    });
   });
 });
