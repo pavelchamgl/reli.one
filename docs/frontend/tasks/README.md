@@ -57,10 +57,10 @@
 | **FE-017** | [Layout shell & form primitives](./017-seller-onboarding-layout-shell/task.md) | P1 | FE-016 | **Done** |
 | **FE-018** | [Auth & entry steps UI](./018-seller-onboarding-auth-entry-ui/task.md) | P1 | FE-017 | **Done** |
 | **FE-019** | [Data collection steps UI](./019-seller-onboarding-data-steps-ui/task.md) | P0 | FE-018 | **Done** |
-| **FE-020** | [Review, submit & status UI](./020-seller-onboarding-review-status-ui/task.md) | P0 | FE-019 | **Planned** |
-| **FE-021** | [Validation & MUI cleanup (onboarding zone)](./021-seller-onboarding-migration-validation/task.md) | P1 | FE-020 | **Planned** |
+| **FE-020** | [Review, submit & status UI](./020-seller-onboarding-review-status-ui/task.md) | P0 | FE-019 | **Done** |
+| **FE-021** | [Validation & MUI cleanup (onboarding zone)](./021-seller-onboarding-migration-validation/task.md) | P1 | FE-020 | **Done** |
 
-**Порядок:** FE-015 → FE-016 → FE-017 → FE-018 → FE-019 → FE-020 → FE-021. Внутри FE-018–FE-020 — малые PR по таблицам в task.md.
+**Порядок:** FE-015 → FE-016 → FE-017 → FE-018 → FE-019 → FE-020 → FE-021 — **пилот завершён (2026-05-28)**. Wave 2: [shadcn-ui-migration-plan.md](../shadcn-ui-migration-plan.md#wave-2--следующая-волна-не-в-пилоте).
 
 ---
 

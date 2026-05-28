@@ -2,7 +2,7 @@
 
 Документ фиксирует **стратегию и порядок работ** по переходу UI-слоя `Frontend/Frontend3` с MUI + SCSS на **React + Tailwind + shadcn/ui**, с использованием **v0** и Cursor-агентов как ускорителей генерации presentational-компонентов.
 
-**Пилотная зона:** seller onboarding (`/seller/login` … `/seller/verified-analyt`).
+**Пилотная зона:** seller onboarding (`/seller/login` … `/seller/verified-analyt`) — **миграция завершена (FE-021, 2026-05-28)**.
 
 **Почему onboarding первым (осознанное отклонение от «статичных страниц сначала»):**
 
@@ -185,10 +185,28 @@ Reference behavior: [link to old component path]
 - [Seller onboarding flow](../seller-onboarding-flow.md)
 - [refactoring-readiness-plan.md](./refactoring-readiness-plan.md)
 - [test-matrix.md](./test-matrix.md)
+- [seller-onboarding-ui-inventory.md](./seller-onboarding-ui-inventory.md)
 - [tasks/README.md](./tasks/README.md) — реестр FE-015–FE-021
 
 ---
 
-*Создано: май 2026. Статус: планирование, код не изменён.*
+## Wave 2 — следующая волна (не в пилоте)
 
-*Обновлено 2026-05-27: 17 routes (+ `/seller/successfully-reset`), preflight/JSX constraints, FE-021 grep scope.*
+Пилот seller onboarding **завершён** (FE-021, 2026-05-28). Паттерн для Wave 2: **container (API/Redux) + shadcn view**, тесты до/в том же PR, без смены API.
+
+| Область | Priority | Rationale | E2E / test baseline |
+|---------|----------|-----------|---------------------|
+| **Catalog / Search** | P1 | Высокий трафик, ниже business-risk чем payment | FE-004 RTL, `smoke.spec.js`, SearchPage |
+| **Basket** | P0 | Зависит от checkout; shared `basketSlice` | FE-005, `checkout.spec.js` |
+| **Checkout / Payment** | P0 | Последний — max e2e уже есть | FE-009, FS-002/FS-003 |
+| **Seller cabinet** (orders, goods, home) | P2 | После закрепления onboarding pattern | FE-005 seller orders RTL |
+
+**Не входит в Wave 2 без отдельной задачи:** Frontend2, удаление MUI из всего Frontend3, Redux refactor.
+
+**Рекомендуемый порядок Wave 2:** Catalog/Search → Basket → Checkout/Payment → Seller cabinet.
+
+---
+
+*Создано: май 2026.*
+
+*Обновлено 2026-05-28: пилот onboarding **Done** (FE-015–FE-021); Wave 2 backlog; 17 routes migrated.*

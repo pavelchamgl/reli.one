@@ -135,7 +135,7 @@
 | 4.0 ✅ | FE-008 | Smoke e2e: root/home/protected-redirect/search/wildcard — 5/5 passed |
 | 4.1 ✅ | FE-009 | Playwright e2e: checkout happy path — basket/payment section 1, no PSP calls — 6/6 passed |
 | 4.2 | FE-P3-001 follow-up | Playwright e2e: checkout sections 2–3 (delivery mock + payment form) |
-| 4.3 ✅ | FE-010 | Playwright e2e: seller onboarding smoke (login/create-account/seller-type/application-sub) — 4/4 passed |
+| 4.3 ✅ | FE-010 | Playwright e2e: seller onboarding smoke — **9/9** (login, create-account, seller-type, application-sub, review, 4 status routes) |
 | 4.4 | — | Расширение матрицы P1 e2e по [test-matrix.md](./test-matrix.md) |
 | 4.5 ✅ | FE-011 | Full-stack e2e: seller onboarding FS-001 (3 теста, Django + Postgres, proxy-forwarding, skip без бэкенда) |
 | 4.6 ✅ | FE-012 | Full-stack e2e: checkout until payment session FS-002 (2 теста, real backend, PSP mocked, Redux state seeding, skip без бэкенда) |
@@ -154,17 +154,17 @@
 
 | PR / Task | Содержание | Статус |
 |-----------|------------|--------|
-| FE-015 | Tailwind + shadcn foundation | Planned |
-| FE-016 | Audit + inventory + test gates | Planned |
-| FE-017 | Layout shell + form primitives | Done |
-| FE-018 | Auth & entry steps (9 routes) | Done |
-| FE-019 | Data collection (seller-info, seller-company) | Done |
-| FE-020 | Review, submit, status pages | Planned |
-| FE-021 | Validation + MUI cleanup in onboarding zone | Planned |
+| FE-015 | Tailwind + shadcn foundation | **Done** |
+| FE-016 | Audit + inventory + test gates | **Done** |
+| FE-017 | Layout shell + form primitives | **Done** |
+| FE-018 | Auth & entry steps (9 routes) | **Done** |
+| FE-019 | Data collection (seller-info, seller-company) | **Done** |
+| FE-020 | Review, submit, status pages | **Done** |
+| FE-021 | Validation + SCSS/MUI cleanup + FS-001 + docs | **Done** |
 
-**Критерий закрытия Phase 5:** FE-021 Done; gates G-UI-1…G-UI-7 в [test-matrix.md](./test-matrix.md) — Done или Partial с обоснованием.
+**Критерий закрытия Phase 5:** ✅ FE-021 Done (2026-05-28); gates G-UI-1…G-UI-7 в [test-matrix.md](./test-matrix.md) — **Done**.
 
-**Wave 2 (не в Phase 5):** catalog → basket → checkout → seller cabinet — см. FE-021 backlog.
+**Wave 2 (не в Phase 5):** catalog → basket → checkout → seller cabinet — см. [shadcn-ui-migration-plan.md § Wave 2](./shadcn-ui-migration-plan.md#wave-2--следующая-волна-не-в-пилоте).
 
 ---
 

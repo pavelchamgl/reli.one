@@ -1,6 +1,6 @@
 # FE-021 — Seller Onboarding Migration: Validation & MUI Cleanup
 
-**Status:** In progress
+**Status:** Done
 **Priority:** P1
 **Phase:** 5 — UI migration
 **Depends on:** FE-020
@@ -49,8 +49,9 @@
 - [x] `grep -R "@mui" src/Components/Seller/auth` → 0 results (or documented exceptions).
 - [x] `grep -R "@mui"` по **17 onboarding page dirs** из inventory (не весь `sellerPages/`) → 0 (or documented exceptions).
 - [x] All P0 onboarding tests green (matrix + e2e + **FS-001 3/3** when backend contour up).
-- [ ] Docs updated (04, plan, inventory, test-matrix). — Iteration 4
-- [ ] Follow-up backlog для catalog/checkout UI wave documented in shadcn plan. — Iteration 4
+- [x] Docs updated (tasks/README, roadmap, shadcn plan, inventory, test-matrix). — Iteration 4
+- [x] Follow-up backlog Wave 2 documented in [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md#wave-2--следующая-волна-не-в-пилоте). — Iteration 4
+- [ ] `04-frontend-architecture.md` UI stack note — optional follow-up (вне scope Iteration 4)
 
 ---
 
@@ -224,12 +225,18 @@ Manual QA script (local/staging):
 ### Действия
 
 1. Mark FE-015…FE-021 Done in [tasks/README.md](../README.md).
-2. Add «Wave 2» section in [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md): catalog, basket, checkout priority proposal.
-3. Optional ADR: `docs/adr/NNN-shadcn-ui-onboarding-pilot.md` — **только если команда использует ADR folder**.
+2. Update [frontend3-roadmap.md](../../frontend3-roadmap.md) — Phase 5 closed.
+3. Add «Wave 2» section in [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md).
+4. Finalize [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md) — 17/17 Migrated.
+5. Update [test-matrix.md](../../test-matrix.md) — G-UI-1…G-UI-7 Done.
 
 ### Статус
 
-- [ ]
+- [x] `tasks/README.md` — FE-015…FE-021 **Done**
+- [x] `frontend3-roadmap.md` — Phase 5 **closed**
+- [x] `shadcn-ui-migration-plan.md` — pilot Done + Wave 2
+- [x] `seller-onboarding-ui-inventory.md` — final inventory
+- [x] `test-matrix.md` — G-UI gates Done
 
 ---
 
