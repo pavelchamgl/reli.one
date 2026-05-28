@@ -1,6 +1,6 @@
 # FE-016 — Seller Onboarding Migration Audit & Test Gates
 
-**Status:** Planned  
+**Status:** Done  
 **Priority:** P0  
 **Phase:** 5 — UI migration  
 **Depends on:** FE-015  
@@ -44,12 +44,19 @@ Onboarding уже частично покрыт (FE-003 unit/RTL, FE-010 e2e smo
 
 ## Definition of Done
 
-- [ ] Артефакт [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md) создан.
-- [ ] Для каждого маршрута пилота — строка в inventory (см. [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md)).
-- [ ] Список P0 тестов «must stay green» зафиксирован.
-- [ ] Список недостающих RTL/e2e якорей с приоритетом (что добавить до FE-018).
-- [ ] [test-matrix.md](../../test-matrix.md) обновлён (новые строки или секция).
-- [ ] PR **docs-only** или docs + минимальные `data-testid` (если согласовано отдельно).
+- [x] Артефакт [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md) создан.
+- [x] Для каждого маршрута пилота — строка в inventory (17 routes).
+- [x] Список P0 тестов «must stay green» зафиксирован.
+- [x] Список недостающих RTL/e2e якорей с приоритетом (что добавить до FE-018).
+- [x] [test-matrix.md](../../test-matrix.md) обновлён (G-UI-2 + backlog onboarding UI tests).
+- [x] PR **docs-only** (без `data-testid` в production).
+
+## Implementation notes (2026-05-27)
+
+- Inventory: 17 routes, 30 auth components, API map, Redux `selfEmploed`, MUI только в `DateInp`.
+- Test gaps: **4 P0 RTL gaps** (LoginForm, CreateForm, BankAccount, Review submit) + **P0 regression gate** «must stay green» (см. inventory + test-matrix backlog).
+- `data-testid` не добавлялись — e2e опирается на `name`, role, i18n text.
+- Следующий шаг: **FE-017** (layout shell + `FormField` + `onboardingSteps.js`).
 
 ---
 
@@ -73,7 +80,7 @@ Onboarding уже частично покрыт (FE-003 unit/RTL, FE-010 e2e smo
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -105,7 +112,7 @@ Onboarding уже частично покрыт (FE-003 unit/RTL, FE-010 e2e smo
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -134,7 +141,7 @@ Onboarding уже частично покрыт (FE-003 unit/RTL, FE-010 e2e smo
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -156,7 +163,7 @@ Onboarding уже частично покрыт (FE-003 unit/RTL, FE-010 e2e smo
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 

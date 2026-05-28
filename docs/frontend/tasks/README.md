@@ -53,7 +53,7 @@
 | ID | Задача | Priority | После | Статус |
 |----|--------|----------|-------|--------|
 | **FE-015** | [Tailwind + shadcn foundation](./015-shadcn-ui-foundation/task.md) | P0 | FE-006 | **Done** |
-| **FE-016** | [Onboarding audit & test gates](./016-seller-onboarding-migration-audit/task.md) | P0 | FE-015 | **Planned** |
+| **FE-016** | [Onboarding audit & test gates](./016-seller-onboarding-migration-audit/task.md) | P0 | FE-015 | **Done** |
 | **FE-017** | [Layout shell & form primitives](./017-seller-onboarding-layout-shell/task.md) | P1 | FE-016 | **Planned** |
 | **FE-018** | [Auth & entry steps UI](./018-seller-onboarding-auth-entry-ui/task.md) | P1 | FE-017 | **Planned** |
 | **FE-019** | [Data collection steps UI](./019-seller-onboarding-data-steps-ui/task.md) | P0 | FE-018 | **Planned** |

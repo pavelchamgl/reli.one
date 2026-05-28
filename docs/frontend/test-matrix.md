@@ -85,7 +85,7 @@
 | Gate | Сценарий | Уровень | Статус | Задача |
 |------|----------|---------|--------|--------|
 | G-UI-1 | shadcn foundation: build + smoke routes не регрессят | build/manual + e2e | Покрыто | FE-015 — `fe015-foundation-smoke.spec.js`, dev + preview 2/2 |
-| G-UI-2 | Inventory onboarding + test gap list | docs | Backlog | FE-016 |
+| G-UI-2 | Inventory onboarding + test gap list | docs | Покрыто | FE-016 — [seller-onboarding-ui-inventory.md](./seller-onboarding-ui-inventory.md) |
 | G-UI-3 | Layout shell RTL smoke | RTL | Backlog | FE-017 |
 | G-UI-4 | Auth/entry: `seller-onboarding.spec.js` 4/4 | e2e | Partial — покрыто до UI migration | FE-018 |
 | G-UI-5 | Data steps: bank/personal RTL + FS-001 | RTL + e2e | Backlog | FE-019 |
@@ -93,6 +93,19 @@
 | G-UI-7 | No `@mui` in onboarding zone | grep audit | Backlog | FE-021 |
 
 **Правило:** перед merge PR миграции экрана — соответствующий gate минимум **Partial** (RTL/e2e зелёные); после FE-021 — **Done**.
+
+### UI migration — onboarding test backlog (FE-016)
+
+Якоря добавлять **в том же PR**, что и shadcn UI для экрана (см. inventory). **4 P0 RTL gaps** (строки ниже, Backlog) + **P0 regression gate** (последняя строка, уже Покрыто).
+
+| Сценарий | Приоритет | Уровень | Статус | Добавить в | Файл теста (целевой) |
+|----------|-----------|---------|--------|------------|----------------------|
+| LoginForm: Yup validation + submit state | P0 | RTL | Backlog | FE-018 | `LoginForm.test.jsx` |
+| CreateForm: Yup + agree checkbox | P0 | RTL | Backlog | FE-018 | `CreateForm.test.jsx` |
+| ApplicationSubmited: status UI (mock state) | P1 | RTL | Backlog | FE-018 | `ApplicationSubmited.test.jsx` |
+| BankAccount: API validation errors displayed | P0 | RTL | Backlog | FE-019 | `BankAccount.test.jsx` |
+| Review submit: failed submit + completeness | P0 | RTL | Backlog | FE-020 | `ReviewInfoPage.test.jsx` |
+| Seller onboarding UI: must stay green (regression) | P0 | e2e + unit | Покрыто | FE-016 gate | см. inventory § Test gates |
 
 ## Связанные таски
 

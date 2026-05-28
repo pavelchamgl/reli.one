@@ -27,7 +27,7 @@
 ## Миграция UI (Tailwind + shadcn/ui)
 
 - **[План миграции Frontend3](./shadcn-ui-migration-plan.md)** — стратегия, роли агентов, гейты качества.
-- **[Inventory seller onboarding UI](./seller-onboarding-ui-inventory.md)** — маршруты, split container/view, test gates (заполняется в FE-016).
+- **[Inventory seller onboarding UI](./seller-onboarding-ui-inventory.md)** — маршруты, split container/view, test gates (**FE-016 Done**).
 - **[Задачи FE-015–FE-021](./tasks/README.md#задачи-миграции-ui-tailwind--shadcnui-fe-015fe-021)** — пошаговая декомпозиция.
 
 ## См. также
