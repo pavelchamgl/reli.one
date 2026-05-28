@@ -56,6 +56,7 @@
 | Seller onboarding: application-sub показывает confirmation (мок API) | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
 | Seller onboarding: seller-review page (mock review API) | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
 | Seller onboarding: under-review / action-required / finish-verification / verified-analyt | P1 | e2e | Покрыто | [`e2e/seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/seller-onboarding.spec.js) |
+| FS-001: full-stack onboarding API + UI (backend contour) | P0 | e2e | Покрыто | [`e2e/fullstack-seller-onboarding.spec.js`](../../Frontend/Frontend3/e2e/fullstack-seller-onboarding.spec.js) |
 
 ## FE-014 — Stock Availability Display
 
@@ -90,7 +91,7 @@
 | G-UI-2 | Inventory onboarding + test gap list | docs | Покрыто | FE-016 — [seller-onboarding-ui-inventory.md](./seller-onboarding-ui-inventory.md) |
 | G-UI-3 | Layout shell RTL smoke | RTL | Покрыто | FE-017 — `SellerOnboardingLayout.test.jsx` |
 | G-UI-4 | Auth/entry: `seller-onboarding.spec.js` 4/4 | e2e + RTL | Покрыто | FE-018 |
-| G-UI-5 | Data steps: bank/personal RTL + FS-001 | RTL + e2e | Partial (RTL ✓) | FE-019 |
+| G-UI-5 | Data steps: bank/personal RTL + FS-001 | RTL + e2e | Partial (RTL ✓, FS-001 API ✓) | FE-019 / FE-021 |
 | G-UI-6 | Review submit error + status pages | RTL + e2e | Покрыто | FE-020 — RTL + `seller-onboarding.spec.js` 9/9 |
 | G-UI-7 | No `@mui` in onboarding zone | grep audit | Backlog | FE-021 |
 

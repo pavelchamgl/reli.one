@@ -16,16 +16,23 @@
  *
  * Strategy:
  * - Playwright `request` fixture → direct HTTP to Django (no browser, no proxy)
- * - page.route() proxy → intercepts https://reli.one/api/* from Vite preview,
- *   forwards to http://localhost:8000/api/* transparently (CORS-safe)
+ * - page.route() proxy → intercepts /api/* from preview, forwards to backend (CORS-safe)
  * - localStorage seeding → JWT token set before page.goto() via addInitScript
  *
  * Related docs:
  *   docs/tasks/015-full-stack-e2e-design/task.md  (FS-001)
  *   docs/testing/e2e-local-contour.md
+ *   FE-021 Iteration 0
  */
 
 import { test, expect } from '@playwright/test';
+
+import {
+  blockThirdPartyScripts,
+  gotoSellerPage,
+  proxyToBackend,
+  seedAuthToken,
+} from './helpers.js';
 
 const BACKEND_URL = process.env.FULLSTACK_BACKEND_URL ?? 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
@@ -41,29 +48,6 @@ const MINIMAL_PDF = Buffer.from(
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/**
- * Intercept all https://reli.one/api/* requests from the Vite preview
- * and forward them to the real backend. Must be called before page.goto().
- */
-async function proxyToBackend(page) {
-  await page.route(/https?:\/\/reli\.one\/api\//, async (route) => {
-    const backendUrl = route
-      .request()
-      .url()
-      .replace(/https?:\/\/reli\.one\/api/, API);
-    try {
-      const response = await route.fetch({ url: backendUrl });
-      await route.fulfill({ response });
-    } catch {
-      await route.abort('connectionrefused');
-    }
-  });
-}
-
-/**
- * Register a new seller user and return JWT access + refresh tokens.
- * Uses a timestamp-based email/phone to guarantee uniqueness per run.
- */
 async function registerSellerUser(request) {
   const ts = Date.now();
   const email = `fs001-${ts}@test.example`;
@@ -94,10 +78,6 @@ async function registerSellerUser(request) {
   return { email, access, refresh };
 }
 
-/**
- * Drive all self-employed onboarding steps to completion via REST API.
- * Mirrors SelfEmployedOnboardingAPIHappyPathTests from backend.
- */
 async function completeOnboardingViaApi(request, accessToken) {
   const h = { Authorization: `Bearer ${accessToken}` };
   const base = `${API}/sellers`;
@@ -171,10 +151,14 @@ async function completeOnboardingViaApi(request, accessToken) {
   }
 }
 
+async function setupFullstackPage(page) {
+  await blockThirdPartyScripts(page);
+  await proxyToBackend(page, API);
+}
+
 // ── Test suite ────────────────────────────────────────────────────────────────
 
 test.describe('FS-001 — Full-stack seller onboarding', () => {
-  // Skip the entire suite if backend is not running
   test.beforeEach(async ({ request }) => {
     const up = await request.get(`${BACKEND_URL}/health/`).catch(() => null);
     test.skip(
@@ -183,10 +167,6 @@ test.describe('FS-001 — Full-stack seller onboarding', () => {
     );
   });
 
-  /**
-   * FS-001a — Pure API: full onboarding chain reaches pending_verification.
-   * No browser. Validates the Django backend end-to-end in isolation.
-   */
   test('FS-001a: full onboarding API chain submits pending_verification', async ({ request }) => {
     const { access } = await registerSellerUser(request);
     await completeOnboardingViaApi(request, access);
@@ -208,11 +188,6 @@ test.describe('FS-001 — Full-stack seller onboarding', () => {
     expect(sub.submitted_at).not.toBeNull();
   });
 
-  /**
-   * FS-001b — UI: application-sub page shows pending_verification from real backend.
-   * Browser talks to real Django via page.route() proxy.
-   * Asserts UI text + final API state.
-   */
   test('FS-001b: application-sub page shows pending_verification from real backend', async ({
     page,
     request,
@@ -225,23 +200,16 @@ test.describe('FS-001 — Full-stack seller onboarding', () => {
     });
     expect(subResp.ok()).toBeTruthy();
 
-    await proxyToBackend(page);
+    await setupFullstackPage(page);
+    await seedAuthToken(page, { access, refresh });
 
-    // Seed JWT in localStorage so the API interceptor sends the correct Authorization header
-    await page.addInitScript(
-      ({ token }) => localStorage.setItem('token', JSON.stringify(token)),
-      { token: { access, refresh } },
-    );
+    await gotoSellerPage(page, '/seller/application-sub');
 
-    await page.goto('/seller/application-sub');
-
-    // ApplicationSubmitedContent — renders when status === 'pending_verification'
     await expect(page.getByText('Your application has been submitted')).toBeVisible({
       timeout: 15_000,
     });
     await expect(page.getByText('Pending Verification')).toBeVisible({ timeout: 10_000 });
 
-    // Backend assertion: DB state is consistent with UI
     const checkResp = await request.get(`${API}/sellers/onboarding/state/`, {
       headers: { Authorization: `Bearer ${access}` },
     });
@@ -250,40 +218,28 @@ test.describe('FS-001 — Full-stack seller onboarding', () => {
     expect(check.is_editable).toBe(false);
   });
 
-  /**
-   * FS-001c — UI: seller-type selection via real UI navigates to seller-info
-   * and persists seller_type in the backend DB.
-   */
   test('FS-001c: seller-type selection via UI updates backend state', async ({
     page,
     request,
   }) => {
     const { access, refresh } = await registerSellerUser(request);
 
-    await proxyToBackend(page);
-    await page.addInitScript(
-      ({ token }) => localStorage.setItem('token', JSON.stringify(token)),
-      { token: { access, refresh } },
-    );
+    await setupFullstackPage(page);
+    await seedAuthToken(page, { access, refresh });
 
-    await page.goto('/seller/seller-type');
+    await gotoSellerPage(page, '/seller/seller-type');
 
-    // SellerTypeContent: wait for onboarding state to load and render
     await expect(page.getByText('Choose your seller type')).toBeVisible({ timeout: 15_000 });
 
-    // Select self-employed type
     await page.getByText('Self-employed / sole proprietor').click();
 
-    // Continue button appears after selection (conditionally rendered)
     const continueBtn = page.getByRole('button', { name: /continue/i });
     await expect(continueBtn).toBeVisible({ timeout: 5_000 });
     await continueBtn.click();
 
-    // postSellerType → backend → component navigates to /seller/seller-info
     await page.waitForURL('**/seller/seller-info', { timeout: 15_000 });
     await expect(page).toHaveURL(/\/seller\/seller-info/);
 
-    // Backend assertion: seller_type persisted in DB
     const stateResp = await request.get(`${API}/sellers/onboarding/state/`, {
       headers: { Authorization: `Bearer ${access}` },
     });

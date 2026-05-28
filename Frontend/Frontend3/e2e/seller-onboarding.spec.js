@@ -1,67 +1,15 @@
 import { test, expect } from '@playwright/test';
 
-/**
- * FE-010 / FE-020 — Seller Onboarding E2E Smoke
- *
- * Покрывает frontend-only сценарий: точки входа seller onboarding flow.
- * Backend не поднимается. Вызовы к reli.one/api/sellers/onboarding/*
- * замоканы через Playwright route.fulfill().
- *
- * Маршруты (из main.jsx — без ProtectedRoute):
- *   /seller/login              — публичный
- *   /seller/create-account      — публичный
- *   /seller/seller-type         — GET onboarding/state/
- *   /seller/application-sub     — GET onboarding/state/
- *   /seller/seller-review       — review + submit UI (FE-020)
- *   /seller/under-review        — status UI (FE-020)
- *   /seller/action-required     — status UI + GET onboarding/state/
- *   /seller/finish-verification — status UI + GET onboarding/state/
- *   /seller/verified-analyt     — approved status UI (FE-020)
- */
-
-// ── Вспомогательные функции ──────────────────────────────────────────────────
+import {
+  blockBackendApi,
+  blockThirdPartyScripts,
+  gotoSellerPage,
+  setupSellerOnboardingApi,
+} from './helpers.js';
 
 /**
- * Единый handler для backend API: fulfill для переданных onboarding endpoints, abort для остального.
- * Покрывает и https://reli.one/api (CI/preview) и http://localhost:8000/api (.env.local).
+ * FE-010 / FE-020 — Seller Onboarding E2E Smoke (frontend-only, mocked API).
  */
-async function setupSellerOnboardingApi(page, { state, review } = {}) {
-  await page.route(/\/api\//, (route) => {
-    const url = route.request().url();
-
-    if (state && /\/sellers\/onboarding\/state\//.test(url)) {
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(state),
-      });
-    }
-
-    if (review && /\/sellers\/onboarding\/review\//.test(url)) {
-      return route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(review),
-      });
-    }
-
-    return route.abort();
-  });
-}
-
-/** Прерывает все вызовы к backend API без onboarding mocks. */
-async function blockBackendApi(page) {
-  await setupSellerOnboardingApi(page);
-}
-
-/** Блокирует внешние скрипты (GTM, Packeta, FB), которые тормозят navigation в e2e. */
-async function blockThirdPartyScripts(page) {
-  await page.route(
-    /googletagmanager|googlesyndication|google-analytics|connect\.facebook|widget\.packeta/,
-    (route) => route.abort(),
-  );
-}
-
 
 async function seedReviewLocalStorage(page) {
   await page.addInitScript(() => {
@@ -73,10 +21,6 @@ async function seedReviewLocalStorage(page) {
 }
 
 // ── Тесты ────────────────────────────────────────────────────────────────────
-
-async function gotoSellerPage(page, path) {
-  await page.goto(path, { waitUntil: 'domcontentloaded' });
-}
 
 test.describe('FE-010 — Seller Onboarding smoke', () => {
   test.beforeEach(async ({ page }) => {

@@ -1,9 +1,9 @@
 # FE-021 — Seller Onboarding Migration: Validation & MUI Cleanup
 
-**Status:** Planned  
-**Priority:** P1  
-**Phase:** 5 — UI migration  
-**Depends on:** FE-020  
+**Status:** In progress
+**Priority:** P1
+**Phase:** 5 — UI migration
+**Depends on:** FE-020
 **Blocks:** следующая волна (catalog/checkout UI)
 
 ## Цель
@@ -24,6 +24,7 @@
   - [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md) — статус пилота Done
   - [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md) — final column «Migrated»
 - Расширение [test-matrix.md](../../test-matrix.md) — финальные статусы UI migration gates.
+- **FS-001 full-stack e2e** (`e2e/fullstack-seller-onboarding.spec.js`): стабилизация UI-тестов (third-party block, API proxy для `.env.local`), включение в regression gate FE-021.
 
 ## Не входит в задачу
 
@@ -47,13 +48,34 @@
 
 - [ ] `grep -R "@mui" src/Components/Seller/auth` → 0 results (or documented exceptions).
 - [ ] `grep -R "@mui"` по **17 onboarding page dirs** из inventory (не весь `sellerPages/`) → 0 (or documented exceptions).
-- [ ] All P0 onboarding tests green (matrix + e2e).
+- [ ] All P0 onboarding tests green (matrix + e2e + **FS-001 3/3** when backend contour up).
 - [ ] Docs updated (04, plan, inventory, test-matrix).
 - [ ] Follow-up backlog для catalog/checkout UI wave documented in shadcn plan.
 
 ---
 
 # Iterations
+
+## Iteration 0 — FS-001 stabilization (from FE-020 carry-over)
+
+### Действия
+
+1. `e2e/helpers.js` — shared `blockThirdPartyScripts`, `gotoSellerPage`, `proxyToBackend`, `setupSellerOnboardingApi`.
+2. `fullstack-seller-onboarding.spec.js` — third-party block + unified API proxy (reli.one и localhost:8000 build).
+3. `seller-onboarding.spec.js` — импорт из helpers.
+
+```bash
+npm run build
+npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # backend contour required
+```
+
+### Статус
+
+- [x] `e2e/helpers.js` + proxy third-party/API
+- [x] `fullstack-seller-onboarding.spec.js` — **3/3**
+- [x] `seller-onboarding.spec.js` — импорт helpers, **9/9**
+
+---
 
 ## Iteration 1 — Import & SCSS audit
 
@@ -112,10 +134,13 @@ rg "\.module\.scss" src/Components/Seller/auth \
 ### Output
 
 - Checklist в PR.
+- Удалён мёртвый `src/Components/sellerAnalytics/` (24 файла) + orphan SCSS status pages.
 
 ### Статус
 
-- [ ]
+- [x] `@mui` в `Components/Seller/auth` — **0**
+- [x] `@mui` в 17 onboarding page dirs — **0**
+- [ ] SCSS audit — review subcomponents + data steps (Iteration 2)
 
 ---
 
@@ -141,7 +166,8 @@ rg "\.module\.scss" src/Components/Seller/auth \
 npm run lint
 npm run test
 npm run build
-npm run test:e2e
+npm run test:e2e -- e2e/seller-onboarding.spec.js
+npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # if backend up
 ```
 
 Manual QA script (local/staging):
