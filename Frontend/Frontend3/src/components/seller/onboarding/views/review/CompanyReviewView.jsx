@@ -1,5 +1,5 @@
 import { ReviewSectionsView } from './ReviewSectionsView';
 
-export function SelfEmployedReviewView(props) {
+export function CompanyReviewView(props) {
   return <ReviewSectionsView {...props} />;
 }

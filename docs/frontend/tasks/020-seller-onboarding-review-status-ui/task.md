@@ -1,9 +1,9 @@
 # FE-020 — Seller Onboarding: Review, Submit & Status UI
 
-**Status:** In progress  
-**Priority:** P0  
-**Phase:** 5 — UI migration  
-**Depends on:** FE-019  
+**Status:** In progress
+**Priority:** P0
+**Phase:** 5 — UI migration
+**Depends on:** FE-019
 **Blocks:** FE-021
 
 ## Цель
@@ -153,8 +153,8 @@ npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # if backend availa
 
 | PR | Content |
 |----|---------|
-| 20.1 | Review views + OSVČ page |
-| 20.2 | Company review page |
+| 20.1 | Review views + OSVČ page | ✓ |
+| 20.2 | Company review page | ✓ |
 | 20.3 | Submit error handling polish + RTL |
 | 20.4 | Status pages bundle |
 
