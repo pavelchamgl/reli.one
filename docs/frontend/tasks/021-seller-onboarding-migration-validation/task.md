@@ -46,11 +46,11 @@
 
 ## Definition of Done
 
-- [ ] `grep -R "@mui" src/Components/Seller/auth` → 0 results (or documented exceptions).
-- [ ] `grep -R "@mui"` по **17 onboarding page dirs** из inventory (не весь `sellerPages/`) → 0 (or documented exceptions).
-- [ ] All P0 onboarding tests green (matrix + e2e + **FS-001 3/3** when backend contour up).
-- [ ] Docs updated (04, plan, inventory, test-matrix).
-- [ ] Follow-up backlog для catalog/checkout UI wave documented in shadcn plan.
+- [x] `grep -R "@mui" src/Components/Seller/auth` → 0 results (or documented exceptions).
+- [x] `grep -R "@mui"` по **17 onboarding page dirs** из inventory (не весь `sellerPages/`) → 0 (or documented exceptions).
+- [x] All P0 onboarding tests green (matrix + e2e + **FS-001 3/3** when backend contour up).
+- [ ] Docs updated (04, plan, inventory, test-matrix). — Iteration 4
+- [ ] Follow-up backlog для catalog/checkout UI wave documented in shadcn plan. — Iteration 4
 
 ---
 
@@ -182,9 +182,40 @@ Manual QA script (local/staging):
 2. Rejected flow → action-required → edit → resubmit.
 3. Approved → verified-analyt → link to seller-home.
 
+### Automated regression (2026-05-28)
+
+| Check | Result |
+|-------|--------|
+| `npm run lint` | **0 errors** (629 warnings, pre-existing) |
+| `npm run test` | **197/197** |
+| `npm run build` | **OK** |
+| `e2e/seller-onboarding.spec.js` | **9/9** |
+| `e2e/fullstack-seller-onboarding.spec.js` | **3/3** (backend contour up) |
+| **Total e2e onboarding** | **12/12** |
+
+### Manual QA matrix
+
+| Сценарий | Авто-покрытие | Ручная проверка (staging/local) |
+|----------|---------------|----------------------------------|
+| Register → seller-type → draft → review → submit | FS-001a API chain + FS-001b `application-sub` UI после submit | UI: пройти data steps в браузере, review screen, кнопка Submit → redirect |
+| Rejected → action-required → edit → resubmit | e2e mock `action-required` (CTA visible) | Backend: reject seller в admin → action-required → edit step → resubmit |
+| Approved → verified-analyt → seller-home | e2e mock `verified-analyt` (dashboard CTA) | Backend: approve seller → verified-analyt → «Go to dashboard» → `/seller/goods-choice` |
+
+**Рекомендуемый ручной прогон:**
+
+```text
+1. /seller/create-account → register test seller
+2. /seller/seller-type → self-employed → /seller/seller-info
+3. Заполнить personal/tax/address/bank/warehouse (минимум для submit)
+4. /seller/seller-review → Submit for Verification → /seller/application-sub
+5. (optional admin) reject → /seller/action-required → Fix and resubmit
+6. (optional admin) approve → /seller/verified-analyt → Go to dashboard
+```
+
 ### Статус
 
-- [ ]
+- [x] Automated regression green
+- [ ] Manual QA на staging — checklist выше (не блокирует merge при green e2e + FS-001)
 
 ---
 
