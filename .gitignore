@@ -212,3 +212,7 @@ backups/
 # Локальные дампы БД (не коммитить)
 *.pgdump
 *.dump
+
+# Frontend3 shadcn (src/lib/ — не Python lib/)
+!Frontend/Frontend3/src/lib/
+!Frontend/Frontend3/src/lib/**
