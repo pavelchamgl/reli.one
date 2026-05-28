@@ -1,8 +1,6 @@
 import { Button } from '@/components/ui/button';
-import {
-  OnboardingStepHeader,
-  SellerOnboardingCard,
-} from '@/components/seller/onboarding';
+import { OnboardingStepHeader } from '@/components/seller/onboarding/OnboardingStepHeader';
+import { SellerOnboardingCard } from '@/components/seller/onboarding/SellerOnboardingLayout';
 
 export function SellerDataFormPageView({
   title,

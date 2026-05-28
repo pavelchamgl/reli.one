@@ -1,5 +1,5 @@
 import { Input } from '@/components/ui/input';
-import { FormField } from '@/components/seller/onboarding';
+import { FormField } from '@/components/seller/onboarding/FormField';
 
 export function BankAccountFieldsView({
   values,

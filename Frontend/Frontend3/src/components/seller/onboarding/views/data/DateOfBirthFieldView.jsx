@@ -1,5 +1,5 @@
 import InputMask from 'react-input-mask';
-import { FormField } from '@/components/seller/onboarding';
+import { FormField } from '@/components/seller/onboarding/FormField';
 import { cn } from '@/lib/utils';
 
 export function DateOfBirthFieldView({

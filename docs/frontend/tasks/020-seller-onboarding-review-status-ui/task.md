@@ -1,6 +1,6 @@
 # FE-020 — Seller Onboarding: Review, Submit & Status UI
 
-**Status:** Planned  
+**Status:** In progress  
 **Priority:** P0  
 **Phase:** 5 — UI migration  
 **Depends on:** FE-019  
@@ -51,7 +51,7 @@ Review — точка, где пользователь видит агрегир
 
 ## Definition of Done
 
-- [ ] Review pages render all sections from API review response (mocked RTL).
+- [x] Review pages render all sections from API review response (mocked RTL). — OSVČ `ReviewInfoPage` + `ReviewSectionCard` RTL
 - [ ] Submit success → navigates as before (e2e or manual script).
 - [ ] Submit failure → completeness/errors visible (RTL).
 - [ ] Status pages migrated; icons/badges via shadcn Badge/Alert.
@@ -86,7 +86,7 @@ Review — точка, где пользователь видит агрегир
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 

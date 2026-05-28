@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FormField } from '@/components/seller/onboarding';
+import { FormField } from '@/components/seller/onboarding/FormField';
 
 export function SellerCountrySelectView({
   id,
