@@ -86,7 +86,7 @@
 |------|----------|---------|--------|--------|
 | G-UI-1 | shadcn foundation: build + smoke routes не регрессят | build/manual + e2e | Покрыто | FE-015 — `fe015-foundation-smoke.spec.js`, dev + preview 2/2 |
 | G-UI-2 | Inventory onboarding + test gap list | docs | Покрыто | FE-016 — [seller-onboarding-ui-inventory.md](./seller-onboarding-ui-inventory.md) |
-| G-UI-3 | Layout shell RTL smoke | RTL | Backlog | FE-017 |
+| G-UI-3 | Layout shell RTL smoke | RTL | Покрыто | FE-017 — `SellerOnboardingLayout.test.jsx` |
 | G-UI-4 | Auth/entry: `seller-onboarding.spec.js` 4/4 | e2e | Partial — покрыто до UI migration | FE-018 |
 | G-UI-5 | Data steps: bank/personal RTL + FS-001 | RTL + e2e | Backlog | FE-019 |
 | G-UI-6 | Review submit error + status pages | RTL + e2e | Backlog | FE-020 |

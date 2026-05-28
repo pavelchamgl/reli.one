@@ -295,7 +295,27 @@ src/sellerPages/UnderReviewPage/
 src/sellerPages/VerifiedAnalyt/
 ```
 
-Плюс `src/Components/Seller/auth/` и `src/components/seller/onboarding/` (после FE-017).
+Плюс `src/Components/Seller/auth/` и `src/components/seller/onboarding/` (**FE-017 Done**).
+
+---
+
+## next_step → UI mapping (FE-017)
+
+Backend order (`compute_next_step` in `services_onboarding.py`):
+
+| `next_step` | Step # | UI label source |
+|-------------|--------|-----------------|
+| `seller_type` | 1 | i18n `onboard.steps.seller_type` (add in FE-018) |
+| `personal` | 2 | `onboard.steps.personal` |
+| `tax` | 3 | `onboard.steps.tax` |
+| `address` | 4 | `onboard.steps.address` |
+| `bank` | 5 | `onboard.steps.bank` |
+| `warehouse` | 6 | `onboard.steps.warehouse` |
+| `return` | 7 | `onboard.steps.return` |
+| `documents` | 8 | `onboard.steps.documents` |
+| `review` | 9 | `onboard.steps.review` |
+
+Код: [`onboardingSteps.js`](../../Frontend/Frontend3/src/features/seller-onboarding/constants/onboardingSteps.js), компонент [`OnboardingProgress`](../../Frontend/Frontend3/src/components/seller/onboarding/OnboardingProgress.jsx). Навигация не меняется — только отображение.
 
 ---
 
@@ -305,4 +325,4 @@ src/sellerPages/VerifiedAnalyt/
 |------|-----------|
 | 2026-05-27 | Шаблон inventory для FE-016 |
 | 2026-05-27 | `/seller/successfully-reset`; FE-021 grep paths |
-| 2026-05-27 | **FE-016 complete:** route/component/API map, split plan, test gaps, agent brief, features layout |
+| 2026-05-27 | **FE-017:** layout shell in `components/seller/onboarding/`, `onboardingSteps.js`, RTL smoke |

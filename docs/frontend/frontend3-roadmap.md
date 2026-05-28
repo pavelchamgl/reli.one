@@ -156,7 +156,7 @@
 |-----------|------------|--------|
 | FE-015 | Tailwind + shadcn foundation | Planned |
 | FE-016 | Audit + inventory + test gates | Planned |
-| FE-017 | Layout shell + form primitives | Planned |
+| FE-017 | Layout shell + form primitives | Done |
 | FE-018 | Auth & entry steps (9 routes) | Planned |
 | FE-019 | Data collection (seller-info, seller-company) | Planned |
 | FE-020 | Review, submit, status pages | Planned |
