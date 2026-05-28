@@ -1,9 +1,9 @@
 # FE-018 — Seller Onboarding: Auth & Entry Steps UI
 
-**Status:** Planned  
-**Priority:** P1  
-**Phase:** 5 — UI migration  
-**Depends on:** FE-017  
+**Status:** Done
+**Priority:** P1
+**Phase:** 5 — UI migration
+**Depends on:** FE-017
 **Blocks:** FE-019
 
 ## Цель
@@ -49,11 +49,20 @@
 
 ## Definition of Done
 
-- [ ] Все 9 маршрутов из таблицы используют shadcn views.
-- [ ] MUI imports удалены из перечисленных components/pages.
-- [ ] RTL: минимум `LoginForm`, `CreateForm`, `SellerTypeContent` (extend existing tests).
-- [ ] `e2e/seller-onboarding.spec.js` — 4/4 green.
-- [ ] `npm run test && npm run build` green.
+- [x] Все 9 маршрутов из таблицы используют shadcn views.
+- [x] MUI imports удалены из перечисленных components/pages (MUI только в `DateInp` — FE-019).
+- [x] RTL: `LoginForm`, `CreateForm`, `SellerTypeContent` (+ existing SellerTypeContent tests).
+- [x] `e2e/seller-onboarding.spec.js` — 4/4 green.
+- [x] `npm run test && npm run build` green (184 tests).
+
+## Implementation notes (2026-05-27)
+
+- **Views:** `components/seller/onboarding/views/` — 9 presentational components.
+- **Containers:** Formik/API/Redux/nav остаются в `Components/Seller/auth/*`; рендер через `SellerOnboardingLayout`.
+- **Pages:** `FormWrap` убран — layout в container.
+- **SPA nav:** внутренние seller-переходы через callback props (`onSignUpClick`, …) в container + `navigate()` — без `<a href>` и без react-router в views.
+- **Tests:** `LoginForm.test.jsx`, `CreateForm.test.jsx`; `ResizeObserver` polyfill в `test/setup.js`.
+- **e2e:** селекторы без изменений (i18n text + `input[name]`).
 
 ---
 
@@ -76,7 +85,7 @@
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -102,7 +111,7 @@
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -125,7 +134,7 @@
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -144,7 +153,7 @@ npm run test:e2e -- e2e/seller-onboarding.spec.js
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 

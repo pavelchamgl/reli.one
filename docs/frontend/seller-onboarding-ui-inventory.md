@@ -1,6 +1,6 @@
 # Seller Onboarding — UI Migration Inventory
 
-> **Статус:** заполнено в [FE-016](./tasks/016-seller-onboarding-migration-audit/task.md) (2026-05-27).  
+> **Статус:** заполнено в [FE-016](./tasks/016-seller-onboarding-migration-audit/task.md) (2026-05-27).
 > **План:** [shadcn-ui-migration-plan.md](./shadcn-ui-migration-plan.md)
 
 Документ связывает **маршруты**, **файлы**, **API**, **Redux**, **тесты** и **целевые view-компоненты** для миграции onboarding на shadcn/ui.
@@ -25,15 +25,15 @@
 
 | Route | Page file | Main UI (container) | API | Redux | Type | Task | RTL | e2e | FS-001 | Migrated |
 |-------|-----------|---------------------|-----|-------|------|------|-----|-----|--------|----------|
-| `/seller/login` | `sellerPages/SellerLogin/SellerLogin.jsx` | `auth/loginForm/LoginForm` | `auth.login`, `onboarding.getOnboardingStatus` | `authSlice`, `basketSlice` | Mixed | FE-018 | **Gap P0** | FE-010 ✓, FE-015 ✓ | — | No |
-| `/seller/reset` | `sellerPages/SellerReset/SellerReset.jsx` | `auth/resetForm/ResetForm` | `auth.sendOtp`, `auth.passSendOtp` | — | Mixed | FE-018 | Gap P1 | — | — | No |
-| `/seller/successfully-reset` | `sellerPages/SellerSuccessfullyReset/SellerSuccessfullyReset.jsx` | `auth/sellerSuccForm/SellerSuccForm` | — | — | Mixed | FE-018 | Gap P2 | — | — | No |
-| `/seller/verify-email` | `sellerPages/SellerVerifyEmail/SellerVerifyEmail.jsx` | `auth/verifyForm/VerifyForm` | `auth.*` OTP | `authSlice` | Mixed | FE-018 | Gap P1 | — | — | No |
-| `/seller/create-password` | `sellerPages/SellerCreateNewPass/SellerCreateNewPass.jsx` | `auth/createPassForm/CreatePassForm` | `auth.createNewPassApi` | — | Mixed | FE-018 | Gap P1 | — | — | No |
-| `/seller/create-account` | `sellerPages/SellerCreateAccount/SellerCreateAccount.jsx` | `auth/createAccount/createForm/CreateForm` | `auth.register`, `seller/auth.registerSeller` | hook → `selfEmploed` | Mixed | FE-018 | **Gap P0** | FE-010 ✓ | — | No |
-| `/seller/create-verify` | `sellerPages/CreateVerifyEmail/CreateVerifyEmail.jsx` | `auth/createAccount/verifyEmail/VerifyEmail` | `auth.emailConfirm`, `auth.sendOtp` | `authSlice` | Mixed | FE-018 | Gap P1 | — | — | No |
-| `/seller/seller-type` | `sellerPages/SellerTypePage/SellerType.jsx` | `auth/sellerTypeContent/SellerTypeContent` | `postSellerType`, `getOnboardingStatus` | — | Mixed | FE-018 | **FE-003 ✓** | FE-010 ✓ | — | No |
-| `/seller/application-sub` | `sellerPages/ApplicationSubmited/ApplicationSubmited.jsx` | `auth/applicationSubmited/ApplicationSubmited` | `getOnboardingStatus` | — | Mixed | FE-018 | Gap P1 | FE-010 ✓ | — | No |
+| `/seller/login` | `sellerPages/SellerLogin/SellerLogin.jsx` | `auth/loginForm/LoginForm` | `auth.login`, `onboarding.getOnboardingStatus` | `authSlice`, `basketSlice` | Mixed | FE-018 | **FE-018 ✓** | FE-010 ✓, FE-015 ✓ | — | Yes |
+| `/seller/reset` | `sellerPages/SellerReset/SellerReset.jsx` | `auth/resetForm/ResetForm` | `auth.sendOtp`, `auth.passSendOtp` | — | Mixed | FE-018 | Gap P1 | — | — | Yes |
+| `/seller/successfully-reset` | `sellerPages/SellerSuccessfullyReset/SellerSuccessfullyReset.jsx` | `auth/sellerSuccForm/SellerSuccForm` | — | — | Mixed | FE-018 | Gap P2 | — | — | Yes |
+| `/seller/verify-email` | `sellerPages/SellerVerifyEmail/SellerVerifyEmail.jsx` | `auth/verifyForm/VerifyForm` | `auth.*` OTP | `authSlice` | Mixed | FE-018 | Gap P1 | — | — | Yes |
+| `/seller/create-password` | `sellerPages/SellerCreateNewPass/SellerCreateNewPass.jsx` | `auth/createPassForm/CreatePassForm` | `auth.createNewPassApi` | — | Mixed | FE-018 | Gap P1 | — | — | Yes |
+| `/seller/create-account` | `sellerPages/SellerCreateAccount/SellerCreateAccount.jsx` | `auth/createAccount/createForm/CreateForm` | `auth.register`, `seller/auth.registerSeller` | hook → `selfEmploed` | Mixed | FE-018 | **FE-018 ✓** | FE-010 ✓ | — | Yes |
+| `/seller/create-verify` | `sellerPages/CreateVerifyEmail/CreateVerifyEmail.jsx` | `auth/createAccount/verifyEmail/VerifyEmail` | `auth.emailConfirm`, `auth.sendOtp` | `authSlice` | Mixed | FE-018 | Gap P1 | — | — | Yes |
+| `/seller/seller-type` | `sellerPages/SellerTypePage/SellerType.jsx` | `auth/sellerTypeContent/SellerTypeContent` | `postSellerType`, `getOnboardingStatus` | — | Mixed | FE-018 | **FE-003 ✓** | FE-010 ✓ | — | Yes |
+| `/seller/application-sub` | `sellerPages/ApplicationSubmited/ApplicationSubmited.jsx` | `auth/applicationSubmited/ApplicationSubmited` | `getOnboardingStatus` | — | Mixed | FE-018 | Gap P1 | FE-010 ✓ | — | Yes |
 | `/seller/seller-info` | `sellerPages/SellerInformation/SellerInformation.jsx` | personal/tax/address/bank/warehouse/return blocks | `putPersonalData`, `putTax`, `putSelfAddress`, `putOnboardingBank`, `putWarehouse`, `putReturnAddress`, `uploadSingleDocument` | `selfEmploed.selfData` | Mixed | FE-019 | Gap P0 | — | ✓ | No |
 | `/seller/seller-company` | `sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx` | company/rep/address/bank/warehouse/return | `putCompanyInfo`, `putRepresentative`, `putCompanyAddress`, … | `selfEmploed.companyData` | Mixed | FE-019 | Gap P1 | — | ✓ | No |
 | `/seller/seller-review` | `sellerPages/ReviewInfoPage/ReviewInfoPage.jsx` | review/* + submit | `getReviewOnboarding`, `postSubmitOnboarding`, PUT blocks | `selfEmploed` | Mixed | FE-020 | partial API ✓ | — | ✓ | No |
@@ -325,4 +325,4 @@ Backend order (`compute_next_step` in `services_onboarding.py`):
 |------|-----------|
 | 2026-05-27 | Шаблон inventory для FE-016 |
 | 2026-05-27 | `/seller/successfully-reset`; FE-021 grep paths |
-| 2026-05-27 | **FE-017:** layout shell in `components/seller/onboarding/`, `onboardingSteps.js`, RTL smoke |
+| 2026-05-28 | **FE-018:** 9 auth/entry routes → shadcn views + container split, RTL + e2e 4/4 |

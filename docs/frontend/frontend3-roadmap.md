@@ -1,9 +1,9 @@
 # Frontend3 Stabilization Roadmap
 
-**Версия:** май 2026 (после Task 014 audit)  
+**Версия:** май 2026 (после Task 014 audit)
 **Основан на:** [frontend3-audit.md](./frontend3-audit.md), [refactoring-readiness-plan.md](./refactoring-readiness-plan.md), [test-matrix.md](./test-matrix.md)
 
-Детальный агрегатор треков: [docs/roadmap.md](../roadmap.md).  
+Детальный агрегатор треков: [docs/roadmap.md](../roadmap.md).
 Задачи: [docs/frontend/tasks/README.md](./tasks/README.md).
 
 ---
@@ -23,7 +23,7 @@
 
 **Гейт входа:** CI `frontend3` + `e2e_frontend3` зелёные.
 
-**Задача:** [001-auth-and-routing-stabilization](./tasks/001-auth-and-routing-stabilization/task.md) — FE-P0-006 (ProtectedRoute), FE-P0-007 (testApi.js) — **Done**  
+**Задача:** [001-auth-and-routing-stabilization](./tasks/001-auth-and-routing-stabilization/task.md) — FE-P0-006 (ProtectedRoute), FE-P0-007 (testApi.js) — **Done**
 **Задача:** [002-api-layer-hardening](./tasks/002-api-layer-hardening/task.md) — FE-P0-001..005 (API fixes) — **Done**
 
 | PR | Finding | Изменения |
@@ -157,7 +157,7 @@
 | FE-015 | Tailwind + shadcn foundation | Planned |
 | FE-016 | Audit + inventory + test gates | Planned |
 | FE-017 | Layout shell + form primitives | Done |
-| FE-018 | Auth & entry steps (9 routes) | Planned |
+| FE-018 | Auth & entry steps (9 routes) | Done |
 | FE-019 | Data collection (seller-info, seller-company) | Planned |
 | FE-020 | Review, submit, status pages | Planned |
 | FE-021 | Validation + MUI cleanup in onboarding zone | Planned |

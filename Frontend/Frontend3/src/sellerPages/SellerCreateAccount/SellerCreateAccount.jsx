@@ -1,12 +1,7 @@
-import CreateForm from '../../Components/Seller/auth/createAccount/createForm/CreateForm'
-import FormWrap from '../../ui/Seller/auth/formWrap/FormWrap'
+import CreateForm from '../../Components/Seller/auth/createAccount/createForm/CreateForm';
 
 const SellerCreateAccount = () => {
-    return (
-        <FormWrap style={{ height: "100%" }}>
-            <CreateForm />
-        </FormWrap>
-    )
-}
+  return <CreateForm />;
+};
 
-export default SellerCreateAccount
+export default SellerCreateAccount;

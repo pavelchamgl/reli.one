@@ -1,16 +1,7 @@
-import ApplicationSubmitedContent from '../../Components/Seller/auth/applicationSubmited/ApplicationSubmited'
-import FormWrap from '../../ui/Seller/auth/formWrap/FormWrap'
-import { useMediaQuery } from 'react-responsive'
+import ApplicationSubmitedContent from '../../Components/Seller/auth/applicationSubmited/ApplicationSubmited';
 
 const ApplicationSubmited = () => {
-    const isMobile = useMediaQuery({ maxWidth: 500 })
+  return <ApplicationSubmitedContent />;
+};
 
-
-    return (
-        <FormWrap style={{ height: "100%" }}>
-            <ApplicationSubmitedContent />
-        </FormWrap>
-    )
-}
-
-export default ApplicationSubmited
+export default ApplicationSubmited;
