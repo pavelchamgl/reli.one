@@ -1,0 +1,256 @@
+# FE-021 — Seller Onboarding Migration: Validation & MUI Cleanup
+
+**Status:** Done
+**Priority:** P1
+**Phase:** 5 — UI migration
+**Depends on:** FE-020
+**Blocks:** следующая волна (catalog/checkout UI)
+
+## Цель
+
+Закрыть пилот onboarding: **регрессионная валидация**, удаление MUI/SCSS из мигрированной зоны, синхронизация документации.
+
+## Контекст
+
+После FE-018–FE-020 в проекте временно coexist MUI + shadcn. FE-021 — контролируемая зачистка и фиксация результата для следующих волн миграции.
+
+## Scope
+
+- Audit импортов `@mui/*` и SCSS **только в onboarding-зоне** (см. список путей ниже и [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md#onboarding-page-paths-scope-для-fe-021-grep)).
+- Удаление неиспользуемых `*.module.scss` в мигрированной зоне.
+- Bundle check: `npm run build` — сравнить размер seller onboarding chunks (до/после — в PR description).
+- Обновление docs:
+  - [04-frontend-architecture.md](../../../04-frontend-architecture.md) — UI stack note for onboarding
+  - [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md) — статус пилота Done
+  - [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md) — final column «Migrated»
+- Расширение [test-matrix.md](../../test-matrix.md) — финальные статусы UI migration gates.
+- **FS-001 full-stack e2e** (`e2e/fullstack-seller-onboarding.spec.js`): стабилизация UI-тестов (third-party block, API proxy для `.env.local`), включение в regression gate FE-021.
+
+## Не входит в задачу
+
+- Удаление MUI из всего Frontend3 (catalog, checkout, basket).
+- Frontend2 migration.
+- Redux/slice refactor.
+
+## Зависимости
+
+- FE-020 complete.
+- CI: `frontend3`, `e2e_frontend3`, optional `e2e_fullstack`.
+
+## Риски
+
+| Рisk | Mitigation |
+|------|------------|
+| Удалили MUI, но date picker ещё зависит | grep `@mui` before merge |
+| SCSS удалён, но class используется | grep `.module.scss` imports |
+
+## Definition of Done
+
+- [x] `grep -R "@mui" src/Components/Seller/auth` → 0 results (or documented exceptions).
+- [x] `grep -R "@mui"` по **17 onboarding page dirs** из inventory (не весь `sellerPages/`) → 0 (or documented exceptions).
+- [x] All P0 onboarding tests green (matrix + e2e + **FS-001 3/3** when backend contour up).
+- [x] Docs updated (tasks/README, roadmap, shadcn plan, inventory, test-matrix). — Iteration 4
+- [x] Follow-up backlog Wave 2 documented in [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md#wave-2--следующая-волна-не-в-пилоте). — Iteration 4
+- [ ] `04-frontend-architecture.md` UI stack note — optional follow-up (вне scope Iteration 4)
+
+---
+
+# Iterations
+
+## Iteration 0 — FS-001 stabilization (from FE-020 carry-over)
+
+### Действия
+
+1. `e2e/helpers.js` — shared `blockThirdPartyScripts`, `gotoSellerPage`, `proxyToBackend`, `setupSellerOnboardingApi`.
+2. `fullstack-seller-onboarding.spec.js` — third-party block + unified API proxy (reli.one и localhost:8000 build).
+3. `seller-onboarding.spec.js` — импорт из helpers.
+
+```bash
+npm run build
+npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # backend contour required
+```
+
+### Статус
+
+- [x] `e2e/helpers.js` + proxy third-party/API
+- [x] `fullstack-seller-onboarding.spec.js` — **3/3**
+- [x] `seller-onboarding.spec.js` — импорт helpers, **9/9**
+
+---
+
+## Iteration 1 — Import & SCSS audit
+
+### Действия
+
+```bash
+cd Frontend/Frontend3
+
+# Onboarding auth components
+rg "@mui" src/Components/Seller/auth
+
+# Onboarding pages only — NOT NewSellerOrder*, NOT pages/Seller*
+rg "@mui" \
+  src/sellerPages/SellerLogin \
+  src/sellerPages/SellerReset \
+  src/sellerPages/SellerSuccessfullyReset \
+  src/sellerPages/SellerVerifyEmail \
+  src/sellerPages/SellerCreateNewPass \
+  src/sellerPages/SellerTypePage \
+  src/sellerPages/SellerCreateAccount \
+  src/sellerPages/CreateVerifyEmail \
+  src/sellerPages/ApplicationSubmited \
+  src/sellerPages/SellerInformation \
+  src/sellerPages/SellerCompanyInfo \
+  src/sellerPages/ReviewInfoPage \
+  src/sellerPages/SellerReviewCompany \
+  src/sellerPages/FinishVerificationPage \
+  src/sellerPages/ActionRequiredPage \
+  src/sellerPages/UnderReviewPage \
+  src/sellerPages/VerifiedAnalyt
+
+rg "\.module\.scss" src/Components/Seller/auth \
+  src/sellerPages/SellerLogin \
+  src/sellerPages/SellerReset \
+  src/sellerPages/SellerSuccessfullyReset \
+  src/sellerPages/SellerVerifyEmail \
+  src/sellerPages/SellerCreateNewPass \
+  src/sellerPages/SellerTypePage \
+  src/sellerPages/SellerCreateAccount \
+  src/sellerPages/CreateVerifyEmail \
+  src/sellerPages/ApplicationSubmited \
+  src/sellerPages/SellerInformation \
+  src/sellerPages/SellerCompanyInfo \
+  src/sellerPages/ReviewInfoPage \
+  src/sellerPages/SellerReviewCompany \
+  src/sellerPages/FinishVerificationPage \
+  src/sellerPages/ActionRequiredPage \
+  src/sellerPages/UnderReviewPage \
+  src/sellerPages/VerifiedAnalyt
+```
+
+Полный список путей — в [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md#onboarding-page-paths-scope-для-fe-021-grep).
+
+Список exceptions (если есть) → inventory.
+
+### Output
+
+- Checklist в PR.
+- Удалён мёртвый `src/Components/sellerAnalytics/` (24 файла) + orphan SCSS status pages.
+
+### Статус
+
+- [x] `@mui` в `Components/Seller/auth` — **0**
+- [x] `@mui` в 17 onboarding page dirs — **0**
+- [x] SCSS audit — orphan modules removed; `IdentDocumInp` migrated to Tailwind (Iteration 2)
+
+---
+
+## Iteration 2 — Cleanup PRs
+
+### Действия
+
+1. Remove dead SCSS modules.
+2. Remove unused MUI deps **only if** not used elsewhere in Frontend3 (likely keep `@mui/material` for rest of app).
+3. Consolidate duplicate seller onboarding styles into Tailwind utilities.
+
+### Статус
+
+- [x] Удалён мёртвый `auth/review/` (legacy read-only components, 12 файлов)
+- [x] Удалены orphan `*.module.scss` в `Components/Seller/auth` (28 файлов)
+- [x] `IdentDocumInp.jsx` — последний SCSS-import заменён на Tailwind
+- [x] Удалены orphan SCSS в onboarding `sellerPages` (ReviewInfo, SellerReviewCompany, SellerInformation, SellerCompanyInfo)
+- [x] **Не тронуто:** `NewSellerOrder*`, catalog/dashboard/order pages
+- [x] Verification: `npm run test` 197/197, `build` OK, e2e 9/9
+- [x] `rg .module.scss` в onboarding zone: **0 в auth**, только `NewSellerOrder*` в sellerPages
+
+---
+
+## Iteration 3 — Full regression
+
+### Действия
+
+```bash
+npm run lint
+npm run test
+npm run build
+npm run test:e2e -- e2e/seller-onboarding.spec.js
+npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # if backend up
+```
+
+Manual QA script (local/staging):
+
+1. Seller register → seller-type → fill minimal draft → review → submit (test seller).
+2. Rejected flow → action-required → edit → resubmit.
+3. Approved → verified-analyt → link to seller-home.
+
+### Automated regression (2026-05-28)
+
+| Check | Result |
+|-------|--------|
+| `npm run lint` | **0 errors** (629 warnings, pre-existing) |
+| `npm run test` | **197/197** |
+| `npm run build` | **OK** |
+| `e2e/seller-onboarding.spec.js` | **9/9** |
+| `e2e/fullstack-seller-onboarding.spec.js` | **3/3** (backend contour up) |
+| **Total e2e onboarding** | **12/12** |
+
+### Manual QA matrix
+
+| Сценарий | Авто-покрытие | Ручная проверка (staging/local) |
+|----------|---------------|----------------------------------|
+| Register → seller-type → draft → review → submit | FS-001a API chain + FS-001b `application-sub` UI после submit | UI: пройти data steps в браузере, review screen, кнопка Submit → redirect |
+| Rejected → action-required → edit → resubmit | e2e mock `action-required` (CTA visible) | Backend: reject seller в admin → action-required → edit step → resubmit |
+| Approved → verified-analyt → seller-home | e2e mock `verified-analyt` (dashboard CTA) | Backend: approve seller → verified-analyt → «Go to dashboard» → `/seller/goods-choice` |
+
+**Рекомендуемый ручной прогон:**
+
+```text
+1. /seller/create-account → register test seller
+2. /seller/seller-type → self-employed → /seller/seller-info
+3. Заполнить personal/tax/address/bank/warehouse (минимум для submit)
+4. /seller/seller-review → Submit for Verification → /seller/application-sub
+5. (optional admin) reject → /seller/action-required → Fix and resubmit
+6. (optional admin) approve → /seller/verified-analyt → Go to dashboard
+```
+
+### Статус
+
+- [x] Automated regression green
+- [ ] Manual QA на staging — checklist выше (не блокирует merge при green e2e + FS-001)
+
+---
+
+## Iteration 4 — Documentation & handoff
+
+### Действия
+
+1. Mark FE-015…FE-021 Done in [tasks/README.md](../README.md).
+2. Update [frontend3-roadmap.md](../../frontend3-roadmap.md) — Phase 5 closed.
+3. Add «Wave 2» section in [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md).
+4. Finalize [seller-onboarding-ui-inventory.md](../../seller-onboarding-ui-inventory.md) — 17/17 Migrated.
+5. Update [test-matrix.md](../../test-matrix.md) — G-UI-1…G-UI-7 Done.
+
+### Статус
+
+- [x] `tasks/README.md` — FE-015…FE-021 **Done**
+- [x] `frontend3-roadmap.md` — Phase 5 **closed**
+- [x] `shadcn-ui-migration-plan.md` — pilot Done + Wave 2
+- [x] `seller-onboarding-ui-inventory.md` — final inventory
+- [x] `test-matrix.md` — G-UI gates Done
+
+---
+
+## Wave 2 backlog (proposal, не реализовать в FE-021)
+
+| Area | Priority | Rationale |
+|------|----------|-----------|
+| Catalog / Search | P1 | high traffic, lower business risk than payment |
+| Basket | P0 | depends on checkout |
+| Checkout / Payment | P0 | last; max e2e coverage already exists |
+| Seller cabinet (orders/goods) | P2 | after onboarding pattern proven |
+
+## Suggested commit
+
+```
+docs(frontend): complete seller onboarding shadcn migration validation
+```

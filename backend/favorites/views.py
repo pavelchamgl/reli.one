@@ -1,4 +1,3 @@
-from decimal import Decimal
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
@@ -8,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Min, F, ExpressionWrapper, DecimalField
 
 from .models import Favorite
+from product.constants import ACQUIRING_RATE
 from product.models import BaseProduct
 from product.serializers import BaseProductListSerializer
 from product.pagination import StandardResultsSetPagination
@@ -96,13 +96,13 @@ class FavoriteProductListAPIView(ListAPIView):
         user = self.request.user
         sort_by = self.request.query_params.get('sort_by', None)
 
-        # Расчёт min цены с эквайрингом (1.04)
+        # Расчёт min цены с эквайрингом (ACQUIRING_RATE)
         products = BaseProduct.objects.filter(
             favorite__user=user
         ).annotate(
             raw_min_price=Min('variants__price'),
             annotated_min_price_with_acquiring=ExpressionWrapper(
-                F('raw_min_price') * Decimal('1.04'),
+                F('raw_min_price') * ACQUIRING_RATE,
                 output_field=DecimalField(max_digits=10, decimal_places=2)
             )
         ).filter(

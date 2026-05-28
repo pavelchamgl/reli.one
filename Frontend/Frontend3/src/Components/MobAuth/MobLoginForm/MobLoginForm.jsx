@@ -13,6 +13,7 @@ import styles from "./MobLoginForm.module.scss";
 
 import { useSelector, useDispatch } from "react-redux";
 import { updateBasket, syncBasket } from "../../../redux/basketSlice";
+import { setToken } from "../../../redux/authSlice";
 import { useActionPayment } from "../../../hook/useActionPayment";
 import GoogleAuth from "../../Auth/googleAuth/GoogleAuth";
 import FacebookAuth from "../../Auth/facebookAuth/FacebookAuth";
@@ -67,6 +68,7 @@ const MobLoginForm = () => {
         const res = await login(values)
         localStorage.setItem("token", JSON.stringify(res.data));
         localStorage.setItem("email", JSON.stringify(values.email));
+        dispatch(setToken(res.data));
         setIsLoged(true)
 
         dispatch(syncBasket())

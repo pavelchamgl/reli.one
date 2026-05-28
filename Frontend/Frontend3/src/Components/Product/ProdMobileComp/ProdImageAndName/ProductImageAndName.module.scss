@@ -79,8 +79,13 @@
     }
   }
 }
-.basketBtn:hover {
+.basketBtn:hover:not(:disabled) {
   background-color: #06664b;
+}
+
+.basketBtn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
 .deliveryBtn {

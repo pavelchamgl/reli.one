@@ -1,13 +1,7 @@
-import React from 'react'
-import FormWrap from '../../ui/Seller/auth/formWrap/FormWrap'
-import VerifyForm from '../../Components/Seller/auth/verifyForm/VerifyForm'
+import VerifyForm from '../../Components/Seller/auth/verifyForm/VerifyForm';
 
 const SellerVerifyEmail = () => {
-    return (
-        <FormWrap>
-            <VerifyForm />
-        </FormWrap>
-    )
-}
+  return <VerifyForm />;
+};
 
-export default SellerVerifyEmail
+export default SellerVerifyEmail;

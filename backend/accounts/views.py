@@ -8,7 +8,9 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiTypes, 
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
@@ -24,6 +26,10 @@ from .serializers import (
     UserProfileSerializer,
 )
 from .utils import create_and_send_otp
+
+
+class OTPRateThrottle(AnonRateThrottle):
+    scope = 'otp'
 
 
 class UserRegistrationView(APIView):
@@ -255,6 +261,8 @@ class SellerRegistrationView(UserRegistrationView):
 
 
 class SendOTPForEmailVerificationAPIView(APIView):
+    throttle_classes = [OTPRateThrottle]
+
     @extend_schema(
         description="Send OTP for email verification.",
         request=EmailSerializer,
@@ -530,8 +538,12 @@ class CustomLogoutView(APIView):
     def post(self, request):
         refresh_token = request.data.get('refresh_token')
         if refresh_token:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except TokenError:
+                # Token already invalid or expired — logout is still successful.
+                pass
             return Response({"message": "User successfully logged out."})
         else:
             return Response(
@@ -541,6 +553,8 @@ class CustomLogoutView(APIView):
 
 
 class SendOTPForPasswordResetAPIView(APIView):
+    throttle_classes = [OTPRateThrottle]
+
     @extend_schema(
         description="Send OTP to user's email for password reset.",
         request=EmailSerializer,

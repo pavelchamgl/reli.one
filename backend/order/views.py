@@ -3,6 +3,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiRespon
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Order
+from .order_status_names import OrderStatusName
 from .serializers import OrderListSerializer, OrderDetailSerializer
 
 
@@ -47,9 +48,13 @@ class OrderListView(generics.ListAPIView):
         status = self.request.query_params.get('status', 'not_closed')
 
         if status == 'closed':
-            return Order.objects.filter(user=user, order_status__name='Closed').order_by('-order_date')
+            return Order.objects.filter(
+                user=user, order_status__name=OrderStatusName.CLOSED
+            ).order_by('-order_date')
         else:
-            return Order.objects.filter(user=user).exclude(order_status__name='Closed').order_by('-order_date')
+            return Order.objects.filter(user=user).exclude(
+                order_status__name=OrderStatusName.CLOSED
+            ).order_by('-order_date')
 
 
 @extend_schema(

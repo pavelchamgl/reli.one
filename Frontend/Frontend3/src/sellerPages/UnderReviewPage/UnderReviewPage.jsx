@@ -1,21 +1,20 @@
-import RequiredDocuments from "../../Components/sellerAnalytics/RequiredDocuments/RequiredDocuments"
-import UnderInformationWrap from "../../Components/sellerAnalytics/UnderInformationWrap/UnderInformationWrap"
-import UnderReviewBlock from "../../Components/sellerAnalytics/UnderReviewBlock/UnderReviewBlock"
-import WhatNextBlock from "../../Components/sellerAnalytics/WhatNextBlock/WhatNextBlock"
-import styles from "./UnderReviewPage.module.scss"
+import { SellerOnboardingLayout } from '@/components/seller/onboarding';
+import { UnderReviewStatusView } from '@/components/seller/onboarding/views/status';
+import { underReviewStatusDefaults } from '@/features/seller-onboarding/statusPageDefaults';
 
 const UnderReviewPage = () => {
-    return (
-        <div className={styles.pageWrap}>
-            <UnderReviewBlock />
-            <UnderInformationWrap />
-            <RequiredDocuments />
-            <WhatNextBlock />
+  const handleContactSupport = () => {
+    window.open('https://info.reli.one/#contact', '_blank', 'noopener,noreferrer');
+  };
 
-            <p className={styles.updateText}>Last updated: March 18, 2026 at 2:34 PM</p>
+  return (
+    <SellerOnboardingLayout contentClassName="max-w-3xl">
+      <UnderReviewStatusView
+        {...underReviewStatusDefaults}
+        onContactSupport={handleContactSupport}
+      />
+    </SellerOnboardingLayout>
+  );
+};
 
-        </div>
-    )
-}
-
-export default UnderReviewPage
+export default UnderReviewPage;

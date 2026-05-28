@@ -1,0 +1,27 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-weight: 600;
+  font-size: clamp(10px, 2vw, 12px);
+  line-height: 140%;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.in_stock {
+  color: #047857;
+  background: #ecfdf5;
+}
+
+.few_left {
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.out_of_stock {
+  color: #b91c1c;
+  background: #fef2f2;
+}

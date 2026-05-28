@@ -1,6 +1,7 @@
 from rest_framework.permissions import BasePermission
 
 from order.models import OrderProduct
+from order.order_status_names import OrderStatusName
 from product.models import ProductVariant
 from reviews.models import Review
 
@@ -21,11 +22,11 @@ class CanCreateReview(BasePermission):
         except ProductVariant.DoesNotExist:
             return False
 
-        # Проверка, что заказ был выполнен этим пользователем, и заказ находится в статусе 'Closed'
+        # Заказ должен быть в статусе Closed (см. order.order_status_names.OrderStatusName)
         order_products = OrderProduct.objects.filter(
             order__user=user,  # Проверка, что заказ принадлежит пользователю
             product=product_variant,  # Проверка, что продукт в заказе соответствует варианту
-            order__order_status__name='Closed'  # Проверка, что заказ имеет статус 'Closed'
+            order__order_status__name=OrderStatusName.CLOSED
         )
 
         # Если такой заказ найден, разрешить создание отзыва

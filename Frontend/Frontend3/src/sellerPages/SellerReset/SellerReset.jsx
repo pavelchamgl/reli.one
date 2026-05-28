@@ -1,12 +1,7 @@
-import ResetForm from "../../Components/Seller/auth/resetForm/ResetForm"
-import FormWrap from "../../ui/Seller/auth/formWrap/FormWrap"
+import ResetForm from '../../Components/Seller/auth/resetForm/ResetForm';
 
 const SellerReset = () => {
-    return (
-        <FormWrap>
-            <ResetForm />
-        </FormWrap>
-    )
-}
+  return <ResetForm />;
+};
 
-export default SellerReset
+export default SellerReset;

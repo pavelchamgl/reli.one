@@ -1,81 +1,99 @@
+import "./styles/tailwind-shadcn.css";
+import * as Sentry from "@sentry/react";
 import i18n from "../language/i18next.js";
 import { I18nextProvider } from "react-i18next";
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
+
+if (import.meta.env.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: import.meta.env.VITE_SENTRY_DSN,
+    integrations: [Sentry.browserTracingIntegration()],
+    tracesSampleRate: 0.1,
+    beforeSend(event) {
+      // Strip auth tokens from extra data — never send PII to Sentry
+      if (event.extra) {
+        delete event.extra.token;
+        delete event.extra.access_token;
+        delete event.extra.refresh_token;
+      }
+      return event;
+    },
+  });
+}
 import App from "./App.jsx";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { persistor, store } from "./redux/index.js";
-
-import HomePage from "./pages/HomePage.jsx";
-import MainPage from "./pages/MainPage.jsx";
-import SearchPage from "./pages/SearchPage.jsx";
-import ForrSellerPage from "./pages/ForrSellerPage.jsx";
-import ForBuyersPage from "./pages/ForBuyersPage.jsx";
-import LikedPage from "./pages/LikedPage.jsx";
-import MyOrdersPage from "./pages/MyOrdersPage.jsx";
-import Test from "./pages/Test.jsx";
-import ProductPage from "./pages/ProductPage.jsx";
-import BasketPage from "./pages/BasketPage.jsx";
-import PaymentPage from "./pages/PaymentPage.jsx";
-import PaymentEnd from "./pages/PaymentEnd.jsx";
-import ChangePassPage from "./pages/ChangePassPage.jsx";
-import SignUpPage from "./pages/SignUpPage.jsx";
-import EmailConfirmPage from "./pages/EmailConfirmPage.jsx";
-import MobProdResenzePage from "./pages/MobProdResenzePage.jsx";
-import MobCreateResenze from "./pages/MobCreateResenze.jsx";
-import MobLoginPage from "./pages/MobLoginPage.jsx";
-import MobProfileNavPage from "./pages/MobProfileNavPage.jsx";
-import MobCategoryPage from "./pages/MobCategoryPage.jsx";
-import OtpConfirmPage from "./pages/OtpConfirmPage.jsx";
-import CategoryPage from "./pages/CategoryPage.jsx";
-import PassEmailConfirmPage from "./pages/PassEmailConfirmPage.jsx";
-import OtpPassConfirmPage from "./pages/OtpPassConf.jsx";
-import CreateNewPass from "./pages/CreateNewPass.jsx";
-import RegRulesPage from "./pages/RegRulesPage.jsx";
-
-import SellerGoodPage from "./pages/SellerGoodPage.jsx";
-import SellerGoodsList from "./pages/SellerGoodsList.jsx";
-import SellerHomePage from "./pages/SellerHomePage.jsx";
-import SellerOrdersPage from "./pages/SellerOrdersPage.jsx";
-import SellerCreatePage from "./pages/SellerCreatePage.jsx";
-import SellerPreviewPage from "./pages/SellerPreviewPage.jsx";
-import SellerPage from "./pages/SellerPage.jsx";
-import EditGoodsPage from "./pages/EditGoodsPage.jsx";
-import SellerEditPreview from "./pages/SellerEditPreview.jsx";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import TermsPage from "./pages/TermsPage.jsx";
-import DeleteMyDataPage from "./pages/DeleteMyDataPage.jsx";
-import SellerIdPage from "./pages/SellerIdPage.jsx";
-import GeneralDataProtection from "./pages/GeneralDataProtection.jsx";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
-import CookiePolicy from "./pages/CookiePolicy.jsx";
-import NewSellerOrder from "./sellerPages/NewSellerOrder/NewSellerOrder.jsx";
-import NewSellerOrderDetal from "./sellerPages/NewSellerOrderDetal/NewSellerOrderDetal.jsx";
-import SellerLogin from "./sellerPages/SellerLogin/SellerLogin.jsx";
-import SellerReset from "./sellerPages/SellerReset/SellerReset.jsx";
-import SellerSuccessfullyReset from "./sellerPages/SellerSuccessfullyReset/SellerSuccessfullyReset.jsx";
-import SellerVerifyEmail from "./sellerPages/SellerVerifyEmail/SellerVerifyEmail.jsx";
-import SellerCreateNewPass from "./sellerPages/SellerCreateNewPass/SellerCreateNewPass.jsx";
-import SellerType from "./sellerPages/SellerTypePage/SellerType.jsx";
-import SellerCreateAccount from "./sellerPages/SellerCreateAccount/SellerCreateAccount.jsx";
-import CreateVerifyEmail from "./sellerPages/CreateVerifyEmail/CreateVerifyEmail.jsx";
-import ApplicationSubmited from "./sellerPages/ApplicationSubmited/ApplicationSubmited.jsx";
-import SellerInformation from "./sellerPages/SellerInformation/SellerInformation.jsx";
-import ReviewInfoPage from "./sellerPages/ReviewInfoPage/ReviewInfoPage.jsx";
-import ContactPage from "./pages/ContactPage.jsx";
-import SellerCompanyInfo from "./sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx";
-import SellerReviewCompany from "./sellerPages/SellerReviewCompany/SellerReviewCompany.jsx";
-import NewSellerPage from "./pages/NewSellerPage.jsx";
-import ClaimsAndRightsPage from "./pages/ClaimsAndRightsPage.jsx";
-import Withdrawal from "./pages/Withdrawal.jsx";
-import ContactReturnPage from "./pages/ContactReturnPage.jsx";
-import NewTermsPage from "./pages/NewTermsPage.jsx";
-import FinishVerificationPage from "./sellerPages/FinishVerificationPage/FinishVerificationPage.jsx";
-import ActionRequiredPage from "./sellerPages/ActionRequiredPage/ActionRequiredPage.jsx";
-import UnderReviewPage from "./sellerPages/UnderReviewPage/UnderReviewPage.jsx";
-import VerifiedAnalyt from "./sellerPages/VerifiedAnalyt/VerifiedAnalyt.jsx";
+import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute.jsx";
+
+const HomePage = lazy(() => import("./pages/HomePage.jsx"));
+const MainPage = lazy(() => import("./pages/MainPage.jsx"));
+const SearchPage = lazy(() => import("./pages/SearchPage.jsx"));
+const ForrSellerPage = lazy(() => import("./pages/ForrSellerPage.jsx"));
+const ForBuyersPage = lazy(() => import("./pages/ForBuyersPage.jsx"));
+const LikedPage = lazy(() => import("./pages/LikedPage.jsx"));
+const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage.jsx"));
+const ProductPage = lazy(() => import("./pages/ProductPage.jsx"));
+const BasketPage = lazy(() => import("./pages/BasketPage.jsx"));
+const PaymentPage = lazy(() => import("./pages/PaymentPage.jsx"));
+const PaymentEnd = lazy(() => import("./pages/PaymentEnd.jsx"));
+const ChangePassPage = lazy(() => import("./pages/ChangePassPage.jsx"));
+const SignUpPage = lazy(() => import("./pages/SignUpPage.jsx"));
+const EmailConfirmPage = lazy(() => import("./pages/EmailConfirmPage.jsx"));
+const MobProdResenzePage = lazy(() => import("./pages/MobProdResenzePage.jsx"));
+const MobCreateResenze = lazy(() => import("./pages/MobCreateResenze.jsx"));
+const MobLoginPage = lazy(() => import("./pages/MobLoginPage.jsx"));
+const MobProfileNavPage = lazy(() => import("./pages/MobProfileNavPage.jsx"));
+const MobCategoryPage = lazy(() => import("./pages/MobCategoryPage.jsx"));
+const OtpConfirmPage = lazy(() => import("./pages/OtpConfirmPage.jsx"));
+const CategoryPage = lazy(() => import("./pages/CategoryPage.jsx"));
+const PassEmailConfirmPage = lazy(() => import("./pages/PassEmailConfirmPage.jsx"));
+const OtpPassConfirmPage = lazy(() => import("./pages/OtpPassConf.jsx"));
+const CreateNewPass = lazy(() => import("./pages/CreateNewPass.jsx"));
+const RegRulesPage = lazy(() => import("./pages/RegRulesPage.jsx"));
+const SellerGoodPage = lazy(() => import("./pages/SellerGoodPage.jsx"));
+const SellerGoodsList = lazy(() => import("./pages/SellerGoodsList.jsx"));
+const SellerHomePage = lazy(() => import("./pages/SellerHomePage.jsx"));
+const SellerOrdersPage = lazy(() => import("./pages/SellerOrdersPage.jsx"));
+const SellerCreatePage = lazy(() => import("./pages/SellerCreatePage.jsx"));
+const SellerPreviewPage = lazy(() => import("./pages/SellerPreviewPage.jsx"));
+const SellerPage = lazy(() => import("./pages/SellerPage.jsx"));
+const EditGoodsPage = lazy(() => import("./pages/EditGoodsPage.jsx"));
+const SellerEditPreview = lazy(() => import("./pages/SellerEditPreview.jsx"));
+const TermsPage = lazy(() => import("./pages/TermsPage.jsx"));
+const DeleteMyDataPage = lazy(() => import("./pages/DeleteMyDataPage.jsx"));
+const SellerIdPage = lazy(() => import("./pages/SellerIdPage.jsx"));
+const GeneralDataProtection = lazy(() => import("./pages/GeneralDataProtection.jsx"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage.jsx"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy.jsx"));
+const NewSellerOrder = lazy(() => import("./sellerPages/NewSellerOrder/NewSellerOrder.jsx"));
+const NewSellerOrderDetal = lazy(() => import("./sellerPages/NewSellerOrderDetal/NewSellerOrderDetal.jsx"));
+const SellerLogin = lazy(() => import("./sellerPages/SellerLogin/SellerLogin.jsx"));
+const SellerReset = lazy(() => import("./sellerPages/SellerReset/SellerReset.jsx"));
+const SellerSuccessfullyReset = lazy(() => import("./sellerPages/SellerSuccessfullyReset/SellerSuccessfullyReset.jsx"));
+const SellerVerifyEmail = lazy(() => import("./sellerPages/SellerVerifyEmail/SellerVerifyEmail.jsx"));
+const SellerCreateNewPass = lazy(() => import("./sellerPages/SellerCreateNewPass/SellerCreateNewPass.jsx"));
+const SellerType = lazy(() => import("./sellerPages/SellerTypePage/SellerType.jsx"));
+const SellerCreateAccount = lazy(() => import("./sellerPages/SellerCreateAccount/SellerCreateAccount.jsx"));
+const CreateVerifyEmail = lazy(() => import("./sellerPages/CreateVerifyEmail/CreateVerifyEmail.jsx"));
+const ApplicationSubmited = lazy(() => import("./sellerPages/ApplicationSubmited/ApplicationSubmited.jsx"));
+const SellerInformation = lazy(() => import("./sellerPages/SellerInformation/SellerInformation.jsx"));
+const ReviewInfoPage = lazy(() => import("./sellerPages/ReviewInfoPage/ReviewInfoPage.jsx"));
+const ContactPage = lazy(() => import("./pages/ContactPage.jsx"));
+const SellerCompanyInfo = lazy(() => import("./sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx"));
+const SellerReviewCompany = lazy(() => import("./sellerPages/SellerReviewCompany/SellerReviewCompany.jsx"));
+const NewSellerPage = lazy(() => import("./pages/NewSellerPage.jsx"));
+const ClaimsAndRightsPage = lazy(() => import("./pages/ClaimsAndRightsPage.jsx"));
+const Withdrawal = lazy(() => import("./pages/Withdrawal.jsx"));
+const ContactReturnPage = lazy(() => import("./pages/ContactReturnPage.jsx"));
+const NewTermsPage = lazy(() => import("./pages/NewTermsPage.jsx"));
+const FinishVerificationPage = lazy(() => import("./sellerPages/FinishVerificationPage/FinishVerificationPage.jsx"));
+const ActionRequiredPage = lazy(() => import("./sellerPages/ActionRequiredPage/ActionRequiredPage.jsx"));
+const UnderReviewPage = lazy(() => import("./sellerPages/UnderReviewPage/UnderReviewPage.jsx"));
+const VerifiedAnalyt = lazy(() => import("./sellerPages/VerifiedAnalyt/VerifiedAnalyt.jsx"));
 
 const router = createBrowserRouter([
   {
@@ -160,10 +178,6 @@ const router = createBrowserRouter([
     element: <BasketPage />,
   },
   {
-    path: "/test",
-    element: <Test />,
-  },
-  {
     path: "/payment",
     element: <PaymentPage />,
   },
@@ -176,48 +190,48 @@ const router = createBrowserRouter([
     element: <SellerPage />,
     children: [
       {
-        path: "goods-choice", // Уберите начальный слэш
-        element: <SellerGoodPage />,
+        path: "goods-choice",
+        element: <ProtectedRoute><SellerGoodPage /></ProtectedRoute>,
       },
       {
         path: "goods-list",
-        element: <SellerGoodsList />,
+        element: <ProtectedRoute><SellerGoodsList /></ProtectedRoute>,
       },
       {
         path: "seller-home",
-        element: <SellerHomePage />,
+        element: <ProtectedRoute><SellerHomePage /></ProtectedRoute>,
       },
       {
         path: "seller-orders",
-        element: <SellerOrdersPage />,
+        element: <ProtectedRoute><SellerOrdersPage /></ProtectedRoute>,
       },
       {
         path: "seller-order",
-        element: <NewSellerOrder />
+        element: <ProtectedRoute><NewSellerOrder /></ProtectedRoute>,
       },
       {
         path: "seller-order-detal/:id",
-        element: <NewSellerOrderDetal />
+        element: <ProtectedRoute><NewSellerOrderDetal /></ProtectedRoute>,
       },
       {
         path: "seller-create",
-        element: <SellerCreatePage />,
+        element: <ProtectedRoute><SellerCreatePage /></ProtectedRoute>,
       },
       {
         path: "seller-preview",
-        element: <SellerPreviewPage />,
+        element: <ProtectedRoute><SellerPreviewPage /></ProtectedRoute>,
       },
       {
         path: "seller-preview/:id",
-        element: <SellerPreviewPage />,
+        element: <ProtectedRoute><SellerPreviewPage /></ProtectedRoute>,
       },
       {
         path: "seller-edit/:id",
-        element: <EditGoodsPage />
+        element: <ProtectedRoute><EditGoodsPage /></ProtectedRoute>,
       },
       {
         path: "edit-preview/:id",
-        element: <SellerEditPreview />
+        element: <ProtectedRoute><SellerEditPreview /></ProtectedRoute>,
       },
       {
         path: "login",
@@ -297,14 +311,16 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <GoogleOAuthProvider clientId='974091491236-ugkti9gk7vado9hn0k6acutbfhv86d8f.apps.googleusercontent.com'>
+  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <I18nextProvider i18n={i18n}>
           <React.StrictMode>
-            <RouterProvider router={router}>
-              <App />
-            </RouterProvider>
+            <Suspense fallback={null}>
+              <RouterProvider router={router}>
+                <App />
+              </RouterProvider>
+            </Suspense>
           </React.StrictMode>
         </I18nextProvider>
       </PersistGate>

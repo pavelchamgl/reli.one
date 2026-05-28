@@ -8,8 +8,6 @@ export const getOrdersByFilters = createAsyncThunk(
     async (_, { getState }) => {
         try {
             const state = getState().newOrder
-            console.log(state);
-
             const res = await mainInstance.get(`sellers/orders/?courier_service=${state.couriers}&date_from=${state.date_from}&date_to=${state.date_to}&delivery_type=${state.delivery_type}&search=${state.search}&status=${state.status}`)
             return res
         } catch (error) {
@@ -90,8 +88,6 @@ const newOrderSlice = createSlice({
         }),
             build.addCase(getOrdersByFilters.fulfilled, (state, action) => {
                 state.queryStatus = "fulfilled",
-                    console.log(action.payload);
-
                 state.data = action.payload.data.results
             }),
             build.addCase(getOrdersByFilters.rejected, (state, action) => {

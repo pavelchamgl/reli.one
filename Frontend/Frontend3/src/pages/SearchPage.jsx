@@ -23,7 +23,7 @@ const SearchPage = () => {
   const { products = [], categories = [] } = useSelector(
     (state) => state.products.searchResult
   );
-  const { count } = useSelector((state) => state.products);
+  const { count, searchStatus } = useSelector((state) => state.products);
 
   const isMobile = useMediaQuery({ maxWidth: 426 });
   const location = useLocation();
@@ -99,7 +99,9 @@ const SearchPage = () => {
           />
         )}
         <div className={styles.productDiv}>
-          {products && products.length > 0 ? (
+          {searchStatus === "loading" ? (
+            <div data-testid="search-loading" />
+          ) : products && products.length > 0 ? (
             products.map((item) => <ProductCard data={item} key={item.id} />)
           ) : (
             <NoContentText />

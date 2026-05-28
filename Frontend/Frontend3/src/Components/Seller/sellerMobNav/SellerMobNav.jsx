@@ -15,13 +15,15 @@ import styles from "./SellereMobNav.module.scss";
 import { logout } from "../../../api/auth";
 import { getOnboardingStatus } from "../../../api/seller/onboarding";
 import { ErrToast } from "../../../ui/Toastify";
+import { useDispatch } from "react-redux";
+import { clearToken } from "../../../redux/authSlice";
 
 const SellerMobNav = () => {
   const [showButton, setShowButton] = useState(false);
   const [lastScrollTop, setLastScrollTop] = useState(0);
   const [open, setOpen] = useState(false);
 
-
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -79,6 +81,7 @@ const SellerMobNav = () => {
     logout({ refresh_token: token?.refresh }).then((res) => {
       localStorage.removeItem("token");
       localStorage.removeItem("email");
+      dispatch(clearToken());
       window.location.reload();
     });
     navigate("/seller/login")

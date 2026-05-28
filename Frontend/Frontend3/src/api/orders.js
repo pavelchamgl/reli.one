@@ -12,7 +12,7 @@ export const getOrders = async () => {
 
 export const getOrdersCurrent = async () => {
     try {
-        const res = await mainInstance.get("/orders/?status=not_closed ")
+        const res = await mainInstance.get("/orders/?status=not_closed")
         return res
     } catch (error) {
         throw error
@@ -21,7 +21,7 @@ export const getOrdersCurrent = async () => {
 
 export const getDetalOrders = async (id) => {
     try {
-        const res = await mainInstance.get(`/orders/${id}/?pk=16`)
+        const res = await mainInstance.get(`/orders/${id}/`)
         return res
     } catch (error) {
         throw error

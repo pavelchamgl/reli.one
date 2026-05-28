@@ -1,0 +1,31 @@
+---
+description: Core project rules for reli.one
+alwaysApply: true
+---
+
+# Core project rules
+
+This is the reli.one marketplace project.
+
+Backend:
+- Django / Django REST Framework
+- Main apps: accounts, product, order, payment, delivery, sellers, favorites, reviews, promocode, analytics, reports, warehouses
+
+Frontend:
+- React / Vite
+- Frontend folders: Frontend/Frontend2 and Frontend/Frontend3
+
+General rules:
+- Never change business behavior without explicitly explaining it.
+- Never change public API request/response contracts unless the task explicitly asks for it.
+- Never modify database models or migrations without a migration plan.
+- Never hardcode secrets, tokens, passwords, keys, certificates, or private URLs.
+- Before refactoring, identify current behavior and risk areas.
+- Prefer small, reviewable changes.
+- For risky areas, add or update tests before refactoring.
+- Keep documentation in docs/ updated when architecture or business logic changes.
+
+Critical domains:
+- order/payment/delivery flows are business-critical.
+- seller onboarding is business-critical.
+- product catalog and variants are business-critical.

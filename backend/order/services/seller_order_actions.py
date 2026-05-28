@@ -10,10 +10,11 @@ from delivery.models import DeliveryParcel
 from order.models import (
     Order,
     OrderEvent,
+    OrderProduct,
     OrderStatus,
     ProductStatus,
-    OrderProduct,
 )
+from order.order_status_names import OrderStatusName
 from order.permissions_seller import get_seller_profile_for_user
 from order.services.seller_order_detail import SellerOrderDetailService
 
@@ -25,11 +26,11 @@ class ActionResult:
 
 
 class SellerOrderActionsService:
-    STATUS_PENDING = "Pending"
-    STATUS_PROCESSING = "Processing"
-    STATUS_SHIPPED = "Shipped"
-    STATUS_DELIVERED = "Delivered"
-    STATUS_CANCELLED = "Cancelled"
+    STATUS_PENDING = OrderStatusName.PENDING
+    STATUS_PROCESSING = OrderStatusName.PROCESSING
+    STATUS_SHIPPED = OrderStatusName.SHIPPED
+    STATUS_DELIVERED = OrderStatusName.DELIVERED
+    STATUS_CANCELLED = OrderStatusName.CANCELLED
 
     @staticmethod
     def _get_status(name: str) -> OrderStatus:

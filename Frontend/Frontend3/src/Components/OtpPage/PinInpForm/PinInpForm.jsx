@@ -8,6 +8,7 @@ import styles from "./PinInpForm.module.scss";
 import { sendOtp, emailConfirm, register } from "../../../api/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { syncBasket } from "../../../redux/basketSlice";
+import { setToken } from "../../../redux/authSlice";
 import { useActionPayment } from "../../../hook/useActionPayment";
 
 const PinInpForm = () => {
@@ -55,6 +56,7 @@ const PinInpForm = () => {
       setRegErr("");
       localStorage.setItem("is_registered", JSON.stringify(true));
       localStorage.setItem("token", JSON.stringify(res.data));
+      dispatch(setToken(res.data));
       setIsLoged(true); // Устанавливаем isLogged в true после успешной регистрации
       dispatch(syncBasket()); // Синхронизация корзины после успешного логина
 

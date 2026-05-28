@@ -1,0 +1,13 @@
+---
+description: Git workflow rules
+alwaysApply: true
+---
+
+# Git workflow rules
+
+- Work in small, reviewable changes.
+- Before changing code, explain the planned files.
+- After changing code, summarize changed files and behavior.
+- Use short commit messages.
+- Do not mix unrelated refactors in one change.
+- Do not modify generated files unless required.

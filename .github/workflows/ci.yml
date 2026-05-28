@@ -1,0 +1,203 @@
+# Простой CI: backend (pip, миграции, тесты) и фронты (npm ci, lint, build).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      # Без DB_* в настройках включается SQLite (:memory: / файл при migrate).
+      SECRET_KEY: ci-secret-key-github-actions-only
+      DEBUG: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify no missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations
+        run: python manage.py migrate --noinput
+
+      - name: Run tests (Django runner)
+        run: python manage.py test
+
+      - name: Run tests (pytest)
+        run: pytest
+
+  frontend2:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend/Frontend2
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: Frontend/Frontend2/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Test
+        run: npm run test --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+  frontend3:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend/Frontend3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: Frontend/Frontend3/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      - name: Test
+        run: npm run test --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+  e2e_frontend3:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Frontend/Frontend3
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: Frontend/Frontend3/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E smoke
+        run: npm run test:e2e --if-present
+
+  e2e_fullstack:
+    runs-on: ubuntu-latest
+    env:
+      CI: "true"
+      FULLSTACK_BACKEND_URL: http://localhost:8000
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare e2e env files
+        run: |
+          cp envs/database.e2e.env.example envs/database.e2e.env
+          cp envs/backend.e2e.env.example envs/backend.e2e.env
+
+      - name: Start e2e Docker contour
+        run: docker compose -f docker-compose.e2e.yml up -d --build
+
+      - name: Wait for backend health
+        run: |
+          echo "Waiting for ${FULLSTACK_BACKEND_URL}/health/"
+          for i in $(seq 1 60); do
+            if curl -sf "${FULLSTACK_BACKEND_URL}/health/"; then
+              echo "Backend is healthy (attempt ${i})"
+              exit 0
+            fi
+            echo "Attempt ${i}/60 — backend not ready, sleeping 5s"
+            sleep 5
+          done
+          echo "Backend failed to become healthy within 5 minutes"
+          docker compose -f docker-compose.e2e.yml logs backend_e2e
+          exit 1
+
+      - name: Load e2e catalog fixture
+        run: |
+          docker compose -f docker-compose.e2e.yml exec -T backend_e2e \
+            python manage.py loaddata product/fixtures/e2e_categories.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: Frontend/Frontend3/package-lock.json
+
+      - name: Use pinned npm
+        run: npm install -g npm@10.8.2
+
+      - name: Install frontend dependencies
+        working-directory: Frontend/Frontend3
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: Frontend/Frontend3
+        run: npm run build
+
+      - name: Install Playwright Chromium
+        working-directory: Frontend/Frontend3
+        run: npx playwright install --with-deps chromium
+
+      - name: Full-stack E2E (FS-001, FS-002, FS-003)
+        working-directory: Frontend/Frontend3
+        run: |
+          npx playwright test \
+            e2e/fullstack-seller-onboarding.spec.js \
+            e2e/fullstack-checkout-payment-session.spec.js \
+            e2e/fullstack-payment-confirmation.spec.js \
+            --reporter=list
+
+      - name: Stop e2e Docker contour
+        if: always()
+        run: docker compose -f docker-compose.e2e.yml down -v

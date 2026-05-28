@@ -16,6 +16,9 @@ import minusIcon from "../../../assets/Basket/minusIcon.svg";
 
 import styles from "./BasketCard.module.scss";
 import { getProductById } from "../../../api/productsApi";
+import StockBadge from "../../Product/StockBadge/StockBadge";
+import { isItemAvailable } from "../../../utils/stockAvailability";
+import { useTranslation } from "react-i18next";
 
 const BasketCard = ({ all, section, productData }) => {
 
@@ -25,10 +28,12 @@ const BasketCard = ({ all, section, productData }) => {
     productData ? productData.is_favorite : false
   );
   const [variants, setVariants] = useState({});
+  const [isVariantOos, setIsVariantOos] = useState(false);
 
   const { product } = productData;
 
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { plusCardCount, minusCardCount, updateProductPrice } = useActions();
 
@@ -105,33 +110,56 @@ const BasketCard = ({ all, section, productData }) => {
   }, [product?.variants, productData.sku, productData]);
 
   useEffect(() => {
-    if (productData) {
-      getProductById(productData?.id).then((res) => {
-        if (res.status === 200) {
-          const data = res.data
-          const variant = data?.variants?.find(item => item?.sku === productData?.sku)
-          if (variant && variant?.price !== product?.price) {
-            updateProductPrice({
-              data: data,
-              sku: productData?.sku,
-              price: variant?.price
-            })
-          } else {
+    if (!productData?.id) return;
 
-          }
+    getProductById(productData.id).then((res) => {
+      if (res.status !== 200) return;
+
+      const data = res.data;
+      const variant = data?.variants?.find(
+        (item) => item?.sku === productData?.sku
+      );
+
+      if (!variant) return;
+
+      if (variant.price !== product?.price) {
+        updateProductPrice({
+          data,
+          sku: productData.sku,
+          price: variant.price,
+        });
+      }
+
+      const oos =
+        typeof variant.is_available === "boolean"
+          ? !variant.is_available
+          : variant.stock_status === "out_of_stock";
+
+      if (oos) {
+        setIsVariantOos(true);
+        if (productData.selected) {
+          dispatch(selectProduct({ sku: productData.sku, selected: false }));
+          setCheckboxValue(false);
         }
-      })
-    }
-  }, [productData])
+      }
+    });
+  }, [productData?.id, productData?.sku]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className={styles.main} style={section === "payment" ? { width: "100%" } : {}}>
+    <div
+      className={styles.main}
+      style={{
+        ...(section === "payment" ? { width: "100%" } : {}),
+        ...(isVariantOos ? { opacity: 0.6 } : {}),
+      }}
+    >
       {section === "basket" && (
         <div className={styles.cardChecked}>
           <Checkbox
             checked={checkboxValue}
             onChange={handleCheckboxChange}
             color="success"
+            disabled={isVariantOos}
           />
         </div>
       )}
@@ -155,7 +183,6 @@ const BasketCard = ({ all, section, productData }) => {
             >
               <p>
                 {product?.name}
-                {/* Если изображения нет, добавляем текст варианта в скобках */}
                 {!variants.image && variants.text ? (
                   <p className={styles.descText}>
                     <span>{variants?.name + ":"}</span>
@@ -163,21 +190,22 @@ const BasketCard = ({ all, section, productData }) => {
                   </p>
                 ) : null}
               </p>
+              {isVariantOos && (
+                <StockBadge stockStatus="out_of_stock" />
+              )}
             </div>
             <div className={styles.countDiv}>
-              <button onClick={handleMinus}>
+              <button onClick={handleMinus} disabled={isVariantOos}>
                 <img src={minusIcon} alt="" />
               </button>
               <p>{count}</p>
-              <button onClick={handlePlus}>
+              <button onClick={handlePlus} disabled={isVariantOos}>
                 <img src={plusIcon} alt="" />
               </button>
             </div>
             <div className={styles.priceDiv}>
               <p>
-                {
-                  ((Number(variants?.price) || Number(product?.price) || 0) * count).toFixed(2)
-                }
+                {((Number(variants?.price) || Number(product?.price) || 0) * count).toFixed(2)}
                 €
               </p>
             </div>
@@ -188,7 +216,6 @@ const BasketCard = ({ all, section, productData }) => {
           <div className={styles.imageTextWrap}>
             <img
               className={styles.img}
-              // Если у варианта есть изображение, отображаем его
               src={
                 variants.image
                   ? variants.image
@@ -199,7 +226,6 @@ const BasketCard = ({ all, section, productData }) => {
             <div className={styles.textDiv}>
               <h3 onClick={() => navigate(`/product/${product?.id}`)}>
                 {product?.name}
-                {/* Если изображения нет, добавляем текст варианта в скобках */}
               </h3>
               {!variants.image && variants.text ? (
                 <p className={styles.descText}>
@@ -207,13 +233,16 @@ const BasketCard = ({ all, section, productData }) => {
                   {variants?.text}
                 </p>
               ) : null}
+              {isVariantOos && (
+                <StockBadge stockStatus="out_of_stock" />
+              )}
             </div>
           </div>
 
           <div className={styles.countDiv}>
-            <button onClick={handleMinus}>-</button>
+            <button onClick={handleMinus} disabled={isVariantOos}>-</button>
             <p>{count}</p>
-            <button onClick={handlePlus}>+</button>
+            <button onClick={handlePlus} disabled={isVariantOos}>+</button>
           </div>
 
           <div className={styles.priceDiv}>

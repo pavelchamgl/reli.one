@@ -162,7 +162,7 @@ const PaymentPlataBlock = ({ section, setSection }) => {
         </label>
 
       </div>
-      {error && <p className={styles.errText}>{error}</p>}
+      {error && <p className={styles.errText}>{t(error, { defaultValue: error })}</p>}
       <div className={styles.buttonDiv}>
         <button onClick={returnBtn}>
           <img src={arrLeft} alt="" />
