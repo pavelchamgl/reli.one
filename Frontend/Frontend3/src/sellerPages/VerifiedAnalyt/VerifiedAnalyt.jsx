@@ -1,24 +1,28 @@
-import NextSteps from "../../Components/sellerAnalytics/NextSteps/NextSteps"
-import SellerAgreement from "../../Components/sellerAnalytics/SellerAgreement/SellerAgreement"
-import VerifiedBenefits from "../../Components/sellerAnalytics/VerifiedBenefits/VerifiedBenefits"
-import VerifiedDocuments from "../../Components/sellerAnalytics/VerifiedDocuments/VerifiedDocuments"
-import YourVerifiedBlock from "../../Components/sellerAnalytics/YourVerifiedBlock/YourVerifiedBlock"
-import styles from "./VerifiedAnalyt.module.scss"
+import { useNavigate } from 'react-router-dom';
+
+import { SellerOnboardingLayout } from '@/components/seller/onboarding';
+import { VerifiedSellerStatusView } from '@/components/seller/onboarding/views/status';
+import { verifiedSellerStatusDefaults } from '@/features/seller-onboarding/statusPageDefaults';
 
 const VerifiedAnalyt = () => {
-    return (
-        <div className={styles.pageWrap}>
-            <YourVerifiedBlock />
-            <SellerAgreement />
-            <NextSteps />
-            <VerifiedBenefits />
-            <VerifiedDocuments />
+  const navigate = useNavigate();
 
-            <p className={styles.updateText}>Last updated: March 18, 2026 at 2:34 PM</p>
+  const nextSteps = verifiedSellerStatusDefaults.nextSteps.map((step) => {
+    if (step.id === 'dashboard') {
+      return {
+        ...step,
+        onAction: () => navigate('/seller/goods-choice'),
+      };
+    }
 
+    return step;
+  });
 
-        </div>
-    )
-}
+  return (
+    <SellerOnboardingLayout contentClassName="max-w-3xl">
+      <VerifiedSellerStatusView {...verifiedSellerStatusDefaults} nextSteps={nextSteps} />
+    </SellerOnboardingLayout>
+  );
+};
 
-export default VerifiedAnalyt
+export default VerifiedAnalyt;

@@ -1,6 +1,6 @@
 # FE-020 — Seller Onboarding: Review, Submit & Status UI
 
-**Status:** In progress
+**Status:** Done
 **Priority:** P0
 **Phase:** 5 — UI migration
 **Depends on:** FE-019
@@ -54,7 +54,7 @@ Review — точка, где пользователь видит агрегир
 - [x] Review pages render all sections from API review response (mocked RTL). — OSVČ `ReviewInfoPage` + `ReviewSectionCard` RTL
 - [ ] Submit success → navigates as before (e2e or manual script).
 - [x] Submit failure → completeness/errors visible (RTL).
-- [ ] Status pages migrated; icons/badges via shadcn Badge/Alert.
+- [ ] Status pages migrated; icons/badges via shadcn Badge/Alert. — ✓ 4 status routes on shadcn views
 - [ ] `e2e/seller-onboarding.spec.js` + FS-001 green.
 - [ ] No MUI in review/status components.
 
@@ -126,7 +126,7 @@ Review — точка, где пользователь видит агрегир
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -156,7 +156,7 @@ npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # if backend availa
 | 20.1 | Review views + OSVČ page | ✓ |
 | 20.2 | Company review page | ✓ |
 | 20.3 | Submit error handling polish + RTL | ✓ |
-| 20.4 | Status pages bundle |
+| 20.4 | Status pages bundle | ✓ |
 
 ## Agent prompt (submit — critical)
 

@@ -9,3 +9,4 @@ export { CreateVerifyEmailView } from './CreateVerifyEmailView';
 export { SellerSuccessfullyResetView } from './SellerSuccessfullyResetView';
 export * from './data';
 export * from './review';
+export * from './status';
