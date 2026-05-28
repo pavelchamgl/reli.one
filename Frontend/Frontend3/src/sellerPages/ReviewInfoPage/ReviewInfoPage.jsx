@@ -29,6 +29,10 @@ import { validationSchemaSelf } from '../../code/seller/validation';
 import { toISODate } from '../../code/seller';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
 import {
+  formatOnboardingRequestError,
+  parseOnboardingApiErrors,
+} from '@/features/seller-onboarding/parseOnboardingApiErrors';
+import {
   mapSelfEmployedReviewSections,
   SELF_EMPLOYED_REVIEW_SECTION_IDS,
 } from '@/features/seller-onboarding/mapSelfEmployedReviewSections';
@@ -107,57 +111,6 @@ const ReviewInfoPage = () => {
     [selfData, firstName, lastName, email, phone, t]
   );
 
-  const parseApiErrors = (data) => {
-    if (!data) return ['Unknown error'];
-
-    if (typeof data === 'string') return [data];
-    if (data.detail) return [String(data.detail)];
-    if (data.message) return [String(data.message)];
-
-    const labels = {
-      seller_type_selected: 'Seller type',
-      personal_complete: 'Personal details',
-      tax_complete: 'Tax info',
-      address_complete: 'Address',
-      bank_complete: 'Bank account',
-      warehouse_complete: 'Warehouse',
-      return_complete: 'Return address',
-      documents_complete: 'Documents',
-    };
-
-    const completeness = data.completeness ?? data;
-
-    if (completeness && typeof completeness === 'object') {
-      const failed = Object.entries(completeness)
-        .filter(
-          ([, value]) => typeof value === 'string' && value.toLowerCase() === 'false'
-        )
-        .map(([key]) => labels[key] ?? key);
-
-      if (failed.length) {
-        return [`Please complete: ${failed.join(', ')}`];
-      }
-    }
-
-    const messages = [];
-
-    const walk = (obj) => {
-      if (!obj) return;
-
-      if (typeof obj === 'string') {
-        messages.push(obj);
-      } else if (Array.isArray(obj)) {
-        obj.forEach(walk);
-      } else if (typeof obj === 'object') {
-        Object.values(obj).forEach(walk);
-      }
-    };
-
-    walk(data);
-
-    return messages.length ? messages : ['Unexpected error'];
-  };
-
   const handleSubmit = async () => {
     const values = formik.values;
     setSubmitError('');
@@ -234,8 +187,7 @@ const ReviewInfoPage = () => {
         .map((result, index) => {
           if (result.status === 'rejected') {
             const data = result.reason?.response?.data;
-            const messages = parseApiErrors(data);
-            return `${requests[index].name}: ${messages.join(', ')}`;
+            return formatOnboardingRequestError(requests[index].name, data);
           }
           return null;
         })
@@ -265,8 +217,8 @@ const ReviewInfoPage = () => {
         ErrToast(message);
       }
     } catch (error) {
-      const responseData = error?.response?.data;
-      const messages = parseApiErrors(responseData);
+      const responseData = error?.response?.data ?? (error?.message ? { message: error.message } : error);
+      const messages = parseOnboardingApiErrors(responseData);
       const message = messages.join('\n');
       setSubmitError(message);
       messages.forEach((msg) => ErrToast(msg));

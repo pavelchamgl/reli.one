@@ -53,7 +53,7 @@ Review — точка, где пользователь видит агрегир
 
 - [x] Review pages render all sections from API review response (mocked RTL). — OSVČ `ReviewInfoPage` + `ReviewSectionCard` RTL
 - [ ] Submit success → navigates as before (e2e or manual script).
-- [ ] Submit failure → completeness/errors visible (RTL).
+- [x] Submit failure → completeness/errors visible (RTL).
 - [ ] Status pages migrated; icons/badges via shadcn Badge/Alert.
 - [ ] `e2e/seller-onboarding.spec.js` + FS-001 green.
 - [ ] No MUI in review/status components.
@@ -105,7 +105,7 @@ Review — точка, где пользователь видит агрегир
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -155,7 +155,7 @@ npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js  # if backend availa
 |----|---------|
 | 20.1 | Review views + OSVČ page | ✓ |
 | 20.2 | Company review page | ✓ |
-| 20.3 | Submit error handling polish + RTL |
+| 20.3 | Submit error handling polish + RTL | ✓ |
 | 20.4 | Status pages bundle |
 
 ## Agent prompt (submit — critical)

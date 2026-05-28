@@ -52,9 +52,9 @@ export function ReviewSectionCard({
         <div key={block.title ?? index} className="space-y-2">
           {index > 0 ? <hr className="border-border" /> : null}
           {block.title ? <p className="text-sm font-medium">{block.title}</p> : null}
-          {block.lines?.map((line) => (
+          {block.lines?.map((line, lineIndex) => (
             <p
-              key={line}
+              key={`${block.title ?? index}-${lineIndex}`}
               className={cn('text-sm text-muted-foreground', block.mono && 'font-mono tabular-nums')}
             >
               {line}
