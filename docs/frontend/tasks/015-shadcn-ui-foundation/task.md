@@ -28,7 +28,7 @@
 
 - Миграция любых production-экранов.
 - Удаление MUI из `package.json`.
-- Изменение `main.jsx`, роутов, Redux, API.
+- Изменение логики `main.jsx`, роутов, Redux, API (**допустимо:** один import `./styles/tailwind-shadcn.css` для подключения Tailwind/shadcn CSS).
 - Frontend2.
 
 ## Зависимости
@@ -70,6 +70,19 @@
 
 Изначально файлы попали в `src/Components/ui/` (конфликт с legacy `src/Components/`). Исправлено через `git mv` → **`src/components/ui/`** в индексе git для Linux/CI. Импорт: `@/components/ui/button`.
 
+### shadcn CLI
+
+Интерактивный `npx shadcn@latest init` не использовался (CLI завис на выборе библиотеки). Foundation собран **вручную** по эквиваленту `components.json` (style: new-york, `tsx: false`, cssVariables) и registry-компонентам shadcn в `.jsx`.
+
+### Dev / preview smoke (2026-05-27)
+
+| Команда | Результат |
+|---------|-----------|
+| `npm run test:e2e:dev:fe015` | 2/2 — `/` (#root mount), `/seller/login` (email + password) на **vite dev :5173** |
+| `npm run build && npm run test:e2e -- e2e/fe015-foundation-smoke.spec.js` | 2/2 на **vite preview :4173** |
+
+Артефакты: `e2e/fe015-foundation-smoke.spec.js`, `playwright.dev.config.js`, script `test:e2e:dev:fe015`.
+
 ---
 
 # Iterations
@@ -88,11 +101,12 @@
 
 ### Output
 
-- Краткая заметка в PR: **`preflight: false` (решение зафиксировано)**, список глобальных CSS файлов.
+- **`preflight: false`** — конфликт с legacy globals в `src/index.css` (не импортируется в runtime; globals живут в `App.css` + SCSS-модулях).
+- Entry CSS для Tailwind: **`src/styles/tailwind-shadcn.css`** (не `index.css`).
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -108,7 +122,7 @@
 2. Создать `tailwind.config.js` с **`corePlugins: { preflight: false }`**, `postcss.config.js`.
 3. Добавить `@tailwind base/components/utilities` в entry CSS (новый `src/index.css` или существующий).
 4. Настроить alias `@` → `./src` в `vite.config.js`.
-5. `npx shadcn@latest init` — style: default/new-york, baseColor по бренду reli.one; **JS mode:** `tsx: false`, без TypeScript paths.
+5. shadcn init **вручную** (эквивалент CLI): `components.json`, CSS variables, alias `@/` — см. Implementation notes.
 
 ### Output
 
@@ -116,7 +130,7 @@
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -128,7 +142,7 @@
 
 ### Действия
 
-1. `npx shadcn@latest add button input label textarea select checkbox radio-group card dialog alert badge separator skeleton toast` — CLI должен создавать **`.jsx`** (при init уже `tsx: false`).
+1. Компоненты добавлены **вручную** по shadcn registry (`.jsx`), список см. DoD — эквивалент `shadcn add …`.
 2. Создать `src/lib/utils.js` с `cn()`.
 3. Проверить, что компоненты импортируются как `@/components/ui/button` и файлы имеют расширение `.jsx`, не `.tsx`.
 
@@ -139,7 +153,7 @@
 
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -160,9 +174,15 @@ npm run build
 
 Ручной smoke: `/`, `/seller/login` — layout не «поехал».
 
+```bash
+npm run test:e2e:dev:fe015    # vite dev :5173
+npm run build
+npm run test:e2e -- e2e/fe015-foundation-smoke.spec.js   # preview :4173
+```
+
 ### Статус
 
-- [ ]
+- [x]
 
 ---
 
@@ -175,7 +195,9 @@ npm run build
 | `Frontend/Frontend3/postcss.config.js` | create |
 | `Frontend/Frontend3/components.json` | create |
 | `Frontend/Frontend3/vite.config.js` | alias `@` |
-| `Frontend/Frontend3/src/index.css` или аналог | Tailwind directives |
+| `Frontend/Frontend3/src/styles/tailwind-shadcn.css` | Tailwind directives + shadcn CSS vars |
+| `Frontend/Frontend3/e2e/fe015-foundation-smoke.spec.js` | Dev/preview smoke |
+| `Frontend/Frontend3/playwright.dev.config.js` | Playwright vs vite dev :5173 |
 | `Frontend/Frontend3/src/lib/utils.js` | create |
 | `Frontend/Frontend3/src/components/ui/*` | create |
 
