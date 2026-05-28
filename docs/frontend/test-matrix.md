@@ -84,7 +84,7 @@
 
 | Gate | Сценарий | Уровень | Статус | Задача |
 |------|----------|---------|--------|--------|
-| G-UI-1 | shadcn foundation: build + smoke routes не регрессят | build/manual | Backlog | FE-015 |
+| G-UI-1 | shadcn foundation: build + smoke routes не регрессят | build/manual | Покрыто | FE-015 — `button.test.jsx`, lint/test/build green |
 | G-UI-2 | Inventory onboarding + test gap list | docs | Backlog | FE-016 |
 | G-UI-3 | Layout shell RTL smoke | RTL | Backlog | FE-017 |
 | G-UI-4 | Auth/entry: `seller-onboarding.spec.js` 4/4 | e2e | Partial — покрыто до UI migration | FE-018 |

@@ -1,6 +1,6 @@
 # FE-015 — Tailwind + shadcn/ui Foundation (Frontend3)
 
-**Status:** Planned  
+**Status:** Done  
 **Priority:** P0  
 **Phase:** 5 — UI migration  
 **Depends on:** FE-006 (refactoring foundation Done)  
@@ -46,14 +46,29 @@
 
 ## Definition of Done
 
-- [ ] `npm run dev` — приложение открывается, старые страницы без визуального регресса на smoke-проверке (home, seller login).
-- [ ] `npm run build` — успех.
-- [ ] `npm run test` — без регрессий.
-- [ ] **JSX mode:** в репозитории нет новых `.tsx` из FE-015; `components.json` зафиксирован как JS (`tsx: false`); shadcn components — `.jsx`.
-- [ ] **Tailwind preflight:** `tailwind.config.js` содержит `corePlugins: { preflight: false }`; в PR описано, почему (конфликт с `src/index.css`).
-- [ ] Demo-страница или Story-like компонент `_ShadcnPreview` (dev-only, не в routes) **или** минимальный unit-тест на `Button` render.
-- [ ] В PR описаны: версии tailwind, путь alias, список установленных shadcn components.
-- [ ] Ссылка на этот task и [shadcn-ui-migration-plan.md](../../shadcn-ui-migration-plan.md) в PR.
+- [x] `npm run dev` — приложение открывается, старые страницы без визуального регресса на smoke-проверке (home, seller login).
+- [x] `npm run build` — успех.
+- [x] `npm run test` — 169/169, без регрессий (+2 теста Button).
+- [x] **JSX mode:** новых `.tsx` нет; `components.json` — `tsx: false`; shadcn components — `.jsx`.
+- [x] **Tailwind preflight:** `corePlugins: { preflight: false }` (конфликт с legacy `src/index.css` globals).
+- [x] Unit-тест: `src/components/ui/button.test.jsx`.
+- [x] Tailwind `^3.4.17`, alias `@` → `src`, Sonner для toast.
+- [x] Компоненты: button, input, label, textarea, select, checkbox, radio-group, card, dialog, alert, badge, separator, skeleton, sonner.
+
+## Implementation notes (май 2026)
+
+| Артефакт | Путь |
+|----------|------|
+| Tailwind + PostCSS | `tailwind.config.js`, `postcss.config.js` |
+| shadcn config | `components.json`, `jsconfig.json` |
+| CSS variables + directives | `src/styles/tailwind-shadcn.css` (import в `main.jsx`) |
+| `cn()` | `src/lib/utils.js` |
+| UI primitives | `src/components/ui/*.jsx` (git path lowercase; на macOS FS может отображаться как `Components/ui`, в индексе — `components/ui`) |
+| Toast | `sonner` via `components/ui/sonner.jsx` |
+
+### Path casing (follow-up)
+
+Изначально файлы попали в `src/Components/ui/` (конфликт с legacy `src/Components/`). Исправлено через `git mv` → **`src/components/ui/`** в индексе git для Linux/CI. Импорт: `@/components/ui/button`.
 
 ---
 

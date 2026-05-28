@@ -1,3 +1,4 @@
+import "./styles/tailwind-shadcn.css";
 import * as Sentry from "@sentry/react";
 import i18n from "../language/i18next.js";
 import { I18nextProvider } from "react-i18next";
