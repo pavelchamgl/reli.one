@@ -1,6 +1,6 @@
 # FE-023 — Seller Company Onboarding: Field Contract & Figma Parity
 
-**Status:** Planned
+**Status:** In Progress (Iteration 2 next)
 **Priority:** P0
 **Phase:** 5 follow-up — seller onboarding hardening
 **Depends on:** FE-021
@@ -268,10 +268,10 @@ npm run dev
 
 Полный отчёт: [iteration-0-baseline.md](./iteration-0-baseline.md).
 
-| ID | Finding | Impact | Target iteration |
-|----|---------|--------|------------------|
-| F1 | `wCountry` и `rCountry` отображаются как required, но не входят в Yup-схему | Можно пройти форму без страны склада/возврата | Iteration 1/2 |
-| F2 | `TIN` required только для CZ/SK | Нарушение Field Contract: `TIN` должен быть required всегда | Iteration 1/2 |
+| ID | Finding | Impact | Status |
+|----|---------|--------|--------|
+| F1 | `wCountry` и `rCountry` отображаются как required, но не входят в Yup-схему | Можно пройти форму без страны склада/возврата | ✅ Fixed — Iteration 1 |
+| F2 | `TIN` required только для CZ/SK | Нарушение Field Contract: `TIN` должен быть required всегда | ✅ Fixed — Iteration 1 |
 | F3 | `Bank code` / `Local account number` visibility зависит от business address country | Неправильная логика для company flow; нужно опираться на `country_of_registration` или другой согласованный источник | Iteration 2 |
 | F4 | Upload fields не валидируются Yup | Можно submit без registration certificate / proof of address документов | Iteration 2 |
 | F5 | PUT errors показываются только через toast, не как field-level feedback | Пользователь не понимает, какой field/block исправлять | Iteration 2/4 |
@@ -284,7 +284,7 @@ Visual finding:
 
 ---
 
-## Iteration 1 — Field Contract Test
+## Iteration 1 — Field Contract Test ✅ Done
 
 ### Действия
 
@@ -307,10 +307,24 @@ Visual finding:
 
 ### Gate before next iteration
 
-- [ ] Test падает на текущем некорректном UI/contract, если contract нарушен.
-- [ ] Test проходит после contract fix.
-- [ ] Нет новых product fields.
-- [ ] Self-employed tests остаются green.
+- [x] Test падает на текущем некорректном UI/contract, если contract нарушен.
+- [x] Test проходит после contract fix.
+- [x] Нет новых product fields.
+- [x] Self-employed tests остаются green.
+
+### Completed 2026-05-29
+
+**Новые файлы:**
+- `src/code/seller/companyValidationSchema.test.js` — 13 schema tests (F1 × 4, F2 × 3, regress × 4, valid × 2).
+- `src/sellerPages/SellerCompanyInfo/SellerCompanyInfo.test.jsx` — 47 RTL tests: все 6 секций, все поля field contract, forbidden fields, required markers.
+
+**Исправления в `src/code/seller/validation.js`:**
+- `tin` — убран `when(country_of_registration)`, теперь always required (F2).
+- `wCountry` — раскомментировано, required (F1).
+- `rCountry` — раскомментировано, required (F1).
+- `eori_number` — заменён `matches().nullable()` на `test()` позволяющий пустую строку (side-fix: пустое EORI блокировало форму).
+
+**Результат:** 257/257 тестов green, 43 test files.
 
 ---
 

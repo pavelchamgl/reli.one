@@ -191,22 +191,18 @@ export const companyValidationSchema = Yup.object({
         .required("Business ID (IČO) is required"),
 
 
-    tin: Yup.string().when("country_of_registration", {
-        is: (val) => val === "cz" || val === "sk",
-        then: (schema) =>
-            schema
-                .matches(dicRegex, "TIN (DIČ) must contain 8–10 characters")
-                .required("TIN (DIČ) is required"),
-        otherwise: (schema) => schema.notRequired(),
-    }),
-
+    tin: Yup.string()
+        .min(5, "TIN is too short")
+        .required("TIN is required"),
 
     eori_number: Yup.string()
-        .matches(
-            euEoriRegex,
-            "Invalid EORI number format. It must start with a country code followed by numbers or letters."
-        )
-        .nullable(),
+        .nullable()
+        .optional()
+        .test(
+            'eori-format',
+            "Invalid EORI number format. It must start with a country code followed by numbers or letters.",
+            (value) => !value || euEoriRegex.test(value),
+        ),
 
 
     company_phone: Yup.string()
@@ -320,8 +316,8 @@ export const companyValidationSchema = Yup.object({
         .matches(zipRegex, "Invalid ZIP code format")
         .required("Warehouse ZIP code is required"),
 
-    // wCountry: Yup.string()
-    //     .required("Warehouse country is required"),
+    wCountry: Yup.string()
+        .required("Warehouse country is required"),
 
     contact_phone: Yup.string()
         .matches(phoneRegex, "Invalid phone number")
@@ -349,8 +345,8 @@ export const companyValidationSchema = Yup.object({
         .matches(zipRegex, "Invalid ZIP code format")
         .required("Return ZIP code is required"),
 
-    // rCountry: Yup.string()
-    //     .required("Return country is required"),
+    rCountry: Yup.string()
+        .required("Return country is required"),
 
     rContact_phone: Yup.string()
         .matches(phoneRegex, "Invalid phone number")
