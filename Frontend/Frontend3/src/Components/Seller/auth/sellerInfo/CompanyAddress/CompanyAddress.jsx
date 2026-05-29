@@ -46,14 +46,15 @@ const CompanyAddress = ({ formik, onClosePreview }) => {
       safeCompanyData(payload);
     }
 
+    const isoDate = toISODate(payload.proof_document_issue_date);
     try {
       await putCompanyAddress({
         ...payload,
-        proof_document_issue_date: toISODate(payload.proof_document_issue_date),
+        ...(isoDate ? { proof_document_issue_date: isoDate } : {}),
       });
       onClosePreview?.();
     } catch (err) {
-      console.error(err);
+      ErrToast(err?.message || t('onboard.common.error_save'));
     }
   };
 

@@ -23,6 +23,8 @@ function validPayload(overrides = {}) {
     tin: 'DE123456789',
     eori_number: null,   // optional — blank maps to null
     company_phone: '+4915123456789',
+    // Simulates a successful upload (set by uploadSingleDocument response).
+    certificate_issue_date: '2025-01-15T10:00:00Z',
 
     // Representative
     first_name: 'Jane',
@@ -36,6 +38,7 @@ function validPayload(overrides = {}) {
     city: 'Berlin',
     zip_code: '10115',
     country: 'DE',
+    proof_document_issue_date: '2025-01-16T10:00:00Z',
 
     // Bank Account
     iban: 'DE89370400440532013000',
@@ -51,6 +54,7 @@ function validPayload(overrides = {}) {
     wZip_code: '80331',
     wCountry: 'DE',
     contact_phone: '+4915123456780',
+    wProof_document_issue_date: '2025-01-17T10:00:00Z',
 
     // Return Address
     same_as_warehouse: false,
@@ -59,6 +63,7 @@ function validPayload(overrides = {}) {
     rZip_code: '20095',
     rCountry: 'DE',
     rContact_phone: '+4915123456781',
+    rProof_document_issue_date: '2025-01-18T10:00:00Z',
 
     ...overrides,
   };
@@ -143,6 +148,44 @@ describe('companyValidationSchema', () => {
 
     it('rejects null return country', async () => {
       await expectInvalidContaining(validPayload({ rCountry: null }), 'return country');
+    });
+  });
+
+  // ── F4: Upload proxy fields must be required ───────────────────────────────
+
+  describe('F4 — upload date fields required', () => {
+    it('rejects missing registration certificate upload', async () => {
+      await expectInvalidContaining(
+        validPayload({ certificate_issue_date: '' }),
+        'registration certificate',
+      );
+    });
+
+    it('rejects missing business address proof upload', async () => {
+      await expectInvalidContaining(
+        validPayload({ proof_document_issue_date: '' }),
+        'business address proof',
+      );
+    });
+
+    it('rejects missing warehouse proof upload', async () => {
+      await expectInvalidContaining(
+        validPayload({ wProof_document_issue_date: '' }),
+        'warehouse proof',
+      );
+    });
+
+    it('rejects missing return address proof when same_as_warehouse is false', async () => {
+      await expectInvalidContaining(
+        validPayload({ same_as_warehouse: false, rProof_document_issue_date: '' }),
+        'return address proof',
+      );
+    });
+
+    it('accepts empty return address proof when same_as_warehouse is true', async () => {
+      await expectValid(
+        validPayload({ same_as_warehouse: true, rProof_document_issue_date: '' }),
+      );
     });
   });
 

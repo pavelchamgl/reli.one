@@ -34,6 +34,7 @@ export function BankAccountFieldsView({
         id="account_holder"
         label={labels.holder}
         error={errors.account_holder}
+        hint={accountHolderDisabled ? 'Auto-filled from company name and legal form' : undefined}
         required
       >
         <Input

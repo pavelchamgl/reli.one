@@ -1,6 +1,6 @@
 # FE-023 — Seller Company Onboarding: Field Contract & Figma Parity
 
-**Status:** In Progress (Iteration 2 next)
+**Status:** In Progress (Iteration 3 next)
 **Priority:** P0
 **Phase:** 5 follow-up — seller onboarding hardening
 **Depends on:** FE-021
@@ -328,7 +328,7 @@ Visual finding:
 
 ---
 
-## Iteration 2 — Functional Recovery
+## Iteration 2 — Functional Recovery ✅ Done
 
 ### Действия
 
@@ -354,12 +354,42 @@ Visual finding:
 
 ### Gate before next iteration
 
-- [ ] Company form можно заполнить полностью по PDF.
-- [ ] Continue to Review становится enabled.
-- [ ] Все PUT requests уходят с ожидаемым payload.
-- [ ] Upload documents работают или показывают понятную ошибку.
-- [ ] User-visible error есть для каждого failed block.
-- [ ] `npm run test` green.
+- [x] Company form можно заполнить полностью по PDF.
+- [x] Continue to Review становится enabled.
+- [x] Все PUT requests уходят с ожидаемым payload.
+- [x] Upload documents работают или показывают понятную ошибку.
+- [x] User-visible error есть для каждого failed block.
+- [x] `npm run test` green.
+
+### Completed 2026-05-29
+
+**F3 — `BankAccount.jsx`:**
+- `isCzSk` теперь смотрит на `country_of_registration` первым (до `tax_country` и `country`).
+- `useEffect` для очистки CZ/SK полей включает `country_of_registration` в deps.
+
+**F4 — `validation.js` (companyValidationSchema):**
+- `certificate_issue_date` — `string().required(...)`.
+- `proof_document_issue_date` — `string().required(...)`.
+- `wProof_document_issue_date` — `string().required(...)`.
+- `rProof_document_issue_date` — `string().when('same_as_warehouse', ...)`, обязателен только когда `false`.
+
+**F5 — ErrToast в onLeave handlers:**
+- `Representative.jsx` — добавлен импорт `ErrToast` + `ErrToast` в catch.
+- `CompanyInfo.jsx` — `console.error` заменён на `ErrToast`.
+- `CompanyAddress.jsx` — `console.error` заменён на `ErrToast`.
+- `WhareHouseAddress.jsx` — `onLeaveWarehouseBlock` сделан `async`, добавлен `try/catch` + `ErrToast`.
+- `ReturnAddress.jsx` — `onLeaveReturnBlock` сделан `async`, добавлен `try/catch` + `ErrToast`.
+
+**F6 — Пустые ISO-даты:**
+- `CompanyInfo.jsx`, `CompanyAddress.jsx`, `WhareHouseAddress.jsx`, `ReturnAddress.jsx` — дата включается в PUT payload только если `toISODate()` вернул непустую строку (через spread `...(isoDate ? { field: isoDate } : {})`).
+
+**F7 — `BankAccountFieldsView.jsx`:**
+- Поле `account_holder` показывает hint `"Auto-filled from company name and legal form"` когда `accountHolderDisabled === true`.
+
+**Тесты:**
+- `companyValidationSchema.test.js` — 5 новых кейсов F4 (18/18 green).
+- `validPayload` обновлён: добавлены `certificate_issue_date`, `proof_document_issue_date`, `wProof_document_issue_date`, `rProof_document_issue_date`.
+- Итог: **257/257 tests green**, 43 test files.
 
 ---
 

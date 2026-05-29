@@ -55,18 +55,22 @@ const WhareHouseAddress = ({ formik }) => {
   const isWarehouseFilled = (values) =>
     Boolean(values.wStreet && values.wCity && values.wZip_code && values.contact_phone);
 
-  const onLeaveWarehouseBlock = () => {
+  const onLeaveWarehouseBlock = async () => {
     if (!isWarehouseFilled(formik.values)) return;
 
-    putWarehouse({
-      same_as_the_primary_address: formik.values.same_as_the_primary_address,
-      street: formik.values.wStreet,
-      city: formik.values.wCity,
-      zip_code: formik.values.wZip_code,
-      country: formik.values.wCountry,
-      contact_phone: formik.values.contact_phone,
-      proof_document_issue_date: toISODate(formik.values.wProof_document_issue_date),
-    });
+    const isoDate = toISODate(formik.values.wProof_document_issue_date);
+    try {
+      await putWarehouse({
+        street: formik.values.wStreet,
+        city: formik.values.wCity,
+        zip_code: formik.values.wZip_code,
+        country: formik.values.wCountry,
+        contact_phone: formik.values.contact_phone,
+        ...(isoDate ? { proof_document_issue_date: isoDate } : {}),
+      });
+    } catch (err) {
+      ErrToast(err?.message || t('onboard.common.error_save'));
+    }
   };
 
   const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {

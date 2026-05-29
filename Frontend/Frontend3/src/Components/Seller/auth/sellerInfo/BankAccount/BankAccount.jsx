@@ -19,9 +19,13 @@ const BankAccount = ({ formik, onClosePreview }) => {
   const { t } = useTranslation('onbording');
 
   const normalize = (val) => val?.toLowerCase()?.trim();
+  // For company flow: use country_of_registration as primary source.
+  // For self-employed flow: use tax_country as primary source.
+  // Fall back to business address country if neither is set.
+  const country_of_registration = normalize(formik.values.country_of_registration);
   const tax_country = normalize(formik.values.tax_country);
   const business_country = normalize(formik.values.country);
-  const activeCountry = tax_country || business_country;
+  const activeCountry = country_of_registration || tax_country || business_country;
   const isCzSk = ['cz', 'sk'].includes(activeCountry);
 
   const cleanName = (str) =>
@@ -73,7 +77,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
       formik.setFieldValue('bank_code', '', false);
       formik.setFieldValue('local_account_number', '', false);
     }
-  }, [tax_country, business_country]);
+  }, [country_of_registration, tax_country, business_country]);
 
   const isBankDataFilled = (values) =>
     Boolean(values.iban && values.swift_bic && values.account_holder);

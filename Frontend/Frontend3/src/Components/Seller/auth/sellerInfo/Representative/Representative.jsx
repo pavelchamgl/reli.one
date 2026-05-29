@@ -3,6 +3,8 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
+import { ErrToast } from '../../../../../ui/Toastify';
+
 import representativeIc from '../../../../../assets/Seller/register/representativeIc.svg';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/seller/onboarding';
@@ -49,7 +51,7 @@ const Representative = ({ formik, onClosePreview }) => {
       });
       onClosePreview?.();
     } catch (err) {
-      console.error(err);
+      ErrToast(err?.message || t('onboard.common.error_save'));
     }
   };
 

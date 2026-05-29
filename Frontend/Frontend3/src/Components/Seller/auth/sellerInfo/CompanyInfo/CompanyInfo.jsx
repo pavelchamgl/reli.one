@@ -51,14 +51,17 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
       safeCompanyData(payload);
     }
 
+    const isoDate = toISODate(payload.certificate_issue_date);
     try {
       await putCompanyInfo({
         ...payload,
-        certificate_issue_date: toISODate(payload.certificate_issue_date),
+        // Only send certificate_issue_date when it has a value to avoid
+        // overwriting a previously stored date with an empty string.
+        ...(isoDate ? { certificate_issue_date: isoDate } : {}),
       });
       onClosePreview?.();
     } catch (err) {
-      console.error(err);
+      ErrToast(err?.message || t('onboard.common.error_save'));
     }
   };
 

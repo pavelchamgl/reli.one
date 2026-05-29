@@ -48,18 +48,23 @@ const ReturnAddress = ({ formik }) => {
   const isReturnFilled = (values) =>
     Boolean(values.rStreet && values.rCity && values.rZip_code && values.rCountry && values.rContact_phone);
 
-  const onLeaveReturnBlock = () => {
+  const onLeaveReturnBlock = async () => {
     if (!isReturnFilled(formik.values)) return;
 
-    putReturnAddress({
-      same_as_warehouse: formik.values.same_as_warehouse,
-      street: formik.values.rStreet,
-      city: formik.values.rCity,
-      zip_code: formik.values.rZip_code,
-      country: formik.values.rCountry,
-      contact_phone: formik.values.rContact_phone,
-      proof_document_issue_date: toISODate(formik.values.rProof_document_issue_date),
-    });
+    const isoDate = toISODate(formik.values.rProof_document_issue_date);
+    try {
+      await putReturnAddress({
+        same_as_warehouse: formik.values.same_as_warehouse,
+        street: formik.values.rStreet,
+        city: formik.values.rCity,
+        zip_code: formik.values.rZip_code,
+        country: formik.values.rCountry,
+        contact_phone: formik.values.rContact_phone,
+        ...(isoDate ? { proof_document_issue_date: isoDate } : {}),
+      });
+    } catch (err) {
+      ErrToast(err?.message || t('onboard.common.error_save'));
+    }
   };
 
   const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {

@@ -165,11 +165,11 @@ Figma требует: компактная горизонтальная стро
 |----|------|--------|------|--------|
 | F1 | `wCountry`, `rCountry` не в Yup | 1+2 | Validation bug | ✅ Fixed — Iteration 1 |
 | F2 | `tin` условный | 1+2 | Validation bug | ✅ Fixed — Iteration 1 |
-| F3 | `bank_code` visibility logic | 2 | Functional bug | Open |
-| F4 | Документы не валидируются | 2 | Validation gap | Open |
-| F5 | PUT errors нет на полях | 2 | UX | Open |
-| F6 | `certificate_issue_date` как upload proxy | 2 | Functional | Open |
-| F7 | `account_holder` empty блокирует | 2 | UX | Open |
+| F3 | `bank_code` visibility logic | 2 | Functional bug | ✅ Fixed — Iteration 2 |
+| F4 | Документы не валидируются | 2 | Validation gap | ✅ Fixed — Iteration 2 |
+| F5 | PUT errors нет на полях | 2 | UX | ✅ Fixed — Iteration 2 |
+| F6 | `certificate_issue_date` как upload proxy | 2 | Functional | ✅ Fixed — Iteration 2 |
+| F7 | `account_holder` empty блокирует | 2 | UX | ✅ Fixed — Iteration 2 |
 | V1 | Upload dropzone style | 3 | Visual | Open |
 | V2 | Card/header/step styling | 3 | Visual | Open |
 
