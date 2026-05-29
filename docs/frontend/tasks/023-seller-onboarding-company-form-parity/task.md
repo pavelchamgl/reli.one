@@ -264,6 +264,24 @@ npm run dev
 - [ ] Есть список фактических runtime failures.
 - [ ] Подтверждено, что `.env.local` указывает на `http://localhost:8000/api`.
 
+### Baseline findings
+
+Полный отчёт: [iteration-0-baseline.md](./iteration-0-baseline.md).
+
+| ID | Finding | Impact | Target iteration |
+|----|---------|--------|------------------|
+| F1 | `wCountry` и `rCountry` отображаются как required, но не входят в Yup-схему | Можно пройти форму без страны склада/возврата | Iteration 1/2 |
+| F2 | `TIN` required только для CZ/SK | Нарушение Field Contract: `TIN` должен быть required всегда | Iteration 1/2 |
+| F3 | `Bank code` / `Local account number` visibility зависит от business address country | Неправильная логика для company flow; нужно опираться на `country_of_registration` или другой согласованный источник | Iteration 2 |
+| F4 | Upload fields не валидируются Yup | Можно submit без registration certificate / proof of address документов | Iteration 2 |
+| F5 | PUT errors показываются только через toast, не как field-level feedback | Пользователь не понимает, какой field/block исправлять | Iteration 2/4 |
+| F6 | `certificate_issue_date` используется как proxy для upload state | При пустом upload backend может получать пустую строку вместо отсутствующего значения | Iteration 2 |
+| F7 | `account_holder` auto-fill может оставаться пустым до заполнения company name/legal form | Submit блокируется непрозрачно; нужен понятный UX/validation flow | Iteration 2 |
+
+Visual finding:
+
+- `FileUploadZone` сейчас использует большой dashed/dropzone-style control; Figma node `7076:53373` требует compact horizontal upload row height `48`.
+
 ---
 
 ## Iteration 1 — Field Contract Test
