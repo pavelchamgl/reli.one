@@ -1,6 +1,6 @@
 # FE-023 — Seller Company Onboarding: Field Contract & Figma Parity
 
-**Status:** In Progress (Iteration 3 — manual screenshot gate)
+**Status:** In Progress (Iteration 5 — Regression & QA)
 **Priority:** P0
 **Phase:** 5 follow-up — seller onboarding hardening
 **Depends on:** FE-021
@@ -17,6 +17,8 @@
 **Design source:** `Reli-onboarding-company.pdf` — Figma export, предоставлен в задаче.
 
 **Figma file:** [RELI GROUP](https://www.figma.com/design/9fmLDUKB9665aeWDGePN92/RELI-GROUP)
+
+**Visual extraction pass:** [visual-extraction-pass.md](./visual-extraction-pass.md) — Figma metrics, current desktop/mobile screenshot baseline, and remaining visual gaps.
 
 ### Figma node links
 
@@ -395,6 +397,16 @@ Visual finding:
 
 ## Iteration 3 — Figma Visual Parity (3b in progress)
 
+### Visual extraction pass — 2026-05-29
+
+- [x] Figma target metrics copied from node `7076:53373`.
+- [x] Desktop screenshot baseline captured at `1440 x 1200`.
+- [x] Mobile screenshot baseline captured at `375 x 900`.
+- [x] Current metrics compared against target geometry.
+- [x] Remaining visual gaps documented as V3-1...V3-3.
+
+See [visual-extraction-pass.md](./visual-extraction-pass.md).
+
 ### Iteration 3c — width/rhythm/header (2026-05-29)
 
 - [x] Onboarding routes: `SellerHeader` вне `SellerPageContainer`, светлый фон, `min-height: 92px`, inner max-width 896px.
@@ -466,7 +478,7 @@ Visual finding:
 
 ---
 
-## Iteration 4 — Company Review Parity
+## Iteration 4 — Company Review Parity ✅ Done
 
 ### Действия
 
@@ -478,11 +490,33 @@ Visual finding:
 
 ### Gate before next iteration
 
-- [ ] Review содержит все заполненные fields.
-- [ ] Нет лишних fields из другого seller type.
-- [ ] Edit action не теряет данные.
-- [ ] Failed submit показывает alert.
-- [ ] Successful submit ведет на expected route.
+- [x] Review содержит все заполненные fields.
+- [x] Нет лишних fields из другого seller type.
+- [x] Edit action не теряет данные.
+- [x] Failed submit показывает alert.
+- [x] Successful submit ведет на expected route.
+- [x] `npm run test` green.
+
+### Completed 2026-05-29
+
+**`mapCompanyReviewSections.js`:**
+- Representative: first/last name, role, DOB, nationality; без identity docs / email / seller_type.
+- Company: field contract rows; без IČO и registerPhone; cert + business proof documents.
+- Bank: IBAN/SWIFT/holder; CZ/SK bank fields по `country_of_registration`.
+- Warehouse/return: proof docs; return proof скрыт при `same_as_warehouse`.
+
+**`buildCompanySubmitRequests.js`** (новый):
+- Единые PUT payloads для review submit; без `ico`; без hardcoded return proof date; conditional ISO dates.
+
+**`SellerReviewCompany.jsx`:**
+- Использует `buildCompanySubmitRequests`; Yup validate перед submit; `OnboardingAlert` + ErrToast на ошибки; navigate `/seller/application-sub` при success.
+
+**Тесты:**
+- `mapCompanyReviewSections.test.js` — 6 tests
+- `buildCompanySubmitRequests.test.js` — 4 tests
+- `SellerReviewCompany.test.jsx` — 5 RTL tests
+
+**`SellerReviewPageView.jsx`:** title вне card (как data form), centered submit.
 
 ---
 

@@ -16,33 +16,26 @@ import {
   getOnboardingStatus,
   getReviewOnboarding,
   postSubmitOnboarding,
-  putCompanyAddress,
-  putCompanyInfo,
-  putOnboardingBank,
-  putRepresentative,
-  putReturnAddress,
-  putWarehouse,
 } from '../../api/seller/onboarding';
 import { ErrToast } from '../../ui/Toastify';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
 import { companyValidationSchema } from '../../code/seller/validation';
-import { toISODate } from '../../code/seller';
 import {
   formatOnboardingRequestError,
   parseOnboardingApiErrors,
 } from '@/features/seller-onboarding/parseOnboardingApiErrors';
+import { buildCompanySubmitRequests } from '@/features/seller-onboarding/buildCompanySubmitRequests';
 import {
   COMPANY_REVIEW_SECTION_IDS,
   mapCompanyReviewSections,
 } from '@/features/seller-onboarding/mapCompanyReviewSections';
 
 const SellerReviewCompany = () => {
-  const { companyData, registerData } = useSelector((state) => state.selfEmploed);
+  const { companyData } = useSelector((state) => state.selfEmploed);
   const { safeCompanyData, getAllCompanyDataBD } = useActionSafeEmploed();
 
   const firstName = JSON.parse(localStorage.getItem('first_name')) || '';
   const lastName = JSON.parse(localStorage.getItem('last_name')) || '';
-  const email = JSON.parse(localStorage.getItem('email')) || '';
 
   const formik = useFormik({
     initialValues: {
@@ -53,15 +46,12 @@ const SellerReviewCompany = () => {
       tin: companyData?.tin ?? '',
       eori_number: companyData?.eori_number ?? '',
       company_phone: companyData?.company_phone ?? '',
-      imports_to_eu: true,
       certificate_issue_date: companyData?.certificate_issue_date ?? '',
       first_name: firstName,
       last_name: lastName,
       role: companyData?.role ?? '',
       date_of_birth: companyData?.date_of_birth ?? '',
       nationality: companyData?.nationality ?? '',
-      uploadFront: companyData?.uploadFront ?? '',
-      uploadBack: companyData?.uploadBack ?? '',
       street: companyData?.street ?? '',
       city: companyData?.city ?? '',
       zip_code: companyData?.zip_code ?? '',
@@ -111,13 +101,11 @@ const SellerReviewCompany = () => {
     () =>
       mapCompanyReviewSections({
         data: companyData,
-        registerPhone: registerData?.phone,
         firstName,
         lastName,
-        email,
         t,
       }),
-    [companyData, registerData?.phone, firstName, lastName, email, t]
+    [companyData, firstName, lastName, t],
   );
 
   const handleSubmit = async () => {
@@ -126,78 +114,19 @@ const SellerReviewCompany = () => {
     setIsSubmitting(true);
 
     try {
-      const requests = [
-        {
-          name: 'Company Info',
-          promise: putCompanyInfo({
-            company_name: values.company_name,
-            legal_form: values?.legal_form,
-            country_of_registration: values?.country_of_registration,
-            business_id: values?.business_id,
-            ico: values?.ico,
-            tin: values?.tin,
-            imports_to_eu: true,
-            eori_number: values?.eori_number,
-            company_phone: values?.company_phone,
-            certificate_issue_date: toISODate(values.certificate_issue_date),
-          }),
-        },
-        {
-          name: 'Representative',
-          promise: putRepresentative({
-            first_name: values?.first_name,
-            last_name: values?.last_name,
-            role: values?.role,
-            date_of_birth: values?.date_of_birth?.split('.')?.reverse()?.join('-'),
-            nationality: values?.nationality,
-          }),
-        },
-        {
-          name: 'Company Address',
-          promise: putCompanyAddress({
-            street: values.street,
-            city: values.city,
-            zip_code: values.zip_code,
-            country: values?.country,
-            proof_document_issue_date: toISODate(values.proof_document_issue_date),
-          }),
-        },
-        {
-          name: 'Bank Account',
-          promise: putOnboardingBank({
-            iban: values?.iban,
-            swift_bic: values?.swift_bic,
-            account_holder: values?.account_holder,
-            bank_code: values?.bank_code,
-            local_account_number: values?.local_account_number,
-          }),
-        },
-        {
-          name: 'Warehouse',
-          promise: putWarehouse({
-            same_as_the_primary_address: values.same_as_the_primary_address,
-            street: values.wStreet,
-            city: values.wCity,
-            zip_code: values.wZip_code,
-            country: values.wCountry,
-            contact_phone: values.contact_phone,
-            proof_document_issue_date: toISODate(values.wProof_document_issue_date),
-          }),
-        },
-        {
-          name: 'Return Address',
-          promise: putReturnAddress({
-            same_as_warehouse: values.same_as_warehouse,
-            street: values.rStreet,
-            city: values.rCity,
-            zip_code: values.rZip_code,
-            country: values.rCountry,
-            contact_phone: values.rContact_phone,
-            proof_document_issue_date: '2026-01-13',
-          }),
-        },
-      ];
+      const validationErrors = await formik.validateForm();
+      if (Object.keys(validationErrors).length > 0) {
+        const message = t('onboard.errors.complete_fields');
+        setSubmitError(message);
+        ErrToast(message);
+        return;
+      }
 
+      safeCompanyData({ ...values });
+      localStorage.setItem('first_name', JSON.stringify(values.first_name));
+      localStorage.setItem('last_name', JSON.stringify(values.last_name));
+
+      const requests = buildCompanySubmitRequests(values);
       const results = await Promise.allSettled(requests.map((request) => request.promise));
 
       const errors = results
@@ -218,9 +147,9 @@ const SellerReviewCompany = () => {
       }
 
       const statusOnboard = await getOnboardingStatus();
-      const submitRes = await postSubmitOnboarding();
 
-      if (statusOnboard && statusOnboard?.can_submit === true) {
+      if (statusOnboard?.can_submit === true) {
+        const submitRes = await postSubmitOnboarding();
         if (submitRes.status === 'pending_verification') {
           navigate('/seller/application-sub');
         } else {
@@ -229,13 +158,16 @@ const SellerReviewCompany = () => {
           ErrToast(message);
         }
       } else {
-        const next = submitRes.next_step;
-        const message = `${t('onboard.errors.complete_fields')}: ${next}`;
+        const next = statusOnboard?.next_step;
+        const message = next
+          ? `${t('onboard.errors.complete_fields')}: ${next}`
+          : t('onboard.errors.complete_fields');
         setSubmitError(message);
         ErrToast(message);
       }
     } catch (error) {
-      const responseData = error?.response?.data ?? (error?.message ? { message: error.message } : error);
+      const responseData =
+        error?.response?.data ?? (error?.message ? { message: error.message } : error);
       const messages = parseOnboardingApiErrors(responseData);
       const message = messages.join('\n');
       setSubmitError(message);
@@ -270,7 +202,7 @@ const SellerReviewCompany = () => {
   };
 
   return (
-    <SellerOnboardingLayout contentClassName="max-w-3xl">
+    <SellerOnboardingLayout>
       <CompanyReviewView
         title={t('onboard.review.title')}
         description={t('onboard.review.desc')}
