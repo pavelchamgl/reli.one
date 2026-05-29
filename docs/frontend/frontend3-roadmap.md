@@ -161,8 +161,11 @@
 | FE-019 | Data collection (seller-info, seller-company) | **Done** |
 | FE-020 | Review, submit, status pages | **Done** |
 | FE-021 | Validation + SCSS/MUI cleanup + FS-001 + docs | **Done** |
+| FE-023 | Company onboarding field contract + Figma parity follow-up | **Planned** |
 
 **Критерий закрытия Phase 5:** ✅ FE-021 Done (2026-05-28); gates G-UI-1…G-UI-7 в [test-matrix.md](./test-matrix.md) — **Done**.
+
+**Follow-up:** [FE-023](./tasks/023-seller-onboarding-company-form-parity/task.md) фиксирует обнаруженный после пилота разрыв между технически зелёной shadcn-миграцией и утверждённым `Reli-onboarding-company.pdf`: точный field contract, company flow recovery, visual parity и ручные QA gates.
 
 **Wave 2 (не в Phase 5):** catalog → basket → checkout → seller cabinet — см. [shadcn-ui-migration-plan.md § Wave 2](./shadcn-ui-migration-plan.md#wave-2--следующая-волна-не-в-пилоте).
 
@@ -179,9 +182,9 @@ gantt
     Auth/routing fix + dead code       :p0auth, after p0api, 3d
     section Phase 2 — P1 Tests
     Test infra fixes (i18n, store)     :p1infra, after p0auth, 3d
-    RTL: login/reg, API errors         :p1rtl1, after p1infra, 5d
-    RTL: basket/checkout state         :p1rtl2, after p1rtl1, 5d
-    RTL: onboarding tests              :p1onb, after p1rtl1, 4d
+    RTL login/reg and API errors       :p1rtl1, after p1infra, 5d
+    RTL basket/checkout state          :p1rtl2, after p1rtl1, 5d
+    RTL onboarding tests               :p1onb, after p1rtl1, 4d
     section Phase 3 — P2 Refactoring
     Router lazy loading                :p2router, after p1rtl2, 5d
     Slice / API-layer cleanup          :p2slice, after p2router, 7d
