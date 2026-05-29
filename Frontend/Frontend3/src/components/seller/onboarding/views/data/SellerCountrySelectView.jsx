@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FormField } from '@/components/seller/onboarding/FormField';
+import { onboardingControlClassName } from '@/components/seller/onboarding/onboardingControlStyles';
 
 export function SellerCountrySelectView({
   id,
@@ -20,7 +21,7 @@ export function SellerCountrySelectView({
   return (
     <FormField id={id} label={label} error={error} required={required}>
       <Select value={value || undefined} onValueChange={onChange}>
-        <SelectTrigger id={id}>
+        <SelectTrigger id={id} className={onboardingControlClassName}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

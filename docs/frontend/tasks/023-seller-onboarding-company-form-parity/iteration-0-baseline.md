@@ -170,8 +170,8 @@ Figma требует: компактная горизонтальная стро
 | F5 | PUT errors нет на полях | 2 | UX | ✅ Fixed — Iteration 2 |
 | F6 | `certificate_issue_date` как upload proxy | 2 | Functional | ✅ Fixed — Iteration 2 |
 | F7 | `account_holder` empty блокирует | 2 | UX | ✅ Fixed — Iteration 2 |
-| V1 | Upload dropzone style | 3 | Visual | Open |
-| V2 | Card/header/step styling | 3 | Visual | Open |
+| V1 | Upload dropzone style | 3 | Visual | ✅ Fixed — Iteration 3 (code) |
+| V2 | Card/header/step styling | 3 | Visual | ✅ Fixed — Iteration 3 (code) |
 
 ---
 

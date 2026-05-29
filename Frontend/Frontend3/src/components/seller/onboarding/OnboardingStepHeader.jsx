@@ -6,6 +6,7 @@ export function OnboardingStepHeader({
   step,
   totalSteps,
   stepLabel,
+  centered = false,
   className,
 }) {
   const showStepIndicator =
@@ -14,7 +15,7 @@ export function OnboardingStepHeader({
     totalSteps > 0;
 
   return (
-    <header className={cn('space-y-2', className)}>
+    <header className={cn('space-y-2', centered && 'text-center', className)}>
       {showStepIndicator ? (
         <p className="text-sm text-muted-foreground">
           {stepLabel ?? 'Step'}{' '}
@@ -24,7 +25,7 @@ export function OnboardingStepHeader({
         </p>
       ) : null}
       {title ? (
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
       ) : null}
       {description ? (
         <p className="text-sm text-muted-foreground">{description}</p>

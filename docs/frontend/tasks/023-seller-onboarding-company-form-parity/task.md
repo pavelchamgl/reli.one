@@ -1,6 +1,6 @@
 # FE-023 — Seller Company Onboarding: Field Contract & Figma Parity
 
-**Status:** In Progress (Iteration 3 next)
+**Status:** In Progress (Iteration 3 — manual screenshot gate)
 **Priority:** P0
 **Phase:** 5 follow-up — seller onboarding hardening
 **Depends on:** FE-021
@@ -393,7 +393,27 @@ Visual finding:
 
 ---
 
-## Iteration 3 — Figma Visual Parity
+## Iteration 3 — Figma Visual Parity (3b in progress)
+
+### Iteration 3c — width/rhythm/header (2026-05-29)
+
+- [x] Onboarding routes: `SellerHeader` вне `SellerPageContainer`, светлый фон, `min-height: 92px`, inner max-width 896px.
+- [x] `SellerOnboardingLayout` main: `md:px-0` — section cards 896px, inner fields ~832px при `p-8`.
+- [x] Уменьшен gap title → first card (`space-y-5`).
+- [ ] Manual screenshot gate.
+
+### Iteration 3b — shell/header/card parity (2026-05-29)
+
+По ручной проверке `127.0.0.1:5173/seller/seller-company`:
+
+- [x] Убран дублирующий shell header `Reli.one` из `SellerOnboardingLayout` (остаётся legacy `SellerHeader`).
+- [x] `OnboardingStepHeader` вынесен из white card (`SellerDataFormPageView`).
+- [x] Section cards: `rounded-xl`, мягкий shadow, `border #E5E7EB`, padding 32px.
+- [x] Заголовки секций компактнее: `text-base`, row height 40px.
+- [x] Upload row: `border-solid` + `#D1D5DB`; в `tailwind-shadcn.css` восстановлен `border-style` при `preflight: false`.
+- [ ] Manual screenshot gate (desktop + mobile vs PDF).
+
+## Iteration 3 — Figma Visual Parity (3a done)
 
 ### Действия
 
@@ -423,12 +443,26 @@ Visual finding:
 
 ### Gate before next iteration
 
-- [ ] Desktop screenshot visually matches PDF at normal viewport.
-- [ ] Mobile screenshot has no overlap/overflow.
-- [ ] Upload controls are compact rows, not dropzones.
-- [ ] Header matches PDF composition.
-- [ ] Submit button is centered and styled as in PDF.
-- [ ] `npm run build` green.
+- [ ] Desktop screenshot visually matches PDF at normal viewport. *(manual)*
+- [ ] Mobile screenshot has no overlap/overflow. *(manual)*
+- [x] Upload controls are compact rows, not dropzones.
+- [x] Header matches PDF composition (centered title/subtitle/step in card).
+- [x] Submit button is centered and styled as in PDF (`h-12`, min-width).
+- [x] `npm run build` green.
+- [x] `npm run test` green (262/262).
+
+### Completed 2026-05-29 (code)
+
+**V1 — `FileUploadZone.jsx`:**
+- Dashed dropzone заменён на compact row (h-48, hint слева, кнопка справа).
+- Mobile: column stack + full-width button; hint без overflow (`truncate` на sm+).
+
+**V2 — shell + sections:**
+- `SellerCompanyInfo`: `max-w-4xl` (896px).
+- `OnboardingDataSection`: `rounded-2xl`, `p-4 sm:p-8`, icon badge 40×40, title `text-lg/xl`.
+- `SellerDataFormPageView`: centered step header, centered submit, `space-y-8`.
+- `AddressFieldsView`: city/zip/country в 3-column grid на `md+`.
+- `onboardingControlStyles.js`: единый `h-12` для input/select в onboarding.
 
 ---
 

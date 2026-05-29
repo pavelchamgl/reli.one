@@ -32,6 +32,26 @@
   padding-top: 17px;
 }
 
+/* FE-023 onboarding routes: light header shell aligned to 896px form width */
+.mainOnboarding {
+  padding-top: 0;
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding-left: max(16px, calc((100% - 896px) / 2));
+  padding-right: max(16px, calc((100% - 896px) / 2));
+}
+
+.sellerHeaderTopOnboarding {
+  width: 100%;
+  max-width: 896px;
+  margin: 0 auto;
+}
+
 .langAndLogin {
   display: flex;
   align-items: center;

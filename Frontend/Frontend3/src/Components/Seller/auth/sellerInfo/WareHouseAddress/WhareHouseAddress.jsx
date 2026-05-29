@@ -8,6 +8,7 @@ import UploadInp from '../uploadInp/UploadInp';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormField } from '@/components/seller/onboarding';
+import { onboardingControlClassName } from '@/components/seller/onboarding/onboardingControlStyles';
 import {
   AddressFieldsView,
   OnboardingDataSection,
@@ -136,6 +137,7 @@ const WhareHouseAddress = ({ formik }) => {
           id="contact_phone"
           name="contact_phone"
           type="tel"
+          className={onboardingControlClassName}
           value={formik.values.contact_phone}
           placeholder="+420 987 654 321"
           onChange={formik.handleChange}

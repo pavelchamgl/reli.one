@@ -19,9 +19,7 @@ const SellerPage = () => {
             {
                 sellerPathnames.includes(pathname) ?
                     <>
-                        <SellerPageContainer>
-                            <SellerHeader />
-                        </SellerPageContainer>
+                        <SellerHeader />
                         <Outlet />
                     </> :
                     <SellerPageContainer>

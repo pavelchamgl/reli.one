@@ -167,7 +167,7 @@ const SellerCompanyInfo = () => {
   }
 
   return (
-    <SellerOnboardingLayout contentClassName="max-w-3xl">
+    <SellerOnboardingLayout contentClassName="max-w-4xl">
       <SellerDataFormPageView
         title={t('onboard.seller_info.title')}
         description={t('onboard.seller_info.provide_info_desc')}

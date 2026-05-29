@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import companyIc from '../../../../../assets/Seller/register/companyIcon.svg';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/seller/onboarding';
+import { onboardingControlClassName } from '@/components/seller/onboarding/onboardingControlStyles';
 import { OnboardingDataSection } from '@/components/seller/onboarding/views/data';
 import SellerInfoSellect from '../sellerinfoSellect/SellerInfoSellect';
 import UploadInp from '../uploadInp/UploadInp';
@@ -103,6 +104,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
           name="company_name"
           value={formik.values.company_name}
           placeholder="Official registered company name"
+          className={onboardingControlClassName}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
         />
@@ -136,6 +138,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
           name="business_id"
           value={formik.values.business_id}
           placeholder="Trade register number"
+          className={onboardingControlClassName}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
         />
@@ -151,6 +154,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
           name="tin"
           value={formik.values.tin}
           placeholder="987654321"
+          className={onboardingControlClassName}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
         />
@@ -165,6 +169,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
           name="eori_number"
           value={formik.values.eori_number}
           placeholder={t('onboard.company.eori_placeholder')}
+          className={onboardingControlClassName}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
         />
@@ -196,6 +201,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
           type="tel"
           value={formik.values.company_phone}
           placeholder="+420 ..."
+          className={onboardingControlClassName}
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
         />

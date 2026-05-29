@@ -1,10 +1,13 @@
 import { useRef } from 'react';
-import { Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { onboardingUploadRowClassName } from '@/components/seller/onboarding/onboardingControlStyles';
+
+const DEFAULT_HINT = 'Upload document (PDF, JPG, PNG - Max 10MB)';
 
 /**
- * Presentational document upload zone. Container handles multipart API.
+ * Presentational document upload row (Figma: compact horizontal control, h-48).
+ * Container handles multipart API via onSelect.
  */
 export function FileUploadZone({
   label,
@@ -15,9 +18,12 @@ export function FileUploadZone({
   onSelect,
   disabled = false,
   selectLabel = 'Select file',
+  required = false,
   className,
 }) {
   const inputRef = useRef(null);
+  const selectedName = files[0]?.name;
+  const rowHint = selectedName || DEFAULT_HINT;
 
   const handleChange = (event) => {
     const file = event.target.files?.[0];
@@ -29,22 +35,40 @@ export function FileUploadZone({
 
   return (
     <div className={cn('space-y-2', className)}>
-      {label ? <p className="text-sm font-medium">{label}</p> : null}
+      {label ? (
+        <p className="text-sm font-medium leading-5">
+          {label}
+          {required ? (
+            <span className="ml-0.5 text-destructive" aria-hidden="true">
+              *
+            </span>
+          ) : null}
+        </p>
+      ) : null}
       {description ? (
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <p className="text-sm leading-5 text-muted-foreground">{description}</p>
       ) : null}
       <div
         className={cn(
-          'rounded-lg border border-dashed border-input bg-muted/30 p-6 text-center',
+          'flex w-full flex-col gap-2 rounded-md px-4 py-3 sm:h-12 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:py-0',
+          onboardingUploadRowClassName,
           error && 'border-destructive',
-          disabled && 'cursor-not-allowed opacity-60'
+          disabled && 'cursor-not-allowed opacity-60',
         )}
       >
-        <Upload className="mx-auto mb-3 h-8 w-8 text-muted-foreground" aria-hidden />
+        <span
+          className={cn(
+            'min-w-0 text-sm sm:flex-1 sm:truncate',
+            selectedName ? 'text-foreground' : 'text-muted-foreground',
+          )}
+        >
+          {rowHint}
+        </span>
         <Button
           type="button"
           variant="outline"
           size="sm"
+          className="h-8 w-full shrink-0 sm:w-auto"
           disabled={disabled}
           onClick={() => inputRef.current?.click()}
         >
@@ -59,15 +83,6 @@ export function FileUploadZone({
           onChange={handleChange}
         />
       </div>
-      {files.length > 0 ? (
-        <ul className="space-y-1 text-sm">
-          {files.map((file) => (
-            <li key={file.id ?? file.name} className="text-foreground">
-              {file.name}
-            </li>
-          ))}
-        </ul>
-      ) : null}
       {error ? (
         <p className="text-sm text-destructive" role="alert">
           {error}

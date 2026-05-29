@@ -66,6 +66,7 @@ const UploadInp = ({
         files={displayName ? [{ name: displayName }] : []}
         onSelect={handleSelect}
         error={error}
+        required
       />
     </div>
   );

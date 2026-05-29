@@ -36,9 +36,21 @@ const SellerHeader = () => {
   };
 
 
+  const isOnboardingRoute = sellerPathnames.includes(pathname);
+
   return (
-    <div className={styles.main}>
-      <div className={styles.sellerHeaderTop}>
+    <div
+      className={
+        isOnboardingRoute ? `${styles.main} ${styles.mainOnboarding}` : styles.main
+      }
+    >
+      <div
+        className={
+          isOnboardingRoute
+            ? `${styles.sellerHeaderTop} ${styles.sellerHeaderTopOnboarding}`
+            : styles.sellerHeaderTop
+        }
+      >
         <SellerLogo />
 
         <div className={styles.langAndLogin}>

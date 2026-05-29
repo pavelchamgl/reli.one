@@ -8,6 +8,7 @@ import { ErrToast } from '../../../../../ui/Toastify';
 import representativeIc from '../../../../../assets/Seller/register/representativeIc.svg';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/seller/onboarding';
+import { onboardingControlClassName } from '@/components/seller/onboarding/onboardingControlStyles';
 import {
   DateOfBirthFieldView,
   OnboardingDataSection,
@@ -82,6 +83,7 @@ const Representative = ({ formik, onClosePreview }) => {
             name="first_name"
             value={formik.values.first_name}
             placeholder="Jane"
+            className={onboardingControlClassName}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           />
@@ -97,6 +99,7 @@ const Representative = ({ formik, onClosePreview }) => {
             name="last_name"
             value={formik.values.last_name}
             placeholder="Smith"
+            className={onboardingControlClassName}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
           />
