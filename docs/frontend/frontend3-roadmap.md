@@ -162,10 +162,13 @@
 | FE-020 | Review, submit, status pages | **Done** |
 | FE-021 | Validation + SCSS/MUI cleanup + FS-001 + docs | **Done** |
 | FE-023 | Company onboarding field contract + Figma parity follow-up | **Planned** |
+| FE-024 | Component directory casing conventions (`Components` vs `components`) | **Planned** |
 
 **Критерий закрытия Phase 5:** ✅ FE-021 Done (2026-05-28); gates G-UI-1…G-UI-7 в [test-matrix.md](./test-matrix.md) — **Done**.
 
 **Follow-up:** [FE-023](./tasks/023-seller-onboarding-company-form-parity/task.md) фиксирует обнаруженный после пилота разрыв между технически зелёной shadcn-миграцией и утверждённым `Reli-onboarding-company.pdf`: точный field contract, company flow recovery, visual parity и ручные QA gates.
+
+**Technical-debt follow-up:** [FE-024](./tasks/024-component-directory-casing-conventions/task.md) фиксирует переходное состояние `src/Components` vs `src/components`, чтобы не смешивать casing cleanup с восстановлением onboarding и не получить Linux/CI-only import failures.
 
 **Wave 2 (не в Phase 5):** catalog → basket → checkout → seller cabinet — см. [shadcn-ui-migration-plan.md § Wave 2](./shadcn-ui-migration-plan.md#wave-2--следующая-волна-не-в-пилоте).
 
