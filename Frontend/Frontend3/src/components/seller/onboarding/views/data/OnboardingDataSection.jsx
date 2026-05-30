@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { onboardingSectionCardClassName } from '@/components/seller/onboarding/onboardingControlStyles';
 
 export function OnboardingDataSection({
   iconSrc,
@@ -13,10 +14,7 @@ export function OnboardingDataSection({
     <section
       ref={sectionRef}
       tabIndex={-1}
-      className={cn(
-        'space-y-4 rounded-xl border bg-card p-6 text-card-foreground shadow-sm',
-        className
-      )}
+      className={cn(onboardingSectionCardClassName, 'space-y-5', className)}
       onBlurCapture={(event) => {
         if (ignoreBlurRef?.current) {
           ignoreBlurRef.current = false;
@@ -27,11 +25,17 @@ export function OnboardingDataSection({
         }
       }}
     >
-      <div className="flex items-center gap-3">
-        {iconSrc ? <img src={iconSrc} alt="" className="h-8 w-8 shrink-0 object-contain" /> : null}
-        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+      <div className="flex h-10 items-center gap-3">
+        {iconSrc ? (
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <img src={iconSrc} alt="" className="h-6 w-6 object-contain" />
+          </span>
+        ) : null}
+        <h2 className="text-base font-semibold leading-5 tracking-tight text-foreground">
+          {title}
+        </h2>
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-5">{children}</div>
     </section>
   );
 }

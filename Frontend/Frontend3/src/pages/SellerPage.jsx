@@ -19,9 +19,7 @@ const SellerPage = () => {
             {
                 sellerPathnames.includes(pathname) ?
                     <>
-                        <SellerPageContainer>
-                            <SellerHeader />
-                        </SellerPageContainer>
+                        <SellerHeader />
                         <Outlet />
                     </> :
                     <SellerPageContainer>
@@ -32,7 +30,7 @@ const SellerPage = () => {
 
             <ScrollToTop />
 
-            {isMobile && <SellerMobNav />}
+            {isMobile && !sellerPathnames.includes(pathname) && <SellerMobNav />}
             <ToastContainer />
         </>
     )

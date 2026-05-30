@@ -3,6 +3,14 @@
 @tailwind utilities;
 
 @layer base {
+  /* FE-015: preflight disabled — restore border-style so Tailwind border-* utilities render */
+  *,
+  ::before,
+  ::after {
+    border-style: solid;
+    border-width: 0;
+  }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;

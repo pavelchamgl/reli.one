@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import styles from "./CheckBox.module.scss";
 
-const Checkbox = ({ checked, indeterminate = false, onChange }) => {
+const Checkbox = ({ checked, indeterminate = false, onChange, ...props }) => {
     const inputRef = useRef(null);
 
     useEffect(() => {
@@ -18,6 +18,7 @@ const Checkbox = ({ checked, indeterminate = false, onChange }) => {
                 type="checkbox"
                 checked={checked}
                 onChange={onChange}
+                {...props}
             />
             <span></span>
         </label>
