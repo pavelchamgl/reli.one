@@ -149,4 +149,23 @@ describe('ReviewInfoPage submit', () => {
 
     expect(postSubmitOnboarding).not.toHaveBeenCalled();
   });
+
+  it('omits return proof date when return address is linked to warehouse', async () => {
+    const user = userEvent.setup();
+    getOnboardingStatus.mockResolvedValue({ can_submit: false });
+
+    renderReviewPage({ ...baseSelfData, same_as_warehouse: true, rProof_document_issue_date: '' });
+
+    await user.click(screen.getByRole('button', { name: 'onboard.review.submit_btn' }));
+
+    await waitFor(() => {
+      expect(putReturnAddress).toHaveBeenCalledWith(
+        expect.objectContaining({ same_as_warehouse: true })
+      );
+    });
+
+    expect(putReturnAddress.mock.calls[0][0]).not.toHaveProperty(
+      'proof_document_issue_date'
+    );
+  });
 });

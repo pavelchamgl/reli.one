@@ -402,21 +402,17 @@ describe('SellerCompanyInfo — field contract', () => {
   describe('Required markers', () => {
     it('shows required marker (*) on company_name label', () => {
       renderPage();
-      const label = screen.getByText('onboard.company.name', { selector: 'label' });
-      // FormField appends <span aria-hidden>*</span> when required=true
-      expect(label.querySelector('[aria-hidden="true"]')).toBeTruthy();
+      expect(screen.getByText('onboard.company.name').className).toMatch(/titleRequired/);
     });
 
     it('shows required marker (*) on iban label', () => {
       renderPage();
-      const label = screen.getByText('onboard.bank.iban', { selector: 'label' });
-      expect(label.querySelector('[aria-hidden="true"]')).toBeTruthy();
+      expect(screen.getByText('onboard.bank.iban').className).toMatch(/titleRequired/);
     });
 
     it('shows required marker on company_phone label', () => {
       renderPage();
-      const label = screen.getByText('onboard.company.phone', { selector: 'label' });
-      expect(label.querySelector('[aria-hidden="true"]')).toBeTruthy();
+      expect(screen.getByText('onboard.company.phone').className).toMatch(/titleRequired/);
     });
   });
 

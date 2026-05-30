@@ -1,4 +1,24 @@
-export const sellerPathnames = ["/seller/login", "/seller/reset", "/seller/successfully-reset", "/seller/verify-email", "/seller/create-password", "/seller/seller-type", "/seller/create-account", "/seller/create-verify", "/seller/application-sub", "/seller/seller-info", "/seller/seller-review", "/seller/seller-company", "/seller/seller-review-company"]
+/** Auth-entry routes: full-width header (logo at far left). */
+export const sellerAuthPathnames = [
+  "/seller/login",
+  "/seller/reset",
+  "/seller/successfully-reset",
+  "/seller/verify-email",
+  "/seller/create-password",
+  "/seller/seller-type",
+  "/seller/create-account",
+  "/seller/create-verify",
+];
+
+/** All seller onboarding routes (auth + data steps). */
+export const sellerPathnames = [
+  ...sellerAuthPathnames,
+  "/seller/application-sub",
+  "/seller/seller-info",
+  "/seller/seller-review",
+  "/seller/seller-company",
+  "/seller/seller-review-company",
+];
 
 
 export const toISODate = (dateTime) => {

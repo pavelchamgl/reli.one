@@ -1,152 +1,229 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { useFormik } from 'formik';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
+import { useFormik } from "formik"
+import { useTranslation } from "react-i18next"
+
+import AccountInfo from "../../Components/Seller/auth/review/accountInfo/AccountInfo"
+import FormWrap from "../../ui/Seller/auth/formWrap/FormWrap"
+import TitleAndDesc from "../../ui/Seller/auth/titleAndDesc/TitleAndDesc"
+import StepWrap from "../../ui/Seller/register/stepWrap/StepWrap"
+import PersonalDetails from "../../Components/Seller/auth/review/personalDetails/PersonalDetails"
+import BusinessAddress from "../../Components/Seller/auth/review/businessAddress/BusinessAddress"
+import BankAccount from "../../Components/Seller/auth/review/bankAccount/BankAccount"
+import WarehouseAndReturn from "../../Components/Seller/auth/review/WarehouseAndReturn/WarehouseAndReturn"
+import SubBtn from "../../ui/Seller/review/subBtn/SubBtn"
+import { getOnboardingStatus, getReviewOnboarding, postSubmitOnboarding, putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, putTax, putWarehouse } from "../../api/seller/onboarding"
+import { ErrToast } from "../../ui/Toastify"
+import { validationSchemaSelf } from "../../code/seller/validation"
+import TaxInfo from "../../Components/Seller/auth/sellerInfo/TaxInfo/TaxInfo"
+import AddressBlock from "../../Components/Seller/auth/sellerInfo/address/AddressBlock"
+import BankAccountEdit from "../../Components/Seller/auth/sellerInfo/BankAccount/BankAccount"
+import WhareHouseAddress from "../../Components/Seller/auth/sellerInfo/WareHouseAddress/WhareHouseAddress"
+import ReturnAddress from "../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress"
+import { toISODate } from "../../code/seller"
+import { useActionSafeEmploed } from "../../hook/useActionSafeEmploed"
+
+import PersonalEdit from "../../Components/Seller/auth/sellerInfo/PersonalDetails/PersonalDetails"
 
 
-import AddressBlock from '../../Components/Seller/auth/sellerInfo/address/AddressBlock';
-import BankAccountEdit from '../../Components/Seller/auth/sellerInfo/BankAccount/BankAccount';
-import PersonalEdit from '../../Components/Seller/auth/sellerInfo/PersonalDetails/PersonalDetails';
-import ReturnAddress from '../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress';
-import TaxInfo from '../../Components/Seller/auth/sellerInfo/TaxInfo/TaxInfo';
-import WhareHouseAddress from '../../Components/Seller/auth/sellerInfo/WareHouseAddress/WhareHouseAddress';
-import { SellerOnboardingLayout } from '@/components/seller/onboarding';
-import { SelfEmployedReviewView } from '@/components/seller/onboarding/views/review';
-import {
-  getOnboardingStatus,
-  getReviewOnboarding,
-  postSubmitOnboarding,
-  putOnboardingBank,
-  putPersonalData,
-  putReturnAddress,
-  putSelfAddress,
-  putTax,
-  putWarehouse,
-} from '../../api/seller/onboarding';
-import { ErrToast } from '../../ui/Toastify';
-import { validationSchemaSelf } from '../../code/seller/validation';
-import { toISODate } from '../../code/seller';
-import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
-import {
-  formatOnboardingRequestError,
-  parseOnboardingApiErrors,
-} from '@/features/seller-onboarding/parseOnboardingApiErrors';
-import {
-  mapSelfEmployedReviewSections,
-  SELF_EMPLOYED_REVIEW_SECTION_IDS,
-} from '@/features/seller-onboarding/mapSelfEmployedReviewSections';
+import styles from "./ReviewInfoPage.module.scss"
 
 const ReviewInfoPage = () => {
-  const { selfData } = useSelector((state) => state.selfEmploed);
-  const firstName = JSON.parse(localStorage.getItem('first_name')) || '';
-  const lastName = JSON.parse(localStorage.getItem('last_name')) || '';
-  const phone = JSON.parse(localStorage.getItem('phone')) || '';
-  const email = JSON.parse(localStorage.getItem('email')) || '';
+
+  const { selfData, registerData } = useSelector(state => state.selfEmploed)
+  const firstName = JSON.parse(localStorage.getItem('first_name')) || ""
+  const lastName = JSON.parse(localStorage.getItem('last_name')) || ""
+  const phone = JSON.parse(localStorage.getItem('phone')) || ""
+
 
   const formik = useFormik({
     initialValues: {
+
+      // personal
       first_name: firstName,
       last_name: lastName,
-      date_of_birth: selfData?.date_of_birth ?? '',
-      nationality: selfData?.nationality ?? '',
+      date_of_birth: selfData?.date_of_birth ?? "",
+      nationality: selfData?.nationality ?? "",
       personal_phone: phone,
-      uploadFront: selfData?.uploadFront ?? '',
-      uploadBack: selfData?.uploadBack ?? '',
-      tax_country: selfData?.tax_country ?? '',
-      tin: selfData?.tin ?? '',
-      ico: selfData?.ico ?? '',
-      street: selfData?.street ?? '',
-      city: selfData?.city ?? '',
-      zip_code: selfData?.zip_code ?? '',
-      country: selfData?.country ?? '',
-      proof_document_issue_date: selfData.proof_document_issue_date ?? '',
-      iban: selfData?.iban ?? '',
-      swift_bic: selfData?.swift_bic ?? '',
-      account_holder: selfData?.account_holder ?? '',
-      bank_code: selfData?.bank_code ?? '',
-      local_account_number: selfData?.local_account_number ?? '',
-      wStreet: selfData?.wStreet ?? '',
-      wCity: selfData?.wCity ?? '',
-      wZip_code: selfData?.wZip_code ?? '',
-      wCountry: selfData?.wCountry ?? '',
-      contact_phone: selfData?.contact_phone ?? '',
-      wProof_document_issue_date: selfData?.wProof_document_issue_date ?? '',
-      rStreet: selfData?.rStreet ?? '',
-      rCity: selfData?.rCity ?? '',
-      rZip_code: selfData?.rZip_code ?? '',
-      rCountry: selfData?.rCountry ?? '',
-      rContact_phone: selfData?.rContact_phone ?? '',
-      rProof_document_issue_date: selfData?.rProof_document_issue_date ?? '',
+      uploadFront: selfData?.uploadFront ?? "",
+      uploadBack: selfData?.uploadBack ?? "",
+
+      // tax
+      tax_country: selfData?.tax_country ?? "",
+      tin: selfData?.tin ?? "",
+      ico: selfData?.ico ?? "",
+
+      // address
+      street: selfData?.street ?? "",
+      city: selfData?.city ?? "",
+      zip_code: selfData?.zip_code ?? "",
+      country: selfData?.country ?? "",
+      proof_document_issue_date: selfData.proof_document_issue_date ?? "",
+
+      // bank
+      iban: selfData?.iban ?? "",
+      swift_bic: selfData?.swift_bic ?? "",
+      account_holder: selfData?.account_holder ?? "",
+      bank_code: selfData?.bank_code ?? "",
+      local_account_number: selfData?.local_account_number ?? "",
+
+      // warehouse
+      wStreet: selfData?.wStreet ?? "",
+      wCity: selfData?.wCity ?? "",
+      wZip_code: selfData?.wZip_code ?? "",
+      wCountry: selfData?.wCountry ?? "",
+      contact_phone: selfData?.contact_phone ?? "",
+      wProof_document_issue_date: selfData?.wProof_document_issue_date ?? "",
+
+      // return
+      same_as_warehouse: selfData?.same_as_warehouse ?? false,
+      rStreet: selfData?.rStreet ?? "",
+      rCity: selfData?.rCity ?? "",
+      rZip_code: selfData?.rZip_code ?? "",
+      rCountry: selfData?.rCountry ?? "",
+      rContact_phone: selfData?.rContact_phone ?? "",
+      rProof_document_issue_date: selfData?.rProof_document_issue_date ?? ""
     },
     validationSchema: validationSchemaSelf,
     enableReinitialize: true,
     validateOnChange: true,
-    onSubmit: async () => {},
-  });
+    // validateOnMount: false,
+    // validateOnChange: false,
+    // validateOnBlur: true,
+    onSubmit: async (values) => {
+      safeData(values);
 
-  const [editingSectionId, setEditingSectionId] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+      // массив промисов с описанием
 
-  const { getAllDataFromBD } = useActionSafeEmploed();
-  const navigate = useNavigate();
-  const { t } = useTranslation('onbording');
+    }
+  })
+
+  const [openAccount, setOpenAccount] = useState(false)
+  const [openTax, setOpenTax] = useState(false)
+  const [openAddress, setOpenAddress] = useState(false)
+  const [openBank, setOpenBank] = useState(false)
+  const [openWarehouse, setOpenWarehouse] = useState(false)
+  const [submitError, setSubmitError] = useState("")
+
+  const { getAllDataFromBD } = useActionSafeEmploed()
+
+
+  const navigate = useNavigate()
+
+  const { t } = useTranslation('onbording')
+
 
   useEffect(() => {
-    getReviewOnboarding();
-    getAllDataFromBD();
-  }, []);
+    getReviewOnboarding()
+    getAllDataFromBD()
 
-  const sections = useMemo(
-    () =>
-      mapSelfEmployedReviewSections({
-        data: selfData,
-        firstName,
-        lastName,
-        email,
-        phone,
-        t,
-      }),
-    [selfData, firstName, lastName, email, phone, t]
-  );
+  }, [])
+
+  const parseApiErrors = (data) => {
+    if (!data) return ["Unknown error"];
+
+    // 🔹 Если строка
+    if (typeof data === "string") return [data];
+
+    // 🔹 Стандартные backend поля
+    if (data.detail) return [String(data.detail)];
+    if (data.message) return [String(data.message)];
+
+    // 🔹 Человекочитаемые названия для completeness
+    const labels = {
+      seller_type_selected: "Seller type",
+      personal_complete: "Personal details",
+      tax_complete: "Tax info",
+      address_complete: "Address",
+      bank_complete: "Bank account",
+      warehouse_complete: "Warehouse",
+      return_complete: "Return address",
+      documents_complete: "Documents",
+    };
+
+    // 🔹 Обработка completeness
+    const completeness = data.completeness ?? data;
+
+    if (completeness && typeof completeness === "object") {
+      const failed = Object.entries(completeness)
+        .filter(
+          ([_, value]) =>
+            typeof value === "string" &&
+            value.toLowerCase() === "false"
+        )
+        .map(([key]) => labels[key] ?? key);
+
+      if (failed.length) {
+        return ["Please complete: " + failed.join(", ")];
+      }
+    }
+
+    // 🔹 Универсальный проход по вложенным объектам
+    const messages = [];
+
+    const walk = (obj) => {
+      if (!obj) return;
+
+      if (typeof obj === "string") {
+        messages.push(obj);
+      } else if (Array.isArray(obj)) {
+        obj.forEach(walk);
+      } else if (typeof obj === "object") {
+        Object.values(obj).forEach(walk);
+      }
+    };
+
+    walk(data);
+
+    return messages.length ? messages : ["Unexpected error"];
+  };
 
   const handleSubmit = async () => {
     const values = formik.values;
-    setSubmitError('');
-    setIsSubmitting(true);
+    setSubmitError("")
 
     try {
+      const selfAddressProofDate = toISODate(values.proof_document_issue_date)
+      const warehouseProofDate = toISODate(values.wProof_document_issue_date)
+      const returnProofDate = toISODate(values.rProof_document_issue_date)
+
       const requests = [
         {
-          name: 'Personal Data',
+          name: "Personal Data",
           promise: putPersonalData({
-            date_of_birth: values.date_of_birth?.split('.').reverse().join('-'),
+            date_of_birth: values.date_of_birth
+              ?.split(".")
+              .reverse()
+              .join("-"),
             nationality: selfData.nationality,
             personal_phone: values.personal_phone,
           }),
         },
         {
-          name: 'Tax Info',
+          name: "Tax Info",
           promise: putTax({
             tax_country: selfData.tax_country,
             tin: values.tin,
             ico:
-              selfData.tax_country === 'cz' || selfData.tax_country === 'sk' ? '' : values.ico,
+              selfData.tax_country === "cz" ||
+                selfData.tax_country === "sk"
+                ? ""
+                : values.ico,
           }),
         },
         {
-          name: 'Self Address',
+          name: "Self Address",
           promise: putSelfAddress({
             street: values.street,
             city: values.city,
             zip_code: values.zip_code,
             country: selfData.country,
-            proof_document_issue_date: toISODate(values.proof_document_issue_date),
+            ...(selfAddressProofDate ? { proof_document_issue_date: selfAddressProofDate } : {}),
           }),
         },
         {
-          name: 'Bank Account',
+          name: "Bank Account",
           promise: putOnboardingBank({
             iban: selfData?.iban,
             swift_bic: selfData?.swift_bic,
@@ -156,7 +233,7 @@ const ReviewInfoPage = () => {
           }),
         },
         {
-          name: 'Warehouse',
+          name: "Warehouse",
           promise: putWarehouse({
             same_as_the_primary_address: selfData.same_as_the_primary_address,
             street: values.wStreet,
@@ -164,113 +241,136 @@ const ReviewInfoPage = () => {
             zip_code: values.wZip_code,
             country: selfData.wCountry,
             contact_phone: values.contact_phone,
-            proof_document_issue_date: toISODate(values.wProof_document_issue_date),
+            ...(warehouseProofDate ? { proof_document_issue_date: warehouseProofDate } : {}),
           }),
         },
         {
-          name: 'Return Address',
+          name: "Return Address",
           promise: putReturnAddress({
-            same_as_warehouse: selfData.same_as_warehouse,
+            same_as_warehouse: values.same_as_warehouse,
             street: values.rStreet,
             city: values.rCity,
             zip_code: values.rZip_code,
             country: selfData.rCountry,
             contact_phone: values.rContact_phone,
-            proof_document_issue_date: toISODate(values.wProof_document_issue_date),
+            ...(returnProofDate ? { proof_document_issue_date: returnProofDate } : {}),
           }),
         },
       ];
 
-      const results = await Promise.allSettled(requests.map((request) => request.promise));
+      const results = await Promise.allSettled(
+        requests.map((r) => r.promise)
+      );
 
+      // 🔥 Правильный сбор ошибок
       const errors = results
         .map((result, index) => {
-          if (result.status === 'rejected') {
+          if (result.status === "rejected") {
             const data = result.reason?.response?.data;
-            return formatOnboardingRequestError(requests[index].name, data);
+            const messages = parseApiErrors(data);
+            return `${requests[index].name}: ${messages.join(", ")}`;
           }
           return null;
         })
         .filter(Boolean);
 
       if (errors.length) {
-        const message = errors.join('\n');
-        setSubmitError(message);
+        const message = errors.join("\n");
+        setSubmitError(message)
         ErrToast(message);
         return;
       }
 
-      const statusOnboard = await getOnboardingStatus();
+      const statusOnboard = await getOnboardingStatus()
+
+
 
       if (statusOnboard && statusOnboard?.can_submit === true) {
         const submitRes = await postSubmitOnboarding();
-        if (submitRes.status === 'pending_verification') {
-          navigate('/seller/application-sub');
+        if (submitRes.status === "pending_verification") {
+          navigate("/seller/application-sub");
         } else {
-          const message = t('onboard.review.err_submit');
-          setSubmitError(message);
+          const message = t('onboard.review.err_submit')
+          setSubmitError(message)
           ErrToast(message);
         }
       } else {
-        const message = t('onboard.review.err_incomplete');
-        setSubmitError(message);
-        ErrToast(message);
+        const message = t('onboard.review.err_incomplete')
+        setSubmitError(message)
+        ErrToast(message)
       }
     } catch (error) {
-      const responseData = error?.response?.data ?? (error?.message ? { message: error.message } : error);
-      const messages = parseOnboardingApiErrors(responseData);
-      const message = messages.join('\n');
-      setSubmitError(message);
+      const responseData = error?.response?.data;
+      const messages = parseApiErrors(responseData);
+      setSubmitError(messages.join("\n"))
       messages.forEach((msg) => ErrToast(msg));
-    } finally {
-      setIsSubmitting(false);
+      // navigate('/seller/seller-info')
     }
   };
 
-  const closeEditSection = () => setEditingSectionId(null);
 
-  const renderEditSection = (sectionId) => {
-    switch (sectionId) {
-      case SELF_EMPLOYED_REVIEW_SECTION_IDS.account:
-        return <PersonalEdit onClosePreview={closeEditSection} formik={formik} />;
-      case SELF_EMPLOYED_REVIEW_SECTION_IDS.tax:
-        return <TaxInfo formik={formik} onClosePreview={closeEditSection} />;
-      case SELF_EMPLOYED_REVIEW_SECTION_IDS.address:
-        return <AddressBlock onClosePreview={closeEditSection} formik={formik} />;
-      case SELF_EMPLOYED_REVIEW_SECTION_IDS.bank:
-        return <BankAccountEdit onClosePreview={closeEditSection} formik={formik} />;
-      case SELF_EMPLOYED_REVIEW_SECTION_IDS.warehouse:
-        return (
-          <>
-            <WhareHouseAddress formik={formik} />
-            <ReturnAddress formik={formik} />
-          </>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
-    <SellerOnboardingLayout contentClassName="max-w-3xl">
-      <SelfEmployedReviewView
-        title={t('onboard.review.title')}
-        description={t('onboard.review.desc')}
-        step={5}
-        totalSteps={6}
-        stepLabel={t('reg.step_label')}
-        sections={sections}
-        editingSectionId={editingSectionId}
-        renderEditSection={renderEditSection}
-        submitLabel={t('onboard.review.submit_btn')}
-        submitError={submitError}
-        isSubmitting={isSubmitting}
-        onSubmit={handleSubmit}
-        onEditSection={setEditingSectionId}
-        editLabel={t('onboard.review.edit')}
-      />
-    </SellerOnboardingLayout>
-  );
-};
+    <FormWrap style={{ height: "100%" }}>
+      <div className={styles.main}>
+        <div className={styles.titleWrap}>
+          <TitleAndDesc
+            title={t('onboard.review.title')}
+            desc={t('onboard.review.desc')}
+          />
 
-export default ReviewInfoPage;
+          <StepWrap step={5} />
+
+        </div>
+
+        {
+          openAccount ?
+            <PersonalEdit onClosePreview={() => setOpenAccount(false)} formik={formik} />
+            :
+            <AccountInfo setOpen={setOpenAccount} data={selfData} />
+        }
+
+        {
+          openTax ?
+            <TaxInfo formik={formik} onClosePreview={() => setOpenTax(false)} />
+            :
+            <PersonalDetails setOpen={setOpenTax} data={selfData} />
+        }
+
+        {
+          openAddress ?
+            <AddressBlock onClosePreview={() => setOpenAddress(false)} formik={formik} />
+            :
+            <BusinessAddress setOpen={setOpenAddress} data={selfData} />
+
+        }
+
+        {
+          openBank ?
+            <BankAccountEdit onClosePreview={() => setOpenBank(false)} formik={formik} />
+            :
+            <BankAccount setOpen={setOpenBank} data={selfData} />
+        }
+
+        {
+          openWarehouse ?
+            <>
+              <WhareHouseAddress formik={formik} />
+              <ReturnAddress formik={formik} />
+            </>
+            :
+            <WarehouseAndReturn setOpen={setOpenWarehouse} data={selfData} />
+
+        }
+
+        {submitError && <p role="alert">{submitError}</p>}
+
+        <SubBtn onClick={handleSubmit} />
+
+      </div>
+
+    </FormWrap>
+  )
+}
+
+export default ReviewInfoPage

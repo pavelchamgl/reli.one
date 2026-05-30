@@ -1,139 +1,176 @@
-import { useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
-import { ErrToast } from '../../../../../ui/Toastify';
+import { useRef } from "react"
+import { useSelector } from "react-redux"
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
+import { useLocation } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 
-import representativeIc from '../../../../../assets/Seller/register/representativeIc.svg';
-import { Input } from '@/components/ui/input';
-import { FormField } from '@/components/seller/onboarding';
-import { onboardingControlClassName } from '@/components/seller/onboarding/onboardingControlStyles';
-import {
-  DateOfBirthFieldView,
-  OnboardingDataSection,
-} from '@/components/seller/onboarding/views/data';
-import SellerInfoSellect from '../sellerinfoSellect/SellerInfoSellect';
-import { useActionSafeEmploed } from '../../../../../hook/useActionSafeEmploed';
-import { putRepresentative } from '../../../../../api/seller/onboarding';
-import { countriesArr } from '../../../../../code/seller';
+import representativeIc from "../../../../../assets/Seller/register/representativeIc.svg"
+import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
+import UploadInp from "../uploadInp/UploadInp"
+import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
+import SellerDateInp from "../dateInp/DateInp"
+import { putRepresentative, uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { countriesArr } from "../../../../../code/seller"
+import { ErrToast } from "../../../../../ui/Toastify"
+
+import styles from "./Representative.module.scss"
+// import IdentDocumInp from "../../identDocumInp/IdentDocumInp"
 
 const Representative = ({ formik, onClosePreview }) => {
-  const { safeCompanyData } = useActionSafeEmploed();
-  const representativeRef = useRef(null);
-  const { pathname } = useLocation();
-  const { t } = useTranslation('onbording');
 
-  const isRepresentativeFilled = (values) =>
-    Boolean(values.first_name && values.last_name && values.date_of_birth);
+    const { companyData } = useSelector(state => state.selfEmploed)
 
-  const onLeavePersonalBlock = async () => {
-    if (!isRepresentativeFilled(formik.values)) return;
+    const { safeCompanyData } = useActionSafeEmploed()
 
-    const payload = {
-      first_name: formik.values.first_name,
-      last_name: formik.values.last_name,
-      role: formik.values.role,
-      date_of_birth: formik.values.date_of_birth,
-      nationality: formik.values.nationality,
-    };
-
-    if (pathname === '/seller/seller-review-company') {
-      safeCompanyData(payload);
+    const isRepresentativeFilled = (values) => {
+        return Boolean(
+            values.first_name &&
+            values.last_name &&
+            values.date_of_birth
+        )
     }
 
-    localStorage.setItem('first_name', JSON.stringify(payload.first_name));
-    localStorage.setItem('last_name', JSON.stringify(payload.last_name));
+    const representativeRef = useRef(null)
 
-    try {
-      await putRepresentative({
-        ...payload,
-        date_of_birth: payload.date_of_birth?.split('.')?.reverse()?.join('-'),
-      });
-      onClosePreview?.();
-    } catch (err) {
-      ErrToast(err?.message || t('onboard.common.error_save'));
+    const { t } = useTranslation('onbording')
+
+    const { pathname } = useLocation()
+
+    const onLeavePersonalBlock = async () => {
+
+        const filled = isRepresentativeFilled(formik.values)
+        if (!filled) return
+
+        const payload = {
+            first_name: formik.values.first_name,
+            last_name: formik.values.last_name,
+            role: formik.values.role,
+            date_of_birth: formik.values.date_of_birth,
+            nationality: formik.values.nationality
+        }
+
+        if (pathname === '/seller/seller-review-company') {
+            safeCompanyData(payload)
+        }
+
+        localStorage.setItem('first_name', JSON.stringify(payload.first_name))
+        localStorage.setItem('last_name', JSON.stringify(payload.last_name))
+
+        try {
+            await putRepresentative({
+                ...payload,
+                date_of_birth: payload.date_of_birth?.split(".")?.reverse()?.join("-")
+            })
+
+            onClosePreview?.();
+        } catch (err) {
+            ErrToast(err?.message || t('onboard.common.error_save'));
+        }
+
     }
-  };
 
-  const roleArr = [
-    { text: t('onboard.representative.role_owner'), value: 'Owner' },
-    { text: t('onboard.representative.role_director'), value: 'Director' },
-    { text: t('onboard.representative.role_managing'), value: 'Managing Director' },
-    { text: t('onboard.representative.role_ceo'), value: 'CEO' },
-    { text: t('onboard.representative.role_signatory'), value: 'Authorized Signatory' },
-  ];
 
-  return (
-    <OnboardingDataSection
-      sectionRef={representativeRef}
-      iconSrc={representativeIc}
-      title={t('onboard.representative.title')}
-      onSectionBlur={onLeavePersonalBlock}
-    >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
-          id="first_name"
-          label={t('onboard.reg.first_name')}
-          error={formik.touched.first_name ? formik.errors.first_name : undefined}
-          required
+
+    const roleArr = [
+        { text: t('onboard.representative.role_owner'), value: "Owner" },
+        { text: t('onboard.representative.role_director'), value: "Director" },
+        { text: t('onboard.representative.role_managing'), value: "Managing Director" },
+        { text: t('onboard.representative.role_ceo'), value: "CEO" },
+        { text: t('onboard.representative.role_signatory'), value: "Authorized Signatory" },
+    ];
+
+
+    // const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
+    //     uploadSingleDocument({ file, doc_type, scope, side })
+    //         .then(res => {
+
+    //             if (side === "front") {
+    //                 formik.setFieldValue("uploadFront", res.uploaded_at)
+    //             }
+    //             if (side === "back") {
+    //                 formik.setFieldValue("uploadBack", res.uploaded_at)
+    //             }
+    //         })
+    //         .catch(err => {
+    //             ErrToast(err.message)
+    //             console.log("Ошибка загрузки", err);
+    //         });
+    // };
+
+    const ignoreBlurRef = useRef(false);
+
+
+
+    return (
+        <section className={styles.main}
+            ref={representativeRef}
+            tabIndex={-1}
+            onBlurCapture={(e) => {
+                if (ignoreBlurRef.current) {
+                    ignoreBlurRef.current = false;
+                    return;
+                }
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setTimeout(onLeavePersonalBlock, 0);
+                }
+            }}
         >
-          <Input
-            id="first_name"
-            name="first_name"
-            value={formik.values.first_name}
-            placeholder="Jane"
-            className={onboardingControlClassName}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-        </FormField>
-        <FormField
-          id="last_name"
-          label={t('onboard.reg.last_name')}
-          error={formik.touched.last_name ? formik.errors.last_name : undefined}
-          required
-        >
-          <Input
-            id="last_name"
-            name="last_name"
-            value={formik.values.last_name}
-            placeholder="Smith"
-            className={onboardingControlClassName}
-            onChange={formik.handleChange}
-            onBlur={formik.handleBlur}
-          />
-        </FormField>
-      </div>
-      <SellerInfoSellect
-        arr={roleArr}
-        title={t('onboard.review.role')}
-        titleSellect={t('onboard.representative.select_role')}
-        value={formik.values.role}
-        setValue={(value) => formik.setFieldValue('role', value)}
-        errText={t('onboard.representative.role_required')}
-      />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <DateOfBirthFieldView
-          value={formik.values.date_of_birth}
-          error={
-            formik.touched.date_of_birth ? formik.errors.date_of_birth : undefined
-          }
-          label={t('onboard.seller_info.date_of_birth')}
-          onChange={formik.handleChange}
-          onBlur={formik.handleBlur}
-        />
-        <SellerInfoSellect
-          arr={countriesArr}
-          title={t('onboard.seller_info.nationality')}
-          titleSellect={t('onboard.representative.select_nat')}
-          value={formik.values.nationality}
-          setValue={(value) => formik.setFieldValue('nationality', value)}
-          errText={t('onboard.representative.nat_required')}
-        />
-      </div>
-    </OnboardingDataSection>
-  );
-};
+            <div className={styles.titleWrap}>
+                <img src={representativeIc} alt="" />
+                <h2>{t('onboard.representative.title')}</h2>
+            </div>
 
-export default Representative;
+            <div className={styles.inpWrapMain}>
+                <div className={styles.twoInpWrap}>
+                    <InputSeller
+                        title={t('onboard.reg.first_name')}
+                        type={"text"} circle={true} required={true} placeholder={"Jane"}
+                        name="first_name"
+                        value={formik.values.first_name}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.first_name}
+                        touched={formik.touched.first_name}
+                    />
+                    <InputSeller
+                        title={t('onboard.reg.last_name')}
+                        type={"text"} circle={true} required={true} placeholder={"Smith"}
+                        name="last_name"
+                        value={formik.values.last_name}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.last_name}
+                        touched={formik.touched.last_name}
+                    />
+                </div>
+
+                <SellerInfoSellect
+                    arr={roleArr}
+                    title={t('onboard.review.role')}
+                    titleSellect={t('onboard.representative.select_role')}
+                    value={formik.values.role}
+                    setValue={(v) => formik.setFieldValue('role', v)}
+                    errText={t('onboard.representative.role_required')}
+                />
+
+                <div className={styles.twoInpWrap}>
+                    <SellerDateInp formik={formik} />
+                    <SellerInfoSellect
+                        arr={countriesArr}
+                        title={t('onboard.seller_info.nationality')}
+                        titleSellect={t('onboard.representative.select_nat')}
+                        value={formik.values.nationality}
+                        setValue={(v) => formik.setFieldValue('nationality', v)}
+                        errText={t('onboard.representative.nat_required')}
+                    />
+                </div>
+
+                {/* <IdentDocumInp scopeProp={"company_representative"}  selfData={companyData} formik={formik} ref={ignoreBlurRef} /> */}
+
+            </div>
+        </section>
+    )
+}
+
+export default Representative

@@ -1,75 +1,135 @@
-import { useState } from 'react';
-import { useActionSafeEmploed } from '../../../../../hook/useActionSafeEmploed';
-import { useLocation } from 'react-router-dom';
-import { FileUploadZone } from '@/components/seller/onboarding';
+import { useEffect, useState } from "react";
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
+import { useLocation } from "react-router-dom";
 
-const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
-const MAX_SIZE = 10 * 1024 * 1024;
+import uploadIc from "../../../../../assets/Seller/register/uploadIc.svg"
+import uploadIcErr from "../../../../../assets/Seller/register/uploadIcErr.svg"
+import uploadInpErrIc from "../../../../../assets/Seller/register/uploadInpErrIc.svg"
+import greenMarkIc from "../../../../../assets/Seller/register/markGreenSmall.svg"
+import grayX from "../../../../../assets/Seller/preview/xGreyIc.svg"
+
+import styles from './UploadInp.module.scss';
 
 const UploadInp = ({
-  title,
-  description,
-  docType,
-  scope,
-  side,
-  onChange,
-  inpText,
-  stateName,
-  nameTitle,
-  onMouseDown,
-  uploadStatus,
-  identTwo,
+    title,
+    description,
+    docType,
+    scope,
+    side,
+    onChange,
+    inpText,
+    stateName,
+    nameTitle,
+    onMouseDown,
+    uploadStatus,
+    identTwo
 }) => {
-  const { pathname } = useLocation();
-  const companyPathname = ['/seller/seller-company', '/seller/seller-review-company'];
-  const { safeData, safeCompanyData } = useActionSafeEmploed();
-  const [fileName, setFileName] = useState(stateName ?? '');
 
-  const handleSelect = (file) => {
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      alert('Only PDF, JPG or PNG files are allowed');
-      return;
-    }
-    if (file.size > MAX_SIZE) {
-      alert('File size must be less than 10MB');
-      return;
-    }
+    const { pathname } = useLocation()
 
-    setFileName(file.name);
+    const companyPathname = ['/seller/seller-company', '/seller/seller-review-company']
 
-    if (companyPathname.includes(pathname)) {
-      safeCompanyData({ [`${nameTitle}`]: file.name });
-    } else {
-      safeData({ [`${nameTitle}`]: file.name });
-    }
+    const { safeData, safeCompanyData } = useActionSafeEmploed()
 
-    onChange({
-      file,
-      doc_type: docType,
-      scope,
-      side,
-    });
-  };
+    const [name, setName] = useState(stateName ?? "")
 
-  const displayName = fileName || stateName;
-  const error =
-    uploadStatus === 'rej' && identTwo !== 'ident'
-      ? 'Failed to upload document'
-      : undefined;
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
 
-  return (
-    <div onMouseDown={onMouseDown}>
-      <FileUploadZone
-        label={title}
-        description={description}
-        selectLabel={inpText || 'Select file'}
-        files={displayName ? [{ name: displayName }] : []}
-        onSelect={handleSelect}
-        error={error}
-        required
-      />
-    </div>
-  );
+        if (!file) return;
+
+        setName(file?.name)
+
+        if (companyPathname.includes(pathname)) {
+            safeCompanyData({ [`${nameTitle}`]: file?.name })
+        } else {
+            safeData({ [`${nameTitle}`]: file?.name })
+        }
+        // MIME
+        const allowedTypes = [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            alert("Only PDF, JPG or PNG files are allowed");
+            return;
+        }
+
+        // Size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert("File size must be less than 10MB");
+            return;
+        }
+
+        onChange({
+            file,
+            doc_type: docType,
+            scope,
+            side,
+        });
+    };
+
+    const statusClasses = {
+        full: styles.fileInpContentSucc,
+        rej: styles.fileInpContentErr,
+    };
+
+
+    return (
+        <div>
+            {
+                title &&
+                <p className={styles.title}>{title}</p>
+            }
+            <span className={styles.desc}>{description}</span>
+
+            <label
+                onMouseDown={onMouseDown}
+                className={styles.fileLabel}>
+                <input type="file" hidden onChange={handleFileChange} />
+
+                <div className={`
+    ${styles.fileInpContent}
+    ${(Boolean(stateName) && uploadStatus !== 'rej') ? styles.fileInpContentSucc : ""}
+    ${statusClasses[uploadStatus] || ''}
+                `}>
+                    {
+                        // Если статус "успех" ИЛИ (есть имя И нет ошибки)
+                        (uploadStatus === 'full' || (Boolean(stateName) && uploadStatus !== 'rej')) ? (
+                            <>
+                                <div>
+                                    <img src={greenMarkIc} alt="" />
+                                    <p className={styles.truncatedText}>{name}</p> {/* Добавил класс для троеточия */}
+                                </div>
+                                <img src={grayX} alt="" />
+                            </>
+                        ) : (
+                            <>
+                                <img src={uploadStatus === 'rej' ? uploadIcErr : uploadIc} alt="" />
+                                <p>{inpText}</p>
+                                <span>{name ? name : "(PDF, JPG, PNG - Max 10MB)"}</span>
+                            </>
+                        )
+                    }
+
+
+
+                </div>
+            </label>
+
+            {
+                uploadStatus === 'rej' && identTwo !== 'ident' &&
+
+                <div className={styles.uploadErrorTextBlock}>
+                    <img src={uploadInpErrIc} alt="" />
+                    Failed to upload document
+                </div>
+            }
+        </div>
+    );
 };
 
-export default UploadInp;
+
+export default UploadInp
