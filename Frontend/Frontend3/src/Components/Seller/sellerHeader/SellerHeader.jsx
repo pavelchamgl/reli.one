@@ -4,7 +4,7 @@ import { useMediaQuery } from "react-responsive";
 import SellerLogo from "../../../ui/Seller/sellerLogo/SellerLogo";
 import profileIcon from "../../../assets/Header/profileIcon.svg";
 import { useTranslation } from "react-i18next";
-import { sellerPathnames } from "../../../code/seller";
+import { sellerPathnames, sellerAuthPathnames } from "../../../code/seller";
 import SellerTab from "../../../ui/Seller/sellerTab/SellerTab";
 
 import styles from "./SellerHeader.module.scss";
@@ -37,20 +37,21 @@ const SellerHeader = () => {
 
 
   const isOnboardingRoute = sellerPathnames.includes(pathname);
+  const isAuthRoute = sellerAuthPathnames.includes(pathname);
+
+  const outerClass = isAuthRoute
+    ? `${styles.main} ${styles.mainOnboardingAuth}`
+    : isOnboardingRoute
+      ? `${styles.main} ${styles.mainOnboarding}`
+      : styles.main;
+
+  const innerClass = isOnboardingRoute && !isAuthRoute
+    ? `${styles.sellerHeaderTop} ${styles.sellerHeaderTopOnboarding}`
+    : styles.sellerHeaderTop;
 
   return (
-    <div
-      className={
-        isOnboardingRoute ? `${styles.main} ${styles.mainOnboarding}` : styles.main
-      }
-    >
-      <div
-        className={
-          isOnboardingRoute
-            ? `${styles.sellerHeaderTop} ${styles.sellerHeaderTopOnboarding}`
-            : styles.sellerHeaderTop
-        }
-      >
+    <div className={outerClass}>
+      <div className={innerClass}>
         <SellerLogo />
 
         <div className={styles.langAndLogin}>
