@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/seller/onboarding/FormField';
+import { onboardingControlClassName } from '@/components/seller/onboarding/onboardingControlStyles';
 import { SellerCountrySelectView } from './SellerCountrySelectView';
 
 const DEFAULT_FIELD_KEYS = {
@@ -35,17 +36,19 @@ export function AddressFieldsView({
         <Input
           id={keys.street}
           name={keys.street}
+          className={onboardingControlClassName}
           value={values[keys.street] ?? ''}
           placeholder={streetPlaceholder}
           onChange={onFieldChange}
           onBlur={onFieldBlur}
         />
       </FormField>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <FormField id={keys.city} label={labels.city} error={errors[keys.city]} required>
           <Input
             id={keys.city}
             name={keys.city}
+            className={onboardingControlClassName}
             value={values[keys.city] ?? ''}
             placeholder={cityPlaceholder}
             onChange={onFieldChange}
@@ -56,25 +59,26 @@ export function AddressFieldsView({
           <Input
             id={keys.zip_code}
             name={keys.zip_code}
+            className={onboardingControlClassName}
             value={values[keys.zip_code] ?? ''}
             placeholder={zipPlaceholder}
             onChange={onFieldChange}
             onBlur={onFieldBlur}
           />
         </FormField>
+        <SellerCountrySelectView
+          id={keys.country}
+          label={labels.country}
+          placeholder={countryPlaceholder}
+          value={values[keys.country]}
+          options={countryOptions}
+          onChange={(nextValue) =>
+            onFieldChange({ target: { name: keys.country, value: nextValue } })
+          }
+          error={errors[keys.country]}
+          required
+        />
       </div>
-      <SellerCountrySelectView
-        id={keys.country}
-        label={labels.country}
-        placeholder={countryPlaceholder}
-        value={values[keys.country]}
-        options={countryOptions}
-        onChange={(nextValue) =>
-          onFieldChange({ target: { name: keys.country, value: nextValue } })
-        }
-        error={errors[keys.country]}
-        required
-      />
     </div>
   );
 }

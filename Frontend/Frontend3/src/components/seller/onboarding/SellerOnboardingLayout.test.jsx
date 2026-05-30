@@ -19,7 +19,7 @@ describe('Seller onboarding layout shell (FE-017)', () => {
     const onContinue = vi.fn();
 
     render(
-      <SellerOnboardingLayout headerRight={<span>EN</span>}>
+      <SellerOnboardingLayout>
         <OnboardingProgress
           currentStepKey="personal"
           completedSteps={['seller_type']}
@@ -52,7 +52,6 @@ describe('Seller onboarding layout shell (FE-017)', () => {
     expect(screen.getByText('Invalid tax ID')).toBeInTheDocument();
     expect(screen.getByText('Required field')).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: 'Onboarding progress' })).toBeInTheDocument();
-    expect(screen.getByText('EN')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Back' }));
     await user.click(screen.getByRole('button', { name: 'Continue' }));

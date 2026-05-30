@@ -1,7 +1,12 @@
+import FormWrap from '../../ui/Seller/auth/formWrap/FormWrap';
 import VerifyForm from '../../Components/Seller/auth/verifyForm/VerifyForm';
 
 const SellerVerifyEmail = () => {
-  return <VerifyForm />;
+  return (
+    <FormWrap>
+      <VerifyForm />
+    </FormWrap>
+  );
 };
 
 export default SellerVerifyEmail;

@@ -2,29 +2,20 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 
 /**
- * Shared seller onboarding page shell (presentational).
- * Header reuse of legacy SellerHeader — FE-018+; pass logo/lang via headerRight for now.
+ * Seller onboarding page shell. Uses legacy SellerHeader from SellerPage — no duplicate shell header.
  */
-export function SellerOnboardingLayout({
-  children,
-  headerRight,
-  className,
-  contentClassName,
-}) {
+export function SellerOnboardingLayout({ children, className, contentClassName }) {
   return (
-    <div className={cn('min-h-screen bg-background text-foreground', className)}>
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <div className="text-base font-semibold tracking-tight">Reli.one</div>
-          {headerRight ? (
-            <div className="flex shrink-0 items-center gap-2">{headerRight}</div>
-          ) : null}
-        </div>
-      </header>
+    <div
+      className={cn(
+        'min-h-screen overflow-x-hidden bg-[#F8FAFC] text-foreground',
+        className,
+      )}
+    >
       <main
         className={cn(
-          'mx-auto flex w-full max-w-lg flex-col gap-6 px-4 py-8 sm:px-6',
-          contentClassName
+          'mx-auto flex w-full max-w-[896px] flex-col gap-6 px-4 py-6 sm:py-7 md:px-0',
+          contentClassName,
         )}
       >
         {children}
@@ -35,8 +26,13 @@ export function SellerOnboardingLayout({
 
 export function SellerOnboardingCard({ children, className }) {
   return (
-    <Card className={cn('w-full', className)}>
-      <CardContent className="space-y-6 p-6">{children}</CardContent>
+    <Card
+      className={cn(
+        'w-full rounded-xl border border-[#E5E7EB] bg-card shadow-[0_4px_24px_-4px_rgba(15,23,42,0.12)]',
+        className,
+      )}
+    >
+      <CardContent className="space-y-4 p-4 sm:p-8">{children}</CardContent>
     </Card>
   );
 }

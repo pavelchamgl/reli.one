@@ -1,174 +1,100 @@
-/* flex items-center gap-1 absolute top-4 right-10 lg:right-0  */
-.langBtn {
-    display: flex;
-    gap: 5px;
-    align-items: center;
-    /* position: absolute;
-    top: 16px;
-    right: 40px; */
+/* Wrapper — needed for relative positioning of the dropdown */
+.wrapper {
+  position: relative;
 }
-
-/* w-72 h-40 bg-white rounded-2xl absolute top-4 right-10 shadow-lg py-4 px-5 flex flex-col gap-3 sm:right-auto sm:left-10 md:left-10   */
-
-.modal {
-    width: 150px;
-    /* height: 159px; */
-    /* border-radius: 10px; */
-    background: #fff;
-    padding-block: 16px;
-    display: flex;
-    flex-direction: column;
-
-    position: absolute;
-    z-index: 1000px;
-    top: 50px;
-    right: 50px;
-
-    box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.1);
-    background: #eee;
-}
-
-
-
-@media (max-width:641px) {
-    .langBtn {
-        top: 12px;
-        right: 18px;
-    }
-
-    /* .modal {
-        width: 250px;
-    } */
-}
-
-@media (max-width:500px) {
-    .modal {
-        right: 15px;
-    }
-}
-
-.drawerWrap {
-    width: 100%;
-    /* padding: 20px 24px 65px; */
-    padding-top: 20px;
-    padding-bottom: 65px;
-    border-radius: 25px;
-    position: relative;
-
-
-}
-
-.drawerRadius {
-    border-radius: 25px;
-}
-
-.closeBtn {
-    position: absolute;
-    --pos: 18px;
-    top: var(--pos);
-    right: var(--pos);
-}
-
-
 
 .langBtn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    border: none;
-    background-color: transparent;
-    cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
 }
 
 .langLabel {
-    font-size: clamp(12px, 2.5vw, 16px);
-    cursor: pointer !important;
-    font-weight: 400;
-    color: #000;
+  font-size: clamp(12px, 2.5vw, 16px);
+  font-weight: 400;
+  color: #000;
+  cursor: pointer;
+  text-wrap: nowrap;
 }
 
 .langIcon {
-    width: clamp(15px, 2.5vw, 20px);
-    height: clamp(15px, 2.5vw, 20px);
+  width: clamp(15px, 2.5vw, 20px);
+  height: clamp(15px, 2.5vw, 20px);
 }
 
-
-
-.modalTitle {
-    font-weight: 600;
-    font-size: 20px;
-    margin-bottom: 19px;
-    padding-inline: 20px;
+/* Figma: Lang — 114px, #EEEEEE, padding 9px 10px, gap 10px, shadow, radius 2px */
+.modal {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 1000;
+  min-width: 114px;
+  background: #eeeeee;
+  box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .langOption {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-block: 12px;
-    padding-inline: 20px;
-    /* background-color: white; */
-    cursor: pointer;
-    transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 100%;
 }
 
 .langOption span {
-    font-weight: 500;
-    font-size: clamp(16px, 2.5vw, 18px);
-    color: #333;
+  font-family: 'Raleway', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 19px;
+  text-transform: capitalize;
+  color: #000000;
+  white-space: nowrap;
 }
 
-.langOption:hover {
-    background-color: #e0e0e0;
+.activeLabel {
+  font-weight: 600;
 }
 
-.langOption:disabled {
-    background-color: #e0e0e0c0;
-
-}
-
-.langInfo {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-
-    
-}
-
-.langInfo span{
-    cursor: pointer;
-}
-
+/* Unselected: white 12×12 with gray border — Figma Ellipse 8/17 */
 .radio {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 1px solid #CED4D7;
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1px solid #ced4d7;
 }
 
+/* Selected: black 14×14 filled + white center dot 6×6 — Figma Ellipse 15+16 */
 .radioAct {
-    border: 4px solid black;
-
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #000000;
+  border: none;
+  position: relative;
 }
 
-
-.active {
-    font-weight: 600;
-}
-
-.optionLangIcon {
-    width: 27px;
-    height: 27px;
-}
-
-
-
-.closeBtn {
-    border: none;
-    background: none;
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 16px;
-    cursor: pointer;
+.radioAct::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #ffffff;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }

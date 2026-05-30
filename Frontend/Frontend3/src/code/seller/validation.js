@@ -191,22 +191,18 @@ export const companyValidationSchema = Yup.object({
         .required("Business ID (IČO) is required"),
 
 
-    tin: Yup.string().when("country_of_registration", {
-        is: (val) => val === "cz" || val === "sk",
-        then: (schema) =>
-            schema
-                .matches(dicRegex, "TIN (DIČ) must contain 8–10 characters")
-                .required("TIN (DIČ) is required"),
-        otherwise: (schema) => schema.notRequired(),
-    }),
-
+    tin: Yup.string()
+        .min(5, "TIN is too short")
+        .required("TIN is required"),
 
     eori_number: Yup.string()
-        .matches(
-            euEoriRegex,
-            "Invalid EORI number format. It must start with a country code followed by numbers or letters."
-        )
-        .nullable(),
+        .nullable()
+        .optional()
+        .test(
+            'eori-format',
+            "Invalid EORI number format. It must start with a country code followed by numbers or letters.",
+            (value) => !value || euEoriRegex.test(value),
+        ),
 
 
     company_phone: Yup.string()
@@ -215,16 +211,9 @@ export const companyValidationSchema = Yup.object({
 
     // imports_to_eu: Yup.boolean(),
 
-    // certificate_issue_date: Yup.date()
-    //     .transform((value, originalValue) => {
-    //         if (typeof originalValue === "string") {
-    //             const [day, month, year] = originalValue.split(".");
-    //             return new Date(`${year}-${month}-${day}`);
-    //         }
-    //         return value;
-    //     })
-    //     .typeError("Invalid date format")
-    //     .required("Certificate issue date is required"),
+    // Set by the upload response (res.uploaded_at); non-empty means doc was uploaded.
+    certificate_issue_date: Yup.string()
+        .required("Registration certificate upload is required"),
 
     /* ========= REPRESENTATIVE ========= */
     first_name: Yup.string()
@@ -272,16 +261,9 @@ export const companyValidationSchema = Yup.object({
     country: Yup.string()
         .required("Country is required"),
 
-    // proof_document_issue_date: Yup.date()
-    //     .transform((value, originalValue) => {
-    //         if (typeof originalValue === "string") {
-    //             const [day, month, year] = originalValue.split(".");
-    //             return new Date(`${year}-${month}-${day}`);
-    //         }
-    //         return value;
-    //     })
-    //     .typeError("Invalid date format")
-    //     .required("Document issue date is required"),
+    // Set by the upload response; non-empty means doc was uploaded.
+    proof_document_issue_date: Yup.string()
+        .required("Business address proof of address upload is required"),
 
     /* ========= BANK ========= */
     iban: Yup.string()
@@ -320,23 +302,16 @@ export const companyValidationSchema = Yup.object({
         .matches(zipRegex, "Invalid ZIP code format")
         .required("Warehouse ZIP code is required"),
 
-    // wCountry: Yup.string()
-    //     .required("Warehouse country is required"),
+    wCountry: Yup.string()
+        .required("Warehouse country is required"),
 
     contact_phone: Yup.string()
         .matches(phoneRegex, "Invalid phone number")
         .required("Contact phone is required"),
 
-    // wProof_document_issue_date: Yup.date()
-    //     .transform((value, originalValue) => {
-    //         if (typeof originalValue === "string") {
-    //             const [day, month, year] = originalValue.split(".");
-    //             return new Date(`${year}-${month}-${day}`);
-    //         }
-    //         return value;
-    //     })
-    //     .typeError("Invalid date format")
-    //     .required("Document issue date is required"),
+    // Set by the upload response; non-empty means doc was uploaded.
+    wProof_document_issue_date: Yup.string()
+        .required("Warehouse proof of address upload is required"),
 
     /* ========= RETURN ADDRESS ========= */
     rStreet: Yup.string()
@@ -349,15 +324,18 @@ export const companyValidationSchema = Yup.object({
         .matches(zipRegex, "Invalid ZIP code format")
         .required("Return ZIP code is required"),
 
-    // rCountry: Yup.string()
-    //     .required("Return country is required"),
+    rCountry: Yup.string()
+        .required("Return country is required"),
 
     rContact_phone: Yup.string()
         .matches(phoneRegex, "Invalid phone number")
         .required("Return contact phone is required"),
 
-    // rProof_document_issue_date: Yup.date()
-    //     .max(new Date(), "Date cannot be in the future")
-    //     .required("Document issue date is required"),
+    // Required when same_as_warehouse is false (upload hidden when linked).
+    rProof_document_issue_date: Yup.string().when('same_as_warehouse', {
+        is: false,
+        then: (schema) => schema.required("Return address proof of address upload is required"),
+        otherwise: (schema) => schema.optional(),
+    }),
 });
 

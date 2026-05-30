@@ -4,11 +4,15 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
+import AuthBtnSeller from '../../../../ui/Seller/auth/authBtnSeller/AuthBtnSeller';
+import InputSeller from '../../../../ui/Seller/auth/inputSeller/InputSeller';
+import TitleAndDesc from '../../../../ui/Seller/auth/titleAndDesc/TitleAndDesc';
 import { createNewPassApi } from '../../../../api/auth';
-import {
-  SellerOnboardingLayout,
-  CreatePassFormView,
-} from '@/components/seller/onboarding';
+
+import xIc from '../../../../assets/Seller/auth/xIc.svg';
+import mark from '../../../../assets/Seller/auth/mark.svg';
+
+import styles from './CreatePassForm.module.scss';
 
 const CreatePassForm = () => {
   const { t } = useTranslation();
@@ -90,51 +94,82 @@ const CreatePassForm = () => {
 
   const { password } = formik.values;
 
-  const requirements = [
-    {
-      label: tOnb('auth.req_length'),
-      met: password.length > 8,
-    },
-    {
-      label: tOnb('auth.req_uppercase'),
-      met: password.match(/[A-ZА-Я]/g)?.length > 0,
-    },
-    {
-      label: tOnb('auth.req_digit'),
-      met: password.match(/\d/g)?.length > 0,
-    },
-    {
-      label: tOnb('auth.req_special'),
-      met: password.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g)?.length > 0,
-    },
-  ];
+  const hasMinLength = password.length >= 8;
+  const hasUppercase = password.match(/[A-ZА-Я]/g)?.length > 0;
+  const hasDigit = password.match(/\d/g)?.length > 0;
+  const hasSpecial = password.match(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g)?.length > 0;
 
   return (
-    <SellerOnboardingLayout>
-      <CreatePassFormView
+    <div className={styles.main}>
+      <TitleAndDesc
         title={tOnb('auth.title')}
-        description={tOnb('auth.description')}
-        passwordLabel={tOnb('auth.label_password')}
-        passwordPlaceholder={tOnb('auth.placeholder_password')}
-        confirmPasswordLabel={tOnb('auth.label_confirm_password')}
-        confirmPasswordPlaceholder={tOnb('auth.placeholder_confirm_password')}
-        values={formik.values}
-        errors={formik.errors}
-        regErr={regErr}
-        isLoading={isLoading}
-        isSubmitDisabled={!formik.isValid || !formik.dirty}
-        submitLabel={tOnb('auth.button_save')}
-        requirementsTitle={tOnb('auth.requirements_title')}
-        requirements={requirements}
-        footerNote={tOnb('auth.footer_note')}
-        onFieldChange={formik.handleChange}
-        onFieldBlur={formik.handleBlur}
+        desc={tOnb('auth.description')}
+      />
+
+      <form
+        className={styles.form}
         onSubmit={(event) => {
           event.preventDefault();
           formik.handleSubmit();
         }}
-      />
-    </SellerOnboardingLayout>
+      >
+        <InputSeller
+          type="password"
+          title={tOnb('auth.label_password')}
+          placeholder={tOnb('auth.placeholder_password')}
+          name="password"
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.errors.password}
+        />
+
+        <div className={styles.validationBlock}>
+          <p>{tOnb('auth.requirements_title')}</p>
+          <ul>
+            <li className={hasMinLength ? styles.greenText : styles.greyList}>
+              <img src={hasMinLength ? mark : xIc} alt="" />
+              {tOnb('auth.req_length')}
+            </li>
+            <li className={hasUppercase ? styles.greenText : styles.greyList}>
+              <img src={hasUppercase ? mark : xIc} alt="" />
+              {tOnb('auth.req_uppercase')}
+            </li>
+            <li className={hasDigit ? styles.greenText : styles.greyList}>
+              <img src={hasDigit ? mark : xIc} alt="" />
+              {tOnb('auth.req_digit')}
+            </li>
+            <li className={hasSpecial ? styles.greenText : styles.greyList}>
+              <img src={hasSpecial ? mark : xIc} alt="" />
+              {tOnb('auth.req_special')}
+            </li>
+          </ul>
+        </div>
+
+        <InputSeller
+          type="password"
+          title={tOnb('auth.label_confirm_password')}
+          placeholder={tOnb('auth.placeholder_confirm_password')}
+          name="confirm_password"
+          value={formik.values.confirm_password}
+          onChange={formik.handleChange}
+          onBlur={formik.handleBlur}
+          error={formik.errors.confirm_password}
+        />
+
+        {regErr ? <p className={styles.errorText}>{regErr}</p> : null}
+
+        <AuthBtnSeller
+          loading={isLoading}
+          disabled={!formik.isValid || !formik.dirty}
+          text={tOnb('auth.button_save')}
+        />
+      </form>
+
+      <div className={styles.bottomLinkWrap}>
+        <p>{tOnb('auth.footer_note')}</p>
+      </div>
+    </div>
   );
 };
 

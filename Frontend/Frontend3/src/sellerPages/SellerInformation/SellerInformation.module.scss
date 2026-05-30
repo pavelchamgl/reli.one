@@ -1,0 +1,19 @@
+.main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  align-items: center;
+  margin-bottom: 40px;
+  padding-top: 25px;
+
+  @media (max-width:500px) {
+        margin-bottom: 60px;
+  }
+}
+
+.titleWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
