@@ -1,0 +1,74 @@
+@import "../../../sellerPages/FinishVerificationPage/FinishVerificationPage.module.scss";
+
+
+
+
+.finishVerificationBlock {
+  @include analytBlocks();
+
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+
+  @media (max-width: 500px) {
+    padding: 24px;
+  }
+}
+
+.title {
+  font-weight: 500;
+  font-size: 30px;
+  color: #0a0a0a;
+}
+
+.desc {
+  @include blockDesc(16px);
+  margin-top: 8px;
+}
+
+.btn {
+  border-radius: 8px;
+  padding: 14px 0;
+  width: 100%;
+  height: 48px;
+
+  background: $black;
+
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  color: white;
+
+  transition: 0.5s ease;
+}
+
+.btn:hover {
+  background-color: $blackHover;
+}
+
+.progressBlock {
+  & div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    & p {
+      @include blockDesc(13px);
+
+      & span {
+        font-family: var(--ft);
+      }
+    }
+    & p:last-child {
+      font-family: var(--ft);
+    }
+  }
+}
+
+.progressLine {
+  display: block;
+  border-radius: 3px;
+  height: 8px;
+  width: 100%;
+  margin-top: 8px;
+}
