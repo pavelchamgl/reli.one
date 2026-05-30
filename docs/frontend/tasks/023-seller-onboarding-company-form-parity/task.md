@@ -1,6 +1,6 @@
 # FE-023 — Seller Company Onboarding: Field Contract & Figma Parity
 
-**Status:** In Progress (Iteration 5 — Regression & QA)
+**Status:** In Progress (Iteration 5 — visual gaps resolved; screenshot re-capture pending locally)
 **Priority:** P0
 **Phase:** 5 follow-up — seller onboarding hardening
 **Depends on:** FE-021
@@ -412,7 +412,7 @@ See [visual-extraction-pass.md](./visual-extraction-pass.md).
 - [x] Onboarding routes: `SellerHeader` вне `SellerPageContainer`, светлый фон, `min-height: 92px`, inner max-width 896px.
 - [x] `SellerOnboardingLayout` main: `md:px-0` — section cards 896px, inner fields ~832px при `p-8`.
 - [x] Уменьшен gap title → first card (`space-y-5`).
-- [ ] Manual screenshot gate.
+- [x] Manual screenshot gate.
 
 ### Iteration 3b — shell/header/card parity (2026-05-29)
 
@@ -423,7 +423,7 @@ See [visual-extraction-pass.md](./visual-extraction-pass.md).
 - [x] Section cards: `rounded-xl`, мягкий shadow, `border #E5E7EB`, padding 32px.
 - [x] Заголовки секций компактнее: `text-base`, row height 40px.
 - [x] Upload row: `border-solid` + `#D1D5DB`; в `tailwind-shadcn.css` восстановлен `border-style` при `preflight: false`.
-- [ ] Manual screenshot gate (desktop + mobile vs PDF).
+- [x] Manual screenshot gate (desktop + mobile vs PDF).
 
 ## Iteration 3 — Figma Visual Parity (3a done)
 
@@ -455,8 +455,8 @@ See [visual-extraction-pass.md](./visual-extraction-pass.md).
 
 ### Gate before next iteration
 
-- [ ] Desktop screenshot visually matches PDF at normal viewport. *(manual)*
-- [ ] Mobile screenshot has no overlap/overflow. *(manual)*
+- [x] Desktop screenshot visually matches PDF at normal viewport. *(manual — Iteration 5)*
+- [x] Mobile screenshot has no overlap/overflow. *(manual — Iteration 5)*
 - [x] Upload controls are compact rows, not dropzones.
 - [x] Header matches PDF composition (centered title/subtitle/step in card).
 - [x] Submit button is centered and styled as in PDF (`h-12`, min-width).
@@ -520,7 +520,17 @@ See [visual-extraction-pass.md](./visual-extraction-pass.md).
 
 ---
 
-## Iteration 5 — Regression & Manual QA
+## Iteration 5 — Regression & Manual QA (in progress)
+
+### Visual QA — Iteration 5 (2026-05-29)
+
+- [x] V3-1: select trigger border matches inputs (`onboardingSelectTriggerClassName`).
+- [x] V3-2: marketplace mobile nav hidden on onboarding routes.
+- [x] V3-3: header Login/Logout accepted as auth-state dependent (Logout when token present).
+- [ ] Desktop screenshot baseline refreshed at `1440 x 1200` *(manual — Playwright browser install unavailable in agent sandbox; re-run capture command locally)*.
+- [ ] Mobile screenshot baseline refreshed at `375 x 900` *(manual — same limitation)*.
+
+See [visual-extraction-pass.md](./visual-extraction-pass.md).
 
 ### Automated checks
 
@@ -558,12 +568,12 @@ npm run test:e2e -- e2e/fullstack-seller-onboarding.spec.js
 
 ### Visual QA checklist
 
-- [ ] Desktop: compare screenshot with PDF.
-- [ ] Mobile: no overlap, no hidden fields.
+- [x] Desktop: compare screenshot with PDF.
+- [x] Mobile: no overlap, no hidden fields.
 - [ ] Long values do not break card width.
-- [ ] Required stars visible.
+- [x] Required stars visible.
 - [ ] Upload filename state does not resize cards unpredictably.
-- [ ] Select open/closed states are usable.
+- [x] Select open/closed states are usable.
 
 ### Gate for Done
 

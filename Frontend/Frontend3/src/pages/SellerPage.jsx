@@ -30,7 +30,7 @@ const SellerPage = () => {
 
             <ScrollToTop />
 
-            {isMobile && <SellerMobNav />}
+            {isMobile && !sellerPathnames.includes(pathname) && <SellerMobNav />}
             <ToastContainer />
         </>
     )
