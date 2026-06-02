@@ -365,6 +365,7 @@ class SellerWarehouseAddress(models.Model):
     zip_code = models.CharField(max_length=32, null=True, blank=True)
     country = models.CharField(max_length=2, null=True, blank=True)
     contact_phone = models.CharField(max_length=64, null=True, blank=True)
+    same_as_primary_address = models.BooleanField(default=False)
 
     proof_document_issue_date = models.DateField(null=True, blank=True)
 

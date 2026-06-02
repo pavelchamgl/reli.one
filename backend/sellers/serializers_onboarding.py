@@ -341,7 +341,15 @@ class BankAccountSerializer(serializers.ModelSerializer):
 class WarehouseAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerWarehouseAddress
-        fields = ["street", "city", "zip_code", "country", "contact_phone", "proof_document_issue_date"]
+        fields = [
+            "same_as_primary_address",
+            "street",
+            "city",
+            "zip_code",
+            "country",
+            "contact_phone",
+            "proof_document_issue_date",
+        ]
 
 
 class ReturnAddressSerializer(serializers.ModelSerializer):

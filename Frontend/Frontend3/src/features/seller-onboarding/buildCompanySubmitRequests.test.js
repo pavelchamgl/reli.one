@@ -13,6 +13,7 @@ vi.mock('@/api/seller/onboarding', () => ({
 
 import {
   putCompanyInfo,
+  putWarehouse,
   putReturnAddress,
 } from '@/api/seller/onboarding';
 
@@ -45,6 +46,7 @@ const baseValues = {
   wZip_code: '2',
   wCountry: 'cz',
   contact_phone: '+4202',
+  same_as_the_primary_address: false,
   wProof_document_issue_date: '',
   same_as_warehouse: true,
   rStreet: 'R',
@@ -93,6 +95,19 @@ describe('buildCompanySubmitRequests', () => {
     expect(putReturnAddress).toHaveBeenCalledWith(
       expect.objectContaining({
         proof_document_issue_date: '2026-01-15',
+      }),
+    );
+  });
+
+  it('passes same-as-primary flag to warehouse payload', async () => {
+    const requests = buildCompanySubmitRequests({
+      ...baseValues,
+      same_as_the_primary_address: true,
+    });
+    await requests[4].promise;
+    expect(putWarehouse).toHaveBeenCalledWith(
+      expect.objectContaining({
+        same_as_primary_address: true,
       }),
     );
   });

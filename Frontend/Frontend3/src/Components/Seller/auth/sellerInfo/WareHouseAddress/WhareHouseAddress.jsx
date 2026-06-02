@@ -44,6 +44,7 @@ const WhareHouseAddress = ({ formik }) => {
         formik.setFieldValue("wZip_code", source.zip || "")
         formik.setFieldValue("wCountry", source.country || null)
         formik.setFieldValue("wContact_phone", source.phone || "")
+        formik.setFieldValue("wProof_document_issue_date", "")
 
         setTimeout(() => formik.validateForm(), 0)
     }
@@ -78,6 +79,7 @@ const WhareHouseAddress = ({ formik }) => {
         if (!filled) return
 
         const payload = {
+            same_as_primary_address: formik.values.same_as_the_primary_address,
             wStreet: formik.values.wStreet,
             wCity: formik.values.wCity,
             wZip_code: formik.values.wZip_code,
@@ -90,6 +92,7 @@ const WhareHouseAddress = ({ formik }) => {
             const proofDocumentIssueDate = toISODate(payload.wProof_document_issue_date)
 
             await putWarehouse({
+                same_as_primary_address: payload.same_as_primary_address,
                 street: payload.wStreet,
                 city: payload.wCity,
                 zip_code: payload.wZip_code,
@@ -208,7 +211,7 @@ const WhareHouseAddress = ({ formik }) => {
                     touched={formik.touched.contact_phone}
                 />
 
-                <div>
+                {!formik.values.same_as_the_primary_address && <div>
                     <UploadInp
 
                         title={t('onboard.tax_address.proof_address')}
@@ -225,7 +228,7 @@ const WhareHouseAddress = ({ formik }) => {
                         required={!formik.values.same_as_the_primary_address}
 
                     />
-                </div>
+                </div>}
             </div>
         </section>
     )

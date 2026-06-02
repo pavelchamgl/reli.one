@@ -76,7 +76,7 @@ const SellerReviewCompany = () => {
             local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
-            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? false,
+            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? companyData?.same_as_primary_address ?? false,
             wStreet: companyData?.wStreet ?? "",
             wCity: companyData?.wCity ?? "",
             wZip_code: companyData?.wZip_code ?? "",

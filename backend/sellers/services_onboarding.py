@@ -168,6 +168,7 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
     warehouse_complete = bool(
         wh and wh.street and wh.city and wh.zip_code and wh.country and wh.contact_phone
     )
+    warehouse_requires_document = bool(wh and not wh.same_as_primary_address)
 
     # RETURN ADDRESS
     ra = getattr(app, "return_address", None)
@@ -220,7 +221,10 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         documents_complete = (
             has_identity_document("self_employed_personal") and
             has_single_sided("proof_of_address", "self_employed_address") and
-            has_single_sided("proof_of_address", "warehouse_address") and
+            (
+                not warehouse_requires_document or
+                has_single_sided("proof_of_address", "warehouse_address")
+            ) and
             (
                 not return_address_requires_document or
                 has_single_sided("proof_of_address", "return_address")
@@ -231,7 +235,10 @@ def compute_completeness(app: SellerOnboardingApplication) -> Completeness:
         documents_complete = (
             has_single_sided("registration_certificate", "company_info") and
             has_single_sided("proof_of_address", "company_address") and
-            has_single_sided("proof_of_address", "warehouse_address") and
+            (
+                not warehouse_requires_document or
+                has_single_sided("proof_of_address", "warehouse_address")
+            ) and
             (
                 not return_address_requires_document or
                 has_single_sided("proof_of_address", "return_address")
@@ -394,6 +401,10 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
     used_doc_ids: set[int] = set()
 
     missing: list[dict] = []
+    warehouse_address = getattr(app, "warehouse_address", None)
+    warehouse_requires_document = bool(
+        warehouse_address and not warehouse_address.same_as_primary_address
+    )
     return_address = getattr(app, "return_address", None)
     return_address_requires_document = bool(
         return_address and not return_address.same_as_warehouse
@@ -443,26 +454,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "missing_sides": [None],
             })
 
-        # proof_of_address for warehouse address (single-sided)
-        ok, sides, ids = pick_single_sided("proof_of_address", "warehouse_address")
-        requirements.append(
-            requirement_entry(
-                "proof_of_address",
-                "warehouse_address",
-                "single_sided" if ok else None,
-                sides,
-                ids,
+        if warehouse_requires_document:
+            # proof_of_address for warehouse address (single-sided)
+            ok, sides, ids = pick_single_sided("proof_of_address", "warehouse_address")
+            requirements.append(
+                requirement_entry(
+                    "proof_of_address",
+                    "warehouse_address",
+                    "single_sided" if ok else None,
+                    sides,
+                    ids,
+                )
             )
-        )
-        used_doc_ids.update(ids)
+            used_doc_ids.update(ids)
 
-        if not ok:
-            missing.append({
-                "doc_type": "proof_of_address",
-                "scope": "warehouse_address",
-                "rule": "single_sided",
-                "missing_sides": [None],
-            })
+            if not ok:
+                missing.append({
+                    "doc_type": "proof_of_address",
+                    "scope": "warehouse_address",
+                    "rule": "single_sided",
+                    "missing_sides": [None],
+                })
 
         if return_address_requires_document:
             ok, sides, ids = pick_single_sided("proof_of_address", "return_address")
@@ -528,26 +540,27 @@ def compute_documents_summary_and_missing(app: SellerOnboardingApplication) -> t
                 "missing_sides": [None],
             })
 
-        # proof_of_address for warehouse address (single-sided)
-        ok, sides, ids = pick_single_sided("proof_of_address", "warehouse_address")
-        requirements.append(
-            requirement_entry(
-                "proof_of_address",
-                "warehouse_address",
-                "single_sided" if ok else None,
-                sides,
-                ids,
+        if warehouse_requires_document:
+            # proof_of_address for warehouse address (single-sided)
+            ok, sides, ids = pick_single_sided("proof_of_address", "warehouse_address")
+            requirements.append(
+                requirement_entry(
+                    "proof_of_address",
+                    "warehouse_address",
+                    "single_sided" if ok else None,
+                    sides,
+                    ids,
+                )
             )
-        )
-        used_doc_ids.update(ids)
+            used_doc_ids.update(ids)
 
-        if not ok:
-            missing.append({
-                "doc_type": "proof_of_address",
-                "scope": "warehouse_address",
-                "rule": "single_sided",
-                "missing_sides": [None],
-            })
+            if not ok:
+                missing.append({
+                    "doc_type": "proof_of_address",
+                    "scope": "warehouse_address",
+                    "rule": "single_sided",
+                    "missing_sides": [None],
+                })
 
         if return_address_requires_document:
             ok, sides, ids = pick_single_sided("proof_of_address", "return_address")

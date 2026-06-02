@@ -572,11 +572,11 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(within(section).getByText('onboard.company.cert_title')).toHaveAttribute('data-required', 'true');
     });
 
-    it('does not mark warehouse proof as required when warehouse matches primary address', () => {
+    it('hides warehouse proof upload when warehouse matches primary address', () => {
       renderPage({ same_as_the_primary_address: true });
       const warehouseHeading = screen.getByText('onboard.warehouse.title');
       const section = warehouseHeading.closest('section');
-      expect(within(section).getByText('onboard.tax_address.proof_address')).toHaveAttribute('data-required', 'false');
+      expect(within(section).queryByText('onboard.tax_address.proof_address')).not.toBeInTheDocument();
     });
   });
 

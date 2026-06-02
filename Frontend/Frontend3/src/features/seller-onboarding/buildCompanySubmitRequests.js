@@ -65,6 +65,7 @@ export function buildCompanySubmitRequests(values) {
     {
       name: 'Warehouse',
       promise: putWarehouse({
+        same_as_primary_address: Boolean(values.same_as_the_primary_address),
         street: values.wStreet,
         city: values.wCity,
         zip_code: values.wZip_code,

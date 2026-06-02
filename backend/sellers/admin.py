@@ -187,7 +187,15 @@ class SellerWarehouseAddressInline(ReadOnlyInline):
     model = SellerWarehouseAddress
     fk_name = "application"
     verbose_name_plural = "Warehouse address"
-    fields = ("country", "city", "street", "zip_code", "contact_phone", "proof_document_issue_date")
+    fields = (
+        "same_as_primary_address",
+        "country",
+        "city",
+        "street",
+        "zip_code",
+        "contact_phone",
+        "proof_document_issue_date",
+    )
     readonly_fields = fields
 
 

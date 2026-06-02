@@ -176,7 +176,9 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         }
 
         if (aresPreview.dic_hint && !formik.values.tin) {
-            formik.setFieldValue("tin", aresPreview.dic_hint)
+            formik.setFieldValue("tin", aresPreview.dic_hint, true)
+            formik.setFieldTouched("tin", false, false)
+            formik.setFieldError("tin", undefined)
         }
     }
 
@@ -328,7 +330,9 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                     type={"text"} circle={true} required={true} placeholder={"987654321"}
                     name="tin"
                     value={formik.values.tin}
-                    onChange={formik.handleChange}
+                    onChange={(e) => {
+                        formik.setFieldValue("tin", e.target.value, true)
+                    }}
                     onBlur={formik.handleBlur}
                     error={formik.errors.tin}
                     touched={formik.touched.tin}

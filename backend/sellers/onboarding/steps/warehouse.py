@@ -40,6 +40,7 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
                     OpenApiExample(
                         name="Existing data",
                         value={
+                            "same_as_primary_address": False,
                             "street": "Logistics Park 7",
                             "city": "Wrocław",
                             "zip_code": "50-001",
@@ -81,6 +82,7 @@ class SellerWarehouseAddressAPIView(AuditAPIView):
                     OpenApiExample(
                         name="Warehouse address updated",
                         value={
+                            "same_as_primary_address": False,
                             "street": "Logistics Park 7",
                             "city": "Wrocław",
                             "zip_code": "50-001",
