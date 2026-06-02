@@ -16,7 +16,7 @@
 
 Использовать публичный реестр **ARES CZ** по `IČO` (Company ID) для ускорения и повышения качества онбординга продавцов, разделяя работу на две фазы:
 
-- **MVP — ARES-assisted onboarding:** lookup по IČO предзаполняет поля формы компании (название, юр. форма, адрес, опционально DIČ как hint); продавец **вручную проверяет, правит и подтверждает** данные; модерация остаётся **полностью ручной**. Дополнительно — submit-time сверка с ARES как **подсказка модератору** (moderator hint), **без** автоматического approve.
+- **MVP — ARES-assisted onboarding:** lookup по IČO предзаполняет поля формы компании (название, юр. форма, страна регистрации CZ, зарегистрированный адрес, опционально DIČ/TIN как редактируемый hint после продуктового решения); продавец **вручную проверяет, правит и подтверждает** данные; модерация остаётся **полностью ручной**. Дополнительно — submit-time сверка с ARES как **подсказка модератору** (moderator hint), **без** автоматического approve.
 - **Later / Pilot — Auto-approve pilot (future phase):** при submit система сверяет данные с ARES и при выполнении строгих критериев авто-апрувит заявку. Включается под feature-flag, по умолчанию выключенным, **только после прохождения evidence gate**. До этого момента — не в core-поведении.
 
 ## Контекст
@@ -84,13 +84,15 @@ flowchart TD
 - Замена ручной модерации: ручной путь approve/reject сохраняется полностью.
 - Интеграция стороннего KYC/identity-провайдера (Sumsub/Onfido и т.п.).
 - **VAT/DPH/VIES verification** — отдельная будущая интеграция; `dic` из ARES не является подтверждением валидности VAT.
-- ARES **не заполняет и не подтверждает** следующие данные (вводятся и подтверждаются продавцом/документами/модератором):
+- ARES **не заполняет и не подтверждает** следующие данные в MVP (вводятся и подтверждаются продавцом/документами/модератором):
   - bank account (IBAN/SWIFT/holder);
-  - representative personal data (ФИО, дата рождения, роль);
+  - representative personal data (ФИО, дата рождения, роль, nationality);
   - warehouse address;
   - return address;
   - uploaded documents / proofs (identity, proof of address, registration certificate);
-  - phone / email, если они не гарантированы ARES.
+  - phone / email.
+- Representative name/role из регистра statutory bodies может рассматриваться только как отдельная future-iteration подсказка: без DOB/nationality, без auto-confirm, с выбором при нескольких представителях и полной редактируемостью.
+- Warehouse proof optional при `same_as_primary_address=true` — это **не ARES-автоматизация**, а отдельное правило onboarding-валидации/UI: если складской адрес совпадает с registered/company address, повторный proof для warehouse не должен быть required.
 
 ## Зависимости
 
@@ -101,7 +103,7 @@ flowchart TD
 
 - **Преждевременный auto-approve (ключевой риск).** Auto-approve меняет business-critical поведение онбординга. Включать **только** после [evidence gate](#evidence-gate-before-auto-approve): под флагом `ONBOARDING_ARES_AUTOAPPROVE_ENABLED` (default `False`), fail-closed (при недоступности/несовпадении ARES → ручная модерация), с полным аудитом и подтверждённым rollback. В MVP auto-approve отсутствует.
 - **PII / data minimization.** Не хранить полный `raw_response` без необходимости: сохранять **sanitized**/нормализованный снапшот с минимально нужными полями; не логировать чувствительные данные; учитывать срок хранения.
-- **DIČ ≠ VAT/TIN verification.** `dic` из ARES — налоговый идентификатор, **не** подтверждение валидности VAT и **не** TIN-верификация. Использовать только как optional display hint; полноценная проверка VAT (DPH/VIES) — отдельная будущая интеграция.
+- **DIČ ≠ VAT/TIN verification.** `dic` из ARES — налоговый идентификатор, **не** подтверждение валидности VAT и **не** TIN-верификация. В MVP его можно использовать только как editable hint для `tin` после явного продуктового решения; полноценная проверка VAT (DPH/VIES) — отдельная будущая интеграция.
 - **Rate limiting ARES.** ARES имеет лимиты на число запросов. Backend lookup-эндпоинт обязан иметь **throttle** (DRF throttling) и **cache** по IČO (`ARES_CACHE_SECONDS`), чтобы не упереться в лимиты и не зависеть от каждого keystroke на фронте.
 - **Маппинг `pravniForma` и адресов** нужно выверить на реальных ответах ARES; маппинг адреса может быть частичным и **редактируемым пользователем**.
 - **Расхождение название/держатель счёта:** существующая строгая проверка `account_holder` (company_name + legal_form) должна согласовываться с данными из ARES — иначе в pilot-фазе auto-approve будет ложно блокироваться.
@@ -136,11 +138,13 @@ ARES — источник **prefill/hint**, не источник истины. 
 |------|-----------------|-----------|
 | `obchodniJmeno` | `company_name` | prefill, редактируемо |
 | `ico` | `business_id` | значение, введённое продавцом; подтверждается lookup |
-| `dic` | display-only DIČ hint | **Только подсказка для UI/модератора**; не доказательство валидности VAT/DPH и не auto-fill для `tin` |
-| (нет) | `tin` | **не** заполнять автоматически — нет отдельного подтверждённого источника |
+| успешный CZ lookup | `country_of_registration` | prefill как Czech Republic/CZ; редактируемо, если UI это допускает |
+| `dic` | `tin` / DIČ hint | **Editable hint only**: можно prefill только если продукт принимает DIČ как значение TIN для CZ company flow; не доказательство валидности VAT/DPH |
 | `pravniForma` (код) | `legal_form` | prefill через таблицу маппинга в `mapping.py`, редактируемо |
 | `sidlo` (`nazevUlice`+`cisloDomovni/cisloOrientacni`, `nazevObce`, `psc`, `kodStatu`) | company address (`street`, `city`, `zip_code`, `country`) | prefill **может быть частичным** и редактируемым пользователем |
 | наличие `datumZaniku` / признаки `seznamRegistraci` | `is_active` (snapshot/hint) | для отображения модератору, не для авто-решения в MVP |
+| отсутствует | `company_phone` | не prefill: ARES не даёт надёжного телефона компании |
+| отсутствует в MVP lookup | representative DOB / nationality | не prefill: sensitive/manual data |
 
 ---
 
@@ -170,8 +174,11 @@ Auto-approve (Later / Pilot) включается **только** при одн
 - Описать **IČO validation** до сетевого запроса: нормализация, формат 8 цифр, checksum по весам `8,7,6,5,4,3,2`, правило ведущих нулей для коротких исторических значений.
 - Зафиксировать границы prefill:
   - ARES может prefill/hint: `company_name`, `business_id`/IČO, `legal_form`, registered company address, optional DIČ display hint.
-  - ARES **не** auto-fill: bank account, representative personal data, warehouse address, return address, uploads/proofs, phone/email.
-  - DIČ не является доказательством VAT/DPH validity; `tin` не заполняется автоматически без отдельного подтверждённого источника.
+  - Успешный CZ lookup может prefill `country_of_registration` как Czech Republic/CZ.
+  - DIČ не является доказательством VAT/DPH validity; `tin` может заполняться только как editable hint после продуктового решения, без перезаписи вручную введённого значения.
+  - ARES **не** auto-fill: bank account, company phone/email, representative DOB/nationality, warehouse address, return address, uploads/proofs.
+  - Representative first/last name и role из statutory bodies — только future-iteration после отдельного анализа источника; не входит в текущий frontend follow-up.
+  - Warehouse proof optional при `same_as_primary_address=true` — отдельное правило формы/валидации, не ARES mapping.
 - Описать критерии будущего auto-approve (для pilot) и пороги mismatch — как вход для evidence gate, **без** реализации auto-approve в MVP.
 - Согласовать sanitized-схему снапшота (data minimization) и migration-план.
 
@@ -179,7 +186,7 @@ Auto-approve (Later / Pilot) включается **только** при одн
 - Iteration 1 design artifact: [`ares-field-mapping.md`](./ares-field-mapping.md).
 - Fixture plan для active / inactive / not found / malformed address cases; сами fixtures при добавлении позже должны быть documentation/test-planning или test mocks, не runtime code.
 - IČO validation: 8 digits после нормализации; checksum `(11 - (sum(first7 * [8,7,6,5,4,3,2]) % 11)) % 10`; невалидный IČO не должен вызывать ARES.
-- Field mapping decisions: ARES-assisted prefill только для company legal data и registered address; DIČ — display hint, не VAT/TIN verification; TIN не auto-fill без confirmed source.
+- Field mapping decisions: ARES-assisted prefill только для company legal data, country of registration и registered address; DIČ/TIN — editable hint, не VAT/TIN verification; company phone и representative sensitive fields не auto-fill.
 - Auto-approve: out of MVP, deferred to Later/Pilot after evidence gate; submit remains `pending_verification` with manual moderation.
 
 ### Статус
@@ -215,9 +222,16 @@ Auto-approve (Later / Pilot) включается **только** при одн
 ### Действия
 - `getAresCompanyByIco(ico)` в `Frontend/Frontend3/src/api/seller/onboarding.js`.
 - Кнопка «Загрузить из ARES» рядом с `business_id` в `Frontend/Frontend3/src/Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo.jsx`: показ **preview** результата и явный **Apply** в поля формы через `formik.setFieldValue`; поля остаются редактируемыми.
+- Apply успешного ARES lookup также заполняет `country_of_registration` как Czech Republic/CZ. `tin` заполняется из `dic` только как editable hint и только если поле пустое; уже введённый пользователем `tin` не перезаписывать. `company_phone` не заполнять из ARES.
 - Состояния: loading / не найдено / реестр недоступен (`ErrToast` + подсказка); поведение при частичном адресе.
 - i18n в `Frontend/Frontend3/src/locales/cz/onbordingCz.json` и `Frontend/Frontend3/src/locales/en/onbordingEn.json`.
 - Frontend unit-тест (мок ответа: preview, apply, ошибки).
+
+### Follow-up after Iteration 3 manual test
+- ARES Apply должен покрывать `country_of_registration`.
+- `tin` может prefill из DIČ только как редактируемая подсказка, без перезаписи пользовательского значения.
+- `company_phone` остаётся ручным.
+- Representative fields и Warehouse proof validation не смешивать с ARES UI follow-up; вынести в отдельные итерации.
 
 ### Output
 - Ассистированный prefill с ручным подтверждением.
@@ -351,4 +365,3 @@ docker compose -f docker-compose.test.yml run --rm backend_test pytest sellers/ 
 | **Tests** | `sellers/test_*` (ARES client/service, lookup, submit-time hint; pilot: auto-approve), Frontend3 unit-тест |
 | **Env** | `envs/backend.env.example`, `envs/backend.test.env.example` |
 | **Docs** | `docs/06-integrations.md`, `docs/seller-onboarding-flow.md` |
-
