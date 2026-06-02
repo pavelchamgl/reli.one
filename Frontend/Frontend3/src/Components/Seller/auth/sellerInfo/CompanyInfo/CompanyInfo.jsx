@@ -10,7 +10,7 @@ import companyIc from "../../../../../assets/Seller/register/companyIcon.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
-import { putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { getAresCompanyByIco, putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
 import { ErrToast } from "../../../../../ui/Toastify"
 
@@ -25,6 +25,9 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
     const [country, setCountry] = useState(companyData?.country_of_registration ?? null)
 
     const [uploadStatus, setUploadStatus] = useState("")
+    const [aresLoading, setAresLoading] = useState(false)
+    const [aresPreview, setAresPreview] = useState(null)
+    const [aresErrorKey, setAresErrorKey] = useState("")
 
     const isCompanyFilled = (values) => {
         return Boolean(
@@ -101,6 +104,76 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         },
     ];
 
+    const isCompatibleLegalForm = (value) => legalArr.some((item) => item.value === value)
+
+    const formatAresAddress = (address) => {
+        if (!address) return ""
+        return [address.street, address.city, address.zip_code, address.country].filter(Boolean).join(", ")
+    }
+
+    const normalizeAresCountry = (value) => {
+        if (!value) return ""
+        const normalized = String(value).toLowerCase()
+        return countriesArr.some((item) => item.value === normalized) ? normalized : ""
+    }
+
+    const handleAresLookup = async () => {
+        setAresLoading(true)
+        setAresPreview(null)
+        setAresErrorKey("")
+
+        try {
+            const result = await getAresCompanyByIco(formik.values.business_id)
+            if (!result?.found) {
+                setAresErrorKey(result?.code === "ares_invalid_ico" ? "invalid" : "generic")
+                return
+            }
+            setAresPreview(result)
+        } catch (err) {
+            if (err?.code === "ares_invalid_ico" || err?.status === 400) {
+                setAresErrorKey("invalid")
+            } else if (err?.code === "ares_not_found" || err?.status === 404) {
+                setAresErrorKey("not_found")
+            } else if (err?.code === "ares_unavailable" || err?.status === 503) {
+                setAresErrorKey("unavailable")
+            } else {
+                setAresErrorKey("generic")
+            }
+        } finally {
+            setAresLoading(false)
+        }
+    }
+
+    const applyAresPreview = () => {
+        if (!aresPreview) return
+
+        if (aresPreview.company_name) {
+            formik.setFieldValue("company_name", aresPreview.company_name)
+        }
+        if (aresPreview.business_id || aresPreview.ico) {
+            formik.setFieldValue("business_id", aresPreview.business_id || aresPreview.ico)
+        }
+        if (aresPreview.legal_form && isCompatibleLegalForm(aresPreview.legal_form)) {
+            formik.setFieldValue("legal_form", aresPreview.legal_form)
+        }
+
+        const address = aresPreview.registered_address
+        if (address?.street) {
+            formik.setFieldValue("street", address.street)
+        }
+        if (address?.city) {
+            formik.setFieldValue("city", address.city)
+        }
+        if (address?.zip_code) {
+            formik.setFieldValue("zip_code", address.zip_code)
+        }
+
+        const countryValue = normalizeAresCountry(address?.country)
+        if (countryValue) {
+            formik.setFieldValue("country", countryValue)
+        }
+    }
+
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
@@ -173,18 +246,74 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                     />
                 </div>
 
-                <InputSeller
-                    title={t('onboard.company.business_id')}
-                    type={"text"} circle={true} required={true}
-                    placeholder={"Trade register number"}
-                    name="business_id"
-                    value={formik.values.business_id}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.business_id}
-                    touched={formik.touched.business_id}
-                    num={true}
-                />
+                <div className={styles.aresLookupWrap}>
+                    <InputSeller
+                        title={t('onboard.company.business_id')}
+                        type={"text"} circle={true} required={true}
+                        placeholder={"Trade register number"}
+                        name="business_id"
+                        value={formik.values.business_id}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.business_id}
+                        touched={formik.touched.business_id}
+                        num={true}
+                    />
+
+                    <button
+                        type="button"
+                        className={styles.aresLookupBtn}
+                        onClick={handleAresLookup}
+                        disabled={aresLoading}
+                    >
+                        {aresLoading ? t('onboard.company.ares.loading') : t('onboard.company.ares.load')}
+                    </button>
+                </div>
+
+                {aresErrorKey &&
+                    <p className={styles.aresError} role="alert">
+                        {t(`onboard.company.ares.errors.${aresErrorKey}`)}
+                    </p>}
+
+                {aresPreview &&
+                    <div className={styles.aresPreview} data-testid="ares-preview">
+                        <div className={styles.aresPreviewHeader}>
+                            <p>{t('onboard.company.ares.preview_title')}</p>
+                            {!aresPreview.is_active &&
+                                <span>{t('onboard.company.ares.inactive_warning')}</span>}
+                        </div>
+
+                        <dl>
+                            {aresPreview.company_name &&
+                                <>
+                                    <dt>{t('onboard.company.name')}</dt>
+                                    <dd>{aresPreview.company_name}</dd>
+                                </>}
+                            {aresPreview.legal_form &&
+                                <>
+                                    <dt>{t('onboard.company.legal_form')}</dt>
+                                    <dd>{aresPreview.legal_form}</dd>
+                                </>}
+                            {formatAresAddress(aresPreview.registered_address) &&
+                                <>
+                                    <dt>{t('onboard.company.ares.registered_address')}</dt>
+                                    <dd>{formatAresAddress(aresPreview.registered_address)}</dd>
+                                </>}
+                            {aresPreview.dic_hint &&
+                                <>
+                                    <dt>{t('onboard.company.ares.dic_hint')}</dt>
+                                    <dd>{aresPreview.dic_hint}</dd>
+                                </>}
+                        </dl>
+
+                        <button
+                            type="button"
+                            className={styles.aresApplyBtn}
+                            onClick={applyAresPreview}
+                        >
+                            {t('onboard.company.ares.apply')}
+                        </button>
+                    </div>}
 
 
 

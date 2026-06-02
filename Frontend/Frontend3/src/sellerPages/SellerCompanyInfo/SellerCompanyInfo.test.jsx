@@ -12,7 +12,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useFormik } from 'formik';
 
 // ── Mocks (hoisted before imports) ───────────────────────────────────────────
@@ -48,6 +49,7 @@ vi.mock('../../hook/useActionSafeEmploed', () => ({
 
 vi.mock('../../api/seller/onboarding', () => ({
   putCompanyInfo: vi.fn().mockResolvedValue({}),
+  getAresCompanyByIco: vi.fn(),
   putRepresentative: vi.fn().mockResolvedValue({}),
   putCompanyAddress: vi.fn().mockResolvedValue({}),
   putOnboardingBank: vi.fn().mockResolvedValue({}),
@@ -74,6 +76,7 @@ vi.mock('../../ui/Toastify', () => ({ ErrToast: vi.fn() }));
 import { renderWithProviders } from '../../test/test-utils.jsx';
 import { setupStore } from '../../redux/index.js';
 import SellerCompanyInfo from './SellerCompanyInfo.jsx';
+import { getAresCompanyByIco } from '../../api/seller/onboarding';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -179,6 +182,106 @@ describe('SellerCompanyInfo — field contract', () => {
     it('renders company_phone input', () => {
       renderPage();
       expect(inputByName('company_phone')).toBeTruthy();
+    });
+  });
+
+  describe('ARES assisted prefill', () => {
+    const aresSuccess = {
+      found: true,
+      ico: '25596641',
+      business_id: '25596641',
+      company_name: 'ARES Example s.r.o.',
+      legal_form_code: '112',
+      legal_form: 's.r.o. (Czech Republic / Slovakia)',
+      registered_address: {
+        street: 'Václavské náměstí 1',
+        city: 'Praha',
+        zip_code: '11000',
+        country: 'CZ',
+      },
+      dic_hint: 'CZ25596641',
+      is_active: false,
+      warnings: [],
+    };
+
+    async function lookupFromAres(ico = '25596641') {
+      const user = userEvent.setup();
+      await user.type(inputByName('business_id'), ico);
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.load' }));
+      return user;
+    }
+
+    it('lookup button calls backend API with IČO', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      await lookupFromAres();
+
+      await waitFor(() => expect(getAresCompanyByIco).toHaveBeenCalledWith('25596641'));
+    });
+
+    it('shows success preview without mutating form fields before Apply', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      await lookupFromAres();
+
+      expect(await screen.findByTestId('ares-preview')).toBeInTheDocument();
+      expect(screen.getByText('ARES Example s.r.o.')).toBeInTheDocument();
+      expect(screen.getByText('s.r.o. (Czech Republic / Slovakia)')).toBeInTheDocument();
+      expect(screen.getByText('Václavské náměstí 1, Praha, 11000, CZ')).toBeInTheDocument();
+      expect(screen.getByText('CZ25596641')).toBeInTheDocument();
+      expect(screen.getByText('onboard.company.ares.inactive_warning')).toBeInTheDocument();
+
+      expect(inputByName('company_name')).toHaveValue('');
+      expect(inputByName('street')).toHaveValue('');
+      expect(inputByName('tin')).toHaveValue('');
+    });
+
+    it('Apply fills only allowed company and registered address fields', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      await waitFor(() => expect(inputByName('company_name')).toHaveValue('ARES Example s.r.o.'));
+      expect(inputByName('business_id')).toHaveValue('25596641');
+      expect(inputByName('street')).toHaveValue('Václavské náměstí 1');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+      expect(inputByName('tin')).toHaveValue('');
+      expect(screen.getByText('onboard.legal_forms.sro')).toBeInTheDocument();
+      expect(screen.getByText('countries.cz')).toBeInTheDocument();
+    });
+
+    it('shows invalid IČO error', async () => {
+      getAresCompanyByIco.mockRejectedValueOnce({
+        status: 400,
+        code: 'ares_invalid_ico',
+        message: 'Invalid Czech IČO.',
+      });
+      renderPage();
+
+      await lookupFromAres('abc');
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('onboard.company.ares.errors.invalid');
+    });
+
+    it('shows not found and unavailable errors', async () => {
+      const user = userEvent.setup();
+      getAresCompanyByIco
+        .mockRejectedValueOnce({ status: 404, code: 'ares_not_found' })
+        .mockRejectedValueOnce({ status: 503, code: 'ares_unavailable' });
+      renderPage();
+
+      await user.type(inputByName('business_id'), '25596641');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.load' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('onboard.company.ares.errors.not_found');
+
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.load' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('onboard.company.ares.errors.unavailable');
     });
   });
 

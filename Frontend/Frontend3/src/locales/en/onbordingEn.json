@@ -177,7 +177,22 @@
             "cert_title": "Registration certificate document",
             "cert_desc": "Extract from trade register, not older than 3 months",
             "phone": "Company phone",
-            "reg_number": "Registration Number"
+            "reg_number": "Registration Number",
+            "ares": {
+                "load": "Load from ARES",
+                "loading": "Loading from ARES...",
+                "preview_title": "ARES preview",
+                "registered_address": "Registered address",
+                "dic_hint": "DIČ hint",
+                "inactive_warning": "Inactive company",
+                "apply": "Apply to form",
+                "errors": {
+                    "invalid": "Enter a valid Czech IČO before loading from ARES.",
+                    "not_found": "This IČO was not found in ARES. You can continue filling the form manually.",
+                    "unavailable": "ARES is currently unavailable. Please try again later or fill the form manually.",
+                    "generic": "Could not load company details from ARES. Please try again or fill the form manually."
+                }
+            }
         },
         "tax_address": {
             "tax_info": "Tax information",

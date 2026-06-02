@@ -157,6 +157,25 @@ export const putCompanyInfo = async (obj) => {
     }
 };
 
+export const getAresCompanyByIco = async (ico) => {
+    try {
+        const res = await mainInstance.get("/sellers/onboarding/company/ares-lookup/", {
+            params: { ico },
+        });
+        return res.data;
+    } catch (error) {
+        if (error.response) {
+            const { status, data } = error.response;
+            throw {
+                status,
+                code: data?.code,
+                message: data?.detail || data?.message || "Failed to load company from ARES",
+            };
+        }
+        handleError(error, "Failed to load company from ARES");
+    }
+};
+
 // =================================================
 // ✅ Representative
 // =================================================
