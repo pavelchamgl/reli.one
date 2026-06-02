@@ -201,6 +201,13 @@ describe('SellerCompanyInfo — field contract', () => {
       },
       dic_hint: 'CZ25596641',
       is_active: false,
+      representatives: [
+        {
+          first_name: 'Jan',
+          last_name: 'Novák',
+          role_hint: 'Jednatel',
+        },
+      ],
       warnings: [],
     };
 
@@ -231,6 +238,10 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(screen.getByText('s.r.o. (Czech Republic / Slovakia)')).toBeInTheDocument();
       expect(screen.getByText('Václavské náměstí 1, Praha, 11000, CZ')).toBeInTheDocument();
       expect(screen.getByText('CZ25596641')).toBeInTheDocument();
+      expect(screen.getByTestId('ares-representatives')).toBeInTheDocument();
+      expect(screen.getByText('Jan')).toBeInTheDocument();
+      expect(screen.getByText('Novák')).toBeInTheDocument();
+      expect(screen.getByText('Jednatel')).toBeInTheDocument();
       expect(screen.getByText('onboard.company.ares.inactive_warning')).toBeInTheDocument();
 
       expect(inputByName('company_name')).toHaveValue('');
@@ -301,6 +312,77 @@ describe('SellerCompanyInfo — field contract', () => {
       await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
 
       expect(inputByName('company_phone')).toHaveValue('+420777123456');
+    });
+
+    it('Apply representative fills empty first_name, last_name and role', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novák');
+      expect(screen.getByText('onboard.representative.role_managing')).toBeInTheDocument();
+    });
+
+    it('Apply representative does not fill role for unknown role_hint', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        representatives: [
+          {
+            first_name: 'Jan',
+            last_name: 'Novák',
+            role_hint: 'Kontaktní osoba',
+          },
+        ],
+      });
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novák');
+      expect(screen.getByText('onboard.representative.select_role')).toBeInTheDocument();
+    });
+
+    it('Apply representative does not overwrite existing representative fields', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage({
+        role: 'CEO',
+        date_of_birth: '01.01.1990',
+        nationality: 'cz',
+      });
+      const user = userEvent.setup();
+
+      await user.type(inputByName('business_id'), '25596641');
+      await user.type(inputByName('first_name'), 'Alice');
+      await user.type(inputByName('last_name'), 'Existing');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.load' }));
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      expect(inputByName('first_name')).toHaveValue('Alice');
+      expect(inputByName('last_name')).toHaveValue('Existing');
+      expect(screen.getByText('onboard.representative.role_ceo')).toBeInTheDocument();
+    });
+
+    it('Apply representative does not change date_of_birth or nationality', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage({
+        date_of_birth: '01.01.1990',
+        nationality: 'cz',
+      });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      expect(inputByName('date_of_birth')).toHaveValue('01.01.1990');
+      expect(screen.getByText('countries.cz')).toBeInTheDocument();
     });
 
     it('shows invalid IČO error', async () => {

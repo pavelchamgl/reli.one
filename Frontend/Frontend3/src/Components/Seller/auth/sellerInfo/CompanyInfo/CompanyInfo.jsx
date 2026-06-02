@@ -182,6 +182,51 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         }
     }
 
+    const applyAresRepresentative = (representative) => {
+        if (!representative) return
+
+        if (representative.first_name && !formik.values.first_name) {
+            formik.setFieldValue("first_name", representative.first_name)
+        }
+        if (representative.last_name && !formik.values.last_name) {
+            formik.setFieldValue("last_name", representative.last_name)
+        }
+        const mappedRole = mapAresRepresentativeRole(representative.role_hint)
+        if (mappedRole && !formik.values.role) {
+            formik.setFieldValue("role", mappedRole)
+        }
+    }
+
+    const mapAresRepresentativeRole = (roleHint) => {
+        const normalized = String(roleHint || "").trim().toLowerCase()
+        if (!normalized) return null
+
+        if (
+            normalized.includes("jednatel") ||
+            normalized.includes("statutární orgán") ||
+            normalized.includes("statutarni organ") ||
+            normalized.includes("statutory body")
+        ) {
+            return "Managing Director"
+        }
+        if (
+            normalized.includes("společník") ||
+            normalized.includes("spolecnik") ||
+            normalized.includes("owner")
+        ) {
+            return "Owner"
+        }
+        if (
+            normalized.includes("prokurista") ||
+            normalized.includes("signatory") ||
+            normalized.includes("authorized signatory")
+        ) {
+            return "Authorized Signatory"
+        }
+
+        return null
+    }
+
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
             .then(res => {
@@ -321,6 +366,39 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         >
                             {t('onboard.company.ares.apply')}
                         </button>
+
+                        {aresPreview.representatives?.length > 0 &&
+                            <div className={styles.aresRepresentatives} data-testid="ares-representatives">
+                                <p>{t('onboard.company.ares.representatives_title')}</p>
+                                {aresPreview.representatives.map((representative, index) => (
+                                    <div className={styles.aresRepresentative} key={`${representative.first_name || ""}-${representative.last_name || ""}-${index}`}>
+                                        <dl>
+                                            {representative.first_name &&
+                                                <>
+                                                    <dt>{t('onboard.reg.first_name')}</dt>
+                                                    <dd>{representative.first_name}</dd>
+                                                </>}
+                                            {representative.last_name &&
+                                                <>
+                                                    <dt>{t('onboard.reg.last_name')}</dt>
+                                                    <dd>{representative.last_name}</dd>
+                                                </>}
+                                            {representative.role_hint &&
+                                                <>
+                                                    <dt>{t('onboard.review.role')}</dt>
+                                                    <dd>{representative.role_hint}</dd>
+                                                </>}
+                                        </dl>
+                                        <button
+                                            type="button"
+                                            className={styles.aresApplyBtn}
+                                            onClick={() => applyAresRepresentative(representative)}
+                                        >
+                                            {t('onboard.company.ares.apply_representative')}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>}
                     </div>}
 
 

@@ -186,6 +186,8 @@
                 "dic_hint": "DIČ hint",
                 "inactive_warning": "Inactive company",
                 "apply": "Apply to form",
+                "representatives_title": "Representative suggestions",
+                "apply_representative": "Apply representative",
                 "errors": {
                     "invalid": "Enter a valid Czech IČO before loading from ARES.",
                     "not_found": "This IČO was not found in ARES. You can continue filling the form manually.",
