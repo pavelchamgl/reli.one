@@ -168,10 +168,16 @@ describe('companyValidationSchema', () => {
       );
     });
 
-    it('rejects missing warehouse proof upload', async () => {
+    it('requires warehouse proof upload when same-as-primary is false', async () => {
       await expectInvalidContaining(
-        validPayload({ wProof_document_issue_date: '' }),
+        validPayload({ same_as_the_primary_address: false, wProof_document_issue_date: '' }),
         'warehouse proof',
+      );
+    });
+
+    it('accepts empty warehouse proof upload when same-as-primary is true', async () => {
+      await expectValid(
+        validPayload({ same_as_the_primary_address: true, wProof_document_issue_date: '' }),
       );
     });
 

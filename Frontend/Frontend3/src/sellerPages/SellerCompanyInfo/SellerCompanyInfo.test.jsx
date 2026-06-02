@@ -251,9 +251,56 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(inputByName('street')).toHaveValue('Václavské náměstí 1');
       expect(inputByName('city')).toHaveValue('Praha');
       expect(inputByName('zip_code')).toHaveValue('11000');
-      expect(inputByName('tin')).toHaveValue('');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
       expect(screen.getByText('onboard.legal_forms.sro')).toBeInTheDocument();
-      expect(screen.getByText('countries.cz')).toBeInTheDocument();
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('Apply fills country_of_registration as Czech Republic', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('Apply fills TIN from DIČ only when TIN is empty', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      await waitFor(() => expect(inputByName('tin')).toHaveValue('CZ25596641'));
+    });
+
+    it('Apply does not overwrite existing TIN', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage({ tin: 'USER-TIN-123' });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(inputByName('tin')).toHaveValue('USER-TIN-123');
+    });
+
+    it('Apply does not change company phone', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        company_phone: '+420000000000',
+      });
+      renderPage({ company_phone: '+420777123456' });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(inputByName('company_phone')).toHaveValue('+420777123456');
     });
 
     it('shows invalid IČO error', async () => {

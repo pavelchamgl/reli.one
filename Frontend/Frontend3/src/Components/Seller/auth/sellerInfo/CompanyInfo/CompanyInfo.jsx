@@ -171,6 +171,12 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         const countryValue = normalizeAresCountry(address?.country)
         if (countryValue) {
             formik.setFieldValue("country", countryValue)
+            formik.setFieldValue("country_of_registration", countryValue)
+            setCountry(countryValue)
+        }
+
+        if (aresPreview.dic_hint && !formik.values.tin) {
+            formik.setFieldValue("tin", aresPreview.dic_hint)
         }
     }
 

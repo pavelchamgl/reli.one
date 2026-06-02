@@ -222,6 +222,7 @@ const WhareHouseAddress = ({ formik }) => {
                         nameTitle={"warehouse_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
                         uploadStatus={uploadStatus}
+                        required={!formik.values.same_as_the_primary_address}
 
                     />
                 </div>

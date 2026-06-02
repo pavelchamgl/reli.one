@@ -22,7 +22,8 @@ const UploadInp = ({
     nameTitle,
     onMouseDown,
     uploadStatus,
-    identTwo
+    identTwo,
+    required = true
 }) => {
 
     const { pathname } = useLocation()
@@ -81,7 +82,7 @@ const UploadInp = ({
         <div>
             {
                 title &&
-                <p className={styles.title}>{title}</p>
+                <p className={required ? styles.title : styles.optionalTitle}>{title}</p>
             }
             <span className={styles.desc}>{description}</span>
 

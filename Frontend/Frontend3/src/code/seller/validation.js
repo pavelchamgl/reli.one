@@ -309,9 +309,12 @@ export const companyValidationSchema = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Contact phone is required"),
 
-    // Set by the upload response; non-empty means doc was uploaded.
-    wProof_document_issue_date: Yup.string()
-        .required("Warehouse proof of address upload is required"),
+    // Required when warehouse address is not linked to the primary/company address.
+    wProof_document_issue_date: Yup.string().when('same_as_the_primary_address', {
+        is: true,
+        then: (schema) => schema.optional(),
+        otherwise: (schema) => schema.required("Warehouse proof of address upload is required"),
+    }),
 
     /* ========= RETURN ADDRESS ========= */
     rStreet: Yup.string()
@@ -338,4 +341,3 @@ export const companyValidationSchema = Yup.object({
         otherwise: (schema) => schema.optional(),
     }),
 });
-
