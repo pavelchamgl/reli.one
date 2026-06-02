@@ -82,7 +82,7 @@ const UploadInp = ({
         <div>
             {
                 title &&
-                <p className={required ? styles.title : styles.optionalTitle}>{title}</p>
+                <p className={styles.title} data-required={required ? "true" : "false"}>{title}</p>
             }
             <span className={styles.desc}>{description}</span>
 

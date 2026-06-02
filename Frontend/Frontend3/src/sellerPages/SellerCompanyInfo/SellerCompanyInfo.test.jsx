@@ -564,6 +564,20 @@ describe('SellerCompanyInfo — field contract', () => {
       renderPage();
       expect(screen.getByText('onboard.company.phone').className).toMatch(/titleRequired/);
     });
+
+    it('marks required uploads as required by default', () => {
+      renderPage();
+      const companyHeading = screen.getByText('onboard.company.title');
+      const section = companyHeading.closest('section');
+      expect(within(section).getByText('onboard.company.cert_title')).toHaveAttribute('data-required', 'true');
+    });
+
+    it('does not mark warehouse proof as required when warehouse matches primary address', () => {
+      renderPage({ same_as_the_primary_address: true });
+      const warehouseHeading = screen.getByText('onboard.warehouse.title');
+      const section = warehouseHeading.closest('section');
+      expect(within(section).getByText('onboard.tax_address.proof_address')).toHaveAttribute('data-required', 'false');
+    });
   });
 
   // ── 10. Submit button ──────────────────────────────────────────────────────
