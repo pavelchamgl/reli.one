@@ -8,7 +8,7 @@
 
 > **Ограничения:** контракт публичного onboarding API расширяется только новым lookup-эндпоинтом; существующие контракты не меняются. ARES — вспомогательный источник prefill/hint, а не источник истины и не замена документов и ручной модерации.
 
-**Связанные документы:** [`docs/seller-onboarding-flow.md`](../../seller-onboarding-flow.md), [`docs/06-integrations.md`](../../06-integrations.md), [Task 008 — Seller Onboarding Stabilization](../008-seller-onboarding-stabilization/task.md).
+**Связанные документы:** [`docs/seller-onboarding-flow.md`](../../seller-onboarding-flow.md), [`docs/06-integrations.md`](../../06-integrations.md), [Task 008 — Seller Onboarding Stabilization](../008-seller-onboarding-stabilization/task.md), [`ares-field-mapping.md`](./ares-field-mapping.md).
 
 ---
 
@@ -101,7 +101,7 @@ flowchart TD
 
 - **Преждевременный auto-approve (ключевой риск).** Auto-approve меняет business-critical поведение онбординга. Включать **только** после [evidence gate](#evidence-gate-before-auto-approve): под флагом `ONBOARDING_ARES_AUTOAPPROVE_ENABLED` (default `False`), fail-closed (при недоступности/несовпадении ARES → ручная модерация), с полным аудитом и подтверждённым rollback. В MVP auto-approve отсутствует.
 - **PII / data minimization.** Не хранить полный `raw_response` без необходимости: сохранять **sanitized**/нормализованный снапшот с минимально нужными полями; не логировать чувствительные данные; учитывать срок хранения.
-- **DIČ ≠ VAT/TIN verification.** `dic` из ARES — налоговый идентификатор, **не** подтверждение валидности VAT и **не** TIN-верификация. Использовать только как optional display/prefill hint; полноценная проверка VAT (DPH/VIES) — отдельная будущая интеграция.
+- **DIČ ≠ VAT/TIN verification.** `dic` из ARES — налоговый идентификатор, **не** подтверждение валидности VAT и **не** TIN-верификация. Использовать только как optional display hint; полноценная проверка VAT (DPH/VIES) — отдельная будущая интеграция.
 - **Rate limiting ARES.** ARES имеет лимиты на число запросов. Backend lookup-эндпоинт обязан иметь **throttle** (DRF throttling) и **cache** по IČO (`ARES_CACHE_SECONDS`), чтобы не упереться в лимиты и не зависеть от каждого keystroke на фронте.
 - **Маппинг `pravniForma` и адресов** нужно выверить на реальных ответах ARES; маппинг адреса может быть частичным и **редактируемым пользователем**.
 - **Расхождение название/держатель счёта:** существующая строгая проверка `account_holder` (company_name + legal_form) должна согласовываться с данными из ARES — иначе в pilot-фазе auto-approve будет ложно блокироваться.
@@ -136,7 +136,7 @@ ARES — источник **prefill/hint**, не источник истины. 
 |------|-----------------|-----------|
 | `obchodniJmeno` | `company_name` | prefill, редактируемо |
 | `ico` | `business_id` | значение, введённое продавцом; подтверждается lookup |
-| `dic` | `vat_id` | **optional** prefill/display hint, **не** доказательство валидности VAT |
+| `dic` | display-only DIČ hint | **Только подсказка для UI/модератора**; не доказательство валидности VAT/DPH и не auto-fill для `tin` |
 | (нет) | `tin` | **не** заполнять автоматически — нет отдельного подтверждённого источника |
 | `pravniForma` (код) | `legal_form` | prefill через таблицу маппинга в `mapping.py`, редактируемо |
 | `sidlo` (`nazevUlice`+`cisloDomovni/cisloOrientacni`, `nazevObce`, `psc`, `kodStatu`) | company address (`street`, `city`, `zip_code`, `country`) | prefill **может быть частичным** и редактируемым пользователем |
@@ -165,17 +165,25 @@ Auto-approve (Later / Pilot) включается **только** при одн
 Зафиксировать схему данных ARES, маппинг полей, валидацию IČO и критерии (для будущего pilot) на реальных ответах реестра.
 
 ### Действия
-- Собрать **ARES fixtures** на нескольких реальных IČO: active / terminated / not found / частичный адрес.
-- Составить таблицу **field mapping** `pravniForma` → значения `legal_form` формы; зафиксировать частичность адреса.
-- Описать **IČO validation** (формат/контрольная сумма, нормализация ведущих нулей) до сетевого запроса.
+- Зафиксировать **ARES fixture plan** для будущих моков: active company, inactive/terminated company, not found, malformed/partial address. Fixtures в Iteration 1 являются documentation/test-planning артефактами; живые вызовы ARES из кода не добавляются.
+- Составить таблицу **field mapping** `pravniForma` → значения `legal_form` формы; зафиксировать частичность адреса и редактируемость всех prefilled полей.
+- Описать **IČO validation** до сетевого запроса: нормализация, формат 8 цифр, checksum по весам `8,7,6,5,4,3,2`, правило ведущих нулей для коротких исторических значений.
+- Зафиксировать границы prefill:
+  - ARES может prefill/hint: `company_name`, `business_id`/IČO, `legal_form`, registered company address, optional DIČ display hint.
+  - ARES **не** auto-fill: bank account, representative personal data, warehouse address, return address, uploads/proofs, phone/email.
+  - DIČ не является доказательством VAT/DPH validity; `tin` не заполняется автоматически без отдельного подтверждённого источника.
 - Описать критерии будущего auto-approve (для pilot) и пороги mismatch — как вход для evidence gate, **без** реализации auto-approve в MVP.
 - Согласовать sanitized-схему снапшота (data minimization) и migration-план.
 
 ### Output
-- ARES fixtures, таблица маппинга, правила валидации IČO, черновик критериев pilot (в этом task.md / ADR при необходимости).
+- Iteration 1 design artifact: [`ares-field-mapping.md`](./ares-field-mapping.md).
+- Fixture plan для active / inactive / not found / malformed address cases; сами fixtures при добавлении позже должны быть documentation/test-planning или test mocks, не runtime code.
+- IČO validation: 8 digits после нормализации; checksum `(11 - (sum(first7 * [8,7,6,5,4,3,2]) % 11)) % 10`; невалидный IČO не должен вызывать ARES.
+- Field mapping decisions: ARES-assisted prefill только для company legal data и registered address; DIČ — display hint, не VAT/TIN verification; TIN не auto-fill без confirmed source.
+- Auto-approve: out of MVP, deferred to Later/Pilot after evidence gate; submit remains `pending_verification` with manual moderation.
 
 ### Статус
-- [ ]
+- [x] Iteration 1 documentation/design outputs зафиксированы; runtime behavior не менялся.
 
 ---
 
