@@ -315,6 +315,12 @@ class AresRegisteredAddressSerializer(serializers.Serializer):
     country = serializers.CharField(allow_null=True, required=False)
 
 
+class AresRepresentativeSerializer(serializers.Serializer):
+    first_name = serializers.CharField(allow_null=True, required=False)
+    last_name = serializers.CharField(allow_null=True, required=False)
+    role_hint = serializers.CharField(allow_null=True, required=False)
+
+
 class AresLookupResponseSerializer(serializers.Serializer):
     found = serializers.BooleanField()
     ico = serializers.CharField(allow_null=True, required=False)
@@ -325,6 +331,7 @@ class AresLookupResponseSerializer(serializers.Serializer):
     registered_address = AresRegisteredAddressSerializer()
     dic_hint = serializers.CharField(allow_null=True, required=False)
     is_active = serializers.BooleanField(allow_null=True, required=False)
+    representatives = AresRepresentativeSerializer(many=True, required=False)
     warnings = serializers.ListField(child=serializers.CharField())
 
 

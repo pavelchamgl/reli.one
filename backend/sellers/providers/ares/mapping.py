@@ -37,32 +37,80 @@ def is_valid_ico_checksum(ico: str) -> bool:
 
 
 def normalize_ares_response(data: dict[str, Any], *, queried_ico: str) -> dict[str, Any]:
-    sidlo = data.get("sidlo") if isinstance(data.get("sidlo"), dict) else {}
-    legal_form_code = _as_string(data.get("pravniForma"))
+    subject = _extract_szr_subject(data)
+    source = subject or data
+    sidlo = source.get("sidlo") if isinstance(source.get("sidlo"), dict) else {}
+    legal_form_code = _as_string(source.get("pravniForma"))
     warnings: list[str] = []
 
     address = _normalize_address(sidlo, warnings)
     if not address["street"] or not address["city"] or not address["zip_code"] or not address["country"]:
         warnings.append("registered_address_partial")
 
-    is_active = not bool(data.get("datumZaniku"))
+    is_active = not bool(source.get("datumZaniku"))
     if not is_active:
         warnings.append("company_inactive")
 
-    ico = _as_string(data.get("ico")) or queried_ico
+    ico = _as_string(source.get("ico")) or queried_ico
 
     return {
         "found": True,
         "ico": ico,
         "business_id": ico,
-        "company_name": _as_string(data.get("obchodniJmeno")),
+        "company_name": _as_string(source.get("obchodniJmeno")),
         "legal_form_code": legal_form_code,
         "legal_form": LEGAL_FORM_MAP.get(legal_form_code),
         "registered_address": address,
-        "dic_hint": _as_string(data.get("dic")),
+        "dic_hint": _as_string(source.get("dic")) or _as_string(data.get("dic")),
         "is_active": is_active,
+        "representatives": _normalize_szr_representatives(data),
         "warnings": warnings,
     }
+
+
+def _extract_szr_subject(data: dict[str, Any]) -> dict[str, Any] | None:
+    for record in _iter_szr_records(data):
+        ezp = record.get("ezp") if isinstance(record.get("ezp"), dict) else {}
+        subject = ezp.get("subjektEzp")
+        if isinstance(subject, dict):
+            return subject
+    return None
+
+
+def _normalize_szr_representatives(data: dict[str, Any]) -> list[dict[str, str | None]]:
+    representatives: list[dict[str, str | None]] = []
+
+    for record in _iter_szr_records(data):
+        ezp = record.get("ezp") if isinstance(record.get("ezp"), dict) else {}
+        person = ezp.get("osobaEzp")
+        if not isinstance(person, dict):
+            continue
+
+        first_name = _first_string(person, "jmeno", "first_name", "firstName")
+        last_name = _first_string(person, "prijmeni", "last_name", "lastName")
+        role_hint = _first_string(person, "role", "role_hint", "funkce", "typRole", "typAngazma")
+
+        nested_person = person.get("fyzickaOsoba") if isinstance(person.get("fyzickaOsoba"), dict) else {}
+        first_name = first_name or _first_string(nested_person, "jmeno", "first_name", "firstName")
+        last_name = last_name or _first_string(nested_person, "prijmeni", "last_name", "lastName")
+
+        if first_name or last_name or role_hint:
+            representatives.append(
+                {
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "role_hint": role_hint,
+                }
+            )
+
+    return representatives
+
+
+def _iter_szr_records(data: dict[str, Any]) -> list[dict[str, Any]]:
+    records = data.get("zaznamy")
+    if not isinstance(records, list):
+        return []
+    return [record for record in records if isinstance(record, dict)]
 
 
 def _normalize_address(sidlo: dict[str, Any], warnings: list[str]) -> dict[str, str | None]:
@@ -112,6 +160,14 @@ def _normalize_country(value: Any) -> str | None:
     if text == "203":
         return "CZ"
     return text.upper() if len(text) == 2 else None
+
+
+def _first_string(data: dict[str, Any], *keys: str) -> str | None:
+    for key in keys:
+        value = _as_string(data.get(key))
+        if value:
+            return value
+    return None
 
 
 def _as_string(value: Any) -> str | None:

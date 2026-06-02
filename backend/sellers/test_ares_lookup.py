@@ -167,6 +167,114 @@ class SellerCompanyAresLookupTests(TestCase):
         self.assertIn("registered_address_partial", response.data["warnings"])
 
     @patch("requests.Session.get")
+    def test_szr_subject_extracts_dic_hint(self, mock_get):
+        mock_get.return_value = FakeAresResponse(
+            status.HTTP_200_OK,
+            {
+                "zaznamy": [
+                    {
+                        "ezp": {
+                            "subjektEzp": {
+                                "ico": "25596641",
+                                "dic": "CZ25596641",
+                                "obchodniJmeno": "SZR Example s.r.o.",
+                                "pravniForma": "112",
+                                "sidlo": {
+                                    "nazevUlice": "Václavské náměstí",
+                                    "cisloDomovni": "1",
+                                    "nazevObce": "Praha",
+                                    "psc": "11000",
+                                    "kodStatu": "CZ",
+                                },
+                            }
+                        }
+                    }
+                ]
+            },
+        )
+
+        response = self.client.get(self.url, {"ico": "25596641"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["company_name"], "SZR Example s.r.o.")
+        self.assertEqual(response.data["dic_hint"], "CZ25596641")
+        self.assertEqual(response.data["registered_address"]["street"], "Václavské náměstí 1")
+        self.assertEqual(response.data["representatives"], [])
+
+    @patch("requests.Session.get")
+    def test_szr_osoba_ezp_returns_representative_suggestions(self, mock_get):
+        mock_get.return_value = FakeAresResponse(
+            status.HTTP_200_OK,
+            {
+                "zaznamy": [
+                    {
+                        "ezp": {
+                            "subjektEzp": {
+                                "ico": "25596641",
+                                "obchodniJmeno": "Representative s.r.o.",
+                                "pravniForma": "112",
+                                "sidlo": {
+                                    "nazevObce": "Praha",
+                                    "psc": "11000",
+                                    "kodStatu": "CZ",
+                                },
+                            },
+                            "osobaEzp": {
+                                "jmeno": "Jan",
+                                "prijmeni": "Novák",
+                                "role": "Jednatel",
+                                "datumNarozeni": "1980-01-01",
+                                "statniObcanstvi": "CZ",
+                            },
+                        }
+                    }
+                ]
+            },
+        )
+
+        response = self.client.get(self.url, {"ico": "25596641"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(
+            response.data["representatives"],
+            [
+                {
+                    "first_name": "Jan",
+                    "last_name": "Novák",
+                    "role_hint": "Jednatel",
+                }
+            ],
+        )
+        representative = response.data["representatives"][0]
+        self.assertNotIn("birth_date_hint", representative)
+        self.assertNotIn("nationality", representative)
+
+    @patch("requests.Session.get")
+    def test_empty_szr_records_fall_back_to_top_level_payload(self, mock_get):
+        mock_get.return_value = FakeAresResponse(
+            status.HTTP_200_OK,
+            {
+                "zaznamy": [],
+                "ico": "25596641",
+                "dic": "CZ25596641",
+                "obchodniJmeno": "Fallback s.r.o.",
+                "pravniForma": "112",
+                "sidlo": {
+                    "nazevObce": "Praha",
+                    "psc": "11000",
+                    "kodStatu": "CZ",
+                },
+            },
+        )
+
+        response = self.client.get(self.url, {"ico": "25596641"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(response.data["company_name"], "Fallback s.r.o.")
+        self.assertEqual(response.data["dic_hint"], "CZ25596641")
+        self.assertEqual(response.data["representatives"], [])
+
+    @patch("requests.Session.get")
     def test_successful_lookup_is_cached_by_normalized_ico(self, mock_get):
         mock_get.return_value = FakeAresResponse(
             status.HTTP_200_OK,
