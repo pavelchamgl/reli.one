@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 import companyIc from "../../../../../assets/Seller/register/companyIcon.svg"
 import EditBtn from "../../../../../ui/Seller/review/EditBtn/EditBtn"
 import { countriesArr } from "../../../../../code/seller"
+import { getLegalFormDisplayLabel } from "../../../../../code/seller/companyLegalForms"
 import PrevDocBtn from "../../../newOrder/prevDocBtn/PrevDocBtn"
 
 import styles from './CompanyInfo.module.scss'
@@ -17,6 +18,7 @@ const CompanyInfo = ({ data, setOpen }) => {
     const countryOfRegistration = countriesArr.find((item) => item.value === data?.country_of_registration)
 
     const { t } = useTranslation('onbording')
+    const legalFormLabel = getLegalFormDisplayLabel(data?.legal_form, t)
 
     return (
         <section className={styles.main}>
@@ -36,7 +38,7 @@ const CompanyInfo = ({ data, setOpen }) => {
                 </li>
                 <li>
                     <p>{t('onboard.company.legal_form')}</p>
-                    <span>{data?.legal_form}</span>
+                    <span>{legalFormLabel}</span>
                 </li>
                 <li>
                     <p>{t('onboard.company.country_reg')}</p>

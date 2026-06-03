@@ -32,8 +32,27 @@ class CompanyAccountHolderValidationTests(TestCase):
 
         self.assertEqual(expected_holder, "Reli s.r.o.")
 
+    def test_expected_holder_does_not_duplicate_legal_form_already_in_company_name(self):
+        expected_holder = get_expected_company_account_holder(
+            "Reli Group s.r.o.",
+            "s.r.o. (Czech Republic / Slovakia)",
+        )
+
+        self.assertEqual(expected_holder, "Reli Group s.r.o.")
+
     def test_company_holder_accepts_cleaned_legal_form(self):
         app = self._create_company_application("Reli s.r.o.")
+
+        try:
+            validate_before_submit(app)
+        except ValidationError as exc:
+            self.assertNotIn("account_holder", exc.detail)
+
+    def test_company_holder_accepts_company_name_that_already_contains_legal_form(self):
+        app = self._create_company_application(
+            "Reli Group s.r.o.",
+            company_name="Reli Group s.r.o.",
+        )
 
         try:
             validate_before_submit(app)
@@ -51,7 +70,7 @@ class CompanyAccountHolderValidationTests(TestCase):
             "For company, account holder must match company name and legal form.",
         )
 
-    def _create_company_application(self, account_holder):
+    def _create_company_application(self, account_holder, company_name="Reli"):
         user = CustomUser.objects.create_user(
             email="seller@example.com",
             password="password",
@@ -64,7 +83,7 @@ class CompanyAccountHolderValidationTests(TestCase):
         app.save(update_fields=["seller_type"])
         SellerCompanyInfo.objects.create(
             application=app,
-            company_name="Reli",
+            company_name=company_name,
             legal_form="s.r.o. (Czech Republic / Slovakia)",
         )
         SellerBankAccount.objects.create(

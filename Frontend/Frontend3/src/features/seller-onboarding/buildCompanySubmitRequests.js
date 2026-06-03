@@ -7,6 +7,7 @@ import {
   putWarehouse,
 } from '@/api/seller/onboarding';
 import { toISODate } from '@/code/seller';
+import { getLegalFormBackendValue } from '@/code/seller/companyLegalForms';
 
 /**
  * Builds labeled PUT promises for company onboarding submit (review + form).
@@ -22,7 +23,7 @@ export function buildCompanySubmitRequests(values) {
       name: 'Company Info',
       promise: putCompanyInfo({
         company_name: values.company_name,
-        legal_form: values.legal_form,
+        legal_form: getLegalFormBackendValue(values.legal_form),
         country_of_registration: values.country_of_registration,
         business_id: values.business_id,
         tin: values.tin,

@@ -1,9 +1,13 @@
 import * as Yup from "yup";
+import { isLegalFormAllowed, normalizeCompanyAccountHolder } from "./companyLegalForms";
 
 const phoneRegex = /^\+?[0-9]{7,15}$/;
 const zipRegex = /^[A-Za-z0-9\- ]{3,10}$/;
 const ibanRegex = /^[A-Z]{2}[0-9A-Z]{13,32}$/;
 const swiftRegex = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
+const isCzSkBankCountry = (...countries) => countries
+    .map((country) => String(country || "").trim().toLowerCase())
+    .some((country) => country === "cz" || country === "sk");
 
 export const validationSchemaSelf = Yup.object({
 
@@ -92,21 +96,29 @@ export const validationSchemaSelf = Yup.object({
         .required("SWIFT/BIC is required"),
 
     account_holder: Yup.string()
-        .required("Account holder is required"),
+        .required("Account holder is required")
+        .test(
+            "matches-company-name",
+            "Account holder must match company name and legal form",
+            function (value) {
+                const { company_name, legal_form } = this.parent;
+                const expected = normalizeCompanyAccountHolder(company_name, legal_form);
+                if (!expected || !value) return true;
+                return String(value).trim() === expected;
+            },
+        ),
 
-    // bank_code: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Bank code is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    bank_code: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Bank code is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
-    // bank_code: Yup.string()
-    //     .required("Bank code is required"),
-    // local_account_number: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Local account is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    local_account_number: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Local account number is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
     // local_account_number: Yup.string()
     //     .required("Local account number is required"),
@@ -182,7 +194,14 @@ export const companyValidationSchema = Yup.object({
         .required("Company name is required"),
 
     legal_form: Yup.string()
-        .required("Legal form is required"),
+        .required("Legal form is required")
+        .test(
+            "legal-form-country",
+            "Legal form is not allowed for country of registration",
+            function (value) {
+                return isLegalFormAllowed(this.parent.country_of_registration, value)
+            },
+        ),
 
     country_of_registration: Yup.string()
         .required("Country of registration is required"),
@@ -275,21 +294,29 @@ export const companyValidationSchema = Yup.object({
         .required("SWIFT/BIC is required"),
 
     account_holder: Yup.string()
-        .required("Account holder is required"),
+        .required("Account holder is required")
+        .test(
+            "matches-company-name",
+            "Account holder must match company name and legal form",
+            function (value) {
+                const { company_name, legal_form } = this.parent;
+                const expected = normalizeCompanyAccountHolder(company_name, legal_form);
+                if (!expected || !value) return true;
+                return String(value).trim() === expected;
+            },
+        ),
 
-    // bank_code: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Bank code is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    bank_code: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Bank code is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
-    // bank_code: Yup.string()
-    //     .required("Bank code is required"),
-    // local_account_number: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Local account is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    local_account_number: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Local account number is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
     /* ========= WAREHOUSE ========= */
     wStreet: Yup.string()

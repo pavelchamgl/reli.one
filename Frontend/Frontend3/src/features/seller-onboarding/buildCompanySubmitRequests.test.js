@@ -19,7 +19,7 @@ import {
 
 const baseValues = {
   company_name: 'Acme',
-  legal_form: 's.r.o.',
+  legal_form: 'sro',
   country_of_registration: 'cz',
   business_id: '123',
   tin: 'CZ123',
@@ -96,6 +96,17 @@ describe('buildCompanySubmitRequests', () => {
       expect.objectContaining({
         proof_document_issue_date: '2026-01-15',
       }),
+    );
+  });
+
+  it('converts legal_form code before company info submit payload', async () => {
+    const requests = buildCompanySubmitRequests({ ...baseValues, legal_form: 'as' });
+    await requests[0].promise;
+    expect(putCompanyInfo).toHaveBeenCalledWith(
+      expect.objectContaining({ legal_form: 'a.s.' }),
+    );
+    expect(putCompanyInfo).not.toHaveBeenCalledWith(
+      expect.objectContaining({ legal_form: 'as' }),
     );
   });
 

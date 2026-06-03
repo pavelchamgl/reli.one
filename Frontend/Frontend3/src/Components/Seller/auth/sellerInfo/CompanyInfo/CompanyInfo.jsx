@@ -1,5 +1,5 @@
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 import { useSelector } from "react-redux"
 import { useLocation } from "react-router-dom"
@@ -12,6 +12,7 @@ import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 import { getAresCompanyByIco, putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
+import { getLegalFormBackendValue, getLegalFormOptions, isLegalFormAllowed, resolveAresLegalForm } from "../../../../../code/seller/companyLegalForms"
 import { ErrToast } from "../../../../../ui/Toastify"
 
 import styles from "./CompanyInfo.module.scss"
@@ -53,7 +54,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
 
         const payload = {
             company_name: formik.values.company_name,
-            legal_form: formik.values.legal_form,
+            legal_form: getLegalFormBackendValue(formik.values.legal_form),
             country_of_registration: formik.values.country_of_registration,
             business_id: formik.values.business_id,
             tin: formik.values?.tin,
@@ -85,26 +86,17 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
 
 
 
-    const legalArr = [
-        {
-            value: "GmbH (Germany)",
-            text: t('onboard.legal_forms.gmbh')
-        },
-        {
-            value: "Ltd (United Kingdom)",
-            text: t('onboard.legal_forms.ltd')
-        },
-        {
-            value: "S.A.R.L. (France)",
-            text: t('onboard.legal_forms.sarl')
-        },
-        {
-            value: "s.r.o. (Czech Republic / Slovakia)",
-            text: t('onboard.legal_forms.sro')
-        },
-    ];
+    const legalArr = getLegalFormOptions(formik.values.country_of_registration)
 
-    const isCompatibleLegalForm = (value) => legalArr.some((item) => item.value === value)
+    useEffect(() => {
+        if (
+            formik.values.country_of_registration &&
+            formik.values.legal_form &&
+            !isLegalFormAllowed(formik.values.country_of_registration, formik.values.legal_form)
+        ) {
+            formik.setFieldValue("legal_form", "")
+        }
+    }, [formik.values.country_of_registration, formik.values.legal_form])
 
     const formatAresAddress = (address) => {
         if (!address) return ""
@@ -153,10 +145,6 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         if (aresPreview.business_id || aresPreview.ico) {
             formik.setFieldValue("business_id", aresPreview.business_id || aresPreview.ico)
         }
-        if (aresPreview.legal_form && isCompatibleLegalForm(aresPreview.legal_form)) {
-            formik.setFieldValue("legal_form", aresPreview.legal_form)
-        }
-
         const address = aresPreview.registered_address
         if (address?.street) {
             formik.setFieldValue("street", address.street)
@@ -175,6 +163,15 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
             setCountry(countryValue)
         }
 
+        const legalForm = resolveAresLegalForm({
+            country: countryValue || formik.values.country_of_registration,
+            legal_form_code: aresPreview.legal_form_code,
+            legal_form: aresPreview.legal_form,
+        })
+        if (legalForm) {
+            formik.setFieldValue("legal_form", legalForm)
+        }
+
         if (aresPreview.dic_hint && !formik.values.tin) {
             formik.setFieldValue("tin", aresPreview.dic_hint, true)
             formik.setFieldTouched("tin", false, false)
@@ -185,24 +182,25 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
     const applyAresRepresentative = (representative) => {
         if (!representative) return
 
-        if (representative.first_name && !formik.values.first_name) {
-            formik.setFieldValue("first_name", representative.first_name)
+        const applyRepresentativeField = (field, value) => {
+            if (!value) return
+            formik.setFieldValue(field, value)
+            formik.setFieldTouched(field, false, false)
+            formik.setFieldError(field, undefined)
         }
-        if (representative.last_name && !formik.values.last_name) {
-            formik.setFieldValue("last_name", representative.last_name)
+
+        if (representative.first_name) {
+            applyRepresentativeField("first_name", representative.first_name)
+        }
+        if (representative.last_name) {
+            applyRepresentativeField("last_name", representative.last_name)
         }
         const mappedRole = mapAresRepresentativeRole(representative.role_hint)
-        if (mappedRole && !formik.values.role) {
-            formik.setFieldValue("role", mappedRole)
-        }
+        applyRepresentativeField("role", mappedRole)
         const birthDate = formatAresBirthDate(representative.birth_date_hint)
-        if (birthDate && !formik.values.date_of_birth) {
-            formik.setFieldValue("date_of_birth", birthDate)
-        }
+        applyRepresentativeField("date_of_birth", birthDate)
         const nationality = mapAresNationality(representative.nationality_hint)
-        if (nationality && !formik.values.nationality) {
-            formik.setFieldValue("nationality", nationality)
-        }
+        applyRepresentativeField("nationality", nationality)
     }
 
     const mapAresRepresentativeRole = (roleHint) => {
@@ -325,6 +323,9 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         setValue={(v) => {
                             setCountry(v)
                             formik.setFieldValue('country_of_registration', v)
+                            if (formik.values.legal_form && !isLegalFormAllowed(v, formik.values.legal_form)) {
+                                formik.setFieldValue('legal_form', "")
+                            }
                         }}
                         errText={t('onboard.company.country_required')}
                     />

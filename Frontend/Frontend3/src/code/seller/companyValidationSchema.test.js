@@ -97,8 +97,15 @@ describe('companyValidationSchema', () => {
   it('passes for a fully-valid CZ company payload', async () => {
     await expectValid(
       validPayload({
+        company_name: 'Acme',
         country_of_registration: 'cz',
+        legal_form: 'sro',
         tin: 'CZ12345678',
+        iban: 'CZ6508000000192000145399',
+        swift_bic: 'GIBACZPX',
+        account_holder: 'Acme s.r.o.',
+        bank_code: '0800',
+        local_account_number: '192000145399',
         wCountry: 'cz',
         rCountry: 'cz',
       }),
@@ -206,12 +213,80 @@ describe('companyValidationSchema', () => {
       await expectInvalidContaining(validPayload({ iban: '' }), 'iban');
     });
 
+    it('rejects missing CZ bank code', async () => {
+      await expectInvalidContaining(
+        validPayload({
+          country_of_registration: 'cz',
+          legal_form: 'sro',
+          iban: 'CZ6508000000192000145399',
+          swift_bic: 'GIBACZPX',
+          account_holder: 'Acme s.r.o.',
+          bank_code: '',
+          local_account_number: '192000145399',
+        }),
+        'bank code',
+      );
+    });
+
+    it('rejects missing CZ local account number', async () => {
+      await expectInvalidContaining(
+        validPayload({
+          country_of_registration: 'cz',
+          legal_form: 'sro',
+          iban: 'CZ6508000000192000145399',
+          swift_bic: 'GIBACZPX',
+          account_holder: 'Acme s.r.o.',
+          bank_code: '0800',
+          local_account_number: '',
+        }),
+        'local account number',
+      );
+    });
+
+    it('rejects account_holder that does not match company name and legal form', async () => {
+      await expectInvalidContaining(
+        validPayload({
+          company_name: 'Acme',
+          legal_form: 'gmbh',
+          account_holder: 'Wrong Holder',
+        }),
+        'account holder',
+      );
+    });
+
     it('rejects missing wStreet', async () => {
       await expectInvalidContaining(validPayload({ wStreet: '' }), 'warehouse street');
     });
 
     it('rejects missing rStreet', async () => {
       await expectInvalidContaining(validPayload({ rStreet: '' }), 'return street');
+    });
+  });
+
+  describe('legal form by country', () => {
+    it('rejects incompatible country and legal_form', async () => {
+      await expectInvalidContaining(
+        validPayload({ country_of_registration: 'cz', legal_form: 'gmbh' }),
+        'legal form',
+      );
+    });
+
+    it('accepts CZ s.r.o. legal form', async () => {
+      await expectValid(
+        validPayload({
+          company_name: 'Acme',
+          country_of_registration: 'cz',
+          legal_form: 'sro',
+          tin: 'CZ12345678',
+          iban: 'CZ6508000000192000145399',
+          swift_bic: 'GIBACZPX',
+          account_holder: 'Acme s.r.o.',
+          bank_code: '0800',
+          local_account_number: '192000145399',
+          wCountry: 'cz',
+          rCountry: 'cz',
+        }),
+      );
     });
   });
 });

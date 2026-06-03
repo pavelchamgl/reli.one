@@ -9,6 +9,7 @@ import { ErrToast } from "../../../../../ui/Toastify"
 // import { useSelector } from "react-redux";
 import styles from "./BankAccount.module.scss"
 import { getAccountData } from "../../../../../api/seller/getOnboardingData"
+import { normalizeCompanyAccountHolder } from "../../../../../code/seller/companyLegalForms"
 
 const BankAccount = ({ formik, onClosePreview }) => {
     // const { selfData, companyData } = useSelector(state => state.selfEmploed)
@@ -39,9 +40,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
     // 1. Функция получения "правильного" имени на основе данных из других блоков
     const getExpectedHolderName = () => {
         if (pathname.includes('company')) {
-            const cleanLegalForm = formik.values.legal_form?.replace(/\s*\(.*?\)/, "") || "";
-            const companyName = formik.values.company_name || "";
-            return `${companyName} ${cleanLegalForm}`.trim();
+            return normalizeCompanyAccountHolder(formik.values.company_name, formik.values.legal_form);
             // return (formik.values.company_name || "").trim();
         } else {
             const first = cleanName(formik.values.first_name);

@@ -3,12 +3,22 @@ import mainInstance from "..";
 // =================================================
 // ✅ General error handler (exported for unit testing)
 // =================================================
+const getErrorMessage = (data, defaultMsg) => {
+    if (!data) return defaultMsg;
+    if (typeof data === "string") return data;
+    if (data.detail) return String(data.detail);
+    if (data.message) return String(data.message);
+    if (data.error) return String(data.error);
+    return defaultMsg;
+};
+
 export const handleError = (error, defaultMsg = "Unknown error") => {
     if (error.response) {
         const { status, data } = error.response;
         throw {
             status,
-            message: data?.message || defaultMsg,
+            message: getErrorMessage(data, defaultMsg),
+            data,
         };
     }
     if (error.request) {

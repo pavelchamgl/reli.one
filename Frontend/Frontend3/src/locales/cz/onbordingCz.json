@@ -316,7 +316,8 @@
             "gmbh": "GmbH (Německo)",
             "ltd": "Ltd (Spojené království)",
             "sarl": "S.A.R.L. (Francie)",
-            "sro": "s.r.o. (Česká republika / Slovensko)"
+            "sro": "s.r.o. (Česká republika / Slovensko)",
+            "as": "a.s. (Česká republika)"
         }
     },
     "countries": {
@@ -344,6 +345,7 @@
         "se": "Švédsko",
         "gr": "Řecko",
         "pt": "Portugalsko",
-        "ie": "Irsko"
+        "ie": "Irsko",
+        "ru": "Rusko"
     }
 }

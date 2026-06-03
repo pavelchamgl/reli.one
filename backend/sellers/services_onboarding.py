@@ -57,11 +57,18 @@ def _clean_legal_form(legal_form: str | None) -> str:
 
 
 def get_expected_company_account_holder(company_name: str | None, legal_form: str | None) -> str:
-    parts = [
-        _normalize_spaces(company_name or ""),
-        _clean_legal_form(legal_form),
-    ]
-    return _normalize_spaces(" ".join(part for part in parts if part))
+    normalized_company_name = _normalize_spaces(company_name or "")
+    cleaned_legal_form = _clean_legal_form(legal_form)
+
+    if not normalized_company_name:
+        return cleaned_legal_form
+    if not cleaned_legal_form:
+        return normalized_company_name
+
+    if normalized_company_name.lower().endswith(cleaned_legal_form.lower()):
+        return normalized_company_name
+
+    return _normalize_spaces(f"{normalized_company_name} {cleaned_legal_form}")
 
 
 @dataclass

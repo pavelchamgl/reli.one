@@ -16,6 +16,7 @@ import CompanyInfo from '../../Components/Seller/auth/sellerInfo/CompanyInfo/Com
 import Representative from '../../Components/Seller/auth/sellerInfo/Representative/Representative';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
 import { companyValidationSchema } from '../../code/seller/validation';
+import { normalizeLegalFormValue } from '../../code/seller/companyLegalForms';
 import { ErrToast } from '../../ui/Toastify';
 import { buildCompanySubmitRequests } from '../../features/seller-onboarding/buildCompanySubmitRequests';
 
@@ -39,7 +40,7 @@ const SellerCompanyInfo = () => {
         initialValues: {
             // company info
             company_name: companyData?.company_name ?? "",
-            legal_form: companyData?.legal_form ?? "",
+            legal_form: normalizeLegalFormValue(companyData?.legal_form) ?? "",
             country_of_registration: companyData?.country_of_registration ?? "",          // Чехия (Czech Republic)
             business_id: companyData?.business_id ?? "",     // IČO (8-значный номер компании)
             tin: companyData?.tin ?? "",             // Daňové identifikační číslo (DIČ) без префикса
@@ -51,9 +52,9 @@ const SellerCompanyInfo = () => {
             // representative
             first_name: firstName,
             last_name: lastName,
-            role: companyData?.role ?? "",
-            date_of_birth: companyData?.date_of_birth ?? "",
-            nationality: companyData?.nationality ?? "",
+            role: "",
+            date_of_birth: "",
+            nationality: "",
             // uploadFront: companyData?.uploadFront ?? "",
             // uploadBack: companyData?.uploadBack ?? "",
 
@@ -83,8 +84,7 @@ const SellerCompanyInfo = () => {
             wProof_document_issue_date: companyData?.wProof_document_issue_date ?? "",
 
             // return
-            // same_as_warehouse: companyData?.same_as_warehouse ?? false,
-            same_as_warehouse:false,
+            same_as_warehouse: companyData?.same_as_warehouse ?? false,
             rStreet: companyData?.rStreet ?? "",
             rCity: companyData?.rCity ?? "",
             rZip_code: companyData?.rZip_code ?? "",
@@ -96,18 +96,10 @@ const SellerCompanyInfo = () => {
         },
         validationSchema: companyValidationSchema,
         enableReinitialize: true,
-        // validateOnMount: false,
+        validateOnMount: true,
         validateOnChange: true,
         // validateOnBlur: true,
         onSubmit: async (values) => {
-            safeCompanyData({
-                ...values
-            });
-
-            localStorage.setItem('first_name', JSON.stringify(values.first_name))
-            localStorage.setItem('last_name', JSON.stringify(values.last_name))
-
-
             try {
                 const requests = buildCompanySubmitRequests(values);
 
@@ -134,6 +126,13 @@ const SellerCompanyInfo = () => {
                 }
 
                 // Если все прошло успешно
+                safeCompanyData({
+                    ...values
+                });
+
+                localStorage.setItem('first_name', JSON.stringify(values.first_name))
+                localStorage.setItem('last_name', JSON.stringify(values.last_name))
+
                 navigate("/seller/seller-review-company");
             } catch (err) {
                 console.error("Unexpected error:", err);
