@@ -192,6 +192,8 @@
                 "preview_title": "Náhled z ARES",
                 "registered_address": "Registrovaná adresa",
                 "dic_hint": "Nápověda DIČ",
+                "dic_hint_derived": "Odvozená nápověda DIČ",
+                "dic_hint_derived_warning": "Odvozeno z IČO, protože ARES nevrátil DIČ.",
                 "inactive_warning": "Neaktivní společnost",
                 "apply": "Použít ve formuláři",
                 "representatives_title": "Návrhy zástupců",

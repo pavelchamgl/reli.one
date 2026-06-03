@@ -184,6 +184,8 @@
                 "preview_title": "ARES preview",
                 "registered_address": "Registered address",
                 "dic_hint": "DIČ hint",
+                "dic_hint_derived": "Derived DIČ hint",
+                "dic_hint_derived_warning": "Derived from IČO because ARES did not return DIČ.",
                 "inactive_warning": "Inactive company",
                 "apply": "Apply to form",
                 "representatives_title": "Representative suggestions",

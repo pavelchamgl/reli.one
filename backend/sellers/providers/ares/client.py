@@ -41,7 +41,16 @@ class AresClient:
         self.session.mount("http://", adapter)
 
     def get_economic_subject(self, ico: str) -> dict[str, Any]:
-        url = f"{self.base}/ekonomicke-subjekty/{ico}"
+        return self._get_json(f"ekonomicke-subjekty/{ico}", ico=ico)
+
+    def get_economic_subject_szr(self, ico: str) -> dict[str, Any]:
+        return self._get_json(f"ekonomicke-subjekty-szr/{ico}", ico=ico)
+
+    def get_economic_subject_vr(self, ico: str) -> dict[str, Any]:
+        return self._get_json(f"ekonomicke-subjekty-vr/{ico}", ico=ico)
+
+    def _get_json(self, path: str, *, ico: str) -> dict[str, Any]:
+        url = f"{self.base}/{path}"
         try:
             response = self.session.get(
                 url,

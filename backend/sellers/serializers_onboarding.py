@@ -319,6 +319,15 @@ class AresRepresentativeSerializer(serializers.Serializer):
     first_name = serializers.CharField(allow_null=True, required=False)
     last_name = serializers.CharField(allow_null=True, required=False)
     role_hint = serializers.CharField(allow_null=True, required=False)
+    birth_date_hint = serializers.CharField(allow_null=True, required=False)
+    nationality_hint = serializers.CharField(allow_null=True, required=False)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        for optional_hint in ("birth_date_hint", "nationality_hint"):
+            if representation.get(optional_hint) is None:
+                representation.pop(optional_hint, None)
+        return representation
 
 
 class AresLookupResponseSerializer(serializers.Serializer):
@@ -330,6 +339,7 @@ class AresLookupResponseSerializer(serializers.Serializer):
     legal_form = serializers.CharField(allow_null=True, required=False)
     registered_address = AresRegisteredAddressSerializer()
     dic_hint = serializers.CharField(allow_null=True, required=False)
+    dic_hint_source = serializers.CharField(allow_null=True, required=False)
     is_active = serializers.BooleanField(allow_null=True, required=False)
     representatives = AresRepresentativeSerializer(many=True, required=False)
     warnings = serializers.ListField(child=serializers.CharField())

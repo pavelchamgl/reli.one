@@ -36,7 +36,12 @@ def is_valid_ico_checksum(ico: str) -> bool:
     return check_digit == int(ico[7])
 
 
-def normalize_ares_response(data: dict[str, Any], *, queried_ico: str) -> dict[str, Any]:
+def normalize_ares_response(
+    data: dict[str, Any],
+    *,
+    queried_ico: str,
+    derive_dic_hint: bool = True,
+) -> dict[str, Any]:
     subject = _extract_szr_subject(data)
     source = subject or data
     sidlo = source.get("sidlo") if isinstance(source.get("sidlo"), dict) else {}
@@ -52,6 +57,11 @@ def normalize_ares_response(data: dict[str, Any], *, queried_ico: str) -> dict[s
         warnings.append("company_inactive")
 
     ico = _as_string(source.get("ico")) or queried_ico
+    dic_hint = _as_string(source.get("dic")) or _as_string(data.get("dic"))
+    dic_hint_source = "ares" if dic_hint else None
+    if derive_dic_hint and not dic_hint and address["country"] == "CZ" and ico:
+        dic_hint = f"CZ{ico}"
+        dic_hint_source = "derived"
 
     return {
         "found": True,
@@ -61,11 +71,64 @@ def normalize_ares_response(data: dict[str, Any], *, queried_ico: str) -> dict[s
         "legal_form_code": legal_form_code,
         "legal_form": LEGAL_FORM_MAP.get(legal_form_code),
         "registered_address": address,
-        "dic_hint": _as_string(source.get("dic")) or _as_string(data.get("dic")),
+        "dic_hint": dic_hint,
+        "dic_hint_source": dic_hint_source,
         "is_active": is_active,
         "representatives": _normalize_szr_representatives(data),
         "warnings": warnings,
     }
+
+
+def normalize_vr_representatives(data: dict[str, Any]) -> list[dict[str, str | None]]:
+    if not isinstance(data, dict):
+        return []
+
+    representatives: list[dict[str, str | None]] = []
+    seen: set[tuple[str | None, str | None, str | None]] = set()
+
+    for body in _iter_vr_statutory_bodies(data):
+        for member in _as_list(body.get("clenoveOrganu")):
+            if _as_string(member.get("datumVymazu")):
+                continue
+
+            membership = member.get("clenstvi") if isinstance(member.get("clenstvi"), dict) else {}
+            function = membership.get("funkce") if isinstance(membership.get("funkce"), dict) else {}
+            if _as_string(function.get("zanikFunkce")):
+                continue
+
+            person = member.get("fyzickaOsoba")
+            if not isinstance(person, dict):
+                continue
+
+            representative = {
+                "first_name": _as_string(person.get("jmeno")),
+                "last_name": _as_string(person.get("prijmeni")),
+                "role_hint": (
+                    _as_string(function.get("nazev"))
+                    or _as_string(member.get("nazevAngazma"))
+                    or _as_string(member.get("typAngazma"))
+                ),
+                "birth_date_hint": _as_string(person.get("datumNarozeni")),
+                "nationality_hint": _as_string(person.get("statniObcanstvi")),
+            }
+            key = (
+                representative["first_name"],
+                representative["last_name"],
+                representative["birth_date_hint"],
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            representatives.append(representative)
+
+    return representatives
+
+
+def _iter_vr_statutory_bodies(data: dict[str, Any]) -> list[dict[str, Any]]:
+    bodies = list(_as_list(data.get("statutarniOrgany")))
+    for record in _as_list(data.get("zaznamy")):
+        bodies.extend(_as_list(record.get("statutarniOrgany")))
+    return bodies
 
 
 def _extract_szr_subject(data: dict[str, Any]) -> dict[str, Any] | None:
@@ -111,6 +174,12 @@ def _iter_szr_records(data: dict[str, Any]) -> list[dict[str, Any]]:
     if not isinstance(records, list):
         return []
     return [record for record in records if isinstance(record, dict)]
+
+
+def _as_list(value: Any) -> list[dict[str, Any]]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, dict)]
 
 
 def _normalize_address(sidlo: dict[str, Any], warnings: list[str]) -> dict[str, str | None]:

@@ -200,12 +200,15 @@ describe('SellerCompanyInfo — field contract', () => {
         country: 'CZ',
       },
       dic_hint: 'CZ25596641',
+      dic_hint_source: 'ares',
       is_active: false,
       representatives: [
         {
           first_name: 'Jan',
           last_name: 'Novák',
           role_hint: 'Jednatel',
+          birth_date_hint: '1990-01-01',
+          nationality_hint: 'CZ',
         },
       ],
       warnings: [],
@@ -242,6 +245,8 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(screen.getByText('Jan')).toBeInTheDocument();
       expect(screen.getByText('Novák')).toBeInTheDocument();
       expect(screen.getByText('Jednatel')).toBeInTheDocument();
+      expect(screen.getByText('1990-01-01')).toBeInTheDocument();
+      expect(screen.getByText('CZ')).toBeInTheDocument();
       expect(screen.getByText('onboard.company.ares.inactive_warning')).toBeInTheDocument();
 
       expect(inputByName('company_name')).toHaveValue('');
@@ -289,6 +294,23 @@ describe('SellerCompanyInfo — field contract', () => {
       await waitFor(() => expect(inputByName('tin')).toHaveValue('CZ25596641'));
     });
 
+    it('shows derived DIČ warning and still fills empty TIN on Apply', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        dic_hint: 'CZ25596641',
+        dic_hint_source: 'derived',
+      });
+      renderPage();
+
+      const user = await lookupFromAres();
+
+      expect(await screen.findByText('onboard.company.ares.dic_hint_derived')).toBeInTheDocument();
+      expect(screen.getByText('onboard.company.ares.dic_hint_derived_warning')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      await waitFor(() => expect(inputByName('tin')).toHaveValue('CZ25596641'));
+    });
+
     it('Apply does not overwrite existing TIN', async () => {
       getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
       renderPage({ tin: 'USER-TIN-123' });
@@ -314,7 +336,7 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(inputByName('company_phone')).toHaveValue('+420777123456');
     });
 
-    it('Apply representative fills empty first_name, last_name and role', async () => {
+    it('Apply representative fills empty first_name, last_name, role, birth date and nationality', async () => {
       getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
       renderPage();
 
@@ -325,6 +347,8 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(inputByName('first_name')).toHaveValue('Jan');
       expect(inputByName('last_name')).toHaveValue('Novák');
       expect(screen.getByText('onboard.representative.role_managing')).toBeInTheDocument();
+      expect(inputByName('date_of_birth')).toHaveValue('01.01.1990');
+      expect(screen.getByText('countries.cz')).toBeInTheDocument();
     });
 
     it('Apply representative does not fill role for unknown role_hint', async () => {
@@ -368,6 +392,8 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(inputByName('first_name')).toHaveValue('Alice');
       expect(inputByName('last_name')).toHaveValue('Existing');
       expect(screen.getByText('onboard.representative.role_ceo')).toBeInTheDocument();
+      expect(inputByName('date_of_birth')).toHaveValue('01.01.1990');
+      expect(screen.getByText('countries.cz')).toBeInTheDocument();
     });
 
     it('Apply representative does not change date_of_birth or nationality', async () => {

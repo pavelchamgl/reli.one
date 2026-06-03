@@ -195,36 +195,67 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         if (mappedRole && !formik.values.role) {
             formik.setFieldValue("role", mappedRole)
         }
+        const birthDate = formatAresBirthDate(representative.birth_date_hint)
+        if (birthDate && !formik.values.date_of_birth) {
+            formik.setFieldValue("date_of_birth", birthDate)
+        }
+        const nationality = mapAresNationality(representative.nationality_hint)
+        if (nationality && !formik.values.nationality) {
+            formik.setFieldValue("nationality", nationality)
+        }
     }
 
     const mapAresRepresentativeRole = (roleHint) => {
         const normalized = String(roleHint || "").trim().toLowerCase()
         if (!normalized) return null
 
-        if (
-            normalized.includes("jednatel") ||
-            normalized.includes("statutární orgán") ||
-            normalized.includes("statutarni organ") ||
-            normalized.includes("statutory body")
-        ) {
+        if (normalized.includes("jednatel")) {
             return "Managing Director"
         }
         if (
-            normalized.includes("společník") ||
-            normalized.includes("spolecnik") ||
-            normalized.includes("owner")
+            normalized.includes("člen představenstva") ||
+            normalized.includes("clen predstavenstva") ||
+            normalized.includes("předseda představenstva") ||
+            normalized.includes("predseda predstavenstva") ||
+            normalized.includes("místopředseda představenstva") ||
+            normalized.includes("mistopredseda predstavenstva")
         ) {
-            return "Owner"
+            return "Director"
         }
-        if (
-            normalized.includes("prokurista") ||
-            normalized.includes("signatory") ||
-            normalized.includes("authorized signatory")
-        ) {
+        if (normalized.includes("prokurista")) {
             return "Authorized Signatory"
         }
 
         return null
+    }
+
+    const formatAresBirthDate = (birthDateHint) => {
+        const text = String(birthDateHint || "").trim()
+        const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+        if (isoMatch) {
+            return `${isoMatch[3]}.${isoMatch[2]}.${isoMatch[1]}`
+        }
+        return /^\d{2}\.\d{2}\.\d{4}$/.test(text) ? text : ""
+    }
+
+    const mapAresNationality = (nationalityHint) => {
+        const normalized = String(nationalityHint || "").trim().toLowerCase()
+        if (!normalized) return ""
+
+        if (normalized === "cz" || normalized.includes("czech")) {
+            return countriesArr.some((item) => item.value === "cz") ? "cz" : ""
+        }
+
+        if (normalized === "ru" || normalized.includes("russia") || normalized.includes("russian federation")) {
+            const russianOption = countriesArr.find((item) => {
+                const value = String(item.value || "").toLowerCase()
+                const text = String(item.text || "").toLowerCase()
+                return value === "ru" || text === "russia" || text === "russian federation"
+            })
+            return russianOption?.value || ""
+        }
+
+        return ""
     }
 
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
@@ -354,8 +385,18 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                                 </>}
                             {aresPreview.dic_hint &&
                                 <>
-                                    <dt>{t('onboard.company.ares.dic_hint')}</dt>
-                                    <dd>{aresPreview.dic_hint}</dd>
+                                    <dt>
+                                        {aresPreview.dic_hint_source === "derived"
+                                            ? t('onboard.company.ares.dic_hint_derived')
+                                            : t('onboard.company.ares.dic_hint')}
+                                    </dt>
+                                    <dd>
+                                        {aresPreview.dic_hint}
+                                        {aresPreview.dic_hint_source === "derived" &&
+                                            <span className={styles.aresDerivedHint}>
+                                                {t('onboard.company.ares.dic_hint_derived_warning')}
+                                            </span>}
+                                    </dd>
                                 </>}
                         </dl>
 
@@ -387,6 +428,16 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                                                 <>
                                                     <dt>{t('onboard.review.role')}</dt>
                                                     <dd>{representative.role_hint}</dd>
+                                                </>}
+                                            {representative.birth_date_hint &&
+                                                <>
+                                                    <dt>{t('onboard.seller_info.date_of_birth')}</dt>
+                                                    <dd>{representative.birth_date_hint}</dd>
+                                                </>}
+                                            {representative.nationality_hint &&
+                                                <>
+                                                    <dt>{t('onboard.seller_info.nationality')}</dt>
+                                                    <dd>{representative.nationality_hint}</dd>
                                                 </>}
                                         </dl>
                                         <button
