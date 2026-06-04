@@ -10,6 +10,8 @@
 
 **Связанные документы:** [`docs/seller-onboarding-flow.md`](../../seller-onboarding-flow.md), [`docs/06-integrations.md`](../../06-integrations.md), [Task 008 — Seller Onboarding Stabilization](../008-seller-onboarding-stabilization/task.md), [`ares-field-mapping.md`](./ares-field-mapping.md).
 
+**Follow-up:** self-employed ARES assist is tracked separately in [Task 023 — ARES Assist for Self-employed Onboarding (CZ)](../023-ares-self-employed-assist/task.md). Task 023 should start after Task 022 MVP company/shared ARES foundation is closed.
+
 ---
 
 ## Цель
@@ -82,6 +84,7 @@ flowchart TD
 - **MVP не включает auto-approve в production.** Любой автоматический approve — только pilot-фаза под флагом, default off, после evidence gate.
 - Изменение существующих контрактов onboarding API (кроме нового lookup-эндпоинта).
 - Авто-апрув / lookup для `self_employed` (по `SellerSelfEmployedTaxInfo.business_id`) — опциональное расширение позже.
+- Self-employed ARES assist UX/API — отдельная [Task 023](../023-ares-self-employed-assist/task.md), чтобы не расширять company MVP scope.
 - Country selector в entry-modal MVP: текущая assisted-интеграция работает только для компаний, зарегистрированных в Чехии; расширение на Slovakia/другие реестры — отдельная будущая итерация.
 - Замена ручной модерации: ручной путь approve/reject сохраняется полностью.
 - Интеграция стороннего KYC/identity-провайдера (Sumsub/Onfido и т.п.).

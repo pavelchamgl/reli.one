@@ -130,7 +130,8 @@ graph TD
 | **018** | [**full-stack-e2e-ci-implementation**](./018-full-stack-e2e-ci-implementation/task.md) | P2 | Medium | 015, 017, FS-001–003 | **DONE:** job `e2e_fullstack` в CI; FS-001/002/003 против docker-compose e2e |
 | **019** | [**e2e-catalog-fixture**](./019-e2e-catalog-fixture/task.md) | P2 | Low–Med | 018, FS-002/003 | **DONE:** `e2e_categories.json` + `loaddata` в CI вместо runtime seed |
 | **020** | [**product-stock-availability-api**](./020-product-stock-availability-api/task.md) | P1 | Low–Med | 013 (repo), FE-014 | **DONE (repo-scope):** catalog API fields `total_available_quantity`, `stock_status`; см. `task.md` |
-| **022** | [**ares-onboarding-automation**](./022-ares-onboarding-automation/task.md) | P1 | High | 008 | **PLANNED:** ARES CZ lookup по IČO: assisted prefill + submit verification for moderator; auto-approve pilot deferred behind evidence gate; см. `task.md` |
+| **022** | [**ares-onboarding-automation**](./022-ares-onboarding-automation/task.md) | P1 | High | 008 | **IN PROGRESS:** ARES CZ company lookup по IČO: assisted prefill + entry modal + submit verification for moderator; auto-approve pilot deferred behind evidence gate; см. `task.md` |
+| **023** | [**ares-self-employed-assist**](./023-ares-self-employed-assist/task.md) | P1 | High | 022 | **PLANNED follow-up:** self-employed Czech-only ARES assist по IČO after 022 MVP company/shared ARES foundation is closed |
 
 ## Отложенные задачи (Deferred / backlog)
 
@@ -275,4 +276,3 @@ docs/tasks/
 ```
 
 См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).
-
