@@ -1,6 +1,6 @@
 import { useFormik } from 'formik'
 import { useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -14,6 +14,7 @@ import BankAccount from '../../Components/Seller/auth/sellerInfo/BankAccount/Ban
 import CompanyAddress from '../../Components/Seller/auth/sellerInfo/CompanyAddress/CompanyAddress';
 import CompanyInfo from '../../Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo';
 import Representative from '../../Components/Seller/auth/sellerInfo/Representative/Representative';
+import CompanyAresEntryAssistModal from './CompanyAresEntryAssistModal';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
 import { companyValidationSchema } from '../../code/seller/validation';
 import { normalizeLegalFormValue } from '../../code/seller/companyLegalForms';
@@ -21,6 +22,8 @@ import { ErrToast } from '../../ui/Toastify';
 import { buildCompanySubmitRequests } from '../../features/seller-onboarding/buildCompanySubmitRequests';
 
 import styles from "./SellerCompanyInfo.module.scss"
+
+export const COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY = "seller_company_ares_entry_assist_dismissed_v1"
 
 const SellerCompanyInfo = () => {
 
@@ -35,6 +38,8 @@ const SellerCompanyInfo = () => {
     const navigate = useNavigate()
 
     const { t } = useTranslation('onbording')
+    const [showAresEntryAssist, setShowAresEntryAssist] = useState(false)
+    const showAresEntryAssistRef = useRef(false)
 
     const formik = useFormik({
         initialValues: {
@@ -146,9 +151,42 @@ const SellerCompanyInfo = () => {
         getAllCompanyDataBD()
     }, [])
 
+    const hasCompanyLegalData = (values) => Boolean(
+        values.company_name ||
+        values.legal_form ||
+        values.country_of_registration ||
+        values.business_id ||
+        values.tin ||
+        values.street ||
+        values.city ||
+        values.zip_code ||
+        values.country
+    )
+
+    useEffect(() => {
+        if (companyDataLoading) return
+        const dismissed = localStorage.getItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY)
+        const shouldShow = !dismissed && !hasCompanyLegalData(formik.values)
+        if (showAresEntryAssistRef.current !== shouldShow) {
+            showAresEntryAssistRef.current = shouldShow
+            setShowAresEntryAssist(shouldShow)
+        }
+    }, [companyDataLoading, formik.values])
+
+    const dismissAresEntryAssist = (mode) => {
+        localStorage.setItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY, mode)
+        showAresEntryAssistRef.current = false
+        setShowAresEntryAssist(false)
+    }
+
     if (!companyDataLoading) {
         return (
             <FormWrap style={{ height: "100%" }}>
+                {showAresEntryAssist &&
+                    <CompanyAresEntryAssistModal
+                        formik={formik}
+                        onDismiss={dismissAresEntryAssist}
+                    />}
                 <div className={styles.main}>
                     <div className={styles.titleWrap}>
                         <TitleAndDesc

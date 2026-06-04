@@ -196,6 +196,17 @@
                     "unavailable": "ARES is currently unavailable. Please try again later or fill the form manually.",
                     "generic": "Could not load company details from ARES. Please try again or fill the form manually."
                 }
+            },
+            "ares_entry": {
+                "kicker": "Optional company assist",
+                "title": "Prefill Czech company legal data",
+                "description": "For companies registered in the Czech Republic, we can load part of the legal company data from the public registry using your IČO. Manual filling is always available.",
+                "scope_note": "This only helps with company legal details and registered address. Phone, bank details, representatives, warehouse, return address and documents still stay manual and editable.",
+                "ico_placeholder": "Enter Czech IČO",
+                "load": "Load from public registry",
+                "manual": "Fill manually",
+                "preview_title": "Public registry preview",
+                "apply": "Apply to onboarding"
             }
         },
         "tax_address": {

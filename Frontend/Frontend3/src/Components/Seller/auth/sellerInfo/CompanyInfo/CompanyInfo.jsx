@@ -12,7 +12,8 @@ import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
 import { getAresCompanyByIco, putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
-import { getLegalFormBackendValue, getLegalFormOptions, isLegalFormAllowed, resolveAresLegalForm } from "../../../../../code/seller/companyLegalForms"
+import { getLegalFormBackendValue, getLegalFormOptions, isLegalFormAllowed } from "../../../../../code/seller/companyLegalForms"
+import { applyAresCompanyPrefill, formatAresAddress } from "../../../../../features/seller-onboarding/applyAresCompanyPrefill"
 import { ErrToast } from "../../../../../ui/Toastify"
 
 import styles from "./CompanyInfo.module.scss"
@@ -98,17 +99,6 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
         }
     }, [formik.values.country_of_registration, formik.values.legal_form])
 
-    const formatAresAddress = (address) => {
-        if (!address) return ""
-        return [address.street, address.city, address.zip_code, address.country].filter(Boolean).join(", ")
-    }
-
-    const normalizeAresCountry = (value) => {
-        if (!value) return ""
-        const normalized = String(value).toLowerCase()
-        return countriesArr.some((item) => item.value === normalized) ? normalized : ""
-    }
-
     const handleAresLookup = async () => {
         setAresLoading(true)
         setAresPreview(null)
@@ -139,44 +129,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
     const applyAresPreview = () => {
         if (!aresPreview) return
 
-        if (aresPreview.company_name) {
-            formik.setFieldValue("company_name", aresPreview.company_name)
-        }
-        if (aresPreview.business_id || aresPreview.ico) {
-            formik.setFieldValue("business_id", aresPreview.business_id || aresPreview.ico)
-        }
-        const address = aresPreview.registered_address
-        if (address?.street) {
-            formik.setFieldValue("street", address.street)
-        }
-        if (address?.city) {
-            formik.setFieldValue("city", address.city)
-        }
-        if (address?.zip_code) {
-            formik.setFieldValue("zip_code", address.zip_code)
-        }
-
-        const countryValue = normalizeAresCountry(address?.country)
-        if (countryValue) {
-            formik.setFieldValue("country", countryValue)
-            formik.setFieldValue("country_of_registration", countryValue)
-            setCountry(countryValue)
-        }
-
-        const legalForm = resolveAresLegalForm({
-            country: countryValue || formik.values.country_of_registration,
-            legal_form_code: aresPreview.legal_form_code,
-            legal_form: aresPreview.legal_form,
-        })
-        if (legalForm) {
-            formik.setFieldValue("legal_form", legalForm)
-        }
-
-        if (aresPreview.dic_hint && !formik.values.tin) {
-            formik.setFieldValue("tin", aresPreview.dic_hint, true)
-            formik.setFieldTouched("tin", false, false)
-            formik.setFieldError("tin", undefined)
-        }
+        applyAresCompanyPrefill({ formik, aresPreview, setCountry })
     }
 
     const applyAresRepresentative = (representative) => {

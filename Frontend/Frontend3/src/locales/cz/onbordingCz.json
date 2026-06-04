@@ -204,6 +204,17 @@
                     "unavailable": "ARES je momentálně nedostupný. Zkuste to později nebo vyplňte formulář ručně.",
                     "generic": "Údaje o společnosti se nepodařilo načíst z ARES. Zkuste to prosím znovu nebo vyplňte formulář ručně."
                 }
+            },
+            "ares_entry": {
+                "kicker": "Volitelná pomoc se společností",
+                "title": "Předvyplnit právní údaje české společnosti",
+                "description": "U společností registrovaných v České republice můžeme podle IČO načíst část právních údajů z veřejného rejstříku. Ruční vyplnění je vždy k dispozici.",
+                "scope_note": "Pomůže to pouze s právními údaji společnosti a registrovanou adresou. Telefon, bankovní údaje, zástupci, sklad, vratná adresa a dokumenty zůstávají ruční a upravitelné.",
+                "ico_placeholder": "Zadejte české IČO",
+                "load": "Načíst z veřejného rejstříku",
+                "manual": "Vyplnit ručně",
+                "preview_title": "Náhled z veřejného rejstříku",
+                "apply": "Použít v onboardingu"
             }
         },
         "tax_address": {

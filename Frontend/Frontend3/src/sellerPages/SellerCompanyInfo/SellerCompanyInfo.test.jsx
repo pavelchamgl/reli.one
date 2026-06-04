@@ -75,7 +75,7 @@ vi.mock('../../ui/Toastify', () => ({ ErrToast: vi.fn() }));
 
 import { renderWithProviders } from '../../test/test-utils.jsx';
 import { setupStore } from '../../redux/index.js';
-import SellerCompanyInfo from './SellerCompanyInfo.jsx';
+import SellerCompanyInfo, { COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY } from './SellerCompanyInfo.jsx';
 import { getAresCompanyByIco, putCompanyInfo, putOnboardingBank } from '../../api/seller/onboarding';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -94,7 +94,13 @@ function makeStore(companyDataOverride = {}) {
   });
 }
 
-function renderPage(companyDataOverride = {}) {
+function renderPage(companyDataOverride = {}, options = {}) {
+  if (options.dismissAssist !== false) {
+    localStorage.setItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY, 'test-dismissed');
+  } else {
+    localStorage.removeItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY);
+  }
+
   return renderWithProviders(<SellerCompanyInfo />, {
     route: ROUTE,
     storeInstance: makeStore(companyDataOverride),
@@ -182,6 +188,157 @@ describe('SellerCompanyInfo — field contract', () => {
     it('renders company_phone input', () => {
       renderPage();
       expect(inputByName('company_phone')).toBeTruthy();
+    });
+  });
+
+  describe('Company onboarding entry ARES assist modal', () => {
+    const modalAresSuccess = {
+      found: true,
+      ico: '25596641',
+      business_id: '25596641',
+      company_name: 'Entry Assist s.r.o.',
+      legal_form_code: '112',
+      legal_form: 's.r.o. (Czech Republic / Slovakia)',
+      registered_address: {
+        street: 'Dlouhá 12',
+        city: 'Praha',
+        zip_code: '11000',
+        country: 'CZ',
+      },
+      dic_hint: 'CZ25596641',
+      dic_hint_source: 'ares',
+      is_active: false,
+      warnings: [],
+    };
+
+    async function openEntryAssist(companyData = {}) {
+      renderPage(companyData, { dismissAssist: false });
+      return screen.findByTestId('company-ares-entry-modal');
+    }
+
+    async function lookupInEntryAssist(ico = '25596641') {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+      await user.type(within(modal).getByRole('textbox', { name: 'onboard.company.business_id' }), ico);
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.load' }));
+      return { user, modal };
+    }
+
+    it('modal appears on empty company onboarding', async () => {
+      const modal = await openEntryAssist();
+
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.company.ares_entry.description')).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.company.ares_entry.scope_note')).toBeInTheDocument();
+      expect(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' })).toBeInTheDocument();
+    });
+
+    it('modal does not appear when company legal data exists', async () => {
+      renderPage({ company_name: 'Existing s.r.o.' }, { dismissAssist: false });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    it('Fill manually closes modal and does not mutate form', async () => {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' }));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument();
+      });
+      expect(localStorage.getItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY)).toBe('manual');
+      expect(inputByName('company_name')).toHaveValue('');
+      expect(inputByName('business_id')).toHaveValue('');
+      expect(inputByName('tin')).toHaveValue('');
+    });
+
+    it('success lookup renders compact preview', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(modalAresSuccess);
+
+      const { modal } = await lookupInEntryAssist();
+
+      expect(await within(modal).findByTestId('company-ares-entry-preview')).toBeInTheDocument();
+      expect(within(modal).getByText('Entry Assist s.r.o.')).toBeInTheDocument();
+      expect(within(modal).getByText('25596641')).toBeInTheDocument();
+      expect(within(modal).getByText('s.r.o. (Czech Republic / Slovakia)')).toBeInTheDocument();
+      expect(within(modal).getByText('Dlouhá 12, Praha, 11000, CZ')).toBeInTheDocument();
+      expect(within(modal).getByText('CZ25596641')).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.company.ares.inactive_warning')).toBeInTheDocument();
+    });
+
+    it('Apply fills legal company fields and closes modal', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(modalAresSuccess);
+
+      const { user, modal } = await lookupInEntryAssist();
+      await within(modal).findByTestId('company-ares-entry-preview');
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.apply' }));
+
+      await waitFor(() => expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument());
+      expect(localStorage.getItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY)).toBe('apply');
+      expect(inputByName('company_name')).toHaveValue('Entry Assist s.r.o.');
+      expect(inputByName('business_id')).toHaveValue('25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(screen.getByText('onboard.legal_forms.sro')).toBeInTheDocument();
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('Apply does not overwrite non-empty TIN', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(modalAresSuccess);
+
+      const { user, modal } = await lookupInEntryAssist();
+      await user.type(inputByName('tin'), 'USER-TIN-123');
+      await within(modal).findByTestId('company-ares-entry-preview');
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.apply' }));
+
+      expect(inputByName('tin')).toHaveValue('USER-TIN-123');
+    });
+
+    it('Apply does not fill phone, bank, warehouse or return fields', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...modalAresSuccess,
+        company_phone: '+420000000000',
+        iban: 'CZ6508000000192000145399',
+        wStreet: 'Warehouse from ARES',
+        rStreet: 'Return from ARES',
+      });
+
+      const { user, modal } = await lookupInEntryAssist();
+      await within(modal).findByTestId('company-ares-entry-preview');
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.apply' }));
+
+      expect(inputByName('company_phone')).toHaveValue('');
+      expect(inputByName('iban')).toHaveValue('');
+      expect(inputByName('wStreet')).toHaveValue('');
+      expect(inputByName('rStreet')).toHaveValue('');
+    });
+
+    it('not found, invalid and unavailable errors keep manual mode available', async () => {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+      await user.type(within(modal).getByRole('textbox', { name: 'onboard.company.business_id' }), '25596641');
+
+      for (const errorCase of [
+        { status: 404, code: 'ares_not_found', key: 'not_found' },
+        { status: 400, code: 'ares_invalid_ico', key: 'invalid' },
+        { status: 503, code: 'ares_unavailable', key: 'unavailable' },
+      ]) {
+        getAresCompanyByIco.mockRejectedValueOnce(errorCase);
+        await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.load' }));
+
+        expect(await within(modal).findByRole('alert')).toHaveTextContent(`onboard.company.ares.errors.${errorCase.key}`);
+        expect(within(modal).queryByRole('button', { name: 'onboard.company.ares_entry.apply' })).not.toBeInTheDocument();
+        expect(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' })).toBeInTheDocument();
+      }
+
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' }));
+      await waitFor(() => expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument());
     });
   });
 
