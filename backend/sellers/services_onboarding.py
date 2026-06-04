@@ -18,7 +18,11 @@ from .models import (
     SellerLegalInfo,
     LegalInfoStatus,
     OnboardingEventType,
+    OnboardingActorType,
+    SellerAresVerification,
 )
+from .providers.ares.errors import AresError
+from .providers.ares.service import lookup_by_ico
 from .services_onboarding_audit import log_onboarding_event
 
 IBAN_RE = re.compile(r"^[A-Z0-9]{15,34}$")
@@ -49,6 +53,19 @@ def _normalize_spaces(value: str) -> str:
     return " ".join(value.split())
 
 
+def _normalize_match_text(value: Any) -> str:
+    return _normalize_spaces(str(value or "")).casefold()
+
+
+def _normalize_match_zip(value: Any) -> str:
+    return re.sub(r"\s+", "", str(value or "")).casefold()
+
+
+def _clean_company_name_for_match(value: Any) -> str:
+    text = _normalize_spaces(str(value or ""))
+    return _normalize_match_text(_clean_legal_form(text))
+
+
 def _clean_legal_form(legal_form: str | None) -> str:
     if _is_blank(legal_form):
         return ""
@@ -69,6 +86,170 @@ def get_expected_company_account_holder(company_name: str | None, legal_form: st
         return normalized_company_name
 
     return _normalize_spaces(f"{normalized_company_name} {cleaned_legal_form}")
+
+
+def _sanitize_ares_normalized(normalized: dict[str, Any]) -> dict[str, Any]:
+    """Keep only normalized company facts needed by moderators; never persist raw ARES."""
+    address = normalized.get("registered_address") or {}
+    return {
+        "found": bool(normalized.get("found")),
+        "ico": normalized.get("ico"),
+        "business_id": normalized.get("business_id") or normalized.get("ico"),
+        "company_name": normalized.get("company_name"),
+        "legal_form_code": normalized.get("legal_form_code"),
+        "legal_form": normalized.get("legal_form"),
+        "registered_address": {
+            "street": address.get("street"),
+            "city": address.get("city"),
+            "zip_code": address.get("zip_code"),
+            "country": address.get("country"),
+        },
+        "dic_hint": normalized.get("dic_hint"),
+        "dic_hint_source": normalized.get("dic_hint_source"),
+        "is_active": normalized.get("is_active"),
+        "warnings": list(normalized.get("warnings") or []),
+    }
+
+
+def _match_result(application_value: Any, ares_value: Any, *, normalizer=_normalize_match_text) -> dict[str, Any]:
+    app_normalized = normalizer(application_value)
+    ares_normalized = normalizer(ares_value)
+    return {
+        "checked": True,
+        "match": bool(app_normalized and ares_normalized and app_normalized == ares_normalized),
+        "application": application_value,
+        "ares": ares_value,
+    }
+
+
+def _compare_ares_company_fields(app: SellerOnboardingApplication, normalized: dict[str, Any]) -> dict[str, Any]:
+    company_info = getattr(app, "company_info", None)
+    company_address = getattr(app, "company_address", None)
+    ares_address = normalized.get("registered_address") or {}
+
+    field_matches: dict[str, Any] = {
+        "business_id": _match_result(
+            getattr(company_info, "business_id", None),
+            normalized.get("business_id") or normalized.get("ico"),
+            normalizer=_normalize_match_zip,
+        ),
+        "company_name": _match_result(
+            getattr(company_info, "company_name", None),
+            normalized.get("company_name"),
+            normalizer=_clean_company_name_for_match,
+        ),
+        "legal_form": _match_result(
+            getattr(company_info, "legal_form", None),
+            normalized.get("legal_form"),
+            normalizer=lambda value: _normalize_match_text(_clean_legal_form(str(value or ""))),
+        ),
+    }
+
+    enough_ares_address = all(
+        ares_address.get(field)
+        for field in ("street", "city", "zip_code", "country")
+    )
+    if enough_ares_address and company_address:
+        address_fields = {
+            "street": _match_result(company_address.street, ares_address.get("street")),
+            "city": _match_result(company_address.city, ares_address.get("city")),
+            "zip_code": _match_result(
+                company_address.zip_code,
+                ares_address.get("zip_code"),
+                normalizer=_normalize_match_zip,
+            ),
+            "country": _match_result(company_address.country, ares_address.get("country")),
+        }
+        field_matches["registered_address"] = {
+            "checked": True,
+            "match": all(item["match"] for item in address_fields.values()),
+            "fields": address_fields,
+        }
+    else:
+        field_matches["registered_address"] = {
+            "checked": False,
+            "match": None,
+            "reason": "ares_address_partial" if not enough_ares_address else "application_address_missing",
+        }
+
+    is_active = normalized.get("is_active")
+    field_matches["is_active"] = {
+        "checked": is_active is not None,
+        "match": bool(is_active) if is_active is not None else None,
+        "application": None,
+        "ares": is_active,
+    }
+
+    warnings = []
+    if is_active is False:
+        warnings.append("company_inactive")
+    if field_matches["registered_address"].get("checked") is False:
+        warnings.append(field_matches["registered_address"].get("reason"))
+    for field, result in field_matches.items():
+        if result.get("checked") and result.get("match") is False:
+            warnings.append(f"{field}_mismatch")
+
+    field_matches["warnings"] = sorted({warning for warning in warnings if warning})
+    field_matches["all_checked_fields_match"] = not any(
+        result.get("checked") and result.get("match") is False
+        for key, result in field_matches.items()
+        if isinstance(result, dict) and key not in ("warnings",)
+    )
+    return field_matches
+
+
+def verify_against_ares(app: SellerOnboardingApplication) -> SellerAresVerification | None:
+    """
+    Submit-time ARES moderator hint for company onboarding.
+    Non-blocking by design: ARES failures never prevent manual moderation.
+    """
+    if app.seller_type != SellerType.COMPANY:
+        return None
+
+    company_info = getattr(app, "company_info", None)
+    ico = getattr(company_info, "business_id", None)
+    if _is_blank(ico):
+        return None
+
+    try:
+        normalized = lookup_by_ico(ico)
+    except AresError:
+        return None
+    except Exception:
+        return None
+
+    sanitized = _sanitize_ares_normalized(normalized)
+    field_matches = _compare_ares_company_fields(app, sanitized)
+    checked_at = timezone.now()
+
+    verification, _ = SellerAresVerification.objects.update_or_create(
+        application=app,
+        defaults={
+            "ico_queried": sanitized.get("business_id") or sanitized.get("ico") or str(ico),
+            "normalized": sanitized,
+            "is_active": sanitized.get("is_active"),
+            "field_matches": field_matches,
+            "checked_at": checked_at,
+        },
+    )
+
+    event_type = (
+        OnboardingEventType.ARES_VERIFIED
+        if field_matches.get("all_checked_fields_match")
+        else OnboardingEventType.ARES_MISMATCH
+    )
+    log_onboarding_event(
+        application=app,
+        event_type=event_type,
+        payload={
+            "ico_queried": verification.ico_queried,
+            "is_active": verification.is_active,
+            "warnings": field_matches.get("warnings", []),
+        },
+        actor=None,
+        actor_type=OnboardingActorType.SYSTEM,
+    )
+    return verification
 
 
 @dataclass
@@ -763,6 +944,7 @@ def submit_application(app: SellerOnboardingApplication) -> SellerOnboardingAppl
         raise ValidationError({"detail": "Only draft/rejected applications can be submitted."})
 
     validate_before_submit(app)
+    verify_against_ares(app)
     app.status = OnboardingStatus.PENDING_VERIFICATION
     app.submitted_at = timezone.now()
     app.rejected_reason = None

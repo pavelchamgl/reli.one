@@ -11,6 +11,7 @@ from rest_framework.test import APIClient
 
 from accounts.choices import UserRole
 from accounts.models import CustomUser
+from sellers.models import OnboardingAuditLog, OnboardingEventType
 from sellers.providers.ares.client import AresClient
 
 
@@ -82,6 +83,12 @@ class SellerCompanyAresLookupTests(TestCase):
         self.assertIn("/ekonomicke-subjekty/25596641", mock_get.call_args_list[0].args[0])
         self.assertIn("/ekonomicke-subjekty-szr/25596641", mock_get.call_args_list[1].args[0])
         self.assertIn("/ekonomicke-subjekty-vr/25596641", mock_get.call_args_list[2].args[0])
+
+        audit_log = OnboardingAuditLog.objects.get(event_type=OnboardingEventType.ARES_LOOKUP)
+        self.assertEqual(audit_log.application, self.user.seller_profile.onboarding_application)
+        self.assertEqual(audit_log.actor, self.user)
+        self.assertEqual(audit_log.payload["result"], "found")
+        self.assertEqual(audit_log.payload["ico"], "25596641")
 
     @patch("requests.Session.get")
     def test_client_calls_szr_endpoint(self, mock_get):

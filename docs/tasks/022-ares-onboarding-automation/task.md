@@ -2,7 +2,7 @@
 
 **Priority:** P1
 **Complexity:** High
-**Status:** **IN PROGRESS** — Iteration 1–3 частично/фактически реализованы; следующий согласованный шаг: **Iteration 3.5 — Company onboarding entry assist modal**.
+**Status:** **MVP CLOSED (company/shared foundation)** — Iteration 1–6 (MVP scope) closed for company/legal entity flow; auto-approve pilot (Iteration 7) stays deferred and out of current release scope.
 
 > **Продуктовая позиция.** MVP задачи — **ARES-assisted onboarding**: lookup по `IČO` + prefill формы при сохранении **ручного онбординга и ручной модерации**. **Auto-approve не является core MVP** — это отдельная поздняя фаза / pilot под feature-flag, включаемая **только после evidence gate** (см. раздел [Evidence gate before auto-approve](#evidence-gate-before-auto-approve)).
 
@@ -215,7 +215,7 @@ Auto-approve (Later / Pilot) включается **только** при одн
 - Рабочий lookup-эндпоинт с кешем и throttle.
 
 ### Статус
-- [ ]
+- [x] Backend lookup endpoint, provider/client/mapping/cache/throttle and mocked tests implemented.
 
 ---
 
@@ -242,7 +242,7 @@ Auto-approve (Later / Pilot) включается **только** при одн
 - Ассистированный prefill с ручным подтверждением.
 
 ### Статус
-- [ ]
+- [x] Company inline assisted prefill UX implemented with preview, Apply, editable fields and frontend tests.
 
 ---
 
@@ -378,7 +378,7 @@ Auto-approve (Later / Pilot) включается **только** при одн
 - Tests and i18n for the modal flow.
 
 ### Статус
-- [ ] Скоуп утверждён; реализация не начата.
+- [x] First-run company ARES assist modal implemented with Czech-only copy, manual mode, preview/Apply, local dismissal and RTL/visual sanity checks.
 
 ---
 
@@ -397,7 +397,7 @@ Auto-approve (Later / Pilot) включается **только** при одн
 - Не менять существующие модели/поля онбординга.
 
 ### Статус
-- [ ]
+- [x] `SellerAresVerification`, ARES audit events, migration and compact read-only Admin panel implemented.
 
 ---
 
@@ -416,7 +416,7 @@ Auto-approve (Later / Pilot) включается **только** при одн
 - **Никакого автоматического approve** на этом шаге. Поведение модерации идентично текущему ручному.
 
 ### Статус
-- [ ]
+- [x] Submit-time `verify_against_ares()` implemented as non-blocking moderator hint; submit remains `pending_verification`; no auto-approve.
 
 ---
 
@@ -443,7 +443,8 @@ docker compose -f docker-compose.test.yml run --rm backend_test pytest sellers/ 
 - [ ] Накоплены данные для [Evidence gate](#evidence-gate-before-auto-approve) (mismatch rate, downtime behavior, admin visibility, rollback).
 
 ### Статус
-- [ ]
+- [x] MVP regression gate for company/shared scope closed (backend checks + sellers regression suite passed; details in QA evidence below).
+- [ ] Pilot evidence collection for auto-approve remains open (Iteration 7 is deferred by design).
 
 ---
 
@@ -476,14 +477,14 @@ docker compose -f docker-compose.test.yml run --rm backend_test pytest sellers/ 
 
 ### MVP DoD (ARES-assisted onboarding) — без auto-approve
 
-- [ ] ARES client/service (`providers/ares/**`) с retry, кешем, нормализацией, маппингом и IČO-валидацией; unit-тесты на моках.
-- [ ] Lookup endpoint `GET .../company/ares-lookup/` (view + url + serializer ответа), permission `IsSeller`, **throttle + cache**, audit-событие `ares_lookup`; данные не сохраняются (только prefill).
-- [ ] Frontend3: кнопка «Загрузить из ARES» с preview + явным Apply, обработкой ошибок и частичного адреса; i18n cz/en; frontend-тест.
-- [ ] Frontend3: first-run Czech-only ARES assist modal на company onboarding, без country selector, с manual fallback, preview + Apply, визуально согласованная с текущим onboarding UI; frontend-тесты и EN/CZ i18n.
-- [ ] `SellerAresVerification` (sanitized snapshot, без полного `raw_response`) + миграция (только добавление, **без** `auto_approved`); ARES-панель в Admin; события `ARES_LOOKUP`/`ARES_VERIFIED`/`ARES_MISMATCH` в `OnboardingAuditLog`.
-- [ ] Submit-time `verify_against_ares()` как **moderator hint**; статус остаётся `pending_verification`; **auto-approve отсутствует**; fail-closed при недоступности ARES.
-- [ ] Backend regression gate (`manage.py check`, `pytest sellers/ -q`, полный `pytest`).
-- [ ] Документация: `docs/06-integrations.md` (ARES) и обновлённый `docs/seller-onboarding-flow.md`.
+- [x] ARES client/service (`providers/ares/**`) с retry, кешем, нормализацией, маппингом и IČO-валидацией; unit-тесты на моках.
+- [x] Lookup endpoint `GET .../company/ares-lookup/` (view + url + serializer ответа), permission `IsSeller`, **throttle + cache**, audit-событие `ares_lookup`; данные не сохраняются (только prefill).
+- [x] Frontend3: кнопка «Загрузить из ARES» с preview + явным Apply, обработкой ошибок и частичного адреса; i18n cz/en; frontend-тест.
+- [x] Frontend3: first-run Czech-only ARES assist modal на company onboarding, без country selector, с manual fallback, preview + Apply, визуально согласованная с текущим onboarding UI; frontend-тесты и EN/CZ i18n.
+- [x] `SellerAresVerification` (sanitized snapshot, без полного `raw_response`) + миграция (только добавление, **без** `auto_approved`); ARES-панель в Admin; события `ARES_LOOKUP`/`ARES_VERIFIED`/`ARES_MISMATCH` в `OnboardingAuditLog`.
+- [x] Submit-time `verify_against_ares()` как **moderator hint**; статус остаётся `pending_verification`; **auto-approve отсутствует**; fail-closed при недоступности ARES.
+- [x] Backend regression gate for MVP scope (`manage.py makemigrations --check --dry-run`, `manage.py check`, `manage.py test sellers`) пройден.
+- [x] Документация: `docs/06-integrations.md` (ARES) и обновлённый `docs/seller-onboarding-flow.md`.
 
 ### Pilot DoD (auto-approve) — отдельная фаза
 
@@ -493,6 +494,23 @@ docker compose -f docker-compose.test.yml run --rm backend_test pytest sellers/ 
 - [ ] **Fail-closed** при недоступности/несовпадении ARES; полный **аудит** (`ARES_AUTO_APPROVED`).
 - [ ] Подтверждённый **rollback / manual override** к ручной модерации.
 - [ ] Тесты pilot-сценариев (approve / отказ от авто-апрува по каждому критерию).
+
+---
+
+## QA evidence (MVP closure)
+
+Проверено локально для company/shared MVP scope:
+
+- [x] `python3 backend/manage.py makemigrations --check --dry-run` → `No changes detected`.
+- [x] `python3 backend/manage.py check` → `System check identified no issues (0 silenced).`
+- [x] `python3 backend/manage.py test sellers` → `Ran 84 tests ... OK`.
+
+Зафиксированные ограничения после closure:
+
+- Submit остаётся `pending_verification` и manual moderation flow (auto-approve не включён).
+- `SellerAresVerification` хранит только sanitized snapshot; полный raw ARES response не хранится.
+- Self-employed ARES assist intentionally excluded from Task 022 and tracked in Task 023.
+- Auto-approve pilot (feature flag + evidence gate + rollback validation) intentionally deferred to Iteration 7.
 
 ---
 

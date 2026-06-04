@@ -11,6 +11,7 @@ from rest_framework.throttling import ScopedRateThrottle
 
 from ...drf_hooks import AuditAPIView
 from ...models import (
+    OnboardingEventType,
     SellerCompanyAddress,
     SellerCompanyInfo,
     SellerCompanyRepresentative,
@@ -31,6 +32,7 @@ from ...services_onboarding import (
     get_or_create_onboarding_block,
     get_onboarding_block_or_none,
 )
+from ...services_onboarding_audit import log_onboarding_event
 
 
 
@@ -92,25 +94,60 @@ class SellerCompanyAresLookupAPIView(AuditAPIView):
         },
     )
     def get(self, request):
-        get_or_create_application_for_user(request.user)
+        app = get_or_create_application_for_user(request.user)
 
         query = AresLookupQuerySerializer(data=request.query_params)
         if not query.is_valid():
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"result": "invalid"},
+                actor=request.user,
+            )
             return _ares_error_response(
                 AresInvalidIco.code,
                 AresInvalidIco.detail,
                 status.HTTP_400_BAD_REQUEST,
             )
 
+        ico = query.validated_data["ico"]
         try:
-            data = lookup_by_ico(query.validated_data["ico"])
+            data = lookup_by_ico(ico)
         except AresInvalidIco as exc:
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"ico": ico, "result": "invalid", "code": exc.code},
+                actor=request.user,
+            )
             return _ares_error_response(exc.code, exc.detail, status.HTTP_400_BAD_REQUEST)
         except AresNotFound as exc:
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"ico": ico, "result": "not_found", "code": exc.code},
+                actor=request.user,
+            )
             return _ares_error_response(exc.code, exc.detail, status.HTTP_404_NOT_FOUND)
         except AresUnavailable as exc:
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"ico": ico, "result": "unavailable", "code": exc.code},
+                actor=request.user,
+            )
             return _ares_error_response(exc.code, exc.detail, status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        log_onboarding_event(
+            application=app,
+            event_type=OnboardingEventType.ARES_LOOKUP,
+            payload={
+                "ico": data.get("business_id") or data.get("ico") or ico,
+                "result": "found",
+                "is_active": data.get("is_active"),
+            },
+            actor=request.user,
+        )
         return Response(AresLookupResponseSerializer(data).data, status=status.HTTP_200_OK)
 
 

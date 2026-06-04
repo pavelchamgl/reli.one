@@ -28,6 +28,33 @@
 
 ---
 
+## Публичные реестры
+
+### ARES CZ — seller onboarding assist
+
+ARES используется только как вспомогательный публичный реестр для company onboarding MVP.
+
+| Параметр | Описание |
+|----------|----------|
+| Provider | `backend/sellers/providers/ares/` |
+| API base | `ARES_API_BASE`, default `https://ares.gov.cz/ekonomicke-subjekty-v-be/rest` |
+| Endpoint | `GET /api/sellers/onboarding/company/ares-lookup/?ico=...` |
+| Runtime use | Prefill/hint по Czech IČO и submit-time moderator hint |
+| Persistence | Только sanitized snapshot в `SellerAresVerification`; полный raw response не хранится |
+| Moderation | Ручная: submit остаётся `pending_verification`; auto-approve в MVP отсутствует |
+
+Lookup endpoint возвращает нормализованные поля для явного Apply в company onboarding: `company_name`, `business_id` / IČO, `legal_form`, registered company address, `dic_hint`, `is_active` и warnings.
+
+ARES не заполняет и не подтверждает phone, bank account, representative identity, warehouse/return addresses или документы. DIČ из ARES не является VAT/DPH/VIES verification.
+
+При submit для company onboarding backend повторно вызывает ARES по `company_info.business_id`, сравнивает ключевые legal fields и сохраняет результат как moderator hint:
+
+- `ARES_VERIFIED` audit event, если найденная активная компания совпадает по проверенным полям;
+- `ARES_MISMATCH`, если есть расхождения или компания неактивна;
+- при not found/unavailable/error submit не блокируется и заявка всё равно уходит на ручную модерацию.
+
+---
+
 ## Службы доставки
 
 ### Packeta (Zásilkovna)
