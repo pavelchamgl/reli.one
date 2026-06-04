@@ -140,7 +140,7 @@ const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
             docType="identity_document"
             side="front"
             onChange={handleSingleFrontUpload}
-            inpText="Uploud document"
+            inpText={t('onboard.common.upload')}
             stateName={selfData?.passport}
             nameTitle="front"
             onMouseDown={() => {

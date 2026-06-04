@@ -63,13 +63,13 @@ const UploadInp = ({
         ];
 
         if (!allowedTypes.includes(file.type)) {
-            alert("Only PDF, JPG or PNG files are allowed");
+            alert(t('onboard.common.upload_file_type_error'));
             return;
         }
 
         // Size (10MB)
         if (file.size > 10 * 1024 * 1024) {
-            alert("File size must be less than 10MB");
+            alert(t('onboard.common.upload_file_size_error'));
             return;
         }
 

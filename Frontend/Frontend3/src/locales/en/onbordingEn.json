@@ -96,6 +96,8 @@
             "select": "Select",
             "upload_error": "Upload error",
             "upload_error_detail": "We could not upload this document. Please check the file type and size, then try again.",
+            "upload_file_type_error": "Only PDF, JPG or PNG files are allowed",
+            "upload_file_size_error": "File size must be less than 10MB",
             "error_save": "Failed to save data",
             "continue_review": "Continue to Review",
             "upload": "Upload document"
@@ -340,6 +342,9 @@
         },
         "errors": {
             "submit_failed": "Failed to submit onboarding",
+            "submit_data_failed": "Failed to submit onboarding data",
+            "unknown": "Unknown error",
+            "unexpected": "Unexpected error",
             "complete_fields": "Failed to submit onboarding. Please complete"
         },
         "legal_forms": {

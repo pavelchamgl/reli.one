@@ -11,13 +11,31 @@ const hookMocks = vi.hoisted(() => ({
   getAllCompanyDataBD: vi.fn().mockResolvedValue({}),
 }));
 
+const i18nMocks = vi.hoisted(() => ({
+  language: 'keys',
+  translations: {
+    cz: {
+      'onboard.common.upload': 'Nahrát dokument',
+      'onboard.common.upload_error_detail': 'Dokument se nepodařilo nahrát. Zkontrolujte prosím typ a velikost souboru a zkuste to znovu.',
+      'onboard.company.business_id': 'IČO',
+      'onboard.self_employed_ares.entry.load': 'Načíst z veřejného rejstříku',
+      'onboard.self_employed_ares.entry.manual': 'Vyplnit ručně',
+      'onboard.self_employed_ares.errors.not_found': 'Toto IČO nebylo v českém veřejném rejstříku nalezeno. Formulář můžete vyplnit ručně.',
+    },
+  },
+}));
+
 vi.mock('react-i18next', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
     useTranslation: () => ({
-      t: (key) => key,
-      i18n: { changeLanguage: vi.fn() },
+      t: (key) => i18nMocks.translations[i18nMocks.language]?.[key] ?? key,
+      i18n: {
+        changeLanguage: vi.fn((language) => {
+          i18nMocks.language = language;
+        }),
+      },
     }),
   };
 });
@@ -180,6 +198,7 @@ describe('SellerInformation — self-employed ARES assist', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     hookMocks.currentStore = null;
+    i18nMocks.language = 'keys';
     localStorage.clear();
   });
 
@@ -280,6 +299,21 @@ describe('SellerInformation — self-employed ARES assist', () => {
         expect(within(modal).queryByRole('button', { name: 'onboard.self_employed_ares.entry.apply' })).not.toBeInTheDocument();
         expect(within(modal).getByRole('button', { name: 'onboard.self_employed_ares.entry.manual' })).toBeInTheDocument();
       }
+    });
+
+    it('renders ARES not-found error in Czech', async () => {
+      i18nMocks.language = 'cz';
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+      await user.type(within(modal).getByRole('textbox', { name: 'IČO' }), '25596641');
+      getAresCompanyByIco.mockRejectedValueOnce({ status: 404, code: 'ares_not_found' });
+
+      await user.click(within(modal).getByRole('button', { name: 'Načíst z veřejného rejstříku' }));
+
+      expect(await within(modal).findByRole('alert')).toHaveTextContent(
+        'Toto IČO nebylo v českém veřejném rejstříku nalezeno. Formulář můžete vyplnit ručně.'
+      );
+      expect(within(modal).getByRole('button', { name: 'Vyplnit ručně' })).toBeInTheDocument();
     });
   });
 
@@ -521,6 +555,22 @@ describe('SellerInformation — self-employed ARES assist', () => {
       await user.upload(uploadControl, file);
 
       expect(await screen.findByText('onboard.common.upload_error_detail')).toBeInTheDocument();
+    });
+
+    it('shows Czech upload error copy when identity document upload fails', async () => {
+      i18nMocks.language = 'cz';
+      renderPage();
+      const user = userEvent.setup();
+
+      uploadSingleDocument.mockRejectedValueOnce(new Error('network down'));
+
+      const uploadControl = document.querySelector('input[type="file"]');
+      const file = new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' });
+      await user.upload(uploadControl, file);
+
+      expect(await screen.findByText(
+        'Dokument se nepodařilo nahrát. Zkontrolujte prosím typ a velikost souboru a zkuste to znovu.'
+      )).toBeInTheDocument();
     });
 
     it('keeps date_of_birth, nationality and ARES fields after Address proof_of_address upload', async () => {
