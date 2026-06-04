@@ -48,6 +48,11 @@ const ReviewInfoPage = () => {
       personal_phone: phone,
       uploadFront: selfData?.uploadFront ?? "",
       uploadBack: selfData?.uploadBack ?? "",
+      uploadPassport: selfData?.uploadPassport ?? "",
+      uploadDrivFront: selfData?.uploadDrivFront ?? "",
+      uploadDrivBack: selfData?.uploadDrivBack ?? "",
+      uploadIdFront: selfData?.uploadIdFront ?? "",
+      uploadIdBack: selfData?.uploadIdBack ?? "",
 
       // tax
       tax_country: selfData?.tax_country ?? "",
@@ -69,6 +74,7 @@ const ReviewInfoPage = () => {
       local_account_number: selfData?.local_account_number ?? "",
 
       // warehouse
+      same_as_the_primary_address: selfData?.same_as_the_primary_address ?? selfData?.same_as_primary_address ?? false,
       wStreet: selfData?.wStreet ?? "",
       wCity: selfData?.wCity ?? "",
       wZip_code: selfData?.wZip_code ?? "",
@@ -120,15 +126,33 @@ const ReviewInfoPage = () => {
 
   }, [])
 
-  const parseApiErrors = (data) => {
-    if (!data) return ["Unknown error"];
+  const genericSubmitMessages = [
+    "Failed to submit onboarding data",
+    "Unknown error",
+    "Unexpected error",
+  ];
+
+  const parseApiErrors = (data, fallback = t('onboard.errors.submit_failed')) => {
+    if (!data) return [fallback];
 
     // 🔹 Если строка
-    if (typeof data === "string") return [data];
+    if (typeof data === "string") {
+      return genericSubmitMessages.includes(data) ? [fallback] : [data];
+    }
 
     // 🔹 Стандартные backend поля
-    if (data.detail) return [String(data.detail)];
-    if (data.message) return [String(data.message)];
+    if (data.detail) {
+      const message = String(data.detail);
+      return genericSubmitMessages.includes(message) ? [fallback] : [message];
+    }
+    if (data.message) {
+      const message = String(data.message);
+      return genericSubmitMessages.includes(message) ? [fallback] : [message];
+    }
+    if (data.error) {
+      const message = String(data.error);
+      return genericSubmitMessages.includes(message) ? [fallback] : [message];
+    }
 
     // 🔹 Человекочитаемые названия для completeness
     const labels = {
@@ -149,8 +173,9 @@ const ReviewInfoPage = () => {
       const failed = Object.entries(completeness)
         .filter(
           ([_, value]) =>
-            typeof value === "string" &&
-            value.toLowerCase() === "false"
+            value === false ||
+            (typeof value === "string" &&
+              value.toLowerCase() === "false")
         )
         .map(([key]) => labels[key] ?? key);
 
@@ -176,7 +201,11 @@ const ReviewInfoPage = () => {
 
     walk(data);
 
-    return messages.length ? messages : ["Unexpected error"];
+    const filteredMessages = messages.filter(
+      (message) => !genericSubmitMessages.includes(String(message))
+    );
+
+    return filteredMessages.length ? filteredMessages : [fallback];
   };
 
   const handleSubmit = async () => {
@@ -235,7 +264,8 @@ const ReviewInfoPage = () => {
         {
           name: "Warehouse",
           promise: putWarehouse({
-            same_as_the_primary_address: selfData.same_as_the_primary_address,
+            same_as_the_primary_address: values.same_as_the_primary_address,
+            same_as_primary_address: values.same_as_the_primary_address,
             street: values.wStreet,
             city: values.wCity,
             zip_code: values.wZip_code,
@@ -266,8 +296,8 @@ const ReviewInfoPage = () => {
       const errors = results
         .map((result, index) => {
           if (result.status === "rejected") {
-            const data = result.reason?.response?.data;
-            const messages = parseApiErrors(data);
+            const data = result.reason?.response?.data ?? result.reason?.data ?? result.reason;
+            const messages = parseApiErrors(data, result.reason?.message || t('onboard.errors.submit_failed'));
             return `${requests[index].name}: ${messages.join(", ")}`;
           }
           return null;
@@ -300,8 +330,8 @@ const ReviewInfoPage = () => {
         ErrToast(message)
       }
     } catch (error) {
-      const responseData = error?.response?.data;
-      const messages = parseApiErrors(responseData);
+      const responseData = error?.response?.data ?? error?.data ?? error;
+      const messages = parseApiErrors(responseData, error?.message || t('onboard.errors.submit_failed'));
       setSubmitError(messages.join("\n"))
       messages.forEach((msg) => ErrToast(msg));
       // navigate('/seller/seller-info')

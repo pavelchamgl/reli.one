@@ -38,11 +38,28 @@ export const validationSchemaSelf = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Phone number is required"),
 
-    // uploadFront: Yup.string()
-    //     .required("Front side upload is required"),
+    uploadPassport: Yup.string().test(
+        "identity-document-uploaded",
+        "Identity document upload is required",
+        function () {
+            const {
+                uploadPassport,
+                uploadDrivFront,
+                uploadDrivBack,
+                uploadIdFront,
+                uploadIdBack,
+                uploadFront,
+                uploadBack,
+            } = this.parent;
 
-    // uploadBack: Yup.string()
-    //     .required("Back side upload is required"),
+            return Boolean(
+                uploadPassport ||
+                (uploadDrivFront && uploadDrivBack) ||
+                (uploadIdFront && uploadIdBack) ||
+                (uploadFront && uploadBack)
+            );
+        },
+    ),
 
     // ================= TAX =================
     tax_country: Yup.string()
@@ -76,16 +93,8 @@ export const validationSchemaSelf = Yup.object({
     country: Yup.string()
         .required("Country is required"),
 
-    // proof_document_issue_date: Yup.date()
-    //     .transform((value, originalValue) => {
-    //         if (typeof originalValue === "string") {
-    //             const [day, month, year] = originalValue.split(".");
-    //             return new Date(`${year}-${month}-${day}`);
-    //         }
-    //         return value;
-    //     })
-    //     .typeError("Invalid date format")
-    //     .required("Document issue date is required"),
+    proof_document_issue_date: Yup.string()
+        .required("Address proof of address upload is required"),
 
     // ================= BANK =================
     iban: Yup.string()
@@ -141,16 +150,11 @@ export const validationSchemaSelf = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Contact phone is required"),
 
-    // wProof_document_issue_date: Yup.date()
-    //     .transform((value, originalValue) => {
-    //         if (typeof originalValue === "string") {
-    //             const [day, month, year] = originalValue.split(".");
-    //             return new Date(`${year}-${month}-${day}`);
-    //         }
-    //         return value;
-    //     })
-    //     .typeError("Invalid date format")
-    //     .required("Document issue date is required"),
+    wProof_document_issue_date: Yup.string().when('same_as_the_primary_address', {
+        is: true,
+        then: (schema) => schema.optional(),
+        otherwise: (schema) => schema.required("Warehouse proof of address upload is required"),
+    }),
 
     // ================= RETURN ADDRESS =================
     rStreet: Yup.string()
@@ -170,9 +174,11 @@ export const validationSchemaSelf = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Return contact phone is required"),
 
-    // rProof_document_issue_date: Yup.date()
-    //     .max(new Date(), "Date cannot be in the future")
-    //     .required("Document issue date is required"),
+    rProof_document_issue_date: Yup.string().when('same_as_warehouse', {
+        is: true,
+        then: (schema) => schema.optional(),
+        otherwise: (schema) => schema.required("Return address proof of address upload is required"),
+    }),
 });
 
 

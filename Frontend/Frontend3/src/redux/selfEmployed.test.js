@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getAllCompanyDataBD, reducer } from './selfEmployed';
+import { getAllCompanyDataBD, getAllDataFromBD, reducer } from './selfEmployed';
 
 describe('selfEmployed reducer', () => {
   it('maps company warehouse same_as_primary_address for review edit form', () => {
@@ -25,5 +25,29 @@ describe('selfEmployed reducer', () => {
 
     expect(state.companyData.same_as_primary_address).toBe(true);
     expect(state.companyData.same_as_the_primary_address).toBe(true);
+  });
+
+  it('maps self-employed warehouse same_as_primary_address for review edit form', () => {
+    const action = getAllDataFromBD.fulfilled([
+      {},
+      {},
+      {},
+      {},
+      {
+        same_as_primary_address: true,
+        street: 'Na lysinách 551/34',
+        city: 'Praha',
+        zip_code: '14700',
+        country: 'cz',
+        contact_phone: '+420797837888',
+      },
+      { same_as_warehouse: true },
+      [{}],
+    ]);
+
+    const state = reducer(undefined, action);
+
+    expect(state.selfData.same_as_primary_address).toBe(true);
+    expect(state.selfData.same_as_the_primary_address).toBe(true);
   });
 });

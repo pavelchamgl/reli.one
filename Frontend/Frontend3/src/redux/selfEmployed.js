@@ -231,6 +231,8 @@ const selfEmploedSlice = createSlice({
             state.selfData.wZip_code = warehouse?.zip_code ?? ''
             state.selfData.wCountry = warehouse?.country ?? ''
             state.selfData.contact_phone = warehouse?.contact_phone
+            state.selfData.same_as_primary_address = warehouse?.same_as_primary_address ?? false
+            state.selfData.same_as_the_primary_address = warehouse?.same_as_primary_address ?? false
 
 
             state.selfData.same_as_warehouse = returnAddress?.same_as_warehouse ?? ''

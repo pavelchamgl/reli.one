@@ -12,12 +12,14 @@ import UploadInp from "../uploadInp/UploadInp"
 import { putWarehouse, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
 import Checkbox from "../../../../../ui/Seller/newOrder/checkbox/Checkbox"
+import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 
 import styles from "./WareHouseAddress.module.scss"
 import { ErrToast } from "../../../../../ui/Toastify"
 
 const WhareHouseAddress = ({ formik }) => {
     const { pathname } = useLocation()
+    const { safeData } = useActionSafeEmploed()
 
     const handleSameAsPrimaryAddress= (checked) => {
         formik.setFieldValue('same_as_the_primary_address', checked)
@@ -80,6 +82,7 @@ const WhareHouseAddress = ({ formik }) => {
 
         const payload = {
             same_as_primary_address: formik.values.same_as_the_primary_address,
+            same_as_the_primary_address: formik.values.same_as_the_primary_address,
             wStreet: formik.values.wStreet,
             wCity: formik.values.wCity,
             wZip_code: formik.values.wZip_code,
@@ -91,8 +94,16 @@ const WhareHouseAddress = ({ formik }) => {
         try {
             const proofDocumentIssueDate = toISODate(payload.wProof_document_issue_date)
 
+            if (pathname === '/seller/seller-review') {
+                safeData?.({
+                    ...formik.values,
+                    same_as_primary_address: formik.values.same_as_the_primary_address
+                })
+            }
+
             await putWarehouse({
                 same_as_primary_address: payload.same_as_primary_address,
+                same_as_the_primary_address: payload.same_as_the_primary_address,
                 street: payload.wStreet,
                 city: payload.wCity,
                 zip_code: payload.wZip_code,

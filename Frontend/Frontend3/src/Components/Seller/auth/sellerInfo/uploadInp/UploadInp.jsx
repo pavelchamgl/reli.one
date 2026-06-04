@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import uploadIc from "../../../../../assets/Seller/register/uploadIc.svg"
 import uploadIcErr from "../../../../../assets/Seller/register/uploadIcErr.svg"
@@ -28,6 +29,7 @@ const UploadInp = ({
 }) => {
 
     const { pathname } = useLocation()
+    const { t } = useTranslation('onbording')
 
     const companyPathname = ['/seller/seller-company', '/seller/seller-review-company']
 
@@ -132,7 +134,7 @@ const UploadInp = ({
 
                 <div className={styles.uploadErrorTextBlock}>
                     <img src={uploadInpErrIc} alt="" />
-                    Failed to upload document
+                    {t('onboard.common.upload_error_detail')}
                 </div>
             }
         </div>

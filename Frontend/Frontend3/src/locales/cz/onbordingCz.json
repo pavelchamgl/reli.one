@@ -103,6 +103,7 @@
             "contact_support": "Kontaktovat podporu",
             "select": "Vybrat",
             "upload_error": "Chyba při nahrávání",
+            "upload_error_detail": "Dokument se nepodařilo nahrát. Zkontrolujte prosím typ a velikost souboru a zkuste to znovu.",
             "error_save": "Nepodařilo se uložit data",
             "continue_review": "Pokračovat ke kontrole",
             "upload": "Nahrát dokument"

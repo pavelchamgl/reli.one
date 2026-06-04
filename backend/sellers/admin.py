@@ -947,14 +947,25 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
                 return "<span class='onb-pill ok'>Match</span>"
             return "<span class='onb-pill bad'>Mismatch</span>"
 
+        is_self_employed = obj.seller_type == "self_employed"
+        name_key = "registry_name" if is_self_employed else "company_name"
+        name_label = "Registry / person name" if is_self_employed else "Company name"
+        legal_label = "Registry type" if is_self_employed else "Legal form"
+
         rows: list[str] = []
         for key, label in (
             ("business_id", "IČO / Business ID"),
-            ("company_name", "Company name"),
-            ("legal_form", "Legal form"),
+            (name_key, name_label),
+            ("legal_form", legal_label),
             ("is_active", "ARES active status"),
         ):
             result = field_matches.get(key) or {}
+            if key == "legal_form" and not result:
+                result = {
+                    "checked": False,
+                    "application": None,
+                    "ares": normalized.get("legal_form"),
+                }
             rows.append(
                 "<tr>"
                 f"<td>{label}</td>"
@@ -968,7 +979,7 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
         rows.append(
             "<tr>"
             "<td>Registered address</td>"
-            f"<td>{value(self._format_application_company_address(obj))}</td>"
+            f"<td>{value(self._format_application_ares_address(obj))}</td>"
             f"<td>{value(self._format_ares_address(address))}</td>"
             f"<td>{match_badge(address_match)}</td>"
             "</tr>"
@@ -984,8 +995,8 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
             "</tbody></table>",
             "<div class='onb-subsection-title'>Normalized ARES data</div>",
             "<table class='onb-table'><tbody>",
-            f"<tr><td>Company name</td><td>{value(normalized.get('company_name'))}</td></tr>",
-            f"<tr><td>Legal form</td><td>{value(normalized.get('legal_form'))}</td></tr>",
+            f"<tr><td>{name_label}</td><td>{value(normalized.get('company_name'))}</td></tr>",
+            f"<tr><td>{legal_label}</td><td>{value(normalized.get('legal_form'))}</td></tr>",
             f"<tr><td>Registered address</td><td>{value(self._format_ares_address(address))}</td></tr>",
             "</tbody></table>",
             "<div class='onb-subsection-title'>Field matches</div>",
@@ -1025,6 +1036,18 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
             for field in ("street", "city", "zip_code", "country")
             if getattr(address, field, None)
         ) or "—"
+
+    def _format_application_ares_address(self, obj: SellerOnboardingApplication) -> str:
+        if obj.seller_type == "self_employed":
+            address = getattr(obj, "self_employed_address", None)
+            if not address:
+                return "—"
+            return ", ".join(
+                str(getattr(address, field) or "")
+                for field in ("street", "city", "zip_code", "country")
+                if getattr(address, field, None)
+            ) or "—"
+        return self._format_application_company_address(obj)
 
     @admin.display(description="Recent activity")
     def recent_activity_panel(self, obj: SellerOnboardingApplication) -> str:

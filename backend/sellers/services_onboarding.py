@@ -89,7 +89,7 @@ def get_expected_company_account_holder(company_name: str | None, legal_form: st
 
 
 def _sanitize_ares_normalized(normalized: dict[str, Any]) -> dict[str, Any]:
-    """Keep only normalized company facts needed by moderators; never persist raw ARES."""
+    """Keep only normalized registry facts needed by moderators; never persist raw ARES."""
     address = normalized.get("registered_address") or {}
     return {
         "found": bool(normalized.get("found")),
@@ -108,6 +108,29 @@ def _sanitize_ares_normalized(normalized: dict[str, Any]) -> dict[str, Any]:
         "dic_hint_source": normalized.get("dic_hint_source"),
         "is_active": normalized.get("is_active"),
         "warnings": list(normalized.get("warnings") or []),
+    }
+
+
+def _sanitize_ares_error(ico: Any, exc: Exception) -> dict[str, Any]:
+    code = getattr(exc, "code", "ares_unavailable")
+    return {
+        "found": False,
+        "ico": str(ico or ""),
+        "business_id": str(ico or ""),
+        "company_name": None,
+        "legal_form_code": None,
+        "legal_form": None,
+        "registered_address": {
+            "street": None,
+            "city": None,
+            "zip_code": None,
+            "country": None,
+        },
+        "dic_hint": None,
+        "dic_hint_source": None,
+        "is_active": None,
+        "warnings": [code],
+        "error_code": code,
     }
 
 
@@ -198,28 +221,137 @@ def _compare_ares_company_fields(app: SellerOnboardingApplication, normalized: d
     return field_matches
 
 
+def _compare_ares_self_employed_fields(app: SellerOnboardingApplication, normalized: dict[str, Any]) -> dict[str, Any]:
+    tax_info = getattr(app, "self_employed_tax", None)
+    self_address = getattr(app, "self_employed_address", None)
+    ares_address = normalized.get("registered_address") or {}
+    user = app.seller_profile.user
+    registry_name = normalized.get("company_name")
+
+    field_matches: dict[str, Any] = {
+        "business_id": _match_result(
+            getattr(tax_info, "business_id", None),
+            normalized.get("business_id") or normalized.get("ico"),
+            normalizer=_normalize_match_zip,
+        ),
+    }
+
+    expected_name = _normalize_spaces(f"{user.first_name or ''} {user.last_name or ''}")
+    if expected_name and registry_name and _normalize_match_text(expected_name) == _normalize_match_text(registry_name):
+        field_matches["registry_name"] = _match_result(expected_name, registry_name)
+    else:
+        field_matches["registry_name"] = {
+            "checked": False,
+            "match": None,
+            "application": expected_name,
+            "ares": registry_name,
+            "reason": "self_employed_registry_name_not_reliably_checked",
+        }
+
+    enough_ares_address = all(
+        ares_address.get(field)
+        for field in ("street", "city", "zip_code", "country")
+    )
+    if enough_ares_address and self_address:
+        address_fields = {
+            "street": _match_result(self_address.street, ares_address.get("street")),
+            "city": _match_result(self_address.city, ares_address.get("city")),
+            "zip_code": _match_result(
+                self_address.zip_code,
+                ares_address.get("zip_code"),
+                normalizer=_normalize_match_zip,
+            ),
+            "country": _match_result(self_address.country, ares_address.get("country")),
+        }
+        field_matches["registered_address"] = {
+            "checked": True,
+            "match": all(item["match"] for item in address_fields.values()),
+            "fields": address_fields,
+        }
+    else:
+        field_matches["registered_address"] = {
+            "checked": False,
+            "match": None,
+            "reason": "ares_address_partial" if not enough_ares_address else "application_address_missing",
+        }
+
+    is_active = normalized.get("is_active")
+    field_matches["is_active"] = {
+        "checked": is_active is not None,
+        "match": bool(is_active) if is_active is not None else None,
+        "application": None,
+        "ares": is_active,
+    }
+
+    warnings = list(normalized.get("warnings") or [])
+    if is_active is False:
+        warnings.append("registry_inactive")
+    if field_matches["registry_name"].get("checked") is False:
+        warnings.append(field_matches["registry_name"].get("reason"))
+    if field_matches["registered_address"].get("checked") is False:
+        warnings.append(field_matches["registered_address"].get("reason"))
+    for field, result in field_matches.items():
+        if result.get("checked") and result.get("match") is False:
+            warnings.append(f"{field}_mismatch")
+
+    field_matches["warnings"] = sorted({warning for warning in warnings if warning})
+    field_matches["all_checked_fields_match"] = not any(
+        result.get("checked") and result.get("match") is False
+        for key, result in field_matches.items()
+        if isinstance(result, dict) and key not in ("warnings",)
+    )
+    return field_matches
+
+
+def _ares_context_for_application(app: SellerOnboardingApplication) -> tuple[str | None, str | None]:
+    if app.seller_type == SellerType.COMPANY:
+        company_info = getattr(app, "company_info", None)
+        return getattr(company_info, "business_id", None), "company"
+
+    if app.seller_type == SellerType.SELF_EMPLOYED:
+        tax_info = getattr(app, "self_employed_tax", None)
+        return getattr(tax_info, "business_id", None), "self_employed"
+
+    return None, None
+
+
+def _compare_ares_fields(app: SellerOnboardingApplication, sanitized: dict[str, Any], subject_type: str) -> dict[str, Any]:
+    if subject_type == "company":
+        return _compare_ares_company_fields(app, sanitized)
+    if subject_type == "self_employed":
+        return _compare_ares_self_employed_fields(app, sanitized)
+    return {
+        "warnings": ["unsupported_seller_type"],
+        "all_checked_fields_match": False,
+    }
+
+
 def verify_against_ares(app: SellerOnboardingApplication) -> SellerAresVerification | None:
     """
-    Submit-time ARES moderator hint for company onboarding.
+    Submit-time ARES moderator hint for company and self-employed onboarding.
     Non-blocking by design: ARES failures never prevent manual moderation.
     """
-    if app.seller_type != SellerType.COMPANY:
-        return None
-
-    company_info = getattr(app, "company_info", None)
-    ico = getattr(company_info, "business_id", None)
+    ico, subject_type = _ares_context_for_application(app)
     if _is_blank(ico):
         return None
 
     try:
         normalized = lookup_by_ico(ico)
-    except AresError:
-        return None
-    except Exception:
-        return None
+        sanitized = _sanitize_ares_normalized(normalized)
+        field_matches = _compare_ares_fields(app, sanitized, subject_type or "")
+    except AresError as exc:
+        sanitized = _sanitize_ares_error(ico, exc)
+        field_matches = {
+            "warnings": list(sanitized.get("warnings") or []),
+            "all_checked_fields_match": False,
+        }
+    except Exception as exc:
+        sanitized = _sanitize_ares_error(ico, exc)
+        field_matches = {
+            "warnings": list(sanitized.get("warnings") or []),
+            "all_checked_fields_match": False,
+        }
 
-    sanitized = _sanitize_ares_normalized(normalized)
-    field_matches = _compare_ares_company_fields(app, sanitized)
     checked_at = timezone.now()
 
     verification, _ = SellerAresVerification.objects.update_or_create(
@@ -235,7 +367,7 @@ def verify_against_ares(app: SellerOnboardingApplication) -> SellerAresVerificat
 
     event_type = (
         OnboardingEventType.ARES_VERIFIED
-        if field_matches.get("all_checked_fields_match")
+        if field_matches.get("all_checked_fields_match") and not field_matches.get("warnings")
         else OnboardingEventType.ARES_MISMATCH
     )
     log_onboarding_event(

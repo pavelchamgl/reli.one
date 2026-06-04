@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 from unittest.mock import patch
 
+from django.contrib.admin.sites import AdminSite
 from django.core.files.base import ContentFile
 from django.test import TestCase
 
@@ -21,10 +22,14 @@ from sellers.models import (
     SellerDocument,
     SellerOnboardingApplication,
     SellerReturnAddress,
+    SellerSelfEmployedAddress,
+    SellerSelfEmployedPersonalDetails,
+    SellerSelfEmployedTaxInfo,
     SellerType,
     SellerWarehouseAddress,
 )
 from sellers.providers.ares.errors import AresNotFound, AresUnavailable
+from sellers.admin import SellerOnboardingApplicationAdmin
 from sellers.services_onboarding import submit_application
 
 
@@ -140,6 +145,72 @@ def _build_submittable_company(email: str = "ares-submit@example.com") -> tuple[
     return user, app
 
 
+def _build_submittable_self_employed(
+    email: str = "ares-submit-self@example.com",
+) -> tuple[CustomUser, SellerOnboardingApplication]:
+    user = CustomUser.objects.create_user(
+        email=email,
+        password="password",
+        role=UserRole.SELLER,
+        first_name="Jan",
+        last_name="Novak",
+        phone_number="+420777080001",
+    )
+    app = SellerOnboardingApplication.objects.get(seller_profile=user.seller_profile)
+    app.seller_type = SellerType.SELF_EMPLOYED
+    app.save(update_fields=["seller_type", "updated_at"])
+
+    with audit_disabled():
+        SellerSelfEmployedPersonalDetails.objects.create(
+            application=app,
+            date_of_birth=date(1990, 1, 1),
+            nationality="CZ",
+            personal_phone="+420777080002",
+        )
+        SellerSelfEmployedTaxInfo.objects.create(
+            application=app,
+            tax_country="CZ",
+            tin="CZ25596641",
+            business_id="25596641",
+        )
+        SellerSelfEmployedAddress.objects.create(
+            application=app,
+            street="Dlouhá 12",
+            city="Praha",
+            zip_code="11000",
+            country="CZ",
+        )
+        SellerBankAccount.objects.create(
+            application=app,
+            iban="CZ94550000000005003011074",
+            swift_bic="RZBCCZPP",
+            account_holder="Jan Novak",
+        )
+        SellerWarehouseAddress.objects.create(
+            application=app,
+            street="Dlouhá 12",
+            city="Praha",
+            zip_code="11000",
+            country="CZ",
+            contact_phone="+420777080003",
+            same_as_primary_address=True,
+        )
+        SellerReturnAddress.objects.create(application=app, same_as_warehouse=True)
+        for doc_type, scope in (
+            ("identity_document", "self_employed_personal"),
+            ("proof_of_address", "self_employed_address"),
+        ):
+            SellerDocument.objects.create(
+                application=app,
+                doc_type=doc_type,
+                scope=scope,
+                side=None,
+                file=_minimal_pdf(f"{doc_type}_{scope}.pdf"),
+            )
+
+    return user, app
+
+
 class SellerAresSubmitVerificationTests(TestCase):
     @patch("sellers.services_onboarding.lookup_by_ico")
     def test_submit_creates_ares_verification_and_remains_pending(self, mock_lookup):
@@ -195,7 +266,15 @@ class SellerAresSubmitVerificationTests(TestCase):
 
         app.refresh_from_db()
         self.assertEqual(app.status, OnboardingStatus.PENDING_VERIFICATION)
-        self.assertFalse(SellerAresVerification.objects.filter(application=app).exists())
+        verification = SellerAresVerification.objects.get(application=app)
+        self.assertEqual(verification.normalized["error_code"], "ares_unavailable")
+        self.assertIn("ares_unavailable", verification.field_matches["warnings"])
+        self.assertTrue(
+            OnboardingAuditLog.objects.filter(
+                application=app,
+                event_type=OnboardingEventType.ARES_MISMATCH,
+            ).exists()
+        )
 
     @patch("sellers.services_onboarding.lookup_by_ico")
     def test_ares_not_found_does_not_block_submit(self, mock_lookup):
@@ -206,7 +285,15 @@ class SellerAresSubmitVerificationTests(TestCase):
 
         app.refresh_from_db()
         self.assertEqual(app.status, OnboardingStatus.PENDING_VERIFICATION)
-        self.assertFalse(SellerAresVerification.objects.filter(application=app).exists())
+        verification = SellerAresVerification.objects.get(application=app)
+        self.assertEqual(verification.normalized["error_code"], "ares_not_found")
+        self.assertIn("ares_not_found", verification.field_matches["warnings"])
+        self.assertTrue(
+            OnboardingAuditLog.objects.filter(
+                application=app,
+                event_type=OnboardingEventType.ARES_MISMATCH,
+            ).exists()
+        )
 
     @patch("sellers.services_onboarding.lookup_by_ico")
     def test_mismatch_saves_field_matches_and_logs_mismatch(self, mock_lookup):
@@ -266,3 +353,98 @@ class SellerAresSubmitVerificationTests(TestCase):
         app.refresh_from_db()
         self.assertEqual(app.status, OnboardingStatus.PENDING_VERIFICATION)
         self.assertFalse(hasattr(app, "auto_approved"))
+
+    @patch("sellers.services_onboarding.lookup_by_ico")
+    def test_self_employed_submit_creates_ares_verification(self, mock_lookup):
+        _user, app = _build_submittable_self_employed()
+        mock_lookup.return_value = _ares_success(
+            company_name="Jan Novak",
+            legal_form_code="101",
+            legal_form="fyzická osoba podnikající",
+        )
+
+        submit_application(app)
+
+        app.refresh_from_db()
+        self.assertEqual(app.status, OnboardingStatus.PENDING_VERIFICATION)
+
+        verification = SellerAresVerification.objects.get(application=app)
+        self.assertEqual(verification.ico_queried, "25596641")
+        self.assertEqual(verification.normalized["company_name"], "Jan Novak")
+        self.assertTrue(verification.field_matches["business_id"]["match"])
+        self.assertTrue(verification.field_matches["registered_address"]["match"])
+        self.assertTrue(verification.field_matches["all_checked_fields_match"])
+        self.assertNotIn("raw_response", verification.normalized)
+        self.assertNotIn("representatives", verification.normalized)
+
+        self.assertTrue(
+            OnboardingAuditLog.objects.filter(
+                application=app,
+                event_type=OnboardingEventType.ARES_VERIFIED,
+            ).exists()
+        )
+
+    @patch("sellers.services_onboarding.lookup_by_ico")
+    def test_self_employed_submit_logs_mismatch_warning(self, mock_lookup):
+        _user, app = _build_submittable_self_employed("ares-submit-self-mismatch@example.com")
+        mock_lookup.return_value = _ares_success(
+            company_name="Jan Novak",
+            registered_address={
+                "street": "Other 99",
+                "city": "Praha",
+                "zip_code": "11000",
+                "country": "CZ",
+            },
+        )
+
+        submit_application(app)
+
+        verification = SellerAresVerification.objects.get(application=app)
+        self.assertFalse(verification.field_matches["registered_address"]["match"])
+        self.assertIn("registered_address_mismatch", verification.field_matches["warnings"])
+        self.assertTrue(
+            OnboardingAuditLog.objects.filter(
+                application=app,
+                event_type=OnboardingEventType.ARES_MISMATCH,
+            ).exists()
+        )
+
+    @patch("sellers.services_onboarding.lookup_by_ico")
+    def test_self_employed_ares_unavailable_does_not_block_submit(self, mock_lookup):
+        _user, app = _build_submittable_self_employed("ares-submit-self-unavailable@example.com")
+        mock_lookup.side_effect = AresUnavailable("ARES down")
+
+        submit_application(app)
+
+        app.refresh_from_db()
+        self.assertEqual(app.status, OnboardingStatus.PENDING_VERIFICATION)
+        verification = SellerAresVerification.objects.get(application=app)
+        self.assertEqual(verification.normalized["error_code"], "ares_unavailable")
+        self.assertIn("ares_unavailable", verification.field_matches["warnings"])
+        self.assertTrue(
+            OnboardingAuditLog.objects.filter(
+                application=app,
+                event_type=OnboardingEventType.ARES_MISMATCH,
+            ).exists()
+        )
+
+    @patch("sellers.services_onboarding.lookup_by_ico")
+    def test_admin_panel_exposes_self_employed_ares_hint(self, mock_lookup):
+        _user, app = _build_submittable_self_employed("ares-submit-self-admin@example.com")
+        mock_lookup.return_value = _ares_success(
+            company_name="Jan Novak",
+            legal_form_code="101",
+            legal_form="fyzická osoba podnikající",
+        )
+        submit_application(app)
+
+        app = SellerOnboardingApplication.objects.select_related("ares_verification").get(pk=app.pk)
+        model_admin = SellerOnboardingApplicationAdmin(SellerOnboardingApplication, AdminSite())
+
+        html = str(model_admin.ares_panel(app))
+
+        self.assertIn("ARES submit-time verification", html)
+        self.assertIn("Registry / person name", html)
+        self.assertIn("Jan Novak", html)
+        self.assertIn("Dlouhá 12", html)
+        self.assertIn("Full raw ARES response is not stored.", html)

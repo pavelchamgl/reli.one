@@ -95,6 +95,7 @@
             "contact_support": "Contact support",
             "select": "Select",
             "upload_error": "Upload error",
+            "upload_error_detail": "We could not upload this document. Please check the file type and size, then try again.",
             "error_save": "Failed to save data",
             "continue_review": "Continue to Review",
             "upload": "Upload document"

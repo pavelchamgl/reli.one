@@ -56,6 +56,7 @@ vi.mock('../../api/seller/onboarding', () => ({
 
 vi.mock('../../api/seller/getOnboardingData', () => ({
   getAccountData: vi.fn().mockResolvedValue({ first_name: '', last_name: '' }),
+  patchProfileUpdate: vi.fn().mockResolvedValue({ status: 204 }),
   getPersonalData: vi.fn().mockResolvedValue({}),
   getTaxData: vi.fn().mockResolvedValue({}),
   getSelfAddressData: vi.fn().mockResolvedValue({}),
@@ -106,6 +107,38 @@ function renderPage(selfDataOverride = {}, options = {}) {
 function inputByName(name) {
   return document.querySelector(`[name="${name}"]`);
 }
+
+const completeSelfEmployedData = {
+  first_name: 'Jan',
+  last_name: 'Novak',
+  date_of_birth: '01.02.1990',
+  nationality: 'cz',
+  personal_phone: '+420777777777',
+  tax_country: 'cz',
+  tin: 'CZ25596641',
+  ico: '25596641',
+  street: 'Dlouhá 12',
+  city: 'Praha',
+  zip_code: '11000',
+  country: 'cz',
+  iban: 'CZ6508000000192000145399',
+  swift_bic: 'GIBACZPX',
+  account_holder: 'Jan Novak',
+  bank_code: '0800',
+  local_account_number: '123456789',
+  same_as_the_primary_address: true,
+  wStreet: 'Dlouhá 12',
+  wCity: 'Praha',
+  wZip_code: '11000',
+  wCountry: 'cz',
+  contact_phone: '+420777777777',
+  same_as_warehouse: true,
+  rStreet: 'Dlouhá 12',
+  rCity: 'Praha',
+  rZip_code: '11000',
+  rCountry: 'cz',
+  rContact_phone: '+420777777777',
+};
 
 function fileInputNearText(text, index = 0) {
   return screen.getAllByText(text)[index].closest('div')?.querySelector('input[type="file"]');
@@ -258,6 +291,51 @@ describe('SellerInformation — self-employed ARES assist', () => {
       await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.load' }));
       return user;
     }
+
+    it('keeps Continue to Review disabled when required self-employed documents are missing', async () => {
+      renderPage(completeSelfEmployedData);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'onboard.common.continue_review' })).toBeDisabled();
+      });
+    });
+
+    it('enables Continue to Review only after required identity and address documents are uploaded', async () => {
+      renderPage(completeSelfEmployedData);
+      const user = userEvent.setup();
+      const continueButton = screen.getByRole('button', { name: 'onboard.common.continue_review' });
+
+      expect(continueButton).toBeDisabled();
+
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-03',
+        side: 'front',
+      });
+      await user.upload(
+        fileInputNearText('Identity document'),
+        new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' }),
+      );
+
+      await waitFor(() => {
+        expect(uploadSingleDocument).toHaveBeenCalledWith(expect.objectContaining({
+          doc_type: 'identity_document',
+          scope: 'self_employed_personal',
+        }));
+      });
+      expect(continueButton).toBeDisabled();
+
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-04',
+      });
+      await user.upload(
+        fileInputNearText('onboard.tax_address.proof_address'),
+        new File(['proof-content'], 'proof.pdf', { type: 'application/pdf' }),
+      );
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+    });
 
     it('lookup calls ARES and renders preview without mutating before Apply', async () => {
       getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
@@ -430,6 +508,19 @@ describe('SellerInformation — self-employed ARES assist', () => {
       expect(inputByName('date_of_birth')).toHaveValue('01.02.1990');
       expect(screen.getAllByText('countries.cz').length).toBeGreaterThan(0);
       expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+    });
+
+    it('shows human-readable upload error copy when identity document upload fails', async () => {
+      renderPage();
+      const user = userEvent.setup();
+
+      uploadSingleDocument.mockRejectedValueOnce(new Error('network down'));
+
+      const uploadControl = fileInputNearText('Identity document');
+      const file = new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' });
+      await user.upload(uploadControl, file);
+
+      expect(await screen.findByText('onboard.common.upload_error_detail')).toBeInTheDocument();
     });
 
     it('keeps date_of_birth, nationality and ARES fields after Address proof_of_address upload', async () => {
