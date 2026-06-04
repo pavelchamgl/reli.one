@@ -104,6 +104,8 @@
             "select": "Vybrat",
             "upload_error": "Chyba při nahrávání",
             "upload_error_detail": "Dokument se nepodařilo nahrát. Zkontrolujte prosím typ a velikost souboru a zkuste to znovu.",
+            "upload_file_type_error": "Povoleny jsou pouze soubory PDF, JPG nebo PNG",
+            "upload_file_size_error": "Velikost souboru musí být menší než 10 MB",
             "error_save": "Nepodařilo se uložit data",
             "continue_review": "Pokračovat ke kontrole",
             "upload": "Nahrát dokument"
@@ -267,6 +269,7 @@
             "warehouse_address": "Adresa skladu",
             "return_address": "Adresa pro vrácení zboží",
             "same_as_warehouse": "Stejná jako adresa skladu",
+            "same_as_the_primary_address": "Stejná jako primární adresa",
             "required_cz_sk": "Povinné pro ČR a SR",
             "bank_account": "Bankovní účet",
             "bank_name": "Název banky",
@@ -347,6 +350,9 @@
         },
         "errors": {
             "submit_failed": "Nepodařilo se odeslat registraci",
+            "submit_data_failed": "Nepodařilo se odeslat údaje registrace",
+            "unknown": "Neznámá chyba",
+            "unexpected": "Neočekávaná chyba",
             "complete_fields": "Registraci se nepodařilo odeslat. Prosím, dokončete"
         },
         "legal_forms": {
