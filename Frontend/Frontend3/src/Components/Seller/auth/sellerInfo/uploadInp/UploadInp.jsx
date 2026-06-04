@@ -23,7 +23,8 @@ const UploadInp = ({
     onMouseDown,
     uploadStatus,
     identTwo,
-    required = true
+    required = true,
+    preserveData,
 }) => {
 
     const { pathname } = useLocation()
@@ -41,10 +42,16 @@ const UploadInp = ({
 
         setName(file?.name)
 
+        const preservedData = typeof preserveData === "function" ? preserveData() : preserveData
+        const uploadPatch = {
+            ...(preservedData || {}),
+            [`${nameTitle}`]: file?.name
+        }
+
         if (companyPathname.includes(pathname)) {
             safeCompanyData({ [`${nameTitle}`]: file?.name })
         } else {
-            safeData({ [`${nameTitle}`]: file?.name })
+            safeData(uploadPatch)
         }
         // MIME
         const allowedTypes = [

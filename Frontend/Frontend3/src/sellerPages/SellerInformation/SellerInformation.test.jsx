@@ -2,6 +2,15 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+const hookMocks = vi.hoisted(() => ({
+  currentStore: null,
+  safeData: vi.fn(),
+  safeCompanyData: vi.fn(),
+  setRegisterData: vi.fn(),
+  getAllDataFromBD: vi.fn().mockResolvedValue({}),
+  getAllCompanyDataBD: vi.fn().mockResolvedValue({}),
+}));
+
 vi.mock('react-i18next', async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -23,11 +32,14 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 vi.mock('../../hook/useActionSafeEmploed', () => ({
   useActionSafeEmploed: () => ({
-    safeData: vi.fn(),
-    safeCompanyData: vi.fn(),
-    getAllDataFromBD: vi.fn().mockResolvedValue({}),
-    getAllCompanyDataBD: vi.fn().mockResolvedValue({}),
-    setRegisterData: vi.fn(),
+    safeData: (payload) => {
+      hookMocks.safeData(payload);
+      hookMocks.currentStore?.dispatch({ type: 'selfEmploed/safeData', payload });
+    },
+    safeCompanyData: hookMocks.safeCompanyData,
+    getAllDataFromBD: hookMocks.getAllDataFromBD,
+    getAllCompanyDataBD: hookMocks.getAllCompanyDataBD,
+    setRegisterData: hookMocks.setRegisterData,
   }),
 }));
 
@@ -59,6 +71,7 @@ import { renderWithProviders } from '../../test/test-utils.jsx';
 import { setupStore } from '../../redux/index.js';
 import SellerInformation, { SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY } from './SellerInformation.jsx';
 import { getAresCompanyByIco, uploadSingleDocument } from '../../api/seller/onboarding';
+import { getAccountData } from '../../api/seller/getOnboardingData';
 
 const ROUTE = '/seller/seller-info';
 
@@ -81,14 +94,35 @@ function renderPage(selfDataOverride = {}, options = {}) {
     localStorage.removeItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY);
   }
 
+  const storeInstance = makeStore(selfDataOverride);
+  hookMocks.currentStore = storeInstance;
+
   return renderWithProviders(<SellerInformation />, {
     route: ROUTE,
-    storeInstance: makeStore(selfDataOverride),
+    storeInstance,
   });
 }
 
 function inputByName(name) {
   return document.querySelector(`[name="${name}"]`);
+}
+
+function fileInputNearText(text, index = 0) {
+  return screen.getAllByText(text)[index].closest('div')?.querySelector('input[type="file"]');
+}
+
+async function fillPersonalDetails(user, { firstName = 'Jan', lastName = 'Novak' } = {}) {
+  await user.type(inputByName('first_name'), firstName);
+  await user.type(inputByName('last_name'), lastName);
+  await user.type(inputByName('date_of_birth'), '01.02.1990');
+  await user.type(inputByName('personal_phone'), '+420777777777');
+  await user.click(screen.getByRole('button', { name: 'onboard.seller_info.select_nationality' }));
+  await user.click(screen.getAllByRole('button', { name: 'countries.cz' })[0]);
+
+  await waitFor(() => {
+    expect(inputByName('date_of_birth')).toHaveValue('01.02.1990');
+    expect(screen.getAllByText('countries.cz').length).toBeGreaterThan(0);
+  });
 }
 
 describe('SellerInformation — self-employed ARES assist', () => {
@@ -112,6 +146,7 @@ describe('SellerInformation — self-employed ARES assist', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    hookMocks.currentStore = null;
     localStorage.clear();
   });
 
@@ -283,9 +318,63 @@ describe('SellerInformation — self-employed ARES assist', () => {
       expect(inputByName('rStreet')).toHaveValue('User Return');
     });
 
+    it('fills first_name and last_name from selfData when available and keeps account_holder in sync', async () => {
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+      });
+
+      await waitFor(() => {
+        expect(inputByName('first_name')).toHaveValue('Jan');
+        expect(inputByName('last_name')).toHaveValue('Novak');
+      });
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+    });
+
+    it('keeps manually entered first_name and last_name (profile fallback does not overwrite)', async () => {
+      renderPage({
+        first_name: 'Manual',
+        last_name: 'Person',
+      });
+
+      await waitFor(() => {
+        expect(inputByName('first_name')).toHaveValue('Manual');
+        expect(inputByName('last_name')).toHaveValue('Person');
+      });
+      expect(inputByName('account_holder')).toHaveValue('Manual Person');
+    });
+
+    it('fills account_holder from profile fallback when first_name and last_name are initially empty', async () => {
+      getAccountData.mockResolvedValueOnce({ first_name: 'Profile', last_name: 'User' });
+      renderPage();
+
+      await waitFor(() => {
+        expect(inputByName('first_name')).toHaveValue('Profile');
+        expect(inputByName('last_name')).toHaveValue('User');
+        expect(inputByName('account_holder')).toHaveValue('Profile User');
+      });
+    });
+
+    it('does not overwrite manually set account_holder when names change', async () => {
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+        account_holder: 'Custom Holder',
+      });
+
+      await waitFor(() => {
+        expect(inputByName('account_holder')).toHaveValue('Custom Holder');
+      });
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+    });
+
     it('keeps ARES-prefilled tax and address fields after identity document upload', async () => {
       getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
-      renderPage();
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+      });
       const user = userEvent.setup();
 
       await user.type(inputByName('ico'), '25596641');
@@ -309,6 +398,97 @@ describe('SellerInformation — self-employed ARES assist', () => {
       expect(inputByName('street')).toHaveValue('Dlouhá 12');
       expect(inputByName('city')).toHaveValue('Praha');
       expect(inputByName('zip_code')).toHaveValue('11000');
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+    });
+
+    it('keeps date_of_birth and nationality after Identity document upload', async () => {
+      renderPage();
+      const user = userEvent.setup();
+
+      await fillPersonalDetails(user);
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-03',
+        side: 'front',
+      });
+
+      const uploadControl = fileInputNearText('Identity document');
+      const file = new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' });
+      await user.upload(uploadControl, file);
+
+      await waitFor(() => {
+        expect(uploadSingleDocument).toHaveBeenCalledWith(expect.objectContaining({
+          doc_type: 'identity_document',
+          scope: 'self_employed_personal',
+          side: 'front',
+          identity_document_subtype: 'passport',
+        }));
+      });
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+      expect(inputByName('date_of_birth')).toHaveValue('01.02.1990');
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThan(0);
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+    });
+
+    it('keeps date_of_birth, nationality and ARES fields after Address proof_of_address upload', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+      const user = userEvent.setup();
+
+      await user.type(inputByName('ico'), '25596641');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.load' }));
+      await screen.findByTestId('self-employed-ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.apply' }));
+      await fillPersonalDetails(user);
+
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-04',
+      });
+
+      const uploadControl = fileInputNearText('onboard.tax_address.proof_address');
+      const file = new File(['proof-content'], 'proof.pdf', { type: 'application/pdf' });
+      await user.upload(uploadControl, file);
+
+      await waitFor(() => {
+        expect(uploadSingleDocument).toHaveBeenCalledWith(expect.objectContaining({
+          doc_type: 'proof_of_address',
+          scope: 'self_employed_address',
+          side: null,
+        }));
+      });
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+      expect(inputByName('date_of_birth')).toHaveValue('01.02.1990');
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThan(0);
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+    });
+
+    it('keeps account_holder after ARES Apply when it was auto-derived from profile names', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+      });
+      const user = userEvent.setup();
+
+      await waitFor(() => {
+        expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+      });
+      await user.type(inputByName('ico'), '25596641');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.load' }));
+      await screen.findByTestId('self-employed-ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.apply' }));
+
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
     });
 
     it('not found keeps manual fields available', async () => {

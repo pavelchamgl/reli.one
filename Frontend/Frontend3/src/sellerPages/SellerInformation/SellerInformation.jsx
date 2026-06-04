@@ -43,13 +43,11 @@ const SellerInformation = () => {
         initialValues: {
 
             // personal
-            // first_name: firstName,
-            // last_name: lastName,
-            first_name: "",
-            last_name: "",
+            first_name: selfData?.first_name ?? "",
+            last_name: selfData?.last_name ?? "",
             date_of_birth: selfData?.date_of_birth ?? "",
             nationality: selfData?.nationality ?? "",
-            personal_phone: phone,
+            personal_phone: selfData?.personal_phone ?? phone,
             uploadFront: selfData?.uploadFront ?? "",
             uploadBack: selfData?.uploadBack ?? "",
 

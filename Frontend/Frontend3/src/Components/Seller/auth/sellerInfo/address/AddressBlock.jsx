@@ -159,6 +159,7 @@ const AddressBlock = ({ formik, onClosePreview }) => {
                         nameTitle={"self_address_name"}
                         onMouseDown={() => (ignoreBlurRef.current = true)}
                         uploadStatus={uploadStatus}
+                        preserveData={() => formik.values}
                     />
                     {formik.errors.proof_document_issue_date &&
                         <p className={styles.errorText}>{t('onboard.tax_address.upload_required')}</p>

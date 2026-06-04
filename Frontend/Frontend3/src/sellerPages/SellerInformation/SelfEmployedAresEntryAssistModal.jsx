@@ -55,7 +55,7 @@ const SelfEmployedAresEntryAssistModal = ({ formik, onDismiss }) => {
                 acc[field] = patch[field];
                 return acc;
             }, {});
-            safeData(safePatch);
+            safeData({ ...formik.values, ...safePatch });
         }
         onDismiss("apply");
     };

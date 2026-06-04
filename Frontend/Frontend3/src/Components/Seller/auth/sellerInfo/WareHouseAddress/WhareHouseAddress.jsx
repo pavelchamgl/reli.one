@@ -226,6 +226,7 @@ const WhareHouseAddress = ({ formik }) => {
                         onMouseDown={() => (ignoreBlurRef.current = true)}
                         uploadStatus={uploadStatus}
                         required={!formik.values.same_as_the_primary_address}
+                        preserveData={() => formik.values}
 
                     />
                 </div>}

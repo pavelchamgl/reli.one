@@ -116,7 +116,7 @@ const TaxInfo = ({ formik, onClosePreview }) => {
                 acc[field] = patch[field]
                 return acc
             }, {})
-            safeData(safePatch)
+            safeData({ ...formik.values, ...safePatch })
         }
     }
 

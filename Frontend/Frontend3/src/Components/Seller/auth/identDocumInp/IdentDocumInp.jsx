@@ -147,6 +147,7 @@ const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
               if (blurGuardRef) blurGuardRef.current = true;
             }}
             uploadStatus={uploadPass}
+            preserveData={() => formik.values}
           />
         ) : null}
 
@@ -164,6 +165,7 @@ const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
                 if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadDrivFront}
+              preserveData={() => formik.values}
               identTwo="ident"
             />
 
@@ -179,6 +181,7 @@ const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
                 if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadDrivBack}
+              preserveData={() => formik.values}
             />
             {(formik.touched.uploadFront || formik.touched.uploadBack) &&
               (formik.errors.uploadFront || formik.errors.uploadBack) ? (
@@ -203,6 +206,7 @@ const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
                 if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadIdFront}
+              preserveData={() => formik.values}
               identTwo="ident"
             />
 
@@ -218,6 +222,7 @@ const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
                 if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadIdBack}
+              preserveData={() => formik.values}
             />
             {(formik.touched.uploadFront || formik.touched.uploadBack) &&
               (formik.errors.uploadFront || formik.errors.uploadBack) ? (
