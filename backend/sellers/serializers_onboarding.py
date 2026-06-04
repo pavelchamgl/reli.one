@@ -308,6 +308,47 @@ class CompanyAddressSerializer(serializers.ModelSerializer):
         fields = ["street", "city", "zip_code", "country", "proof_document_issue_date"]
 
 
+class AresRegisteredAddressSerializer(serializers.Serializer):
+    street = serializers.CharField(allow_null=True, required=False)
+    city = serializers.CharField(allow_null=True, required=False)
+    zip_code = serializers.CharField(allow_null=True, required=False)
+    country = serializers.CharField(allow_null=True, required=False)
+
+
+class AresRepresentativeSerializer(serializers.Serializer):
+    first_name = serializers.CharField(allow_null=True, required=False)
+    last_name = serializers.CharField(allow_null=True, required=False)
+    role_hint = serializers.CharField(allow_null=True, required=False)
+    birth_date_hint = serializers.CharField(allow_null=True, required=False)
+    nationality_hint = serializers.CharField(allow_null=True, required=False)
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        for optional_hint in ("birth_date_hint", "nationality_hint"):
+            if representation.get(optional_hint) is None:
+                representation.pop(optional_hint, None)
+        return representation
+
+
+class AresLookupResponseSerializer(serializers.Serializer):
+    found = serializers.BooleanField()
+    ico = serializers.CharField(allow_null=True, required=False)
+    business_id = serializers.CharField(allow_null=True, required=False)
+    company_name = serializers.CharField(allow_null=True, required=False)
+    legal_form_code = serializers.CharField(allow_null=True, required=False)
+    legal_form = serializers.CharField(allow_null=True, required=False)
+    registered_address = AresRegisteredAddressSerializer()
+    dic_hint = serializers.CharField(allow_null=True, required=False)
+    dic_hint_source = serializers.CharField(allow_null=True, required=False)
+    is_active = serializers.BooleanField(allow_null=True, required=False)
+    representatives = AresRepresentativeSerializer(many=True, required=False)
+    warnings = serializers.ListField(child=serializers.CharField())
+
+
+class AresLookupQuerySerializer(serializers.Serializer):
+    ico = serializers.CharField(required=True, allow_blank=False)
+
+
 class BankAccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerBankAccount
@@ -317,7 +358,15 @@ class BankAccountSerializer(serializers.ModelSerializer):
 class WarehouseAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = SellerWarehouseAddress
-        fields = ["street", "city", "zip_code", "country", "contact_phone", "proof_document_issue_date"]
+        fields = [
+            "same_as_primary_address",
+            "street",
+            "city",
+            "zip_code",
+            "country",
+            "contact_phone",
+            "proof_document_issue_date",
+        ]
 
 
 class ReturnAddressSerializer(serializers.ModelSerializer):

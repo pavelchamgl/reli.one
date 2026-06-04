@@ -1,2 +1,119 @@
 @import url("../PersonalDetails/PersonalDetails.module.scss");
 
+.aresLookupWrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.aresLookupBtn,
+.aresApplyBtn {
+    border: none;
+    border-radius: 16px;
+    background: #111827;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    min-height: 48px;
+    padding: 0 18px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.aresLookupBtn:hover,
+.aresApplyBtn:hover {
+    transform: translateY(-1px);
+}
+
+.aresLookupBtn:disabled {
+    cursor: default;
+    opacity: 0.65;
+    transform: none;
+}
+
+.aresError {
+    color: #b42318;
+    font-size: 13px;
+    font-weight: 500;
+    margin: -8px 0 0;
+}
+
+.aresPreview {
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+    background: #f8fafc;
+    display: grid;
+    gap: 14px;
+    padding: 16px;
+}
+
+.aresPreviewHeader {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+
+    p {
+        color: #111827;
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    span {
+        border-radius: 999px;
+        background: #fff1f0;
+        color: #b42318;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 9px;
+    }
+}
+
+.aresPreview dl {
+    display: grid;
+    gap: 8px 14px;
+    grid-template-columns: minmax(120px, max-content) minmax(0, 1fr);
+    margin: 0;
+}
+
+.aresPreview dt {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.aresPreview dd {
+    color: #0f172a;
+    font-size: 13px;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.aresDerivedHint {
+    color: #92400e;
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.aresApplyBtn {
+    justify-self: start;
+    min-height: 42px;
+}
+
+@media (max-width: 640px) {
+    .aresLookupWrap {
+        grid-template-columns: 1fr;
+    }
+
+    .aresLookupBtn {
+        width: 100%;
+    }
+
+    .aresPreview dl {
+        grid-template-columns: 1fr;
+    }
+}

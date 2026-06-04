@@ -25,6 +25,7 @@ import CompanyAddress from "../../Components/Seller/auth/sellerInfo/CompanyAddre
 import WhareHouseAddress from "../../Components/Seller/auth/sellerInfo/WareHouseAddress/WhareHouseAddress"
 import ReturnAddress from "../../Components/Seller/auth/sellerInfo/ReturnAddress/ReturnAddress"
 import { buildCompanySubmitRequests } from "../../features/seller-onboarding/buildCompanySubmitRequests"
+import { normalizeLegalFormValue } from "../../code/seller/companyLegalForms"
 
 import styles from "./SellerReviewCompany.module.scss"
 
@@ -41,7 +42,7 @@ const SellerReviewCompany = () => {
         initialValues: {
             // company info
             company_name: companyData?.company_name ?? "",
-            legal_form: companyData?.legal_form ?? "",
+            legal_form: normalizeLegalFormValue(companyData?.legal_form) ?? "",
             country_of_registration: companyData?.country_of_registration ?? "",          // Чехия (Czech Republic)
             business_id: companyData?.business_id ?? "",     // IČO (8-значный номер компании)
             tin: companyData?.tin ?? "",             // Daňové identifikační číslo (DIČ) без префикса
@@ -76,7 +77,7 @@ const SellerReviewCompany = () => {
             local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
-            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? false,
+            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? companyData?.same_as_primary_address ?? false,
             wStreet: companyData?.wStreet ?? "",
             wCity: companyData?.wCity ?? "",
             wZip_code: companyData?.wZip_code ?? "",
@@ -127,8 +128,8 @@ const SellerReviewCompany = () => {
 
     const navigate = useNavigate()
 
-    const parseApiErrors = (data) => {
-        if (!data) return ["Unknown error"];
+    const parseApiErrors = (data, fallback = "Unknown error") => {
+        if (!data) return [fallback];
 
         // 🔹 Если строка
         if (typeof data === "string") return [data];
@@ -136,6 +137,7 @@ const SellerReviewCompany = () => {
         // 🔹 Стандартные backend поля
         if (data.detail) return [String(data.detail)];
         if (data.message) return [String(data.message)];
+        if (data.error) return [String(data.error)];
 
         // 🔹 Человекочитаемые названия для completeness
         const labels = {
@@ -215,8 +217,9 @@ const SellerReviewCompany = () => {
             const errors = results
                 .map((result, index) => {
                     if (result.status === "rejected") {
-                        const data = result.reason?.response?.data;
-                        const messages = parseApiErrors(data);
+                        const reason = result.reason;
+                        const data = reason?.response?.data ?? reason?.data ?? reason;
+                        const messages = parseApiErrors(data, reason?.message || "Unknown error");
                         return `${requests[index].name}: ${messages.join(", ")}`;
                     }
                     return null;
@@ -224,7 +227,9 @@ const SellerReviewCompany = () => {
                 .filter(Boolean);
 
             if (errors.length) {
-                ErrToast(errors.join("\n"));
+                const message = errors.join("\n")
+                setSubmitError(message)
+                ErrToast(message);
                 return;
             }
 
@@ -253,9 +258,9 @@ const SellerReviewCompany = () => {
 
 
         } catch (error) {
-            const responseData = error?.response?.data;
+            const responseData = error?.response?.data ?? error?.data ?? error;
 
-            const messages = parseApiErrors(responseData);
+            const messages = parseApiErrors(responseData, error?.message || "Unknown error");
 
             setSubmitError(messages.join("\n"))
             messages.forEach((msg) => ErrToast(msg));

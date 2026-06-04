@@ -61,6 +61,7 @@
 | **FE-021** | [Validation & MUI cleanup (onboarding zone)](./021-seller-onboarding-migration-validation/task.md) | P1 | FE-020 | **Done** |
 | **FE-023** | [Company onboarding field contract & Figma parity](./023-seller-onboarding-company-form-parity/task.md) | P0 | FE-021 | **Planned** — восстановить company flow и соответствие `Reli-onboarding-company.pdf` |
 | **FE-024** | [Component directory casing conventions](./024-component-directory-casing-conventions/task.md) | P2 | FE-023 | **Planned** — зафиксировать и нормализовать `src/Components` vs `src/components` |
+| **FE-025** | [Seller onboarding Czech i18n polish](./025-onboarding-cz-i18n-polish/task.md) | P1 | Task 022, Task 023 | **Planned** — перевести и проверить новые ARES/upload/review ошибки и тексты на чешском |
 
 **Порядок:** FE-015 → FE-016 → FE-017 → FE-018 → FE-019 → FE-020 → FE-021 — **пилот завершён (2026-05-28)**. FE-023 — follow-up после локальной проверки company onboarding: field contract + Figma parity. FE-024 — отдельный technical-debt follow-up по casing/границам `Components`/`components`, не смешивать с FE-023. Wave 2: [shadcn-ui-migration-plan.md](../shadcn-ui-migration-plan.md#wave-2--следующая-волна-не-в-пилоте).
 

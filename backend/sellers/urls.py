@@ -17,6 +17,7 @@ from .views_onboarding import (
     SellerSelfEmployedPersonalAPIView,
     SellerSelfEmployedTaxAPIView,
     SellerSelfEmployedAddressAPIView,
+    SellerCompanyAresLookupAPIView,
     SellerCompanyInfoAPIView,
     SellerCompanyRepresentativeAPIView,
     SellerCompanyAddressAPIView,
@@ -75,6 +76,8 @@ urlpatterns = [
          name="seller-onboarding-se-address"),
 
     path("onboarding/company/info/", SellerCompanyInfoAPIView.as_view(), name="seller-onboarding-company-info"),
+    path("onboarding/company/ares-lookup/", SellerCompanyAresLookupAPIView.as_view(),
+         name="seller-onboarding-company-ares-lookup"),
     path("onboarding/company/representative/", SellerCompanyRepresentativeAPIView.as_view(),
          name="seller-onboarding-company-rep"),
     path("onboarding/company/address/", SellerCompanyAddressAPIView.as_view(),

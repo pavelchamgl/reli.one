@@ -9,7 +9,7 @@ const t = (key) => key;
 
 const fullCompanyData = {
   company_name: 'Acme s.r.o.',
-  legal_form: 's.r.o.',
+  legal_form: 'sro',
   country_of_registration: 'cz',
   business_id: '12345678',
   tin: 'CZ12345678',
@@ -97,6 +97,25 @@ describe('mapCompanyReviewSections', () => {
 
     expect(company.rows.some((r) => r.label === 'IČO')).toBe(false);
     expect(company.rows.some((r) => r.value === '+420111222333')).toBe(false);
+  });
+
+  it('shows human-readable legal form instead of raw code', () => {
+    const [, company] = mapCompanyReviewSections({
+      data: { ...fullCompanyData, legal_form: 'as' },
+      firstName: 'Jan',
+      lastName: 'Novak',
+      t,
+    });
+
+    expect(company.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: 'onboard.company.legal_form',
+          value: 'onboard.legal_forms.as',
+        }),
+      ]),
+    );
+    expect(company.rows.some((row) => row.value === 'as')).toBe(false);
   });
 
   it('includes registration and business proof documents', () => {

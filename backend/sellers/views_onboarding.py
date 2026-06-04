@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from .onboarding.steps.bank import SellerBankAccountAPIView
 from .onboarding.steps.company import (
+    SellerCompanyAresLookupAPIView,
     SellerCompanyAddressAPIView,
     SellerCompanyInfoAPIView,
     SellerCompanyRepresentativeAPIView,

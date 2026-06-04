@@ -3,12 +3,22 @@ import mainInstance from "..";
 // =================================================
 // ✅ General error handler (exported for unit testing)
 // =================================================
+const getErrorMessage = (data, defaultMsg) => {
+    if (!data) return defaultMsg;
+    if (typeof data === "string") return data;
+    if (data.detail) return String(data.detail);
+    if (data.message) return String(data.message);
+    if (data.error) return String(data.error);
+    return defaultMsg;
+};
+
 export const handleError = (error, defaultMsg = "Unknown error") => {
     if (error.response) {
         const { status, data } = error.response;
         throw {
             status,
-            message: data?.message || defaultMsg,
+            message: getErrorMessage(data, defaultMsg),
+            data,
         };
     }
     if (error.request) {
@@ -154,6 +164,25 @@ export const putCompanyInfo = async (obj) => {
         return res.data;
     } catch (error) {
         handleError(error, "Failed to save company info");
+    }
+};
+
+export const getAresCompanyByIco = async (ico) => {
+    try {
+        const res = await mainInstance.get("/sellers/onboarding/company/ares-lookup/", {
+            params: { ico },
+        });
+        return res.data;
+    } catch (error) {
+        if (error.response) {
+            const { status, data } = error.response;
+            throw {
+                status,
+                code: data?.code,
+                message: data?.detail || data?.message || "Failed to load company from ARES",
+            };
+        }
+        handleError(error, "Failed to load company from ARES");
     }
 };
 
