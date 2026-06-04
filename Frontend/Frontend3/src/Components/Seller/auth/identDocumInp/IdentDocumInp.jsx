@@ -10,7 +10,7 @@ import { ErrToast } from '../../../../ui/Toastify';
 const DOC_TYPE_BUTTON_CLASS =
   'flex h-12 w-full items-center justify-between rounded-2xl border px-4 text-sm font-medium bg-white transition';
 
-const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
+const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
   const style = {
     borderRadius: '6px',
     borderColor: '#D1D5DC',
@@ -144,7 +144,7 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
             stateName={selfData?.passport}
             nameTitle="front"
             onMouseDown={() => {
-              ref.current = true;
+              if (blurGuardRef) blurGuardRef.current = true;
             }}
             uploadStatus={uploadPass}
           />
@@ -161,7 +161,7 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.drivFront}
               nameTitle="front"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadDrivFront}
               identTwo="ident"
@@ -176,7 +176,7 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.drivBack}
               nameTitle="back"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadDrivBack}
             />
@@ -200,7 +200,7 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.idFront}
               nameTitle="front"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadIdFront}
               identTwo="ident"
@@ -215,7 +215,7 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.idBack}
               nameTitle="back"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadIdBack}
             />

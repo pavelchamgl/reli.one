@@ -217,6 +217,31 @@
                 "apply": "Použít v onboardingu"
             }
         },
+        "self_employed_ares": {
+            "load": "Načíst z veřejného rejstříku",
+            "loading": "Načítání z veřejného rejstříku...",
+            "preview_title": "Náhled z veřejného rejstříku",
+            "registry_name": "Název v rejstříku",
+            "inactive_warning": "Neaktivní záznam v rejstříku",
+            "apply": "Použít ve formuláři",
+            "errors": {
+                "invalid": "Před načtením z veřejného rejstříku zadejte platné české IČO.",
+                "not_found": "Toto IČO nebylo v českém veřejném rejstříku nalezeno. Formulář můžete vyplnit ručně.",
+                "unavailable": "ARES je momentálně nedostupný. Zkuste to později nebo vyplňte formulář ručně.",
+                "generic": "Údaje z rejstříku se nepodařilo načíst. Zkuste to prosím znovu nebo vyplňte formulář ručně."
+            },
+            "entry": {
+                "kicker": "Volitelná pomoc pro OSVČ",
+                "title": "Předvyplnit české podnikatelské a daňové údaje",
+                "description": "Pokud jste registrováni v českém veřejném rejstříku, můžeme podle IČO načíst část podnikatelských a daňových údajů z ARES. Ruční vyplnění je vždy k dispozici.",
+                "scope_note": "Jde pouze o předvyplnění z veřejného rejstříku, nikoli o ověření totožnosti. Pomůže s IČO, daňovou rezidencí, nápovědou DIČ a registrovanou adresou. Telefon, bankovní údaje, sklad, vratná adresa a dokumenty zůstávají ruční a upravitelné.",
+                "ico_placeholder": "Zadejte české IČO",
+                "load": "Načíst z veřejného rejstříku",
+                "manual": "Vyplnit ručně",
+                "preview_title": "Náhled z veřejného rejstříku",
+                "apply": "Použít v onboardingu"
+            }
+        },
         "tax_address": {
             "tax_info": "Daňové údaje",
             "tax_country": "Daňová rezidence",

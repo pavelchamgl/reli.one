@@ -2,7 +2,7 @@ import { useFormik } from "formik"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import AddressBlock from "../../Components/Seller/auth/sellerInfo/address/AddressBlock"
 import BankAccount from "../../Components/Seller/auth/sellerInfo/BankAccount/BankAccount"
@@ -19,8 +19,11 @@ import { putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, p
 import { validationSchemaSelf } from "../../code/seller/validation"
 import { ErrToast } from "../../ui/Toastify"
 import { toISODate } from "../../code/seller"
+import SelfEmployedAresEntryAssistModal from "./SelfEmployedAresEntryAssistModal"
 
 import styles from "./SellerInformation.module.scss"
+
+export const SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY = "seller_self_employed_ares_entry_assist_dismissed_v1"
 
 const SellerInformation = () => {
 
@@ -33,6 +36,8 @@ const SellerInformation = () => {
     const navigate = useNavigate()
 
     const { selfData, selfDataLoading } = useSelector(state => state.selfEmploed)
+    const [showAresEntryAssist, setShowAresEntryAssist] = useState(false)
+    const showAresEntryAssistRef = useRef(false)
 
     const formik = useFormik({
         initialValues: {
@@ -208,10 +213,41 @@ const SellerInformation = () => {
 
     const { t } = useTranslation('onbording')
 
+    const hasSelfEmployedLegalTaxData = (values) => Boolean(
+        values.tax_country ||
+        values.tin ||
+        values.ico ||
+        values.street ||
+        values.city ||
+        values.zip_code ||
+        values.country
+    )
+
+    useEffect(() => {
+        if (selfDataLoading) return
+        const dismissed = localStorage.getItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY)
+        const shouldShow = !dismissed && !hasSelfEmployedLegalTaxData(formik.values)
+        if (showAresEntryAssistRef.current !== shouldShow) {
+            showAresEntryAssistRef.current = shouldShow
+            setShowAresEntryAssist(shouldShow)
+        }
+    }, [selfDataLoading, formik.values])
+
+    const dismissAresEntryAssist = (mode) => {
+        localStorage.setItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY, mode)
+        showAresEntryAssistRef.current = false
+        setShowAresEntryAssist(false)
+    }
+
 
     if (!selfDataLoading) {
         return (
             <FormWrap style={{ height: "100%" }}>
+                {showAresEntryAssist &&
+                    <SelfEmployedAresEntryAssistModal
+                        formik={formik}
+                        onDismiss={dismissAresEntryAssist}
+                    />}
                 <div className={styles.main}>
                     <div className={styles.titleWrap}>
                         <TitleAndDesc title={t('onboard.seller_info.title')}

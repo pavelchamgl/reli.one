@@ -209,6 +209,31 @@
                 "apply": "Apply to onboarding"
             }
         },
+        "self_employed_ares": {
+            "load": "Load from public registry",
+            "loading": "Loading from public registry...",
+            "preview_title": "Public registry preview",
+            "registry_name": "Registry name",
+            "inactive_warning": "Inactive registry record",
+            "apply": "Apply to form",
+            "errors": {
+                "invalid": "Enter a valid Czech IČO before loading from the public registry.",
+                "not_found": "This IČO was not found in the Czech public registry. You can continue filling the form manually.",
+                "unavailable": "ARES is currently unavailable. Please try again later or fill the form manually.",
+                "generic": "Could not load registry details. Please try again or fill the form manually."
+            },
+            "entry": {
+                "kicker": "Optional self-employed assist",
+                "title": "Prefill Czech business/tax details",
+                "description": "If you are registered in the Czech public registry, we can load part of your business and tax details from ARES using your IČO. Manual filling is always available.",
+                "scope_note": "This is public-registry prefill only, not identity verification. It can help with IČO, tax country, DIČ/TIN hint and registered address. Phone, bank details, warehouse, return address and documents stay manual and editable.",
+                "ico_placeholder": "Enter Czech IČO",
+                "load": "Load from public registry",
+                "manual": "Fill manually",
+                "preview_title": "Public registry preview",
+                "apply": "Apply to onboarding"
+            }
+        },
         "tax_address": {
             "tax_info": "Tax information",
             "tax_country": "Tax country",

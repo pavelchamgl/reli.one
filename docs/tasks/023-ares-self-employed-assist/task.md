@@ -117,7 +117,11 @@ Define exactly what ARES can prefill for self-employed onboarding and what must 
 - Explicit forbidden field list.
 
 ### Status
-- [ ]
+- [x] MVP mapping decision:
+  - allowed Apply fields: `ico` / business ID, `tax_country=cz` when empty, `tin` from `dic_hint` when empty, primary self-employed address `street`, `city`, `zip_code`, `country` when empty;
+  - preview-only: registry/business name from `obchodniJmeno` (`registry_name` / `company_name`);
+  - forbidden Apply fields: `first_name`, `last_name`, date of birth, nationality, phone, bank, warehouse, return address, document/proof upload fields;
+  - existing non-empty seller-entered fields are preserved.
 
 ---
 
@@ -154,7 +158,10 @@ Expose a self-employed-oriented ARES lookup contract while reusing existing ARES
 - No raw response leakage.
 
 ### Status
-- [ ]
+- [x] MVP frontend reuses the existing stateless sanitized `GET /api/sellers/onboarding/company/ares-lookup/?ico=...` endpoint.
+  - Justification: Task 023 MVP only needs public-registry lookup by Czech IČO, preview, and explicit Apply; the endpoint does not persist onboarding data and already normalizes/sanitizes ARES responses.
+  - Deferred backend iteration: add a semantically named self-employed lookup endpoint/contract if product wants separate API naming or self-employed-specific audit semantics.
+  - Submit-time `SellerAresVerification` remains company-only in this MVP.
 
 ---
 
@@ -184,7 +191,7 @@ Create a self-employed-specific Apply helper so modal and inline lookup use one 
 - Handles partial address safely.
 
 ### Status
-- [ ]
+- [x] MVP helper added for self-employed Apply with no-overwrite behavior.
 
 ---
 
@@ -213,7 +220,7 @@ Let self-employed sellers trigger lookup from the relevant business/tax block wi
 - Error states do not block manual flow.
 
 ### Status
-- [ ]
+- [x] MVP inline lookup added to the self-employed tax block using shared lookup + self-employed Apply helper.
 
 ---
 
@@ -274,7 +281,7 @@ Make Czech-only ARES assist visible at the beginning of self-employed onboarding
 - Error states keep manual mode available.
 
 ### Status
-- [ ]
+- [x] MVP entry assist modal added for first-run empty self-employed onboarding with separate localStorage dismissal.
 
 ---
 
@@ -316,4 +323,3 @@ Verify the full self-employed assisted flow and document it.
 - [ ] EN/CZ i18n added.
 - [ ] Desktop/mobile visual QA completed.
 - [ ] Tests pass.
-
