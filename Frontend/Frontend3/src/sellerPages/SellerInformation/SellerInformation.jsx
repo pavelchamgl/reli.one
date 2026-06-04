@@ -250,7 +250,12 @@ const SellerInformation = () => {
 
             } catch (err) {
                 console.log("Неожиданная ошибка:", err);
-                ErrToast("Unexpected error: " + err.message || err);
+                const errorDetail = err?.message || String(err || "")
+                ErrToast(
+                    errorDetail
+                        ? `${t('onboard.errors.unexpected')}: ${errorDetail}`
+                        : t('onboard.errors.unexpected')
+                );
             }
         }
     })

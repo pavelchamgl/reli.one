@@ -4,6 +4,24 @@ import userEvent from '@testing-library/user-event';
 
 const mockNavigate = vi.fn();
 
+const i18nMocks = vi.hoisted(() => ({
+  language: 'keys',
+  translations: {
+    en: {
+      'onboard.errors.submit_data_failed': 'Failed to submit onboarding data',
+      'onboard.errors.unknown': 'Unknown error',
+      'onboard.errors.unexpected': 'Unexpected error',
+    },
+    cz: {
+      'onboard.errors.submit_failed': 'Nepodařilo se odeslat registraci',
+      'onboard.errors.submit_data_failed': 'Nepodařilo se odeslat údaje registrace',
+      'onboard.errors.unknown': 'Neznámá chyba',
+      'onboard.errors.unexpected': 'Neočekávaná chyba',
+      'onboard.review.submit_btn': 'Odeslat k ověření',
+    },
+  },
+}));
+
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal();
   return {
@@ -17,8 +35,15 @@ vi.mock('react-i18next', async (importOriginal) => {
   return {
     ...actual,
     useTranslation: () => ({
-      t: (key) => key,
-      i18n: { changeLanguage: vi.fn() },
+      t: (key, options) => {
+        const language = options?.lng ?? i18nMocks.language;
+        return i18nMocks.translations[language]?.[key] ?? key;
+      },
+      i18n: {
+        changeLanguage: vi.fn((language) => {
+          i18nMocks.language = language;
+        }),
+      },
     }),
   };
 });
@@ -92,6 +117,7 @@ function renderReviewPage(selfData = baseSelfData) {
 describe('ReviewInfoPage submit', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    i18nMocks.language = 'keys';
     putPersonalData.mockResolvedValue({});
     putTax.mockResolvedValue({});
     putSelfAddress.mockResolvedValue({});
@@ -192,6 +218,25 @@ describe('ReviewInfoPage submit', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Please complete: Documents');
+    });
+    expect(screen.queryByText('Failed to submit onboarding data')).not.toBeInTheDocument();
+  });
+
+  it('shows Czech submit fallback when submit endpoint returns a generic English error', async () => {
+    i18nMocks.language = 'cz';
+    const user = userEvent.setup();
+    getOnboardingStatus.mockResolvedValue({ can_submit: true });
+    postSubmitOnboarding.mockRejectedValueOnce({
+      status: 500,
+      message: 'Failed to submit onboarding data',
+    });
+
+    renderReviewPage();
+
+    await user.click(screen.getByRole('button', { name: 'Odeslat k ověření' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toHaveTextContent('Nepodařilo se odeslat registraci');
     });
     expect(screen.queryByText('Failed to submit onboarding data')).not.toBeInTheDocument();
   });

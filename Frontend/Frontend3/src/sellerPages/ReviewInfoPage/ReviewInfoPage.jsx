@@ -126,11 +126,16 @@ const ReviewInfoPage = () => {
 
   }, [])
 
-  const genericSubmitMessages = [
-    "Failed to submit onboarding data",
-    "Unknown error",
-    "Unexpected error",
+  const genericSubmitMessageKeys = [
+    'onboard.errors.submit_data_failed',
+    'onboard.errors.unknown',
+    'onboard.errors.unexpected',
   ];
+
+  const genericSubmitMessages = genericSubmitMessageKeys.flatMap((key) => [
+    t(key),
+    t(key, { lng: 'en' }),
+  ]);
 
   const parseApiErrors = (data, fallback = t('onboard.errors.submit_failed')) => {
     if (!data) return [fallback];
@@ -297,7 +302,7 @@ const ReviewInfoPage = () => {
         .map((result, index) => {
           if (result.status === "rejected") {
             const data = result.reason?.response?.data ?? result.reason?.data ?? result.reason;
-            const messages = parseApiErrors(data, result.reason?.message || t('onboard.errors.submit_failed'));
+            const messages = parseApiErrors(data, t('onboard.errors.submit_failed'));
             return `${requests[index].name}: ${messages.join(", ")}`;
           }
           return null;
@@ -331,7 +336,7 @@ const ReviewInfoPage = () => {
       }
     } catch (error) {
       const responseData = error?.response?.data ?? error?.data ?? error;
-      const messages = parseApiErrors(responseData, error?.message || t('onboard.errors.submit_failed'));
+      const messages = parseApiErrors(responseData, t('onboard.errors.submit_failed'));
       setSubmitError(messages.join("\n"))
       messages.forEach((msg) => ErrToast(msg));
       // navigate('/seller/seller-info')

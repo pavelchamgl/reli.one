@@ -18,13 +18,28 @@ import { useFormik } from 'formik';
 
 // ── Mocks (hoisted before imports) ───────────────────────────────────────────
 
+const i18nMocks = vi.hoisted(() => ({
+  language: 'keys',
+  translations: {
+    cz: {
+      'onboard.company.business_id': 'IČO',
+      'onboard.company.ares.load': 'Načíst z ARES',
+      'onboard.company.ares.errors.invalid': 'Před načtením z ARES zadejte platné české IČO.',
+    },
+  },
+}));
+
 vi.mock('react-i18next', async (importOriginal) => {
   const actual = await importOriginal();
   return {
     ...actual,
     useTranslation: () => ({
-      t: (key) => key,
-      i18n: { changeLanguage: vi.fn() },
+      t: (key) => i18nMocks.translations[i18nMocks.language]?.[key] ?? key,
+      i18n: {
+        changeLanguage: vi.fn((language) => {
+          i18nMocks.language = language;
+        }),
+      },
     }),
   };
 });
@@ -117,6 +132,7 @@ function inputByName(name) {
 describe('SellerCompanyInfo — field contract', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    i18nMocks.language = 'keys';
     // Clear localStorage (SellerCompanyInfo reads first_name/last_name)
     localStorage.clear();
   });
@@ -748,6 +764,24 @@ describe('SellerCompanyInfo — field contract', () => {
       await lookupFromAres('abc');
 
       expect(await screen.findByRole('alert')).toHaveTextContent('onboard.company.ares.errors.invalid');
+    });
+
+    it('renders invalid IČO error in Czech', async () => {
+      i18nMocks.language = 'cz';
+      getAresCompanyByIco.mockRejectedValueOnce({
+        status: 400,
+        code: 'ares_invalid_ico',
+        message: 'Invalid Czech IČO.',
+      });
+      renderPage();
+
+      const user = userEvent.setup();
+      await user.type(inputByName('business_id'), 'abc');
+      await user.click(screen.getByRole('button', { name: 'Načíst z ARES' }));
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Před načtením z ARES zadejte platné české IČO.'
+      );
     });
 
     it('shows not found and unavailable errors', async () => {
