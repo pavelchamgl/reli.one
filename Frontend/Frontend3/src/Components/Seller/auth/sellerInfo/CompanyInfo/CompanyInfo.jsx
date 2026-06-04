@@ -1,5 +1,5 @@
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed"
 import { useSelector } from "react-redux"
 import { useLocation } from "react-router-dom"
@@ -10,8 +10,10 @@ import companyIc from "../../../../../assets/Seller/register/companyIcon.svg"
 import InputSeller from "../../../../../ui/Seller/auth/inputSeller/InputSeller"
 import SellerInfoSellect from "../sellerinfoSellect/SellerInfoSellect"
 import UploadInp from "../uploadInp/UploadInp"
-import { putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
+import { getAresCompanyByIco, putCompanyInfo, uploadSingleDocument } from "../../../../../api/seller/onboarding"
 import { countriesArr, toISODate } from "../../../../../code/seller"
+import { getLegalFormBackendValue, getLegalFormOptions, isLegalFormAllowed } from "../../../../../code/seller/companyLegalForms"
+import { applyAresCompanyPrefill, formatAresAddress } from "../../../../../features/seller-onboarding/applyAresCompanyPrefill"
 import { ErrToast } from "../../../../../ui/Toastify"
 
 import styles from "./CompanyInfo.module.scss"
@@ -25,6 +27,9 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
     const [country, setCountry] = useState(companyData?.country_of_registration ?? null)
 
     const [uploadStatus, setUploadStatus] = useState("")
+    const [aresLoading, setAresLoading] = useState(false)
+    const [aresPreview, setAresPreview] = useState(null)
+    const [aresErrorKey, setAresErrorKey] = useState("")
 
     const isCompanyFilled = (values) => {
         return Boolean(
@@ -50,7 +55,7 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
 
         const payload = {
             company_name: formik.values.company_name,
-            legal_form: formik.values.legal_form,
+            legal_form: getLegalFormBackendValue(formik.values.legal_form),
             country_of_registration: formik.values.country_of_registration,
             business_id: formik.values.business_id,
             tin: formik.values?.tin,
@@ -82,24 +87,127 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
 
 
 
-    const legalArr = [
-        {
-            value: "GmbH (Germany)",
-            text: t('onboard.legal_forms.gmbh')
-        },
-        {
-            value: "Ltd (United Kingdom)",
-            text: t('onboard.legal_forms.ltd')
-        },
-        {
-            value: "S.A.R.L. (France)",
-            text: t('onboard.legal_forms.sarl')
-        },
-        {
-            value: "s.r.o. (Czech Republic / Slovakia)",
-            text: t('onboard.legal_forms.sro')
-        },
-    ];
+    const legalArr = getLegalFormOptions(formik.values.country_of_registration)
+
+    useEffect(() => {
+        if (
+            formik.values.country_of_registration &&
+            formik.values.legal_form &&
+            !isLegalFormAllowed(formik.values.country_of_registration, formik.values.legal_form)
+        ) {
+            formik.setFieldValue("legal_form", "")
+        }
+    }, [formik.values.country_of_registration, formik.values.legal_form])
+
+    const handleAresLookup = async () => {
+        setAresLoading(true)
+        setAresPreview(null)
+        setAresErrorKey("")
+
+        try {
+            const result = await getAresCompanyByIco(formik.values.business_id)
+            if (!result?.found) {
+                setAresErrorKey(result?.code === "ares_invalid_ico" ? "invalid" : "generic")
+                return
+            }
+            setAresPreview(result)
+        } catch (err) {
+            if (err?.code === "ares_invalid_ico" || err?.status === 400) {
+                setAresErrorKey("invalid")
+            } else if (err?.code === "ares_not_found" || err?.status === 404) {
+                setAresErrorKey("not_found")
+            } else if (err?.code === "ares_unavailable" || err?.status === 503) {
+                setAresErrorKey("unavailable")
+            } else {
+                setAresErrorKey("generic")
+            }
+        } finally {
+            setAresLoading(false)
+        }
+    }
+
+    const applyAresPreview = () => {
+        if (!aresPreview) return
+
+        applyAresCompanyPrefill({ formik, aresPreview, setCountry })
+    }
+
+    const applyAresRepresentative = (representative) => {
+        if (!representative) return
+
+        const applyRepresentativeField = (field, value) => {
+            if (!value) return
+            formik.setFieldValue(field, value)
+            formik.setFieldTouched(field, false, false)
+            formik.setFieldError(field, undefined)
+        }
+
+        if (representative.first_name) {
+            applyRepresentativeField("first_name", representative.first_name)
+        }
+        if (representative.last_name) {
+            applyRepresentativeField("last_name", representative.last_name)
+        }
+        const mappedRole = mapAresRepresentativeRole(representative.role_hint)
+        applyRepresentativeField("role", mappedRole)
+        const birthDate = formatAresBirthDate(representative.birth_date_hint)
+        applyRepresentativeField("date_of_birth", birthDate)
+        const nationality = mapAresNationality(representative.nationality_hint)
+        applyRepresentativeField("nationality", nationality)
+    }
+
+    const mapAresRepresentativeRole = (roleHint) => {
+        const normalized = String(roleHint || "").trim().toLowerCase()
+        if (!normalized) return null
+
+        if (normalized.includes("jednatel")) {
+            return "Managing Director"
+        }
+        if (
+            normalized.includes("člen představenstva") ||
+            normalized.includes("clen predstavenstva") ||
+            normalized.includes("předseda představenstva") ||
+            normalized.includes("predseda predstavenstva") ||
+            normalized.includes("místopředseda představenstva") ||
+            normalized.includes("mistopredseda predstavenstva")
+        ) {
+            return "Director"
+        }
+        if (normalized.includes("prokurista")) {
+            return "Authorized Signatory"
+        }
+
+        return null
+    }
+
+    const formatAresBirthDate = (birthDateHint) => {
+        const text = String(birthDateHint || "").trim()
+        const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+        if (isoMatch) {
+            return `${isoMatch[3]}.${isoMatch[2]}.${isoMatch[1]}`
+        }
+        return /^\d{2}\.\d{2}\.\d{4}$/.test(text) ? text : ""
+    }
+
+    const mapAresNationality = (nationalityHint) => {
+        const normalized = String(nationalityHint || "").trim().toLowerCase()
+        if (!normalized) return ""
+
+        if (normalized === "cz" || normalized.includes("czech")) {
+            return countriesArr.some((item) => item.value === "cz") ? "cz" : ""
+        }
+
+        if (normalized === "ru" || normalized.includes("russia") || normalized.includes("russian federation")) {
+            const russianOption = countriesArr.find((item) => {
+                const value = String(item.value || "").toLowerCase()
+                const text = String(item.text || "").toLowerCase()
+                return value === "ru" || text === "russia" || text === "russian federation"
+            })
+            return russianOption?.value || ""
+        }
+
+        return ""
+    }
 
     const handleSingleFrontUpload = ({ file, doc_type, scope, side }) => {
         uploadSingleDocument({ file, doc_type, scope, side })
@@ -168,23 +276,135 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                         setValue={(v) => {
                             setCountry(v)
                             formik.setFieldValue('country_of_registration', v)
+                            if (formik.values.legal_form && !isLegalFormAllowed(v, formik.values.legal_form)) {
+                                formik.setFieldValue('legal_form', "")
+                            }
                         }}
                         errText={t('onboard.company.country_required')}
                     />
                 </div>
 
-                <InputSeller
-                    title={t('onboard.company.business_id')}
-                    type={"text"} circle={true} required={true}
-                    placeholder={"Trade register number"}
-                    name="business_id"
-                    value={formik.values.business_id}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    error={formik.errors.business_id}
-                    touched={formik.touched.business_id}
-                    num={true}
-                />
+                <div className={styles.aresLookupWrap}>
+                    <InputSeller
+                        title={t('onboard.company.business_id')}
+                        type={"text"} circle={true} required={true}
+                        placeholder={"Trade register number"}
+                        name="business_id"
+                        value={formik.values.business_id}
+                        onChange={formik.handleChange}
+                        onBlur={formik.handleBlur}
+                        error={formik.errors.business_id}
+                        touched={formik.touched.business_id}
+                        num={true}
+                    />
+
+                    <button
+                        type="button"
+                        className={styles.aresLookupBtn}
+                        onClick={handleAresLookup}
+                        disabled={aresLoading}
+                    >
+                        {aresLoading ? t('onboard.company.ares.loading') : t('onboard.company.ares.load')}
+                    </button>
+                </div>
+
+                {aresErrorKey &&
+                    <p className={styles.aresError} role="alert">
+                        {t(`onboard.company.ares.errors.${aresErrorKey}`)}
+                    </p>}
+
+                {aresPreview &&
+                    <div className={styles.aresPreview} data-testid="ares-preview">
+                        <div className={styles.aresPreviewHeader}>
+                            <p>{t('onboard.company.ares.preview_title')}</p>
+                            {!aresPreview.is_active &&
+                                <span>{t('onboard.company.ares.inactive_warning')}</span>}
+                        </div>
+
+                        <dl>
+                            {aresPreview.company_name &&
+                                <>
+                                    <dt>{t('onboard.company.name')}</dt>
+                                    <dd>{aresPreview.company_name}</dd>
+                                </>}
+                            {aresPreview.legal_form &&
+                                <>
+                                    <dt>{t('onboard.company.legal_form')}</dt>
+                                    <dd>{aresPreview.legal_form}</dd>
+                                </>}
+                            {formatAresAddress(aresPreview.registered_address) &&
+                                <>
+                                    <dt>{t('onboard.company.ares.registered_address')}</dt>
+                                    <dd>{formatAresAddress(aresPreview.registered_address)}</dd>
+                                </>}
+                            {aresPreview.dic_hint &&
+                                <>
+                                    <dt>
+                                        {aresPreview.dic_hint_source === "derived"
+                                            ? t('onboard.company.ares.dic_hint_derived')
+                                            : t('onboard.company.ares.dic_hint')}
+                                    </dt>
+                                    <dd>
+                                        {aresPreview.dic_hint}
+                                        {aresPreview.dic_hint_source === "derived" &&
+                                            <span className={styles.aresDerivedHint}>
+                                                {t('onboard.company.ares.dic_hint_derived_warning')}
+                                            </span>}
+                                    </dd>
+                                </>}
+                        </dl>
+
+                        <button
+                            type="button"
+                            className={styles.aresApplyBtn}
+                            onClick={applyAresPreview}
+                        >
+                            {t('onboard.company.ares.apply')}
+                        </button>
+
+                        {aresPreview.representatives?.length > 0 &&
+                            <div className={styles.aresRepresentatives} data-testid="ares-representatives">
+                                <p>{t('onboard.company.ares.representatives_title')}</p>
+                                {aresPreview.representatives.map((representative, index) => (
+                                    <div className={styles.aresRepresentative} key={`${representative.first_name || ""}-${representative.last_name || ""}-${index}`}>
+                                        <dl>
+                                            {representative.first_name &&
+                                                <>
+                                                    <dt>{t('onboard.reg.first_name')}</dt>
+                                                    <dd>{representative.first_name}</dd>
+                                                </>}
+                                            {representative.last_name &&
+                                                <>
+                                                    <dt>{t('onboard.reg.last_name')}</dt>
+                                                    <dd>{representative.last_name}</dd>
+                                                </>}
+                                            {representative.role_hint &&
+                                                <>
+                                                    <dt>{t('onboard.review.role')}</dt>
+                                                    <dd>{representative.role_hint}</dd>
+                                                </>}
+                                            {representative.birth_date_hint &&
+                                                <>
+                                                    <dt>{t('onboard.seller_info.date_of_birth')}</dt>
+                                                    <dd>{representative.birth_date_hint}</dd>
+                                                </>}
+                                            {representative.nationality_hint &&
+                                                <>
+                                                    <dt>{t('onboard.seller_info.nationality')}</dt>
+                                                    <dd>{representative.nationality_hint}</dd>
+                                                </>}
+                                        </dl>
+                                        <button
+                                            type="button"
+                                            className={styles.aresApplyBtn}
+                                            onClick={() => applyAresRepresentative(representative)}
+                                        >
+                                            {t('onboard.company.ares.apply_representative')}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>}
+                    </div>}
 
 
 
@@ -193,7 +413,9 @@ const CompanyInfo = ({ formik, onClosePreview }) => {
                     type={"text"} circle={true} required={true} placeholder={"987654321"}
                     name="tin"
                     value={formik.values.tin}
-                    onChange={formik.handleChange}
+                    onChange={(e) => {
+                        formik.setFieldValue("tin", e.target.value, true)
+                    }}
                     onBlur={formik.handleBlur}
                     error={formik.errors.tin}
                     touched={formik.touched.tin}

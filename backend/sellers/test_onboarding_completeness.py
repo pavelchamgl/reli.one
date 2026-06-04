@@ -278,6 +278,68 @@ class ComputeCompletenessCompanyTests(TestCase):
         _, missing = compute_documents_summary_and_missing(app)
         self.assertEqual(missing, [])
 
+    def test_company_same_as_primary_warehouse_does_not_require_warehouse_proof(self):
+        app = self._app("comp-co-same-primary-warehouse@example.com")
+
+        SellerCompanyInfo.objects.create(
+            application=app,
+            company_name="Acme",
+            legal_form="s.r.o.",
+            country_of_registration="CZ",
+            tin="CZ12345678",
+            company_phone="+420222333444",
+        )
+        SellerCompanyRepresentative.objects.create(
+            application=app,
+            first_name="Pat",
+            last_name="Rep",
+            role="CEO",
+            date_of_birth=date(1985, 6, 1),
+            nationality="SK",
+        )
+        SellerCompanyAddress.objects.create(
+            application=app,
+            street="Corp 5",
+            city="Praha",
+            zip_code="11000",
+            country="CZ",
+        )
+        SellerBankAccount.objects.create(
+            application=app,
+            iban="CZ94550000000005003011074",
+            swift_bic="RZBCCZPP",
+            account_holder="Acme s.r.o.",
+        )
+        SellerWarehouseAddress.objects.create(
+            application=app,
+            same_as_primary_address=True,
+            street="Corp 5",
+            city="Praha",
+            zip_code="11000",
+            country="CZ",
+            contact_phone="+420602000002",
+        )
+        SellerReturnAddress.objects.create(application=app, same_as_warehouse=True)
+
+        for spec in (
+            ("registration_certificate", "company_info", None),
+            ("proof_of_address", "company_address", None),
+        ):
+            SellerDocument.objects.create(
+                application=app,
+                doc_type=spec[0],
+                scope=spec[1],
+                side=spec[2],
+                file=_minimal_pdf_file(f"{spec[0]}_{spec[1]}.pdf"),
+            )
+
+        c = compute_completeness(app)
+        self.assertTrue(c.documents_complete)
+        self.assertTrue(c.is_submittable)
+
+        _, missing = compute_documents_summary_and_missing(app)
+        self.assertNotIn("warehouse_address", {item["scope"] for item in missing})
+
 
 class ComputeCompletenessDocumentsTests(TestCase):
     """Правила сторон — только как в compute_completeness (ключи doc_type/scope/side)."""

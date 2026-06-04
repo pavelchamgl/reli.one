@@ -95,6 +95,7 @@
             "contact_support": "Contact support",
             "select": "Select",
             "upload_error": "Upload error",
+            "upload_error_detail": "We could not upload this document. Please check the file type and size, then try again.",
             "error_save": "Failed to save data",
             "continue_review": "Continue to Review",
             "upload": "Upload document"
@@ -177,7 +178,62 @@
             "cert_title": "Registration certificate document",
             "cert_desc": "Extract from trade register, not older than 3 months",
             "phone": "Company phone",
-            "reg_number": "Registration Number"
+            "reg_number": "Registration Number",
+            "ares": {
+                "load": "Load from ARES",
+                "loading": "Loading from ARES...",
+                "preview_title": "ARES preview",
+                "registered_address": "Registered address",
+                "dic_hint": "DIČ hint",
+                "dic_hint_derived": "Derived DIČ hint",
+                "dic_hint_derived_warning": "Derived from IČO because ARES did not return DIČ.",
+                "inactive_warning": "Inactive company",
+                "apply": "Apply to form",
+                "representatives_title": "Representative suggestions",
+                "apply_representative": "Apply representative",
+                "errors": {
+                    "invalid": "Enter a valid Czech IČO before loading from ARES.",
+                    "not_found": "This IČO was not found in ARES. You can continue filling the form manually.",
+                    "unavailable": "ARES is currently unavailable. Please try again later or fill the form manually.",
+                    "generic": "Could not load company details from ARES. Please try again or fill the form manually."
+                }
+            },
+            "ares_entry": {
+                "kicker": "Optional company assist",
+                "title": "Prefill Czech company legal data",
+                "description": "For companies registered in the Czech Republic, we can load part of the legal company data from the public registry using your IČO. Manual filling is always available.",
+                "scope_note": "This only helps with company legal details and registered address. Phone, bank details, representatives, warehouse, return address and documents still stay manual and editable.",
+                "ico_placeholder": "Enter Czech IČO",
+                "load": "Load from public registry",
+                "manual": "Fill manually",
+                "preview_title": "Public registry preview",
+                "apply": "Apply to onboarding"
+            }
+        },
+        "self_employed_ares": {
+            "load": "Load from public registry",
+            "loading": "Loading from public registry...",
+            "preview_title": "Public registry preview",
+            "registry_name": "Registry name",
+            "inactive_warning": "Inactive registry record",
+            "apply": "Apply to form",
+            "errors": {
+                "invalid": "Enter a valid Czech IČO before loading from the public registry.",
+                "not_found": "This IČO was not found in the Czech public registry. You can continue filling the form manually.",
+                "unavailable": "ARES is currently unavailable. Please try again later or fill the form manually.",
+                "generic": "Could not load registry details. Please try again or fill the form manually."
+            },
+            "entry": {
+                "kicker": "Optional self-employed assist",
+                "title": "Prefill Czech business/tax details",
+                "description": "If you are registered in the Czech public registry, we can load part of your business and tax details from ARES using your IČO. Manual filling is always available.",
+                "scope_note": "This is public-registry prefill only, not identity verification. It can help with IČO, tax country, DIČ/TIN hint and registered address. Phone, bank details, warehouse, return address and documents stay manual and editable.",
+                "ico_placeholder": "Enter Czech IČO",
+                "load": "Load from public registry",
+                "manual": "Fill manually",
+                "preview_title": "Public registry preview",
+                "apply": "Apply to onboarding"
+            }
         },
         "tax_address": {
             "tax_info": "Tax information",
@@ -290,7 +346,8 @@
             "gmbh": "GmbH (Germany)",
             "ltd": "Ltd (United Kingdom)",
             "sarl": "S.A.R.L. (France)",
-            "sro": "s.r.o. (Czech Republic / Slovakia)"
+            "sro": "s.r.o. (Czech Republic / Slovakia)",
+            "as": "a.s. (Czech Republic)"
         }
     },
     "countries": {
@@ -318,6 +375,7 @@
         "se": "Sweden",
         "gr": "Greece",
         "pt": "Portugal",
-        "ie": "Ireland"
+        "ie": "Ireland",
+        "ru": "Russia"
     }
 }

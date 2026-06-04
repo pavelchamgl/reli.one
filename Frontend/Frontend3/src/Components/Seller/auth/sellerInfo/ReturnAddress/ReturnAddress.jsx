@@ -191,6 +191,7 @@ const ReturnAddress = ({ formik }) => {
                         nameTitle={"return_address"}
                         // onMouseDown={() => (ignoreBlurRef.current = true)}
                         uploadStatus={uploadStatus}
+                        preserveData={() => formik.values}
                     />
                 )}
             </div>

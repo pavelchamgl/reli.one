@@ -39,17 +39,36 @@ describe("handleError", () => {
     } catch (e) {
       err = e;
     }
-    expect(err).toEqual({ status: 401, message: "Unauthorized" });
+    expect(err).toEqual({
+      status: 401,
+      message: "Unauthorized",
+      data: { message: "Unauthorized" },
+    });
   });
 
-  it("falls back to defaultMsg when response.data.message is absent", () => {
+  it("maps HTTP errors from response.data.detail", () => {
     let err;
     try {
-      handleError({ response: { status: 500, data: {} } }, "Server error");
+      handleError({ response: { status: 400, data: { detail: "Only draft applications can be submitted." } } }, "Server error");
     } catch (e) {
       err = e;
     }
-    expect(err).toEqual({ status: 500, message: "Server error" });
+    expect(err).toEqual({
+      status: 400,
+      message: "Only draft applications can be submitted.",
+      data: { detail: "Only draft applications can be submitted." },
+    });
+  });
+
+  it("falls back to defaultMsg when response data has no direct message", () => {
+    let err;
+    const data = { account_holder: "For company, account holder must match company name and legal form." };
+    try {
+      handleError({ response: { status: 500, data } }, "Server error");
+    } catch (e) {
+      err = e;
+    }
+    expect(err).toEqual({ status: 500, message: "Server error", data });
   });
 
   it("maps network-layer errors (no response) to server-unavailable", () => {

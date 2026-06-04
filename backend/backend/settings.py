@@ -282,6 +282,7 @@ REST_FRAMEWORK = {
         'anon': '100/hour',
         'user': '1000/hour',
         'otp': '5/minute',
+        'ares_lookup': '30/hour',
     },
 }
 
@@ -413,6 +414,13 @@ DPD_LABEL_START_POSITION = int(os.getenv("DPD_LABEL_START_POSITION", "1"))  # A4
 DPD_TIMEOUT_CONNECT = int(os.getenv("DPD_TIMEOUT_CONNECT", "5"))
 DPD_TIMEOUT_READ = int(os.getenv("DPD_TIMEOUT_READ", "30"))
 DPD_RETRIES = int(os.getenv("DPD_RETRIES", "3"))
+
+# ========= ARES: CZ company lookup =========
+ARES_API_BASE = os.getenv("ARES_API_BASE", "https://ares.gov.cz/ekonomicke-subjekty-v-be/rest")
+ARES_HTTP_TIMEOUT_CONNECT = int_from_env("ARES_HTTP_TIMEOUT_CONNECT", 5)
+ARES_HTTP_TIMEOUT_READ = int_from_env("ARES_HTTP_TIMEOUT_READ", 10)
+ARES_HTTP_RETRIES = int_from_env("ARES_HTTP_RETRIES", 2)
+ARES_CACHE_SECONDS = int_from_env("ARES_CACHE_SECONDS", 86400)
 
 # ========= DPD: доп. опции =========
 DPD_SHIP_SAVE_MODE = os.getenv("DPD_SHIP_SAVE_MODE", "draft")

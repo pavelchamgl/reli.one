@@ -7,15 +7,21 @@ from drf_spectacular.utils import (
 )
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 
 from ...drf_hooks import AuditAPIView
 from ...models import (
+    OnboardingEventType,
     SellerCompanyAddress,
     SellerCompanyInfo,
     SellerCompanyRepresentative,
 )
 from ...permissions_onboarding import IsSeller
+from ...providers.ares.errors import AresInvalidIco, AresNotFound, AresUnavailable
+from ...providers.ares.service import lookup_by_ico
 from ...serializers_onboarding import (
+    AresLookupQuerySerializer,
+    AresLookupResponseSerializer,
     CompanyAddressSerializer,
     CompanyInfoSerializer,
     CompanyRepresentativeSerializer,
@@ -26,6 +32,123 @@ from ...services_onboarding import (
     get_or_create_onboarding_block,
     get_onboarding_block_or_none,
 )
+from ...services_onboarding_audit import log_onboarding_event
+
+
+
+def _ares_error_response(code: str, detail: str, http_status: int) -> Response:
+    return Response(
+        {
+            "found": False,
+            "code": code,
+            "detail": detail,
+        },
+        status=http_status,
+    )
+
+
+class SellerCompanyAresLookupAPIView(AuditAPIView):
+    permission_classes = [IsSeller]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "ares_lookup"
+
+    @extend_schema(
+        tags=["Seller Onboarding"],
+        summary="Lookup company details in ARES by Czech IČO",
+        description=(
+            "Returns a sanitized ARES-assisted prefill payload for company onboarding. "
+            "The endpoint does not save any data and does not change submit/moderation behaviour."
+        ),
+        parameters=[AresLookupQuerySerializer],
+        responses={
+            200: OpenApiResponse(
+                response=AresLookupResponseSerializer,
+                description="Sanitized ARES lookup result",
+                examples=[
+                    OpenApiExample(
+                        name="Found active company",
+                        value={
+                            "found": True,
+                            "ico": "25596641",
+                            "business_id": "25596641",
+                            "company_name": "Example s.r.o.",
+                            "legal_form_code": "112",
+                            "legal_form": "s.r.o. (Czech Republic / Slovakia)",
+                            "registered_address": {
+                                "street": "Václavské náměstí 1",
+                                "city": "Praha",
+                                "zip_code": "11000",
+                                "country": "CZ",
+                            },
+                            "dic_hint": "CZ25596641",
+                            "is_active": True,
+                            "warnings": [],
+                        },
+                        response_only=True,
+                    )
+                ],
+            ),
+            400: OpenApiResponse(description="Invalid IČO"),
+            404: OpenApiResponse(description="IČO not found in ARES"),
+            503: OpenApiResponse(description="ARES unavailable"),
+        },
+    )
+    def get(self, request):
+        app = get_or_create_application_for_user(request.user)
+
+        query = AresLookupQuerySerializer(data=request.query_params)
+        if not query.is_valid():
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"result": "invalid"},
+                actor=request.user,
+            )
+            return _ares_error_response(
+                AresInvalidIco.code,
+                AresInvalidIco.detail,
+                status.HTTP_400_BAD_REQUEST,
+            )
+
+        ico = query.validated_data["ico"]
+        try:
+            data = lookup_by_ico(ico)
+        except AresInvalidIco as exc:
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"ico": ico, "result": "invalid", "code": exc.code},
+                actor=request.user,
+            )
+            return _ares_error_response(exc.code, exc.detail, status.HTTP_400_BAD_REQUEST)
+        except AresNotFound as exc:
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"ico": ico, "result": "not_found", "code": exc.code},
+                actor=request.user,
+            )
+            return _ares_error_response(exc.code, exc.detail, status.HTTP_404_NOT_FOUND)
+        except AresUnavailable as exc:
+            log_onboarding_event(
+                application=app,
+                event_type=OnboardingEventType.ARES_LOOKUP,
+                payload={"ico": ico, "result": "unavailable", "code": exc.code},
+                actor=request.user,
+            )
+            return _ares_error_response(exc.code, exc.detail, status.HTTP_503_SERVICE_UNAVAILABLE)
+
+        log_onboarding_event(
+            application=app,
+            event_type=OnboardingEventType.ARES_LOOKUP,
+            payload={
+                "ico": data.get("business_id") or data.get("ico") or ico,
+                "result": "found",
+                "is_active": data.get("is_active"),
+            },
+            actor=request.user,
+        )
+        return Response(AresLookupResponseSerializer(data).data, status=status.HTTP_200_OK)
 
 
 class SellerCompanyInfoAPIView(AuditAPIView):

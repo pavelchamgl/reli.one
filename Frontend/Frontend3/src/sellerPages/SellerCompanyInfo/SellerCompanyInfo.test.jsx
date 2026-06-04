@@ -12,7 +12,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useFormik } from 'formik';
 
 // ── Mocks (hoisted before imports) ───────────────────────────────────────────
@@ -48,6 +49,7 @@ vi.mock('../../hook/useActionSafeEmploed', () => ({
 
 vi.mock('../../api/seller/onboarding', () => ({
   putCompanyInfo: vi.fn().mockResolvedValue({}),
+  getAresCompanyByIco: vi.fn(),
   putRepresentative: vi.fn().mockResolvedValue({}),
   putCompanyAddress: vi.fn().mockResolvedValue({}),
   putOnboardingBank: vi.fn().mockResolvedValue({}),
@@ -73,7 +75,8 @@ vi.mock('../../ui/Toastify', () => ({ ErrToast: vi.fn() }));
 
 import { renderWithProviders } from '../../test/test-utils.jsx';
 import { setupStore } from '../../redux/index.js';
-import SellerCompanyInfo from './SellerCompanyInfo.jsx';
+import SellerCompanyInfo, { COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY } from './SellerCompanyInfo.jsx';
+import { getAresCompanyByIco, putCompanyInfo, putOnboardingBank } from '../../api/seller/onboarding';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -91,7 +94,13 @@ function makeStore(companyDataOverride = {}) {
   });
 }
 
-function renderPage(companyDataOverride = {}) {
+function renderPage(companyDataOverride = {}, options = {}) {
+  if (options.dismissAssist !== false) {
+    localStorage.setItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY, 'test-dismissed');
+  } else {
+    localStorage.removeItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY);
+  }
+
   return renderWithProviders(<SellerCompanyInfo />, {
     route: ROUTE,
     storeInstance: makeStore(companyDataOverride),
@@ -179,6 +188,581 @@ describe('SellerCompanyInfo — field contract', () => {
     it('renders company_phone input', () => {
       renderPage();
       expect(inputByName('company_phone')).toBeTruthy();
+    });
+  });
+
+  describe('Company onboarding entry ARES assist modal', () => {
+    const modalAresSuccess = {
+      found: true,
+      ico: '25596641',
+      business_id: '25596641',
+      company_name: 'Entry Assist s.r.o.',
+      legal_form_code: '112',
+      legal_form: 's.r.o. (Czech Republic / Slovakia)',
+      registered_address: {
+        street: 'Dlouhá 12',
+        city: 'Praha',
+        zip_code: '11000',
+        country: 'CZ',
+      },
+      dic_hint: 'CZ25596641',
+      dic_hint_source: 'ares',
+      is_active: false,
+      warnings: [],
+    };
+
+    async function openEntryAssist(companyData = {}) {
+      renderPage(companyData, { dismissAssist: false });
+      return screen.findByTestId('company-ares-entry-modal');
+    }
+
+    async function lookupInEntryAssist(ico = '25596641') {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+      await user.type(within(modal).getByRole('textbox', { name: 'onboard.company.business_id' }), ico);
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.load' }));
+      return { user, modal };
+    }
+
+    it('modal appears on empty company onboarding', async () => {
+      const modal = await openEntryAssist();
+
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.company.ares_entry.description')).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.company.ares_entry.scope_note')).toBeInTheDocument();
+      expect(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' })).toBeInTheDocument();
+    });
+
+    it('modal does not appear when company legal data exists', async () => {
+      renderPage({ company_name: 'Existing s.r.o.' }, { dismissAssist: false });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    it('Fill manually closes modal and does not mutate form', async () => {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' }));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument();
+      });
+      expect(localStorage.getItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY)).toBe('manual');
+      expect(inputByName('company_name')).toHaveValue('');
+      expect(inputByName('business_id')).toHaveValue('');
+      expect(inputByName('tin')).toHaveValue('');
+    });
+
+    it('success lookup renders compact preview', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(modalAresSuccess);
+
+      const { modal } = await lookupInEntryAssist();
+
+      expect(await within(modal).findByTestId('company-ares-entry-preview')).toBeInTheDocument();
+      expect(within(modal).getByText('Entry Assist s.r.o.')).toBeInTheDocument();
+      expect(within(modal).getByText('25596641')).toBeInTheDocument();
+      expect(within(modal).getByText('s.r.o. (Czech Republic / Slovakia)')).toBeInTheDocument();
+      expect(within(modal).getByText('Dlouhá 12, Praha, 11000, CZ')).toBeInTheDocument();
+      expect(within(modal).getByText('CZ25596641')).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.company.ares.inactive_warning')).toBeInTheDocument();
+    });
+
+    it('Apply fills legal company fields and closes modal', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(modalAresSuccess);
+
+      const { user, modal } = await lookupInEntryAssist();
+      await within(modal).findByTestId('company-ares-entry-preview');
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.apply' }));
+
+      await waitFor(() => expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument());
+      expect(localStorage.getItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY)).toBe('apply');
+      expect(inputByName('company_name')).toHaveValue('Entry Assist s.r.o.');
+      expect(inputByName('business_id')).toHaveValue('25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(screen.getByText('onboard.legal_forms.sro')).toBeInTheDocument();
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('Apply does not overwrite non-empty TIN', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(modalAresSuccess);
+
+      const { user, modal } = await lookupInEntryAssist();
+      await user.type(inputByName('tin'), 'USER-TIN-123');
+      await within(modal).findByTestId('company-ares-entry-preview');
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.apply' }));
+
+      expect(inputByName('tin')).toHaveValue('USER-TIN-123');
+    });
+
+    it('Apply does not fill phone, bank, warehouse or return fields', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...modalAresSuccess,
+        company_phone: '+420000000000',
+        iban: 'CZ6508000000192000145399',
+        wStreet: 'Warehouse from ARES',
+        rStreet: 'Return from ARES',
+      });
+
+      const { user, modal } = await lookupInEntryAssist();
+      await within(modal).findByTestId('company-ares-entry-preview');
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.apply' }));
+
+      expect(inputByName('company_phone')).toHaveValue('');
+      expect(inputByName('iban')).toHaveValue('');
+      expect(inputByName('wStreet')).toHaveValue('');
+      expect(inputByName('rStreet')).toHaveValue('');
+    });
+
+    it('not found, invalid and unavailable errors keep manual mode available', async () => {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+      await user.type(within(modal).getByRole('textbox', { name: 'onboard.company.business_id' }), '25596641');
+
+      for (const errorCase of [
+        { status: 404, code: 'ares_not_found', key: 'not_found' },
+        { status: 400, code: 'ares_invalid_ico', key: 'invalid' },
+        { status: 503, code: 'ares_unavailable', key: 'unavailable' },
+      ]) {
+        getAresCompanyByIco.mockRejectedValueOnce(errorCase);
+        await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.load' }));
+
+        expect(await within(modal).findByRole('alert')).toHaveTextContent(`onboard.company.ares.errors.${errorCase.key}`);
+        expect(within(modal).queryByRole('button', { name: 'onboard.company.ares_entry.apply' })).not.toBeInTheDocument();
+        expect(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' })).toBeInTheDocument();
+      }
+
+      await user.click(within(modal).getByRole('button', { name: 'onboard.company.ares_entry.manual' }));
+      await waitFor(() => expect(screen.queryByTestId('company-ares-entry-modal')).not.toBeInTheDocument());
+    });
+  });
+
+  describe('ARES assisted prefill', () => {
+    const aresSuccess = {
+      found: true,
+      ico: '25596641',
+      business_id: '25596641',
+      company_name: 'ARES Example s.r.o.',
+      legal_form_code: '112',
+      legal_form: 's.r.o. (Czech Republic / Slovakia)',
+      registered_address: {
+        street: 'Václavské náměstí 1',
+        city: 'Praha',
+        zip_code: '11000',
+        country: 'CZ',
+      },
+      dic_hint: 'CZ25596641',
+      dic_hint_source: 'ares',
+      is_active: false,
+      representatives: [
+        {
+          first_name: 'Jan',
+          last_name: 'Novák',
+          role_hint: 'Jednatel',
+          birth_date_hint: '1990-01-01',
+          nationality_hint: 'CZ',
+        },
+      ],
+      warnings: [],
+    };
+
+    async function lookupFromAres(ico = '25596641') {
+      const user = userEvent.setup();
+      await user.type(inputByName('business_id'), ico);
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.load' }));
+      return user;
+    }
+
+    it('lookup button calls backend API with IČO', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      await lookupFromAres();
+
+      await waitFor(() => expect(getAresCompanyByIco).toHaveBeenCalledWith('25596641'));
+    });
+
+    it('shows success preview without mutating form fields before Apply', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      await lookupFromAres();
+
+      expect(await screen.findByTestId('ares-preview')).toBeInTheDocument();
+      expect(screen.getByText('ARES Example s.r.o.')).toBeInTheDocument();
+      expect(screen.getByText('s.r.o. (Czech Republic / Slovakia)')).toBeInTheDocument();
+      expect(screen.getByText('Václavské náměstí 1, Praha, 11000, CZ')).toBeInTheDocument();
+      expect(screen.getByText('CZ25596641')).toBeInTheDocument();
+      expect(screen.getByTestId('ares-representatives')).toBeInTheDocument();
+      expect(screen.getByText('Jan')).toBeInTheDocument();
+      expect(screen.getByText('Novák')).toBeInTheDocument();
+      expect(screen.getByText('Jednatel')).toBeInTheDocument();
+      expect(screen.getByText('1990-01-01')).toBeInTheDocument();
+      expect(screen.getByText('CZ')).toBeInTheDocument();
+      expect(screen.getByText('onboard.company.ares.inactive_warning')).toBeInTheDocument();
+
+      expect(inputByName('company_name')).toHaveValue('');
+      expect(inputByName('street')).toHaveValue('');
+      expect(inputByName('tin')).toHaveValue('');
+    });
+
+    it('Apply fills only allowed company and registered address fields', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      await waitFor(() => expect(inputByName('company_name')).toHaveValue('ARES Example s.r.o.'));
+      expect(inputByName('business_id')).toHaveValue('25596641');
+      expect(inputByName('street')).toHaveValue('Václavské náměstí 1');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(screen.getByText('onboard.legal_forms.sro')).toBeInTheDocument();
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('ARES Apply maps CZ legal_form_code 112 to s.r.o.', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(screen.getByText('onboard.legal_forms.sro')).toBeInTheDocument();
+    });
+
+    it('ARES Apply maps CZ legal_form_code 121 to a.s.', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        legal_form_code: '121',
+        legal_form: 'a.s. (Czech Republic)',
+      });
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(screen.getByText('onboard.legal_forms.as')).toBeInTheDocument();
+    });
+
+    it('save payload uses human-readable legal_form for ARES code 121, not raw code', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        company_name: 'Alza.cz a.s.',
+        legal_form_code: '121',
+        legal_form: 'a.s. (Czech Republic)',
+      });
+      renderPage({
+        company_phone: '+420777123456',
+        certificate_issue_date: '2025-01-01T00:00:00Z',
+      });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+      await user.click(inputByName('first_name'));
+
+      await waitFor(() => {
+        expect(putCompanyInfo).toHaveBeenCalledWith(
+          expect.objectContaining({ legal_form: 'a.s.' }),
+        );
+      });
+      expect(putCompanyInfo).not.toHaveBeenCalledWith(
+        expect.objectContaining({ legal_form: 'as' }),
+      );
+    });
+
+    it('unknown ARES legal_form_code does not set a wrong legal_form', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        legal_form_code: '999',
+        legal_form: 'Unknown legal form',
+      });
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(screen.getByText('onboard.company.select_legal')).toBeInTheDocument();
+    });
+
+    it('changing country clears incompatible legal_form', async () => {
+      renderPage({ country_of_registration: 'de', legal_form: 'gmbh' });
+      const user = userEvent.setup();
+      const companySection = screen.getByText('onboard.company.title').closest('section');
+
+      expect(within(companySection).getByText('onboard.legal_forms.gmbh')).toBeInTheDocument();
+      await user.click(within(companySection).getByRole('button', { name: 'countries.de' }));
+      await user.click(within(companySection).getByRole('button', { name: 'countries.cz' }));
+
+      expect(within(companySection).getByText('onboard.company.select_legal')).toBeInTheDocument();
+    });
+
+    it('Apply fills country_of_registration as Czech Republic', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('Apply fills TIN from DIČ only when TIN is empty', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      await waitFor(() => expect(inputByName('tin')).toHaveValue('CZ25596641'));
+    });
+
+    it('shows derived DIČ warning and still fills empty TIN on Apply', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        dic_hint: 'CZ25596641',
+        dic_hint_source: 'derived',
+      });
+      renderPage();
+
+      const user = await lookupFromAres();
+
+      expect(await screen.findByText('onboard.company.ares.dic_hint_derived')).toBeInTheDocument();
+      expect(screen.getByText('onboard.company.ares.dic_hint_derived_warning')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      await waitFor(() => expect(inputByName('tin')).toHaveValue('CZ25596641'));
+    });
+
+    it('Apply does not overwrite existing TIN', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage({ tin: 'USER-TIN-123' });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(inputByName('tin')).toHaveValue('USER-TIN-123');
+    });
+
+    it('Apply does not change company phone', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        company_phone: '+420000000000',
+      });
+      renderPage({ company_phone: '+420777123456' });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply' }));
+
+      expect(inputByName('company_phone')).toHaveValue('+420777123456');
+    });
+
+    it('Apply representative fills empty first_name, last_name, role, birth date and nationality', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      await waitFor(() => expect(inputByName('first_name')).toHaveValue('Jan'));
+      expect(inputByName('last_name')).toHaveValue('Novák');
+      expect(screen.getByText('onboard.representative.role_managing')).toBeInTheDocument();
+      expect(inputByName('date_of_birth')).toHaveValue('01.01.1990');
+      expect(screen.getByText('countries.cz')).toBeInTheDocument();
+    });
+
+    it('Apply representative maps RU nationality when option exists', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        representatives: [
+          {
+            ...aresSuccess.representatives[0],
+            nationality_hint: 'RU',
+          },
+        ],
+      });
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      expect(screen.getByText('countries.ru')).toBeInTheDocument();
+    });
+
+    it('initial representative data comes only from CustomUser names', () => {
+      localStorage.setItem('first_name', JSON.stringify('Custom'));
+      localStorage.setItem('last_name', JSON.stringify('User'));
+      renderPage({
+        role: 'CEO',
+        date_of_birth: '02.02.1980',
+        nationality: 'ru',
+      });
+
+      expect(inputByName('first_name')).toHaveValue('Custom');
+      expect(inputByName('last_name')).toHaveValue('User');
+      expect(screen.getByText('onboard.representative.select_role')).toBeInTheDocument();
+      expect(inputByName('date_of_birth')).toHaveValue('');
+      expect(screen.getByText('onboard.representative.select_nat')).toBeInTheDocument();
+    });
+
+    it('Apply representative does not overwrite role or nationality for unknown hints', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        representatives: [
+          {
+            first_name: 'Jan',
+            last_name: 'Novák',
+            role_hint: 'Kontaktní osoba',
+            nationality_hint: 'XX',
+          },
+        ],
+      });
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      await waitFor(() => expect(inputByName('first_name')).toHaveValue('Jan'));
+      expect(inputByName('last_name')).toHaveValue('Novák');
+      expect(screen.getByText('onboard.representative.select_role')).toBeInTheDocument();
+      expect(screen.getByText('onboard.representative.select_nat')).toBeInTheDocument();
+    });
+
+    it('Apply representative overwrites existing representative fields', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      localStorage.setItem('first_name', JSON.stringify('Alice'));
+      localStorage.setItem('last_name', JSON.stringify('Existing'));
+      renderPage({
+        role: 'CEO',
+        date_of_birth: '02.02.1980',
+        nationality: 'ru',
+      });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      await waitFor(() => expect(inputByName('first_name')).toHaveValue('Jan'));
+      expect(inputByName('last_name')).toHaveValue('Novák');
+      expect(screen.getByText('onboard.representative.role_managing')).toBeInTheDocument();
+      expect(inputByName('date_of_birth')).toHaveValue('01.01.1990');
+      expect(screen.getByText('countries.cz')).toBeInTheDocument();
+    });
+
+    it('Apply representative replaces CustomUser first_name and last_name', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      localStorage.setItem('first_name', JSON.stringify('Custom'));
+      localStorage.setItem('last_name', JSON.stringify('User'));
+      renderPage();
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novák');
+    });
+
+    it('keeps submitted values when an API request fails', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      putOnboardingBank.mockRejectedValueOnce(new Error('Account holder mismatch'));
+      localStorage.setItem('first_name', JSON.stringify('Custom'));
+      localStorage.setItem('last_name', JSON.stringify('User'));
+      renderPage({
+        company_name: 'ARES Example s.r.o.',
+        legal_form: 'sro',
+        country_of_registration: 'cz',
+        business_id: '25596641',
+        tin: 'CZ25596641',
+        company_phone: '+420777123456',
+        certificate_issue_date: '2025-01-01T00:00:00Z',
+        street: 'Václavské náměstí 1',
+        city: 'Praha',
+        zip_code: '11000',
+        country: 'cz',
+        proof_document_issue_date: '2025-01-01T00:00:00Z',
+        iban: 'CZ6508000000192000145399',
+        swift_bic: 'GIBACZPX',
+        account_holder: 'ARES Example s.r.o.',
+        bank_code: '0800',
+        local_account_number: '192000145399',
+        same_as_the_primary_address: true,
+        wStreet: 'Václavské náměstí 1',
+        wCity: 'Praha',
+        wZip_code: '11000',
+        wCountry: 'cz',
+        contact_phone: '+420777123456',
+        wProof_document_issue_date: '',
+        same_as_warehouse: true,
+        rStreet: 'Václavské náměstí 1',
+        rCity: 'Praha',
+        rZip_code: '11000',
+        rCountry: 'cz',
+        rContact_phone: '+420777123456',
+        rProof_document_issue_date: '',
+      });
+
+      const user = await lookupFromAres();
+      await screen.findByTestId('ares-representatives');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.apply_representative' }));
+      await waitFor(() => expect(inputByName('first_name')).toHaveValue('Jan'));
+
+      await user.click(screen.getByRole('button', { name: 'onboard.common.continue_review' }));
+      await waitFor(() => expect(putOnboardingBank).toHaveBeenCalled());
+
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novák');
+      expect(screen.getByText('onboard.representative.role_managing')).toBeInTheDocument();
+      expect(inputByName('date_of_birth')).toHaveValue('01.01.1990');
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThanOrEqual(2);
+      expect(document.querySelector('#same_as_warehouse')).toBeChecked();
+    });
+
+    it('shows invalid IČO error', async () => {
+      getAresCompanyByIco.mockRejectedValueOnce({
+        status: 400,
+        code: 'ares_invalid_ico',
+        message: 'Invalid Czech IČO.',
+      });
+      renderPage();
+
+      await lookupFromAres('abc');
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('onboard.company.ares.errors.invalid');
+    });
+
+    it('shows not found and unavailable errors', async () => {
+      const user = userEvent.setup();
+      getAresCompanyByIco
+        .mockRejectedValueOnce({ status: 404, code: 'ares_not_found' })
+        .mockRejectedValueOnce({ status: 503, code: 'ares_unavailable' });
+      renderPage();
+
+      await user.type(inputByName('business_id'), '25596641');
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.load' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('onboard.company.ares.errors.not_found');
+
+      await user.click(screen.getByRole('button', { name: 'onboard.company.ares.load' }));
+      expect(await screen.findByRole('alert')).toHaveTextContent('onboard.company.ares.errors.unavailable');
     });
   });
 
@@ -414,6 +998,20 @@ describe('SellerCompanyInfo — field contract', () => {
       renderPage();
       expect(screen.getByText('onboard.company.phone').className).toMatch(/titleRequired/);
     });
+
+    it('marks required uploads as required by default', () => {
+      renderPage();
+      const companyHeading = screen.getByText('onboard.company.title');
+      const section = companyHeading.closest('section');
+      expect(within(section).getByText('onboard.company.cert_title')).toHaveAttribute('data-required', 'true');
+    });
+
+    it('hides warehouse proof upload when warehouse matches primary address', () => {
+      renderPage({ same_as_the_primary_address: true });
+      const warehouseHeading = screen.getByText('onboard.warehouse.title');
+      const section = warehouseHeading.closest('section');
+      expect(within(section).queryByText('onboard.tax_address.proof_address')).not.toBeInTheDocument();
+    });
   });
 
   // ── 10. Submit button ──────────────────────────────────────────────────────
@@ -424,14 +1022,11 @@ describe('SellerCompanyInfo — field contract', () => {
       expect(screen.getByRole('button', { name: 'onboard.common.continue_review' })).toBeInTheDocument();
     });
 
-    it('submit button becomes disabled only after validation runs (validateOnMount is not set)', () => {
-      // formik without validateOnMount starts isValid=true; the button is enabled by default.
-      // Disabling on initial empty form requires validateOnMount — tracked as UX improvement,
-      // not a field-contract gate for Iteration 1.
+    it('submit button is disabled when required fields are missing on initial render', async () => {
       renderPage();
-      expect(
-        screen.getByRole('button', { name: 'onboard.common.continue_review' }),
-      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'onboard.common.continue_review' })).toBeDisabled();
+      });
     });
   });
 });

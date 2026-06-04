@@ -365,6 +365,7 @@ class SellerWarehouseAddress(models.Model):
     zip_code = models.CharField(max_length=32, null=True, blank=True)
     country = models.CharField(max_length=2, null=True, blank=True)
     contact_phone = models.CharField(max_length=64, null=True, blank=True)
+    same_as_primary_address = models.BooleanField(default=False)
 
     proof_document_issue_date = models.DateField(null=True, blank=True)
 
@@ -409,6 +410,35 @@ class OnboardingEventType(models.TextChoices):
     # moderator
     MODERATION_APPROVED = "moderation_approved", "Moderation approved"
     MODERATION_REJECTED = "moderation_rejected", "Moderation rejected"
+
+    # ARES assisted onboarding
+    ARES_LOOKUP = "ares_lookup", "ARES lookup"
+    ARES_VERIFIED = "ares_verified", "ARES verified"
+    ARES_MISMATCH = "ares_mismatch", "ARES mismatch"
+
+
+class SellerAresVerification(models.Model):
+    """
+    Sanitized ARES submit-time verification snapshot for moderator review.
+    Full raw ARES responses are intentionally not stored.
+    """
+    application = models.OneToOneField(
+        SellerOnboardingApplication,
+        on_delete=models.CASCADE,
+        related_name="ares_verification",
+    )
+    ico_queried = models.CharField(max_length=32)
+    normalized = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(null=True, blank=True)
+    field_matches = models.JSONField(default=dict, blank=True)
+    checked_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = "Seller ARES verification"
+        verbose_name_plural = "Seller ARES verifications"
+
+    def __str__(self) -> str:
+        return f"ARESVerification({self.pk}) {self.ico_queried} for application {self.application_id}"
 
 
 class OnboardingAuditLog(models.Model):

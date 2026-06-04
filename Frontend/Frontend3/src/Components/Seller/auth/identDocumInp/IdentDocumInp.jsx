@@ -10,7 +10,7 @@ import { ErrToast } from '../../../../ui/Toastify';
 const DOC_TYPE_BUTTON_CLASS =
   'flex h-12 w-full items-center justify-between rounded-2xl border px-4 text-sm font-medium bg-white transition';
 
-const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
+const IdentDocumInp = ({ selfData, blurGuardRef, formik, scopeProp }) => {
   const style = {
     borderRadius: '6px',
     borderColor: '#D1D5DC',
@@ -144,9 +144,10 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
             stateName={selfData?.passport}
             nameTitle="front"
             onMouseDown={() => {
-              ref.current = true;
+              if (blurGuardRef) blurGuardRef.current = true;
             }}
             uploadStatus={uploadPass}
+            preserveData={() => formik.values}
           />
         ) : null}
 
@@ -161,9 +162,10 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.drivFront}
               nameTitle="front"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadDrivFront}
+              preserveData={() => formik.values}
               identTwo="ident"
             />
 
@@ -176,9 +178,10 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.drivBack}
               nameTitle="back"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadDrivBack}
+              preserveData={() => formik.values}
             />
             {(formik.touched.uploadFront || formik.touched.uploadBack) &&
               (formik.errors.uploadFront || formik.errors.uploadBack) ? (
@@ -200,9 +203,10 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.idFront}
               nameTitle="front"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadIdFront}
+              preserveData={() => formik.values}
               identTwo="ident"
             />
 
@@ -215,9 +219,10 @@ const IdentDocumInp = ({ selfData, ref, formik, scopeProp }) => {
               stateName={selfData?.idBack}
               nameTitle="back"
               onMouseDown={() => {
-                ref.current = true;
+                if (blurGuardRef) blurGuardRef.current = true;
               }}
               uploadStatus={uploadIdBack}
+              preserveData={() => formik.values}
             />
             {(formik.touched.uploadFront || formik.touched.uploadBack) &&
               (formik.errors.uploadFront || formik.errors.uploadBack) ? (

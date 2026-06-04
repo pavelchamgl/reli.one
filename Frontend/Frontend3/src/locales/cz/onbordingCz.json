@@ -103,6 +103,7 @@
             "contact_support": "Kontaktovat podporu",
             "select": "Vybrat",
             "upload_error": "Chyba při nahrávání",
+            "upload_error_detail": "Dokument se nepodařilo nahrát. Zkontrolujte prosím typ a velikost souboru a zkuste to znovu.",
             "error_save": "Nepodařilo se uložit data",
             "continue_review": "Pokračovat ke kontrole",
             "upload": "Nahrát dokument"
@@ -185,7 +186,62 @@
             "cert_title": "Výpis z obchodního rejstříku",
             "cert_desc": "Výpis nesmí být starší než 3 měsíce",
             "phone": "Firemní telefon",
-            "reg_number": "Registrační číslo"
+            "reg_number": "Registrační číslo",
+            "ares": {
+                "load": "Načíst z ARES",
+                "loading": "Načítání z ARES...",
+                "preview_title": "Náhled z ARES",
+                "registered_address": "Registrovaná adresa",
+                "dic_hint": "Nápověda DIČ",
+                "dic_hint_derived": "Odvozená nápověda DIČ",
+                "dic_hint_derived_warning": "Odvozeno z IČO, protože ARES nevrátil DIČ.",
+                "inactive_warning": "Neaktivní společnost",
+                "apply": "Použít ve formuláři",
+                "representatives_title": "Návrhy zástupců",
+                "apply_representative": "Použít zástupce",
+                "errors": {
+                    "invalid": "Před načtením z ARES zadejte platné české IČO.",
+                    "not_found": "Toto IČO nebylo v ARES nalezeno. Formulář můžete vyplnit ručně.",
+                    "unavailable": "ARES je momentálně nedostupný. Zkuste to později nebo vyplňte formulář ručně.",
+                    "generic": "Údaje o společnosti se nepodařilo načíst z ARES. Zkuste to prosím znovu nebo vyplňte formulář ručně."
+                }
+            },
+            "ares_entry": {
+                "kicker": "Volitelná pomoc se společností",
+                "title": "Předvyplnit právní údaje české společnosti",
+                "description": "U společností registrovaných v České republice můžeme podle IČO načíst část právních údajů z veřejného rejstříku. Ruční vyplnění je vždy k dispozici.",
+                "scope_note": "Pomůže to pouze s právními údaji společnosti a registrovanou adresou. Telefon, bankovní údaje, zástupci, sklad, vratná adresa a dokumenty zůstávají ruční a upravitelné.",
+                "ico_placeholder": "Zadejte české IČO",
+                "load": "Načíst z veřejného rejstříku",
+                "manual": "Vyplnit ručně",
+                "preview_title": "Náhled z veřejného rejstříku",
+                "apply": "Použít v onboardingu"
+            }
+        },
+        "self_employed_ares": {
+            "load": "Načíst z veřejného rejstříku",
+            "loading": "Načítání z veřejného rejstříku...",
+            "preview_title": "Náhled z veřejného rejstříku",
+            "registry_name": "Název v rejstříku",
+            "inactive_warning": "Neaktivní záznam v rejstříku",
+            "apply": "Použít ve formuláři",
+            "errors": {
+                "invalid": "Před načtením z veřejného rejstříku zadejte platné české IČO.",
+                "not_found": "Toto IČO nebylo v českém veřejném rejstříku nalezeno. Formulář můžete vyplnit ručně.",
+                "unavailable": "ARES je momentálně nedostupný. Zkuste to později nebo vyplňte formulář ručně.",
+                "generic": "Údaje z rejstříku se nepodařilo načíst. Zkuste to prosím znovu nebo vyplňte formulář ručně."
+            },
+            "entry": {
+                "kicker": "Volitelná pomoc pro OSVČ",
+                "title": "Předvyplnit české podnikatelské a daňové údaje",
+                "description": "Pokud jste registrováni v českém veřejném rejstříku, můžeme podle IČO načíst část podnikatelských a daňových údajů z ARES. Ruční vyplnění je vždy k dispozici.",
+                "scope_note": "Jde pouze o předvyplnění z veřejného rejstříku, nikoli o ověření totožnosti. Pomůže s IČO, daňovou rezidencí, nápovědou DIČ a registrovanou adresou. Telefon, bankovní údaje, sklad, vratná adresa a dokumenty zůstávají ruční a upravitelné.",
+                "ico_placeholder": "Zadejte české IČO",
+                "load": "Načíst z veřejného rejstříku",
+                "manual": "Vyplnit ručně",
+                "preview_title": "Náhled z veřejného rejstříku",
+                "apply": "Použít v onboardingu"
+            }
         },
         "tax_address": {
             "tax_info": "Daňové údaje",
@@ -297,7 +353,8 @@
             "gmbh": "GmbH (Německo)",
             "ltd": "Ltd (Spojené království)",
             "sarl": "S.A.R.L. (Francie)",
-            "sro": "s.r.o. (Česká republika / Slovensko)"
+            "sro": "s.r.o. (Česká republika / Slovensko)",
+            "as": "a.s. (Česká republika)"
         }
     },
     "countries": {
@@ -325,6 +382,7 @@
         "se": "Švédsko",
         "gr": "Řecko",
         "pt": "Portugalsko",
-        "ie": "Irsko"
+        "ie": "Irsko",
+        "ru": "Rusko"
     }
 }

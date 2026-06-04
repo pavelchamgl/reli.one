@@ -2,7 +2,7 @@ import { useFormik } from "formik"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import AddressBlock from "../../Components/Seller/auth/sellerInfo/address/AddressBlock"
 import BankAccount from "../../Components/Seller/auth/sellerInfo/BankAccount/BankAccount"
@@ -19,8 +19,48 @@ import { putOnboardingBank, putPersonalData, putReturnAddress, putSelfAddress, p
 import { validationSchemaSelf } from "../../code/seller/validation"
 import { ErrToast } from "../../ui/Toastify"
 import { toISODate } from "../../code/seller"
+import SelfEmployedAresEntryAssistModal from "./SelfEmployedAresEntryAssistModal"
 
 import styles from "./SellerInformation.module.scss"
+
+export const SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY = "seller_self_employed_ares_entry_assist_dismissed_v1"
+
+const hasUploadedIdentityDocument = (values) => Boolean(
+    values.uploadPassport ||
+    (values.uploadDrivFront && values.uploadDrivBack) ||
+    (values.uploadIdFront && values.uploadIdBack) ||
+    (values.uploadFront && values.uploadBack)
+)
+
+const hasRequiredSelfEmployedDocuments = (values) => {
+    if (!hasUploadedIdentityDocument(values)) return false
+    if (!values.proof_document_issue_date) return false
+    if (!values.same_as_the_primary_address && !values.wProof_document_issue_date) return false
+    if (!values.same_as_warehouse && !values.rProof_document_issue_date) return false
+    return true
+}
+
+const collectErrorMessages = (data, fallback) => {
+    if (!data) return [fallback]
+    if (typeof data === "string") return [data]
+    if (data.detail) return [String(data.detail)]
+    if (data.message) return [String(data.message)]
+    if (data.error) return [String(data.error)]
+
+    const messages = []
+    const walk = (value) => {
+        if (!value) return
+        if (typeof value === "string") {
+            messages.push(value)
+        } else if (Array.isArray(value)) {
+            value.forEach(walk)
+        } else if (typeof value === "object") {
+            Object.values(value).forEach(walk)
+        }
+    }
+    walk(data)
+    return messages.length ? messages : [fallback]
+}
 
 const SellerInformation = () => {
 
@@ -33,20 +73,25 @@ const SellerInformation = () => {
     const navigate = useNavigate()
 
     const { selfData, selfDataLoading } = useSelector(state => state.selfEmploed)
+    const [showAresEntryAssist, setShowAresEntryAssist] = useState(false)
+    const showAresEntryAssistRef = useRef(false)
 
     const formik = useFormik({
         initialValues: {
 
             // personal
-            // first_name: firstName,
-            // last_name: lastName,
-            first_name: "",
-            last_name: "",
+            first_name: selfData?.first_name ?? "",
+            last_name: selfData?.last_name ?? "",
             date_of_birth: selfData?.date_of_birth ?? "",
             nationality: selfData?.nationality ?? "",
-            personal_phone: phone,
+            personal_phone: selfData?.personal_phone ?? phone,
             uploadFront: selfData?.uploadFront ?? "",
             uploadBack: selfData?.uploadBack ?? "",
+            uploadPassport: selfData?.uploadPassport ?? "",
+            uploadDrivFront: selfData?.uploadDrivFront ?? "",
+            uploadDrivBack: selfData?.uploadDrivBack ?? "",
+            uploadIdFront: selfData?.uploadIdFront ?? "",
+            uploadIdBack: selfData?.uploadIdBack ?? "",
 
             // tax
             tax_country: selfData?.tax_country ?? "",
@@ -68,7 +113,7 @@ const SellerInformation = () => {
             local_account_number: selfData?.local_account_number ?? "",
 
             // warehouse
-            same_as_the_primary_address: selfData?.same_as_the_primary_address ?? false,
+            same_as_the_primary_address: selfData?.same_as_the_primary_address ?? selfData?.same_as_primary_address ?? false,
             wStreet: selfData?.wStreet ?? "",
             wCity: selfData?.wCity ?? "",
             wZip_code: selfData?.wZip_code ?? "",
@@ -87,11 +132,14 @@ const SellerInformation = () => {
         },
         validationSchema: validationSchemaSelf,
         enableReinitialize: true,
+        validateOnMount: true,
         validateOnChange: true,
-        // validateOnMount: false,
         // validateOnBlur: true,
         onSubmit: async (values) => {
-            safeData(values);
+            safeData({
+                ...values,
+                same_as_primary_address: values.same_as_the_primary_address
+            });
             // localStorage.setItem('first_name', JSON.stringify(values.first_name))
             // localStorage.setItem('last_name', JSON.stringify(values.last_name))
             localStorage.setItem('phone', JSON.stringify(values.personal_phone))
@@ -146,6 +194,7 @@ const SellerInformation = () => {
                     name: "Warehouse",
                     promise: putWarehouse({
                         same_as_the_primary_address: values.same_as_the_primary_address,
+                        same_as_primary_address: values.same_as_the_primary_address,
                         street: values.wStreet,
                         city: values.wCity,
                         zip_code: values.wZip_code,
@@ -176,7 +225,12 @@ const SellerInformation = () => {
                 const errors = results
                     .map((res, index) => {
                         if (res.status === "rejected") {
-                            return `${requests[index].name} failed: ${res.reason?.message || res.reason}`;
+                            const data = res.reason?.response?.data ?? res.reason?.data ?? res.reason
+                            const messages = collectErrorMessages(
+                                data,
+                                res.reason?.message || t('onboard.common.error_save')
+                            )
+                            return `${requests[index].name}: ${messages.join(", ")}`;
                         }
                         return null;
                     })
@@ -186,8 +240,7 @@ const SellerInformation = () => {
 
                 if (errors.length > 0) {
                     console.log("Ошибки при отправке данных:", errors);
-                    // здесь можно вызвать toast или alert
-                    ErrToast("Some requests failed:\n" + errors.join("\n"));
+                    ErrToast(errors.join("\n"));
                     return; // останавливаем навигацию
                 }
 
@@ -208,10 +261,41 @@ const SellerInformation = () => {
 
     const { t } = useTranslation('onbording')
 
+    const hasSelfEmployedLegalTaxData = (values) => Boolean(
+        values.tax_country ||
+        values.tin ||
+        values.ico ||
+        values.street ||
+        values.city ||
+        values.zip_code ||
+        values.country
+    )
+
+    useEffect(() => {
+        if (selfDataLoading) return
+        const dismissed = localStorage.getItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY)
+        const shouldShow = !dismissed && !hasSelfEmployedLegalTaxData(formik.values)
+        if (showAresEntryAssistRef.current !== shouldShow) {
+            showAresEntryAssistRef.current = shouldShow
+            setShowAresEntryAssist(shouldShow)
+        }
+    }, [selfDataLoading, formik.values])
+
+    const dismissAresEntryAssist = (mode) => {
+        localStorage.setItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY, mode)
+        showAresEntryAssistRef.current = false
+        setShowAresEntryAssist(false)
+    }
+
 
     if (!selfDataLoading) {
         return (
             <FormWrap style={{ height: "100%" }}>
+                {showAresEntryAssist &&
+                    <SelfEmployedAresEntryAssistModal
+                        formik={formik}
+                        onDismiss={dismissAresEntryAssist}
+                    />}
                 <div className={styles.main}>
                     <div className={styles.titleWrap}>
                         <TitleAndDesc title={t('onboard.seller_info.title')}
@@ -233,7 +317,7 @@ const SellerInformation = () => {
                     <ReturnAddress formik={formik} />
 
                     <AuthBtnSeller
-                        disabled={!formik.isValid}
+                        disabled={!formik.isValid || !hasRequiredSelfEmployedDocuments(formik.values)}
                         text={t('onboard.common.continue_review')}
                         style={{ borderRadius: "16px", width: "222px" }}
                         handleClick={formik.handleSubmit}

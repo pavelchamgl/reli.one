@@ -1,6 +1,6 @@
 import { useFormik } from 'formik'
 import { useSelector } from 'react-redux';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -14,12 +14,16 @@ import BankAccount from '../../Components/Seller/auth/sellerInfo/BankAccount/Ban
 import CompanyAddress from '../../Components/Seller/auth/sellerInfo/CompanyAddress/CompanyAddress';
 import CompanyInfo from '../../Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo';
 import Representative from '../../Components/Seller/auth/sellerInfo/Representative/Representative';
+import CompanyAresEntryAssistModal from './CompanyAresEntryAssistModal';
 import { useActionSafeEmploed } from '../../hook/useActionSafeEmploed';
 import { companyValidationSchema } from '../../code/seller/validation';
+import { normalizeLegalFormValue } from '../../code/seller/companyLegalForms';
 import { ErrToast } from '../../ui/Toastify';
 import { buildCompanySubmitRequests } from '../../features/seller-onboarding/buildCompanySubmitRequests';
 
 import styles from "./SellerCompanyInfo.module.scss"
+
+export const COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY = "seller_company_ares_entry_assist_dismissed_v1"
 
 const SellerCompanyInfo = () => {
 
@@ -34,12 +38,14 @@ const SellerCompanyInfo = () => {
     const navigate = useNavigate()
 
     const { t } = useTranslation('onbording')
+    const [showAresEntryAssist, setShowAresEntryAssist] = useState(false)
+    const showAresEntryAssistRef = useRef(false)
 
     const formik = useFormik({
         initialValues: {
             // company info
             company_name: companyData?.company_name ?? "",
-            legal_form: companyData?.legal_form ?? "",
+            legal_form: normalizeLegalFormValue(companyData?.legal_form) ?? "",
             country_of_registration: companyData?.country_of_registration ?? "",          // Чехия (Czech Republic)
             business_id: companyData?.business_id ?? "",     // IČO (8-значный номер компании)
             tin: companyData?.tin ?? "",             // Daňové identifikační číslo (DIČ) без префикса
@@ -51,9 +57,9 @@ const SellerCompanyInfo = () => {
             // representative
             first_name: firstName,
             last_name: lastName,
-            role: companyData?.role ?? "",
-            date_of_birth: companyData?.date_of_birth ?? "",
-            nationality: companyData?.nationality ?? "",
+            role: "",
+            date_of_birth: "",
+            nationality: "",
             // uploadFront: companyData?.uploadFront ?? "",
             // uploadBack: companyData?.uploadBack ?? "",
 
@@ -74,7 +80,7 @@ const SellerCompanyInfo = () => {
             local_account_number: companyData?.local_account_number ?? "",
 
             // warehouse
-            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? false,
+            same_as_the_primary_address: companyData?.same_as_the_primary_address ?? companyData?.same_as_primary_address ?? false,
             wStreet: companyData?.wStreet ?? "",
             wCity: companyData?.wCity ?? "",
             wZip_code: companyData?.wZip_code ?? "",
@@ -83,8 +89,7 @@ const SellerCompanyInfo = () => {
             wProof_document_issue_date: companyData?.wProof_document_issue_date ?? "",
 
             // return
-            // same_as_warehouse: companyData?.same_as_warehouse ?? false,
-            same_as_warehouse:false,
+            same_as_warehouse: companyData?.same_as_warehouse ?? false,
             rStreet: companyData?.rStreet ?? "",
             rCity: companyData?.rCity ?? "",
             rZip_code: companyData?.rZip_code ?? "",
@@ -96,18 +101,10 @@ const SellerCompanyInfo = () => {
         },
         validationSchema: companyValidationSchema,
         enableReinitialize: true,
-        // validateOnMount: false,
+        validateOnMount: true,
         validateOnChange: true,
         // validateOnBlur: true,
         onSubmit: async (values) => {
-            safeCompanyData({
-                ...values
-            });
-
-            localStorage.setItem('first_name', JSON.stringify(values.first_name))
-            localStorage.setItem('last_name', JSON.stringify(values.last_name))
-
-
             try {
                 const requests = buildCompanySubmitRequests(values);
 
@@ -134,6 +131,13 @@ const SellerCompanyInfo = () => {
                 }
 
                 // Если все прошло успешно
+                safeCompanyData({
+                    ...values
+                });
+
+                localStorage.setItem('first_name', JSON.stringify(values.first_name))
+                localStorage.setItem('last_name', JSON.stringify(values.last_name))
+
                 navigate("/seller/seller-review-company");
             } catch (err) {
                 console.error("Unexpected error:", err);
@@ -147,9 +151,42 @@ const SellerCompanyInfo = () => {
         getAllCompanyDataBD()
     }, [])
 
+    const hasCompanyLegalData = (values) => Boolean(
+        values.company_name ||
+        values.legal_form ||
+        values.country_of_registration ||
+        values.business_id ||
+        values.tin ||
+        values.street ||
+        values.city ||
+        values.zip_code ||
+        values.country
+    )
+
+    useEffect(() => {
+        if (companyDataLoading) return
+        const dismissed = localStorage.getItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY)
+        const shouldShow = !dismissed && !hasCompanyLegalData(formik.values)
+        if (showAresEntryAssistRef.current !== shouldShow) {
+            showAresEntryAssistRef.current = shouldShow
+            setShowAresEntryAssist(shouldShow)
+        }
+    }, [companyDataLoading, formik.values])
+
+    const dismissAresEntryAssist = (mode) => {
+        localStorage.setItem(COMPANY_ARES_ENTRY_ASSIST_STORAGE_KEY, mode)
+        showAresEntryAssistRef.current = false
+        setShowAresEntryAssist(false)
+    }
+
     if (!companyDataLoading) {
         return (
             <FormWrap style={{ height: "100%" }}>
+                {showAresEntryAssist &&
+                    <CompanyAresEntryAssistModal
+                        formik={formik}
+                        onDismiss={dismissAresEntryAssist}
+                    />}
                 <div className={styles.main}>
                     <div className={styles.titleWrap}>
                         <TitleAndDesc

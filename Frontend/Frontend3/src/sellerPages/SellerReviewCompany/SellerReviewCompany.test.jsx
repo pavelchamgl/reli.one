@@ -61,12 +61,14 @@ vi.mock('../../ui/Toastify', () => ({ ErrToast: vi.fn() }));
 import { renderWithProviders } from '../../test/test-utils.jsx';
 import { setupStore } from '../../redux/index.js';
 import SellerReviewCompany from './SellerReviewCompany.jsx';
+import { postSubmitOnboarding, putOnboardingBank } from '../../api/seller/onboarding';
+import { ErrToast } from '../../ui/Toastify';
 
 const ROUTE = '/seller/seller-review-company';
 
 const companyData = {
   company_name: 'Acme GmbH',
-  legal_form: 'GmbH',
+  legal_form: 'as',
   country_of_registration: 'de',
   business_id: 'HRB1',
   tin: 'DE123',
@@ -95,10 +97,10 @@ const companyData = {
   ico: '999',
 };
 
-function renderPage() {
+function renderPage(data = companyData) {
   const store = setupStore({
     selfEmploed: {
-      companyData,
+      companyData: data,
       companyDataLoading: false,
       selfData: {},
       registerData: { phone: '+49999' },
@@ -112,6 +114,7 @@ function renderPage() {
 
 describe('SellerReviewCompany — review parity', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     localStorage.setItem('first_name', JSON.stringify('Jane'));
     localStorage.setItem('last_name', JSON.stringify('Smith'));
   });
@@ -131,6 +134,12 @@ describe('SellerReviewCompany — review parity', () => {
     expect(screen.getByText('onboard.seller_info.nationality')).toBeInTheDocument();
     expect(screen.getByText('onboard.company.business_id')).toBeInTheDocument();
     expect(screen.getByText('onboard.bank.iban')).toBeInTheDocument();
+  });
+
+  it('shows human-readable legal form instead of raw code', () => {
+    renderPage();
+    expect(screen.getByText('onboard.legal_forms.as')).toBeInTheDocument();
+    expect(screen.queryByText('as')).not.toBeInTheDocument();
   });
 
   it('does not show forbidden identity upload or VAT/ICO rows', () => {
@@ -153,6 +162,45 @@ describe('SellerReviewCompany — review parity', () => {
     expect(screen.getByDisplayValue('Acme GmbH')).toBeInTheDocument();
   });
 
+  it('opens company edit with backend legal form normalized for select value', async () => {
+    const user = userEvent.setup();
+    renderPage({
+      ...companyData,
+      company_name: 'Reli Group s.r.o.',
+      legal_form: 's.r.o. (Czech Republic / Slovakia)',
+      country_of_registration: 'cz',
+    });
+
+    const companySection = screen.getByText('onboard.company.title').closest('section');
+    await user.click(within(companySection).getByRole('button', {
+      name: 'onboard.review.edit',
+    }));
+
+    const editSection = screen.getByText('onboard.company.title').closest('section');
+    expect(within(editSection).getByText('onboard.legal_forms.sro')).toBeInTheDocument();
+  });
+
+  it('opens warehouse edit preserving same-as-primary flag from backend field name', async () => {
+    const user = userEvent.setup();
+    renderPage({
+      ...companyData,
+      same_as_primary_address: true,
+      same_as_the_primary_address: undefined,
+      wStreet: 'Na lysinách 551/34',
+      wCity: 'Praha',
+      wZip_code: '14700',
+      wCountry: 'cz',
+      contact_phone: '+420797837888',
+    });
+
+    const warehouseSection = screen.getByText('onboard.review.warehouse_return').closest('section');
+    await user.click(within(warehouseSection).getByRole('button', {
+      name: 'onboard.review.edit',
+    }));
+
+    expect(document.querySelector('#same_as_the_primary_address')).toBeChecked();
+  });
+
   it('shows submit error alert when validation fails', async () => {
     const user = userEvent.setup();
     const store = setupStore({
@@ -170,5 +218,96 @@ describe('SellerReviewCompany — review parity', () => {
 
     await user.click(screen.getByRole('button', { name: 'onboard.review.submit_btn' }));
     expect(screen.getByText('onboard.errors.complete_fields')).toBeInTheDocument();
+  });
+
+  it('shows API wrapper message instead of Unknown error when a section submit fails', async () => {
+    const user = userEvent.setup();
+    putOnboardingBank.mockRejectedValueOnce({
+      status: 400,
+      message: 'Account holder must match company name and legal form',
+    });
+
+    renderPage({
+      ...companyData,
+      company_name: 'Acme',
+      legal_form: 'as',
+      country_of_registration: 'cz',
+      business_id: '25596641',
+      tin: 'CZ123',
+      company_phone: '+420777123456',
+      certificate_issue_date: '2025-01-01T00:00:00Z',
+      proof_document_issue_date: '2025-01-01T00:00:00Z',
+      iban: 'CZ6508000000192000145399',
+      swift_bic: 'GIBACZPX',
+      account_holder: 'Acme a.s.',
+      bank_code: '0800',
+      local_account_number: '123456789',
+      same_as_the_primary_address: true,
+      wStreet: 'Warehouse Street 1',
+      wCity: 'Prague',
+      wZip_code: '11000',
+      wCountry: 'cz',
+      contact_phone: '+420777123456',
+      rStreet: 'Return Street 1',
+      rCity: 'Prague',
+      rZip_code: '11000',
+      rCountry: 'cz',
+      rContact_phone: '+420777123456',
+    });
+
+    await user.click(screen.getByRole('button', { name: 'onboard.review.submit_btn' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Bank Account: Account holder must match company name and legal form',
+    );
+    expect(ErrToast).toHaveBeenCalledWith(
+      'Bank Account: Account holder must match company name and legal form',
+    );
+  });
+
+  it('shows submit endpoint validation details instead of generic submit failure', async () => {
+    const user = userEvent.setup();
+    postSubmitOnboarding.mockRejectedValueOnce({
+      status: 400,
+      message: 'Failed to submit onboarding data',
+      data: {
+        account_holder: 'For company, account holder must match company name and legal form.',
+      },
+    });
+
+    renderPage({
+      ...companyData,
+      company_name: 'Acme',
+      legal_form: 'as',
+      country_of_registration: 'cz',
+      business_id: '25596641',
+      tin: 'CZ123',
+      company_phone: '+420777123456',
+      certificate_issue_date: '2025-01-01T00:00:00Z',
+      proof_document_issue_date: '2025-01-01T00:00:00Z',
+      iban: 'CZ6508000000192000145399',
+      swift_bic: 'GIBACZPX',
+      account_holder: 'Acme a.s.',
+      bank_code: '0800',
+      local_account_number: '123456789',
+      same_as_the_primary_address: true,
+      wStreet: 'Warehouse Street 1',
+      wCity: 'Prague',
+      wZip_code: '11000',
+      wCountry: 'cz',
+      contact_phone: '+420777123456',
+      rStreet: 'Return Street 1',
+      rCity: 'Prague',
+      rZip_code: '11000',
+      rCountry: 'cz',
+      rContact_phone: '+420777123456',
+    });
+
+    await user.click(screen.getByRole('button', { name: 'onboard.review.submit_btn' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'For company, account holder must match company name and legal form.',
+    );
+    expect(screen.queryByText('Failed to submit onboarding data')).not.toBeInTheDocument();
   });
 });

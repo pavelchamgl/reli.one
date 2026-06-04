@@ -4,6 +4,7 @@ import addressIc from '@/assets/Seller/register/addressIc.svg';
 import bankIc from '@/assets/Seller/register/bankAcc.svg';
 import warehouseIc from '@/assets/Seller/register/warehouseAndReturn.svg';
 import { countriesArr } from '@/code/seller';
+import { getLegalFormDisplayLabel } from '@/code/seller/companyLegalForms';
 
 const countryLabel = (code) => countriesArr.find((item) => item.value === code)?.text ?? code ?? '';
 
@@ -28,6 +29,7 @@ export function mapCompanyReviewSections({
   const warehouseCountry = countryLabel(data?.wCountry);
   const returnCountry = countryLabel(data?.rCountry);
   const representativeNationality = countryLabel(data?.nationality);
+  const legalFormLabel = getLegalFormDisplayLabel(data?.legal_form, t);
   const showCzSkBankFields = isCzSkCountry(data?.country_of_registration);
 
   const warehouseBlocks = [];
@@ -85,7 +87,7 @@ export function mapCompanyReviewSections({
 
   const companyRows = [
     { label: t('onboard.company.name'), value: data?.company_name },
-    { label: t('onboard.company.legal_form'), value: data?.legal_form },
+    { label: t('onboard.company.legal_form'), value: legalFormLabel },
     { label: t('onboard.company.country_reg'), value: countryOfRegistration },
     { label: t('onboard.company.business_id'), value: data?.business_id, mono: true },
     { label: t('onboard.review.tin'), value: data?.tin, mono: true },

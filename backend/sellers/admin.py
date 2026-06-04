@@ -9,7 +9,7 @@ from django.db.models import Count
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
-from django.utils.html import format_html
+from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
 from django.utils.timesince import timesince
 from rest_framework.exceptions import ValidationError
@@ -34,6 +34,7 @@ from .models import (
     SellerSelfEmployedTaxInfo,
     SellerWarehouseAddress,
     OnboardingAuditLog,
+    SellerAresVerification,
 )
 from .services_onboarding import (
     approve_application,
@@ -187,7 +188,15 @@ class SellerWarehouseAddressInline(ReadOnlyInline):
     model = SellerWarehouseAddress
     fk_name = "application"
     verbose_name_plural = "Warehouse address"
-    fields = ("country", "city", "street", "zip_code", "contact_phone", "proof_document_issue_date")
+    fields = (
+        "same_as_primary_address",
+        "country",
+        "city",
+        "street",
+        "zip_code",
+        "contact_phone",
+        "proof_document_issue_date",
+    )
     readonly_fields = fields
 
 
@@ -333,6 +342,7 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
         "review_snapshot",
         "completeness_panel",
         "documents_panel",
+        "ares_panel",
         "recent_activity_panel",
         "moderation_tools",
         "created_at",
@@ -360,6 +370,7 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
                     "review_snapshot",
                     "completeness_panel",
                     "documents_panel",
+                    "ares_panel",
                     "recent_activity_panel",
                 )
             },
@@ -406,7 +417,7 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
         return (
             super()
             .get_queryset(request)
-            .select_related("seller_profile__user", "reviewed_by")
+            .select_related("seller_profile__user", "reviewed_by", "ares_verification")
             .annotate(_documents_count=Count("documents"))
         )
 
@@ -907,6 +918,136 @@ class SellerOnboardingApplicationAdmin(ManagerOrAdminOnlyMixin, admin.ModelAdmin
 
         html.append("</div>")
         return mark_safe("".join(html))
+
+    @admin.display(description="ARES moderator hint")
+    def ares_panel(self, obj: SellerOnboardingApplication) -> str:
+        verification: SellerAresVerification | None = getattr(obj, "ares_verification", None)
+        if not verification:
+            return mark_safe(
+                "<div class='onb-panel'>"
+                "<div class='help'>No ARES verification snapshot has been saved for this application.</div>"
+                "</div>"
+            )
+
+        normalized = verification.normalized or {}
+        address = normalized.get("registered_address") or {}
+        field_matches = verification.field_matches or {}
+        warnings = field_matches.get("warnings") or normalized.get("warnings") or []
+
+        status_cls = "ok" if verification.is_active else "bad"
+        status_text = "Active" if verification.is_active else "Inactive / unknown"
+
+        def value(text) -> str:
+            return escape(text if text not in (None, "") else "—")
+
+        def match_badge(result: dict) -> str:
+            if not result.get("checked"):
+                return "<span class='onb-pill'>Not checked</span>"
+            if result.get("match"):
+                return "<span class='onb-pill ok'>Match</span>"
+            return "<span class='onb-pill bad'>Mismatch</span>"
+
+        is_self_employed = obj.seller_type == "self_employed"
+        name_key = "registry_name" if is_self_employed else "company_name"
+        name_label = "Registry / person name" if is_self_employed else "Company name"
+        legal_label = "Registry type" if is_self_employed else "Legal form"
+
+        rows: list[str] = []
+        for key, label in (
+            ("business_id", "IČO / Business ID"),
+            (name_key, name_label),
+            ("legal_form", legal_label),
+            ("is_active", "ARES active status"),
+        ):
+            result = field_matches.get(key) or {}
+            if key == "legal_form" and not result:
+                result = {
+                    "checked": False,
+                    "application": None,
+                    "ares": normalized.get("legal_form"),
+                }
+            rows.append(
+                "<tr>"
+                f"<td>{label}</td>"
+                f"<td>{value(result.get('application'))}</td>"
+                f"<td>{value(result.get('ares'))}</td>"
+                f"<td>{match_badge(result)}</td>"
+                "</tr>"
+            )
+
+        address_match = field_matches.get("registered_address") or {}
+        rows.append(
+            "<tr>"
+            "<td>Registered address</td>"
+            f"<td>{value(self._format_application_ares_address(obj))}</td>"
+            f"<td>{value(self._format_ares_address(address))}</td>"
+            f"<td>{match_badge(address_match)}</td>"
+            "</tr>"
+        )
+
+        html = [
+            "<div class='onb-panel'>",
+            "<div class='onb-section-title'>ARES submit-time verification</div>",
+            "<table class='onb-table'><tbody>",
+            f"<tr><td>IČO queried</td><td colspan='3'>{value(verification.ico_queried)}</td></tr>",
+            f"<tr><td>Checked at</td><td colspan='3'>{verification.checked_at:%Y-%m-%d %H:%M}</td></tr>",
+            f"<tr><td>Registry status</td><td colspan='3'><span class='onb-pill {status_cls}'>{status_text}</span></td></tr>",
+            "</tbody></table>",
+            "<div class='onb-subsection-title'>Normalized ARES data</div>",
+            "<table class='onb-table'><tbody>",
+            f"<tr><td>{name_label}</td><td>{value(normalized.get('company_name'))}</td></tr>",
+            f"<tr><td>{legal_label}</td><td>{value(normalized.get('legal_form'))}</td></tr>",
+            f"<tr><td>Registered address</td><td>{value(self._format_ares_address(address))}</td></tr>",
+            "</tbody></table>",
+            "<div class='onb-subsection-title'>Field matches</div>",
+            "<table class='onb-table'><thead><tr><th>Field</th><th>Application</th><th>ARES</th><th>Result</th></tr></thead><tbody>",
+            *rows,
+            "</tbody></table>",
+        ]
+
+        if warnings:
+            html.append("<div class='onb-summary warn'>ARES warnings / mismatches</div>")
+            html.append("<ul class='onb-reasons'>")
+            for warning in warnings:
+                html.append(f"<li>{value(str(warning).replace('_', ' '))}</li>")
+            html.append("</ul>")
+        else:
+            html.append("<div class='onb-summary good'>No ARES mismatches in checked fields</div>")
+
+        html.append("<div class='help'>Full raw ARES response is not stored.</div>")
+        html.append("</div>")
+        return mark_safe("".join(html))
+
+    def _format_ares_address(self, address: dict | None) -> str:
+        if not address:
+            return "—"
+        return ", ".join(
+            str(address.get(field) or "")
+            for field in ("street", "city", "zip_code", "country")
+            if address.get(field)
+        ) or "—"
+
+    def _format_application_company_address(self, obj: SellerOnboardingApplication) -> str:
+        address = getattr(obj, "company_address", None)
+        if not address:
+            return "—"
+        return ", ".join(
+            str(getattr(address, field) or "")
+            for field in ("street", "city", "zip_code", "country")
+            if getattr(address, field, None)
+        ) or "—"
+
+    def _format_application_ares_address(self, obj: SellerOnboardingApplication) -> str:
+        if obj.seller_type == "self_employed":
+            address = getattr(obj, "self_employed_address", None)
+            if not address:
+                return "—"
+            return ", ".join(
+                str(getattr(address, field) or "")
+                for field in ("street", "city", "zip_code", "country")
+                if getattr(address, field, None)
+            ) or "—"
+        return self._format_application_company_address(obj)
 
     @admin.display(description="Recent activity")
     def recent_activity_panel(self, obj: SellerOnboardingApplication) -> str:

@@ -1,0 +1,596 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+const hookMocks = vi.hoisted(() => ({
+  currentStore: null,
+  safeData: vi.fn(),
+  safeCompanyData: vi.fn(),
+  setRegisterData: vi.fn(),
+  getAllDataFromBD: vi.fn().mockResolvedValue({}),
+  getAllCompanyDataBD: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock('react-i18next', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useTranslation: () => ({
+      t: (key) => key,
+      i18n: { changeLanguage: vi.fn() },
+    }),
+  };
+});
+
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useNavigate: () => vi.fn(),
+  };
+});
+
+vi.mock('../../hook/useActionSafeEmploed', () => ({
+  useActionSafeEmploed: () => ({
+    safeData: (payload) => {
+      hookMocks.safeData(payload);
+      hookMocks.currentStore?.dispatch({ type: 'selfEmploed/safeData', payload });
+    },
+    safeCompanyData: hookMocks.safeCompanyData,
+    getAllDataFromBD: hookMocks.getAllDataFromBD,
+    getAllCompanyDataBD: hookMocks.getAllCompanyDataBD,
+    setRegisterData: hookMocks.setRegisterData,
+  }),
+}));
+
+vi.mock('../../api/seller/onboarding', () => ({
+  getAresCompanyByIco: vi.fn(),
+  putPersonalData: vi.fn().mockResolvedValue({}),
+  putTax: vi.fn().mockResolvedValue({}),
+  putSelfAddress: vi.fn().mockResolvedValue({}),
+  putOnboardingBank: vi.fn().mockResolvedValue({}),
+  putWarehouse: vi.fn().mockResolvedValue({}),
+  putReturnAddress: vi.fn().mockResolvedValue({}),
+  uploadSingleDocument: vi.fn().mockResolvedValue({ uploaded_at: '2025-01-01' }),
+}));
+
+vi.mock('../../api/seller/getOnboardingData', () => ({
+  getAccountData: vi.fn().mockResolvedValue({ first_name: '', last_name: '' }),
+  patchProfileUpdate: vi.fn().mockResolvedValue({ status: 204 }),
+  getPersonalData: vi.fn().mockResolvedValue({}),
+  getTaxData: vi.fn().mockResolvedValue({}),
+  getSelfAddressData: vi.fn().mockResolvedValue({}),
+  getBankData: vi.fn().mockResolvedValue({}),
+  getWarehouseData: vi.fn().mockResolvedValue({}),
+  getReturnData: vi.fn().mockResolvedValue({}),
+  getDocumentsData: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('../../ui/Toastify', () => ({ ErrToast: vi.fn() }));
+
+import { renderWithProviders } from '../../test/test-utils.jsx';
+import { setupStore } from '../../redux/index.js';
+import SellerInformation, { SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY } from './SellerInformation.jsx';
+import { getAresCompanyByIco, uploadSingleDocument } from '../../api/seller/onboarding';
+import { getAccountData } from '../../api/seller/getOnboardingData';
+
+const ROUTE = '/seller/seller-info';
+
+function makeStore(selfDataOverride = {}) {
+  return setupStore({
+    selfEmploed: {
+      selfData: { ...selfDataOverride },
+      selfDataLoading: false,
+      companyData: {},
+      companyDataLoading: false,
+      registerData: {},
+    },
+  });
+}
+
+function renderPage(selfDataOverride = {}, options = {}) {
+  if (options.dismissAssist !== false) {
+    localStorage.setItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY, 'test-dismissed');
+  } else {
+    localStorage.removeItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY);
+  }
+
+  const storeInstance = makeStore(selfDataOverride);
+  hookMocks.currentStore = storeInstance;
+
+  return renderWithProviders(<SellerInformation />, {
+    route: ROUTE,
+    storeInstance,
+  });
+}
+
+function inputByName(name) {
+  return document.querySelector(`[name="${name}"]`);
+}
+
+const completeSelfEmployedData = {
+  first_name: 'Jan',
+  last_name: 'Novak',
+  date_of_birth: '01.02.1990',
+  nationality: 'cz',
+  personal_phone: '+420777777777',
+  tax_country: 'cz',
+  tin: 'CZ25596641',
+  ico: '25596641',
+  street: 'Dlouhá 12',
+  city: 'Praha',
+  zip_code: '11000',
+  country: 'cz',
+  iban: 'CZ6508000000192000145399',
+  swift_bic: 'GIBACZPX',
+  account_holder: 'Jan Novak',
+  bank_code: '0800',
+  local_account_number: '123456789',
+  same_as_the_primary_address: true,
+  wStreet: 'Dlouhá 12',
+  wCity: 'Praha',
+  wZip_code: '11000',
+  wCountry: 'cz',
+  contact_phone: '+420777777777',
+  same_as_warehouse: true,
+  rStreet: 'Dlouhá 12',
+  rCity: 'Praha',
+  rZip_code: '11000',
+  rCountry: 'cz',
+  rContact_phone: '+420777777777',
+};
+
+function fileInputNearText(text, index = 0) {
+  return screen.getAllByText(text)[index].closest('div')?.querySelector('input[type="file"]');
+}
+
+async function fillPersonalDetails(user, { firstName = 'Jan', lastName = 'Novak' } = {}) {
+  await user.type(inputByName('first_name'), firstName);
+  await user.type(inputByName('last_name'), lastName);
+  await user.type(inputByName('date_of_birth'), '01.02.1990');
+  await user.type(inputByName('personal_phone'), '+420777777777');
+  await user.click(screen.getByRole('button', { name: 'onboard.seller_info.select_nationality' }));
+  await user.click(screen.getAllByRole('button', { name: 'countries.cz' })[0]);
+
+  await waitFor(() => {
+    expect(inputByName('date_of_birth')).toHaveValue('01.02.1990');
+    expect(screen.getAllByText('countries.cz').length).toBeGreaterThan(0);
+  });
+}
+
+describe('SellerInformation — self-employed ARES assist', () => {
+  const aresSuccess = {
+    found: true,
+    ico: '25596641',
+    business_id: '25596641',
+    company_name: 'Jan Novak',
+    registry_name: 'Jan Novak',
+    registered_address: {
+      street: 'Dlouhá 12',
+      city: 'Praha',
+      zip_code: '11000',
+      country: 'CZ',
+    },
+    dic_hint: 'CZ25596641',
+    dic_hint_source: 'ares',
+    is_active: false,
+    warnings: [],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    hookMocks.currentStore = null;
+    localStorage.clear();
+  });
+
+  describe('entry assist modal', () => {
+    async function openEntryAssist(selfData = {}) {
+      renderPage(selfData, { dismissAssist: false });
+      return screen.findByTestId('self-employed-ares-entry-modal');
+    }
+
+    async function lookupInEntryAssist(ico = '25596641') {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+      await user.type(within(modal).getByRole('textbox', { name: 'onboard.company.business_id' }), ico);
+      await user.click(within(modal).getByRole('button', { name: 'onboard.self_employed_ares.entry.load' }));
+      return { user, modal };
+    }
+
+    it('appears on empty self-employed onboarding with manual fallback copy', async () => {
+      const modal = await openEntryAssist();
+
+      expect(modal).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.self_employed_ares.entry.description')).toBeInTheDocument();
+      expect(within(modal).getByText('onboard.self_employed_ares.entry.scope_note')).toBeInTheDocument();
+      expect(within(modal).getByRole('button', { name: 'onboard.self_employed_ares.entry.manual' })).toBeInTheDocument();
+    });
+
+    it('does not appear when self-employed legal or tax data already exists', async () => {
+      renderPage({ tin: 'EXISTING-TIN' }, { dismissAssist: false });
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('self-employed-ares-entry-modal')).not.toBeInTheDocument();
+      });
+    });
+
+    it('Fill manually closes modal without mutating the form', async () => {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+
+      await user.click(within(modal).getByRole('button', { name: 'onboard.self_employed_ares.entry.manual' }));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('self-employed-ares-entry-modal')).not.toBeInTheDocument();
+      });
+      expect(localStorage.getItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY)).toBe('manual');
+      expect(inputByName('ico')).toHaveValue('');
+      expect(inputByName('tin')).toHaveValue('');
+      expect(inputByName('street')).toHaveValue('');
+    });
+
+    it('success lookup renders preview before applying', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+
+      const { modal } = await lookupInEntryAssist();
+
+      expect(await within(modal).findByTestId('self-employed-ares-entry-preview')).toBeInTheDocument();
+      expect(within(modal).getByText('Jan Novak')).toBeInTheDocument();
+      expect(within(modal).getByText('25596641')).toBeInTheDocument();
+      expect(within(modal).getByText('Dlouhá 12, Praha, 11000, CZ')).toBeInTheDocument();
+      expect(within(modal).getByText('CZ25596641')).toBeInTheDocument();
+      expect(inputByName('ico')).toHaveValue('');
+      expect(inputByName('tin')).toHaveValue('');
+    });
+
+    it('Apply fills approved tax and address fields, then closes modal', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+
+      const { user, modal } = await lookupInEntryAssist();
+      await within(modal).findByTestId('self-employed-ares-entry-preview');
+      await user.click(within(modal).getByRole('button', { name: 'onboard.self_employed_ares.entry.apply' }));
+
+      await waitFor(() => expect(screen.queryByTestId('self-employed-ares-entry-modal')).not.toBeInTheDocument());
+      expect(localStorage.getItem(SELF_EMPLOYED_ARES_ENTRY_ASSIST_STORAGE_KEY)).toBe('apply');
+      expect(inputByName('ico')).toHaveValue('25596641');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+      expect(inputByName('personal_phone')).toHaveValue('');
+      expect(inputByName('iban')).toHaveValue('');
+      expect(inputByName('wStreet')).toHaveValue('');
+      expect(inputByName('rStreet')).toHaveValue('');
+    });
+
+    it('error states keep manual mode available and Apply unavailable', async () => {
+      const user = userEvent.setup();
+      const modal = await openEntryAssist();
+      await user.type(within(modal).getByRole('textbox', { name: 'onboard.company.business_id' }), '25596641');
+
+      for (const errorCase of [
+        { status: 404, code: 'ares_not_found', key: 'not_found' },
+        { status: 400, code: 'ares_invalid_ico', key: 'invalid' },
+        { status: 503, code: 'ares_unavailable', key: 'unavailable' },
+      ]) {
+        getAresCompanyByIco.mockRejectedValueOnce(errorCase);
+        await user.click(within(modal).getByRole('button', { name: 'onboard.self_employed_ares.entry.load' }));
+
+        expect(await within(modal).findByRole('alert')).toHaveTextContent(`onboard.self_employed_ares.errors.${errorCase.key}`);
+        expect(within(modal).queryByRole('button', { name: 'onboard.self_employed_ares.entry.apply' })).not.toBeInTheDocument();
+        expect(within(modal).getByRole('button', { name: 'onboard.self_employed_ares.entry.manual' })).toBeInTheDocument();
+      }
+    });
+  });
+
+  describe('inline lookup', () => {
+    async function lookupInline(ico = '25596641', selfData = {}) {
+      const user = userEvent.setup();
+      renderPage(selfData);
+      await user.type(inputByName('ico'), ico);
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.load' }));
+      return user;
+    }
+
+    it('keeps Continue to Review disabled when required self-employed documents are missing', async () => {
+      renderPage(completeSelfEmployedData);
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'onboard.common.continue_review' })).toBeDisabled();
+      });
+    });
+
+    it('enables Continue to Review only after required identity and address documents are uploaded', async () => {
+      renderPage(completeSelfEmployedData);
+      const user = userEvent.setup();
+      const continueButton = screen.getByRole('button', { name: 'onboard.common.continue_review' });
+
+      expect(continueButton).toBeDisabled();
+
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-03',
+        side: 'front',
+      });
+      await user.upload(
+        fileInputNearText('Identity document'),
+        new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' }),
+      );
+
+      await waitFor(() => {
+        expect(uploadSingleDocument).toHaveBeenCalledWith(expect.objectContaining({
+          doc_type: 'identity_document',
+          scope: 'self_employed_personal',
+        }));
+      });
+      expect(continueButton).toBeDisabled();
+
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-04',
+      });
+      await user.upload(
+        fileInputNearText('onboard.tax_address.proof_address'),
+        new File(['proof-content'], 'proof.pdf', { type: 'application/pdf' }),
+      );
+
+      await waitFor(() => {
+        expect(continueButton).toBeEnabled();
+      });
+    });
+
+    it('lookup calls ARES and renders preview without mutating before Apply', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+
+      await lookupInline();
+
+      expect(getAresCompanyByIco).toHaveBeenCalledWith('25596641');
+      expect(await screen.findByTestId('self-employed-ares-preview')).toBeInTheDocument();
+      expect(screen.getByText('Jan Novak')).toBeInTheDocument();
+      expect(screen.getByText('Dlouhá 12, Praha, 11000, CZ')).toBeInTheDocument();
+      expect(inputByName('tin')).toHaveValue('');
+      expect(inputByName('street')).toHaveValue('');
+    });
+
+    it('Apply fills approved fields from inline preview', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+
+      const user = await lookupInline();
+      await screen.findByTestId('self-employed-ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.apply' }));
+
+      expect(inputByName('ico')).toHaveValue('25596641');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+    });
+
+    it('Apply does not overwrite non-empty user fields or forbidden sections', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce({
+        ...aresSuccess,
+        personal_phone: '+420000000000',
+        iban: 'CZ6508000000192000145399',
+        wStreet: 'Warehouse from ARES',
+        rStreet: 'Return from ARES',
+      });
+      localStorage.setItem('phone', JSON.stringify('+420777777777'));
+
+      const user = await lookupInline('25596641', {
+        tin: 'USER-TIN-123',
+        street: 'User Street 7',
+        city: 'User City',
+        zip_code: '99999',
+        iban: 'CZ6508000000192000145399',
+        wStreet: 'User Warehouse',
+        rStreet: 'User Return',
+      });
+      await screen.findByTestId('self-employed-ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.apply' }));
+
+      expect(inputByName('tin')).toHaveValue('USER-TIN-123');
+      expect(inputByName('street')).toHaveValue('User Street 7');
+      expect(inputByName('city')).toHaveValue('User City');
+      expect(inputByName('zip_code')).toHaveValue('99999');
+      expect(inputByName('personal_phone')).toHaveValue('+420777777777');
+      expect(inputByName('iban')).toHaveValue('CZ6508000000192000145399');
+      expect(inputByName('wStreet')).toHaveValue('User Warehouse');
+      expect(inputByName('rStreet')).toHaveValue('User Return');
+    });
+
+    it('fills first_name and last_name from selfData when available and keeps account_holder in sync', async () => {
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+      });
+
+      await waitFor(() => {
+        expect(inputByName('first_name')).toHaveValue('Jan');
+        expect(inputByName('last_name')).toHaveValue('Novak');
+      });
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+    });
+
+    it('keeps manually entered first_name and last_name (profile fallback does not overwrite)', async () => {
+      renderPage({
+        first_name: 'Manual',
+        last_name: 'Person',
+      });
+
+      await waitFor(() => {
+        expect(inputByName('first_name')).toHaveValue('Manual');
+        expect(inputByName('last_name')).toHaveValue('Person');
+      });
+      expect(inputByName('account_holder')).toHaveValue('Manual Person');
+    });
+
+    it('fills account_holder from profile fallback when first_name and last_name are initially empty', async () => {
+      getAccountData.mockResolvedValueOnce({ first_name: 'Profile', last_name: 'User' });
+      renderPage();
+
+      await waitFor(() => {
+        expect(inputByName('first_name')).toHaveValue('Profile');
+        expect(inputByName('last_name')).toHaveValue('User');
+        expect(inputByName('account_holder')).toHaveValue('Profile User');
+      });
+    });
+
+    it('does not overwrite manually set account_holder when names change', async () => {
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+        account_holder: 'Custom Holder',
+      });
+
+      await waitFor(() => {
+        expect(inputByName('account_holder')).toHaveValue('Custom Holder');
+      });
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+    });
+
+    it('keeps ARES-prefilled tax and address fields after identity document upload', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+      });
+      const user = userEvent.setup();
+
+      await user.type(inputByName('ico'), '25596641');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.load' }));
+      await screen.findByTestId('self-employed-ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.apply' }));
+
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+
+      const uploadControl = document.querySelector('input[type="file"]');
+      const file = new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' });
+      await user.upload(uploadControl, file);
+
+      await waitFor(() => {
+        expect(uploadSingleDocument).toHaveBeenCalled();
+      });
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+    });
+
+    it('keeps date_of_birth and nationality after Identity document upload', async () => {
+      renderPage();
+      const user = userEvent.setup();
+
+      await fillPersonalDetails(user);
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-03',
+        side: 'front',
+      });
+
+      const uploadControl = fileInputNearText('Identity document');
+      const file = new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' });
+      await user.upload(uploadControl, file);
+
+      await waitFor(() => {
+        expect(uploadSingleDocument).toHaveBeenCalledWith(expect.objectContaining({
+          doc_type: 'identity_document',
+          scope: 'self_employed_personal',
+          side: 'front',
+          identity_document_subtype: 'passport',
+        }));
+      });
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+      expect(inputByName('date_of_birth')).toHaveValue('01.02.1990');
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThan(0);
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+    });
+
+    it('shows human-readable upload error copy when identity document upload fails', async () => {
+      renderPage();
+      const user = userEvent.setup();
+
+      uploadSingleDocument.mockRejectedValueOnce(new Error('network down'));
+
+      const uploadControl = fileInputNearText('Identity document');
+      const file = new File(['passport-content'], 'passport.jpg', { type: 'image/jpeg' });
+      await user.upload(uploadControl, file);
+
+      expect(await screen.findByText('onboard.common.upload_error_detail')).toBeInTheDocument();
+    });
+
+    it('keeps date_of_birth, nationality and ARES fields after Address proof_of_address upload', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage();
+      const user = userEvent.setup();
+
+      await user.type(inputByName('ico'), '25596641');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.load' }));
+      await screen.findByTestId('self-employed-ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.apply' }));
+      await fillPersonalDetails(user);
+
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      uploadSingleDocument.mockResolvedValueOnce({
+        uploaded_at: '2025-02-04',
+      });
+
+      const uploadControl = fileInputNearText('onboard.tax_address.proof_address');
+      const file = new File(['proof-content'], 'proof.pdf', { type: 'application/pdf' });
+      await user.upload(uploadControl, file);
+
+      await waitFor(() => {
+        expect(uploadSingleDocument).toHaveBeenCalledWith(expect.objectContaining({
+          doc_type: 'proof_of_address',
+          scope: 'self_employed_address',
+          side: null,
+        }));
+      });
+      expect(inputByName('first_name')).toHaveValue('Jan');
+      expect(inputByName('last_name')).toHaveValue('Novak');
+      expect(inputByName('date_of_birth')).toHaveValue('01.02.1990');
+      expect(screen.getAllByText('countries.cz').length).toBeGreaterThan(0);
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+      expect(inputByName('street')).toHaveValue('Dlouhá 12');
+      expect(inputByName('city')).toHaveValue('Praha');
+      expect(inputByName('zip_code')).toHaveValue('11000');
+    });
+
+    it('keeps account_holder after ARES Apply when it was auto-derived from profile names', async () => {
+      getAresCompanyByIco.mockResolvedValueOnce(aresSuccess);
+      renderPage({
+        first_name: 'Jan',
+        last_name: 'Novak',
+      });
+      const user = userEvent.setup();
+
+      await waitFor(() => {
+        expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+      });
+      await user.type(inputByName('ico'), '25596641');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.load' }));
+      await screen.findByTestId('self-employed-ares-preview');
+      await user.click(screen.getByRole('button', { name: 'onboard.self_employed_ares.apply' }));
+
+      expect(inputByName('account_holder')).toHaveValue('Jan Novak');
+      expect(inputByName('tin')).toHaveValue('CZ25596641');
+    });
+
+    it('not found keeps manual fields available', async () => {
+      getAresCompanyByIco.mockRejectedValueOnce({ status: 404, code: 'ares_not_found' });
+
+      await lookupInline();
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('onboard.self_employed_ares.errors.not_found');
+      expect(screen.queryByRole('button', { name: 'onboard.self_employed_ares.apply' })).not.toBeInTheDocument();
+      expect(inputByName('ico')).toBeInTheDocument();
+      expect(inputByName('tin')).toBeInTheDocument();
+    });
+  });
+});

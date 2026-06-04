@@ -1,9 +1,13 @@
 import * as Yup from "yup";
+import { isLegalFormAllowed, normalizeCompanyAccountHolder } from "./companyLegalForms";
 
 const phoneRegex = /^\+?[0-9]{7,15}$/;
 const zipRegex = /^[A-Za-z0-9\- ]{3,10}$/;
 const ibanRegex = /^[A-Z]{2}[0-9A-Z]{13,32}$/;
 const swiftRegex = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
+const isCzSkBankCountry = (...countries) => countries
+    .map((country) => String(country || "").trim().toLowerCase())
+    .some((country) => country === "cz" || country === "sk");
 
 export const validationSchemaSelf = Yup.object({
 
@@ -34,11 +38,28 @@ export const validationSchemaSelf = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Phone number is required"),
 
-    // uploadFront: Yup.string()
-    //     .required("Front side upload is required"),
+    uploadPassport: Yup.string().test(
+        "identity-document-uploaded",
+        "Identity document upload is required",
+        function () {
+            const {
+                uploadPassport,
+                uploadDrivFront,
+                uploadDrivBack,
+                uploadIdFront,
+                uploadIdBack,
+                uploadFront,
+                uploadBack,
+            } = this.parent;
 
-    // uploadBack: Yup.string()
-    //     .required("Back side upload is required"),
+            return Boolean(
+                uploadPassport ||
+                (uploadDrivFront && uploadDrivBack) ||
+                (uploadIdFront && uploadIdBack) ||
+                (uploadFront && uploadBack)
+            );
+        },
+    ),
 
     // ================= TAX =================
     tax_country: Yup.string()
@@ -72,16 +93,8 @@ export const validationSchemaSelf = Yup.object({
     country: Yup.string()
         .required("Country is required"),
 
-    // proof_document_issue_date: Yup.date()
-    //     .transform((value, originalValue) => {
-    //         if (typeof originalValue === "string") {
-    //             const [day, month, year] = originalValue.split(".");
-    //             return new Date(`${year}-${month}-${day}`);
-    //         }
-    //         return value;
-    //     })
-    //     .typeError("Invalid date format")
-    //     .required("Document issue date is required"),
+    proof_document_issue_date: Yup.string()
+        .required("Address proof of address upload is required"),
 
     // ================= BANK =================
     iban: Yup.string()
@@ -92,21 +105,29 @@ export const validationSchemaSelf = Yup.object({
         .required("SWIFT/BIC is required"),
 
     account_holder: Yup.string()
-        .required("Account holder is required"),
+        .required("Account holder is required")
+        .test(
+            "matches-company-name",
+            "Account holder must match company name and legal form",
+            function (value) {
+                const { company_name, legal_form } = this.parent;
+                const expected = normalizeCompanyAccountHolder(company_name, legal_form);
+                if (!expected || !value) return true;
+                return String(value).trim() === expected;
+            },
+        ),
 
-    // bank_code: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Bank code is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    bank_code: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Bank code is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
-    // bank_code: Yup.string()
-    //     .required("Bank code is required"),
-    // local_account_number: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Local account is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    local_account_number: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Local account number is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
     // local_account_number: Yup.string()
     //     .required("Local account number is required"),
@@ -129,16 +150,11 @@ export const validationSchemaSelf = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Contact phone is required"),
 
-    // wProof_document_issue_date: Yup.date()
-    //     .transform((value, originalValue) => {
-    //         if (typeof originalValue === "string") {
-    //             const [day, month, year] = originalValue.split(".");
-    //             return new Date(`${year}-${month}-${day}`);
-    //         }
-    //         return value;
-    //     })
-    //     .typeError("Invalid date format")
-    //     .required("Document issue date is required"),
+    wProof_document_issue_date: Yup.string().when('same_as_the_primary_address', {
+        is: true,
+        then: (schema) => schema.optional(),
+        otherwise: (schema) => schema.required("Warehouse proof of address upload is required"),
+    }),
 
     // ================= RETURN ADDRESS =================
     rStreet: Yup.string()
@@ -158,9 +174,11 @@ export const validationSchemaSelf = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Return contact phone is required"),
 
-    // rProof_document_issue_date: Yup.date()
-    //     .max(new Date(), "Date cannot be in the future")
-    //     .required("Document issue date is required"),
+    rProof_document_issue_date: Yup.string().when('same_as_warehouse', {
+        is: true,
+        then: (schema) => schema.optional(),
+        otherwise: (schema) => schema.required("Return address proof of address upload is required"),
+    }),
 });
 
 
@@ -182,7 +200,14 @@ export const companyValidationSchema = Yup.object({
         .required("Company name is required"),
 
     legal_form: Yup.string()
-        .required("Legal form is required"),
+        .required("Legal form is required")
+        .test(
+            "legal-form-country",
+            "Legal form is not allowed for country of registration",
+            function (value) {
+                return isLegalFormAllowed(this.parent.country_of_registration, value)
+            },
+        ),
 
     country_of_registration: Yup.string()
         .required("Country of registration is required"),
@@ -275,21 +300,29 @@ export const companyValidationSchema = Yup.object({
         .required("SWIFT/BIC is required"),
 
     account_holder: Yup.string()
-        .required("Account holder is required"),
+        .required("Account holder is required")
+        .test(
+            "matches-company-name",
+            "Account holder must match company name and legal form",
+            function (value) {
+                const { company_name, legal_form } = this.parent;
+                const expected = normalizeCompanyAccountHolder(company_name, legal_form);
+                if (!expected || !value) return true;
+                return String(value).trim() === expected;
+            },
+        ),
 
-    // bank_code: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Bank code is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    bank_code: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Bank code is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
-    // bank_code: Yup.string()
-    //     .required("Bank code is required"),
-    // local_account_number: Yup.string().when("country", {
-    //     is: (val) => val === "cz" || val === "sk", // условие
-    //     then: (schema) => schema.required("Local account is required"), // обязательно
-    //     otherwise: (schema) => schema.notRequired(),          // иначе необязательно
-    // }),
+    local_account_number: Yup.string().when(["country_of_registration", "tax_country", "country"], {
+        is: isCzSkBankCountry,
+        then: (schema) => schema.required("Local account number is required"),
+        otherwise: (schema) => schema.notRequired(),
+    }),
 
     /* ========= WAREHOUSE ========= */
     wStreet: Yup.string()
@@ -309,9 +342,12 @@ export const companyValidationSchema = Yup.object({
         .matches(phoneRegex, "Invalid phone number")
         .required("Contact phone is required"),
 
-    // Set by the upload response; non-empty means doc was uploaded.
-    wProof_document_issue_date: Yup.string()
-        .required("Warehouse proof of address upload is required"),
+    // Required when warehouse address is not linked to the primary/company address.
+    wProof_document_issue_date: Yup.string().when('same_as_the_primary_address', {
+        is: true,
+        then: (schema) => schema.optional(),
+        otherwise: (schema) => schema.required("Warehouse proof of address upload is required"),
+    }),
 
     /* ========= RETURN ADDRESS ========= */
     rStreet: Yup.string()
@@ -338,4 +374,3 @@ export const companyValidationSchema = Yup.object({
         otherwise: (schema) => schema.optional(),
     }),
 });
-

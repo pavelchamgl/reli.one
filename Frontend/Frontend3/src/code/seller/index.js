@@ -78,5 +78,6 @@ export const countriesArr = [
   { text: "Sweden", value: "se", key: "countries.se" },
   { text: "Greece", value: "gr", key: "countries.gr" },
   { text: "Portugal", value: "pt", key: "countries.pt" },
-  { text: "Ireland", value: "ie", key: "countries.ie" }
+  { text: "Ireland", value: "ie", key: "countries.ie" },
+  { text: "Russia", value: "ru", key: "countries.ru" }
 ]

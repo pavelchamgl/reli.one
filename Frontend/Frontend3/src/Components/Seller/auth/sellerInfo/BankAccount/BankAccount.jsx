@@ -9,12 +9,14 @@ import { ErrToast } from "../../../../../ui/Toastify"
 // import { useSelector } from "react-redux";
 import styles from "./BankAccount.module.scss"
 import { getAccountData } from "../../../../../api/seller/getOnboardingData"
+import { normalizeCompanyAccountHolder } from "../../../../../code/seller/companyLegalForms"
 
 const BankAccount = ({ formik, onClosePreview }) => {
     // const { selfData, companyData } = useSelector(state => state.selfEmploed)
     const { pathname } = useLocation()
     const { safeData } = useActionSafeEmploed()
     const bankRef = useRef(null)
+    const selfEmployedLastAutoHolderRef = useRef("")
     const { t } = useTranslation('onbording')
 
     const normalize = (val) => val?.toLowerCase()?.trim()
@@ -39,9 +41,7 @@ const BankAccount = ({ formik, onClosePreview }) => {
     // 1. Функция получения "правильного" имени на основе данных из других блоков
     const getExpectedHolderName = () => {
         if (pathname.includes('company')) {
-            const cleanLegalForm = formik.values.legal_form?.replace(/\s*\(.*?\)/, "") || "";
-            const companyName = formik.values.company_name || "";
-            return `${companyName} ${cleanLegalForm}`.trim();
+            return normalizeCompanyAccountHolder(formik.values.company_name, formik.values.legal_form);
             // return (formik.values.company_name || "").trim();
         } else {
             const first = cleanName(formik.values.first_name);
@@ -58,29 +58,46 @@ const BankAccount = ({ formik, onClosePreview }) => {
     // 2. Эффект для автоматической подстановки значения (Company Info -> Bank Account)
     useEffect(() => {
         const expected = getExpectedHolderName();
-        if (expected) {
+        if (!expected) return;
+
+        const currentHolder = (formik.values.account_holder || "").trim();
+
+        if (pathname.includes('company')) {
             formik.setFieldValue('account_holder', expected);
+            return;
+        }
+
+        const wasAutoFilled = Boolean(currentHolder) && currentHolder === selfEmployedLastAutoHolderRef.current;
+        const shouldAutofill = !currentHolder || wasAutoFilled;
+
+        if (shouldAutofill && currentHolder !== expected) {
+            formik.setFieldValue('account_holder', expected);
+            selfEmployedLastAutoHolderRef.current = expected;
+        } else if (currentHolder === expected) {
+            selfEmployedLastAutoHolderRef.current = expected;
         }
     }, [
         formik.values.company_name,
         formik.values.legal_form,
         formik.values.first_name,
         formik.values.last_name,
+        formik.values.account_holder,
         pathname
     ]);
     useEffect(() => {
         if (!pathname.includes('company')) {
             getAccountData().then((res) => {
-                // if (res.status === 200) {
-                    // проверить нетворк на правильность статуса
+                if (!formik.values.first_name && res?.first_name) {
                     formik.setFieldValue("first_name", res.first_name)
+                }
+                if (!formik.values.last_name && res?.last_name) {
                     formik.setFieldValue("last_name", res.last_name)
-                // }
+                }
             }).catch(err => {
                 console.error("Ошибка при получении данных:", err);
             })
         }
-    }, [pathname])
+    }, [pathname, formik.values.first_name, formik.values.last_name])
 
     const isBankDataFilled = (values) => {
         return Boolean(values.iban && values.swift_bic && values.account_holder);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useActionSafeEmploed } from "../../../../../hook/useActionSafeEmploed";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 import uploadIc from "../../../../../assets/Seller/register/uploadIc.svg"
 import uploadIcErr from "../../../../../assets/Seller/register/uploadIcErr.svg"
@@ -22,10 +23,13 @@ const UploadInp = ({
     nameTitle,
     onMouseDown,
     uploadStatus,
-    identTwo
+    identTwo,
+    required = true,
+    preserveData,
 }) => {
 
     const { pathname } = useLocation()
+    const { t } = useTranslation('onbording')
 
     const companyPathname = ['/seller/seller-company', '/seller/seller-review-company']
 
@@ -40,10 +44,16 @@ const UploadInp = ({
 
         setName(file?.name)
 
+        const preservedData = typeof preserveData === "function" ? preserveData() : preserveData
+        const uploadPatch = {
+            ...(preservedData || {}),
+            [`${nameTitle}`]: file?.name
+        }
+
         if (companyPathname.includes(pathname)) {
             safeCompanyData({ [`${nameTitle}`]: file?.name })
         } else {
-            safeData({ [`${nameTitle}`]: file?.name })
+            safeData(uploadPatch)
         }
         // MIME
         const allowedTypes = [
@@ -81,7 +91,7 @@ const UploadInp = ({
         <div>
             {
                 title &&
-                <p className={styles.title}>{title}</p>
+                <p className={styles.title} data-required={required ? "true" : "false"}>{title}</p>
             }
             <span className={styles.desc}>{description}</span>
 
@@ -124,7 +134,7 @@ const UploadInp = ({
 
                 <div className={styles.uploadErrorTextBlock}>
                     <img src={uploadInpErrIc} alt="" />
-                    Failed to upload document
+                    {t('onboard.common.upload_error_detail')}
                 </div>
             }
         </div>

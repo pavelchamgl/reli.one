@@ -2,6 +2,7 @@
 # It was in the project before me
 
 backend/static/
+backend/logs/
 Frontend/node_modules
 Frontend/Frontend1/node_modules
 Frontend/Frontend2/node_modules

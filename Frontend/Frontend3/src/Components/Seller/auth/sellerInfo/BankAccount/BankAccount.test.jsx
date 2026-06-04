@@ -82,4 +82,72 @@ describe('BankAccount', () => {
       expect(screen.getByText('Invalid IBAN format')).toBeInTheDocument();
     });
   });
+
+  it('does not duplicate legal form suffix in account_holder', async () => {
+    renderWithProviders(
+      <BankAccountHarness
+        initialValues={{
+          company_name: 'Reli Group s.r.o.',
+          legal_form: 'sro',
+          country_of_registration: 'cz',
+        }}
+      />,
+      { route: '/seller/seller-company' },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Reli Group s.r.o.')).toBeInTheDocument();
+    });
+  });
+
+  it('appends legal form suffix when company_name lacks it', async () => {
+    renderWithProviders(
+      <BankAccountHarness
+        initialValues={{
+          company_name: 'Reli Group',
+          legal_form: 'sro',
+          country_of_registration: 'cz',
+        }}
+      />,
+      { route: '/seller/seller-company' },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Reli Group s.r.o.')).toBeInTheDocument();
+    });
+  });
+
+  it('does not duplicate a.s. suffix in account_holder', async () => {
+    renderWithProviders(
+      <BankAccountHarness
+        initialValues={{
+          company_name: 'Alza.cz a.s.',
+          legal_form: 'as',
+          country_of_registration: 'cz',
+        }}
+      />,
+      { route: '/seller/seller-company' },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Alza.cz a.s.')).toBeInTheDocument();
+    });
+  });
+
+  it('normalizes partial a.s. suffix in account_holder', async () => {
+    renderWithProviders(
+      <BankAccountHarness
+        initialValues={{
+          company_name: 'Alza.cz a.',
+          legal_form: 'as',
+          country_of_registration: 'cz',
+        }}
+      />,
+      { route: '/seller/seller-company' },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Alza.cz a.s.')).toBeInTheDocument();
+    });
+  });
 });
