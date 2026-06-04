@@ -2,7 +2,7 @@
 
 **Priority:** P1
 **Complexity:** High
-**Status:** **PLANNED** — реализация не начата (этот документ — план без изменений в коде).
+**Status:** **IN PROGRESS** — Iteration 1–3 частично/фактически реализованы; следующий согласованный шаг: **Iteration 3.5 — Company onboarding entry assist modal**.
 
 > **Продуктовая позиция.** MVP задачи — **ARES-assisted onboarding**: lookup по `IČO` + prefill формы при сохранении **ручного онбординга и ручной модерации**. **Auto-approve не является core MVP** — это отдельная поздняя фаза / pilot под feature-flag, включаемая **только после evidence gate** (см. раздел [Evidence gate before auto-approve](#evidence-gate-before-auto-approve)).
 
@@ -59,6 +59,7 @@ flowchart TD
 | **ARES client/service** | `backend/sellers/providers/ares/` — HTTP-клиент, нормализация, маппинг, кеш, ошибки |
 | **Lookup endpoint** | `GET /api/sellers/onboarding/company/ares-lookup/` для prefill формы; throttle + cache |
 | **Frontend lookup UI** | Кнопка «Загрузить из ARES» + preview результата + явный Apply в поля формы (поля остаются редактируемыми) + i18n |
+| **Company onboarding entry assist modal** | First-run модалка на company onboarding: коротко объясняет Czech-only public registry prefill, предлагает IČO lookup или ручной режим, показывает preview и Apply |
 | **Sanitized snapshot / audit / admin visibility** | Минимизированный (sanitized) снапшот результата, audit-событие `ares_lookup`, read-only ARES-панель в Admin |
 | **Submit-time ARES verification (moderator hint)** | При submit — сверка с ARES и сохранение результата как **подсказки модератору**, **без** auto-approve; статус по-прежнему `pending_verification` |
 | **Tests** | Backend (моки ARES) и Frontend (кнопка/preview/apply/ошибки) |
@@ -81,6 +82,7 @@ flowchart TD
 - **MVP не включает auto-approve в production.** Любой автоматический approve — только pilot-фаза под флагом, default off, после evidence gate.
 - Изменение существующих контрактов onboarding API (кроме нового lookup-эндпоинта).
 - Авто-апрув / lookup для `self_employed` (по `SellerSelfEmployedTaxInfo.business_id`) — опциональное расширение позже.
+- Country selector в entry-modal MVP: текущая assisted-интеграция работает только для компаний, зарегистрированных в Чехии; расширение на Slovakia/другие реестры — отдельная будущая итерация.
 - Замена ручной модерации: ручной путь approve/reject сохраняется полностью.
 - Интеграция стороннего KYC/identity-провайдера (Sumsub/Onfido и т.п.).
 - **VAT/DPH/VIES verification** — отдельная будущая интеграция; `dic` из ARES не является подтверждением валидности VAT.
@@ -241,6 +243,142 @@ Auto-approve (Later / Pilot) включается **только** при одн
 
 ---
 
+## Iteration 3.5 — Company onboarding entry assist modal
+
+### Цель
+Сделать ARES-assisted prefill заметным в самом начале company onboarding, но не превращать его в обязательный шаг. Продавец должен сразу понять: для компаний, зарегистрированных в Чехии, мы можем взять часть юридических данных из публичного реестра по `IČO`; во всех остальных случаях или при ошибке lookup можно спокойно продолжить ручное заполнение.
+
+### Продуктовое решение
+- Модалка появляется первой на странице company onboarding (`/seller/seller-company`) перед ручным заполнением блоков.
+- В MVP **нет выбора страны**. Текст модалки явно говорит, что автозаполнение из публичного реестра сейчас доступно только для компаний, зарегистрированных в Чехии.
+- Manual mode всегда доступен и не воспринимается как fallback второго сорта.
+- Модалка не обещает “заполнить весь онбординг автоматически”: она честно объясняет, что заполнит только часть юридических данных компании, а телефон, банк, документы, representative, warehouse/return остаются ручными/проверяемыми.
+- Встроенная ARES-кнопка рядом с `business_id` в форме сохраняется как повторный путь, если продавец закрыл модалку или хочет попробовать lookup позже.
+
+### UX copy requirements
+Короткое объяснение должно передавать смысл:
+
+- `For companies registered in Czechia, we can look up public registry data by IČO and prefill part of your onboarding form.`
+- `This works for Czech companies only. You can still fill everything manually.`
+
+Локализовать EN/CZ. Формулировка должна быть аккуратной: автозаполнение Czech-only, но регистрация продавцов из других стран не запрещена — они идут через ручной режим.
+
+### Visual / UI requirements
+- Модалка должна соответствовать текущей визуальной системе seller onboarding:
+  - использовать существующую цветовую гамму, типографику, spacing и форму контролов из `Frontend3`;
+  - не выглядеть как отдельная маркетинговая/лендинговая карточка;
+  - повторять тон текущих onboarding components: спокойный, utilitarian, form-first;
+  - primary/secondary buttons должны визуально соответствовать текущим seller auth/onboarding buttons;
+  - preview найденных данных должен быть компактным, сканируемым, без вложенных card-in-card;
+  - mobile layout должен быть удобным: модалка scrollable, кнопки не перекрывают контент.
+- Перед завершением реализации нужен visual sanity check на desktop и mobile viewports.
+
+### Trigger / persistence rules
+- Показывать только для company onboarding.
+- Показывать при первом входе на `/seller/seller-company`, если юридические данные ещё не заполнены (`company_name` и/или `business_id` пустые).
+- Не показывать повторно после:
+  - успешного `Apply to onboarding`;
+  - выбора `Fill manually`;
+  - наличия уже заполненных company legal data при загрузке страницы.
+- После reject/action-required flow не показывать модалку заново, если данные компании уже есть; продавец должен сразу видеть review/edit контекст.
+- Состояние “manual chosen / modal dismissed” хранить локально в рамках onboarding session/user context без изменения backend API. Если нужен persistent flag — вынести в отдельный follow-up, не расширять MVP API.
+
+### Modal states
+1. **Initial**
+   - Короткое Czech-only объяснение.
+   - `IČO` input.
+   - Primary action: `Load from public registry`.
+   - Secondary action: `Fill manually`.
+   - `Apply to onboarding` не показывать или disabled до успешного lookup.
+
+2. **Loading**
+   - Primary action disabled/loading.
+   - Input не должен вызывать lookup на каждый keystroke; только по явному клику.
+
+3. **Success preview**
+   - Показать найденные sanitized данные:
+     - company name;
+     - IČO/business ID;
+     - legal form;
+     - registered address;
+     - DIČ/TIN hint, если есть;
+     - inactive warning, если `is_active=false`.
+   - Primary action: `Apply to onboarding`.
+   - Secondary action: `Fill manually`.
+   - Продавец явно подтверждает применение; silent auto-fill запрещён.
+
+4. **Not found / invalid / unavailable**
+   - Показать понятное сообщение.
+   - `Apply to onboarding` disabled/not available.
+   - `Fill manually` остаётся доступным.
+   - Ошибка lookup не блокирует ручное заполнение.
+
+### Apply behavior
+- Использовать тот же mapping/helper path, что и текущий ARES Apply в `CompanyInfo.jsx`, чтобы не раздвоить правила.
+- Заполнять:
+  - `company_name`;
+  - `business_id`;
+  - `legal_form`;
+  - `country_of_registration` = Czech Republic/CZ;
+  - registered company address (`street`, `city`, `zip_code`, `country`) при наличии;
+  - `tin` из DIČ hint только если поле пустое.
+- Не заполнять:
+  - `company_phone`;
+  - bank account;
+  - representative DOB/nationality/role как обязательную истину;
+  - warehouse/return;
+  - uploads/proofs.
+- Все prefilled поля остаются редактируемыми.
+
+### Implementation steps
+1. **Design alignment**
+   - Найти существующие modal/dialog patterns в Frontend3 или собрать lightweight modal в стиле seller onboarding.
+   - Зафиксировать desktop/mobile layout перед кодом.
+
+2. **State extraction**
+   - Вынести ARES lookup/apply logic из `CompanyInfo.jsx` в переиспользуемый helper/hook, если без этого modal и inline lookup начнут дублировать mapping.
+   - Не добавлять новую абстракцию, если можно аккуратно переиспользовать существующие helpers (`companyLegalForms`, `getAresCompanyByIco`, formik setters).
+
+3. **Modal component**
+   - Добавить `CompanyAresAssistModal` или аналогичный компонент рядом с seller onboarding/company flow.
+   - Подключить к `SellerCompanyInfo.jsx`.
+   - Реализовать state machine: initial/loading/success/error/manual.
+
+4. **Persistence / trigger**
+   - Определить, когда modal должна открываться.
+   - Сохранить dismissed/manual/apply состояние так, чтобы modal не появлялась повторно в рамках текущего onboarding session.
+
+5. **i18n**
+   - Добавить EN/CZ copy в `onbordingEn.json` / `onbordingCz.json`.
+   - Проверить, что copy не обещает поддержку Slovakia/других стран.
+
+6. **Tests**
+   - RTL tests для `SellerCompanyInfo`/modal:
+     - modal appears on empty company onboarding;
+     - modal does not appear when company data exists;
+     - manual mode closes modal and does not mutate form;
+     - invalid IČO/not found/unavailable disables Apply and keeps manual mode available;
+     - success preview renders sanitized data;
+     - Apply fills legal company fields and closes modal;
+     - Apply does not overwrite non-empty `tin`;
+     - Apply does not fill phone/bank/warehouse/return.
+
+7. **Visual QA**
+   - Run local frontend.
+   - Check desktop and mobile screenshots.
+   - Verify modal copy, button hierarchy, scroll behavior, and that form content underneath is not awkwardly occluded.
+
+### Output
+- First-run Czech-only ARES assist modal for company onboarding.
+- Manual mode always available.
+- Existing inline ARES lookup remains available in company info block.
+- Tests and i18n for the modal flow.
+
+### Статус
+- [ ] Скоуп утверждён; реализация не начата.
+
+---
+
 ## Iteration 4 — Snapshot / Audit / Admin visibility
 
 ### Цель
@@ -338,6 +476,7 @@ docker compose -f docker-compose.test.yml run --rm backend_test pytest sellers/ 
 - [ ] ARES client/service (`providers/ares/**`) с retry, кешем, нормализацией, маппингом и IČO-валидацией; unit-тесты на моках.
 - [ ] Lookup endpoint `GET .../company/ares-lookup/` (view + url + serializer ответа), permission `IsSeller`, **throttle + cache**, audit-событие `ares_lookup`; данные не сохраняются (только prefill).
 - [ ] Frontend3: кнопка «Загрузить из ARES» с preview + явным Apply, обработкой ошибок и частичного адреса; i18n cz/en; frontend-тест.
+- [ ] Frontend3: first-run Czech-only ARES assist modal на company onboarding, без country selector, с manual fallback, preview + Apply, визуально согласованная с текущим onboarding UI; frontend-тесты и EN/CZ i18n.
 - [ ] `SellerAresVerification` (sanitized snapshot, без полного `raw_response`) + миграция (только добавление, **без** `auto_approved`); ARES-панель в Admin; события `ARES_LOOKUP`/`ARES_VERIFIED`/`ARES_MISMATCH` в `OnboardingAuditLog`.
 - [ ] Submit-time `verify_against_ares()` как **moderator hint**; статус остаётся `pending_verification`; **auto-approve отсутствует**; fail-closed при недоступности ARES.
 - [ ] Backend regression gate (`manage.py check`, `pytest sellers/ -q`, полный `pytest`).
@@ -361,7 +500,7 @@ docker compose -f docker-compose.test.yml run --rm backend_test pytest sellers/ 
 | **Backend (новое)** | `sellers/providers/ares/{client,service,mapping,errors}.py` |
 | **Backend (изменения, MVP)** | `sellers/services_onboarding.py` (lookup + submit-time verify hint), `sellers/onboarding/steps/company.py`, `sellers/urls.py`, `sellers/serializers_onboarding.py`, `sellers/models.py` (+ миграция: `SellerAresVerification`), `sellers/admin.py`, `backend/backend/settings.py` |
 | **Backend (изменения, Pilot)** | `sellers/models.py` (+ миграция: `auto_approved`), `sellers/services_onboarding.py` (`auto_approve_application`, ветка submit), `backend/backend/settings.py` (flag) |
-| **Frontend** | `Frontend/Frontend3/src/api/seller/onboarding.js`, `Frontend/Frontend3/src/Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo.jsx`, `locales/cz/onbordingCz.json`, `locales/en/onbordingEn.json` |
+| **Frontend** | `Frontend/Frontend3/src/api/seller/onboarding.js`, `Frontend/Frontend3/src/Components/Seller/auth/sellerInfo/CompanyInfo/CompanyInfo.jsx`, `Frontend/Frontend3/src/sellerPages/SellerCompanyInfo/SellerCompanyInfo.jsx`, modal/helper files for Iteration 3.5, `locales/cz/onbordingCz.json`, `locales/en/onbordingEn.json` |
 | **Tests** | `sellers/test_*` (ARES client/service, lookup, submit-time hint; pilot: auto-approve), Frontend3 unit-тест |
 | **Env** | `envs/backend.env.example`, `envs/backend.test.env.example` |
 | **Docs** | `docs/06-integrations.md`, `docs/seller-onboarding-flow.md` |
