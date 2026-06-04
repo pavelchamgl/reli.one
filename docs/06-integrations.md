@@ -39,21 +39,25 @@ ARES используется только как вспомогательный
 | Provider | `backend/sellers/providers/ares/` |
 | API base | `ARES_API_BASE`, default `https://ares.gov.cz/ekonomicke-subjekty-v-be/rest` |
 | Endpoint | `GET /api/sellers/onboarding/company/ares-lookup/?ico=...` |
-| Runtime use | Prefill/hint по Czech IČO; submit-time moderator hint только для company |
+| Runtime use | Prefill/hint по Czech IČO; submit-time moderator hint для company и self-employed |
 | Persistence | Только sanitized snapshot в `SellerAresVerification`; полный raw response не хранится |
 | Moderation | Ручная: submit остаётся `pending_verification`; auto-approve в MVP отсутствует |
 
 Lookup endpoint возвращает нормализованные поля для явного Apply: `company_name` / registry name, `business_id` / IČO, `legal_form` для company, registered address, `dic_hint`, `is_active` и warnings.
 
-Self-employed MVP переиспользует этот stateless sanitized lookup endpoint только на frontend: first-run assist modal и inline lookup показывают preview и применяют только пустые поля `ico`, `tax_country=cz`, `tin` из `dic_hint`, и primary self-employed address. Registry name остаётся preview-only и не заполняет personal identity fields.
+Self-employed MVP переиспользует этот stateless sanitized lookup endpoint на frontend: first-run assist modal и inline lookup показывают preview и применяют только пустые поля `ico`, `tax_country=cz`, `tin` из `dic_hint`, и primary self-employed address. Registry name остаётся preview-only и не заполняет personal identity fields.
 
 ARES не заполняет и не подтверждает phone, bank account, representative identity, warehouse/return addresses или документы. DIČ из ARES не является VAT/DPH/VIES verification.
 
-При submit для company onboarding backend повторно вызывает ARES по `company_info.business_id`, сравнивает ключевые legal fields и сохраняет результат как moderator hint. Self-employed submit-time verification не входит в MVP Task 023:
+При submit backend повторно вызывает ARES по IČO/business ID и сохраняет результат как sanitized moderator hint:
 
-- `ARES_VERIFIED` audit event, если найденная активная компания совпадает по проверенным полям;
-- `ARES_MISMATCH`, если есть расхождения или компания неактивна;
+- company: lookup по `company_info.business_id`, сравнение business ID, company name, legal form, registered address, active status;
+- self-employed: lookup по `self_employed_tax.business_id`, сравнение business ID, registered/primary address, active status; registry/person name может отображаться как hint, но не используется как identity verification;
+- `ARES_VERIFIED` audit event, если найденная активная запись совпадает по проверенным полям без warnings;
+- `ARES_MISMATCH`, если есть расхождения, warnings, неактивная запись, not found/unavailable/error;
 - при not found/unavailable/error submit не блокируется и заявка всё равно уходит на ручную модерацию.
+- полный raw ARES response не хранится;
+- ARES не является KYC или identity verification.
 
 ---
 

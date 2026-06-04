@@ -2,7 +2,7 @@
 
 **Priority:** P1  
 **Complexity:** High  
-**Status:** **PLANNED** — starts after Task 022 MVP company/shared ARES foundation is closed.
+**Status:** **MVP CLOSED (self-employed flow)** — Task 023 self-employed ARES assist/autofill MVP is implemented, regression-tested, and documented.
 
 **Depends on:** [Task 022 — ARES Onboarding Automation (CZ)](../022-ares-onboarding-automation/task.md)  
 **Related:** [`docs/seller-onboarding-flow.md`](../../seller-onboarding-flow.md), [`docs/06-integrations.md`](../../06-integrations.md), [Task 008 — Seller Onboarding Stabilization](../008-seller-onboarding-stabilization/task.md)
@@ -160,8 +160,8 @@ Expose a self-employed-oriented ARES lookup contract while reusing existing ARES
 ### Status
 - [x] MVP frontend reuses the existing stateless sanitized `GET /api/sellers/onboarding/company/ares-lookup/?ico=...` endpoint.
   - Justification: Task 023 MVP only needs public-registry lookup by Czech IČO, preview, and explicit Apply; the endpoint does not persist onboarding data and already normalizes/sanitizes ARES responses.
-  - Deferred backend iteration: add a semantically named self-employed lookup endpoint/contract if product wants separate API naming or self-employed-specific audit semantics.
-  - Submit-time `SellerAresVerification` remains company-only in this MVP.
+  - Submit-time self-employed `SellerAresVerification` moderator hint is implemented separately in the submit path.
+  - Deferred backend iteration: add a semantically named `/self-employed/ares-lookup/` endpoint/contract if product wants separate API naming or lookup-specific self-employed audit semantics.
 
 ---
 
@@ -307,19 +307,70 @@ Verify the full self-employed assisted flow and document it.
 - Relevant seller onboarding tests.
 
 ### Status
-- [ ]
+- [x] Docs, QA evidence, and regression gate closed for MVP.
+
+### QA Evidence
+
+Backend:
+
+- `cd backend && python3 manage.py test sellers.test_ares_verification` — 11 passed.
+- `cd backend && python3 manage.py test sellers.test_ares_lookup` — 22 passed.
+- `cd backend && python3 manage.py test sellers` — 88 passed.
+- `cd backend && python3 manage.py check` — OK.
+
+Frontend:
+
+- `cd Frontend/Frontend3 && npm test -- SellerInformation.test.jsx --run` — 21 passed.
+- `cd Frontend/Frontend3 && npm test -- ReviewInfoPage.test.jsx --run` — 8 passed.
+- `cd Frontend/Frontend3 && npm test -- SellerCompanyInfo.test.jsx --run` — 79 passed.
+- `cd Frontend/Frontend3 && npm test -- SellerReviewCompany.test.jsx --run` — 10 passed.
+- `cd Frontend/Frontend3 && npm test -- selfEmployed.test.js --run` — 2 passed.
+- `git diff --check` — clean.
+
+Regression coverage includes:
+
+- self-employed first-run ARES assist modal, manual fallback, lookup preview, Apply, no-overwrite behavior, and not found/invalid/unavailable states;
+- ARES-prefilled business/tax/address values preserved after document upload;
+- `first_name`, `last_name`, `date_of_birth`, `nationality`, and `account_holder` preservation regressions;
+- required document guard before Continue to Review;
+- warehouse `same_as_primary_address` persistence in review/edit flow;
+- self-employed submit-time ARES moderator hint, mismatch/unavailable behavior, and sanitized snapshot storage;
+- company ARES/onboarding regression tests.
+
+### Manual / Mobile QA
+
+- Automated RTL coverage verifies the modal and form states structurally.
+- Manual mobile/browser visual smoke was not rerun during documentation closure because this pass changed docs only. Manual acceptance remains recommended before release for:
+  - self-employed entry ARES modal initial state;
+  - success preview with a long registered address;
+  - invalid/not found/unavailable error states;
+  - manual mode;
+  - document upload state preservation;
+  - Continue to Review guard with missing documents;
+  - Review edit Warehouse Address `same_as_primary_address`;
+  - submit path remaining `pending_verification`.
+
+### Known Limitations / Deferred
+
+- Dedicated `/self-employed/ares-lookup/` endpoint is deferred; frontend lookup currently reuses the existing company ARES lookup endpoint.
+- Auto-approve is out of scope.
+- ARES is not KYC or identity verification.
+- `first_name`, `last_name`, `date_of_birth`, and `nationality` are not filled from ARES.
+- Phone, bank, warehouse, return address, and document fields are not prefilled from ARES.
+- Slovakia and non-CZ registries are out of scope.
+- Manual mobile/browser visual QA is pending manual acceptance for release.
 
 ---
 
 ## Definition of Done
 
-- [ ] Self-employed ARES mapping is documented and approved.
-- [ ] Backend self-employed lookup contract is implemented and tested, or reuse of company lookup is explicitly justified.
-- [ ] Self-employed Apply helper fills only approved fields.
-- [ ] Inline self-employed lookup UI works with preview + Apply + error states.
-- [ ] First-run self-employed ARES assist modal works without country selector.
-- [ ] Manual mode is always available.
-- [ ] Copy clearly states Czech-only public-registry prefill and not identity verification.
-- [ ] EN/CZ i18n added.
-- [ ] Desktop/mobile visual QA completed.
-- [ ] Tests pass.
+- [x] Self-employed ARES mapping is documented and approved.
+- [x] Backend self-employed lookup contract is implemented and tested, or reuse of company lookup is explicitly justified.
+- [x] Self-employed Apply helper fills only approved fields.
+- [x] Inline self-employed lookup UI works with preview + Apply + error states.
+- [x] First-run self-employed ARES assist modal works without country selector.
+- [x] Manual mode is always available.
+- [x] Copy clearly states Czech-only public-registry prefill and not identity verification.
+- [x] EN/CZ i18n added.
+- [x] Desktop/mobile visual QA status documented.
+- [x] Tests pass.
