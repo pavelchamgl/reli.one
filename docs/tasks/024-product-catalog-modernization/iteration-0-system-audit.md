@@ -1,7 +1,7 @@
 # Iteration 0 — системный аудит и декомпозиция задач
 
 **Родительский план:** `docs/tasks/024-product-catalog-modernization/task.md`  
-**Статус:** готово к выполнению  
+**Статус:** выполнено
 **Рекомендуемый агент:** Codex 5.3 Medium для локального аудита; Opus 4.8 High или MAX Mode для последующего ревью  
 **В этой итерации нельзя писать application code.**
 
@@ -286,13 +286,15 @@ Application code не менять.
 
 ## Definition of Done
 
-- [ ] Application code не изменен.
-- [ ] Dependency map покрывает backend, frontend, DB, admin, checkout, delivery, stock, GMC, order history, search и seller flow.
-- [ ] Risk register создан с severity и mitigations.
-- [ ] Implementation task breakdown создан для Iterations 1-9.
-- [ ] Seller warehouse/stock ownership вынесен как explicit architectural decision.
-- [ ] Main image, GMC, SKU, dimensions и public visibility invariants включены в будущие acceptance criteria.
-- [ ] Все команды, которые не удалось выполнить, задокументированы с причиной.
+- [x] Application code не изменен.
+- [x] Dependency map покрывает backend, frontend, DB, admin, checkout, delivery, stock, GMC, order history, search и seller flow.
+- [x] Risk register создан с severity и mitigations.
+- [x] Implementation task breakdown создан для Iterations 1-10.
+- [x] Seller warehouse/stock ownership вынесен как explicit architectural decision.
+- [x] Main image, GMC, SKU, dimensions и public visibility invariants включены в будущие acceptance criteria.
+- [x] Все команды, которые не удалось выполнить, задокументированы с причиной.
+
+Примечание: optional schema/test checks из раздела discovery в этой итерации не запускались, потому что задача была documentation-only audit без изменения application code. Неуспешных команд не было.
 
 ---
 
@@ -327,4 +329,3 @@ docs/tasks/024-product-catalog-modernization/iteration-0-system-audit.md
 
 Верни findings first, ordered by severity, затем список созданных/обновленных documentation files и verification notes.
 ```
-

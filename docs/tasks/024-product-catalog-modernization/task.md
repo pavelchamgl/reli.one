@@ -87,7 +87,7 @@
 2. **Стабильность SKU:** существующие значения `ProductVariant.sku` нельзя менять. Checkout, reviews, order history, stock reservation и payment завязаны на них.
 3. **Габариты доставки:** delivery/payment должны продолжать получать `ProductVariant.weight_grams`, `length_mm`, `width_mm`, `height_mm`, пока все связанные участки не мигрированы.
 4. **Главное фото:** выбранное главное фото должно быть детерминированным и одинаковым для public listing, product detail, order history и GMC feed.
-5. **GMC:** feed должен сохранять поведение GTIN/MPN/brand через compatibility adapters и fallbacks.
+5. **GMC:** feed должен сохранять поведение GTIN/MPN/brand через compatibility adapters и fallbacks; один `<item>` на `ProductVariant`, `item_group_id=product.id` и item count на товар должны сохраняться.
 6. **Публичная видимость:** public API не должен отдавать `pending/rejected` media, documents, brands, draft/enrichment payloads или `reserved_quantity`.
 7. **Legacy search:** поиск по `ProductParameter` должен работать до внедрения typed attribute search.
 
@@ -429,6 +429,24 @@ Audit trail модерации.
 
 ## Итерации
 
+Каноническая карта итераций после System Audit:
+
+| Iteration | Канонический смысл | Статус |
+| --- | --- | --- |
+| 0 | Системный аудит и декомпозиция | выполнено |
+| 1 | Architecture decisions и базовые compatibility constraints | следующий шаг |
+| 2 | Backend compatibility layer без изменения public behavior | после ADR |
+| 3 | Stock path для seller products | после ADR по складам |
+| 4 | Catalog normalized models: Brand, identifiers, media, documents | после compatibility layer |
+| 5 | Category attribute schema и typed product attributes | после решений по category inheritance |
+| 6 | Public filters, facets и search upgrade | после typed attributes |
+| 7 | Seller frontend: new create/edit wizard | после backend API/schema |
+| 8 | Admin/moderation upgrade | после новых nested resources |
+| 9 | Import/enrichment foundation | после draft/materialization contract |
+| 10 | Cleanup и legacy migration | только после compatibility-релизов |
+
+Эта таблица является source of truth для всех документов задачи. Старый порядок `task.md` был пересобран после ревью Iteration 0, чтобы `Iteration 1` не означала одновременно ADR и миграции.
+
 ### Iteration 0 — системный аудит и декомпозиция
 
 Цель: до изменений кода получить карту зависимостей и точные задачи реализации.
@@ -448,48 +466,41 @@ Acceptance criteria:
 
 - [ ] Есть dependency map.
 - [ ] Есть risk register.
-- [ ] Есть implementation task breakdown для Iterations 1-9.
+- [ ] Есть implementation task breakdown для Iterations 1-10.
 - [ ] Есть отдельное архитектурное решение по seller warehouse/stock path.
 - [ ] Для каждой будущей задачи указаны ограничения, проверки и acceptance criteria.
 
-### Iteration 1 — фундамент новых моделей БД
+### Iteration 1 — Architecture decisions и базовые compatibility constraints
 
-Цель: добавить новые модели без изменения публичного поведения.
+Цель: закрыть архитектурные решения до migrations и application code.
 
 Действия:
 
-- Решить и описать seller-to-warehouse model и stock path.
-- Добавить `Brand`.
-- Добавить external identifiers.
-- Добавить category attribute definitions/options.
-- Добавить typed product attribute values.
-- Добавить product media.
-- Добавить product documents.
-- Добавить draft/data source/import/moderation models, если утверждено.
-- Добавить `created_at`/`updated_at` на `BaseProduct`, если утверждено.
-- Добавить constraints/indexes.
-- Зарегистрировать модели в admin.
-- Зафиксировать, что first-phase attributes только product-level.
-- Оставить delivery package dimensions на `ProductVariant` в мм/г.
+- Оформить ADR по seller warehouse ownership и stock path.
+- Учесть существующие `SellerProfile.default_warehouse` и `SellerProfile.warehouses`.
+- Определить поведение при `default_warehouse=NULL`.
+- Оформить ADR по dimensions policy: seller UI показывает `cm/kg`, delivery/payment storage остается `ProductVariant.*_mm/weight_grams`.
+- Оформить ADR по scope typed attributes: first phase только product-level.
+- Оформить ADR по category inheritance для MPTT и behavior для `category=NULL`/non-leaf categories.
+- Оформить ADR по public visibility для pending/rejected brand/media/documents.
+- Утвердить constraints/indexes для будущих моделей.
+- Зафиксировать backup/reversibility policy для data migrations.
 
 Ограничения:
 
-- Не удалять и не переименовывать legacy-модели.
-- Не менять public serializer output.
-- Не менять контракт `article`.
-- Не менять `ProductVariant.sku`.
+- Не писать application code.
+- Не создавать migrations.
+- Не менять backend/frontend contracts.
 
 Acceptance criteria:
 
-- [ ] Миграции применяются чисто.
-- [ ] Существующие тесты проходят или неизмененные падения задокументированы.
-- [ ] Текущие product APIs сохраняют response shape.
-- [ ] Новые модели открываются в admin.
-- [ ] Определены constraints для main media, external identifiers и attribute values.
-- [ ] Seller stock ownership и `WarehouseItem` path задокументированы.
-- [ ] `article`, `barcode`, `ProductVariant.sku` остаются совместимыми.
+- [ ] У каждого архитектурного решения есть ADR.
+- [ ] Stock path переиспользует или явно согласует `default_warehouse/warehouses`.
+- [ ] Checkout CZ-origin от `default_warehouse.country` не ломается.
+- [ ] `ProductVariant.sku`, `article`, `barcode` остаются совместимыми.
+- [ ] Есть единые constraints для Iterations 2-10.
 
-### Iteration 2 — backend API совместимости
+### Iteration 2 — Backend compatibility layer без изменения public behavior
 
 Цель: безопасно отдавать новые данные, сохраняя старый frontend/API контракт.
 
@@ -524,27 +535,117 @@ Acceptance criteria:
 - [ ] Главное фото одинаково для public list, detail, order history, GMC.
 - [ ] Public responses не содержат `reserved_quantity`.
 
-### Iteration 3 — admin и moderation
+### Iteration 3 — Stock path для seller products
 
-Цель: сделать новые данные управляемыми и модерируемыми.
+Цель: сделать создание товара совместимым с покупаемостью и reservation.
 
 Действия:
 
-- Улучшить product admin fieldsets.
-- Добавить admin для brands, attributes, options, media, documents, drafts, imports.
-- Добавить moderation event tracking.
-- Определить связь `Brand.status`, `ProductMedia.status`, `ProductDocument.status` с `ProductStatus`.
-- Убедиться, что `ProductModerationEvent` не конфликтует с `approved_by`, `approved_at`, `rejected_reason`.
+- Реализовать утвержденный stock path для seller-created products.
+- Создавать или обновлять `WarehouseItem` через service/API, а не напрямую из frontend.
+- Привязать stock rows к `SellerProfile.default_warehouse` или разрешенному `warehouses`.
+- Определить behavior при `default_warehouse=NULL`.
+- Сохранить старое поведение: missing `WarehouseItem` означает `out_of_stock`.
+- Покрыть reservation и public stock tests.
+
+Ограничения:
+
+- Не менять `ProductVariant.sku`.
+- Не переносить delivery dimensions.
+- Не обходить CZ-origin checkout policy.
 
 Acceptance criteria:
 
-- [ ] Admin видит core data, media, documents, attributes.
-- [ ] Rejection reason/comment сохраняется.
-- [ ] Moderation history видна.
-- [ ] Existing product status behavior сохраняется.
-- [ ] Правила public visibility для pending/rejected brands/media/documents ясны.
+- [ ] Seller может задать stock для своего варианта.
+- [ ] Товар с валидным stock path становится buyable.
+- [ ] Товар без stock row остается `out_of_stock`.
+- [ ] Checkout CZ-origin проходит для товара с остатком на корректном складе.
+- [ ] `default_warehouse=NULL` покрыт тестом и документирован.
 
-### Iteration 4 — seller create/edit flow
+### Iteration 4 — Catalog normalized models: Brand, identifiers, media, documents
+
+Цель: добавить новые модели без удаления legacy-моделей и без изменения public behavior.
+
+Действия:
+
+- Добавить `Brand`.
+- Добавить external identifiers.
+- Добавить product media.
+- Добавить product documents.
+- Добавить `seller_sku` как optional field, не заменяя `article`.
+- Добавить `created_at`/`updated_at` на `BaseProduct`, если утверждено.
+- Добавить constraints/indexes для main media, identifiers, statuses.
+- Зарегистрировать модели в admin.
+- Сделать data migration media: минимальный old image id -> `is_main`, порядок id -> `sort_order`.
+- Перед data migration подготовить backup, dry-run на копии БД и reverse/rollback plan.
+
+Ограничения:
+
+- Не удалять `BaseProductImage`, `LicenseFile`, `barcode`, `article`.
+- Не менять public serializer output без adapters.
+- Не менять `ProductVariant.sku`.
+
+Acceptance criteria:
+
+- [ ] Миграции применяются чисто.
+- [ ] Старые product APIs сохраняют response shape.
+- [ ] Главное фото одинаково для public list, detail, order history, GMC.
+- [ ] Pending/rejected brand/media/documents не видны public.
+- [ ] Data migration имеет rollback notes и backup-шаг.
+
+### Iteration 5 — Category attribute schema и typed product attributes
+
+Цель: добавить category-driven typed attributes без регресса поиска.
+
+Действия:
+
+- Добавить category attribute definitions/options.
+- Добавить typed product attribute values.
+- Зафиксировать, что first-phase attributes только product-level.
+- Реализовать inheritance по MPTT согласно ADR.
+- Добавить category schema endpoint для seller form/import templates.
+- Сохранить `ProductParameter` search fallback до typed search.
+- Добавить indexes для filterable attributes.
+
+Ограничения:
+
+- Не делать variant-level attributes без отдельного дизайна.
+- Не отключать legacy parameters до готовности typed search.
+
+Acceptance criteria:
+
+- [ ] Category endpoint отдает attribute schema.
+- [ ] Required attributes валидируются.
+- [ ] Старые товары не становятся invalid без explicit revalidation.
+- [ ] Search не регрессирует при переходном периоде.
+
+### Iteration 6 — Public filters, facets и search upgrade
+
+Цель: добавить фильтры по нормализованным характеристикам.
+
+Действия:
+
+- Добавить facet metadata endpoint по категории.
+- Добавить фильтры по brand, price, availability, rating, category attributes.
+- Добавить query support для typed attribute values.
+- Спроектировать indexes для facet queries.
+- Сделать realistic-volume query checks или описать performance risk.
+
+Ограничения:
+
+- Не строить новые filters по свободным `ProductParameter`.
+- Не ломать price/acquiring behavior.
+- Не отключать текущий search по `ProductParameter` до typed search.
+
+Acceptance criteria:
+
+- [ ] Category API отдает facets.
+- [ ] Фильтры по enum/boolean/number attributes работают.
+- [ ] Фильтр по brand работает.
+- [ ] Search возвращает products/categories.
+- [ ] Query performance приемлем или риск задокументирован.
+
+### Iteration 7 — Seller frontend: new create/edit wizard
 
 Цель: перестроить форму вокруг category schema и безопасного порядка UX.
 
@@ -577,60 +678,29 @@ Acceptance criteria:
 - [ ] Seller может задать stock через утвержденный путь или товар явно `out_of_stock`.
 - [ ] Variant package dimensions совместимы с delivery/payment.
 
-### Iteration 5 — публичная витрина и product detail
+### Iteration 8 — Admin/moderation upgrade
 
-Цель: показать новые данные покупателю без регрессии старых товаров.
-
-Действия:
-
-- Обновить product detail для structured attributes.
-- Показать brand, documents, media order, variant availability.
-- Сохранить legacy parameters fallback.
-- Обновить category/search cards при добавлении media/brand.
-- Не отключать `ProductParameter` rendering/search fallback до typed search.
-
-Acceptance criteria:
-
-- [ ] Старые и новые товары рендерятся.
-- [ ] Detail page показывает structured attributes.
-- [ ] Main media детерминирован.
-- [ ] Variant stock display использует safe availability fields.
-- [ ] Pending/rejected media/documents/brands не видны публично.
-- [ ] `ProductVariant.sku` behavior для reviews/orders не изменился.
-
-### Iteration 6 — category facets и search
-
-Цель: добавить фильтры по нормализованным характеристикам.
+Цель: сделать новые данные управляемыми и модерируемыми.
 
 Действия:
 
-- Добавить facet metadata endpoint по категории.
-- Добавить фильтры по brand, price, availability, rating, category attributes.
-- Добавить query support для typed attribute values.
-- Спроектировать indexes для facet queries.
-- Определить MPTT inheritance rules.
-- Определить поведение для `category=NULL` и non-leaf categories.
-- Сделать realistic-volume query checks или описать performance risk.
-
-Ограничения:
-
-- Новые filters не строить по свободным `ProductParameter`.
-- Не ломать price/acquiring behavior.
-- Не отключать текущий search по `ProductParameter` до typed search.
+- Улучшить product admin fieldsets.
+- Добавить admin для brands, attributes, options, media, documents, drafts, imports.
+- Добавить moderation event tracking.
+- Определить связь `Brand.status`, `ProductMedia.status`, `ProductDocument.status` с `ProductStatus`.
+- Убедиться, что `ProductModerationEvent` не конфликтует с `approved_by`, `approved_at`, `rejected_reason`.
 
 Acceptance criteria:
 
-- [ ] Category API отдает facets.
-- [ ] Фильтры по enum/boolean/number attributes работают.
-- [ ] Фильтр по brand работает.
-- [ ] Search возвращает products/categories.
-- [ ] Query performance приемлем или риск задокументирован.
-- [ ] Facet indexes и query plan описаны.
-- [ ] Category inheritance/null/non-leaf behavior детерминирован.
+- [ ] Admin видит core data, media, documents, attributes.
+- [ ] Rejection reason/comment сохраняется.
+- [ ] Moderation history видна.
+- [ ] Existing product status behavior сохраняется.
+- [ ] Правила public visibility для pending/rejected brands/media/documents ясны.
 
-### Iteration 7 — mass import
+### Iteration 9 — Import/enrichment foundation
 
-Цель: дать поставщикам простой массовый импорт.
+Цель: подготовить массовый импорт и future enrichment по barcode/link/photo.
 
 Действия:
 
@@ -641,6 +711,9 @@ Acceptance criteria:
 - Показывать row-level errors.
 - Создавать drafts или pending products только после review/confirmation.
 - Сохранять provenance по строкам.
+- Использовать `ProductDataSource` для barcode/link/photo inputs.
+- Хранить raw и normalized payloads.
+- Не писать source data напрямую в public product fields.
 
 Ограничения:
 
@@ -656,28 +729,7 @@ Acceptance criteria:
 - [ ] Import batch хранит status и row counts.
 - [ ] Import не создает buyable stock без валидного stock path.
 
-### Iteration 8 — enrichment-ready pipeline
-
-Цель: подготовить архитектуру заполнения товара по barcode, marketplace URL, photo, AI/parser.
-
-Действия:
-
-- Использовать `ProductDataSource` для всех enrichment inputs.
-- Хранить raw и normalized payloads.
-- Добавить confidence/provenance по полям.
-- Маппить external attributes в internal category definitions.
-- Добавить review UI/API для принятия/отклонения предложенных значений.
-- Не писать source data напрямую в public product fields.
-
-Acceptance criteria:
-
-- [ ] Barcode/link/photo source создает draft data source.
-- [ ] Raw и normalized payload сохраняются.
-- [ ] Proposed values проходят review.
-- [ ] Field provenance сохраняется.
-- [ ] External source data не обходят moderation.
-
-### Iteration 9 — legacy migration и cleanup
+### Iteration 10 — Cleanup и legacy migration
 
 Цель: перенести старые данные и постепенно снизить зависимость от legacy-моделей.
 
@@ -690,6 +742,7 @@ Acceptance criteria:
 - Сохранить compatibility relations/adapters до миграции list/detail/order/GMC.
 - Добавить compatibility checks.
 - Удалять/deprecate legacy write paths только после завершения frontend/API migration.
+- Перед destructive cleanup подготовить backup, dry-run на копии БД и restore plan.
 
 Ограничения:
 
@@ -743,6 +796,7 @@ Acceptance criteria:
 ### GMC feed
 
 - Feed generation сохраняет GTIN, MPN, brand, image, title, availability через adapters.
+- Feed эмитит один `<item>` на `ProductVariant`, сохраняет `item_group_id=product.id`; snapshot проверяет item count на товар.
 - Static seller brand overrides остаются fallback.
 - Feed diffs ревьюятся перед deploy.
 
@@ -869,4 +923,3 @@ Expected output:
 3. `implementation-task-breakdown.md`
 
 Только после этого можно переходить к реализации `Iteration 1`.
-
