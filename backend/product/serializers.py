@@ -15,6 +15,7 @@ from .stock_availability import (
     compute_stock_status,
     variant_available_quantity,
 )
+from .compat import get_product_cover_image_url
 
 
 class ProductParameterSerializer(serializers.ModelSerializer):
@@ -207,10 +208,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         request = self.context.get('request')
-        first_image = obj.images.first()
-        if first_image and first_image.image and request:
-            return request.build_absolute_uri(first_image.image.url)
-        return None
+        return get_product_cover_image_url(obj, request=request, absolute=True) if request else None
 
     def get_is_favorite(self, obj):
         request = self.context.get('request')
