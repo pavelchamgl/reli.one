@@ -6,6 +6,10 @@ from mptt.forms import TreeNodeChoiceField
 
 from .models import (
     BaseProduct,
+    Brand,
+    ProductDocument,
+    ProductExternalIdentifier,
+    ProductMedia,
     ProductParameter,
     BaseProductImage,
     Category,
@@ -51,6 +55,19 @@ class ProductParameterInline(admin.TabularInline):
     model = ProductParameter
     extra = 1
     fields = ('name', 'value')
+
+
+class ProductMediaInline(admin.TabularInline):
+    model = ProductMedia
+    extra = 0
+    fields = ('file', 'media_type', 'sort_order', 'is_main', 'status', 'legacy_image')
+    readonly_fields = ('legacy_image',)
+
+
+class ProductDocumentInline(admin.TabularInline):
+    model = ProductDocument
+    extra = 0
+    fields = ('name', 'file', 'document_type', 'sort_order', 'status', 'file_size', 'content_type')
 
 
 class BaseProductAdminForm(forms.ModelForm):
@@ -106,7 +123,7 @@ class AdminBaseProduct(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                'name', 'product_description', 'additional_details', 'category', 'seller',
+                'name', 'product_description', 'additional_details', 'category', 'brand', 'seller',
                 'status', 'article', 'is_active'
             )
         }),
@@ -125,6 +142,8 @@ class AdminBaseProduct(admin.ModelAdmin):
 
     inlines = [
         BaseProductImageInline,
+        ProductMediaInline,
+        ProductDocumentInline,
         ProductParameterInline,
         ProductVariantInline,
         LicenseFileInline
@@ -144,7 +163,38 @@ class CategoryAdmin(MPTTModelAdmin):
 
 @admin.register(BaseProductImage)
 class BaseProductImageAdmin(admin.ModelAdmin):
-    pass
+    search_fields = ('product__name', 'image')
+
+
+@admin.register(Brand)
+class BrandAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'slug', 'status', 'created_by', 'created_at')
+    list_filter = ('status',)
+    search_fields = ('name', 'slug')
+
+
+@admin.register(ProductExternalIdentifier)
+class ProductExternalIdentifierAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product', 'identifier_type', 'value', 'source', 'is_primary')
+    list_filter = ('identifier_type', 'source', 'is_primary')
+    search_fields = ('product__name', 'value', 'source')
+    autocomplete_fields = ('product',)
+
+
+@admin.register(ProductMedia)
+class ProductMediaAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product', 'media_type', 'sort_order', 'is_main', 'status', 'legacy_image')
+    list_filter = ('media_type', 'status', 'is_main')
+    search_fields = ('product__name', 'file', 'alt_text')
+    autocomplete_fields = ('product', 'legacy_image')
+
+
+@admin.register(ProductDocument)
+class ProductDocumentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product', 'document_type', 'sort_order', 'status', 'name')
+    list_filter = ('document_type', 'status')
+    search_fields = ('product__name', 'name', 'file')
+    autocomplete_fields = ('product',)
 
 
 @admin.register(ProductParameter)
