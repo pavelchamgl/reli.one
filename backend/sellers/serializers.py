@@ -2,6 +2,7 @@ import uuid
 import magic
 
 from rest_framework import serializers
+from django.shortcuts import get_object_or_404
 
 from .fields import CustomBase64FileField, RestrictedBase64ImageField
 from product.models import (
@@ -12,6 +13,7 @@ from product.models import (
     LicenseFile,
 )
 from product.compat import get_product_cover_image_url
+from warehouses.models import Warehouse, WarehouseItem
 
 
 class ProductParameterSerializer(serializers.ModelSerializer):
@@ -152,6 +154,52 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         if instance.image and request:
             representation['image'] = request.build_absolute_uri(instance.image.url)
         return representation
+
+
+class ProductVariantStockWriteSerializer(serializers.Serializer):
+    quantity_in_stock = serializers.IntegerField(min_value=0)
+    warehouse_id = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        seller_profile = self.context["seller_profile"]
+        warehouse_id = attrs.get("warehouse_id")
+
+        if warehouse_id is None:
+            warehouse = seller_profile.default_warehouse
+            if warehouse is None:
+                raise serializers.ValidationError({
+                    "warehouse_id": ["Seller has no default warehouse. Provide an allowed warehouse_id."]
+                })
+        else:
+            warehouse = get_object_or_404(Warehouse, pk=warehouse_id)
+            default_warehouse_id = seller_profile.default_warehouse_id
+            is_default = default_warehouse_id is not None and warehouse.id == default_warehouse_id
+            is_allowed = seller_profile.warehouses.filter(pk=warehouse.id).exists()
+            if not (is_default or is_allowed):
+                raise serializers.ValidationError({
+                    "warehouse_id": ["Warehouse is not available for this seller."]
+                })
+
+        attrs["warehouse"] = warehouse
+        return attrs
+
+
+class ProductVariantStockReadSerializer(serializers.ModelSerializer):
+    warehouse_id = serializers.IntegerField(source="warehouse.id", read_only=True)
+    variant_id = serializers.IntegerField(source="product_variant.id", read_only=True)
+    sku = serializers.CharField(source="product_variant.sku", read_only=True)
+    available_quantity = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = WarehouseItem
+        fields = [
+            "warehouse_id",
+            "variant_id",
+            "sku",
+            "quantity_in_stock",
+            "reserved_quantity",
+            "available_quantity",
+        ]
 
 
 class ProductVariantSwaggerSerializer(serializers.Serializer):

@@ -32,6 +32,8 @@ from .serializers import (
     BaseProductImageSerializer,
     BulkBaseProductImageSerializer,
     ProductVariantSerializer,
+    ProductVariantStockReadSerializer,
+    ProductVariantStockWriteSerializer,
     ProductVariantSwaggerSerializer,
     ProductVariantPatchSwaggerSerializer,
     LicenseFileReadSerializer,
@@ -47,6 +49,7 @@ from product.models import (
 from product.filters import BaseProductFilter
 from product.pagination import StandardResultsSetPagination
 from product.serializers import BaseProductListSerializer
+from warehouses.models import WarehouseItem
 
 
 @extend_schema_view(
@@ -754,6 +757,48 @@ class ProductVariantViewSet(ModelViewSet):
 
         output_data = self.get_serializer(created_variants, many=True).data
         return Response(output_data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        tags=["Seller Product Variants"],
+        operation_id="product_variant_stock_upsert",
+        description=(
+            "Create or update seller stock for a product variant. "
+            "If `warehouse_id` is omitted, the seller default warehouse is used. "
+            "If `warehouse_id` is provided, it must be the default warehouse or one "
+            "of the seller's allowed warehouses."
+        ),
+        request=ProductVariantStockWriteSerializer,
+        responses={status.HTTP_200_OK: ProductVariantStockReadSerializer},
+    )
+    @action(methods=['put'], detail=True)
+    def stock(self, request, product_pk=None, pk=None):
+        variant = self.get_object()
+        seller_profile = get_object_or_404(
+            SellerProfile.objects.prefetch_related("warehouses"),
+            user=request.user,
+        )
+
+        serializer = ProductVariantStockWriteSerializer(
+            data=request.data,
+            context={"seller_profile": seller_profile},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        warehouse = serializer.validated_data["warehouse"]
+        quantity = serializer.validated_data["quantity_in_stock"]
+
+        with transaction.atomic():
+            warehouse_item, created = WarehouseItem.objects.select_for_update().get_or_create(
+                warehouse=warehouse,
+                product_variant=variant,
+                defaults={"quantity_in_stock": quantity},
+            )
+            if not created:
+                warehouse_item.quantity_in_stock = quantity
+                warehouse_item.save(update_fields=["quantity_in_stock"])
+
+        output_serializer = ProductVariantStockReadSerializer(warehouse_item)
+        return Response(output_serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema_view(
