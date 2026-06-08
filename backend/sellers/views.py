@@ -41,14 +41,26 @@ from .serializers import (
 )
 from product.models import (
     BaseProduct,
+    Category,
     ProductParameter,
     BaseProductImage,
     ProductVariant,
     LicenseFile,
+    ProductAttributeValue,
+)
+from product.attribute_schema import (
+    category_allows_products,
+    get_effective_attribute_schema,
+    replace_product_attribute_values,
 )
 from product.filters import BaseProductFilter
 from product.pagination import StandardResultsSetPagination
-from product.serializers import BaseProductListSerializer
+from product.serializers import (
+    BaseProductListSerializer,
+    CategoryAttributeDefinitionSerializer,
+    ProductAttributeValueReadSerializer,
+    ProductAttributeValueWriteSerializer,
+)
 from warehouses.models import WarehouseItem
 
 
@@ -331,6 +343,88 @@ class ProductParameterViewSet(ModelViewSet):
 
         output_data = self.get_serializer(created_objs, many=True).data
         return Response(output_data, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(
+    tags=["Seller Category Attributes"],
+    description=(
+        "Return the effective category attribute schema for seller forms and import templates. "
+        "Definitions are inherited from ancestors and child definitions override parent "
+        "definitions by stable `code`."
+    ),
+    responses={status.HTTP_200_OK: OpenApiResponse(description="Effective category attribute schema.")},
+)
+class SellerCategoryAttributeSchemaAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, category_id):
+        if not request.user.is_seller():
+            raise PermissionDenied("Only sellers can access category attribute schema.")
+
+        category = get_object_or_404(Category, pk=category_id)
+        schema = get_effective_attribute_schema(category)
+        serializer = CategoryAttributeDefinitionSerializer(schema, many=True)
+
+        return Response(
+            {
+                "category_id": category.id,
+                "category_name": category.name,
+                "category_allows_products": category_allows_products(category),
+                "attributes": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    tags=["Seller Product Attributes"],
+    description=(
+        "Read or replace typed product-level attributes for a seller-owned product. "
+        "PUT validates the product category effective schema and required attributes."
+    ),
+    request=ProductAttributeValueWriteSerializer(many=True),
+    responses={status.HTTP_200_OK: ProductAttributeValueReadSerializer(many=True)},
+)
+class SellerProductAttributeValuesAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsSellerOwner]
+
+    def get_product(self, product_id):
+        product = get_object_or_404(BaseProduct.objects.select_related("seller__user", "category"), pk=product_id)
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+        return product
+
+    def get(self, request, product_id):
+        if not request.user.is_seller():
+            raise PermissionDenied("Only sellers can access product attributes.")
+
+        product = self.get_product(product_id)
+        values = (
+            ProductAttributeValue.objects.filter(product=product)
+            .select_related("attribute_definition", "value_option")
+            .order_by("attribute_definition__sort_order", "id")
+        )
+        serializer = ProductAttributeValueReadSerializer(values, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, product_id):
+        if not request.user.is_seller():
+            raise PermissionDenied("Only sellers can update product attributes.")
+
+        product = self.get_product(product_id)
+        serializer = ProductAttributeValueWriteSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            values = replace_product_attribute_values(product, serializer.validated_data)
+
+        output_serializer = ProductAttributeValueReadSerializer(
+            ProductAttributeValue.objects.filter(pk__in=[value.pk for value in values])
+            .select_related("attribute_definition", "value_option")
+            .order_by("attribute_definition__sort_order", "id"),
+            many=True,
+        )
+        return Response(output_serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema_view(

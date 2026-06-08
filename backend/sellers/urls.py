@@ -7,6 +7,8 @@ from .views import (
     BaseProductImageViewSet,
     ProductVariantViewSet,
     LicenseFileViewSet,
+    SellerCategoryAttributeSchemaAPIView,
+    SellerProductAttributeValuesAPIView,
     SellerProductListView,
     SellerSalesStatisticsView,
     SellerBaseProductListView,
@@ -61,6 +63,16 @@ products_router.register(
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(products_router.urls)),
+    path(
+        'categories/<int:category_id>/attribute-schema/',
+        SellerCategoryAttributeSchemaAPIView.as_view(),
+        name='seller-category-attribute-schema',
+    ),
+    path(
+        'products/<int:product_id>/attributes/',
+        SellerProductAttributeValuesAPIView.as_view(),
+        name='seller-product-attributes',
+    ),
     path('my-products/', SellerProductListView.as_view(), name='seller-product-list'),
     path('statistics/sales/', SellerSalesStatisticsView.as_view(), name='seller-sales-statistics'),
     path("<int:seller_id>/products/", SellerBaseProductListView.as_view(), name="seller-products"),

@@ -61,6 +61,10 @@ class Category(MPTTModel):
         'self', null=True, blank=True, related_name='children', on_delete=models.CASCADE
     )
     image = models.ImageField(upload_to='category_images/', null=True, blank=True)
+    allows_product_assignment = models.BooleanField(
+        default=False,
+        help_text="Разрешает создавать товары прямо в non-leaf категории.",
+    )
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -188,6 +192,203 @@ class ProductParameter(models.Model):
 
     def __str__(self):
         return f"{self.name}: {self.value}"
+
+
+class CategoryAttributeDefinition(models.Model):
+    class DataType(models.TextChoices):
+        TEXT = 'text', 'Text'
+        NUMBER = 'number', 'Number'
+        BOOLEAN = 'boolean', 'Boolean'
+        ENUM = 'enum', 'Enum'
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='attribute_definitions',
+    )
+    code = models.SlugField(max_length=100)
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    data_type = models.CharField(max_length=20, choices=DataType.choices)
+    unit = models.CharField(max_length=32, blank=True)
+    group = models.CharField(max_length=100, blank=True)
+    is_required = models.BooleanField(default=False)
+    is_filterable = models.BooleanField(default=False)
+    is_public = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    validation_rules = models.JSONField(default=dict, blank=True)
+    version = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['sort_order', 'id']
+        indexes = [
+            models.Index(fields=['category', 'is_active', 'sort_order'], name='cad_category_active_sort_idx'),
+            models.Index(fields=['category', 'code'], name='cad_category_code_idx'),
+            models.Index(fields=['is_filterable', 'data_type'], name='cad_filter_type_idx'),
+            models.Index(fields=['data_type'], name='cad_data_type_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['category', 'code'], name='uniq_cad_category_code'),
+        ]
+
+    def __str__(self):
+        return f"{self.category_id}: {self.code}"
+
+
+class CategoryAttributeOption(models.Model):
+    attribute_definition = models.ForeignKey(
+        CategoryAttributeDefinition,
+        on_delete=models.CASCADE,
+        related_name='options',
+    )
+    value = models.SlugField(max_length=100)
+    label = models.CharField(max_length=150)
+    sort_order = models.PositiveIntegerField(default=0)
+    aliases = models.JSONField(default=list, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['sort_order', 'id']
+        indexes = [
+            models.Index(fields=['attribute_definition', 'is_active', 'sort_order'], name='cao_attr_active_sort_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['attribute_definition', 'value'], name='uniq_cao_attr_value'),
+        ]
+
+    def __str__(self):
+        return f"{self.attribute_definition_id}: {self.value}"
+
+
+class ProductAttributeValue(models.Model):
+    product = models.ForeignKey(
+        BaseProduct,
+        on_delete=models.CASCADE,
+        related_name='attribute_values',
+    )
+    attribute_definition = models.ForeignKey(
+        CategoryAttributeDefinition,
+        on_delete=models.CASCADE,
+        related_name='product_values',
+    )
+    value_text = models.TextField(blank=True)
+    value_number = models.DecimalField(max_digits=18, decimal_places=4, null=True, blank=True)
+    value_boolean = models.BooleanField(null=True, blank=True)
+    value_option = models.ForeignKey(
+        CategoryAttributeOption,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='product_values',
+    )
+    source = models.CharField(max_length=64, default='manual')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['product', 'attribute_definition'], name='pav_product_attr_idx'),
+            models.Index(fields=['attribute_definition', 'value_number'], name='pav_attr_number_idx'),
+            models.Index(fields=['attribute_definition', 'value_boolean'], name='pav_attr_boolean_idx'),
+            models.Index(fields=['attribute_definition', 'value_option'], name='pav_attr_option_idx'),
+            models.Index(fields=['source'], name='pav_source_idx'),
+        ]
+        constraints = [
+            models.UniqueConstraint(fields=['product', 'attribute_definition'], name='uniq_pav_product_attr'),
+        ]
+
+    def __str__(self):
+        return f"{self.product_id}: {self.attribute_definition_id}"
+
+    def clean(self):
+        errors = {}
+        if not self.attribute_definition_id:
+            errors['attribute_definition'] = ['Attribute definition is required.']
+            raise ValidationError(errors)
+
+        try:
+            definition = self.attribute_definition
+        except CategoryAttributeDefinition.DoesNotExist:
+            errors['attribute_definition'] = ['Attribute definition does not exist.']
+            raise ValidationError(errors)
+
+        has_text = bool((self.value_text or '').strip())
+        has_number = self.value_number is not None
+        has_boolean = self.value_boolean is not None
+        has_option = self.value_option_id is not None
+
+        def reject_unexpected(fields):
+            for field in fields:
+                errors[field] = ['This field must be empty for this attribute data type.']
+
+        if definition.data_type == CategoryAttributeDefinition.DataType.TEXT:
+            if not has_text:
+                errors['value_text'] = ['This field is required for text attributes.']
+            unexpected = []
+            if has_number:
+                unexpected.append('value_number')
+            if has_boolean:
+                unexpected.append('value_boolean')
+            if has_option:
+                unexpected.append('value_option')
+            reject_unexpected(unexpected)
+
+        elif definition.data_type == CategoryAttributeDefinition.DataType.NUMBER:
+            if not has_number:
+                errors['value_number'] = ['This field is required for number attributes.']
+            unexpected = []
+            if has_text:
+                unexpected.append('value_text')
+            if has_boolean:
+                unexpected.append('value_boolean')
+            if has_option:
+                unexpected.append('value_option')
+            reject_unexpected(unexpected)
+
+        elif definition.data_type == CategoryAttributeDefinition.DataType.BOOLEAN:
+            if not has_boolean:
+                errors['value_boolean'] = ['This field is required for boolean attributes.']
+            unexpected = []
+            if has_text:
+                unexpected.append('value_text')
+            if has_number:
+                unexpected.append('value_number')
+            if has_option:
+                unexpected.append('value_option')
+            reject_unexpected(unexpected)
+
+        elif definition.data_type == CategoryAttributeDefinition.DataType.ENUM:
+            if not has_option:
+                errors['value_option'] = ['This field is required for enum attributes.']
+            else:
+                try:
+                    option = self.value_option
+                except CategoryAttributeOption.DoesNotExist:
+                    option = None
+                if option is None:
+                    errors['value_option'] = ['Option does not exist.']
+                elif option.attribute_definition_id != definition.id:
+                    errors['value_option'] = ['Option is not valid for this attribute definition.']
+                elif not option.is_active:
+                    errors['value_option'] = ['Option must be active.']
+
+            unexpected = []
+            if has_text:
+                unexpected.append('value_text')
+            if has_number:
+                unexpected.append('value_number')
+            if has_boolean:
+                unexpected.append('value_boolean')
+            reject_unexpected(unexpected)
+
+        else:
+            errors['attribute_definition'] = ['Unsupported attribute data type.']
+
+        if errors:
+            raise ValidationError(errors)
 
 
 class ProductExternalIdentifier(models.Model):

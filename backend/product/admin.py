@@ -7,8 +7,11 @@ from mptt.forms import TreeNodeChoiceField
 from .models import (
     BaseProduct,
     Brand,
+    CategoryAttributeDefinition,
+    CategoryAttributeOption,
     ProductDocument,
     ProductExternalIdentifier,
+    ProductAttributeValue,
     ProductMedia,
     ProductParameter,
     BaseProductImage,
@@ -75,6 +78,12 @@ class BaseProductAdminForm(forms.ModelForm):
 
     class Meta:
         model = BaseProduct
+        fields = '__all__'
+
+
+class ProductAttributeValueAdminForm(forms.ModelForm):
+    class Meta:
+        model = ProductAttributeValue
         fields = '__all__'
 
 
@@ -158,7 +167,9 @@ class AdminBaseProduct(admin.ModelAdmin):
 
 @admin.register(Category)
 class CategoryAdmin(MPTTModelAdmin):
-    pass
+    list_display = ('id', 'name', 'parent', 'allows_product_assignment')
+    list_filter = ('allows_product_assignment',)
+    search_fields = ('name',)
 
 
 @admin.register(BaseProductImage)
@@ -195,6 +206,38 @@ class ProductDocumentAdmin(admin.ModelAdmin):
     list_filter = ('document_type', 'status')
     search_fields = ('product__name', 'name', 'file')
     autocomplete_fields = ('product',)
+
+
+class CategoryAttributeOptionInline(admin.TabularInline):
+    model = CategoryAttributeOption
+    extra = 0
+    fields = ('value', 'label', 'sort_order', 'is_active')
+
+
+@admin.register(CategoryAttributeDefinition)
+class CategoryAttributeDefinitionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'category', 'code', 'name', 'data_type', 'is_required', 'is_filterable', 'is_active')
+    list_filter = ('data_type', 'is_required', 'is_filterable', 'is_active')
+    search_fields = ('category__name', 'code', 'name')
+    autocomplete_fields = ('category',)
+    inlines = [CategoryAttributeOptionInline]
+
+
+@admin.register(CategoryAttributeOption)
+class CategoryAttributeOptionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'attribute_definition', 'value', 'label', 'sort_order', 'is_active')
+    list_filter = ('is_active',)
+    search_fields = ('attribute_definition__code', 'value', 'label')
+    autocomplete_fields = ('attribute_definition',)
+
+
+@admin.register(ProductAttributeValue)
+class ProductAttributeValueAdmin(admin.ModelAdmin):
+    form = ProductAttributeValueAdminForm
+    list_display = ('id', 'product', 'attribute_definition', 'source')
+    list_filter = ('attribute_definition__data_type', 'source')
+    search_fields = ('product__name', 'attribute_definition__code', 'value_text')
+    autocomplete_fields = ('product', 'attribute_definition', 'value_option')
 
 
 @admin.register(ProductParameter)
