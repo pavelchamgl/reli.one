@@ -198,3 +198,39 @@ DB_NAME= DB_USER= DB_PASS= DB_HOST= DB_PORT= MEDIA_ROOT=/tmp/reli-media python3 
 - `payment.tests.TestStripeWebhookService.*` — отличается ожидаемый early status для невалидных webhook payload.
 
 В рамках Iteration 5.5 эти проблемы не исправлялись, потому что относятся к payment/reservation behavior и test isolation. Нужен отдельный follow-up по стабилизации payment regression suite перед полноценным release gate.
+
+### Intermittent seller creation toast after successful product save
+
+**Status:** не воспроизводится при ручной QA-перепроверке.
+
+**Наблюдалось один раз:**
+
+- seller preview показал toast: `Error while creating the product. Please check the entered data and try again.`;
+- product при этом сохранился в DB;
+- product появился в seller goods list;
+- edit flow остался доступен.
+
+**Ручная перепроверка:**
+
+- product creation flow был повторен;
+- отдельные Postman checks для product, parameters, variants, images и license вернули успешные responses;
+- проблема повторно не воспроизвелась.
+
+**Вероятная причина:** один из secondary frontend requests после успешного `POST /api/sellers/products/` мог завершиться ошибкой:
+
+- `POST /api/sellers/products/{id}/parameters/bulk_create/`;
+- `POST /api/sellers/products/{id}/variants/bulk_create/`;
+- `POST /api/sellers/products/{id}/images/bulk_upload/`;
+- `POST /api/sellers/products/{id}/license/`.
+
+**Действие при повторном воспроизведении:**
+
+- зафиксировать failed Network request URL;
+- зафиксировать status code;
+- зафиксировать request payload;
+- зафиксировать response body;
+- только после этого открыть bugfix task.
+
+**Severity:** Low до повторного воспроизведения.
+
+**Proposed iteration:** frontend/seller-flow cleanup перед Iteration 7 или во время Iteration 7.
