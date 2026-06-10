@@ -2,7 +2,12 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getSellerProductById, patchProduct, patchSellerImages } from "../api/seller/editProduct";
 import mainInstance from "../api";
 import { postSellerImages, postSellerLisence, postSellerParameters, postSellerVariants } from "../api/seller/sellerProduct";
+import {
+    getSellerCategoryAttributeSchema,
+    getSellerProductAttributes
+} from "../api/seller/sellerWizard";
 import { ErrToast } from "../ui/Toastify";
+import { valuesFromAttributeRows } from "../utils/sellerProductWizard";
 
 // Получить продукт по ID
 export const fetchSellerProductById = createAsyncThunk(
@@ -13,6 +18,30 @@ export const fetchSellerProductById = createAsyncThunk(
             return res; // Возвращаем только данные
         } catch (error) {
             return rejectWithValue(error?.response?.data || "An error occurred while fetching the product.");
+        }
+    }
+);
+
+export const fetchEditCategoryAttributeSchema = createAsyncThunk(
+    "editGoodsSeller/fetchEditCategoryAttributeSchema",
+    async (categoryId, { rejectWithValue }) => {
+        try {
+            if (!categoryId) return null;
+            return await getSellerCategoryAttributeSchema(categoryId);
+        } catch (error) {
+            return rejectWithValue(error?.response?.data || "Unable to load category schema.");
+        }
+    }
+);
+
+export const fetchEditProductAttributes = createAsyncThunk(
+    "editGoodsSeller/fetchEditProductAttributes",
+    async (productId, { rejectWithValue }) => {
+        try {
+            if (!productId) return [];
+            return await getSellerProductAttributes(productId);
+        } catch (error) {
+            return rejectWithValue(error?.response?.data || "Unable to load product attributes.");
         }
     }
 );
@@ -202,7 +231,12 @@ const editGoodsSlice = createSlice({
         barcode: "",
         additional_details: "",
         vat_rate: "",
-        is_age: false
+        is_age: false,
+        attributeSchema: null,
+        attributeValues: {},
+        attributeErrors: {},
+        attributeSchemaStatus: "idle",
+        attributeValuesStatus: "idle",
 
     },
     reducers: {
@@ -254,7 +288,12 @@ const editGoodsSlice = createSlice({
             return {
                 ...state,
                 category: action?.payload,
-                categoryId: action.payload?.id
+                categoryId: action.payload?.id,
+                attributeSchema: null,
+                attributeValues: {},
+                attributeErrors: {},
+                attributeSchemaStatus: "idle",
+                attributeValuesStatus: "idle"
                 // category_name: action?.payload?.name
             }
         },
@@ -314,6 +353,11 @@ const editGoodsSlice = createSlice({
                 ...state, 
                 ...action.payload
             }
+        },
+        setAttributeValue: (state, action) => {
+            const { attributeId, value } = action.payload
+            state.attributeValues[attributeId] = value
+            delete state.attributeErrors[attributeId]
         }
 
 
@@ -326,9 +370,18 @@ const editGoodsSlice = createSlice({
             if (state.id !== action.payload?.id) {
                 state.id = action.payload?.id
                 state.category_name = action.payload?.category_name
+                state.categoryId = action.payload?.category
+                state.category = action.payload?.category
+                    ? { id: action.payload.category, name: action.payload?.category_name }
+                    : null
 
                 state.name = action.payload?.name
                 state.product_description = action.payload?.product_description
+                state.item = action.payload?.article || ""
+                state.barcode = action.payload?.barcode || ""
+                state.additional_details = action.payload?.additional_details || ""
+                state.vat_rate = action.payload?.vat_rate || ""
+                state.is_age = Boolean(action.payload?.is_age_restricted)
 
                 state.product = action.payload,
 
@@ -385,6 +438,34 @@ const editGoodsSlice = createSlice({
             ErrToast(action.payload || "An error occurred while fetching the product.")
         })
 
+        build.addCase(fetchEditCategoryAttributeSchema.pending, (state) => {
+            state.attributeSchemaStatus = "pending";
+        })
+        build.addCase(fetchEditCategoryAttributeSchema.fulfilled, (state, action) => {
+            state.attributeSchemaStatus = "fulfilled";
+            state.attributeSchema = action.payload;
+            state.attributeErrors = {};
+        })
+        build.addCase(fetchEditCategoryAttributeSchema.rejected, (state, action) => {
+            state.attributeSchemaStatus = "rejected";
+            state.attributeSchema = null;
+            state.attributeErrors = { schema: action.payload || "Unable to load category schema." };
+        })
+        build.addCase(fetchEditProductAttributes.pending, (state) => {
+            state.attributeValuesStatus = "pending";
+        })
+        build.addCase(fetchEditProductAttributes.fulfilled, (state, action) => {
+            state.attributeValuesStatus = "fulfilled";
+            state.attributeValues = valuesFromAttributeRows(action.payload || []);
+        })
+        build.addCase(fetchEditProductAttributes.rejected, (state, action) => {
+            state.attributeValuesStatus = "rejected";
+            state.attributeErrors = {
+                ...state.attributeErrors,
+                values: action.payload || "Unable to load product attributes.",
+            };
+        })
+
 
         build.addCase(fetchDeleteParameters.rejected, (state, action) => {
             state.status = "rejected";
@@ -419,5 +500,18 @@ const editGoodsSlice = createSlice({
 })
 
 
-export const { deleteParameter, setNewParameters, setImages, deleteImage, setParameter, setCategory, setNewVariants, deleteVariant, setLicense, deleteLicense, setValues } = editGoodsSlice.actions
+export const {
+    deleteParameter,
+    setNewParameters,
+    setImages,
+    deleteImage,
+    setParameter,
+    setCategory,
+    setNewVariants,
+    deleteVariant,
+    setLicense,
+    deleteLicense,
+    setValues,
+    setAttributeValue,
+} = editGoodsSlice.actions
 export const { reducer } = editGoodsSlice

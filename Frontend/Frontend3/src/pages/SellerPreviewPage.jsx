@@ -59,6 +59,33 @@ const SellerPreviewPage = () => {
     <div style={{ paddingBottom: "100px" }}>
       <h3 className={styles.title}>{t('goods.creation')}</h3>
       {isMobile ? <SellerPreviewMobile product={data} /> : <SellerPreviewDesktop product={data} />}
+      {product?.status === "partial_success" ? (
+        <div style={{
+          margin: "24px 0",
+          padding: "16px",
+          border: "1px solid #f59e0b",
+          borderRadius: "4px",
+          background: "#fffbeb",
+          color: "#78350f"
+        }}>
+          <strong>Product created with incomplete data.</strong>
+          <p style={{ margin: "8px 0" }}>
+            Product ID: {product.createdProductId}. Failed steps can be retried without creating a duplicate product.
+          </p>
+          <ul style={{ margin: "0 0 12px", paddingLeft: "18px" }}>
+            {(product.submitStepResults || [])
+              .filter((item) => item.status === "rejected")
+              .map((item) => (
+                <li key={item.step}>{item.step}: {item.error}</li>
+              ))}
+          </ul>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button onClick={handleCreate}>Retry failed steps</button>
+            <button onClick={() => navigate(`/seller/seller-edit/${product.createdProductId}`)}>Open edit</button>
+            <button onClick={() => navigate("/seller/goods-list")}>Goods list</button>
+          </div>
+        </div>
+      ) : null}
       <div className={styles.buttonDiv}>
         <button onClick={() => navigate(-1)}>
           {t('item.cancel')}

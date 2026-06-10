@@ -15,7 +15,8 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
             id: 1,
             text: "",
             price: "",
-            image: null
+            image: null,
+            quantity_in_stock: ""
         }
     ])
 
@@ -59,7 +60,8 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
                 weight:"",
                 width:"",
                 length:"",
-                height:""
+                height:"",
+                quantity_in_stock: ""
             }
         ])
     }

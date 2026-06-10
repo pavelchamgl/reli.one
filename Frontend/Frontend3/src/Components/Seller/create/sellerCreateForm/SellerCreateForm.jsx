@@ -13,6 +13,12 @@
   import SellerCreateVariants from "../sellerCreateVariants/SellerCreateVariants";
   import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain";
   import CreateLisence from "../createLisence/CreateLisence"
+  import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
+  import {
+    CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+    isCategoryAttributeSchemaReady,
+    validateAttributeDraft
+  } from "../../../../utils/sellerProductWizard";
 
   import styles from "./SellerCreateForm.module.scss";
   import CheckBox from "../../../../ui/CheckBox/CheckBox";
@@ -31,9 +37,45 @@
       const [varErr, setVarErr] = useState(false)
 
 
-      const { name, lengthMain, product_description, widthMain, heightMain, weightMain, category, variantsName, variantsMain, images, product_parameters, item, barcode, additional_details, vat_rate, is_age, type } = useSelector(state => state.create_prev)
+      const {
+        name,
+        lengthMain,
+        product_description,
+        widthMain,
+        heightMain,
+        weightMain,
+        category,
+        variantsName,
+        variantsMain,
+        images,
+        product_parameters,
+        item,
+        barcode,
+        additional_details,
+        vat_rate,
+        is_age,
+        type,
+        attributeSchema,
+        attributeValues,
+        attributeErrors,
+        attributeSchemaStatus
+      } = useSelector(state => state.create_prev)
 
-      const { setName, setDescription, setCategory, setParametersPrev, setLength, setWidth, setHeigth, setWeight, setValues, setType } = useActionCreatePrev()
+      const {
+        setName,
+        setDescription,
+        setCategory,
+        setParametersPrev,
+        setLength,
+        setWidth,
+        setHeigth,
+        setWeight,
+        setValues,
+        setType,
+        fetchCreateCategoryAttributeSchema,
+        setAttributeValue,
+        setAttributeErrors
+      } = useActionCreatePrev()
 
       const { categoriesStage } = useSelector(state => state.create)
 
@@ -69,14 +111,44 @@
       // ? preview
 
       useEffect(() => {
-        setCategory(categoriesStage[categoriesStage?.length - 1])
+        const selectedCategory = categoriesStage?.[categoriesStage.length - 1]
+        if (selectedCategory) {
+          setCategory(selectedCategory)
+        }
       }, [categoriesStage])
+
+      useEffect(() => {
+        if (category?.id) {
+          fetchCreateCategoryAttributeSchema(category.id)
+        }
+      }, [category?.id])
 
 
       useEffect(() => {
         setParametersPrev([...parameters])
 
       }, [parameters]);
+
+      const isVariantDimensionsValid = (item) => {
+        const fallback = {
+          weight: weightMain,
+          width: widthMain,
+          height: heightMain,
+          length: lengthMain
+        }
+        return ["weight", "width", "height", "length"].every((field) => {
+          const value = Number(item[field] || fallback[field])
+          return Number.isFinite(value) && value > 0
+        })
+      }
+
+      const isVariantStockValid = (item) => {
+        if (item.quantity_in_stock === undefined || item.quantity_in_stock === "") {
+          return true
+        }
+        const value = Number(item.quantity_in_stock)
+        return Number.isInteger(value) && value >= 0
+      }
 
       const handlePreviewClick = () => {
         const isImagesValid = images.length > 0;
@@ -87,6 +159,12 @@
             (item) => item.name?.trim() && item.value?.trim()
           );
         const isVarNameErrValid = variantsName.length > 0
+        const isSchemaReady = isCategoryAttributeSchemaReady(category, attributeSchema, attributeSchemaStatus)
+        const nextAttributeErrors = validateAttributeDraft(attributeSchema?.attributes || [], attributeValues || {})
+        if (isCategoryValid && !isSchemaReady) {
+          nextAttributeErrors.schema = CATEGORY_SCHEMA_NOT_READY_MESSAGE
+        }
+        const areAttributesValid = Object.keys(nextAttributeErrors).length === 0
         let isVariantValid;
 
       
@@ -100,7 +178,9 @@
               (item) =>
                 item.price?.trim() &&
                 !isNaN(Number(item.price)) &&
-                item.text?.trim()
+                item.text?.trim() &&
+                isVariantDimensionsValid(item) &&
+                isVariantStockValid(item)
             );
         } else {
           isVariantValid =
@@ -109,7 +189,9 @@
               (item) =>
                 item.price?.trim() &&
                 !isNaN(Number(item.price)) &&
-                item.image?.trim()
+                item.image?.trim() &&
+                isVariantDimensionsValid(item) &&
+                isVariantStockValid(item)
             );
         }
 
@@ -125,8 +207,9 @@
         setParametersErr(!isParametersValid)
         setVarNameErr(!isVarNameErrValid)
         setVarErr(!isVariantValid)
+        setAttributeErrors(nextAttributeErrors)
 
-        if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid) {
+        if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid && areAttributesValid) {
           formik.handleSubmit();
         }
       };
@@ -163,6 +246,14 @@
           />
 
           <CreateCharacInp err={parametersErr} setErr={setParametersErr} setParameters={setParameters} />
+
+          <SellerCategoryAttributesFields
+            schema={attributeSchema?.attributes || []}
+            values={attributeValues}
+            errors={attributeErrors}
+            loading={attributeSchemaStatus === "pending"}
+            onChange={(attributeId, value) => setAttributeValue({ attributeId, value })}
+          />
 
           <CreateFormInp
             name='barcode'

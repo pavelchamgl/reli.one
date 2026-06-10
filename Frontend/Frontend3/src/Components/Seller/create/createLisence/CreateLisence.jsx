@@ -107,7 +107,7 @@ const CreateLisence = () => {
                         disabled={isDisabled}
                         onChange={handleChangeFile}
                         type="file"
-                        accept=".pdf,.doc,.docx"
+                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         multiple
                     />
                 </label>

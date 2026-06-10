@@ -1,4 +1,5 @@
 import mainInstance from "..";
+import { mapVariantDraftToPayload } from "../../utils/sellerProductWizard";
 
 export const postSellerProduct = async (obj) => {
     try {
@@ -82,15 +83,17 @@ export const postSellerVariants = async (id, obj) => {
         throw new Error("Некорректные входные данные: отсутствует ID или список вариантов");
     }
 
-    const queryData = obj.variants.map(({ price, image, text, weight, width, length, height }) => ({
-        price,
-        name: obj.name,
-        weight_grams: weight,
-        width_mm: width,
-        length_mm: length,
-        height_mm: height,
-        ...(image ? { image } : { text }),
-    }));
+    const queryData = obj.variants.map((variant) => mapVariantDraftToPayload(
+        {
+            ...obj.fallbackDimensions,
+            ...variant,
+            weight: variant.weight || obj.fallbackDimensions?.weight,
+            width: variant.width || obj.fallbackDimensions?.width,
+            length: variant.length || obj.fallbackDimensions?.length,
+            height: variant.height || obj.fallbackDimensions?.height,
+        },
+        obj.name
+    ));
 
     try {
         const res = await mainInstance.post(
@@ -156,7 +159,5 @@ export const getSellerProductById = async (id) => {
         throw error
     }
 }
-
-
 
 

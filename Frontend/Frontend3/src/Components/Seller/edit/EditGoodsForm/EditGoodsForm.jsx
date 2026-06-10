@@ -13,6 +13,7 @@ import EditVariants from "../editVariants/EditVariants";
 import EditMainVariants from "../EditMainVariants/EditMainVariants";
 import { validateGoods } from "../../../../code/validation/validationGoods";
 import EditLicense from "../EditLicense/EditLicense";
+import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
 
 import styles from "./EditGoodsForm.module.scss"
 import CheckBox from "../../../../ui/CheckBox/CheckBox";
@@ -28,9 +29,43 @@ const EditGoodsForm = () => {
     const [varErr, setVarErr] = useState(false)
     const [type, setType] = useState(null)
 
-    const { fetchSellerProductById, setParameter, setCategory, setValues } = useActionSellerEdit()
+    const {
+        fetchSellerProductById,
+        fetchEditCategoryAttributeSchema,
+        fetchEditProductAttributes,
+        setParameter,
+        setCategory,
+        setValues,
+        setAttributeValue
+    } = useActionSellerEdit()
 
-    const { product, parameters, name, product_description, length, width, height, weight, category, images, variantsName, variantsServ, category_name, status, err, item, barcode, additional_details, vat_rate, is_age } = useSelector(state => state.edit_goods)
+    const {
+        product,
+        parameters,
+        name,
+        product_description,
+        length,
+        width,
+        height,
+        weight,
+        category,
+        images,
+        variantsName,
+        variantsServ,
+        category_name,
+        status,
+        err,
+        item,
+        barcode,
+        additional_details,
+        vat_rate,
+        is_age,
+        categoryId,
+        attributeSchema,
+        attributeValues,
+        attributeErrors,
+        attributeSchemaStatus
+    } = useSelector(state => state.edit_goods)
 
     const { categoriesStage } = useSelector(state => state.create)
 
@@ -65,6 +100,13 @@ const EditGoodsForm = () => {
     useEffect(() => {
         fetchSellerProductById(id)
     }, [id])
+
+    useEffect(() => {
+        if (categoryId) {
+            fetchEditCategoryAttributeSchema(categoryId)
+            fetchEditProductAttributes(id)
+        }
+    }, [categoryId, id])
 
     const handlePreviewClick = () => {
         const isImagesValid = images.length > 0;
@@ -136,7 +178,10 @@ const EditGoodsForm = () => {
 
 
     useEffect(() => {
-        setCategory(categoriesStage[categoriesStage?.length - 1])
+        const selectedCategory = categoriesStage?.[categoriesStage.length - 1]
+        if (selectedCategory) {
+            setCategory(selectedCategory)
+        }
     }, [categoriesStage])
 
 
@@ -171,6 +216,15 @@ const EditGoodsForm = () => {
             />
 
             <EditGoodsParameters parameters={parameters} err={parametersErr} setErr={setParametersErr} />
+
+            <SellerCategoryAttributesFields
+                schema={attributeSchema?.attributes || []}
+                values={attributeValues}
+                errors={attributeErrors}
+                loading={attributeSchemaStatus === "pending"}
+                disabled={true}
+                onChange={(attributeId, value) => setAttributeValue({ attributeId, value })}
+            />
 
 
             <CreateFormInp

@@ -2,7 +2,31 @@ import { bindActionCreators } from "@reduxjs/toolkit"
 import { useDispatch } from "react-redux"
 import { useMemo } from "react"
 
-import { addLicense, setName, setDescription, setCategory, setParametersPrev, setImages, setVariantsPrev, setLength, setWidth, setHeigth, setWeight, setFilesMain, deleteImage, setVariantsName, fetchCreateProduct, deleteLicense, setPreviewProduct, setValues, setType } from "../redux/createProdPrevSlice"
+import {
+    addLicense,
+    setName,
+    setDescription,
+    setCategory,
+    setParametersPrev,
+    setImages,
+    setVariantsPrev,
+    setLength,
+    setWidth,
+    setHeigth,
+    setWeight,
+    setFilesMain,
+    deleteImage,
+    setVariantsName,
+    fetchCreateProduct,
+    fetchCreateCategoryAttributeSchema,
+    deleteLicense,
+    setPreviewProduct,
+    setValues,
+    setType,
+    setAttributeValue,
+    setAttributeErrors,
+    clearSubmitState
+} from "../redux/createProdPrevSlice"
 
 const rootActions = {
     setName,
@@ -19,11 +43,15 @@ const rootActions = {
     deleteImage,
     setVariantsName,
     fetchCreateProduct,
+    fetchCreateCategoryAttributeSchema,
     addLicense,
     deleteLicense,
     setPreviewProduct,
     setValues, 
-    setType
+    setType,
+    setAttributeValue,
+    setAttributeErrors,
+    clearSubmitState
 }
 
 

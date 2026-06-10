@@ -98,7 +98,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Weight grams</p>
+                <p>Weight kg</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -112,7 +112,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Width mm</p>
+                <p>Width cm</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -126,7 +126,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Height mm</p>
+                <p>Height cm</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -140,7 +140,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Length mm</p>
+                <p>Length cm</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -149,6 +149,19 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                         setNewVariant({ ...newVariant, length: e.target.value }
                         )
                         setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Stock quantity</p>
+                <input
+                    className={styles.nameInp}
+                    type="number"
+                    min="0"
+                    value={newVariant.quantity_in_stock ?? ""}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, quantity_in_stock: e.target.value })
                     }}
                 />
             </label>
