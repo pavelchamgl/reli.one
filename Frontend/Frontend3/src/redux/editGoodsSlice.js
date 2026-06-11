@@ -4,10 +4,19 @@ import mainInstance from "../api";
 import { postSellerImages, postSellerLisence, postSellerParameters, postSellerVariants } from "../api/seller/sellerProduct";
 import {
     getSellerCategoryAttributeSchema,
-    getSellerProductAttributes
+    getSellerProductAttributes,
+    putSellerProductAttributes
 } from "../api/seller/sellerWizard";
 import { ErrToast } from "../ui/Toastify";
-import { valuesFromAttributeRows } from "../utils/sellerProductWizard";
+import {
+    buildAttributePayload,
+    CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+    isCategoryAttributeSchemaReady,
+    mapEditVariantDraftToPatchPayload,
+    mapVariantApiToEditDraft,
+    validateAttributeDraft,
+    valuesFromAttributeRows
+} from "../utils/sellerProductWizard";
 
 // Получить продукт по ID
 export const fetchSellerProductById = createAsyncThunk(
@@ -106,7 +115,7 @@ export const fetchDeleteVariant = createAsyncThunk(
 
 export const fetchDeleteLicense = createAsyncThunk(
     "editGoodsSeller/fetchDeleteLicense",
-    async (obj) => {
+    async (obj, { dispatch, rejectWithValue }) => {
         try {
             await mainInstance.delete(`sellers/products/${obj?.prodId}/license/${obj?.licId}/`);
             dispatch(deleteLicense());
@@ -125,6 +134,25 @@ export const fetchEditProduct = createAsyncThunk(
             const {
                 name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file
             } = state;
+
+            if (categoryId && !isCategoryAttributeSchemaReady({ id: categoryId }, state.attributeSchema, state.attributeSchemaStatus)) {
+                return rejectWithValue({
+                    message: CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+                    attributeErrors: { schema: CATEGORY_SCHEMA_NOT_READY_MESSAGE },
+                });
+            }
+
+            const attributeErrors = validateAttributeDraft(
+                state.attributeSchema?.attributes || [],
+                state.attributeValues || {}
+            );
+
+            if (Object.keys(attributeErrors).length > 0) {
+                return rejectWithValue({
+                    message: "Please fill required category attributes.",
+                    attributeErrors,
+                });
+            }
 
             // Фильтруем локальные и серверные данные
             const newImages = images?.filter((item) => item.status === "local") || [];
@@ -151,13 +179,11 @@ export const fetchEditProduct = createAsyncThunk(
 
             const updateVariantsRequests = serverVariants
                 .filter((param) => param.id !== undefined)
-                .map(({ id: paramId, price, image, text }) =>
-                    mainInstance.patch(`sellers/products/${id}/variants/${paramId}/`, {
-                        price: price,
-                        name: variantsName,
-                        image: image,
-                        text: text
-                    })
+                .map((variant) =>
+                    mainInstance.patch(
+                        `sellers/products/${id}/variants/${variant.id}/`,
+                        mapEditVariantDraftToPatchPayload(variant, variantsName)
+                    )
                 );
 
             // Формируем массив запросов
@@ -179,6 +205,12 @@ export const fetchEditProduct = createAsyncThunk(
             if (updateParameterRequests.length > 0) requests.push(...updateParameterRequests);
             if (newVariants.length > 0) requests.push(postSellerVariants(id, { variants: newVariants, name: state.variantsName }));
             if (updateVariantsRequests.length > 0) requests.push(...updateVariantsRequests);
+            if (categoryId) {
+                requests.push(putSellerProductAttributes(
+                    id,
+                    buildAttributePayload(state.attributeSchema?.attributes || [], state.attributeValues || {})
+                ));
+            }
 
             // Выполняем все запросы
             await Promise.all(requests);
@@ -358,6 +390,9 @@ const editGoodsSlice = createSlice({
             const { attributeId, value } = action.payload
             state.attributeValues[attributeId] = value
             delete state.attributeErrors[attributeId]
+        },
+        setAttributeErrors: (state, action) => {
+            state.attributeErrors = action.payload || {}
         }
 
 
@@ -413,7 +448,7 @@ const editGoodsSlice = createSlice({
                 state.price = action.payload?.variants ? action.payload.variants[0]?.price : null;
                 state.variantsServ = action.payload?.variants?.map((item) => {
                     return {
-                        ...item,
+                        ...mapVariantApiToEditDraft(item),
                         status: "server"
                     }
                 })
@@ -494,6 +529,9 @@ const editGoodsSlice = createSlice({
         build.addCase(fetchEditProduct.rejected, (state, action) => {
             state.status = "rejected";
             state.err = action.payload;
+            if (action.payload?.attributeErrors) {
+                state.attributeErrors = action.payload.attributeErrors;
+            }
             ErrToast("An error occurred while editing the product."); // Ошибка
         });
     }
@@ -513,5 +551,6 @@ export const {
     deleteLicense,
     setValues,
     setAttributeValue,
+    setAttributeErrors,
 } = editGoodsSlice.actions
 export const { reducer } = editGoodsSlice

@@ -109,13 +109,13 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Weight grams</p>
+                <p>Package weight kg</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.weight}
+                    value={newVariant.package_weight_kg ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, weight: e.target.value }
+                        setNewVariant({ ...newVariant, package_weight_kg: e.target.value }
                         )
                         setErr(false)
                     }}
@@ -123,13 +123,13 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Width mm</p>
+                <p>Package width cm</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.width}
+                    value={newVariant.package_width_cm ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, width: e.target.value }
+                        setNewVariant({ ...newVariant, package_width_cm: e.target.value }
                         )
                         setErr(false)
                     }}
@@ -137,13 +137,13 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Height mm</p>
+                <p>Package height cm</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.height}
+                    value={newVariant.package_height_cm ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, height: e.target.value }
+                        setNewVariant({ ...newVariant, package_height_cm: e.target.value }
                         )
                         setErr(false)
                     }}
@@ -151,13 +151,13 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Length mm</p>
+                <p>Package length cm</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.length}
+                    value={newVariant.package_length_cm ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, length: e.target.value }
+                        setNewVariant({ ...newVariant, package_length_cm: e.target.value }
                         )
                         setErr(false)
                     }}

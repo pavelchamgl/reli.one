@@ -87,10 +87,10 @@ export const postSellerVariants = async (id, obj) => {
         {
             ...obj.fallbackDimensions,
             ...variant,
-            weight: variant.weight || obj.fallbackDimensions?.weight,
-            width: variant.width || obj.fallbackDimensions?.width,
-            length: variant.length || obj.fallbackDimensions?.length,
-            height: variant.height || obj.fallbackDimensions?.height,
+            weight: variant.weight || variant.package_weight_kg || obj.fallbackDimensions?.weight,
+            width: variant.width || variant.package_width_cm || obj.fallbackDimensions?.width,
+            length: variant.length || variant.package_length_cm || obj.fallbackDimensions?.length,
+            height: variant.height || variant.package_height_cm || obj.fallbackDimensions?.height,
         },
         obj.name
     ));
@@ -159,5 +159,4 @@ export const getSellerProductById = async (id) => {
         throw error
     }
 }
-
 

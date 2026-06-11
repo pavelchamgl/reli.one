@@ -19,20 +19,38 @@ export const cmToMm = (value) => {
     return Math.round(numberValue * 10);
 };
 
+export const mmToCm = (value) => {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue) || numberValue <= 0) return "";
+    return String(Number((numberValue / 10).toFixed(2)));
+};
+
 export const kgToGrams = (value) => {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue) || numberValue <= 0) return null;
     return Math.round(numberValue * 1000);
 };
 
+export const gramsToKg = (value) => {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue) || numberValue <= 0) return "";
+    return String(Number((numberValue / 1000).toFixed(3)));
+};
+
+const dimensionValue = (variant, packageField, legacyField) => (
+    variant?.[packageField] !== undefined && variant?.[packageField] !== ""
+        ? variant[packageField]
+        : variant?.[legacyField]
+);
+
 export const mapVariantDraftToPayload = (variant, fallbackName) => {
     const payload = {
         price: variant.price,
         name: variant.name || fallbackName,
-        weight_grams: kgToGrams(variant.weight),
-        width_mm: cmToMm(variant.width),
-        length_mm: cmToMm(variant.length),
-        height_mm: cmToMm(variant.height),
+        weight_grams: kgToGrams(dimensionValue(variant, "package_weight_kg", "weight")),
+        width_mm: cmToMm(dimensionValue(variant, "package_width_cm", "width")),
+        length_mm: cmToMm(dimensionValue(variant, "package_length_cm", "length")),
+        height_mm: cmToMm(dimensionValue(variant, "package_height_cm", "height")),
     };
 
     if (variant.image) {
@@ -42,6 +60,50 @@ export const mapVariantDraftToPayload = (variant, fallbackName) => {
     }
 
     return payload;
+};
+
+export const mapVariantApiToEditDraft = (variant) => ({
+    ...variant,
+    package_weight_kg: gramsToKg(variant?.weight_grams),
+    package_width_cm: mmToCm(variant?.width_mm),
+    package_length_cm: mmToCm(variant?.length_mm),
+    package_height_cm: mmToCm(variant?.height_mm),
+});
+
+export const addPackageDimensionsToPayload = (payload, variant) => {
+    const weight = kgToGrams(dimensionValue(variant, "package_weight_kg", "weight"));
+    const width = cmToMm(dimensionValue(variant, "package_width_cm", "width"));
+    const length = cmToMm(dimensionValue(variant, "package_length_cm", "length"));
+    const height = cmToMm(dimensionValue(variant, "package_height_cm", "height"));
+
+    if (weight !== null) payload.weight_grams = weight;
+    if (width !== null) payload.width_mm = width;
+    if (length !== null) payload.length_mm = length;
+    if (height !== null) payload.height_mm = height;
+
+    return payload;
+};
+
+export const mapEditVariantDraftToPatchPayload = (variant, fallbackName) => {
+    const payload = {
+        price: variant.price,
+        name: variant.name || fallbackName,
+        image: variant.image,
+        text: variant.text,
+    };
+
+    return addPackageDimensionsToPayload(payload, variant);
+};
+
+export const areOptionalPackageDimensionsValid = (variant) => {
+    return ["package_weight_kg", "package_width_cm", "package_height_cm", "package_length_cm"].every((field) => {
+        const value = variant?.[field];
+        if (value === undefined || value === null || value === "") {
+            return true;
+        }
+        const numberValue = Number(value);
+        return Number.isFinite(numberValue) && numberValue > 0;
+    });
 };
 
 export const buildAttributePayload = (schema, values) => {
@@ -133,4 +195,34 @@ export const formatStepError = (error) => {
     if (error.response?.data) return JSON.stringify(error.response.data);
     if (error.message) return error.message;
     return JSON.stringify(error);
+};
+
+export const LICENSE_FILE_ERROR_MESSAGE = "License file must be PDF or DOCX.";
+
+const LICENSE_MIME_TYPES = new Set([
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+]);
+
+export const validateLicenseFile = (file) => {
+    if (!file) return null;
+
+    const extension = file.name?.split(".").pop()?.toLowerCase();
+    const hasAllowedExtension = extension === "pdf" || extension === "docx";
+    const hasMime = Boolean(file.type);
+    const hasAllowedMime = LICENSE_MIME_TYPES.has(file.type);
+
+    if (!hasAllowedExtension) return LICENSE_FILE_ERROR_MESSAGE;
+    if (hasMime && !hasAllowedMime) return LICENSE_FILE_ERROR_MESSAGE;
+
+    return null;
+};
+
+export const validateLicenseFiles = (files = []) => {
+    const fileList = Array.from(files);
+    for (const file of fileList) {
+        const error = validateLicenseFile(file);
+        if (error) return error;
+    }
+    return null;
 };

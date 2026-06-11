@@ -11,6 +11,7 @@ import "swiper/css/navigation";
 // Импорт модулей Swiper
 import { Navigation } from "swiper/modules";
 import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
+import { validateLicenseFiles } from "../../../../utils/sellerProductWizard";
 
 import createMaskImg from "../../../../assets/Seller/create/fileIcon.svg";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
@@ -25,6 +26,7 @@ const CreateLisence = () => {
     const [imageUrls, setImageUrls] = useState([]);
     const [files, setFiles] = useState([]);
     const [isDisabled, setIsDisabled] = useState(false)
+    const [fileError, setFileError] = useState("")
 
     const isMobile = useMediaQuery({ maxWidth: 427 })
 
@@ -46,7 +48,13 @@ const CreateLisence = () => {
 
     const handleChangeFile = (e) => {
         const newFiles = Array.from(e.target.files);
-        const updateFiles = [...files, ...newFiles];
+        const nextError = validateLicenseFiles(newFiles);
+        if (nextError) {
+            setFileError(nextError);
+            e.target.value = "";
+            return;
+        }
+        setFileError("");
 
         const readFilesAsBase64 = (files) => {
             return Promise.all(
@@ -92,6 +100,7 @@ const CreateLisence = () => {
 
         setFiles([]); // Обновляем files
         setImageUrls(updatedUrls); // Обновляем imageUrls
+        setFileError("");
         deleteLicense({ id: index });
     };
 
@@ -108,10 +117,10 @@ const CreateLisence = () => {
                         onChange={handleChangeFile}
                         type="file"
                         accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        multiple
                     />
                 </label>
             </div>
+            {fileError ? <p className={styles.errText}>{fileError}</p> : null}
             <div className={styles.sliderContainer}>
                 <>
                     <Swiper

@@ -23,7 +23,8 @@ import {
     setLicense,
     fetchDeleteLicense,
     setValues,
-    setAttributeValue
+    setAttributeValue,
+    setAttributeErrors
 } from "../redux/editGoodsSlice"
 
 const rootActions = {
@@ -47,7 +48,8 @@ const rootActions = {
     deleteLicense,
     fetchDeleteLicense,
     setValues,
-    setAttributeValue
+    setAttributeValue,
+    setAttributeErrors
 }
 
 

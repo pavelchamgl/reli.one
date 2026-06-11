@@ -14,6 +14,12 @@ import EditMainVariants from "../EditMainVariants/EditMainVariants";
 import { validateGoods } from "../../../../code/validation/validationGoods";
 import EditLicense from "../EditLicense/EditLicense";
 import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
+import {
+    areOptionalPackageDimensionsValid,
+    CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+    isCategoryAttributeSchemaReady,
+    validateAttributeDraft
+} from "../../../../utils/sellerProductWizard";
 
 import styles from "./EditGoodsForm.module.scss"
 import CheckBox from "../../../../ui/CheckBox/CheckBox";
@@ -36,7 +42,8 @@ const EditGoodsForm = () => {
         setParameter,
         setCategory,
         setValues,
-        setAttributeValue
+        setAttributeValue,
+        setAttributeErrors
     } = useActionSellerEdit()
 
     const {
@@ -104,13 +111,24 @@ const EditGoodsForm = () => {
     useEffect(() => {
         if (categoryId) {
             fetchEditCategoryAttributeSchema(categoryId)
-            fetchEditProductAttributes(id)
+            if (product?.category === categoryId) {
+                fetchEditProductAttributes(id)
+            }
         }
-    }, [categoryId, id])
+    }, [categoryId, id, product?.category])
 
     const handlePreviewClick = () => {
         const isImagesValid = images.length > 0;
         const isCategoryValid = Boolean(category) || Boolean(category_name);
+        const schemaCategory = category || (categoryId ? { id: categoryId } : null)
+        const isSchemaReady = isCategoryValid
+            ? isCategoryAttributeSchemaReady(schemaCategory, attributeSchema, attributeSchemaStatus)
+            : false;
+        const nextAttributeErrors = validateAttributeDraft(attributeSchema?.attributes || [], attributeValues || {})
+        if (isCategoryValid && !isSchemaReady) {
+            nextAttributeErrors.schema = CATEGORY_SCHEMA_NOT_READY_MESSAGE
+        }
+        const areAttributesValid = Object.keys(nextAttributeErrors).length === 0
         const isParametersValid =
             parameters?.length > 0 &&
             parameters.every(
@@ -126,7 +144,8 @@ const EditGoodsForm = () => {
                     (item) =>
                         item.price?.trim() &&
                         !isNaN(Number(item.price)) &&
-                        item.text?.trim()
+                        item.text?.trim() &&
+                        areOptionalPackageDimensionsValid(item)
                 );
         } else {
             isVariantValid =
@@ -135,7 +154,8 @@ const EditGoodsForm = () => {
                     (item) =>
                         item.price?.trim() &&
                         !isNaN(Number(item.price)) &&
-                        item.image?.trim()
+                        item.image?.trim() &&
+                        areOptionalPackageDimensionsValid(item)
                 );
         }
 
@@ -145,8 +165,9 @@ const EditGoodsForm = () => {
         setParametersErr(!isParametersValid)
         setVarNameErr(!isVarNameErrValid)
         setVarErr(!isVariantValid)
+        setAttributeErrors(nextAttributeErrors)
 
-        if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid) {
+        if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid && areAttributesValid) {
             formik.handleSubmit();
         }
     };
@@ -222,7 +243,6 @@ const EditGoodsForm = () => {
                 values={attributeValues}
                 errors={attributeErrors}
                 loading={attributeSchemaStatus === "pending"}
-                disabled={true}
                 onChange={(attributeId, value) => setAttributeValue({ attributeId, value })}
             />
 
