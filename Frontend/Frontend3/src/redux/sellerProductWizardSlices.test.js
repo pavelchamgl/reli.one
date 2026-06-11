@@ -31,6 +31,7 @@ import {
   fetchCreateProduct,
   reducer as createReducer,
   setCategory as setCreateCategory,
+  setValues as setCreateValues,
 } from "./createProdPrevSlice.js";
 import {
   fetchEditProduct,
@@ -43,6 +44,7 @@ import {
   areOptionalPackageDimensionsValid,
   CATEGORY_SCHEMA_NOT_READY_MESSAGE,
   mapEditVariantDraftToPatchPayload,
+  mapVariantDraftToPayload,
   mapVariantApiToEditDraft,
   validateLicenseFile,
   validateLicenseFiles,
@@ -103,6 +105,44 @@ describe("seller product wizard create guards", () => {
     expect(result.type).toBe(fetchCreateProduct.rejected.type);
     expect(postSellerProduct).not.toHaveBeenCalled();
     expect(store.getState().create_prev.attributeErrors[501]).toBe("This attribute is required.");
+  });
+
+  it("builds product create payload without package dimensions", async () => {
+    postSellerProduct.mockResolvedValue({ id: 123 });
+    const store = makeCreateStore();
+    store.dispatch(setCreateCategory({ id: 10, name: "Doors" }));
+    store.dispatch({
+      type: fetchCreateCategoryAttributeSchema.fulfilled.type,
+      payload: { attributes: [] },
+    });
+    store.dispatch(setCreateValues({
+      name: "Door",
+      product_description: "Front door",
+      additional_details: "Steel",
+      item: "",
+      barcode: "",
+      vat_rate: "21",
+      is_age: false,
+      length: "100",
+      width: "50",
+      height: "10",
+      weight: "3",
+    }));
+
+    const result = await store.dispatch(fetchCreateProduct());
+
+    expect(result.type).toBe(fetchCreateProduct.fulfilled.type);
+    expect(postSellerProduct).toHaveBeenCalledWith(expect.objectContaining({
+      name: "Door",
+      product_description: "Front door",
+      category: 10,
+      vat_rate: "21",
+    }));
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("length_mm");
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("width_mm");
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("height_mm");
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("weight_grams");
+    expect(postSellerProduct.mock.calls[0][0].article).toMatch(/^\d+$/);
   });
 });
 
@@ -189,6 +229,27 @@ describe("seller product wizard helpers", () => {
       package_length_cm: "30.5",
       package_width_cm: "20",
       package_height_cm: "7.5",
+    });
+  });
+
+  it("maps create variant package dimensions to mm/g payload", () => {
+    expect(
+      mapVariantDraftToPayload({
+        price: "99.90",
+        text: "Black",
+        weight: "1.25",
+        length: "30.5",
+        width: "20",
+        height: "7.5",
+      }, "Color")
+    ).toMatchObject({
+      price: "99.90",
+      name: "Color",
+      text: "Black",
+      weight_grams: 1250,
+      length_mm: 305,
+      width_mm: 200,
+      height_mm: 75,
     });
   });
 

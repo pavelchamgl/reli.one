@@ -11,7 +11,9 @@ const CreateFormInp = ({
   name,
   value,
   error,
-  num
+  num,
+  disabled = false,
+  placeholder
 }) => {
   const titleClass =
     titleSize === "big"
@@ -31,6 +33,8 @@ const CreateFormInp = ({
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
+          placeholder={placeholder}
+          disabled={disabled}
           style={{ fontFamily: num ? "var(--ft)" : "" }}
         />
         :
@@ -40,6 +44,8 @@ const CreateFormInp = ({
           onBlur={handleBlur}
           onChange={handleChange}
           type="text"
+          placeholder={placeholder}
+          disabled={disabled}
           style={{ fontFamily: num ? "var(--ft)" : "" }}
         />
       }

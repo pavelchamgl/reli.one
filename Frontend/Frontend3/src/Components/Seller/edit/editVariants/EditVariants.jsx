@@ -22,9 +22,9 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
         }
     }, [variant])
 
-    // useEffect(() => {
-    //     setNewVariant(variant) // Обновляем локальный стейт, если изменились пропсы
-    // }, [variant])
+    useEffect(() => {
+        setNewVariant(variant)
+    }, [variant])
 
     // useEffect(() => {
     //     handleEditVariant(newVariant.id, newVariant)
@@ -77,7 +77,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
     return (
         <div className={err ? styles.mainErr : styles.main}>
             <label className={styles.inpLabel}>
-                <p>Name color</p>
+                <p>Variant value</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -93,8 +93,21 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                 />
             </label>
 
+            {newVariant.sku ? (
+                <label className={styles.inpLabel}>
+                    <p>System SKU</p>
+                    <input
+                        className={styles.nameInp}
+                        type="text"
+                        value={newVariant.sku}
+                        disabled
+                        readOnly
+                    />
+                </label>
+            ) : null}
+
             <label className={styles.inpLabel}>
-                <p>Price</p>
+                <p>Sale price</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -105,62 +118,6 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                         setErr(false)
                     }}
                     placeholder={t('item.price')}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Package weight kg</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.package_weight_kg ?? ""}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, package_weight_kg: e.target.value }
-                        )
-                        setErr(false)
-                    }}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Package width cm</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.package_width_cm ?? ""}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, package_width_cm: e.target.value }
-                        )
-                        setErr(false)
-                    }}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Package height cm</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.package_height_cm ?? ""}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, package_height_cm: e.target.value }
-                        )
-                        setErr(false)
-                    }}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Package length cm</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.package_length_cm ?? ""}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, package_length_cm: e.target.value }
-                        )
-                        setErr(false)
-                    }}
                 />
             </label>
 

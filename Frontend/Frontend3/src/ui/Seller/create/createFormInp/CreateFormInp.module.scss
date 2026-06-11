@@ -71,6 +71,13 @@
     flex-grow: 0;
   }
 
+  & input:disabled,
+  & textarea:disabled {
+    background: #f8fafc;
+    color: #64748b;
+    cursor: not-allowed;
+  }
+
   & input {
     height: clamp(36px, 2.5vw, 46px);
   }

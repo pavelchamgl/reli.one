@@ -83,7 +83,7 @@ export const fetchCreateProduct = createAsyncThunk(
                 name: state.name,
                 product_description: state.product_description,
                 barcode: state.barcode,
-                article: state.item,
+                article: state.item || String(Date.now()),
                 additional_details: state.additional_details,
                 vat_rate: state.vat_rate,
                 is_age_restricted: Boolean(state.is_age),

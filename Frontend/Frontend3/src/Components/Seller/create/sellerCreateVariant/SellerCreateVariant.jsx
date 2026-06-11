@@ -66,7 +66,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
         <div className={err ? styles.mainErr : styles.main}>
 
             <label className={styles.inpLabel}>
-                <p>Name color</p>
+                <p>Variant value</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -83,7 +83,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Price</p>
+                <p>Sale price</p>
                 <input
                     className={styles.nameInp}
                     type="text"
@@ -94,62 +94,6 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                         setErr(false)
                     }}
                     placeholder={t('item.price')}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Weight kg</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.weight}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, weight: e.target.value }
-                        )
-                        setErr(false)
-                    }}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Width cm</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.width}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, width: e.target.value }
-                        )
-                        setErr(false)
-                    }}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Height cm</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.height}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, height: e.target.value }
-                        )
-                        setErr(false)
-                    }}
-                />
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>Length cm</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    value={newVariant.length}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, length: e.target.value }
-                        )
-                        setErr(false)
-                    }}
                 />
             </label>
 

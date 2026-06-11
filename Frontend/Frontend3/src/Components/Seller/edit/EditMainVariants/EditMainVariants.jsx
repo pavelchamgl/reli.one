@@ -9,6 +9,33 @@ import EditVariants from "../editVariants/EditVariants"
 
 import styles from "./EditMainVariants.module.scss"
 
+const packageDimensionFields = [
+    { name: "package_weight_kg", label: "Package weight, kg" },
+    { name: "package_width_cm", label: "Package width, cm" },
+    { name: "package_height_cm", label: "Package height, cm" },
+    { name: "package_length_cm", label: "Package length, cm" }
+]
+
+const EditVariantPackageDimensions = ({ variant, handleEditVariant, setErr }) => (
+    <div className={styles.dimensionCard}>
+        <p className={styles.dimensionCardTitle}>{variant.text || variant.sku || `Variant ${variant.id}`}</p>
+        {packageDimensionFields.map((field) => (
+            <label className={styles.dimensionLabel} key={field.name}>
+                <p>{field.label}</p>
+                <input
+                    className={styles.dimensionInput}
+                    type="text"
+                    value={variant[field.name] ?? ""}
+                    onChange={(e) => {
+                        handleEditVariant(variant.id, { ...variant, [field.name]: e.target.value })
+                        setErr(false)
+                    }}
+                />
+            </label>
+        ))}
+    </div>
+)
+
 const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err, setErr, errName, setErrName }) => {
 
     const { id } = useParams()
@@ -131,6 +158,22 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
                     ))}
             </div>
             {err ? <p className={styles.errText}>{t('item.dataError')}</p> : <></>}
+
+            <div className={styles.packageSection}>
+                <h4 className={styles.packageTitle}>Package dimensions</h4>
+                <p className={styles.descText}>Package dimensions for delivery are configured per variant.</p>
+                <div className={styles.variantsWrap}>
+                    {variants.length > 0 &&
+                        variants.map((item) => (
+                            <EditVariantPackageDimensions
+                                key={`package-${item.id}`}
+                                variant={item}
+                                handleEditVariant={handleEditVariant}
+                                setErr={setErr}
+                            />
+                        ))}
+                </div>
+            </div>
         </div>
     )
 }

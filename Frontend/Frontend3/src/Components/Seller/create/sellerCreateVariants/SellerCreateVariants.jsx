@@ -7,6 +7,33 @@ import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev"
 
 import styles from "./SellerCreateVariants.module.scss"
 
+const packageDimensionFields = [
+    { name: "weight", label: "Package weight, kg" },
+    { name: "width", label: "Package width, cm" },
+    { name: "height", label: "Package height, cm" },
+    { name: "length", label: "Package length, cm" }
+]
+
+const SellerCreateVariantPackageDimensions = ({ variant, handleEditVariant, setErr }) => (
+    <div className={styles.dimensionCard}>
+        <p className={styles.dimensionCardTitle}>{variant.text || `Variant ${variant.id}`}</p>
+        {packageDimensionFields.map((field) => (
+            <label className={styles.dimensionLabel} key={field.name}>
+                <p>{field.label}</p>
+                <input
+                    className={styles.dimensionInput}
+                    type="text"
+                    value={variant[field.name] ?? ""}
+                    onChange={(e) => {
+                        handleEditVariant(variant.id, { ...variant, [field.name]: e.target.value })
+                        setErr(false)
+                    }}
+                />
+            </label>
+        ))}
+    </div>
+)
+
 const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, errName, setErrName }) => {
     const { variantsName, variantsMain } = useSelector(state => state.create_prev)
     const [name, setName] = useState("")
@@ -16,6 +43,10 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
             text: "",
             price: "",
             image: null,
+            weight: "",
+            width: "",
+            length: "",
+            height: "",
             quantity_in_stock: ""
         }
     ])
@@ -113,6 +144,22 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
                     ))}
             </div>
             {err ? <p className={styles.errText}>{t('item.dataError')}</p> : <></>}
+
+            <div className={styles.packageSection}>
+                <h4 className={styles.packageTitle}>Package dimensions</h4>
+                <p className={styles.descText}>Package dimensions for delivery are configured per variant.</p>
+                <div className={styles.variantsWrap}>
+                    {variants.length > 0 &&
+                        variants.map((item) => (
+                            <SellerCreateVariantPackageDimensions
+                                key={`package-${item.id}`}
+                                variant={item}
+                                handleEditVariant={handleEditVariant}
+                                setErr={setErr}
+                            />
+                        ))}
+                </div>
+            </div>
         </div>
     )
 
