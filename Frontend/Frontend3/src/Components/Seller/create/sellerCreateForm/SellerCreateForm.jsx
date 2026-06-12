@@ -41,8 +41,6 @@
       const [parametersErr, setParametersErr] = useState(false)
       const [varNameErr, setVarNameErr] = useState(false)
       const [varErr, setVarErr] = useState(false)
-      const [countryOfOrigin, setCountryOfOrigin] = useState("")
-      const [warranty, setWarranty] = useState("")
 
 
       const {
@@ -60,6 +58,8 @@
         item,
         barcode,
         additional_details,
+        country_of_origin,
+        warranty_months,
         vat_rate,
         is_age,
         type,
@@ -98,6 +98,8 @@
           item: item,
           barcode: barcode,
           additional_details: additional_details,
+          country_of_origin: country_of_origin,
+          warranty_months: warranty_months,
           vat_rate: vat_rate,
           is_age: is_age
         },
@@ -279,18 +281,22 @@
                 textarea={true}
               />
               <CreateFormInp
-                name="countryOfOrigin"
-                value={countryOfOrigin}
+                name="country_of_origin"
+                value={formik.values.country_of_origin}
                 text="Country of origin"
                 titleSize={"small"}
-                handleChange={(e) => setCountryOfOrigin(e.target.value)}
+                {...formik}
+                handleChange={formik.handleChange}
               />
               <CreateFormInp
-                name="warranty"
-                value={warranty}
-                text="Warranty"
+                name="warranty_months"
+                value={formik.values.warranty_months}
+                text="Warranty, months"
                 titleSize={"small"}
-                handleChange={(e) => setWarranty(e.target.value)}
+                {...formik}
+                handleChange={formik.handleChange}
+                error={formik.errors.warranty_months}
+                num={true}
               />
               <CreateFormInp
                 name='barcode'

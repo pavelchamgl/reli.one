@@ -36,6 +36,18 @@ export const normalizeVatRate = (value) => {
     return value;
 };
 
+export const formatVatRateForInput = (value) => {
+    if (value === undefined || value === null || value === "") return "";
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue)) return String(value);
+    return String(numberValue);
+};
+
+export const normalizeWarrantyMonths = (value) => {
+    if (value === undefined || value === null || value === "") return null;
+    return Number(value);
+};
+
 export const gramsToKg = (value) => {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue) || numberValue <= 0) return "";
@@ -227,6 +239,39 @@ export const validateLicenseFiles = (files = []) => {
     const fileList = Array.from(files);
     for (const file of fileList) {
         const error = validateLicenseFile(file);
+        if (error) return error;
+    }
+    return null;
+};
+
+export const PRODUCT_IMAGE_FILE_ERROR_MESSAGE = "Product images must be JPG, PNG, or WEBP.";
+
+const PRODUCT_IMAGE_MIME_TYPES = new Set([
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+]);
+
+const PRODUCT_IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
+
+export const validateProductImageFile = (file) => {
+    if (!file) return null;
+
+    const extension = file.name?.split(".").pop()?.toLowerCase();
+    const hasAllowedExtension = PRODUCT_IMAGE_EXTENSIONS.has(extension);
+    const hasMime = Boolean(file.type);
+    const hasAllowedMime = PRODUCT_IMAGE_MIME_TYPES.has(file.type);
+
+    if (!hasAllowedExtension) return PRODUCT_IMAGE_FILE_ERROR_MESSAGE;
+    if (hasMime && !hasAllowedMime) return PRODUCT_IMAGE_FILE_ERROR_MESSAGE;
+
+    return null;
+};
+
+export const validateProductImageFiles = (files = []) => {
+    const fileList = Array.from(files);
+    for (const file of fileList) {
+        const error = validateProductImageFile(file);
         if (error) return error;
     }
     return null;

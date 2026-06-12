@@ -9,6 +9,8 @@ export const validateGoods = yup.object().shape({
         .min(10, "Item must be at least 10 digits long"),
     vat_rate: yup.string()
         .matches(/^[0-9]{0,2}([.,][0-9]+)?$/, "The integer part must contain no more than 2 digits"),
+    warranty_months: yup.string()
+        .matches(/^[1-9]\d*$/, { message: "Warranty must be a positive whole number", excludeEmptyString: true }),
     length: yup.number().transform((value, originalValue) => originalValue === "" ? null : value).typeError("Length must be a number").nullable(),
     width: yup.number().transform((value, originalValue) => originalValue === "" ? null : value).typeError("Width must be a number").nullable(),
     height: yup.number().transform((value, originalValue) => originalValue === "" ? null : value).typeError("Height must be a number").nullable(),

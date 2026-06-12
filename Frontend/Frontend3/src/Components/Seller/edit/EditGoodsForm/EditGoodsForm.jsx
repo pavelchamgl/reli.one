@@ -40,8 +40,6 @@ const EditGoodsForm = () => {
     const [varNameErr, setVarNameErr] = useState(false)
     const [varErr, setVarErr] = useState(false)
     const [type, setType] = useState(null)
-    const [countryOfOrigin, setCountryOfOrigin] = useState("")
-    const [warranty, setWarranty] = useState("")
 
     const {
         fetchSellerProductById,
@@ -73,6 +71,8 @@ const EditGoodsForm = () => {
         item,
         barcode,
         additional_details,
+        country_of_origin,
+        warranty_months,
         vat_rate,
         is_age,
         categoryId,
@@ -98,6 +98,8 @@ const EditGoodsForm = () => {
             item: item,
             barcode: barcode,
             additional_details: additional_details,
+            country_of_origin: country_of_origin,
+            warranty_months: warranty_months,
             vat_rate: vat_rate,
             is_age: is_age
         },
@@ -199,6 +201,8 @@ const EditGoodsForm = () => {
                 item: item ?? "",
                 barcode: barcode ?? "",
                 additional_details: additional_details ?? "",
+                country_of_origin: country_of_origin ?? "",
+                warranty_months: warranty_months ?? "",
                 vat_rate: vat_rate ?? "",
                 is_age: is_age ?? ""
             });
@@ -289,18 +293,22 @@ const EditGoodsForm = () => {
                         textarea={true}
                     />
                     <CreateFormInp
-                        name="countryOfOrigin"
-                        value={countryOfOrigin}
+                        name="country_of_origin"
+                        value={formik.values.country_of_origin}
                         text="Country of origin"
                         titleSize={"small"}
-                        handleChange={(e) => setCountryOfOrigin(e.target.value)}
+                        {...formik}
+                        handleChange={formik.handleChange}
                     />
                     <CreateFormInp
-                        name="warranty"
-                        value={warranty}
-                        text="Warranty"
+                        name="warranty_months"
+                        value={formik.values.warranty_months}
+                        text="Warranty, months"
                         titleSize={"small"}
-                        handleChange={(e) => setWarranty(e.target.value)}
+                        {...formik}
+                        handleChange={formik.handleChange}
+                        error={formik.errors.warranty_months}
+                        num={true}
                     />
                     <CreateFormInp
                         name='barcode'

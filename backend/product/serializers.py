@@ -164,6 +164,8 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'additional_details',
+            'country_of_origin',
+            'warranty_months',
             'category_name',
             'product_parameters',
             'rating',

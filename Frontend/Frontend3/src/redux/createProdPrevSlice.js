@@ -18,6 +18,7 @@ import {
     isCategoryAttributeSchemaReady,
     makeStepResult,
     normalizeVatRate,
+    normalizeWarrantyMonths,
     stepSucceeded,
     validateAttributeDraft
 } from "../utils/sellerProductWizard";
@@ -86,6 +87,8 @@ export const fetchCreateProduct = createAsyncThunk(
                 barcode: state.barcode,
                 article: state.item || String(Date.now()),
                 additional_details: state.additional_details,
+                country_of_origin: state.country_of_origin,
+                warranty_months: normalizeWarrantyMonths(state.warranty_months),
                 vat_rate: normalizeVatRate(state.vat_rate),
                 is_age_restricted: Boolean(state.is_age),
                 category: state.category?.id || null,
@@ -220,6 +223,8 @@ const createProdPrevSlice = createSlice({
         item: "",
         barcode: "",
         additional_details: "",
+        country_of_origin: "",
+        warranty_months: "",
         vat_rate: "",
         is_age: false,
         attributeSchema: null,

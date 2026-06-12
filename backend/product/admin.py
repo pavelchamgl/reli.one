@@ -123,16 +123,18 @@ class AdminBaseProduct(admin.ModelAdmin):
     form = BaseProductAdminForm
     list_display = (
         'id', 'name', 'article', 'status', 'product_description',
-        'category', 'seller', 'vat_rate', 'is_age_restricted', 'is_active'
+        'category', 'seller', 'country_of_origin', 'warranty_months',
+        'vat_rate', 'is_age_restricted', 'is_active'
     )
     list_filter = ['status', 'category', 'seller', 'is_age_restricted', 'is_active']
     readonly_fields = ('approved_at',)
-    search_fields = ['name', 'product_description', 'additional_details', 'article']
+    search_fields = ['name', 'product_description', 'additional_details', 'country_of_origin', 'article']
 
     fieldsets = (
         (None, {
             'fields': (
-                'name', 'product_description', 'additional_details', 'category', 'brand', 'seller',
+                'name', 'product_description', 'additional_details',
+                'country_of_origin', 'warranty_months', 'category', 'brand', 'seller',
                 'status', 'article', 'is_active'
             )
         }),

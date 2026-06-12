@@ -11,6 +11,7 @@ import "swiper/css/navigation";
 // Импорт модулей Swiper
 import { Navigation } from "swiper/modules";
 import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
+import { validateProductImageFiles } from "../../../../utils/sellerProductWizard";
 
 import createMaskImg from "../../../../assets/Seller/create/maskImg.svg";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
@@ -27,6 +28,7 @@ const SellerCreateImage = ({ err, setErr }) => {
 
   const [imageUrls, setImageUrls] = useState(images ? images : []);
   const [files, setFiles] = useState(images ? images : []);
+  const [fileError, setFileError] = useState("");
 
   const isMobile = useMediaQuery({ maxWidth: 427 })
 
@@ -39,6 +41,14 @@ const SellerCreateImage = ({ err, setErr }) => {
   const handleChangeFile = (e) => {
 
     const newFiles = Array.from(e.target.files);
+    const nextError = validateProductImageFiles(newFiles);
+    if (nextError) {
+      setFileError(nextError);
+      e.target.value = "";
+      return;
+    }
+    setFileError("");
+    setErr(false);
     const updateFiles = [...files, ...newFiles];
     // setFilesMain(updateFiles);
 
@@ -95,7 +105,7 @@ const SellerCreateImage = ({ err, setErr }) => {
           <input
             onChange={handleChangeFile}
             type="file"
-            accept="image/*,video/*"
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
             multiple
           />
         </label>
@@ -179,6 +189,7 @@ const SellerCreateImage = ({ err, setErr }) => {
           </button>
         </>
       </div>
+      {fileError ? <p className={styles.errText}>{fileError}</p> : <></>}
       {err ? <p className={styles.errText}>Image is required</p> : <></>}
 
       {/* Кнопки навигации */}

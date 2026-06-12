@@ -40,13 +40,17 @@ import {
 } from "./editGoodsSlice.js";
 import { postSellerProduct } from "../api/seller/sellerProduct";
 import { patchProduct } from "../api/seller/editProduct";
+import { validateGoods } from "../code/validation/validationGoods.js";
 import {
   areOptionalPackageDimensionsValid,
   CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+  formatVatRateForInput,
   mapEditVariantDraftToPatchPayload,
   mapVariantDraftToPayload,
   mapVariantApiToEditDraft,
   normalizeVatRate,
+  validateProductImageFile,
+  validateProductImageFiles,
   validateLicenseFile,
   validateLicenseFiles,
 } from "../utils/sellerProductWizard.js";
@@ -120,6 +124,8 @@ describe("seller product wizard create guards", () => {
       name: "Door",
       product_description: "Front door",
       additional_details: "Steel",
+      country_of_origin: "Czech Republic",
+      warranty_months: "24",
       item: "",
       barcode: "",
       vat_rate: "21",
@@ -138,12 +144,13 @@ describe("seller product wizard create guards", () => {
       product_description: "Front door",
       category: 10,
       vat_rate: "21",
+      country_of_origin: "Czech Republic",
+      warranty_months: 24,
     }));
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("length_mm");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("width_mm");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("height_mm");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("weight_grams");
-    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("country_of_origin");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("countryOfOrigin");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("warranty");
     expect(postSellerProduct.mock.calls[0][0].article).toMatch(/^\d+$/);
@@ -169,6 +176,20 @@ describe("seller product wizard create guards", () => {
     expect(postSellerProduct).toHaveBeenCalledWith(expect.objectContaining({
       vat_rate: "0",
     }));
+  });
+
+  it("rejects invalid warranty months in form validation", async () => {
+    await expect(validateGoods.validate({
+      name: "Door",
+      product_description: "Front door",
+      warranty_months: "12.5",
+    })).rejects.toThrow("Warranty must be a positive whole number");
+
+    await expect(validateGoods.validate({
+      name: "Door",
+      product_description: "Front door",
+      warranty_months: "12",
+    })).resolves.toMatchObject({ warranty_months: "12" });
   });
 });
 
@@ -254,6 +275,8 @@ describe("seller product wizard edit submit guards", () => {
         name: "Door",
         product_description: "Desc",
         additional_details: "Seller notes",
+        country_of_origin: "Poland",
+        warranty_months: "36",
         barcode: "1234567890123",
         item: "1234567890",
         vat_rate: "",
@@ -271,12 +294,13 @@ describe("seller product wizard edit submit guards", () => {
     expect(result.type).toBe(fetchEditProduct.fulfilled.type);
     expect(patchProduct).toHaveBeenCalledWith(77, expect.objectContaining({
       additional_details: "Seller notes",
+      country_of_origin: "Poland",
+      warranty_months: 36,
       barcode: "1234567890123",
       article: "1234567890",
       vat_rate: "0",
       is_age_restricted: true,
     }));
-    expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("country_of_origin");
     expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("countryOfOrigin");
     expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("warranty");
   });
@@ -287,6 +311,12 @@ describe("seller product wizard helpers", () => {
     expect(normalizeVatRate("")).toBe("0");
     expect(normalizeVatRate(null)).toBe("0");
     expect(normalizeVatRate("21")).toBe("21");
+  });
+
+  it("formats backend zero VAT for input", () => {
+    expect(formatVatRateForInput("0.00")).toBe("0");
+    expect(formatVatRateForInput("20.00")).toBe("20");
+    expect(formatVatRateForInput("20.50")).toBe("20.5");
   });
 
   it("maps backend package dimensions to edit kg/cm fields", () => {
@@ -397,5 +427,24 @@ describe("seller product wizard helpers", () => {
         type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       }),
     ])).toBeNull();
+  });
+
+  it("blocks invalid product image formats before upload", () => {
+    expect(validateProductImageFile(new File(["x"], "image.svg", { type: "image/svg+xml" }))).toBe(
+      "Product images must be JPG, PNG, or WEBP."
+    );
+    expect(validateProductImageFile(new File(["x"], "video.mp4", { type: "video/mp4" }))).toBe(
+      "Product images must be JPG, PNG, or WEBP."
+    );
+    expect(validateProductImageFile(new File(["x"], "image.jpg", { type: "image/jpeg" }))).toBeNull();
+    expect(validateProductImageFile(new File(["x"], "image.png", { type: "image/png" }))).toBeNull();
+    expect(validateProductImageFile(new File(["x"], "image.webp", { type: "image/webp" }))).toBeNull();
+  });
+
+  it("rejects mixed product image selection when any file is invalid", () => {
+    expect(validateProductImageFiles([
+      new File(["x"], "image.webp", { type: "image/webp" }),
+      new File(["x"], "diagram.svg", { type: "image/svg+xml" }),
+    ])).toBe("Product images must be JPG, PNG, or WEBP.");
   });
 });

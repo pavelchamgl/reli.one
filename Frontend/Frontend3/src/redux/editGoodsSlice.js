@@ -14,7 +14,9 @@ import {
     isCategoryAttributeSchemaReady,
     mapEditVariantDraftToPatchPayload,
     mapVariantApiToEditDraft,
+    formatVatRateForInput,
     normalizeVatRate,
+    normalizeWarrantyMonths,
     validateAttributeDraft,
     valuesFromAttributeRows
 } from "../utils/sellerProductWizard";
@@ -133,7 +135,7 @@ export const fetchEditProduct = createAsyncThunk(
         try {
             const state = getState().edit_goods;
             const {
-                name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file, item, barcode, additional_details, vat_rate, is_age
+                name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file, item, barcode, additional_details, country_of_origin, warranty_months, vat_rate, is_age
             } = state;
 
             if (categoryId && !isCategoryAttributeSchemaReady({ id: categoryId }, state.attributeSchema, state.attributeSchemaStatus)) {
@@ -196,6 +198,8 @@ export const fetchEditProduct = createAsyncThunk(
                     article: item || String(Date.now()),
                     barcode,
                     additional_details,
+                    country_of_origin,
+                    warranty_months: normalizeWarrantyMonths(warranty_months),
                     vat_rate: normalizeVatRate(vat_rate),
                     is_age_restricted: Boolean(is_age),
                 })
@@ -268,6 +272,8 @@ const editGoodsSlice = createSlice({
         item: "",
         barcode: "",
         additional_details: "",
+        country_of_origin: "",
+        warranty_months: "",
         vat_rate: "",
         is_age: false,
         attributeSchema: null,
@@ -421,7 +427,9 @@ const editGoodsSlice = createSlice({
                 state.item = action.payload?.article || ""
                 state.barcode = action.payload?.barcode || ""
                 state.additional_details = action.payload?.additional_details || ""
-                state.vat_rate = action.payload?.vat_rate || ""
+                state.country_of_origin = action.payload?.country_of_origin || ""
+                state.warranty_months = action.payload?.warranty_months ?? ""
+                state.vat_rate = formatVatRateForInput(action.payload?.vat_rate)
                 state.is_age = Boolean(action.payload?.is_age_restricted)
 
                 state.product = action.payload,

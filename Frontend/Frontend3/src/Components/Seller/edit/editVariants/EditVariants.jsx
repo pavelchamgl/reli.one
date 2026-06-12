@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
 import closeWhIc from "../../../../assets/Product/closeWhIcon.svg"
+import { validateProductImageFiles } from "../../../../utils/sellerProductWizard"
 
 import styles from "./EditVariants.module.scss"
 
@@ -11,6 +12,7 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
     const [newVariant, setNewVariant] = useState(variant)
     const [file, setFile] = useState(null)
     const [url, setUrl] = useState(variant ? variant.image : null)
+    const [fileError, setFileError] = useState("")
 
     useEffect(() => {
         if (variant?.text) {
@@ -44,6 +46,13 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
         setErr(false)
         const newFile = e.target.files[0]; // Получаем только один файл
         if (!newFile) return;
+        const nextError = validateProductImageFiles([newFile]);
+        if (nextError) {
+            setFileError(nextError)
+            e.target.value = ""
+            return;
+        }
+        setFileError("")
 
         setFile(newFile);
         const url = URL.createObjectURL(newFile);
@@ -205,9 +214,10 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                     ) :
                     <label className={type === "text" ? styles.addPhotoDivDis : styles.addPhotoDiv} onClick={handleLabelClick}>
                         <p>{t('goods.addPhotos')}</p>
-                        <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept="image/*,video/*" />
+                        <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
                     </label>
             }
+            {fileError ? <p className={styles.errText}>{fileError}</p> : null}
 
             <button className={styles.deleteVariantBtn} onClick={() => handleDeleteVariant(variant.id, variant)}>
                 <img src={closeWhIc} alt="" />

@@ -81,6 +81,13 @@ class BaseProduct(models.Model):
     name = models.CharField(max_length=100)
     product_description = models.TextField()
     additional_details = models.TextField(null=True, blank=True)
+    country_of_origin = models.CharField(max_length=100, blank=True, default="")
+    warranty_months = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1)],
+        help_text="Warranty duration in months. Empty means not specified.",
+    )
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     brand = models.ForeignKey(
         Brand,
