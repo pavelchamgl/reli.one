@@ -31,6 +31,11 @@ export const kgToGrams = (value) => {
     return Math.round(numberValue * 1000);
 };
 
+export const normalizeVatRate = (value) => {
+    if (value === undefined || value === null || value === "") return "0";
+    return value;
+};
+
 export const gramsToKg = (value) => {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue) || numberValue <= 0) return "";

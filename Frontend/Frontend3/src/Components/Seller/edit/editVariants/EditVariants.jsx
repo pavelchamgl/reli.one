@@ -121,6 +121,64 @@ const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, se
                 />
             </label>
 
+            <h5 className={styles.groupTitle}>Package dimensions for delivery</h5>
+
+            <label className={styles.inpLabel}>
+                <p>Package weight, kg</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.package_weight_kg ?? ""}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, package_weight_kg: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Package width, cm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.package_width_cm ?? ""}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, package_width_cm: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Package height, cm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.package_height_cm ?? ""}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, package_height_cm: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Package length, cm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.package_length_cm ?? ""}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, package_length_cm: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
             {/* <div className={styles.priceDiv}>
                 <input
                     type="text"

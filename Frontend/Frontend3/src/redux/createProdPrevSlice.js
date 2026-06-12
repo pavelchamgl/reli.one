@@ -17,6 +17,7 @@ import {
     CATEGORY_SCHEMA_NOT_READY_MESSAGE,
     isCategoryAttributeSchemaReady,
     makeStepResult,
+    normalizeVatRate,
     stepSucceeded,
     validateAttributeDraft
 } from "../utils/sellerProductWizard";
@@ -85,7 +86,7 @@ export const fetchCreateProduct = createAsyncThunk(
                 barcode: state.barcode,
                 article: state.item || String(Date.now()),
                 additional_details: state.additional_details,
-                vat_rate: state.vat_rate,
+                vat_rate: normalizeVatRate(state.vat_rate),
                 is_age_restricted: Boolean(state.is_age),
                 category: state.category?.id || null,
             }));

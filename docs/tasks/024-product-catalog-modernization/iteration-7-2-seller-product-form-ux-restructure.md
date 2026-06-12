@@ -10,7 +10,7 @@
 
 Привести seller create/edit product form к утверждённой структуре блоков, не меняя backend contracts и уже работающий submit orchestration.
 
-Форма должна вести seller от базовых product fields к media, description, category attributes, variants, package dimensions, documents и optional follow-up details.
+Форма должна вести seller от выбора category к названию товара, media, description, category attributes, variants с общим VAT и package dimensions внутри каждого variant card, documents и optional persisted seller details.
 
 ---
 
@@ -24,6 +24,10 @@
 - сохранить variant-level package dimensions semantics;
 - сохранить create partial success/retry flow;
 - сохранить legacy `ProductParameter`, `BaseProductImage`, `LicenseFile` compatibility;
+- скрыть поля без честного backend/API persistence до отдельной итерации;
+- перенести `additional_details` в accordion `Additional seller details`;
+- перенести `VAT rate` в блок `Variants, price and stock`;
+- трактовать пустой `VAT rate` как `0%` в create/edit payload;
 - добавить frontend-only секционный layout без нового design system.
 
 Не входит:
@@ -45,13 +49,11 @@
 ## Утверждённый Порядок Блоков
 
 1. **Основная информация**
-   - Название товара;
    - Категория;
-   - Brand — отображается как follow-up field, потому что seller API ещё не принимает `brand`;
-   - Артикул продавца — визуально optional;
-   - EAN/UPC barcode — optional;
-   - Age restricted;
-   - VAT rate.
+   - Название товара;
+   - Brand скрыт до появления seller brand read/write API;
+
+   Category стоит первым полем, потому что от неё зависит schema typed attributes и дальнейшая структура seller form.
 
 2. **Медиафайлы**
    - legacy `BaseProductImage` upload;
@@ -59,8 +61,7 @@
    - variant image остаётся в variant card.
 
 3. **Описание товара**
-   - `product_description`;
-   - `additional_details`.
+   - `product_description`.
 
 4. **Характеристики категории**
    - typed attributes из `CategoryAttributeDefinition`;
@@ -68,28 +69,33 @@
    - legacy `ProductParameter` block оставлен как compatibility fallback и не является обязательным.
 
 5. **Варианты, цена и остатки**
+   - `VAT rate` как общее product-level поле для всех вариантов;
+   - пустой `VAT rate` сохраняется как `0`;
    - variant axis name;
    - variant value;
    - sale price;
    - stock quantity в create-flow;
-   - system `ProductVariant.sku` read-only в edit, если уже есть.
+   - system `ProductVariant.sku` read-only в edit, если уже есть;
+   - package dimensions находятся внутри каждого variant card после price/stock;
+   - package dimensions UI units: `cm/kg`;
+   - package dimensions backend fields остаются legacy-named: `length_mm`, `width_mm`, `height_mm`, `weight_grams`;
+   - package dimensions не называются physical product dimensions.
 
-6. **Габариты упаковки для доставки**
-   - отображаются отдельным визуальным блоком между `Variants, price and stock` и `Documents`;
-   - значения остаются variant-level и редактируют поля каждого variant draft;
-   - UI units: `cm/kg`;
-   - backend fields остаются legacy-named: `length_mm`, `width_mm`, `height_mm`, `weight_grams`;
-   - эти поля не называются physical product dimensions.
-
-7. **Документы**
+6. **Документы**
    - legacy `LicenseFile`;
    - PDF/DOCX validation сразу после выбора файла;
    - `ProductDocument` write-flow не подключается.
 
-8. **Дополнительные сведения**
+7. **Дополнительные сведения**
    - collapsed accordion в конце формы;
-   - fields показаны disabled/follow-up, чтобы не обещать persistence без backend fields:
-     `Country of origin`, `Warranty`, `HS code`, `Packaging material`, `Seller note`.
+   - порядок fields: `additional_details` → `Country of origin` → `Warranty` → `EAN/UPC barcode` → `Seller article` → `Age restricted`;
+   - `additional_details` сохраняется в существующее backend поле `BaseProduct.additional_details`;
+   - `Country of origin` и `Warranty` являются editable optional frontend-only fields в Iteration 7.2;
+   - `Country of origin` и `Warranty` intentionally not persisted и не отправляются в API до появления backend/API support;
+   - `EAN/UPC barcode` сохраняется в `BaseProduct.barcode`;
+   - `Seller article` сохраняется в `BaseProduct.article` и визуально optional;
+   - `Age restricted` сохраняется в `BaseProduct.is_age_restricted`;
+   - `Age restricted` в будущем должен стать category-conditional, но category flag не реализуется в Iteration 7.2.
 
 ---
 
@@ -97,15 +103,17 @@
 
 | UI field | API/backend field | Notes |
 | --- | --- | --- |
-| Название товара | `BaseProduct.name` | required |
 | Категория | `BaseProduct.category` | required |
-| Brand | `BaseProduct.brand` | follow-up: seller serializer/API не принимает field |
-| Артикул продавца | `BaseProduct.article` | UI optional; create uses compatibility fallback because backend create still requires non-blank `article` |
-| EAN/UPC barcode | `BaseProduct.barcode` | optional |
-| Age restricted | `BaseProduct.is_age_restricted` | mapped from frontend `is_age` |
-| VAT rate | `BaseProduct.vat_rate` | required |
+| Название товара | `BaseProduct.name` | required |
+| Brand | `BaseProduct.brand` | follow-up: seller serializer/API не принимает field, активное UI field скрыто |
 | Description | `BaseProduct.product_description` | required |
-| Additional details | `BaseProduct.additional_details` | optional |
+| Additional details | `BaseProduct.additional_details` | optional, находится в accordion `Additional seller details` |
+| Country of origin | нет текущего поля | optional frontend-only field, не отправляется в API |
+| Warranty | нет текущего поля | optional frontend-only field, не отправляется в API |
+| EAN/UPC barcode | `BaseProduct.barcode` | optional, находится в accordion `Additional seller details` |
+| Seller article | `BaseProduct.article` | UI optional; create uses compatibility fallback because backend create still requires non-blank `article` |
+| Age restricted | `BaseProduct.is_age_restricted` | mapped from frontend `is_age`, находится в accordion `Additional seller details` |
+| VAT rate | `BaseProduct.vat_rate` | optional UI field in `Variants, price and stock`; empty value maps to `0` |
 | Category attributes | `ProductAttributeValue` via `/attributes/` | product-level only |
 | Legacy parameters | `ProductParameter` | compatibility fallback |
 | Product images | `BaseProductImage` endpoints | legacy image flow |
@@ -128,35 +136,45 @@
 - секции должны быть естественным продолжением текущей seller page;
 - labels короткие и помещаются в mobile/desktop layout;
 - required errors остаются рядом с полями;
-- additional/future fields скрыты в native accordion.
+- `Country of origin` и `Warranty` могут быть active frontend-only inputs, но не persisted;
+- fields без persistence кроме `Country of origin` и `Warranty` не показываются как активные inputs;
+- `additional_details` находится в native accordion.
+- product physical dimensions остаются category attributes или future model; они не смешиваются с package dimensions.
 
 ---
 
 ## Known Follow-Ups
 
-- Сделать seller API для `Brand` write/read в create/edit flow.
+- Сделать seller brand read/write API and UI.
 - Сделать backend create `article` optional или явно разделить seller article и required internal identifier.
 - Добавить video upload отдельной итерацией.
 - Подключить `ProductDocument` write-flow для сертификатов/инструкций.
 - Добавить edit stock UI, если product detail или отдельный endpoint будет давать текущий stock per variant.
 - Реализовать persistence для `Country of origin`, `Warranty`, `HS code`, `Packaging material`, `Seller note`.
+- Сделать `Age restricted` category-conditional, когда backend category flag будет доступен.
 
 ---
 
 ## Manual QA Checklist
 
 1. Открыть create product form.
-2. Проверить порядок блоков: Main information → Media files → Description → Category attributes → Variants, price and stock → Package dimensions → Documents → Additional seller details.
-3. Проверить, что seller article визуально optional.
-4. Проверить, что category typed required attributes блокируют preview до `POST /products/`.
-5. Проверить, что product create payload не содержит package dimensions.
-6. Проверить, что отдельный блок `Package dimensions` редактирует package dimensions per variant, а variant payload содержит эти значения в `mm/g`.
-7. Проверить, что license invalid file rejected сразу после выбора.
-8. Открыть edit product form и проверить тот же порядок блоков.
-9. Проверить, что typed attributes редактируются и сохраняются.
-10. Проверить, что package dimensions в edit не смешиваются с physical product dimensions.
-11. Проверить, что SKU в edit read-only, если есть.
-12. Проверить, что unknown future fields не отправляются в API.
+2. Проверить порядок блоков: Main information → Media files → Description → Category attributes → Variants, price and stock → Documents → Additional seller details.
+3. Проверить, что в Main information первым полем идёт Category, вторым Product name.
+4. Проверить, что `VAT rate` находится в `Variants, price and stock`, визуально optional, а пустое значение уходит как `0`.
+5. Проверить порядок accordion `Additional seller details`: `additional_details` → `Country of origin` → `Warranty` → `EAN/UPC barcode` → `Seller article` → `Age restricted`.
+6. Проверить, что seller article визуально optional.
+7. Проверить, что Brand, `HS code`, `Packaging material`, `Seller note` не показаны как активные поля.
+8. Проверить, что `Country of origin` и `Warranty` редактируются в UI, но не уходят в create/edit API payload.
+9. Проверить, что `additional_details`, barcode, article и age restricted сохраняются в существующие backend fields.
+10. Проверить, что category typed required attributes блокируют preview до `POST /products/`.
+11. Проверить, что product create payload не содержит package dimensions.
+12. Проверить, что package dimensions находятся внутри каждого variant card и variant payload содержит эти значения в `mm/g`.
+13. Проверить, что license invalid file rejected сразу после выбора.
+14. Открыть edit product form и проверить тот же порядок блоков.
+15. Проверить, что typed attributes редактируются и сохраняются.
+16. Проверить, что package dimensions в edit не смешиваются с physical product dimensions.
+17. Проверить, что SKU в edit read-only, если есть.
+18. Проверить, что unknown future fields не отправляются в API.
 
 ---
 
@@ -177,6 +195,7 @@ git diff --check
 ## Risks
 
 - Backend create serializer still requires `article`, while UX treats seller article as optional. Frontend keeps compatibility fallback until backend contract changes.
-- Brand exists in backend foundation, but seller create/edit serializer does not expose it yet.
-- Future fields in accordion are intentionally disabled to avoid fake persistence.
+- Brand exists in backend foundation, but seller create/edit serializer does not expose it yet; active UI field is hidden until seller API is ready.
+- Future fields are hidden to avoid fake persistence.
 - Edit stock is not shown because current edit product payload does not provide stock quantity per variant.
+- Empty `VAT rate` is normalized by frontend payload building to `0`; backend contract is not changed.

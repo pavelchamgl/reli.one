@@ -30,17 +30,6 @@ const FormSection = ({ title, children }) => (
     </section>
 );
 
-const FutureField = ({ label }) => (
-    <CreateFormInp
-        name={label}
-        value=""
-        text={label}
-        titleSize="small"
-        handleChange={() => {}}
-        disabled
-    />
-);
-
 const EditGoodsForm = () => {
     const navigate = useNavigate();
     const { id } = useParams()
@@ -51,6 +40,8 @@ const EditGoodsForm = () => {
     const [varNameErr, setVarNameErr] = useState(false)
     const [varErr, setVarErr] = useState(false)
     const [type, setType] = useState(null)
+    const [countryOfOrigin, setCountryOfOrigin] = useState("")
+    const [warranty, setWarranty] = useState("")
 
     const {
         fetchSellerProductById,
@@ -228,48 +219,12 @@ const EditGoodsForm = () => {
     return (
         <div className={styles.main}>
             <FormSection title="Main information">
+                <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} category_name={product?.category_name} />
+
                 <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
                     formik.handleChange(e)
                     setParameter({ name: "name", value: e.target.value })
                 }} titleSize={"big"} required={true} error={formik.errors.name} />
-
-                <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} category_name={product?.category_name} />
-                <FutureField label="Brand" />
-
-                <CreateFormInp
-                    name='item'
-                    value={formik.values.item}
-                    text="Seller article"
-                    titleSize={"small"}
-                    {...formik}
-                    handleChange={formik.handleChange}
-                    error={formik.errors.item}
-                />
-
-                <CreateFormInp
-                    name='barcode'
-                    value={formik.values.barcode}
-                    text="EAN/UPC barcode"
-                    titleSize={"small"}
-                    {...formik}
-                    handleChange={formik.handleChange}
-                />
-
-                <label className={styles.isAgeLabel}>
-                    <CheckBox check={is_age} onChange={(v) => setValues({ is_age: v })} style={{ borderRadius: "4px" }} />
-                    Age restricted
-                </label>
-
-                <CreateFormInp
-                    name='vat_rate'
-                    value={formik.values.vat_rate}
-                    text={'VAT rate'}
-                    titleSize={"small"}
-                    {...formik}
-                    handleChange={formik.handleChange}
-                    required={true}
-                    error={formik.errors.vat_rate}
-                />
             </FormSection>
 
             <FormSection title="Media files">
@@ -291,16 +246,6 @@ const EditGoodsForm = () => {
                     textarea={true}
                     error={formik.errors.product_description}
                 />
-
-                <CreateFormInp
-                    name="additional_details"
-                    value={formik.values.additional_details}
-                    {...formik}
-                    handleChange={formik.handleChange}
-                    text={"Additional details"}
-                    titleSize={"small"}
-                    textarea={true}
-                />
             </FormSection>
 
             <FormSection title="Category attributes">
@@ -315,6 +260,15 @@ const EditGoodsForm = () => {
             </FormSection>
 
             <FormSection title="Variants, price and stock">
+                <CreateFormInp
+                    name='vat_rate'
+                    value={formik.values.vat_rate}
+                    text={'VAT rate'}
+                    titleSize={"small"}
+                    {...formik}
+                    handleChange={formik.handleChange}
+                    error={formik.errors.vat_rate}
+                />
                 <EditMainVariants type={type} setType={setType} err={varErr} setErr={setVarErr} errName={varNameErr} setErrName={setVarNameErr} />
             </FormSection>
 
@@ -324,12 +278,58 @@ const EditGoodsForm = () => {
 
             <details className={styles.additionalDetails}>
                 <summary>Additional seller details</summary>
-                <div className={styles.futureFieldsGrid}>
-                    <FutureField label="Country of origin" />
-                    <FutureField label="Warranty" />
-                    <FutureField label="HS code" />
-                    <FutureField label="Packaging material" />
-                    <FutureField label="Seller note" />
+                <div className={styles.additionalDetailsBody}>
+                    <CreateFormInp
+                        name="additional_details"
+                        value={formik.values.additional_details}
+                        {...formik}
+                        handleChange={formik.handleChange}
+                        text={"Additional details"}
+                        titleSize={"small"}
+                        textarea={true}
+                    />
+                    <CreateFormInp
+                        name="countryOfOrigin"
+                        value={countryOfOrigin}
+                        text="Country of origin"
+                        titleSize={"small"}
+                        handleChange={(e) => setCountryOfOrigin(e.target.value)}
+                    />
+                    <CreateFormInp
+                        name="warranty"
+                        value={warranty}
+                        text="Warranty"
+                        titleSize={"small"}
+                        handleChange={(e) => setWarranty(e.target.value)}
+                    />
+                    <CreateFormInp
+                        name='barcode'
+                        value={formik.values.barcode}
+                        text="EAN/UPC barcode"
+                        titleSize={"small"}
+                        {...formik}
+                        handleChange={formik.handleChange}
+                    />
+                    <CreateFormInp
+                        name='item'
+                        value={formik.values.item}
+                        text="Seller article"
+                        titleSize={"small"}
+                        {...formik}
+                        handleChange={formik.handleChange}
+                        error={formik.errors.item}
+                    />
+                    <label className={styles.isAgeLabel}>
+                        <CheckBox
+                            check={is_age}
+                            onChange={(v) => {
+                                setValues({ is_age: v })
+                                formik.setFieldValue("is_age", v)
+                            }}
+                            style={{ borderRadius: "4px" }}
+                        />
+                        Age restricted
+                    </label>
                 </div>
             </details>
 

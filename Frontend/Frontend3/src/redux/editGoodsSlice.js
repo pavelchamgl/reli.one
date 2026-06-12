@@ -14,6 +14,7 @@ import {
     isCategoryAttributeSchemaReady,
     mapEditVariantDraftToPatchPayload,
     mapVariantApiToEditDraft,
+    normalizeVatRate,
     validateAttributeDraft,
     valuesFromAttributeRows
 } from "../utils/sellerProductWizard";
@@ -132,7 +133,7 @@ export const fetchEditProduct = createAsyncThunk(
         try {
             const state = getState().edit_goods;
             const {
-                name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file
+                name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file, item, barcode, additional_details, vat_rate, is_age
             } = state;
 
             if (categoryId && !isCategoryAttributeSchemaReady({ id: categoryId }, state.attributeSchema, state.attributeSchemaStatus)) {
@@ -191,7 +192,12 @@ export const fetchEditProduct = createAsyncThunk(
                 patchProduct(id, {
                     name,
                     product_description,
-                    category: categoryId
+                    category: categoryId,
+                    article: item || String(Date.now()),
+                    barcode,
+                    additional_details,
+                    vat_rate: normalizeVatRate(vat_rate),
+                    is_age_restricted: Boolean(is_age),
                 })
             ];
 

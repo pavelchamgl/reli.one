@@ -46,6 +46,7 @@ import {
   mapEditVariantDraftToPatchPayload,
   mapVariantDraftToPayload,
   mapVariantApiToEditDraft,
+  normalizeVatRate,
   validateLicenseFile,
   validateLicenseFiles,
 } from "../utils/sellerProductWizard.js";
@@ -142,7 +143,32 @@ describe("seller product wizard create guards", () => {
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("width_mm");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("height_mm");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("weight_grams");
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("country_of_origin");
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("countryOfOrigin");
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("warranty");
     expect(postSellerProduct.mock.calls[0][0].article).toMatch(/^\d+$/);
+  });
+
+  it("maps empty VAT to zero in product create payload", async () => {
+    postSellerProduct.mockResolvedValue({ id: 123 });
+    const store = makeCreateStore();
+    store.dispatch(setCreateCategory({ id: 10, name: "Doors" }));
+    store.dispatch({
+      type: fetchCreateCategoryAttributeSchema.fulfilled.type,
+      payload: { attributes: [] },
+    });
+    store.dispatch(setCreateValues({
+      name: "Door",
+      product_description: "Front door",
+      vat_rate: "",
+    }));
+
+    const result = await store.dispatch(fetchCreateProduct());
+
+    expect(result.type).toBe(fetchCreateProduct.fulfilled.type);
+    expect(postSellerProduct).toHaveBeenCalledWith(expect.objectContaining({
+      vat_rate: "0",
+    }));
   });
 });
 
@@ -212,9 +238,57 @@ describe("seller product wizard edit submit guards", () => {
     expect(patchProduct).not.toHaveBeenCalled();
     expect(store.getState().edit_goods.attributeErrors[501]).toBe("This attribute is required.");
   });
+
+  it("maps edit product details and empty VAT to existing backend fields", async () => {
+    patchProduct.mockResolvedValue({});
+    const store = makeEditStore({
+      edit_goods: {
+        id: 77,
+        category: null,
+        categoryId: null,
+        attributeSchema: null,
+        attributeValues: {},
+        attributeErrors: {},
+        attributeSchemaStatus: "idle",
+        attributeValuesStatus: "idle",
+        name: "Door",
+        product_description: "Desc",
+        additional_details: "Seller notes",
+        barcode: "1234567890123",
+        item: "1234567890",
+        vat_rate: "",
+        is_age: true,
+        images: [],
+        parameters: [],
+        variantsName: "Style",
+        variantsServ: [],
+        license_file: null,
+      },
+    });
+
+    const result = await store.dispatch(fetchEditProduct(77));
+
+    expect(result.type).toBe(fetchEditProduct.fulfilled.type);
+    expect(patchProduct).toHaveBeenCalledWith(77, expect.objectContaining({
+      additional_details: "Seller notes",
+      barcode: "1234567890123",
+      article: "1234567890",
+      vat_rate: "0",
+      is_age_restricted: true,
+    }));
+    expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("country_of_origin");
+    expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("countryOfOrigin");
+    expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("warranty");
+  });
 });
 
 describe("seller product wizard helpers", () => {
+  it("normalizes empty VAT to zero", () => {
+    expect(normalizeVatRate("")).toBe("0");
+    expect(normalizeVatRate(null)).toBe("0");
+    expect(normalizeVatRate("21")).toBe("21");
+  });
+
   it("maps backend package dimensions to edit kg/cm fields", () => {
     expect(
       mapVariantApiToEditDraft({

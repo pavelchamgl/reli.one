@@ -110,6 +110,64 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                 />
             </label>
 
+            <h5 className={styles.groupTitle}>Package dimensions for delivery</h5>
+
+            <label className={styles.inpLabel}>
+                <p>Package weight, kg</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.weight}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, weight: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Package width, cm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.width}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, width: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Package height, cm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.height}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, height: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>Package length, cm</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    value={newVariant.length}
+                    onChange={(e) => {
+                        setNewVariant({ ...newVariant, length: e.target.value }
+                        )
+                        setErr(false)
+                    }}
+                />
+            </label>
+
             {
                 url ?
                     (
