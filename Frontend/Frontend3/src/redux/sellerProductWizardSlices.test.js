@@ -38,17 +38,20 @@ import {
   reducer as editReducer,
   setCategory as setEditCategory,
 } from "./editGoodsSlice.js";
-import { postSellerProduct } from "../api/seller/sellerProduct";
+import { postSellerImages, postSellerProduct } from "../api/seller/sellerProduct";
 import { patchProduct } from "../api/seller/editProduct";
 import { validateGoods } from "../code/validation/validationGoods.js";
 import {
   areOptionalPackageDimensionsValid,
+  buildSellerReviewData,
   CATEGORY_SCHEMA_NOT_READY_MESSAGE,
   formatVatRateForInput,
   mapEditVariantDraftToPatchPayload,
   mapVariantDraftToPayload,
   mapVariantApiToEditDraft,
   normalizeVatRate,
+  REVIEW_STOCK_NOT_LOADED,
+  unwrapProductPreviewResponse,
   validateProductImageFile,
   validateProductImageFiles,
   validateLicenseFile,
@@ -446,5 +449,237 @@ describe("seller product wizard helpers", () => {
       new File(["x"], "image.webp", { type: "image/webp" }),
       new File(["x"], "diagram.svg", { type: "image/svg+xml" }),
     ])).toBe("Product images must be JPG, PNG, or WEBP.");
+  });
+
+  it("builds seller review data with additional details and VAT display", () => {
+    const review = buildSellerReviewData({
+      name: "Door",
+      category: { id: 1, name: "Entry doors" },
+      product_description: "Strong door",
+      additional_details: "Seller note",
+      country_of_origin: "Czech Republic",
+      warranty_months: "24",
+      barcode: "1234567890123",
+      item: "1234567890",
+      is_age: true,
+      vat_rate: "0.00",
+      variantsName: "Color",
+      variantsMain: [
+        {
+          id: 1,
+          text: "Black",
+          price: "99.90",
+          quantity_in_stock: "7",
+          length: "30",
+          width: "20",
+          height: "10",
+          weight: "1.5",
+        },
+      ],
+    });
+
+    expect(review.productName).toBe("Door");
+    expect(review.categoryName).toBe("Entry doors");
+    expect(review.vatRate).toBe("0");
+    expect(review.additionalDetails).toMatchObject({
+      additional_details: "Seller note",
+      country_of_origin: "Czech Republic",
+      warranty_months: "24",
+      barcode: "1234567890123",
+      article: "1234567890",
+      is_age_restricted: true,
+    });
+    expect(review.variants[0].packageDimensions).toMatchObject({
+      length: "30",
+      width: "20",
+      height: "10",
+      weight: "1.5",
+    });
+    expect(review.variants[0].stock).toBe("7");
+  });
+
+  it("builds empty-safe seller review data for null product", () => {
+    const review = buildSellerReviewData(null);
+
+    expect(review).toMatchObject({
+      productName: "",
+      categoryName: "",
+      images: [],
+      variants: [],
+      documents: [],
+      hasMissingRequiredAttributes: false,
+    });
+  });
+
+  it("maps loaded product detail by id into seller review data", () => {
+    const productPayload = {
+      name: "Loaded Door",
+      category_name: "Public doors",
+      product_description: "Loaded detail description",
+      images: [{ id: 1, image_url: "/media/door.png" }],
+      variants: [
+        {
+          id: 7,
+          name: "Color",
+          text: "White",
+          price: "120.00",
+          sku: "SKU-7",
+          length_mm: 300,
+          width_mm: 200,
+          height_mm: 100,
+          weight_grams: 1500,
+        },
+      ],
+      license_file: { id: 5, name: "certificate.pdf", status: "server" },
+      additional_details: "Loaded additional",
+      country_of_origin: "Slovakia",
+      warranty_months: 18,
+      barcode: "1234567890123",
+      article: "1234567890",
+      is_age_restricted: false,
+      vat_rate: "0.00",
+    };
+    const review = buildSellerReviewData(productPayload);
+
+    expect(review.productName).toBe("Loaded Door");
+    expect(review.categoryName).toBe("Public doors");
+    expect(review.images[0].src).toBe("/media/door.png");
+    expect(review.variants[0]).toMatchObject({
+      axis: "Color",
+      value: "White",
+      price: "120.00",
+      sku: "SKU-7",
+      stock: REVIEW_STOCK_NOT_LOADED,
+    });
+    expect(review.variants[0].packageDimensions).toMatchObject({
+      length: "30",
+      width: "20",
+      height: "10",
+      weight: "1.5",
+    });
+    expect(review.documents[0]).toMatchObject({ name: "certificate.pdf", status: "server" });
+    expect(review.additionalDetails).toMatchObject({
+      additional_details: "Loaded additional",
+      country_of_origin: "Slovakia",
+      warranty_months: 18,
+      barcode: "1234567890123",
+      article: "1234567890",
+      is_age_restricted: false,
+    });
+  });
+
+  it("unwraps product preview Axios response before building review data", () => {
+    const productPayload = {
+      name: "Response Door",
+      category_name: "Response category",
+      images: [{ id: 1, image_url: "/media/response.png" }],
+      variants: [{ id: 1, name: "Size", text: "M", price: "88.00" }],
+      license_file: { id: 10, name: "license.pdf", status: "server" },
+      additional_details: "Response additional",
+    };
+
+    const directReview = buildSellerReviewData({ data: productPayload });
+    const unwrappedReview = buildSellerReviewData(unwrapProductPreviewResponse({ data: productPayload }));
+
+    expect(directReview.productName).toBe("");
+    expect(unwrappedReview).toMatchObject({
+      productName: "Response Door",
+      categoryName: "Response category",
+      description: "",
+    });
+    expect(unwrappedReview.images[0].src).toBe("/media/response.png");
+    expect(unwrappedReview.variants[0]).toMatchObject({
+      axis: "Size",
+      value: "M",
+      price: "88.00",
+    });
+    expect(unwrappedReview.documents[0]).toMatchObject({ name: "license.pdf", status: "server" });
+    expect(unwrappedReview.additionalDetails.additional_details).toBe("Response additional");
+    expect(unwrapProductPreviewResponse(productPayload)).toBe(productPayload);
+    expect(unwrapProductPreviewResponse(null)).toBeNull();
+  });
+
+  it("builds seller review typed attribute display values", () => {
+    const review = buildSellerReviewData({
+      attributeSchema: {
+        attributes: [
+          { id: 1, name: "Material", data_type: "text", is_required: true },
+          { id: 2, name: "Fire rated", data_type: "boolean" },
+          {
+            id: 3,
+            name: "Opening",
+            data_type: "enum",
+            options: [{ id: 10, value: "left", label: "Left" }],
+          },
+          { id: 4, name: "Width", data_type: "number", unit: "cm" },
+        ],
+      },
+      attributeValues: {
+        1: "Steel",
+        2: false,
+        3: 10,
+        4: "90",
+      },
+    });
+
+    expect(review.categoryAttributes.map((item) => item.display)).toEqual([
+      "Steel",
+      "No",
+      "Left",
+      "90 cm",
+    ]);
+    expect(review.hasMissingRequiredAttributes).toBe(false);
+  });
+
+  it("marks missing required typed attributes in seller review data", () => {
+    const review = buildSellerReviewData({
+      attributeSchema: {
+        attributes: [
+          { id: 1, name: "Material", data_type: "text", is_required: true },
+        ],
+      },
+      attributeValues: {},
+    });
+
+    expect(review.hasMissingRequiredAttributes).toBe(true);
+    expect(review.categoryAttributes[0]).toMatchObject({
+      name: "Material",
+      missingRequired: true,
+    });
+  });
+
+  it("uses explicit stock fallback when variant stock is not loaded", () => {
+    const review = buildSellerReviewData({
+      variantsServ: [
+        { id: 1, name: "Style", text: "Default", price: "10.00" },
+      ],
+    });
+
+    expect(review.variants[0].stock).toBe(REVIEW_STOCK_NOT_LOADED);
+  });
+
+  it("keeps partial success retry state with created product id and failed steps", async () => {
+    postSellerProduct.mockResolvedValue({ id: 123 });
+    postSellerImages.mockRejectedValue(new Error("Image upload failed"));
+    const store = makeCreateStore();
+    store.dispatch(setCreateCategory({ id: 10, name: "Doors" }));
+    store.dispatch({
+      type: fetchCreateCategoryAttributeSchema.fulfilled.type,
+      payload: { attributes: [] },
+    });
+    store.dispatch(setCreateValues({
+      name: "Door",
+      product_description: "Front door",
+      images: [{ image_url: "data:image/png;base64,ok" }],
+    }));
+
+    const result = await store.dispatch(fetchCreateProduct());
+
+    expect(result.type).toBe(fetchCreateProduct.fulfilled.type);
+    expect(store.getState().create_prev.createdProductId).toBe(123);
+    expect(store.getState().create_prev.partialSuccess).toBe(true);
+    expect(store.getState().create_prev.submitStepResults).toEqual(expect.arrayContaining([
+      expect.objectContaining({ step: "images", status: "rejected" }),
+    ]));
   });
 });

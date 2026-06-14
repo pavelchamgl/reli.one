@@ -7,6 +7,7 @@ import { useActionSellerEdit } from "../hook/useActionSellerEdit";
 import SellerPreviewDesktop from "../Components/Seller/preview/SellerPreviewDesctop/SellerPreviewDesktop";
 import SellerPreviewMobile from "../Components/Seller/preview/SellerPreviewMobile/SellerPreviewMobile";
 import Spinner from "../ui/Spiner/Spiner";
+import { buildSellerReviewData } from "../utils/sellerProductWizard";
 
 import arrRight from "../assets/Payment/arrRightWhite.svg"
 
@@ -21,6 +22,7 @@ const SellerEditPreview = () => {
     const { fetchEditProduct } = useActionSellerEdit()
 
     const product = useSelector(state => state.edit_goods)
+    const reviewData = buildSellerReviewData(product)
 
     const { t } = useTranslation('sellerHome')
 
@@ -52,11 +54,16 @@ const SellerEditPreview = () => {
         <div style={{ paddingBottom: "100px" }}>
             <h3 className={styles.title}>{t('goods.creation')}</h3>
             {isMobile ? <SellerPreviewMobile product={product} /> : <SellerPreviewDesktop product={product} />}
+            {reviewData.hasMissingRequiredAttributes ? (
+                <div className={styles.reviewWarning}>
+                    Required category attributes are missing. Return to the form and fill them before sending to moderation.
+                </div>
+            ) : null}
             <div className={styles.buttonDiv}>
                 <button onClick={() => navigate(-1)}>
                     {t('item.cancel')}
                 </button>
-                <button onClick={handleEdit} >
+                <button onClick={handleEdit} disabled={reviewData.hasMissingRequiredAttributes} >
                     {
                         product?.status === "pending" ?
                             <Spinner size="16px" /> :

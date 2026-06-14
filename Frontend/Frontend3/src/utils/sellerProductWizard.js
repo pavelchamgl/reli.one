@@ -276,3 +276,125 @@ export const validateProductImageFiles = (files = []) => {
     }
     return null;
 };
+
+const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== "");
+
+const imageSource = (item) => item?.image_url || item?.image || item?.base64 || item?.file_url || "";
+
+export const REVIEW_STOCK_NOT_LOADED = "Stock not loaded";
+
+export const unwrapProductPreviewResponse = (response) => {
+    if (!response) return null;
+    return response.data || response;
+};
+
+const licenseRows = (licenseFile) => {
+    if (!licenseFile) return [];
+    const rows = Array.isArray(licenseFile) ? licenseFile : [licenseFile];
+    return rows
+        .filter(Boolean)
+        .map((item) => ({
+            id: item.id || item.name || item.file_url,
+            name: item.name || item.file?.name || "License / Certificate",
+            status: item.status || "ready",
+        }));
+};
+
+const packageDimensionsForReview = (variant = {}) => ({
+    length: firstPresent(
+        variant.package_length_cm,
+        variant.length,
+        variant.length_mm ? mmToCm(variant.length_mm) : ""
+    ),
+    width: firstPresent(
+        variant.package_width_cm,
+        variant.width,
+        variant.width_mm ? mmToCm(variant.width_mm) : ""
+    ),
+    height: firstPresent(
+        variant.package_height_cm,
+        variant.height,
+        variant.height_mm ? mmToCm(variant.height_mm) : ""
+    ),
+    weight: firstPresent(
+        variant.package_weight_kg,
+        variant.weight,
+        variant.weight_grams ? gramsToKg(variant.weight_grams) : ""
+    ),
+});
+
+const attributeDisplayValue = (attribute, value) => {
+    const isEmpty = value === undefined || value === null || value === "";
+    if (isEmpty) return "";
+    if (attribute.data_type === "boolean") return value ? "Yes" : "No";
+    if (attribute.data_type === "enum") {
+        const option = (attribute.options || []).find((item) => Number(item.id) === Number(value));
+        return option?.label || option?.value || String(value);
+    }
+    if (attribute.data_type === "number") {
+        return `${value}${attribute.unit ? ` ${attribute.unit}` : ""}`;
+    }
+    return String(value);
+};
+
+export const buildSellerReviewData = (product = {}) => {
+    const source = product || {};
+    const variants = source.variantsServ || source.variantsMain || source.variants || [];
+    const images = (source.images || [])
+        .map((item, index) => ({
+            id: item?.id || index,
+            src: imageSource(item),
+        }))
+        .filter((item) => item.src);
+    const schema = normalizeAttributeSchema(source.attributeSchema);
+    const attributeValues = source.attributeValues || {};
+    const categoryAttributes = schema
+        .map((attribute) => {
+            const value = attributeValues[attribute.id];
+            const display = attributeDisplayValue(attribute, value);
+            const missingRequired = attribute.is_required && !display;
+            if (!display && !missingRequired) return null;
+            return {
+                id: attribute.id,
+                name: attribute.name,
+                code: attribute.code,
+                display,
+                isRequired: Boolean(attribute.is_required),
+                missingRequired,
+            };
+        })
+        .filter(Boolean);
+
+    const reviewVariants = variants.map((variant, index) => ({
+        id: variant.id || index,
+        axis: source.variantsName || variant.name || "Variant",
+        value: variant.text || (variant.image ? "Image variant" : "Default"),
+        price: variant.price,
+        stock: firstPresent(variant.quantity_in_stock, variant.stock_quantity, variant.stock) ?? REVIEW_STOCK_NOT_LOADED,
+        sku: variant.sku,
+        image: imageSource(variant),
+        packageDimensions: packageDimensionsForReview(variant),
+    }));
+
+    return {
+        productName: source.name || "",
+        categoryName: source.category?.name || source.category_name || "",
+        description: source.product_description || "",
+        price: firstPresent(source.price, reviewVariants[0]?.price, ""),
+        vatRate: formatVatRateForInput(normalizeVatRate(source.vat_rate)),
+        images,
+        categoryAttributes,
+        productParameters: source.parameters || source.product_parameters || [],
+        variants: reviewVariants,
+        documents: licenseRows(source.license_file),
+        additionalDetails: {
+            additional_details: source.additional_details || "",
+            country_of_origin: source.country_of_origin || "",
+            warranty_months: source.warranty_months ?? "",
+            barcode: source.barcode || "",
+            article: source.item || source.article || "",
+            is_age_restricted: Boolean(source.is_age ?? source.is_age_restricted),
+        },
+        hasMissingRequiredAttributes: categoryAttributes.some((item) => item.missingRequired),
+    };
+};

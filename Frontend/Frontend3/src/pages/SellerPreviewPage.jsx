@@ -1,7 +1,7 @@
 import { useMediaQuery } from "react-responsive";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import SellerPreviewDesktop from "../Components/Seller/preview/SellerPreviewDesctop/SellerPreviewDesktop";
@@ -9,6 +9,7 @@ import SellerPreviewMobile from "../Components/Seller/preview/SellerPreviewMobil
 import { useActionCreatePrev } from "../hook/useActionCreatePrev";
 import Spinner from "../ui/Spiner/Spiner";
 import { getProductById } from "../api/productsApi";
+import { buildSellerReviewData, unwrapProductPreviewResponse } from "../utils/sellerProductWizard";
 
 import arrRight from "../assets/Payment/arrRightWhite.svg"
 
@@ -23,9 +24,13 @@ const SellerPreviewPage = () => {
 
   const product = useSelector(state => state.create_prev)
   const previewProduct = useSelector(state => state.create_prev.previewProduct)
+  const [loadedPreviewProduct, setLoadedPreviewProduct] = useState(null)
+  const [previewStatus, setPreviewStatus] = useState(id ? "pending" : "idle")
+  const [previewError, setPreviewError] = useState("")
 
 
-  const data = id ? previewProduct : product
+  const data = id ? (loadedPreviewProduct || previewProduct) : product
+  const reviewData = buildSellerReviewData(data)
 
   const { fetchCreateProduct } = useActionCreatePrev()
 
@@ -36,19 +41,33 @@ const SellerPreviewPage = () => {
   const { t } = useTranslation('sellerHome')
 
   useEffect(() => {
-    if (product?.status === "fulfilled") {
+    if (!id && product?.status === "fulfilled") {
       navigate("/seller/goods-list");
       window.location.reload();
     }
 
-  }, [product?.status]);
+  }, [id, product?.status]);
 
   useEffect(() => {
+    let isMounted = true;
     if (id) {
-      getProductById(id).then((res) => {
-        console.log(res);
+      setPreviewStatus("pending")
+      setPreviewError("")
+      getProductById(id)
+        .then((res) => {
+          if (!isMounted) return;
+          setLoadedPreviewProduct(unwrapProductPreviewResponse(res))
+          setPreviewStatus("fulfilled")
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setPreviewStatus("rejected")
+          setPreviewError("Unable to load product preview.")
+        })
+    }
 
-      })
+    return () => {
+      isMounted = false;
     }
   }, [id])
 
@@ -58,8 +77,24 @@ const SellerPreviewPage = () => {
   return (
     <div style={{ paddingBottom: "100px" }}>
       <h3 className={styles.title}>{t('goods.creation')}</h3>
+      {id && previewStatus === "pending" ? (
+        <div className={styles.previewLoading}>
+          <Spinner size="20px" />
+          <span>Loading product preview...</span>
+        </div>
+      ) : null}
+      {id && previewStatus === "rejected" ? (
+        <div className={styles.reviewWarning}>{previewError}</div>
+      ) : null}
+      {(!id || previewStatus === "fulfilled") ? (
+        <>
       {isMobile ? <SellerPreviewMobile product={data} /> : <SellerPreviewDesktop product={data} />}
-      {product?.status === "partial_success" ? (
+      {reviewData.hasMissingRequiredAttributes ? (
+        <div className={styles.reviewWarning}>
+          Required category attributes are missing. Return to the form and fill them before sending to moderation.
+        </div>
+      ) : null}
+      {!id && product?.status === "partial_success" ? (
         <div style={{
           margin: "24px 0",
           padding: "16px",
@@ -86,13 +121,15 @@ const SellerPreviewPage = () => {
           </div>
         </div>
       ) : null}
+        </>
+      ) : null}
       <div className={styles.buttonDiv}>
         <button onClick={() => navigate(-1)}>
           {t('item.cancel')}
         </button>
-        <button onClick={handleCreate}>
+        <button onClick={handleCreate} disabled={Boolean(id) || reviewData.hasMissingRequiredAttributes}>
           {
-            product?.status === "pending" ?
+            !id && product?.status === "pending" ?
               <Spinner size="16px" />
               :
               (

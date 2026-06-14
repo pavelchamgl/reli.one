@@ -1,0 +1,268 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-top: 28px;
+}
+
+.previewArea {
+  display: grid;
+  grid-template-columns: minmax(280px, 430px) minmax(280px, 1fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: flex-start;
+
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mainImage,
+.imageEmpty {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid #ced4d7;
+  background: #fafafa;
+}
+
+.mainImage {
+  object-fit: cover;
+}
+
+.imageEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-weight: 400;
+  font-size: 14px;
+  color: #64748b;
+  text-align: center;
+}
+
+.thumbnails,
+.mediaGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.thumbnail,
+.thumbnailActive {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 1px solid #ced4d7;
+  background: transparent;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.thumbnailActive {
+  border-color: #000;
+}
+
+.productInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 480px;
+
+  h2 {
+    margin: 0;
+    font-weight: 600;
+    font-size: clamp(24px, 3vw, 36px);
+    line-height: 110%;
+    color: #000;
+  }
+}
+
+.previewLabel,
+.category {
+  margin: 0;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 150%;
+  color: #64748b;
+}
+
+.previewLabel {
+  text-transform: uppercase;
+}
+
+.price {
+  margin: 0;
+  font-family: var(--ft);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 120%;
+  color: #000;
+}
+
+.variantPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    min-height: 34px;
+    padding: 6px 14px;
+    border: 1px solid #64748b;
+    background: transparent;
+    font-weight: 500;
+    font-size: 14px;
+    color: #000;
+  }
+}
+
+.disabledCartButton {
+  width: min(100%, 390px);
+  height: 48px;
+  border: 1px solid #64748b;
+  background: #64748b;
+  color: #fff;
+  font-weight: 500;
+  font-size: 16px;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.previewDescription,
+.longText {
+  margin: 0;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 150%;
+  color: #000;
+  white-space: pre-wrap;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid #ced4d7;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  h3 {
+    margin: 0;
+    font-weight: 600;
+    font-size: clamp(18px, 2vw, 24px);
+    line-height: 120%;
+    color: #000;
+  }
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 24px;
+  margin: 0;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 42%) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+
+  dt,
+  dd {
+    margin: 0;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 150%;
+  }
+
+  dt {
+    color: #64748b;
+  }
+
+  dd {
+    color: #000;
+    overflow-wrap: anywhere;
+  }
+}
+
+.mediaGrid {
+  figure {
+    width: 120px;
+    margin: 0;
+  }
+
+  img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border: 1px solid #ced4d7;
+  }
+
+  figcaption {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 140%;
+    color: #64748b;
+  }
+}
+
+.variantGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.variantCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #ced4d7;
+  background: #fff;
+}
+
+.packageBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid #ced4d7;
+
+  h4 {
+    margin: 0;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 130%;
+    color: #000;
+  }
+}
+
+.emptyValue {
+  color: #64748b;
+}
+
+.warningText {
+  margin: 0;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 150%;
+  color: #b45309;
+}
