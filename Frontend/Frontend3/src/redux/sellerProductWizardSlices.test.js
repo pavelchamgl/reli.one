@@ -34,6 +34,7 @@ import {
   setValues as setCreateValues,
 } from "./createProdPrevSlice.js";
 import {
+  fetchEditCategoryAttributeSchema,
   fetchEditProduct,
   reducer as editReducer,
   setCategory as setEditCategory,
@@ -45,6 +46,7 @@ import {
   areOptionalPackageDimensionsValid,
   buildSellerReviewData,
   CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+  formatApiErrorMessage,
   formatVatRateForInput,
   mapEditVariantDraftToPatchPayload,
   mapVariantDraftToPayload,
@@ -218,6 +220,17 @@ describe("seller product wizard edit reducer", () => {
     expect(next.attributeSchemaStatus).toBe("idle");
     expect(next.attributeValuesStatus).toBe("idle");
   });
+
+  it("stores edit category schema API errors as render-safe strings", () => {
+    const next = editReducer(undefined, {
+      type: fetchEditCategoryAttributeSchema.rejected.type,
+      payload: { detail: "Schema is unavailable." },
+    });
+
+    expect(next.attributeSchemaStatus).toBe("rejected");
+    expect(next.attributeErrors.schema).toBe("Schema is unavailable.");
+    expect(typeof next.attributeErrors.schema).toBe("string");
+  });
 });
 
 describe("seller product wizard edit submit guards", () => {
@@ -310,6 +323,14 @@ describe("seller product wizard edit submit guards", () => {
 });
 
 describe("seller product wizard helpers", () => {
+  it("formats API error objects for UI rendering", () => {
+    expect(formatApiErrorMessage({ detail: "Not found" }, "Fallback")).toBe("Not found");
+    expect(formatApiErrorMessage({ field: ["A", "B"] }, "Fallback")).toBe("field: A, B");
+    expect(formatApiErrorMessage(["A", { detail: "B" }], "Fallback")).toBe("A, B");
+    expect(formatApiErrorMessage(null, "Fallback")).toBe("Fallback");
+    expect(formatApiErrorMessage({}, "Fallback")).toBe("Fallback");
+  });
+
   it("normalizes empty VAT to zero", () => {
     expect(normalizeVatRate("")).toBe("0");
     expect(normalizeVatRate(null)).toBe("0");
@@ -463,12 +484,15 @@ describe("seller product wizard helpers", () => {
       item: "1234567890",
       is_age: true,
       vat_rate: "0.00",
+      rating: "4.7",
+      total_reviews: "13",
       variantsName: "Color",
       variantsMain: [
         {
           id: 1,
           text: "Black",
           price: "99.90",
+          price_without_vat: "82.56",
           quantity_in_stock: "7",
           length: "30",
           width: "20",
@@ -481,6 +505,9 @@ describe("seller product wizard helpers", () => {
     expect(review.productName).toBe("Door");
     expect(review.categoryName).toBe("Entry doors");
     expect(review.vatRate).toBe("0");
+    expect(review.priceWithoutVat).toBe("82.56");
+    expect(review.rating).toBe(4.7);
+    expect(review.totalReviews).toBe(13);
     expect(review.additionalDetails).toMatchObject({
       additional_details: "Seller note",
       country_of_origin: "Czech Republic",
@@ -530,7 +557,7 @@ describe("seller product wizard helpers", () => {
           weight_grams: 1500,
         },
       ],
-      license_file: { id: 5, name: "certificate.pdf", status: "server" },
+      license_file: { id: 5, name: "certificate.pdf", status: "server", file_url: "/media/certificate.pdf" },
       additional_details: "Loaded additional",
       country_of_origin: "Slovakia",
       warranty_months: 18,
@@ -538,6 +565,7 @@ describe("seller product wizard helpers", () => {
       article: "1234567890",
       is_age_restricted: false,
       vat_rate: "0.00",
+      moderation_status: "pending",
     };
     const review = buildSellerReviewData(productPayload);
 
@@ -558,6 +586,7 @@ describe("seller product wizard helpers", () => {
       weight: "1.5",
     });
     expect(review.documents[0]).toMatchObject({ name: "certificate.pdf", status: "server" });
+    expect(review.documents[0].url).toBe("/media/certificate.pdf");
     expect(review.additionalDetails).toMatchObject({
       additional_details: "Loaded additional",
       country_of_origin: "Slovakia",
@@ -566,6 +595,7 @@ describe("seller product wizard helpers", () => {
       article: "1234567890",
       is_age_restricted: false,
     });
+    expect(review.moderation.status).toBe("pending");
   });
 
   it("unwraps product preview Axios response before building review data", () => {
@@ -597,6 +627,54 @@ describe("seller product wizard helpers", () => {
     expect(unwrappedReview.additionalDetails.additional_details).toBe("Response additional");
     expect(unwrapProductPreviewResponse(productPayload)).toBe(productPayload);
     expect(unwrapProductPreviewResponse(null)).toBeNull();
+  });
+
+  it("returns wrapper object when response.data is null", () => {
+    const wrapper = { data: null, status: 200 };
+    expect(unwrapProductPreviewResponse(wrapper)).toEqual(wrapper);
+    expect(unwrapProductPreviewResponse(null)).toBeNull();
+  });
+
+  it("prefers variantsServ over variantsMain when both present", () => {
+    const review = buildSellerReviewData({
+      variantsServ: [{ id: 1, text: "Serv variant", price: "10.00" }],
+      variantsMain: [{ id: 2, text: "Main variant", price: "20.00" }],
+    });
+    expect(review.variants).toHaveLength(1);
+    expect(review.variants[0].value).toBe("Serv variant");
+  });
+
+  it("preserves zero stock quantity instead of using stock-not-loaded fallback", () => {
+    const review = buildSellerReviewData({
+      variantsServ: [{ id: 1, text: "A", price: "5.00", quantity_in_stock: 0 }],
+    });
+    expect(review.variants[0].stock).toBe(0);
+  });
+
+  it("excludes optional typed attributes with no value from review", () => {
+    const review = buildSellerReviewData({
+      attributeSchema: {
+        attributes: [
+          { id: 1, name: "Material", data_type: "text", is_required: false },
+          { id: 2, name: "Color",    data_type: "text", is_required: false },
+        ],
+      },
+      attributeValues: { 2: "Red" },
+    });
+    expect(review.categoryAttributes).toHaveLength(1);
+    expect(review.categoryAttributes[0].name).toBe("Color");
+  });
+
+  it("maps string license url into document link row", () => {
+    const review = buildSellerReviewData({
+      license_file: "https://example.com/license.pdf",
+    });
+
+    expect(review.documents).toHaveLength(1);
+    expect(review.documents[0]).toMatchObject({
+      name: "License / Certificate",
+      url: "https://example.com/license.pdf",
+    });
   });
 
   it("builds seller review typed attribute display values", () => {

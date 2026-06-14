@@ -11,6 +11,7 @@ import { ErrToast } from "../ui/Toastify";
 import {
     buildAttributePayload,
     CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+    formatApiErrorMessage,
     isCategoryAttributeSchemaReady,
     mapEditVariantDraftToPatchPayload,
     mapVariantApiToEditDraft,
@@ -97,7 +98,7 @@ export const fetchDeleteImage = createAsyncThunk(
             await mainInstance.delete(`sellers/products/${obj?.prodId}/images/${obj?.imageId}/`);
             dispatch(deleteImage(obj?.imageId));
         } catch (error) {
-            ErrToast(error?.response?.data.detail)
+            ErrToast(formatApiErrorMessage(error?.response?.data, "An error occurred while deleting image."))
             return rejectWithValue(error?.response?.data || "An error occurred while deleting image.");
         }
     }
@@ -482,9 +483,10 @@ const editGoodsSlice = createSlice({
             state.err = null;
         })
         build.addCase(fetchSellerProductById.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "An error occurred while fetching the product.");
             state.status = "rejected";
-            state.err = action.payload;
-            ErrToast(action.payload || "An error occurred while fetching the product.")
+            state.err = message;
+            ErrToast(message)
         })
 
         build.addCase(fetchEditCategoryAttributeSchema.pending, (state) => {
@@ -496,9 +498,10 @@ const editGoodsSlice = createSlice({
             state.attributeErrors = {};
         })
         build.addCase(fetchEditCategoryAttributeSchema.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "Unable to load category schema.");
             state.attributeSchemaStatus = "rejected";
             state.attributeSchema = null;
-            state.attributeErrors = { schema: action.payload || "Unable to load category schema." };
+            state.attributeErrors = { schema: message };
         })
         build.addCase(fetchEditProductAttributes.pending, (state) => {
             state.attributeValuesStatus = "pending";
@@ -508,28 +511,38 @@ const editGoodsSlice = createSlice({
             state.attributeValues = valuesFromAttributeRows(action.payload || []);
         })
         build.addCase(fetchEditProductAttributes.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "Unable to load product attributes.");
             state.attributeValuesStatus = "rejected";
             state.attributeErrors = {
                 ...state.attributeErrors,
-                values: action.payload || "Unable to load product attributes.",
+                values: message,
             };
         })
 
 
         build.addCase(fetchDeleteParameters.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "An error occurred while deleting parameters.");
             state.status = "rejected";
-            state.err = action.payload;
-            ErrToast(action.payload || "An error occurred while deleting parameters."); // Ошибка
+            state.err = message;
+            ErrToast(message); // Ошибка
         })
         build.addCase(fetchDeleteImage.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "An error occurred while deleting image.");
             state.status = "rejected";
-            state.err = action.payload;
-            ErrToast(action.payload?.detail || "An error occurred while deleting image."); // Ошибка
+            state.err = message;
+            ErrToast(message); // Ошибка
         })
         build.addCase(fetchDeleteVariant.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "An error occurred while deleting variant.");
             state.status = "rejected";
-            state.err = action.payload;
-            ErrToast(action.payload || "An error occurred while deleting variant."); // Ошибка
+            state.err = message;
+            ErrToast(message); // Ошибка
+        })
+        build.addCase(fetchDeleteLicense.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "An error occurred while deleting license.");
+            state.status = "rejected";
+            state.err = message;
+            ErrToast(message); // Ошибка
         })
 
         build.addCase(fetchEditProduct.pending, (state) => {
@@ -541,12 +554,13 @@ const editGoodsSlice = createSlice({
             state.err = null;
         })
         build.addCase(fetchEditProduct.rejected, (state, action) => {
+            const message = formatApiErrorMessage(action.payload, "An error occurred while editing the product.");
             state.status = "rejected";
-            state.err = action.payload;
+            state.err = message;
             if (action.payload?.attributeErrors) {
                 state.attributeErrors = action.payload.attributeErrors;
             }
-            ErrToast("An error occurred while editing the product."); // Ошибка
+            ErrToast(message); // Ошибка
         });
     }
 })

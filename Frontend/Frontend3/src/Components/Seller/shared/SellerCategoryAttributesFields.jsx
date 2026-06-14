@@ -1,3 +1,5 @@
+import { formatApiErrorMessage } from "../../../utils/sellerProductWizard";
+
 const fieldWrapStyle = {
     display: "grid",
     gap: "10px",
@@ -44,6 +46,9 @@ const SellerCategoryAttributesFields = ({
     disabled = false,
     onChange,
 }) => {
+    const normalizedErrors = errors || {};
+    const schemaError = formatApiErrorMessage(normalizedErrors.schema, "");
+
     if (loading) {
         return (
             <section style={fieldWrapStyle}>
@@ -57,7 +62,7 @@ const SellerCategoryAttributesFields = ({
         return (
             <section style={fieldWrapStyle}>
                 <h4>Category attributes</h4>
-                {errors.schema ? <p style={errorStyle}>{errors.schema}</p> : null}
+                {schemaError ? <p style={errorStyle}>{schemaError}</p> : null}
                 <p style={hintStyle}>No typed attributes are required for this category.</p>
             </section>
         );
@@ -109,7 +114,7 @@ const SellerCategoryAttributesFields = ({
     return (
         <section style={fieldWrapStyle}>
             <h4>Category attributes</h4>
-            {errors.schema ? <p style={errorStyle}>{errors.schema}</p> : null}
+            {schemaError ? <p style={errorStyle}>{schemaError}</p> : null}
             {disabled ? <p style={hintStyle}>Typed attributes are shown for compatibility. Full edit save is a follow-up.</p> : null}
             {schema.map((attribute) => (
                 <label key={attribute.id} style={fieldStyle}>
@@ -122,7 +127,9 @@ const SellerCategoryAttributesFields = ({
                     {attribute.is_inherited ? (
                         <p style={hintStyle}>Inherited from parent category</p>
                     ) : null}
-                    {errors[attribute.id] ? <p style={errorStyle}>{errors[attribute.id]}</p> : null}
+                    {formatApiErrorMessage(normalizedErrors[attribute.id], "") ? (
+                        <p style={errorStyle}>{formatApiErrorMessage(normalizedErrors[attribute.id], "")}</p>
+                    ) : null}
                 </label>
             ))}
         </section>

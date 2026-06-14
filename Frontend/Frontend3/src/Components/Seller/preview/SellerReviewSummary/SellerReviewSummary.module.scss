@@ -45,8 +45,7 @@
   text-align: center;
 }
 
-.thumbnails,
-.mediaGrid {
+.thumbnails {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -86,17 +85,31 @@
   }
 }
 
-.previewLabel,
+.ratingDiv {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  p {
+    margin: 0;
+    font-weight: 500;
+    font-size: 16px;
+    color: #64748b;
+  }
+}
+
+.nameCategoryDiv {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .category {
   margin: 0;
   font-weight: 500;
   font-size: 14px;
   line-height: 150%;
   color: #64748b;
-}
-
-.previewLabel {
-  text-transform: uppercase;
 }
 
 .price {
@@ -112,16 +125,47 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
 
-  button {
-    min-height: 34px;
-    padding: 6px 14px;
-    border: 1px solid #64748b;
-    background: transparent;
-    font-weight: 500;
-    font-size: 14px;
-    color: #000;
+.variantButton,
+.variantActive {
+  min-height: 34px;
+  padding: 6px 14px;
+  border: 1px solid #64748b;
+  background: transparent;
+  font-weight: 500;
+  font-size: 14px;
+  color: #000;
+}
+
+.variantActive {
+  border-color: #000;
+  font-weight: 600;
+}
+
+.variantAxisLabel {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.withoutVat {
+  margin: 0;
+  font-size: 16px;
+  color: #64748b;
+
+  span {
+    font-family: var(--ft);
+    color: #64748b;
   }
+}
+
+.stockSkuGrid {
+  margin: 0;
+  display: grid;
+  gap: 8px;
 }
 
 .disabledCartButton {
@@ -136,7 +180,22 @@
   opacity: 0.75;
 }
 
-.previewDescription,
+.deliveryBlock {
+  width: min(100%, 390px);
+  min-height: 40px;
+  border: 1px solid #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    color: #64748b;
+  }
+}
+
 .longText {
   margin: 0;
   font-weight: 400;
@@ -200,27 +259,6 @@
   dd {
     color: #000;
     overflow-wrap: anywhere;
-  }
-}
-
-.mediaGrid {
-  figure {
-    width: 120px;
-    margin: 0;
-  }
-
-  img {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border: 1px solid #ced4d7;
-  }
-
-  figcaption {
-    margin-top: 6px;
-    font-size: 12px;
-    line-height: 140%;
-    color: #64748b;
   }
 }
 

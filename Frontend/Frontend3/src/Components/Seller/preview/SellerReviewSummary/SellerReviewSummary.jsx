@@ -1,3 +1,4 @@
+import { Rating } from "@mui/material";
 import { useMemo, useState } from "react";
 
 import { buildSellerReviewData } from "../../../../utils/sellerProductWizard";
@@ -106,58 +107,68 @@ const VariantCard = ({ variant }) => {
   );
 };
 
+const ProductDetailShell = ({ review }) => {
+  const [activeVariantId, setActiveVariantId] = useState(review.variants[0]?.id ?? null);
+  const activeVariant = review.variants.find((variant) => variant.id === activeVariantId) || review.variants[0];
+  const ratingValue = Number.isFinite(review.rating) ? review.rating : 0;
+
+  return (
+    <section className={styles.previewArea}>
+      <ImageGallery images={review.images} />
+      <div className={styles.productInfo}>
+        <div className={styles.ratingDiv}>
+          <Rating name="seller-preview-rating" value={ratingValue} readOnly />
+          <p>{review.totalReviews}</p>
+        </div>
+        <div className={styles.nameCategoryDiv}>
+          <h2>{review.productName || "Untitled product"}</h2>
+          <p className={styles.category}>{review.categoryName || "Category not selected"}</p>
+        </div>
+        <p className={styles.price}>{review.price ? `${review.price} €` : "Price not specified"}</p>
+        <p className={styles.withoutVat}>
+          Without VAT <span>{review.priceWithoutVat ? `${review.priceWithoutVat} €` : "Not specified"}</span>
+        </p>
+        <div className={styles.variantAxisLabel}>{review.variantAxisName}</div>
+        <div className={styles.variantPills}>
+          {review.variants.length ? review.variants.map((variant) => (
+            <button
+              key={variant.id}
+              type="button"
+              onClick={() => setActiveVariantId(variant.id)}
+              className={variant.id === activeVariant?.id ? styles.variantActive : styles.variantButton}
+            >
+              {variant.value}
+            </button>
+          )) : <EmptyValue>No variants added</EmptyValue>}
+        </div>
+        <dl className={styles.stockSkuGrid}>
+          <SummaryRow label="Stock quantity" value={activeVariant?.stock} />
+          <SummaryRow label="System SKU" value={activeVariant?.sku} />
+        </dl>
+        <button className={styles.disabledCartButton} type="button" disabled>
+          Preview only
+        </button>
+        <div className={styles.deliveryBlock}>
+          <p>{review.deliveryText}</p>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const SellerReviewSummary = ({ product }) => {
   const review = useMemo(() => buildSellerReviewData(product), [product]);
 
   return (
     <div className={styles.main}>
-      <section className={styles.previewArea}>
-        <ImageGallery images={review.images} />
-        <div className={styles.productInfo}>
-          <p className={styles.previewLabel}>Seller product preview</p>
-          <h2>{review.productName || "Untitled product"}</h2>
-          <p className={styles.category}>{review.categoryName || "Category not selected"}</p>
-          <p className={styles.price}>{review.price ? `${review.price} €` : "Price not specified"}</p>
-          <div className={styles.variantPills}>
-            {review.variants.length ? review.variants.map((variant) => (
-              <button key={variant.id} type="button" disabled>
-                {variant.value}
-              </button>
-            )) : <EmptyValue>No variants added</EmptyValue>}
-          </div>
-          <button className={styles.disabledCartButton} type="button" disabled>
-            Preview only
-          </button>
-          {review.description ? <p className={styles.previewDescription}>{review.description}</p> : null}
-        </div>
-      </section>
-
-      <Section title="Main Information">
-        <dl className={styles.summaryGrid}>
-          <SummaryRow label="Category" value={review.categoryName} />
-          <SummaryRow label="Product name" value={review.productName} />
-        </dl>
-      </Section>
-
-      <Section title="Media Files">
-        {review.images.length ? (
-          <div className={styles.mediaGrid}>
-            {review.images.map((image, index) => (
-              <figure key={image.id}>
-                <img src={image.src} alt={`Product media ${index + 1}`} />
-                <figcaption>{index === 0 ? "Main image" : `Additional image ${index}`}</figcaption>
-              </figure>
-            ))}
-          </div>
-        ) : <EmptyValue>No valid images added</EmptyValue>}
-      </Section>
+      <ProductDetailShell review={review} />
 
       <Section title="Description">
         <p className={styles.longText}>{review.description || <EmptyValue />}</p>
       </Section>
 
       <Section
-        title="Category Attributes"
+        title="Parameters and category attributes"
         warning={review.hasMissingRequiredAttributes ? "Required category attributes are missing." : null}
       >
         <AttributeList attributes={review.categoryAttributes} parameters={review.productParameters} />
@@ -178,7 +189,11 @@ const SellerReviewSummary = ({ product }) => {
         {review.documents.length ? (
           <dl className={styles.summaryGrid}>
             {review.documents.map((document) => (
-              <SummaryRow key={document.id} label={document.name} value={document.status} />
+              <SummaryRow
+                key={document.id}
+                label={document.name}
+                value={document.url ? <a href={document.url} target="_blank" rel="noreferrer">Open document</a> : document.status}
+              />
             ))}
           </dl>
         ) : <EmptyValue>No license or certificate added</EmptyValue>}
@@ -192,6 +207,7 @@ const SellerReviewSummary = ({ product }) => {
           <SummaryRow label="EAN/UPC barcode" value={review.additionalDetails.barcode} />
           <SummaryRow label="Seller article" value={review.additionalDetails.article} />
           <SummaryRow label="Age restricted" value={review.additionalDetails.is_age_restricted ? "Yes" : "No"} />
+          <SummaryRow label="Moderation status" value={review.moderation.statusLabel || review.moderation.status} />
         </dl>
       </Section>
     </div>

@@ -9,7 +9,7 @@ import SellerPreviewMobile from "../Components/Seller/preview/SellerPreviewMobil
 import { useActionCreatePrev } from "../hook/useActionCreatePrev";
 import Spinner from "../ui/Spiner/Spiner";
 import { getProductById } from "../api/productsApi";
-import { buildSellerReviewData, unwrapProductPreviewResponse } from "../utils/sellerProductWizard";
+import { buildSellerReviewData, formatApiErrorMessage, unwrapProductPreviewResponse } from "../utils/sellerProductWizard";
 
 import arrRight from "../assets/Payment/arrRightWhite.svg"
 
@@ -59,10 +59,10 @@ const SellerPreviewPage = () => {
           setLoadedPreviewProduct(unwrapProductPreviewResponse(res))
           setPreviewStatus("fulfilled")
         })
-        .catch(() => {
+        .catch((error) => {
           if (!isMounted) return;
           setPreviewStatus("rejected")
-          setPreviewError("Unable to load product preview.")
+          setPreviewError(formatApiErrorMessage(error?.response?.data, "Unable to load product preview."))
         })
     }
 
@@ -111,7 +111,7 @@ const SellerPreviewPage = () => {
             {(product.submitStepResults || [])
               .filter((item) => item.status === "rejected")
               .map((item) => (
-                <li key={item.step}>{item.step}: {item.error}</li>
+                <li key={item.step}>{item.step}: {formatApiErrorMessage(item.error, "Unknown error")}</li>
               ))}
           </ul>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>

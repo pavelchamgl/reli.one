@@ -206,12 +206,37 @@ export const makeStepResult = (step, status, payload) => ({
     error: status === "rejected" ? formatStepError(payload) : undefined,
 });
 
+export const formatApiErrorMessage = (error, fallback = "Unknown error") => {
+    if (error === undefined || error === null || error === "") return fallback;
+    if (typeof error === "string") return error;
+    if (Array.isArray(error)) {
+        const messages = error
+            .map((item) => formatApiErrorMessage(item, ""))
+            .filter(Boolean);
+        return messages.length ? messages.join(", ") : fallback;
+    }
+    if (typeof error === "object") {
+        if (typeof error.detail === "string") return error.detail;
+        if (typeof error.message === "string") return error.message;
+
+        const fieldMessages = Object.entries(error)
+            .map(([field, value]) => {
+                const message = formatApiErrorMessage(value, "");
+                return message ? `${field}: ${message}` : "";
+            })
+            .filter(Boolean);
+
+        return fieldMessages.length ? fieldMessages.join("; ") : fallback;
+    }
+    return fallback;
+};
+
 export const formatStepError = (error) => {
     if (!error) return "Unknown error";
     if (typeof error === "string") return error;
-    if (error.response?.data) return JSON.stringify(error.response.data);
+    if (error.response?.data) return formatApiErrorMessage(error.response.data);
     if (error.message) return error.message;
-    return JSON.stringify(error);
+    return formatApiErrorMessage(error);
 };
 
 export const LICENSE_FILE_ERROR_MESSAGE = "License file must be PDF or DOCX.";
@@ -282,14 +307,23 @@ const firstPresent = (...values) => values.find((value) => value !== undefined &
 const imageSource = (item) => item?.image_url || item?.image || item?.base64 || item?.file_url || "";
 
 export const REVIEW_STOCK_NOT_LOADED = "Stock not loaded";
+export const PREVIEW_DELIVERY_TEXT = "Delivery options are shown as preview only";
 
 export const unwrapProductPreviewResponse = (response) => {
     if (!response) return null;
-    return response.data || response;
+    return (response.data !== undefined && response.data !== null) ? response.data : response;
 };
 
 const licenseRows = (licenseFile) => {
     if (!licenseFile) return [];
+    if (typeof licenseFile === "string") {
+        return [{
+            id: licenseFile,
+            name: "License / Certificate",
+            status: "ready",
+            url: licenseFile,
+        }];
+    }
     const rows = Array.isArray(licenseFile) ? licenseFile : [licenseFile];
     return rows
         .filter(Boolean)
@@ -297,6 +331,7 @@ const licenseRows = (licenseFile) => {
             id: item.id || item.name || item.file_url,
             name: item.name || item.file?.name || "License / Certificate",
             status: item.status || "ready",
+            url: item.file_url || item.url || item.file,
         }));
 };
 
@@ -370,6 +405,7 @@ export const buildSellerReviewData = (product = {}) => {
         axis: source.variantsName || variant.name || "Variant",
         value: variant.text || (variant.image ? "Image variant" : "Default"),
         price: variant.price,
+        priceWithoutVat: firstPresent(variant.price_without_vat, ""),
         stock: firstPresent(variant.quantity_in_stock, variant.stock_quantity, variant.stock) ?? REVIEW_STOCK_NOT_LOADED,
         sku: variant.sku,
         image: imageSource(variant),
@@ -379,14 +415,23 @@ export const buildSellerReviewData = (product = {}) => {
     return {
         productName: source.name || "",
         categoryName: source.category?.name || source.category_name || "",
+        rating: Number(source.rating) || 0,
+        totalReviews: Number(source.total_reviews) || 0,
         description: source.product_description || "",
         price: firstPresent(source.price, reviewVariants[0]?.price, ""),
+        priceWithoutVat: firstPresent(source.price_without_vat, reviewVariants[0]?.priceWithoutVat, ""),
         vatRate: formatVatRateForInput(normalizeVatRate(source.vat_rate)),
         images,
         categoryAttributes,
         productParameters: source.parameters || source.product_parameters || [],
         variants: reviewVariants,
+        variantAxisName: source.variantsName || reviewVariants[0]?.axis || "Variant",
         documents: licenseRows(source.license_file),
+        moderation: {
+            status: source.status || source.moderation_status || "",
+            statusLabel: source.status_label || source.moderation_status_label || "",
+        },
+        deliveryText: PREVIEW_DELIVERY_TEXT,
         additionalDetails: {
             additional_details: source.additional_details || "",
             country_of_origin: source.country_of_origin || "",
