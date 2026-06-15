@@ -1,5 +1,7 @@
 # Iteration 7.4 — Seller Product Review Page Alignment
 
+> Note: Iteration 7.5 (pixel parity pass) completed as a follow-up to 7.4.
+
 ## Проблема
 
 Текущие страницы seller preview (`/seller/seller-preview`, `/seller/seller-preview/:id`, `/seller/edit-preview/:id`) рендерились как отдельная summary-форма, визуально и структурно заметно отличающаяся от публичной страницы товара (`/product/:id`).
@@ -111,6 +113,22 @@ git diff --check
 
 ## Known Follow-ups
 
-- При необходимости усилить pixel parity между seller preview и public product detail через общий prop-driven UI слой.
+- ✅ Done in 7.5 — aligned upper shell via CSS only (gap, typography, button height). Shared component layer remains a future option if further drift occurs.
 - Вынести seller-preview i18n-строки (часть label пока англоязычная).
 - Добавить e2e smoke для проверки отсутствия basket/checkout запросов именно на seller preview route.
+
+## Iteration 7.5 — Pixel Parity Pass
+
+### Changes
+- SellerReviewSummary.module.scss upper shell aligned to ProductNameRate:
+  - .previewArea gap: clamp(40px, 20vw, 60px)
+  - .productInfo h2 font-size: 24px (fixed)
+  - .category: 16px, uppercase, letter-spacing 0.06em
+  - .ratingDiv p: 20px, uppercase, letter-spacing 0.05em
+  - .disabledCartButton height: 55px
+- Seller-only sections (summaryGrid, variantCard, packageBlock) unchanged.
+- No JSX changes.
+
+### Remaining Follow-ups
+- Seller preview i18n: labels are still English-only.
+- E2e smoke: no automated test verifying absence of basket/checkout network requests on seller preview routes.
