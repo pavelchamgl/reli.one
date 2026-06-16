@@ -380,6 +380,16 @@ npm --prefix Frontend/Frontend3 run build
 
 Сохранять старый create/edit route или feature flag до подтверждения нового wizard. Backend compatibility payload не удалять.
 
+### Iteration 7.7 — Seller product media: main image и порядок
+
+**Документ:** `iteration-7-7-seller-product-media-order-and-main-image.md`  
+**Статус:** запланировано (отдельная задача после 7.6)
+
+Цель: явное сохранение `is_main` и `sort_order` при create/edit, dual-write в `ProductMedia`, reorder endpoint, обновление cover helper, **Gallery UX** (main badge, order numbers, lightbox, drag-and-drop upload/reorder).
+
+Зависит от: Iteration 4 (`ProductMedia`), Iteration 7 wizard (images step).  
+Не заменяет: Iteration 10 cleanup legacy `BaseProductImage`.
+
 ---
 
 ## Iteration 8 — Admin/moderation upgrade

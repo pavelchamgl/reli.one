@@ -588,12 +588,15 @@ Backend:
 
 ### Media first image
 
-Iteration 7:
+Iteration 7 (временный компромисс):
 
 - использовать existing images order в `bulk_upload`;
 - первый выбранный image должен оставаться первым в request;
-- не делать UI для `ProductMedia.is_main`;
 - не ломать legacy cover helper.
+
+Полноценная реализация main image, `sort_order` и sync в `ProductMedia` вынесена в отдельную задачу:
+
+- `docs/tasks/024-product-catalog-modernization/iteration-7-7-seller-product-media-order-and-main-image.md`
 
 ### Documents
 
