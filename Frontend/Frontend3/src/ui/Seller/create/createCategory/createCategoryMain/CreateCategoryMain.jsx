@@ -5,11 +5,11 @@ import { useActions } from "../../../../../hook/useAction";
 
 import arrDown from "../../../../../assets/Seller/create/arrDown.svg";
 import CreateCategoryParent from "../createCategoryParent/CreateCategoryParent";
+import { translateCategoryName } from "../../../../../utils/sellerCatalogI18n";
 
 import styles from "./CreateCategoryMain.module.scss";
 
 const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
-    const [selectText, setSelectText] = useState("Select a category");
     const [stage, setStage] = useState(1);
     const [open, setOpen] = useState(false);
     const [isTouched, setIsTouched] = useState(false)
@@ -21,7 +21,7 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
     // Ref для обёртки select
     const selectRef = useRef(null);
 
-    const { t } = useTranslation('sellerHome')
+    const { t } = useTranslation(["sellerHome", "translation"])
 
     // Закрытие при клике вне select
     useEffect(() => {
@@ -46,12 +46,6 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
             setStage(1)
         }
     }, [open]);
-
-    useEffect(() => {
-        if (category_name) {
-            setSelectText(category_name)
-        }
-    }, [category_name])
 
     useEffect(() => {
         if (category) {
@@ -83,13 +77,15 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
                                                 alt={item?.name || "Category"}
                                             />
                                         )}
-                                        {`${item?.name}${!isLast ? " - " : ""}`}
+                                        {`${translateCategoryName(item?.id, item?.name, t)}${!isLast ? " - " : ""}`}
                                     </span>
                                 );
                             })}
                         </p>
+                    ) : category_name ? (
+                        <p>{translateCategoryName(category?.id, category_name, t)}</p>
                     ) : (
-                        <p>{selectText}</p>
+                        <p>{t('goods.placeholders.selectCategory')}</p>
                     )}
                     <img
                         className={open ? styles.arrowOpen : styles.arrowClose}

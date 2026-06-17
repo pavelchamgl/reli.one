@@ -1,42 +1,18 @@
-import { formatApiErrorMessage } from "../../../utils/sellerProductWizard";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-const fieldWrapStyle = {
-    display: "grid",
-    gap: "10px",
-    marginTop: "18px",
-};
+import {
+    attributeInputUnit,
+    formatApiErrorMessage,
+    isMmStoredNumberAttribute,
+    translateSellerWizardError,
+} from "../../../utils/sellerProductWizard";
+import {
+    translateCategoryAttributeName,
+    translateCategoryAttributeOption,
+} from "../../../utils/sellerCatalogI18n";
 
-const fieldStyle = {
-    display: "grid",
-    gap: "6px",
-};
-
-const labelStyle = {
-    fontSize: "14px",
-    fontWeight: 500,
-    color: "#1f2933",
-};
-
-const inputStyle = {
-    width: "100%",
-    minHeight: "44px",
-    border: "1px solid #ced4d7",
-    borderRadius: "4px",
-    padding: "0 12px",
-    fontSize: "14px",
-};
-
-const errorStyle = {
-    margin: 0,
-    fontSize: "12px",
-    color: "#dc2626",
-};
-
-const hintStyle = {
-    margin: 0,
-    fontSize: "12px",
-    color: "#6b7280",
-};
+import styles from "./SellerCategoryAttributesFields.module.scss";
 
 const SellerCategoryAttributesFields = ({
     schema = [],
@@ -46,24 +22,77 @@ const SellerCategoryAttributesFields = ({
     disabled = false,
     onChange,
 }) => {
+    const { t } = useTranslation("sellerHome");
     const normalizedErrors = errors || {};
-    const schemaError = formatApiErrorMessage(normalizedErrors.schema, "");
+    const schemaError = translateSellerWizardError(
+        formatApiErrorMessage(normalizedErrors.schema, ""),
+        t
+    );
+
+    const fieldError = (attributeId) => translateSellerWizardError(
+        formatApiErrorMessage(normalizedErrors[attributeId], ""),
+        t
+    );
+
+    const requiredAttributes = useMemo(
+        () => schema.filter((attribute) => attribute.is_required),
+        [schema]
+    );
+    const optionalAttributes = useMemo(
+        () => schema.filter((attribute) => !attribute.is_required),
+        [schema]
+    );
+
+    const hasOptionalValues = useMemo(
+        () => optionalAttributes.some((attribute) => {
+            const value = values[attribute.id];
+            return value !== "" && value !== null && value !== undefined && value !== false;
+        }),
+        [optionalAttributes, values]
+    );
+
+    const hasOptionalErrors = useMemo(
+        () => optionalAttributes.some((attribute) => Boolean(fieldError(attribute.id))),
+        [optionalAttributes, normalizedErrors, t]
+    );
+
+    const [showOptional, setShowOptional] = useState(
+        () => hasOptionalValues || hasOptionalErrors
+    );
+
+    useEffect(() => {
+        if (hasOptionalErrors) {
+            setShowOptional(true);
+        }
+    }, [hasOptionalErrors]);
+
+    const placeholderForAttribute = (attribute) => {
+        if (attribute.data_type === "number") {
+            return isMmStoredNumberAttribute(attribute)
+                ? t("goods.placeholders.attributeNumberCm")
+                : t("goods.placeholders.attributeNumber");
+        }
+        if (attribute.data_type === "enum") {
+            return t("goods.placeholders.attributeSelect");
+        }
+        return t("goods.placeholders.attributeText");
+    };
+
+    const attributeLabel = (attribute) => translateCategoryAttributeName(attribute?.code, attribute?.name, t);
 
     if (loading) {
         return (
-            <section style={fieldWrapStyle}>
-                <h4>Category attributes</h4>
-                <p style={hintStyle}>Loading category schema...</p>
+            <section className={styles.fieldWrap}>
+                <p className={styles.hint}>{t("goods.loadingCategorySchema")}</p>
             </section>
         );
     }
 
     if (!schema.length) {
         return (
-            <section style={fieldWrapStyle}>
-                <h4>Category attributes</h4>
-                {schemaError ? <p style={errorStyle}>{schemaError}</p> : null}
-                <p style={hintStyle}>No typed attributes are required for this category.</p>
+            <section className={styles.fieldWrap}>
+                {schemaError ? <p className={styles.error}>{schemaError}</p> : null}
+                <p className={styles.hint}>{t("goods.noTypedAttributes")}</p>
             </section>
         );
     }
@@ -85,15 +114,15 @@ const SellerCategoryAttributesFields = ({
         if (attribute.data_type === "enum") {
             return (
                 <select
-                    style={inputStyle}
+                    className={styles.input}
                     value={value}
                     disabled={disabled}
                     onChange={(event) => onChange(attribute.id, event.target.value)}
                 >
-                    <option value="">Select value</option>
+                    <option value="">{t("goods.placeholders.attributeSelect")}</option>
                     {(attribute.options || []).map((option) => (
                         <option key={option.id} value={option.id}>
-                            {option.label}
+                            {translateCategoryAttributeOption(attribute.code, option, t)}
                         </option>
                     ))}
                 </select>
@@ -102,36 +131,55 @@ const SellerCategoryAttributesFields = ({
 
         return (
             <input
-                style={inputStyle}
+                className={styles.input}
                 type={attribute.data_type === "number" ? "number" : "text"}
+                min={attribute.data_type === "number" ? "0" : undefined}
                 value={value}
                 disabled={disabled}
-                onChange={(event) => onChange(attribute.id, event.target.value)}
+                placeholder={placeholderForAttribute(attribute)}
+                onChange={(event) => {
+                    const nextValue = event.target.value;
+                    if (attribute.data_type === "number" && nextValue.startsWith("-")) return;
+                    onChange(attribute.id, nextValue);
+                }}
             />
         );
     };
 
+    const renderField = (attribute) => (
+        <label key={attribute.id} className={styles.field}>
+            <span className={styles.label}>
+                <span className={attribute.is_required ? styles.labelTextRequired : undefined}>
+                    {attributeLabel(attribute)}
+                </span>
+                {attributeInputUnit(attribute) ? `, ${attributeInputUnit(attribute)}` : ""}
+            </span>
+            {renderControl(attribute)}
+            {fieldError(attribute.id) ? (
+                <p className={styles.error}>{fieldError(attribute.id)}</p>
+            ) : null}
+        </label>
+    );
+
     return (
-        <section style={fieldWrapStyle}>
-            <h4>Category attributes</h4>
-            {schemaError ? <p style={errorStyle}>{schemaError}</p> : null}
-            {disabled ? <p style={hintStyle}>Typed attributes are shown for compatibility. Full edit save is a follow-up.</p> : null}
-            {schema.map((attribute) => (
-                <label key={attribute.id} style={fieldStyle}>
-                    <span style={labelStyle}>
-                        {attribute.name}
-                        {attribute.is_required ? " *" : ""}
-                        {attribute.unit ? `, ${attribute.unit}` : ""}
-                    </span>
-                    {renderControl(attribute)}
-                    {attribute.is_inherited ? (
-                        <p style={hintStyle}>Inherited from parent category</p>
-                    ) : null}
-                    {formatApiErrorMessage(normalizedErrors[attribute.id], "") ? (
-                        <p style={errorStyle}>{formatApiErrorMessage(normalizedErrors[attribute.id], "")}</p>
-                    ) : null}
-                </label>
-            ))}
+        <section className={styles.fieldWrap}>
+            {schemaError ? <p className={styles.error}>{schemaError}</p> : null}
+            {disabled ? <p className={styles.hint}>{t("goods.typedAttributesCompatibility")}</p> : null}
+            {requiredAttributes.map(renderField)}
+            {optionalAttributes.length > 0 ? (
+                <>
+                    <button
+                        type="button"
+                        className={`${styles.toggleOptional} ${showOptional ? styles.toggleOptionalExpanded : ""}`}
+                        onClick={() => setShowOptional((prev) => !prev)}
+                    >
+                        {showOptional
+                            ? t("goods.hideOptionalAttributes")
+                            : t("goods.showAllAttributes", { count: optionalAttributes.length })}
+                    </button>
+                    {showOptional ? optionalAttributes.map(renderField) : null}
+                </>
+            ) : null}
         </section>
     );
 };

@@ -1,114 +1,103 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
 
-import styles from "./EditGoodsParameters.module.scss"
+import styles from "./EditGoodsParameters.module.scss";
+
+const createEmptyRow = () => ({
+  id: Date.now() + Math.random(),
+  name: "",
+  value: "",
+  status: "local",
+});
+
+const normalizeRows = (rows = []) => {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return [createEmptyRow()];
+  }
+
+  return rows.map((item, index) => ({
+    ...item,
+    id: item?.id ?? Date.now() + index,
+  }));
+};
 
 const EditGoodsParameters = ({ parameters, err, setErr }) => {
-    const { id } = useParams()
+  const { id } = useParams();
+  const [characteristic, setCharacteristic] = useState(() => normalizeRows(parameters));
 
-    const [characteristic, setCharacteristic] = useState([
-        {
-            id: 1,
-            name: "",
-            value: "",
-        },
-    ]);
+  const { t } = useTranslation('sellerHome');
+  const { fetchDeleteParameters, setNewParameters } = useActionSellerEdit();
 
-    const { t } = useTranslation('sellerHome')
+  useEffect(() => {
+    setCharacteristic(normalizeRows(parameters));
+  }, [parameters]);
 
-    const { deleteParameter, fetchDeleteParameters, setNewParameters } = useActionSellerEdit()
+  const updateRows = (nextRows) => {
+    setCharacteristic(nextRows);
+    setNewParameters(nextRows);
+    setErr(false);
+  };
 
-    useEffect(() => {
-        setCharacteristic(parameters)
-    }, [parameters]);
+  const handleChange = (e, rowId, type) => {
+    const nextRows = characteristic.map((item) => {
+      if (item.id !== rowId) return item;
+      return {
+        ...item,
+        [type === "name" ? "name" : "value"]: e.target.value,
+      };
+    });
 
-    const handleChange = (e, id, type) => {
-        setErr(false)
-        const [ourObj] = characteristic.filter((item) => item.id === id);
-        const otherObj = characteristic.filter((item) => item.id !== id);
+    updateRows(nextRows);
+  };
 
-        let newObj;
-        if (type === "name") {
-            newObj = { ...ourObj, name: e.target.value };
-        } else {
-            newObj = { ...ourObj, value: e.target.value };
-        }
+  const handleAdd = () => {
+    updateRows([...characteristic, createEmptyRow()]);
+  };
 
-        const newSortedArr = [...otherObj, newObj].sort((a, b) => a.id - b.id)
+  const handleDelete = (item) => {
+    const nextRows = characteristic.filter((row) => row.id !== item.id);
+    updateRows(nextRows.length ? nextRows : [createEmptyRow()]);
 
-        setCharacteristic(newSortedArr);
-        setNewParameters(newSortedArr)
+    if (item?.status === "server") {
+      fetchDeleteParameters({
+        id,
+        parId: item.id,
+      });
+    }
+  };
 
-    };
-
-    const handleAdd = () => {
-        setErr(false)
-
-        const addArr = [
-            ...characteristic,
-            {
-                id: Date.now(),
-                name: "",
-                value: "",
-                status: "local"
-            },
-        ]
-
-        setCharacteristic(addArr);
-        setNewParameters(addArr)
-    };
-
-    const handleDelete = (item) => {
-        setErr(false)
-
-
-        if (item?.status === "server") {
-            fetchDeleteParameters({
-                id: id,
-                parId: item.id
-            })
-        } else {
-            deleteParameter(item.id)
-        }
-    };
-
-
-    return (
-        <div className={styles.main}>
-            <div className={styles.titleDiv}>
-                <p>{t('goods.characteristics')}</p>
-                <button onClick={handleAdd}>{t('item.add')}</button>
-            </div>
-            {characteristic?.map((item) => (
-                <div className={err ? styles.characWrapErr : styles.characWrap} key={item.id}>
-                    <input
-                        onChange={(e) => {
-                            handleChange(e, item.id, "name");
-                        }}
-                        type="text"
-                        value={item.name}
-                        placeholder={`${t('item.column')} 1`}
-                    />
-                    <input
-                        onChange={(e) => {
-                            handleChange(e, item.id, "value");
-                        }}
-                        type="text"
-                        value={item.value}
-                        placeholder={`${t('item.column')} 2`}
-                    />
-                    <button onClick={() => handleDelete(item)}>
-                        <img src={deleteIcon} alt="Delete characteristic" />
-                    </button>
-                </div>
-            ))}
-            {err ? <p className={styles.errText}>{t('allParametersAreRequired')}</p> : ""}
+  return (
+    <div className={styles.main}>
+      <div className={styles.titleDiv}>
+        <p>{t('goods.characteristics')}</p>
+        <button type="button" onClick={handleAdd}>{t('item.add')}</button>
+      </div>
+      {characteristic.map((item) => (
+        <div className={err ? styles.characWrapErr : styles.characWrap} key={item.id}>
+          <input
+            onChange={(e) => handleChange(e, item.id, "name")}
+            type="text"
+            value={item.name}
+            placeholder={`${t('item.column')} 1`}
+          />
+          <input
+            onChange={(e) => handleChange(e, item.id, "value")}
+            type="text"
+            value={item.value}
+            placeholder={`${t('item.column')} 2`}
+          />
+          <button type="button" onClick={() => handleDelete(item)} aria-label="Delete characteristic">
+            <img src={deleteIcon} alt="" />
+          </button>
         </div>
-    );
-}
+      ))}
+      {err ? <p className={styles.errText}>{t('allParametersAreRequired')}</p> : null}
+    </div>
+  );
+};
 
-export default EditGoodsParameters
+export default EditGoodsParameters;

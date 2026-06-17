@@ -41,7 +41,7 @@ const SellerCreateImage = ({ err, setErr }) => {
   const handleChangeFile = (e) => {
 
     const newFiles = Array.from(e.target.files);
-    const nextError = validateProductImageFiles(newFiles);
+    const nextError = validateProductImageFiles(newFiles, t);
     if (nextError) {
       setFileError(nextError);
       e.target.value = "";
@@ -125,61 +125,54 @@ const SellerCreateImage = ({ err, setErr }) => {
             className={styles.swiper}
             direction="horizontal"
           >
-            {images.length === 0 ? (
-              <div className={styles.smallMaskWrap}>
-                {Array.from({ length: arr }, (_, index) => (
-                  <SwiperSlide key={index} className={styles.swiperSlide}>
-
-                    <div className={err ? styles.maskErr : styles.mask}>
-                      <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="mask" />
-                    </div>
-
-                  </SwiperSlide>
-                ))}
-              </div>
-            ) : (
-              images && images.length > 0 && images?.map((url, index) => (
-                <SwiperSlide key={index} className={styles.swiperSlide}>
-                  <div
-                    className={styles.imageWrapper}
-                    onMouseEnter={(e) =>
-                      e.currentTarget.classList.add(styles.hovered)
-                    }
-                    onMouseLeave={(e) =>
-                      e.currentTarget.classList.remove(styles.hovered)
-                    }
-                  >
-                    <div className={styles.deleteWrap}>
-                      <button
-                        className={styles.deleteButton}
-                        onClick={() => handleDelete(index)}
+            {images?.map((url, index) => (
+              <SwiperSlide key={`image-${index}`} className={styles.swiperSlide}>
+                <div
+                  className={styles.imageWrapper}
+                  onMouseEnter={(e) =>
+                    e.currentTarget.classList.add(styles.hovered)
+                  }
+                  onMouseLeave={(e) =>
+                    e.currentTarget.classList.remove(styles.hovered)
+                  }
+                >
+                  <div className={styles.deleteWrap}>
+                    <button
+                      className={styles.deleteButton}
+                      onClick={() => handleDelete(index)}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 14 14"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M13 13L7.00002 7.00002M7.00002 7.00002L1 1M7.00002 7.00002L13 1M7.00002 7.00002L1 13"
-                            stroke="#D55B5B"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                    <img
-                      className={styles.mediaPreview}
-                      src={url?.image_url}
-                      alt={`Preview ${index}`}
-                    />
+                        <path
+                          d="M13 13L7.00002 7.00002M7.00002 7.00002L1 1M7.00002 7.00002L13 1M7.00002 7.00002L1 13"
+                          stroke="#D55B5B"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </button>
                   </div>
-                </SwiperSlide>
-              ))
-            )}
+                  <img
+                    className={styles.mediaPreview}
+                    src={url?.image_url}
+                    alt={`Preview ${index}`}
+                  />
+                </div>
+              </SwiperSlide>
+            ))}
+            {Array.from({ length: Math.max(0, arr - (images?.length ?? 0)) }, (_, index) => (
+              <SwiperSlide key={`placeholder-${index}`} className={styles.swiperSlide}>
+                <div className={err ? styles.maskErr : styles.mask}>
+                  <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="mask" />
+                </div>
+              </SwiperSlide>
+            ))}
           </Swiper>
           <button className={styles.swiperButtonPrev}>
             <img src={arrLeft} alt="" />
@@ -190,7 +183,7 @@ const SellerCreateImage = ({ err, setErr }) => {
         </>
       </div>
       {fileError ? <p className={styles.errText}>{fileError}</p> : <></>}
-      {err ? <p className={styles.errText}>Image is required</p> : <></>}
+      {err ? <p className={styles.errText}>{t('goods.errors.imageRequired')}</p> : <></>}
 
       {/* Кнопки навигации */}
     </div>

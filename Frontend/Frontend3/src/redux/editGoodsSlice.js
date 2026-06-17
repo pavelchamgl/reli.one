@@ -5,7 +5,9 @@ import { postSellerImages, postSellerLisence, postSellerParameters, postSellerVa
 import {
     getSellerCategoryAttributeSchema,
     getSellerProductAttributes,
-    putSellerProductAttributes
+    getSellerVariantStock,
+    putSellerProductAttributes,
+    putSellerVariantStock,
 } from "../api/seller/sellerWizard";
 import { ErrToast } from "../ui/Toastify";
 import {
@@ -14,6 +16,7 @@ import {
     formatApiErrorMessage,
     isCategoryAttributeSchemaReady,
     mapEditVariantDraftToPatchPayload,
+    mapSellerProductVariantsForEdit,
     mapVariantApiToEditDraft,
     formatVatRateForInput,
     normalizeVatRate,
@@ -28,7 +31,33 @@ export const fetchSellerProductById = createAsyncThunk(
     async (id, { rejectWithValue }) => {
         try {
             const res = await getSellerProductById(id);
-            return res; // Возвращаем только данные
+            if (!res || res.error) {
+                return rejectWithValue(res?.error || "An error occurred while fetching the product.");
+            }
+
+            const variants = await Promise.all((res.variants || []).map(async (variant) => {
+                const draft = mapVariantApiToEditDraft(variant);
+                const hasStock = draft.quantity_in_stock !== undefined
+                    && draft.quantity_in_stock !== null
+                    && draft.quantity_in_stock !== "";
+
+                if (hasStock) {
+                    return { ...draft, status: "server" };
+                }
+
+                try {
+                    const stock = await getSellerVariantStock(id, variant.id);
+                    return {
+                        ...draft,
+                        quantity_in_stock: stock?.quantity_in_stock ?? 0,
+                        status: "server",
+                    };
+                } catch {
+                    return { ...draft, status: "server" };
+                }
+            }));
+
+            return { ...res, variants };
         } catch (error) {
             return rejectWithValue(error?.response?.data || "An error occurred while fetching the product.");
         }
@@ -190,6 +219,16 @@ export const fetchEditProduct = createAsyncThunk(
                     )
                 );
 
+            const stockUpdateRequests = (variantsServ || [])
+                .filter((variant) => (
+                    variant.id
+                    && variant.quantity_in_stock !== undefined
+                    && variant.quantity_in_stock !== ""
+                ))
+                .map((variant) => putSellerVariantStock(id, variant.id, {
+                    quantity_in_stock: Number(variant.quantity_in_stock),
+                }));
+
             // Формируем массив запросов
             const requests = [
                 patchProduct(id, {
@@ -216,6 +255,7 @@ export const fetchEditProduct = createAsyncThunk(
             if (updateParameterRequests.length > 0) requests.push(...updateParameterRequests);
             if (newVariants.length > 0) requests.push(postSellerVariants(id, { variants: newVariants, name: state.variantsName }));
             if (updateVariantsRequests.length > 0) requests.push(...updateVariantsRequests);
+            if (stockUpdateRequests.length > 0) requests.push(...stockUpdateRequests);
             if (categoryId) {
                 requests.push(putSellerProductAttributes(
                     id,
@@ -375,6 +415,13 @@ const editGoodsSlice = createSlice({
                 images: state.images.filter(item => item.id !== action.payload.id)
             }
         },
+        updateEditVariant: (state, action) => {
+            const { id, patch } = action.payload || {};
+            if (!state.variantsServ || id === undefined) return;
+            state.variantsServ = state.variantsServ.map((variant) => (
+                variant.id === id ? { ...variant, ...patch } : variant
+            ));
+        },
         setNewVariants: (state, action) => {
             return {
                 ...state,
@@ -415,68 +462,62 @@ const editGoodsSlice = createSlice({
         build.addCase(fetchSellerProductById.fulfilled, (state, action) => {
             state.status = "fulfilled"
             state.err = null
-            if (state.id !== action.payload?.id) {
-                state.id = action.payload?.id
-                state.category_name = action.payload?.category_name
-                state.categoryId = action.payload?.category
-                state.category = action.payload?.category
-                    ? { id: action.payload.category, name: action.payload?.category_name }
-                    : null
 
-                state.name = action.payload?.name
-                state.product_description = action.payload?.product_description
-                state.item = action.payload?.article || ""
-                state.barcode = action.payload?.barcode || ""
-                state.additional_details = action.payload?.additional_details || ""
-                state.country_of_origin = action.payload?.country_of_origin || ""
-                state.warranty_months = action.payload?.warranty_months ?? ""
-                state.vat_rate = formatVatRateForInput(action.payload?.vat_rate)
-                state.is_age = Boolean(action.payload?.is_age_restricted)
+            const payload = action.payload;
+            if (!payload?.id) return;
 
-                state.product = action.payload,
+            state.id = payload.id
+            state.category_name = payload.category_name
+            state.categoryId = payload.category
+            state.category = payload.category
+                ? { id: payload.category, name: payload?.category_name }
+                : null
 
-                    state.images = action.payload?.images
+            state.name = payload.name
+            state.product_description = payload.product_description
+            state.item = payload.article || ""
+            state.barcode = payload.barcode || ""
+            state.additional_details = payload.additional_details || ""
+            state.country_of_origin = payload.country_of_origin || ""
+            state.warranty_months = payload.warranty_months ?? ""
+            state.vat_rate = formatVatRateForInput(payload.vat_rate)
+            state.is_age = Boolean(payload.is_age_restricted)
 
-                state.parameters = action.payload?.product_parameters
-                    ?.filter(item =>
-                        item.name !== "Length" &&
-                        item.name !== "Weight" &&
-                        item.name !== "Width" &&
-                        item.name !== "Height"
-                    )
-                    .map(item => ({
-                        ...item,
-                        status: "server"
-                    }));
+            state.product = payload
+            state.images = payload.images
 
-                state.length = action.payload?.product_parameters?.find((item) => item.name === "Length")?.value
-                state.weight = action.payload?.product_parameters?.find((item) => item.name === "Weight")?.value
-                state.width = action.payload?.product_parameters?.find((item) => item.name === "Width")?.value
-                state.height = action.payload?.product_parameters?.find((item) => item.name === "Height")?.value
+            state.parameters = payload.product_parameters
+                ?.filter(item =>
+                    item.name !== "Length" &&
+                    item.name !== "Weight" &&
+                    item.name !== "Width" &&
+                    item.name !== "Height"
+                )
+                .map(item => ({
+                    ...item,
+                    status: "server"
+                }));
 
-                state.lengthId = action.payload?.product_parameters?.find((item) => item.name === "Length")?.id
-                state.weightId = action.payload?.product_parameters?.find((item) => item.name === "Weight")?.id
-                state.widthId = action.payload?.product_parameters?.find((item) => item.name === "Width")?.id
-                state.heightId = action.payload?.product_parameters?.find((item) => item.name === "Height")?.id
+            state.length = payload.product_parameters?.find((item) => item.name === "Length")?.value
+            state.weight = payload.product_parameters?.find((item) => item.name === "Weight")?.value
+            state.width = payload.product_parameters?.find((item) => item.name === "Width")?.value
+            state.height = payload.product_parameters?.find((item) => item.name === "Height")?.value
 
-                state.variantsName = action.payload?.variants ? action.payload.variants[0]?.name : null;
-                state.price = action.payload?.variants ? action.payload.variants[0]?.price : null;
-                state.variantsServ = action.payload?.variants?.map((item) => {
-                    return {
-                        ...mapVariantApiToEditDraft(item),
-                        status: "server"
-                    }
-                })
+            state.lengthId = payload.product_parameters?.find((item) => item.name === "Length")?.id
+            state.weightId = payload.product_parameters?.find((item) => item.name === "Weight")?.id
+            state.widthId = payload.product_parameters?.find((item) => item.name === "Width")?.id
+            state.heightId = payload.product_parameters?.find((item) => item.name === "Height")?.id
 
-                if (action.payload?.license_file) {
-                    state.license_file = {
-                        ...action.payload?.license_file,
-                        status: "server"
-                    }
+            state.variantsName = payload.variants?.[0]?.name ?? null;
+            state.price = payload.variants?.[0]?.price ?? null;
+            state.variantsServ = mapSellerProductVariantsForEdit(payload.variants || []);
+
+            if (payload.license_file) {
+                state.license_file = {
+                    ...payload.license_file,
+                    status: "server"
                 }
-
             }
-
         })
         build.addCase(fetchSellerProductById.pending, (state) => {
             state.status = "pending";
@@ -508,7 +549,10 @@ const editGoodsSlice = createSlice({
         })
         build.addCase(fetchEditProductAttributes.fulfilled, (state, action) => {
             state.attributeValuesStatus = "fulfilled";
-            state.attributeValues = valuesFromAttributeRows(action.payload || []);
+            state.attributeValues = valuesFromAttributeRows(
+                action.payload || [],
+                state.attributeSchema?.attributes || []
+            );
         })
         build.addCase(fetchEditProductAttributes.rejected, (state, action) => {
             const message = formatApiErrorMessage(action.payload, "Unable to load product attributes.");
@@ -574,6 +618,7 @@ export const {
     setParameter,
     setCategory,
     setNewVariants,
+    updateEditVariant,
     deleteVariant,
     setLicense,
     deleteLicense,

@@ -14,10 +14,11 @@ import { validateGoods } from "../../../../code/validation/validationGoods";
 import EditLicense from "../EditLicense/EditLicense";
 import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
 import {
-    areOptionalPackageDimensionsValid,
     CATEGORY_SCHEMA_NOT_READY_MESSAGE,
     isCategoryAttributeSchemaReady,
-    validateAttributeDraft
+    isProductVariantsValid,
+    validateAttributeDraft,
+    validateProductVariants,
 } from "../../../../utils/sellerProductWizard";
 
 import styles from "./EditGoodsForm.module.scss"
@@ -25,7 +26,7 @@ import CheckBox from "../../../../ui/CheckBox/CheckBox";
 
 const FormSection = ({ title, children }) => (
     <section className={styles.formSection}>
-        <h3 className={styles.sectionTitle}>{title}</h3>
+        {title ? <h3 className={styles.sectionTitle}>{title}</h3> : null}
         <div className={styles.sectionBody}>{children}</div>
     </section>
 );
@@ -39,7 +40,7 @@ const EditGoodsForm = () => {
     const [parametersErr, setParametersErr] = useState(false)
     const [varNameErr, setVarNameErr] = useState(false)
     const [varErr, setVarErr] = useState(false)
-    const [type, setType] = useState(null)
+    const [variantValidation, setVariantValidation] = useState({ name: null, section: null, variants: {} })
 
     const {
         fetchSellerProductById,
@@ -83,6 +84,7 @@ const EditGoodsForm = () => {
     } = useSelector(state => state.edit_goods)
 
     const { categoriesStage } = useSelector(state => state.create)
+    const authToken = useSelector(state => state.auth.token)
 
     const { t } = useTranslation('sellerHome')
 
@@ -119,13 +121,13 @@ const EditGoodsForm = () => {
     }, [id])
 
     useEffect(() => {
-        if (categoryId) {
+        if (categoryId && authToken?.access) {
             fetchEditCategoryAttributeSchema(categoryId)
             if (product?.category === categoryId) {
                 fetchEditProductAttributes(id)
             }
         }
-    }, [categoryId, id, product?.category])
+    }, [categoryId, id, product?.category, authToken?.access])
 
     const handlePreviewClick = () => {
         const isImagesValid = images.length > 0;
@@ -144,37 +146,18 @@ const EditGoodsForm = () => {
             parameters.every(
                 (item) => item.name?.trim() && item.value?.trim()
             );
-        const isVarNameErrValid = variantsName.length > 0
-        let isVariantValid;
-
-        if (type === "text") {
-            isVariantValid =
-                variantsServ?.length > 0 &&
-                variantsServ.every(
-                    (item) =>
-                        item.price?.trim() &&
-                        !isNaN(Number(item.price)) &&
-                        item.text?.trim() &&
-                        areOptionalPackageDimensionsValid(item)
-                );
-        } else {
-            isVariantValid =
-                variantsServ?.length > 0 &&
-                variantsServ.every(
-                    (item) =>
-                        item.price?.trim() &&
-                        !isNaN(Number(item.price)) &&
-                        item.image?.trim() &&
-                        areOptionalPackageDimensionsValid(item)
-                );
-        }
-
+        const nextVariantValidation = validateProductVariants(
+            { variantsName, variants: variantsServ },
+            t
+        );
+        const isVariantValid = isProductVariantsValid(nextVariantValidation);
 
         setCategoryErr(!isCategoryValid);
         setImageErr(!isImagesValid);
         setParametersErr(!isParametersValid)
-        setVarNameErr(!isVarNameErrValid)
-        setVarErr(!isVariantValid)
+        setVarNameErr(Boolean(nextVariantValidation.name));
+        setVarErr(!isVariantValid);
+        setVariantValidation(nextVariantValidation);
         setAttributeErrors(nextAttributeErrors)
 
         if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid && areAttributesValid) {
@@ -222,7 +205,7 @@ const EditGoodsForm = () => {
 
     return (
         <div className={styles.main}>
-            <FormSection title="Main information">
+            <FormSection>
                 <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} category_name={product?.category_name} />
 
                 <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
@@ -273,7 +256,13 @@ const EditGoodsForm = () => {
                     handleChange={formik.handleChange}
                     error={formik.errors.vat_rate}
                 />
-                <EditMainVariants type={type} setType={setType} err={varErr} setErr={setVarErr} errName={varNameErr} setErrName={setVarNameErr} />
+                <EditMainVariants
+                    err={varErr}
+                    setErr={setVarErr}
+                    errName={varNameErr}
+                    setErrName={setVarNameErr}
+                    variantValidation={variantValidation}
+                />
             </FormSection>
 
             <FormSection title="Documents">

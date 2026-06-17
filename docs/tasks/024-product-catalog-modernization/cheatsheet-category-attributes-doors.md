@@ -29,9 +29,17 @@
 | Бренд | `Brand` → `BaseProduct.brand` | **Не** CategoryAttribute; отдельный фильтр `brand_id` |
 | Legacy | `ProductParameter` | Свободный key/value; не для фильтров |
 
-**Наследование:** атрибуты с категории **180** автоматически попадают в **181–183**. Если на листе тот же `code` — определение листа **переопределяет** родительское.
+**Наследование:** атрибуты с категории **180** автоматически попадают в **181–183** (сначала родитель, затем подкатегория). Если на листе тот же `code` — определение листа **переопределяет** родительское.
 
-**Обязательность:** `is_required=true` только у четырёх атрибутов на **180**. Все остальные — `is_required=false`. Валидация required срабатывает при `PUT /api/sellers/products/{id}/attributes/`, старые товары без значений не ломаются.
+**MVP-лимит:** не более **10 effective-атрибутов** на листовой товар (7 на **180** + 3 на подкатегории). Остальное — в `product_description` / `additional_details` или legacy `ProductParameter`.
+
+**Обязательность:** `is_required=true` только у четырёх атрибутов на **180**. Все остальные — `is_required=false`.
+
+**Применить MVP в БД:**
+
+```bash
+docker exec reli_backend_e2e python manage.py seed_doors_category_attributes
+```
 
 ---
 
@@ -83,7 +91,16 @@
 GET /api/sellers/categories/{category_id}/attribute-schema/
 ```
 
-Для **181** ожидается: 4 унаследованных с **180** (`is_inherited: true`) + атрибуты самой **181**.
+Для **181** ожидается: **7** унаследованных с **180** (`is_inherited: true`, sort 10–70) + **3** атрибута **181** (sort 80–100) = **10** полей в форме.
+
+### Порядок в effective schema
+
+1. **180 Door** — общие (sort 10–70)
+2. **181 / 182 / 183** — специфика подкатегории (sort 80–100)
+
+`sort_order` на подкатегориях начинается с **80**, чтобы родительские поля всегда шли первыми.
+
+---
 
 ### 3. Запись значений продавцом
 
@@ -114,16 +131,27 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 
 ---
 
-## Категория 180 Door — обязательный минимум
+## MVP: категория 180 Door (7 полей, наследуются)
 
-> **Единственный блок с `is_required=true`.** Наследуется в 181–183.
+> **4 required** + **3 optional**. Все подкатегории получают эти поля первыми (sort 10–70).
 
 | sort | code | name | name_ru | type | unit | required | filterable | group |
 |------|------|------|---------|------|------|:--------:|:----------:|-------|
-| 10 | `door_width_mm` | Width | Ширина | number | mm | ✓ | ✓ | Размеры |
-| 20 | `door_height_mm` | Height | Высота | number | mm | ✓ | ✓ | Размеры |
-| 30 | `door_material` | Material | Материал | enum | — | ✓ | ✓ | Материалы |
-| 40 | `opening_type` | Opening type | Тип открывания | enum | — | ✓ | ✓ | Конструкция |
+| 10 | `door_width_mm` | Width | Ширина | number | mm | ✓ | ✓ | Dimensions |
+| 20 | `door_height_mm` | Height | Высота | number | mm | ✓ | ✓ | Dimensions |
+| 30 | `door_material` | Material | Материал | enum | — | ✓ | ✓ | Materials |
+| 40 | `opening_type` | Opening type | Тип открывания | enum | — | ✓ | ✓ | Construction |
+| 50 | `opening_direction` | Opening direction | Направление открывания | enum | — | — | ✓ | Construction |
+| 60 | `color` | Color | Цвет | enum | — | — | ✓ | Materials |
+| 70 | `leaf_thickness_mm` | Leaf thickness | Толщина полотна | number | mm | — | ✓ | Dimensions |
+
+**Единицы number-атрибутов с `unit: "mm"`:**
+
+| Слой | Поведение |
+|------|-----------|
+| API / БД | `value_number` хранится в **мм** (`door_width_mm`, `door_height_mm`, …) |
+| UI продавца | ввод в **см**; конвертация в `sellerProductWizard.js` (`cmToMm` / `mmToCm`) |
+| Preview / каталог | отображение канонического значения в **мм** |
 
 ### `door_material` — опции enum
 
@@ -145,31 +173,6 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `double` | Double leaf |
 | `one_and_half` | One and a half leaf |
 
----
-
-## Категория 180 Door — расширение (все optional)
-
-| sort | code | name | name_ru | type | unit | filterable | group |
-|------|------|------|---------|------|------|:----------:|-------|
-| 50 | `leaf_thickness_mm` | Leaf thickness | Толщина полотна | number | mm | ✓ | Размеры |
-| 60 | `frame_depth_mm` | Frame depth | Глубина коробки | number | mm | ✓ | Размеры |
-| 70 | `opening_direction` | Opening direction | Направление открывания | enum | — | ✓ | Конструкция |
-| 80 | `surface_finish` | Surface finish | Отделка поверхности | enum | — | ✓ | Материалы |
-| 90 | `color` | Color | Цвет | enum | — | ✓ | Материалы |
-| 100 | `fire_rating` | Fire rating | Противопожарный класс | enum | — | ✓ | Эксплуатация |
-| 110 | `sound_insulation_rw_db` | Sound insulation Rw | Звукоизоляция Rw | number | dB | ✓ | Эксплуатация |
-| 120 | `thermal_transmittance_ud` | Thermal transmittance Ud | Теплопередача Ud | number | W/m²K | ✓ | Эксплуатация |
-| 130 | `lock_included` | Lock included | Замок в комплекте | boolean | — | ✓ | Комплектация |
-| 140 | `hinges_included` | Hinges included | Петли в комплекте | boolean | — | ✓ | Комплектация |
-| 150 | `handle_included` | Handle included | Ручка в комплекте | boolean | — | ✓ | Комплектация |
-| 160 | `frame_included` | Frame included | Коробка в комплекте | boolean | — | ✓ | Комплектация |
-| 170 | `threshold_included` | Threshold included | Порог в комплекте | boolean | — | ✓ | Комплектация |
-| 180 | `has_insulation` | Insulation | Утепление | boolean | — | ✓ | Эксплуатация |
-| 190 | `has_weatherstripping` | Weatherstripping | Уплотнитель | boolean | — | ✓ | Эксплуатация |
-| 200 | `model_series` | Model series | Серия / модель | text | — | ✗ | Дополнительно |
-| 210 | `ral_color_code` | RAL color code | Код RAL | text | — | ✗ | Дополнительно |
-| 220 | `installation_notes` | Installation notes | Особенности монтажа | text | — | ✗ | Дополнительно |
-
 ### `opening_direction`
 
 | value | label |
@@ -177,17 +180,6 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `left` | Left (LH) |
 | `right` | Right (RH) |
 | `reversible` | Reversible |
-
-### `surface_finish`
-
-| value | label |
-|-------|-------|
-| `painted` | Painted |
-| `laminate` | Laminate |
-| `veneer` | Veneer |
-| `powder_coated` | Powder coated |
-| `foil` | Foil |
-| `raw` | Raw / unfinished |
 
 ### `color`
 
@@ -203,32 +195,15 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `wenge` | Wenge |
 | `custom` | Custom / RAL |
 
-### `fire_rating`
-
-| value | label |
-|-------|-------|
-| `none` | None |
-| `ei30` | EI 30 |
-| `ei60` | EI 60 |
-| `ei90` | EI 90 |
-
 ---
 
-## Категория 181 Entrance doors (все optional)
+## MVP: 181 Entrance doors (+3 поля, итого 10)
 
-Наследует всё с **180**. Ниже — дополнительные атрибуты только для **181**.
-
-| sort | code | name | name_ru | type | unit | filterable | group |
-|------|------|------|---------|------|------|:----------:|-------|
-| 50 | `security_class` | Security class | Класс взломостойкости | enum | — | ✓ | Безопасность |
-| 60 | `lock_type` | Lock type | Тип замка | enum | — | ✓ | Безопасность |
-| 70 | `multipoint_lock` | Multipoint lock | Многоточечный замок | boolean | — | ✓ | Безопасность |
-| 80 | `anti_burglary_glazing` | Anti-burglary glazing | Противовзломное остекление | boolean | — | ✓ | Безопасность |
-| 90 | `peephole_included` | Peephole included | Глазок в комплекте | boolean | — | ✓ | Комплектация |
-| 100 | `door_style` | Entrance door style | Стиль входной двери | enum | — | ✓ | Конструкция |
-| 110 | `threshold_type` | Threshold type | Тип порога | enum | — | ✓ | Конструкция |
-| 120 | `outer_finish` | Outer finish | Наружная отделка | enum | — | ✓ | Материалы |
-| 130 | `glazing_share_percent` | Glazing share | Доля остекления | number | % | ✓ | Конструкция |
+| sort | code | name | name_ru | type | required | filterable | group |
+|------|------|------|---------|------|:--------:|:----------:|-------|
+| 80 | `security_class` | Security class | Класс взломостойкости | enum | — | ✓ | Security |
+| 90 | `lock_type` | Lock type | Тип замка | enum | — | ✓ | Security |
+| 100 | `threshold_type` | Threshold type | Тип порога | enum | — | ✓ | Construction |
 
 ### `security_class`
 
@@ -248,15 +223,6 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `electronic` | Electronic / smart lock |
 | `none` | Not included |
 
-### `door_style`
-
-| value | label |
-|-------|-------|
-| `panel` | Panel |
-| `full_glazed` | Full glazed |
-| `with_sidelight` | With sidelight |
-| `double_glazed` | Double glazed panel |
-
 ### `threshold_type`
 
 | value | label |
@@ -265,26 +231,15 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `low` | Low threshold |
 | `barrier_free` | Barrier-free |
 
-### `outer_finish`
-
-| value | label |
-|-------|-------|
-| `weather_resistant` | Weather resistant |
-| `standard` | Standard |
-
 ---
 
-## Категория 182 Interior doors (все optional)
+## MVP: 182 Interior doors (+3 поля, итого 10)
 
-| sort | code | name | name_ru | type | unit | filterable | group |
-|------|------|------|---------|------|------|:----------:|-------|
-| 50 | `interior_door_type` | Interior door type | Тип межкомнатной двери | enum | — | ✓ | Конструкция |
-| 60 | `core_type` | Core type | Тип наполнения | enum | — | ✓ | Конструкция |
-| 70 | `door_style` | Door style | Стиль | enum | — | ✓ | Конструкция |
-| 80 | `glazing_type` | Glazing type | Остекление | enum | — | ✓ | Конструкция |
-| 90 | `moisture_resistant` | Moisture resistant | Влагостойкая | boolean | — | ✓ | Эксплуатация |
-
-> **Примечание:** `door_style` на **182** переопределяет одноимённый атрибут с **181**, если он был бы унаследован. На **182** используйте свой набор опций ниже.
+| sort | code | name | name_ru | type | required | filterable | group |
+|------|------|------|---------|------|:--------:|:----------:|-------|
+| 80 | `interior_door_type` | Interior door type | Тип межкомнатной двери | enum | — | ✓ | Construction |
+| 90 | `core_type` | Core type | Тип наполнения | enum | — | ✓ | Construction |
+| 100 | `glazing_type` | Glazing type | Остекление | enum | — | ✓ | Construction |
 
 ### `interior_door_type`
 
@@ -305,15 +260,6 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `solid` | Solid core |
 | `particle_board` | Particle board |
 
-### `door_style` (interior)
-
-| value | label |
-|-------|-------|
-| `flush` | Flush |
-| `panel` | Panel |
-| `glazed_insert` | Glazed insert |
-| `louvered` | Louvered |
-
 ### `glazing_type`
 
 | value | label |
@@ -325,17 +271,13 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 
 ---
 
-## Категория 183 Glass doors (все optional)
+## MVP: 183 Glass doors (+3 поля, итого 10)
 
-| sort | code | name | name_ru | type | unit | filterable | group |
-|------|------|------|---------|------|------|:----------:|-------|
-| 50 | `glass_type` | Glass type | Тип стекла | enum | — | ✓ | Стекло |
-| 60 | `frame_material` | Frame material | Материал рамы | enum | — | ✓ | Рама |
-| 70 | `opacity` | Opacity | Прозрачность | enum | — | ✓ | Стекло |
-| 80 | `glass_thickness_mm` | Glass thickness | Толщина стекла | number | mm | ✓ | Стекло |
-| 90 | `max_opening_width_mm` | Max opening width | Макс. ширина проёма | number | mm | ✓ | Размеры |
-| 100 | `glass_door_type` | Glass door type | Тип конструкции | enum | — | ✓ | Конструкция |
-| 110 | `handle_type` | Handle type | Тип ручки | enum | — | ✓ | Комплектация |
+| sort | code | name | name_ru | type | required | filterable | group |
+|------|------|------|---------|------|:--------:|:----------:|-------|
+| 80 | `glass_type` | Glass type | Тип стекла | enum | — | ✓ | Glass |
+| 90 | `frame_material` | Frame material | Материал рамы | enum | — | ✓ | Frame |
+| 100 | `glass_door_type` | Glass door type | Тип конструкции | enum | — | ✓ | Construction |
 
 ### `glass_type`
 
@@ -356,15 +298,6 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `wood` | Wood |
 | `frameless` | Frameless |
 
-### `opacity`
-
-| value | label |
-|-------|-------|
-| `transparent` | Transparent |
-| `frosted` | Frosted |
-| `smoked` | Smoked |
-| `mirrored` | Mirrored |
-
 ### `glass_door_type`
 
 | value | label |
@@ -374,29 +307,23 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | `pivot` | Pivot |
 | `partition` | Partition / office |
 
-### `handle_type`
+---
 
-| value | label |
-|-------|-------|
-| `pull` | Pull handle |
-| `lever` | Lever handle |
-| `knob` | Knob |
-| `profile` | Profile / integrated |
+## Отложено (пока в описание, не в CategoryAttribute)
+
+Следующие поля **деактивируются** seed-командой (`is_active=false`). Продавец указывает их в **Description** / **Additional details**:
+
+`frame_depth_mm`, `surface_finish`, `fire_rating`, `sound_insulation_rw_db`, `thermal_transmittance_ud`, комплектация (`lock_included`, `hinges_included`, …), `door_style`, `outer_finish`, `glazing_share_percent`, `moisture_resistant`, `opacity`, `glass_thickness_mm`, `max_opening_width_mm`, `handle_type`, text-поля (`model_series`, `ral_color_code`, `installation_notes`).
 
 ---
 
 ## Чеклист: добавление новой характеристики
 
-1. Выбрать **category** (180 для общих, 181–183 для специфики).
-2. Задать уникальный в рамках категории **code** (slug).
-3. Выбрать **data_type**:
-   - дискретный выбор → `enum` + опции;
-   - размеры / физ. величины → `number` + `unit`;
-   - да/нет → `boolean`;
-   - свободный текст → `text`, `is_filterable=false`.
-4. Выставить флаги: `is_required` только для 4 полей на **180**; `is_filterable` по необходимости.
-5. Сохранить → проверить `GET .../attribute-schema/`.
-6. Заполнить на тестовом товаре → проверить facets и `attr[code]` на листинге.
+1. Убедиться, что effective schema листа **≤ 10** атрибутов.
+2. Общие поля — на **180** (sort 10–70); специфика — на **181–183** (sort 80+).
+3. Задать стабильный **code**, обновить `seed_doors_category_attributes.py`.
+4. Запустить seed → проверить `GET .../attribute-schema/`.
+5. Остальное — в `product_description` / `additional_details`.
 
 ---
 
@@ -410,28 +337,27 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 | Цена | `ProductVariant.price` |
 | Наличие | `WarehouseItem` + `stock_status` |
 | Габариты упаковки (доставка) | `ProductVariant.width_mm` / `height_mm` / `length_mm` / `weight_grams` |
-| Цвет/размер как отдельный SKU | `ProductVariant` (`name` + `text` / `image`) |
+| Цвет/размер как отдельный SKU | `ProductVariant` (`name` + обязательный `text`; `image` опционален) |
 
 ---
 
 ## Порядок внедрения (ops)
 
-1. Создать 4 **обязательных** определения на **180** + enum-опции.
-2. При необходимости — расширение на **180** и специфику на **181–183**.
-3. Проверить attribute-schema для каждой подкатегории.
-4. Завести бренды в **Brand** (`status=approved`).
-5. Заполнить атрибуты на 2–3 тестовых товарах → проверить facets и фильтры.
+1. `python manage.py seed_doors_category_attributes` — MVP-схема + деактивация лишних.
+2. Проверить attribute-schema для **181**, **182**, **183** (ожидается **10** attrs).
+3. Перевыбрать категорию в форме продавца (reload schema).
+4. Завести бренды в **Brand** при необходимости.
 
 ---
 
-## Диаграмма наследования
+## Диаграмма наследования (MVP)
 
 ```mermaid
 flowchart TD
-    D180["180 Door\n4 required + optional common"]
-    E181["181 Entrance\nsecurity, lock, threshold…"]
-    I182["182 Interior\ntype, core, moisture…"]
-    G183["183 Glass\nglass type, frame, opacity…"]
+    D180["180 Door — 7 shared\nsort 10-70"]
+    E181["181 Entrance — +3\nsecurity, lock, threshold"]
+    I182["182 Interior — +3\ntype, core, glazing"]
+    G183["183 Glass — +3\nglass, frame, construction"]
 
     D180 --> E181
     D180 --> I182

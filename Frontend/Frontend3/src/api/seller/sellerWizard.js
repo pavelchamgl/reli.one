@@ -15,6 +15,13 @@ export const putSellerProductAttributes = async (productId, payload) => {
     return res.data;
 };
 
+export const getSellerVariantStock = async (productId, variantId) => {
+    const res = await mainInstance.get(
+        `/sellers/products/${productId}/variants/${variantId}/stock/`
+    );
+    return res.data;
+};
+
 export const putSellerVariantStock = async (productId, variantId, payload) => {
     const res = await mainInstance.put(
         `/sellers/products/${productId}/variants/${variantId}/stock/`,

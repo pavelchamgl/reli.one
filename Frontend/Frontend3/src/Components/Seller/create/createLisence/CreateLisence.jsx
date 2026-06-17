@@ -48,7 +48,7 @@ const CreateLisence = () => {
 
     const handleChangeFile = (e) => {
         const newFiles = Array.from(e.target.files);
-        const nextError = validateLicenseFiles(newFiles);
+        const nextError = validateLicenseFiles(newFiles, t);
         if (nextError) {
             setFileError(nextError);
             e.target.value = "";

@@ -12,6 +12,8 @@ const CreateFormInp = ({
   value,
   error,
   num,
+  digitsOnly = false,
+  decimal = false,
   disabled = false,
   placeholder
 }) => {
@@ -24,6 +26,22 @@ const CreateFormInp = ({
         ? styles.titleSRequired
         : styles.titleSmall;
 
+  const handleInputChange = (event) => {
+    let { value } = event.target;
+
+    if (decimal) {
+      value = value.replace(/[^0-9.,]/g, "");
+      event.target.value = value;
+    } else if (digitsOnly) {
+      value = value.replace(/\D/g, "");
+      event.target.value = value;
+    } else if (num && value.includes("-")) {
+      return;
+    }
+
+    handleChange(event);
+  };
+
   return (
     <label style={style} className={error ? styles.labelErr : styles.label}>
       <p className={titleClass}>{text}</p>
@@ -35,18 +53,18 @@ const CreateFormInp = ({
           onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}
-          style={{ fontFamily: num ? "var(--ft)" : "" }}
+          style={{ fontFamily: (num || digitsOnly || decimal) ? "var(--ft)" : undefined }}
         />
         :
         <input
           name={name}
           value={value}
           onBlur={handleBlur}
-          onChange={handleChange}
+          onChange={handleInputChange}
           type="text"
           placeholder={placeholder}
           disabled={disabled}
-          style={{ fontFamily: num ? "var(--ft)" : "" }}
+          style={{ fontFamily: (num || digitsOnly || decimal) ? "var(--ft)" : undefined }}
         />
       }
       {error ? <p className={styles.errText}>{error}</p> : <></>}
