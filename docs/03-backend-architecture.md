@@ -199,7 +199,7 @@ graph LR
 | `BaseProduct` | FK `Category`, FK `SellerProfile`, `status` (pending/approved/rejected), `approved_by` (Manager/Admin), `rating`, `total_reviews`, `vat_rate`, `is_age_restricted`, `is_active` |
 | `ProductParameter` | FK `BaseProduct`, key/value |
 | `BaseProductImage` | FK `BaseProduct`, автоконвертация в WebP при save |
-| `ProductVariant` | FK `BaseProduct`, `sku` (автогенерация), цена, габариты, вес, text vs image variant |
+| `ProductVariant` | FK `BaseProduct`, `sku` (автогенерация), цена, габариты, вес; обязательный `text`, опциональный `image`; общий `name` у вариантов одного товара |
 | `LicenseFile` | OneToOne `BaseProduct` |
 
 #### Views

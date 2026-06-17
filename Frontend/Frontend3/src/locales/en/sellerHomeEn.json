@@ -37,10 +37,180 @@
         "category": "Category and type",
         "description": "Description text",
         "characteristics": "Characteristics",
+        "showAllAttributes": "Show all ({{count}})",
+        "hideOptionalAttributes": "Show required only",
         "aspectRatio": "Aspect ratio 1:1",
         "addPhotos": "+ Add photos",
         "formats": "Formats: docx, pdf",
-        "categoryIsRequired": "Category is required"
+        "categoryIsRequired": "Category is required",
+        "categoryAttributesTitle": "Category attributes",
+        "loadingCategorySchema": "Loading category schema...",
+        "noTypedAttributes": "No typed attributes are required for this category.",
+        "typedAttributesCompatibility": "Typed attributes are shown for compatibility. Full edit save is a follow-up.",
+        "variantsSectionTitle": "Variants, price and stock",
+        "documentsSectionTitle": "Documents",
+        "vatRate": "VAT rate, %",
+        "validation": {
+            "vatRateDigits": "The integer part must contain no more than 2 digits",
+            "nameRequired": "Name is required",
+            "descriptionRequired": "Description is required",
+            "itemDigitsOnly": "Item must contain only numbers",
+            "itemMinLength": "Item must be at least 10 digits long",
+            "warrantyPositiveInteger": "Warranty must be a positive whole number",
+            "lengthNumber": "Length must be a number",
+            "widthNumber": "Width must be a number",
+            "heightNumber": "Height must be a number",
+            "weightNumber": "Weight must be a number"
+        },
+        "errors": {
+            "imageRequired": "Image is required",
+            "licenseFileFormat": "License file must be PDF or DOCX.",
+            "productImageFormat": "Product images must be JPG, PNG, or WEBP.",
+            "attributeRequired": "This attribute is required.",
+            "attributeValidNumber": "Enter a valid number.",
+            "attributeBoolean": "Choose true or false.",
+            "attributeEnum": "Choose one of the available options.",
+            "categorySchemaNotReady": "Category attributes schema is not loaded. Please reload category and try again.",
+            "unableToLoadCategorySchema": "Unable to load category schema",
+            "fillRequiredCategoryAttributes": "Please fill required category attributes.",
+            "errorCreatingProduct": "Error while creating the product"
+        },
+        "categoryAttributes": {
+            "door_width_mm": "Width",
+            "door_height_mm": "Height",
+            "door_material": "Material",
+            "opening_type": "Opening type",
+            "opening_direction": "Opening direction",
+            "color": "Color",
+            "leaf_thickness_mm": "Leaf thickness",
+            "security_class": "Security class",
+            "lock_type": "Lock type",
+            "threshold_type": "Threshold type",
+            "interior_door_type": "Interior door type",
+            "core_type": "Core type",
+            "glazing_type": "Glazing type",
+            "glass_type": "Glass type",
+            "frame_material": "Frame material",
+            "glass_door_type": "Glass door type"
+        },
+        "categoryAttributeOptions": {
+            "door_material": {
+                "steel": "Steel",
+                "wood": "Wood",
+                "aluminum": "Aluminum",
+                "pvc": "PVC",
+                "mdf": "MDF",
+                "composite": "Composite",
+                "glass": "Glass"
+            },
+            "opening_type": {
+                "single": "Single leaf",
+                "double": "Double leaf",
+                "one_and_half": "One and a half leaf"
+            },
+            "opening_direction": {
+                "left": "Left (LH)",
+                "right": "Right (RH)",
+                "reversible": "Reversible"
+            },
+            "color": {
+                "white": "White",
+                "oak": "Oak",
+                "walnut": "Walnut",
+                "anthracite": "Anthracite",
+                "black": "Black",
+                "grey": "Grey",
+                "beech": "Beech",
+                "wenge": "Wenge",
+                "custom": "Custom / RAL"
+            },
+            "security_class": {
+                "rc1": "RC 1",
+                "rc2": "RC 2",
+                "rc3": "RC 3",
+                "rc4": "RC 4"
+            },
+            "lock_type": {
+                "cylinder": "Cylinder lock",
+                "multipoint": "Multipoint lock",
+                "electronic": "Electronic / smart lock",
+                "none": "Not included"
+            },
+            "threshold_type": {
+                "standard": "Standard",
+                "low": "Low threshold",
+                "barrier_free": "Barrier-free"
+            },
+            "interior_door_type": {
+                "hinged": "Hinged",
+                "sliding": "Sliding",
+                "pocket": "Pocket",
+                "folding": "Folding",
+                "barn": "Barn / loft"
+            },
+            "core_type": {
+                "hollow": "Hollow core",
+                "honeycomb": "Honeycomb",
+                "solid": "Solid core",
+                "particle_board": "Particle board"
+            },
+            "glazing_type": {
+                "none": "None",
+                "clear": "Clear glass",
+                "frosted": "Frosted",
+                "decorative": "Decorative"
+            },
+            "glass_type": {
+                "tempered": "Tempered",
+                "laminated": "Laminated",
+                "double_glazed": "Double glazed",
+                "frosted": "Frosted",
+                "tinted": "Tinted"
+            },
+            "frame_material": {
+                "aluminum": "Aluminum",
+                "steel": "Steel",
+                "wood": "Wood",
+                "frameless": "Frameless"
+            },
+            "glass_door_type": {
+                "swing": "Swing",
+                "sliding": "Sliding",
+                "pivot": "Pivot",
+                "partition": "Partition / office"
+            }
+        },
+        "additionalSellerDetailsTitle": "Additional seller details",
+        "additionalDetailsLabel": "Additional details",
+        "countryOfOriginLabel": "Country of origin",
+        "warrantyMonthsLabel": "Warranty, months",
+        "barcodeLabel": "EAN/UPC barcode",
+        "sellerArticleLabel": "Seller article",
+        "ageRestrictedLabel": "Age restricted",
+        "placeholders": {
+            "productName": "e.g. Metal entrance door Model 5",
+            "productDescription": "Describe materials, finish, dimensions, and intended use",
+            "vatRate": "e.g. 21",
+            "additionalDetails": "Assembly notes, care instructions, or other seller info (optional)",
+            "countryOfOrigin": "e.g. Czech Republic",
+            "warrantyMonths": "e.g. 12",
+            "barcode": "e.g. 8591234567890",
+            "sellerArticle": "e.g. 1234567890",
+            "characteristicName": "e.g. Mounting type",
+            "characteristicValue": "e.g. Hidden hinges",
+            "selectCategory": "Select a category",
+            "variantValue": "e.g. White matte",
+            "salePrice": "e.g. 832.00",
+            "stockQuantity": "e.g. 12",
+            "packageWeightKg": "e.g. 25.6",
+            "packageWidthCm": "e.g. 80",
+            "packageHeightCm": "e.g. 206",
+            "packageLengthCm": "e.g. 4",
+            "attributeText": "e.g. Steel",
+            "attributeNumber": "e.g. 210",
+            "attributeNumberCm": "e.g. 80",
+            "attributeSelect": "Select value"
+        }
     },
     "item": {
         "add": "+ Add an item",
@@ -51,10 +221,10 @@
         "package_width": "Package width, mm",
         "package_height": "Package height, mm",
         "package_weight": "Weight with package, g",
-        "add_styles": "Addition styles",
-        "style_name": "Specify the name to the styles ",
-        "style_add": "Add the style itself and be sure to specify its cost ",
-        "optional_style": "Optionally add the name and photos of the style ",
+        "add_styles": "Product options / Variants",
+        "style_name": "What differs between options? Enter a group name (e.g. Color).",
+        "style_add": "Click + Add style and enter a price for every option.",
+        "optional_style": "You can also add an optional image per option.",
         "preview": "Preview",
         "cancel": "Cancel",
         "sent_moderation": "The goods have been sent for the moderation. approximate moderation time: 24 hours",
@@ -63,10 +233,30 @@
         "color_name": "Name color",
         "price": "Price",
         "column": "Column",
-        "placeholderColorSizeStyle": "Color, size, style",
+        "placeholderColorSizeStyle": "e.g. Color, Size, Material",
         "addStyle": "+ Add style",
+        "variantValue": "Variant value",
+        "salePrice": "Sale price",
+        "stockQuantity": "Stock quantity",
+        "packageDimensions": "Package dimensions for delivery",
+        "packageWeightKg": "Package weight, kg",
+        "packageWidthCm": "Package width, cm",
+        "packageHeightCm": "Package height, cm",
+        "packageLengthCm": "Package length, cm",
+        "deleteVariant": "Delete",
         "variantNameIsRequired": "Variant name is required",
-        "dataError": "Data error: The price must be a number. Each variant must include either text or an image."
+        "dataError": "Please fill in all required variant fields.",
+        "variantsSectionError": "Please fill in all required variant fields.",
+        "variantTextRequired": "Variant value is required",
+        "variantPriceRequired": "Sale price is required",
+        "variantPriceInvalid": "Enter a valid price",
+        "variantStockRequired": "Stock quantity is required",
+        "variantStockInvalid": "Enter a valid stock quantity",
+        "variantPackageWeightRequired": "Package weight is required",
+        "variantPackageWidthRequired": "Package width is required",
+        "variantPackageHeightRequired": "Package height is required",
+        "variantPackageLengthRequired": "Package length is required",
+        "variantPackageDimensionInvalid": "Enter a valid positive number"
     },
     "edits": {
         "editingOfGoods": "Editing of goods"

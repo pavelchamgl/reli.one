@@ -56,9 +56,9 @@ Frontend create flow:
 
 | Файл | Контракт |
 | --- | --- |
-| `Frontend/Frontend3/src/redux/createProdPrevSlice.js` | Сначала post product, затем parameters, variants, images, license; stock не отправляется |
-| `Frontend/Frontend3/src/api/seller/sellerProduct.js` | API helpers для product/images/parameters/variants/license; variants отправляют `weight_grams`, `width_mm`, `length_mm`, `height_mm` |
-| `Frontend/Frontend3/src/Components/Seller/create/sellerCreateForm/SellerCreateForm.jsx` | UI требует images, category, product_parameters, variant name/value/image; stock quantity отсутствует |
+| `Frontend/Frontend3/src/redux/createProdPrevSlice.js` | post product → variants → stock (обязателен) → attributes → images → license; partial success/retry по шагам |
+| `Frontend/Frontend3/src/api/seller/sellerProduct.js` | API helpers для product/images/parameters/variants/license; variants отправляют `text`, опционально `image`, `weight_grams`, `width_mm`, `length_mm`, `height_mm` |
+| `Frontend/Frontend3/src/Components/Seller/create/sellerCreateForm/SellerCreateForm.jsx` | UI требует images, category, typed attributes, `variantsName`, обязательный variant `text`, price, package dimensions, stock; `image` опционален |
 
 Frontend edit flow:
 

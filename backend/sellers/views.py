@@ -7,7 +7,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -618,9 +618,8 @@ class BaseProductImageViewSet(ModelViewSet):
             "- `width_mm` is required and must be greater than 0\n"
             "- `height_mm` is required and must be greater than 0\n"
             "- `length_mm` is required and must be greater than 0\n"
-            "- variant must contain exactly one of: `text` or `image`\n"
-            "- `text` and `image` cannot be sent together\n"
-            "- `text` and `image` cannot both be empty\n\n"
+            "- `text` is required\n"
+            "- `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP."
@@ -645,6 +644,7 @@ class BaseProductImageViewSet(ModelViewSet):
                 name="Create variant with image",
                 value={
                     "name": "Color",
+                    "text": "Black matte",
                     "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...",
                     "price": "129.99",
                     "weight_grams": 470,
@@ -672,9 +672,8 @@ class BaseProductImageViewSet(ModelViewSet):
             "- `width_mm` is required and must be greater than 0\n"
             "- `height_mm` is required and must be greater than 0\n"
             "- `length_mm` is required and must be greater than 0\n"
-            "- variant must contain exactly one of: `text` or `image`\n"
-            "- `text` and `image` cannot be sent together\n"
-            "- `text` and `image` cannot both be empty\n\n"
+            "- `text` is required\n"
+            "- `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP."
@@ -709,7 +708,8 @@ class BaseProductImageViewSet(ModelViewSet):
             "- `width_mm` must remain present and be greater than 0\n"
             "- `height_mm` must remain present and be greater than 0\n"
             "- `length_mm` must remain present and be greater than 0\n"
-            "- variant must contain exactly one of: `text` or `image`\n\n"
+            "- variant `text` must remain present\n"
+            "- variant `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP."
@@ -789,9 +789,8 @@ class ProductVariantViewSet(ModelViewSet):
             "- `width_mm` is required and must be greater than 0\n"
             "- `height_mm` is required and must be greater than 0\n"
             "- `length_mm` is required and must be greater than 0\n"
-            "- each variant must contain exactly one of: `text` or `image`\n"
-            "- `text` and `image` cannot be sent together\n"
-            "- `text` and `image` cannot both be empty\n\n"
+            "- each variant `text` is required\n"
+            "- each variant `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP.\n\n"
@@ -814,6 +813,7 @@ class ProductVariantViewSet(ModelViewSet):
                     },
                     {
                         "name": "Color",
+                        "text": "White matte",
                         "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...",
                         "price": "129.99",
                         "weight_grams": 470,
@@ -864,13 +864,51 @@ class ProductVariantViewSet(ModelViewSet):
         request=ProductVariantStockWriteSerializer,
         responses={status.HTTP_200_OK: ProductVariantStockReadSerializer},
     )
-    @action(methods=['put'], detail=True)
+    @action(methods=['get', 'put'], detail=True)
     def stock(self, request, product_pk=None, pk=None):
         variant = self.get_object()
         seller_profile = get_object_or_404(
             SellerProfile.objects.prefetch_related("warehouses"),
             user=request.user,
         )
+
+        warehouse = seller_profile.default_warehouse
+        if warehouse is None:
+            if request.method == 'GET':
+                return Response(
+                    {
+                        "warehouse_id": None,
+                        "variant_id": variant.id,
+                        "sku": variant.sku,
+                        "quantity_in_stock": 0,
+                        "reserved_quantity": 0,
+                        "available_quantity": 0,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            raise ValidationError({
+                "warehouse_id": ["Seller has no default warehouse. Provide an allowed warehouse_id."]
+            })
+
+        if request.method == 'GET':
+            warehouse_item = WarehouseItem.objects.filter(
+                warehouse=warehouse,
+                product_variant=variant,
+            ).first()
+            if warehouse_item is None:
+                return Response(
+                    {
+                        "warehouse_id": warehouse.id,
+                        "variant_id": variant.id,
+                        "sku": variant.sku,
+                        "quantity_in_stock": 0,
+                        "reserved_quantity": 0,
+                        "available_quantity": 0,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            output_serializer = ProductVariantStockReadSerializer(warehouse_item)
+            return Response(output_serializer.data, status=status.HTTP_200_OK)
 
         serializer = ProductVariantStockWriteSerializer(
             data=request.data,

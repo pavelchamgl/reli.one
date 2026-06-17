@@ -1,3 +1,5 @@
+@use "../../shared/sellerProductForm" as form;
+
 .main {
   max-width: 272px;
   min-width: 143px;
@@ -27,14 +29,11 @@
 }
 
 .nameInp {
+  @include form.sellerFormFieldInput;
+  height: 44px;
+  padding: 10px 12px;
   background: #fafafa;
-  border: 1px solid #ced4d7;
-  width: 100%;
-  height: clamp(36px, 2.5vw, 45px);
-  font-weight: 400;
-  font-size: clamp(14px, 2.5vw, 18px);
   color: #7d7d7d;
-  padding-left: 10px;
   outline-color: #cbcdce;
   transition: 0.5s ease;
 }
@@ -161,16 +160,13 @@
   }
 
   & input {
+    @include form.sellerFormFieldInput;
+    height: 44px;
+    padding: 10px 12px;
     background-color: transparent;
-    width: 100%;
-    height: clamp(36px, 2.5vw, 45px);
-    font-weight: 400;
-    font-size: clamp(14px, 2.5vw, 18px);
     color: #7d7d7d;
-    padding-left: 10px;
     outline: none;
     border: none;
-
     font-family: var(--ft);
   }
 }

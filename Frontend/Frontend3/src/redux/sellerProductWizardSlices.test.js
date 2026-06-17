@@ -1,4 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
+import { render, screen } from "@testing-library/react";
+import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("../ui/Toastify", () => ({
@@ -22,10 +24,24 @@ vi.mock("../api/seller/editProduct", () => ({
 vi.mock("../api/seller/sellerWizard", () => ({
   getSellerCategoryAttributeSchema: vi.fn(),
   getSellerProductAttributes: vi.fn(),
+  getSellerVariantStock: vi.fn(),
   putSellerProductAttributes: vi.fn(),
   putSellerVariantStock: vi.fn(),
 }));
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key) => key,
+  }),
+}));
+
+import SellerReviewActions from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewActions.jsx";
+import SellerReviewDetailsSections, {
+  LISTING_INFO_ROWS,
+  LISTING_INFORMATION_TITLE,
+} from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewDetailsSections.jsx";
+import SellerReviewProductInfo from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewProductInfo.jsx";
+import SellerReviewProductLayout from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewProductLayout.jsx";
 import {
   fetchCreateCategoryAttributeSchema,
   fetchCreateProduct,
@@ -39,26 +55,75 @@ import {
   reducer as editReducer,
   setCategory as setEditCategory,
 } from "./editGoodsSlice.js";
-import { postSellerImages, postSellerProduct } from "../api/seller/sellerProduct";
+import { postSellerImages, postSellerProduct, postSellerVariants } from "../api/seller/sellerProduct";
+import { putSellerVariantStock } from "../api/seller/sellerWizard";
 import { patchProduct } from "../api/seller/editProduct";
 import { validateGoods } from "../code/validation/validationGoods.js";
 import {
   areOptionalPackageDimensionsValid,
+  buildAttributePayload,
   buildSellerReviewData,
   CATEGORY_SCHEMA_NOT_READY_MESSAGE,
   formatApiErrorMessage,
   formatVatRateForInput,
+  isProductVariantsValid,
   mapEditVariantDraftToPatchPayload,
+  mapSellerProductVariantsForEdit,
   mapVariantDraftToPayload,
+  mapProductParametersForReview,
   mapVariantApiToEditDraft,
+  normalizeSellerArticle,
   normalizeVatRate,
+  openSellerDocumentUrl,
   REVIEW_STOCK_NOT_LOADED,
   unwrapProductPreviewResponse,
   validateProductImageFile,
   validateProductImageFiles,
   validateLicenseFile,
   validateLicenseFiles,
+  validateProductVariants,
+  validateVariantDraft,
+  valuesFromAttributeRows,
 } from "../utils/sellerProductWizard.js";
+
+const mmWidthAttribute = {
+  id: 10,
+  code: "door_width_mm",
+  name: "Width",
+  data_type: "number",
+  unit: "mm",
+};
+
+describe("category attribute mm storage with cm input", () => {
+  it("converts cm form values to mm in API payload", () => {
+    const payload = buildAttributePayload(
+      [mmWidthAttribute],
+      { 10: "80" }
+    );
+
+    expect(payload).toEqual([
+      { attribute_definition: 10, value_number: "800" },
+    ]);
+  });
+
+  it("converts mm API values to cm for the edit form", () => {
+    const values = valuesFromAttributeRows(
+      [{ attribute_definition: 10, data_type: "number", value_number: "800" }],
+      [mmWidthAttribute]
+    );
+
+    expect(values).toEqual({ 10: "80" });
+  });
+
+  it("shows mm in seller review when form stores cm", () => {
+    const review = buildSellerReviewData({
+      attributeSchema: { attributes: [mmWidthAttribute] },
+      attributeValues: { 10: "80" },
+    });
+
+    expect(review.categoryAttributes[0].display).toBe("800 mm");
+  });
+});
 
 const makeCreateStore = () =>
   configureStore({
@@ -66,6 +131,19 @@ const makeCreateStore = () =>
       create_prev: createReducer,
     },
   });
+
+const validCreateVariant = (overrides = {}) => ({
+  id: 1,
+  text: "Black",
+  price: "99.90",
+  quantity_in_stock: "5",
+  weight: "2",
+  width: "20",
+  height: "10",
+  length: "30",
+  image: null,
+  ...overrides,
+});
 
 const makeEditStore = (preloadedState) =>
   configureStore({
@@ -139,6 +217,8 @@ describe("seller product wizard create guards", () => {
       width: "50",
       height: "10",
       weight: "3",
+      variantsName: "Color",
+      variantsMain: [validCreateVariant()],
     }));
 
     const result = await store.dispatch(fetchCreateProduct());
@@ -158,7 +238,7 @@ describe("seller product wizard create guards", () => {
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("weight_grams");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("countryOfOrigin");
     expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("warranty");
-    expect(postSellerProduct.mock.calls[0][0].article).toMatch(/^\d+$/);
+    expect(postSellerProduct.mock.calls[0][0].article).toMatch(/^\d{10}$/);
   });
 
   it("maps empty VAT to zero in product create payload", async () => {
@@ -173,6 +253,8 @@ describe("seller product wizard create guards", () => {
       name: "Door",
       product_description: "Front door",
       vat_rate: "",
+      variantsName: "Color",
+      variantsMain: [validCreateVariant()],
     }));
 
     const result = await store.dispatch(fetchCreateProduct());
@@ -195,6 +277,48 @@ describe("seller product wizard create guards", () => {
       product_description: "Front door",
       warranty_months: "12",
     })).resolves.toMatchObject({ warranty_months: "12" });
+  });
+});
+
+describe("seller product wizard create reducer", () => {
+  it("keeps typed attribute values when category is re-set to the same id", () => {
+    const staleState = {
+      category: { id: 7, name: "Entrance Doors" },
+      category_name: "Entrance Doors",
+      attributeSchema: { attributes: [{ id: 501, name: "Door material" }] },
+      attributeValues: { 501: "Steel" },
+      attributeErrors: {},
+      attributeSchemaStatus: "fulfilled",
+    };
+
+    const next = createReducer(
+      staleState,
+      setCreateCategory({ id: 7, name: "Entrance Doors" })
+    );
+
+    expect(next.attributeValues).toEqual({ 501: "Steel" });
+    expect(next.attributeSchema).toEqual(staleState.attributeSchema);
+    expect(next.attributeSchemaStatus).toBe("fulfilled");
+  });
+
+  it("clears typed attribute state when create category changes", () => {
+    const staleState = {
+      category: { id: 7, name: "Entrance Doors" },
+      attributeSchema: { attributes: [{ id: 501, name: "Door material" }] },
+      attributeValues: { 501: "Steel" },
+      attributeErrors: { 501: "Required" },
+      attributeSchemaStatus: "fulfilled",
+    };
+
+    const next = createReducer(
+      staleState,
+      setCreateCategory({ id: 8, name: "Windows" })
+    );
+
+    expect(next.category.id).toBe(8);
+    expect(next.attributeValues).toEqual({});
+    expect(next.attributeSchema).toBeNull();
+    expect(next.attributeSchemaStatus).toBe("idle");
   });
 });
 
@@ -337,6 +461,32 @@ describe("seller product wizard helpers", () => {
     expect(normalizeVatRate("21")).toBe("21");
   });
 
+  it("normalizes seller article to exactly 10 digits", () => {
+    expect(normalizeSellerArticle("1234567890")).toBe("1234567890");
+    expect(normalizeSellerArticle("")).toMatch(/^\d{10}$/);
+    expect(normalizeSellerArticle(undefined)).toMatch(/^\d{10}$/);
+  });
+
+  it("opens draft license data urls in a new tab through blob urls", () => {
+    let openedAnchor = null;
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function clickMock() {
+      openedAnchor = this;
+    });
+    const createObjectURL = vi.fn(() => "blob:license");
+    vi.stubGlobal("URL", { createObjectURL, revokeObjectURL: vi.fn() });
+
+    openSellerDocumentUrl("data:application/pdf;base64,ZmFrZQ==");
+
+    expect(createObjectURL).toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
+    expect(openedAnchor?.href).toBe("blob:license");
+    expect(openedAnchor?.target).toBe("_blank");
+    expect(openedAnchor?.rel).toBe("noopener noreferrer");
+
+    clickSpy.mockRestore();
+    vi.unstubAllGlobals();
+  });
+
   it("formats backend zero VAT for input", () => {
     expect(formatVatRateForInput("0.00")).toBe("0");
     expect(formatVatRateForInput("20.00")).toBe("20");
@@ -365,6 +515,7 @@ describe("seller product wizard helpers", () => {
       mapVariantDraftToPayload({
         price: "99.90",
         text: "Black",
+        image: "data:image/png;base64,abc",
         weight: "1.25",
         length: "30.5",
         width: "20",
@@ -374,10 +525,80 @@ describe("seller product wizard helpers", () => {
       price: "99.90",
       name: "Color",
       text: "Black",
+      image: "data:image/png;base64,abc",
       weight_grams: 1250,
       length_mm: 305,
       width_mm: 200,
       height_mm: 75,
+    });
+  });
+
+  it("validates required variant fields", () => {
+    const errors = validateVariantDraft({
+      id: 1,
+      text: "",
+      price: "",
+      quantity_in_stock: "",
+      weight: "",
+      width: "",
+      height: "",
+      length: "",
+    });
+
+    expect(errors).toMatchObject({
+      text: "variantTextRequired",
+      price: "variantPriceRequired",
+      quantity_in_stock: "variantStockRequired",
+      weight: "variantPackageWeightRequired",
+      width: "variantPackageWidthRequired",
+      height: "variantPackageHeightRequired",
+      length: "variantPackageLengthRequired",
+    });
+  });
+
+  it("validates product variants collection", () => {
+    const validation = validateProductVariants({
+      variantsName: "",
+      variants: [{
+        id: 1,
+        text: "Black",
+        price: "10",
+        quantity_in_stock: "5",
+        weight: "2",
+        width: "20",
+        height: "10",
+        length: "30",
+      }],
+    });
+
+    expect(validation.name).toBe("variantNameIsRequired");
+    expect(isProductVariantsValid(validation)).toBe(false);
+  });
+
+  it("maps seller API variants for edit with string price and stock", () => {
+    const variants = mapSellerProductVariantsForEdit([
+      {
+        id: 3,
+        name: "Color",
+        text: "Red",
+        price: 800,
+        image: "http://127.0.0.1:8000/media/red.png",
+        quantity_in_stock: 12,
+        weight_grams: 1500,
+        width_mm: 200,
+        height_mm: 100,
+        length_mm: 300,
+      },
+    ]);
+
+    expect(variants[0]).toMatchObject({
+      id: 3,
+      text: "Red",
+      price: "800",
+      image: "http://127.0.0.1:8000/media/red.png",
+      quantity_in_stock: 12,
+      status: "server",
+      package_weight_kg: "1.5",
     });
   });
 
@@ -399,12 +620,47 @@ describe("seller product wizard helpers", () => {
     ).toEqual({
       price: "10.00",
       name: "Color",
-      image: null,
       text: "Black",
     });
   });
 
-  it("allows empty edit package dimensions for unrelated saves", () => {
+  it("omits unchanged server image urls from edit patch payload", () => {
+    expect(
+      mapEditVariantDraftToPatchPayload(
+        {
+          id: 1,
+          price: "10.00",
+          text: "Black",
+          image: "http://127.0.0.1:8000/media/variants/door.png",
+        },
+        "Color"
+      )
+    ).toEqual({
+      price: "10.00",
+      name: "Color",
+      text: "Black",
+    });
+  });
+
+  it("sends base64 image updates in edit patch payload", () => {
+    expect(
+      mapEditVariantDraftToPatchPayload(
+        {
+          id: 1,
+          price: "10.00",
+          image: "data:image/png;base64,updated",
+        },
+        "Color"
+      )
+    ).toEqual({
+      price: "10.00",
+      name: "Color",
+      text: undefined,
+      image: "data:image/png;base64,updated",
+    });
+  });
+
+  it("requires all package dimensions for variant validation", () => {
     expect(
       areOptionalPackageDimensionsValid({
         package_weight_kg: "",
@@ -412,14 +668,20 @@ describe("seller product wizard helpers", () => {
         package_width_cm: null,
         package_height_cm: undefined,
       })
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("rejects filled invalid edit package dimensions", () => {
+    expect(areOptionalPackageDimensionsValid({
+      package_weight_kg: "2",
+      package_width_cm: "20",
+      package_height_cm: "10",
+      package_length_cm: "30",
+    })).toBe(true);
     expect(areOptionalPackageDimensionsValid({ package_weight_kg: "0" })).toBe(false);
     expect(areOptionalPackageDimensionsValid({ package_width_cm: "abc" })).toBe(false);
     expect(areOptionalPackageDimensionsValid({ package_height_cm: "-1" })).toBe(false);
-    expect(areOptionalPackageDimensionsValid({ package_length_cm: "12.5" })).toBe(true);
+    expect(areOptionalPackageDimensionsValid({ package_length_cm: "12.5" })).toBe(false);
   });
 
   it("blocks invalid license formats before upload", () => {
@@ -598,6 +860,118 @@ describe("seller product wizard helpers", () => {
     expect(review.moderation.status).toBe("pending");
   });
 
+  it("maps public product response into product review data", () => {
+    const review = buildSellerReviewData({
+      name: "Public Door",
+      category_name: "Entrance doors",
+      rating: "4.5",
+      total_reviews: "12",
+      images: [{ id: 11, image_url: "/media/public-door.png" }],
+      variants: [
+        {
+          id: 21,
+          name: "Finish",
+          text: "Graphite",
+          price: "121.00",
+          price_without_vat: "100.00",
+          stock_status: "in_stock",
+          available_quantity: 4,
+        },
+      ],
+      license_file: "/media/license.pdf",
+      country_of_origin: "Czech Republic",
+      warranty_months: 24,
+      barcode: "8594012345678",
+      article: "PUB-1",
+      is_age_restricted: true,
+      vat_rate: "21.00",
+    });
+
+    expect(review.productName).toBe("Public Door");
+    expect(review.rating).toBe(4.5);
+    expect(review.totalReviews).toBe(12);
+    expect(review.images[0]).toMatchObject({ src: "/media/public-door.png", alt: "Public Door" });
+    expect(review.variants[0]).toMatchObject({
+      axis: "Finish",
+      value: "Graphite",
+      price: "121.00",
+      priceWithoutVat: "100.00",
+      stock: 4,
+      stockStatus: "in_stock",
+    });
+    expect(review.documents[0]).toMatchObject({
+      name: "License / Certificate",
+      url: "/media/license.pdf",
+    });
+    expect(review.additionalDetails).toMatchObject({
+      country_of_origin: "Czech Republic",
+      warranty_months: 24,
+      barcode: "8594012345678",
+      article: "PUB-1",
+      is_age_restricted: true,
+    });
+  });
+
+  it("maps seller product response rows and calculates price without VAT when needed", () => {
+    const review = buildSellerReviewData({
+      name: "Seller Door",
+      category_name: "Seller category",
+      vat_rate: "21.00",
+      variants: [
+        {
+          id: 31,
+          name: "Configuration",
+          text: "Standard",
+          price: "121.00",
+          quantity_in_stock: 0,
+          sku: "SKU-31",
+          length_mm: 300,
+          width_mm: 200,
+          height_mm: 100,
+          weight_grams: 1500,
+        },
+      ],
+      product_attributes: [
+        {
+          id: 41,
+          code: "material",
+          name: "Material",
+          value_text: "Steel",
+          is_required: true,
+        },
+        {
+          id: 42,
+          code: "fire_rated",
+          name: "Fire rated",
+          value_boolean: false,
+        },
+      ],
+      license_file: { id: 5, name: "certificate.docx", file_url: "/media/certificate.docx" },
+    });
+
+    expect(review.priceWithoutVat).toBe("100.00");
+    expect(review.variants[0]).toMatchObject({
+      priceWithoutVat: "100.00",
+      stock: 0,
+      stockStatus: "out_of_stock",
+      sku: "SKU-31",
+    });
+    expect(review.variants[0].packageDimensions).toMatchObject({
+      length: "30",
+      width: "20",
+      height: "10",
+      weight: "1.5",
+    });
+    expect(review.categoryAttributes).toEqual([
+      expect.objectContaining({ name: "Material", display: "Steel", isRequired: true }),
+      expect.objectContaining({ name: "Fire rated", display: "No" }),
+    ]);
+    expect(review.documents[0]).toMatchObject({
+      name: "certificate.docx",
+      url: "/media/certificate.docx",
+    });
+  });
+
   it("unwraps product preview Axios response before building review data", () => {
     const productPayload = {
       name: "Response Door",
@@ -677,6 +1051,22 @@ describe("seller product wizard helpers", () => {
     });
   });
 
+  it("maps create-flow license base64 draft into document link row", () => {
+    const review = buildSellerReviewData({
+      license_file: [{
+        id: 42,
+        name: "certificate.pdf",
+        base64: "data:application/pdf;base64,ZmFrZQ==",
+      }],
+    });
+
+    expect(review.documents).toHaveLength(1);
+    expect(review.documents[0]).toMatchObject({
+      name: "certificate.pdf",
+      url: "data:application/pdf;base64,ZmFrZQ==",
+    });
+  });
+
   it("builds seller review typed attribute display values", () => {
     const review = buildSellerReviewData({
       attributeSchema: {
@@ -726,6 +1116,47 @@ describe("seller product wizard helpers", () => {
     });
   });
 
+  it("merges schema and API category attributes for review characteristics", () => {
+    const review = buildSellerReviewData({
+      attributeSchema: {
+        attributes: [
+          {
+            id: 501,
+            code: "door_material",
+            name: "Door material",
+            data_type: "text",
+            is_required: false,
+          },
+        ],
+      },
+      attributeValues: {
+        501: "Cold-rolled steel, 1.5 mm",
+      },
+      product_attributes: [
+        {
+          id: 502,
+          code: "opening_type",
+          name: "Opening type",
+          value_text: "Left-hand, inward-opening",
+        },
+      ],
+    });
+
+    expect(review.categoryAttributes).toEqual([
+      expect.objectContaining({ name: "Door material", display: "Cold-rolled steel, 1.5 mm" }),
+      expect.objectContaining({ name: "Opening type", display: "Left-hand, inward-opening" }),
+    ]);
+  });
+
+  it("maps legacy product parameters and excludes physical dimension rows", () => {
+    expect(mapProductParametersForReview([
+      { id: 1, name: "Door material", value: "Steel" },
+      { id: 2, name: "Length", value: "100" },
+    ])).toEqual([
+      { id: 1, name: "Door material", value: "Steel" },
+    ]);
+  });
+
   it("uses explicit stock fallback when variant stock is not loaded", () => {
     const review = buildSellerReviewData({
       variantsServ: [
@@ -736,8 +1167,65 @@ describe("seller product wizard helpers", () => {
     expect(review.variants[0].stock).toBe(REVIEW_STOCK_NOT_LOADED);
   });
 
+  it("maps low stock quantities to few_left when stock_status is absent", () => {
+    const review = buildSellerReviewData({
+      variantsMain: [
+        { id: 1, text: "Default", price: "10.00", quantity_in_stock: 3 },
+      ],
+    });
+
+    expect(review.variants[0].stockStatus).toBe("few_left");
+  });
+
+  it("maps variant image sources for review variant cards", () => {
+    const review = buildSellerReviewData({
+      variantsMain: [
+        {
+          id: 1,
+          text: "Dark steel",
+          price: "832.00",
+          image_url: "/media/dark-steel.png",
+        },
+        {
+          id: 2,
+          price: "890.00",
+          image: "data:image/png;base64,preview",
+        },
+      ],
+    });
+
+    expect(review.variants[0]).toMatchObject({
+      value: "Dark steel",
+      image: "/media/dark-steel.png",
+    });
+    expect(review.variants[1]).toMatchObject({
+      value: "Image variant",
+      image: "data:image/png;base64,preview",
+    });
+  });
+
+  it("maps seller variant stock quantities for review", () => {
+    const review = buildSellerReviewData({
+      variantsServ: [
+        { id: 1, text: "Red", price: "10.00", quantity_in_stock: 12 },
+        { id: 2, text: "Blue", price: "12.00", quantity_in_stock: 0 },
+      ],
+    });
+
+    expect(review.variants[0]).toMatchObject({
+      stock: 12,
+      stockStatus: "in_stock",
+    });
+    expect(review.variants[1]).toMatchObject({
+      stock: 0,
+      stockStatus: "out_of_stock",
+    });
+  });
+
   it("keeps partial success retry state with created product id and failed steps", async () => {
     postSellerProduct.mockResolvedValue({ id: 123 });
+    postSellerVariants.mockResolvedValue([{ id: 501 }]);
+    putSellerVariantStock.mockResolvedValue({ quantity_in_stock: 5 });
     postSellerImages.mockRejectedValue(new Error("Image upload failed"));
     const store = makeCreateStore();
     store.dispatch(setCreateCategory({ id: 10, name: "Doors" }));
@@ -749,6 +1237,8 @@ describe("seller product wizard helpers", () => {
       name: "Door",
       product_description: "Front door",
       images: [{ image_url: "data:image/png;base64,ok" }],
+      variantsName: "Color",
+      variantsMain: [validCreateVariant()],
     }));
 
     const result = await store.dispatch(fetchCreateProduct());
@@ -759,5 +1249,346 @@ describe("seller product wizard helpers", () => {
     expect(store.getState().create_prev.submitStepResults).toEqual(expect.arrayContaining([
       expect.objectContaining({ step: "images", status: "rejected" }),
     ]));
+  });
+});
+
+const makeReviewFixture = (overrides = {}) => ({
+  productName: "Door Metal - 5",
+  categoryName: "Entrance Doors",
+  rating: 0,
+  totalReviews: 0,
+  price: "832.00",
+  priceWithoutVat: "687.60",
+  vatRate: "21",
+  variantAxisName: "Style",
+  deliveryText: "Delivery: 2 days to 4 months",
+  description: "High-security entrance door.",
+  images: [],
+  categoryAttributes: [],
+  productParameters: [],
+  documents: [{ id: 1, name: "certificate.pdf", url: "https://example.com/cert.pdf" }],
+  variants: [
+    {
+      id: 1,
+      axis: "Style",
+      value: "Dark steel",
+      price: "832.00",
+      priceWithoutVat: "687.60",
+      stock: 0,
+      stockStatus: "out_of_stock",
+    },
+  ],
+  additionalDetails: {
+    additional_details: "Manufactured to EN 1627.",
+    country_of_origin: "Czech Republic",
+    warranty_months: "24",
+    barcode: "8594012345678",
+    article: "RG-DOOR-M5-DS",
+    is_age_restricted: false,
+  },
+  moderation: {
+    status: "draft",
+    statusLabel: "Draft",
+  },
+  hasMissingRequiredAttributes: false,
+  ...overrides,
+});
+
+const renderProductInfo = (review) => render(
+  React.createElement(SellerReviewProductInfo, {
+    review,
+    activeVariantId: review.variants[0]?.id ?? null,
+    onActiveVariantChange: vi.fn(),
+  })
+);
+
+describe("seller review product layout regressions", () => {
+  it("renders preview banner with Preview mode text only", () => {
+    render(
+      React.createElement(SellerReviewProductLayout, {
+        review: makeReviewFixture({
+          moderation: { status: "fulfilled", statusLabel: "Fulfilled" },
+        }),
+      })
+    );
+
+    expect(screen.getByText(/Preview mode\./)).toBeTruthy();
+    expect(screen.queryByText("FULFILLED")).toBeNull();
+    expect(screen.queryByText("Seller goods")).toBeNull();
+  });
+
+  it("renders product name before category in product info", () => {
+    renderProductInfo(makeReviewFixture());
+
+    const heading = screen.getByRole("heading", { level: 1 });
+    const category = screen.getByText("Entrance Doors");
+
+    expect(heading).toHaveTextContent("Door Metal - 5");
+    expect(heading.compareDocumentPosition(category) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("renders Excl. VAT line with VAT rate and price without VAT", () => {
+    renderProductInfo(makeReviewFixture());
+
+    expect(screen.getByText(/Excl\. VAT \(21%\):/)).toBeTruthy();
+    expect(screen.getByText("687.60 €")).toBeTruthy();
+  });
+
+  it("renders disabled Add to cart without basket behavior", () => {
+    renderProductInfo(makeReviewFixture({
+      variants: [
+        {
+          id: 1,
+          axis: "Style",
+          value: "Dark steel",
+          price: "832.00",
+          priceWithoutVat: "687.60",
+          stock: 12,
+          stockStatus: "in_stock",
+        },
+      ],
+    }));
+
+    const addToCartButton = screen.getByRole("button", { name: "add_basket" });
+    expect(addToCartButton).toBeDisabled();
+    expect(addToCartButton).toHaveAttribute("aria-disabled", "true");
+  });
+
+  it("renders out of stock label on preview add to cart button", () => {
+    renderProductInfo(makeReviewFixture());
+
+    expect(screen.getByRole("button", { name: "out_of_stock" })).toBeDisabled();
+  });
+
+  it("renders variant image cards when variant images are available", () => {
+    renderProductInfo(makeReviewFixture({
+      variants: [
+        {
+          id: 1,
+          axis: "Style",
+          value: "Dark steel",
+          price: "832.00",
+          image: "/media/dark-steel.png",
+          stock: 5,
+          stockStatus: "few_left",
+        },
+      ],
+    }));
+
+    expect(screen.getByRole("img", { name: "Dark steel" })).toBeTruthy();
+  });
+
+  it("renders image-only variant cards without placeholder label", () => {
+    renderProductInfo(makeReviewFixture({
+      variantAxisName: "Color",
+      variants: [
+        {
+          id: 1,
+          axis: "Color",
+          value: "Image variant",
+          price: "832.00",
+          image: "/media/dark-steel.png",
+          stock: 5,
+          stockStatus: "few_left",
+        },
+      ],
+    }));
+
+    expect(screen.getByRole("img", { name: "Color" })).toBeTruthy();
+    expect(screen.queryByText("Image variant")).toBeNull();
+    expect(screen.queryByText("Image")).toBeNull();
+    expect(screen.getByText(/^Color:$/)).toBeTruthy();
+    expect(screen.getAllByText("832.00 €").length).toBeGreaterThan(0);
+  });
+
+  it("renders stock status on variant cards only", () => {
+    renderProductInfo(makeReviewFixture({
+      variants: [
+        {
+          id: 1,
+          axis: "Style",
+          value: "Red",
+          price: "832.00",
+          stock: 12,
+          stockStatus: "in_stock",
+        },
+        {
+          id: 2,
+          axis: "Style",
+          value: "Blue",
+          price: "900.00",
+          stock: 2,
+          stockStatus: "few_left",
+        },
+      ],
+    }));
+
+    expect(screen.getAllByText("IN_STOCK").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("FEW_LEFT").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Stock: 12")).toBeNull();
+    expect(screen.queryByTestId("stock-badge")).toBeNull();
+  });
+
+  it("renders listing information rows in DOM order without hidden seller fields", () => {
+    render(
+      React.createElement(SellerReviewDetailsSections, {
+        review: makeReviewFixture(),
+        activeVariant: makeReviewFixture().variants[0],
+      })
+    );
+
+    expect(screen.getByText(LISTING_INFORMATION_TITLE)).toBeTruthy();
+
+    const labels = screen.getAllByRole("term").map((node) => node.textContent);
+    const listingLabels = LISTING_INFO_ROWS.map((row) => row.label);
+
+    expect(labels.filter((label) => listingLabels.includes(label))).toEqual([
+      "Country of origin",
+      "Warranty, months",
+    ]);
+    expect(screen.queryByText("EAN/UPC barcode")).toBeNull();
+    expect(screen.queryByText("Seller article")).toBeNull();
+    expect(screen.queryByText("Age restricted")).toBeNull();
+    expect(screen.queryByText("Moderation status")).toBeNull();
+  });
+
+  it("renders age restricted only when product is age restricted", () => {
+    render(
+      React.createElement(SellerReviewDetailsSections, {
+        review: makeReviewFixture({
+          additionalDetails: {
+            ...makeReviewFixture().additionalDetails,
+            is_age_restricted: true,
+          },
+        }),
+        activeVariant: makeReviewFixture().variants[0],
+      })
+    );
+
+    expect(screen.getByText("Age restricted")).toBeTruthy();
+    expect(screen.getByText("Yes")).toBeTruthy();
+  });
+
+  it("renders characteristics rows for category attributes and legacy parameters", () => {
+    render(
+      React.createElement(SellerReviewDetailsSections, {
+        review: makeReviewFixture({
+          categoryAttributes: [
+            { id: 1, name: "Door material", display: "Cold-rolled steel, 1.5 mm", isRequired: false },
+          ],
+          productParameters: [
+            { id: 2, name: "Opening type", value: "Left-hand, inward-opening" },
+          ],
+        }),
+        activeVariant: makeReviewFixture().variants[0],
+      })
+    );
+
+    expect(screen.getByText("Door material")).toBeTruthy();
+    expect(screen.getByText("Cold-rolled steel, 1.5 mm")).toBeTruthy();
+    expect(screen.getByText("Opening type")).toBeTruthy();
+    expect(screen.getByText("Left-hand, inward-opening")).toBeTruthy();
+  });
+
+  it("renders package dimensions for the active variant only", () => {
+    const { rerender } = render(
+      React.createElement(SellerReviewDetailsSections, {
+        review: makeReviewFixture({
+          variants: [
+            {
+              id: 1,
+              value: "Dark steel",
+              packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+            },
+            {
+              id: 2,
+              value: "Matte black",
+              packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+            },
+          ],
+        }),
+        activeVariant: {
+          id: 1,
+          value: "Dark steel",
+          packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+        },
+      })
+    );
+
+    expect(screen.getByText("Package length, cm")).toBeTruthy();
+    expect(screen.getByText("200")).toBeTruthy();
+    expect(screen.queryByText("210")).toBeNull();
+
+    rerender(
+      React.createElement(SellerReviewDetailsSections, {
+        review: makeReviewFixture({
+          variants: [
+            {
+              id: 1,
+              value: "Dark steel",
+              packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+            },
+            {
+              id: 2,
+              value: "Matte black",
+              packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+            },
+          ],
+        }),
+        activeVariant: {
+          id: 2,
+          value: "Matte black",
+          packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+        },
+      })
+    );
+
+    expect(screen.getByText("210")).toBeTruthy();
+    expect(screen.queryByText("200")).toBeNull();
+  });
+
+  it("renders stock zero as 0 instead of Not specified", () => {
+    renderProductInfo({
+      productName: "Door",
+      categoryName: "Doors",
+      rating: 0,
+      totalReviews: 0,
+      price: "121.00",
+      priceWithoutVat: "100.00",
+      vatRate: "21",
+      variantAxisName: "Style",
+      deliveryText: "Preview delivery",
+      variants: [
+        {
+          id: 1,
+          value: "Default",
+          price: "121.00",
+          priceWithoutVat: "100.00",
+          stock: 0,
+          stockStatus: "out_of_stock",
+          sku: "SKU-1",
+        },
+      ],
+    });
+
+    expect(screen.queryByText("Stock: Not specified")).toBeNull();
+    expect(screen.getAllByText("OUT_OF_STOCK").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("stock-badge")).toBeNull();
+    expect(screen.getByText("SKU: SKU-1")).toBeTruthy();
+  });
+
+  it("disables submit action while loading", () => {
+    render(
+      React.createElement(SellerReviewActions, {
+        backLabel: "Back",
+        submitLabel: "Submit",
+        isLoading: true,
+        onBack: vi.fn(),
+        onSubmit: vi.fn(),
+      })
+    );
+
+    const buttons = screen.getAllByRole("button");
+    expect(buttons[1]).toBeDisabled();
   });
 });

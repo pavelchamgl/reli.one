@@ -1,12 +1,58 @@
 const TRUE_VALUES = new Set(["true", "1", "yes", "y"]);
 const FALSE_VALUES = new Set(["false", "0", "no", "n"]);
 
+export const SELLER_WIZARD_MESSAGE_KEYS = {
+    categorySchemaNotReady: "goods.errors.categorySchemaNotReady",
+    unableToLoadCategorySchema: "goods.errors.unableToLoadCategorySchema",
+    fillRequiredCategoryAttributes: "goods.errors.fillRequiredCategoryAttributes",
+    errorCreatingProduct: "goods.errors.errorCreatingProduct",
+    attributeRequired: "goods.errors.attributeRequired",
+    attributeValidNumber: "goods.errors.attributeValidNumber",
+    attributeBoolean: "goods.errors.attributeBoolean",
+    attributeEnum: "goods.errors.attributeEnum",
+    licenseFileFormat: "goods.errors.licenseFileFormat",
+    productImageFormat: "goods.errors.productImageFormat",
+};
+
+export const SELLER_WIZARD_MESSAGE_FALLBACKS = {
+    [SELLER_WIZARD_MESSAGE_KEYS.categorySchemaNotReady]:
+        "Category attributes schema is not loaded. Please reload category and try again.",
+    [SELLER_WIZARD_MESSAGE_KEYS.unableToLoadCategorySchema]: "Unable to load category schema",
+    [SELLER_WIZARD_MESSAGE_KEYS.fillRequiredCategoryAttributes]: "Please fill required category attributes.",
+    [SELLER_WIZARD_MESSAGE_KEYS.errorCreatingProduct]: "Error while creating the product",
+    [SELLER_WIZARD_MESSAGE_KEYS.attributeRequired]: "This attribute is required.",
+    [SELLER_WIZARD_MESSAGE_KEYS.attributeValidNumber]: "Enter a valid number.",
+    [SELLER_WIZARD_MESSAGE_KEYS.attributeBoolean]: "Choose true or false.",
+    [SELLER_WIZARD_MESSAGE_KEYS.attributeEnum]: "Choose one of the available options.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat]: "License file must be PDF or DOCX.",
+    [SELLER_WIZARD_MESSAGE_KEYS.productImageFormat]: "Product images must be JPG, PNG, or WEBP.",
+};
+
+const resolveWizardMessage = (messageKey, t) => (
+    t ? t(messageKey) : SELLER_WIZARD_MESSAGE_FALLBACKS[messageKey]
+);
+
+export const translateSellerWizardError = (message, t) => {
+    if (!message || !t) return message || "";
+    const entry = Object.entries(SELLER_WIZARD_MESSAGE_FALLBACKS).find(([, text]) => text === message);
+    return entry ? t(entry[0]) : message;
+};
+
+export const getCategorySchemaNotReadyMessage = (t) => (
+    resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.categorySchemaNotReady, t)
+);
+
+export const getUnableToLoadCategorySchemaMessage = (t) => (
+    resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.unableToLoadCategorySchema, t)
+);
+
 export const normalizeAttributeSchema = (schemaResponse) => {
     return schemaResponse?.attributes || [];
 };
 
-export const CATEGORY_SCHEMA_NOT_READY_MESSAGE =
-    "Category attributes schema is not loaded. Please reload category and try again.";
+export const CATEGORY_SCHEMA_NOT_READY_MESSAGE = SELLER_WIZARD_MESSAGE_FALLBACKS[
+    SELLER_WIZARD_MESSAGE_KEYS.categorySchemaNotReady
+];
 
 export const isCategoryAttributeSchemaReady = (category, schema, status) => {
     if (!category?.id) return false;
@@ -23,6 +69,34 @@ export const mmToCm = (value) => {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue) || numberValue <= 0) return "";
     return String(Number((numberValue / 10).toFixed(2)));
+};
+
+export const isMmStoredNumberAttribute = (attribute) => (
+    attribute?.data_type === "number" && attribute?.unit === "mm"
+);
+
+export const attributeInputUnit = (attribute) => {
+    if (isMmStoredNumberAttribute(attribute)) return "cm";
+    return attribute?.unit || "";
+};
+
+const attributeValueNumberForApi = (attribute, value) => {
+    if (isMmStoredNumberAttribute(attribute)) {
+        const mm = cmToMm(value);
+        return mm !== null ? String(mm) : String(value);
+    }
+    return String(value);
+};
+
+const attributeValueNumberForForm = (attribute, valueNumber, schemaAttributes = []) => {
+    const attributeMeta = schemaAttributes.find(
+        (item) => Number(item.id) === Number(attribute?.attribute_definition ?? attribute?.id)
+    ) || attribute;
+
+    if (isMmStoredNumberAttribute(attributeMeta)) {
+        return mmToCm(valueNumber);
+    }
+    return valueNumber || "";
 };
 
 export const kgToGrams = (value) => {
@@ -48,6 +122,48 @@ export const normalizeWarrantyMonths = (value) => {
     return Number(value);
 };
 
+export const normalizeSellerArticle = (value) => {
+    const trimmed = String(value ?? "").trim();
+    if (/^\d{10}$/.test(trimmed)) return trimmed;
+    return String(Date.now()).slice(-10);
+};
+
+export const openSellerDocumentUrl = (url) => {
+    if (!url) return;
+
+    let openUrl = url;
+    let shouldRevoke = false;
+
+    if (typeof url === "string" && url.startsWith("data:")) {
+        try {
+            const [header, base64Data] = url.split(",");
+            const mimeMatch = header.match(/data:([^;]+)/);
+            const mimeType = mimeMatch?.[1] || "application/octet-stream";
+            const binary = atob(base64Data);
+            const bytes = new Uint8Array(binary.length);
+            for (let index = 0; index < binary.length; index += 1) {
+                bytes[index] = binary.charCodeAt(index);
+            }
+            openUrl = URL.createObjectURL(new Blob([bytes], { type: mimeType }));
+            shouldRevoke = true;
+        } catch {
+            openUrl = url;
+        }
+    }
+
+    const anchor = document.createElement("a");
+    anchor.href = openUrl;
+    anchor.target = "_blank";
+    anchor.rel = "noopener noreferrer";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+
+    if (shouldRevoke) {
+        window.setTimeout(() => URL.revokeObjectURL(openUrl), 60_000);
+    }
+};
+
 export const gramsToKg = (value) => {
     const numberValue = Number(value);
     if (!Number.isFinite(numberValue) || numberValue <= 0) return "";
@@ -64,16 +180,15 @@ export const mapVariantDraftToPayload = (variant, fallbackName) => {
     const payload = {
         price: variant.price,
         name: variant.name || fallbackName,
+        text: variant.text ?? "",
         weight_grams: kgToGrams(dimensionValue(variant, "package_weight_kg", "weight")),
         width_mm: cmToMm(dimensionValue(variant, "package_width_cm", "width")),
         length_mm: cmToMm(dimensionValue(variant, "package_length_cm", "length")),
         height_mm: cmToMm(dimensionValue(variant, "package_height_cm", "height")),
     };
 
-    if (variant.image) {
+    if (hasVariantImageValue(variant.image)) {
         payload.image = variant.image;
-    } else {
-        payload.text = variant.text;
     }
 
     return payload;
@@ -81,11 +196,21 @@ export const mapVariantDraftToPayload = (variant, fallbackName) => {
 
 export const mapVariantApiToEditDraft = (variant) => ({
     ...variant,
+    price: variant?.price !== undefined && variant?.price !== null ? String(variant.price) : "",
+    text: variant?.text ?? "",
+    quantity_in_stock: variant?.quantity_in_stock ?? "",
     package_weight_kg: gramsToKg(variant?.weight_grams),
     package_width_cm: mmToCm(variant?.width_mm),
     package_length_cm: mmToCm(variant?.length_mm),
     package_height_cm: mmToCm(variant?.height_mm),
 });
+
+export const mapSellerProductVariantsForEdit = (variants = []) => (
+    variants.map((variant) => ({
+        ...mapVariantApiToEditDraft(variant),
+        status: variant.status || "server",
+    }))
+);
 
 export const addPackageDimensionsToPayload = (payload, variant) => {
     const weight = kgToGrams(dimensionValue(variant, "package_weight_kg", "weight"));
@@ -105,22 +230,152 @@ export const mapEditVariantDraftToPatchPayload = (variant, fallbackName) => {
     const payload = {
         price: variant.price,
         name: variant.name || fallbackName,
-        image: variant.image,
         text: variant.text,
     };
+
+    if (hasVariantImageValue(variant.image)) {
+        const image = typeof variant.image === "string" ? variant.image : "";
+        if (image && !/^https?:\/\//i.test(image)) {
+            payload.image = image;
+        }
+    }
 
     return addPackageDimensionsToPayload(payload, variant);
 };
 
-export const areOptionalPackageDimensionsValid = (variant) => {
-    return ["package_weight_kg", "package_width_cm", "package_height_cm", "package_length_cm"].every((field) => {
-        const value = variant?.[field];
+export const areOptionalPackageDimensionsValid = (variant) => (
+    areRequiredPackageDimensionsValid(variant)
+);
+
+const VARIANT_DIMENSION_FIELDS = [
+    { packageField: "package_weight_kg", legacyField: "weight" },
+    { packageField: "package_width_cm", legacyField: "width" },
+    { packageField: "package_height_cm", legacyField: "height" },
+    { packageField: "package_length_cm", legacyField: "length" },
+];
+
+const resolveVariantMessage = (messageKey, t) => (
+    t ? t(`item.${messageKey}`) : messageKey
+);
+
+const isPositiveNumericValue = (value) => {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) && numberValue > 0;
+};
+
+export const areRequiredPackageDimensionsValid = (variant) => (
+    VARIANT_DIMENSION_FIELDS.every(({ packageField, legacyField }) => {
+        const value = dimensionValue(variant, packageField, legacyField);
         if (value === undefined || value === null || value === "") {
-            return true;
+            return false;
         }
-        const numberValue = Number(value);
-        return Number.isFinite(numberValue) && numberValue > 0;
+        return isPositiveNumericValue(value);
+    })
+);
+
+export const validateVariantDraft = (variant, t) => {
+    const errors = {};
+
+    if (!variant?.text?.trim()) {
+        errors.text = resolveVariantMessage("variantTextRequired", t);
+    }
+
+    const priceValue = variant?.price;
+    if (priceValue === undefined || priceValue === null || String(priceValue).trim() === "") {
+        errors.price = resolveVariantMessage("variantPriceRequired", t);
+    } else if (!isPositiveNumericValue(priceValue)) {
+        errors.price = resolveVariantMessage("variantPriceInvalid", t);
+    }
+
+    const stockValue = variant?.quantity_in_stock;
+    if (stockValue === undefined || stockValue === null || stockValue === "") {
+        errors.quantity_in_stock = resolveVariantMessage("variantStockRequired", t);
+    } else {
+        const stockNumber = Number(stockValue);
+        if (!Number.isInteger(stockNumber) || stockNumber < 0) {
+            errors.quantity_in_stock = resolveVariantMessage("variantStockInvalid", t);
+        }
+    }
+
+    VARIANT_DIMENSION_FIELDS.forEach(({ packageField, legacyField }) => {
+        const value = dimensionValue(variant, packageField, legacyField);
+        const fieldKey = variant && Object.prototype.hasOwnProperty.call(variant, packageField)
+            ? packageField
+            : legacyField;
+        const errorKey = {
+            package_weight_kg: "variantPackageWeightRequired",
+            package_width_cm: "variantPackageWidthRequired",
+            package_height_cm: "variantPackageHeightRequired",
+            package_length_cm: "variantPackageLengthRequired",
+            weight: "variantPackageWeightRequired",
+            width: "variantPackageWidthRequired",
+            height: "variantPackageHeightRequired",
+            length: "variantPackageLengthRequired",
+        }[fieldKey];
+
+        if (value === undefined || value === null || value === "") {
+            errors[fieldKey] = resolveVariantMessage(errorKey, t);
+            return;
+        }
+        if (!isPositiveNumericValue(value)) {
+            errors[fieldKey] = resolveVariantMessage("variantPackageDimensionInvalid", t);
+        }
     });
+
+    return errors;
+};
+
+export const validateProductVariants = ({ variantsName, variants = [] }, t) => {
+    const result = {
+        name: null,
+        section: null,
+        variants: {},
+    };
+
+    if (!variantsName?.trim()) {
+        result.name = resolveVariantMessage("variantNameIsRequired", t);
+    }
+
+    if (!variants.length) {
+        result.section = resolveVariantMessage("variantsSectionError", t);
+        return result;
+    }
+
+    variants.forEach((variant) => {
+        const fieldErrors = validateVariantDraft(variant, t);
+        if (Object.keys(fieldErrors).length > 0) {
+            result.variants[variant.id] = fieldErrors;
+        }
+    });
+
+    if (Object.keys(result.variants).length > 0 && !result.section) {
+        result.section = resolveVariantMessage("variantsSectionError", t);
+    }
+
+    return result;
+};
+
+export const isProductVariantsValid = (validation) => (
+    !validation?.name
+    && !validation?.section
+    && Object.keys(validation?.variants || {}).length === 0
+);
+
+export const hasVariantImageValue = (image) => {
+    if (typeof image === "string") {
+        return Boolean(image.trim());
+    }
+    return image instanceof Blob;
+};
+
+export const isVariantValuePresent = (variant) => Boolean(variant?.text?.trim());
+
+export const isVariantStockInputValid = (variant) => {
+    if (variant?.quantity_in_stock === undefined || variant?.quantity_in_stock === "") {
+        return false;
+    }
+    const value = Number(variant.quantity_in_stock);
+    return Number.isInteger(value) && value >= 0;
 };
 
 export const buildAttributePayload = (schema, values) => {
@@ -133,7 +388,9 @@ export const buildAttributePayload = (schema, values) => {
                 return value ? { ...base, value_text: value } : null;
             }
             if (attribute.data_type === "number") {
-                return value !== undefined && value !== "" ? { ...base, value_number: String(value) } : null;
+                return value !== undefined && value !== ""
+                    ? { ...base, value_number: attributeValueNumberForApi(attribute, value) }
+                    : null;
             }
             if (attribute.data_type === "boolean") {
                 return value !== undefined && value !== "" ? { ...base, value_boolean: Boolean(value) } : null;
@@ -146,12 +403,12 @@ export const buildAttributePayload = (schema, values) => {
         .filter(Boolean);
 };
 
-export const valuesFromAttributeRows = (rows = []) => {
+export const valuesFromAttributeRows = (rows = [], schemaAttributes = []) => {
     return rows.reduce((acc, row) => {
         if (row.data_type === "text") {
             acc[row.attribute_definition] = row.value_text || "";
         } else if (row.data_type === "number") {
-            acc[row.attribute_definition] = row.value_number || "";
+            acc[row.attribute_definition] = attributeValueNumberForForm(row, row.value_number, schemaAttributes);
         } else if (row.data_type === "boolean") {
             acc[row.attribute_definition] = row.value_boolean;
         } else if (row.data_type === "enum") {
@@ -161,7 +418,7 @@ export const valuesFromAttributeRows = (rows = []) => {
     }, {});
 };
 
-export const validateAttributeDraft = (schema, values) => {
+export const validateAttributeDraft = (schema, values, t) => {
     const errors = {};
 
     normalizeAttributeSchema({ attributes: schema }).forEach((attribute) => {
@@ -169,25 +426,25 @@ export const validateAttributeDraft = (schema, values) => {
         const isEmpty = value === undefined || value === null || value === "";
 
         if (attribute.is_required && isEmpty) {
-            errors[attribute.id] = "This attribute is required.";
+            errors[attribute.id] = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.attributeRequired, t);
             return;
         }
 
         if (isEmpty) return;
 
         if (attribute.data_type === "number" && !Number.isFinite(Number(value))) {
-            errors[attribute.id] = "Enter a valid number.";
+            errors[attribute.id] = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.attributeValidNumber, t);
         }
         if (attribute.data_type === "boolean" && typeof value !== "boolean") {
             const normalized = String(value).toLowerCase();
             if (!TRUE_VALUES.has(normalized) && !FALSE_VALUES.has(normalized)) {
-                errors[attribute.id] = "Choose true or false.";
+                errors[attribute.id] = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.attributeBoolean, t);
             }
         }
         if (attribute.data_type === "enum") {
             const allowedIds = new Set((attribute.options || []).map((option) => Number(option.id)));
             if (!allowedIds.has(Number(value))) {
-                errors[attribute.id] = "Choose one of the available options.";
+                errors[attribute.id] = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.attributeEnum, t);
             }
         }
     });
@@ -239,37 +496,42 @@ export const formatStepError = (error) => {
     return formatApiErrorMessage(error);
 };
 
-export const LICENSE_FILE_ERROR_MESSAGE = "License file must be PDF or DOCX.";
+export const LICENSE_FILE_ERROR_MESSAGE = SELLER_WIZARD_MESSAGE_FALLBACKS[
+    SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat
+];
 
 const LICENSE_MIME_TYPES = new Set([
     "application/pdf",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ]);
 
-export const validateLicenseFile = (file) => {
+export const validateLicenseFile = (file, t) => {
     if (!file) return null;
 
+    const errorMessage = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat, t);
     const extension = file.name?.split(".").pop()?.toLowerCase();
     const hasAllowedExtension = extension === "pdf" || extension === "docx";
     const hasMime = Boolean(file.type);
     const hasAllowedMime = LICENSE_MIME_TYPES.has(file.type);
 
-    if (!hasAllowedExtension) return LICENSE_FILE_ERROR_MESSAGE;
-    if (hasMime && !hasAllowedMime) return LICENSE_FILE_ERROR_MESSAGE;
+    if (!hasAllowedExtension) return errorMessage;
+    if (hasMime && !hasAllowedMime) return errorMessage;
 
     return null;
 };
 
-export const validateLicenseFiles = (files = []) => {
+export const validateLicenseFiles = (files = [], t) => {
     const fileList = Array.from(files);
     for (const file of fileList) {
-        const error = validateLicenseFile(file);
+        const error = validateLicenseFile(file, t);
         if (error) return error;
     }
     return null;
 };
 
-export const PRODUCT_IMAGE_FILE_ERROR_MESSAGE = "Product images must be JPG, PNG, or WEBP.";
+export const PRODUCT_IMAGE_FILE_ERROR_MESSAGE = SELLER_WIZARD_MESSAGE_FALLBACKS[
+    SELLER_WIZARD_MESSAGE_KEYS.productImageFormat
+];
 
 const PRODUCT_IMAGE_MIME_TYPES = new Set([
     "image/jpeg",
@@ -279,24 +541,25 @@ const PRODUCT_IMAGE_MIME_TYPES = new Set([
 
 const PRODUCT_IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp"]);
 
-export const validateProductImageFile = (file) => {
+export const validateProductImageFile = (file, t) => {
     if (!file) return null;
 
+    const errorMessage = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.productImageFormat, t);
     const extension = file.name?.split(".").pop()?.toLowerCase();
     const hasAllowedExtension = PRODUCT_IMAGE_EXTENSIONS.has(extension);
     const hasMime = Boolean(file.type);
     const hasAllowedMime = PRODUCT_IMAGE_MIME_TYPES.has(file.type);
 
-    if (!hasAllowedExtension) return PRODUCT_IMAGE_FILE_ERROR_MESSAGE;
-    if (hasMime && !hasAllowedMime) return PRODUCT_IMAGE_FILE_ERROR_MESSAGE;
+    if (!hasAllowedExtension) return errorMessage;
+    if (hasMime && !hasAllowedMime) return errorMessage;
 
     return null;
 };
 
-export const validateProductImageFiles = (files = []) => {
+export const validateProductImageFiles = (files = [], t) => {
     const fileList = Array.from(files);
     for (const file of fileList) {
-        const error = validateProductImageFile(file);
+        const error = validateProductImageFile(file, t);
         if (error) return error;
     }
     return null;
@@ -304,10 +567,35 @@ export const validateProductImageFiles = (files = []) => {
 
 const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== "");
 
-const imageSource = (item) => item?.image_url || item?.image || item?.base64 || item?.file_url || "";
+const imageSource = (item) => {
+    if (!item) return "";
+
+    const stringCandidates = [item.image_url, item.image, item.base64, item.file_url, item.url];
+    for (const candidate of stringCandidates) {
+        if (typeof candidate === "string" && candidate.trim()) {
+            return candidate;
+        }
+    }
+
+    const blobCandidate = [item.image, item.file].find((value) => value instanceof Blob);
+    if (blobCandidate) {
+        return URL.createObjectURL(blobCandidate);
+    }
+
+    return "";
+};
+
+export const resolveVariantImagePreview = (image) => imageSource({ image });
 
 export const REVIEW_STOCK_NOT_LOADED = "Stock not loaded";
+export const isVariantStockLoaded = (stock) => (
+    stock !== undefined && stock !== null && stock !== REVIEW_STOCK_NOT_LOADED
+);
 export const PREVIEW_DELIVERY_TEXT = "Delivery options are shown as preview only";
+const IN_STOCK_STATUS = "in_stock";
+const FEW_LEFT_STATUS = "few_left";
+const OUT_OF_STOCK_STATUS = "out_of_stock";
+const STOCK_FEW_LEFT_THRESHOLD = 5;
 
 export const unwrapProductPreviewResponse = (response) => {
     if (!response) return null;
@@ -331,7 +619,7 @@ const licenseRows = (licenseFile) => {
             id: item.id || item.name || item.file_url,
             name: item.name || item.file?.name || "License / Certificate",
             status: item.status || "ready",
-            url: item.file_url || item.url || item.file,
+            url: item.file_url || item.url || item.base64 || item.file,
         }));
 };
 
@@ -367,9 +655,100 @@ const attributeDisplayValue = (attribute, value) => {
         return option?.label || option?.value || String(value);
     }
     if (attribute.data_type === "number") {
+        if (isMmStoredNumberAttribute(attribute)) {
+            const mm = cmToMm(value);
+            if (mm === null) return value !== "" && value !== undefined ? String(value) : "";
+            return `${mm} mm`;
+        }
         return `${value}${attribute.unit ? ` ${attribute.unit}` : ""}`;
     }
     return String(value);
+};
+
+const attributeRowDisplayValue = (row) => {
+    if (row.value_text !== undefined && row.value_text !== null && row.value_text !== "") return row.value_text;
+    if (row.value_number !== undefined && row.value_number !== null && row.value_number !== "") {
+        return `${row.value_number}${row.unit ? ` ${row.unit}` : ""}`;
+    }
+    if (row.value_boolean !== undefined && row.value_boolean !== null && row.value_boolean !== "") {
+        return row.value_boolean ? "Yes" : "No";
+    }
+    if (row.value_option) {
+        return row.value_option.label || row.value_option.value || row.value_option.name || String(row.value_option.id || row.value_option);
+    }
+    return "";
+};
+
+const attributesFromRows = (rows = []) => rows
+    .map((row, index) => {
+        const display = attributeRowDisplayValue(row);
+        const name = row.name || row.attribute_name || row.attribute_definition_name || row.code || `Attribute ${index + 1}`;
+        if (!display && !row.is_required) return null;
+        return {
+            id: row.id || row.attribute_definition || row.code || index,
+            name,
+            code: row.code,
+            display,
+            isRequired: Boolean(row.is_required),
+            missingRequired: Boolean(row.is_required && !display),
+        };
+    })
+    .filter(Boolean);
+
+const mergeCategoryAttributes = (schemaAttributes = [], rowAttributes = []) => {
+    const seen = new Set();
+    const merged = [];
+
+    [...schemaAttributes, ...rowAttributes].forEach((attribute) => {
+        const key = attribute.code || attribute.id;
+        if (seen.has(key)) return;
+        seen.add(key);
+        merged.push(attribute);
+    });
+
+    return merged;
+};
+
+const PHYSICAL_PARAMETER_NAMES = new Set([
+    "length",
+    "width",
+    "height",
+    "weight",
+    "Length",
+    "Width",
+    "Height",
+    "Weight",
+]);
+
+export const mapProductParametersForReview = (parameters = []) => parameters
+    .filter((parameter) => {
+        const name = parameter?.name || "";
+        return name && !PHYSICAL_PARAMETER_NAMES.has(name);
+    })
+    .map((parameter, index) => ({
+        id: parameter.id || parameter.name || index,
+        name: parameter.name,
+        value: parameter.value ?? parameter.text ?? "",
+    }))
+    .filter((parameter) => parameter.name && parameter.value !== undefined && parameter.value !== null && parameter.value !== "");
+
+const calculatePriceWithoutVat = (price, vatRate) => {
+    const priceNumber = Number(price);
+    const vatNumber = Number(normalizeVatRate(vatRate));
+    if (!Number.isFinite(priceNumber) || !Number.isFinite(vatNumber) || vatNumber < 0) return "";
+    if (vatNumber === 0) return String(Number(priceNumber.toFixed(2)));
+    return (priceNumber / (1 + vatNumber / 100)).toFixed(2);
+};
+
+const stockStatusForReview = (variant = {}) => {
+    if (variant.stock_status) return variant.stock_status;
+    const stock = firstPresent(variant.quantity_in_stock, variant.stock_quantity, variant.stock, variant.available_quantity);
+    if (stock === REVIEW_STOCK_NOT_LOADED || stock === undefined) return "";
+    const stockNumber = Number(stock);
+    if (!Number.isFinite(stockNumber)) return "";
+    if (stockNumber <= 0) return OUT_OF_STOCK_STATUS;
+    if (stockNumber <= STOCK_FEW_LEFT_THRESHOLD) return FEW_LEFT_STATUS;
+    return IN_STOCK_STATUS;
 };
 
 export const buildSellerReviewData = (product = {}) => {
@@ -379,34 +758,52 @@ export const buildSellerReviewData = (product = {}) => {
         .map((item, index) => ({
             id: item?.id || index,
             src: imageSource(item),
+            alt: item?.alt || source.name || `Product image ${index + 1}`,
         }))
         .filter((item) => item.src);
     const schema = normalizeAttributeSchema(source.attributeSchema);
     const attributeValues = source.attributeValues || {};
-    const categoryAttributes = schema
+    const schemaAttributes = schema
         .map((attribute) => {
             const value = attributeValues[attribute.id];
             const display = attributeDisplayValue(attribute, value);
             const missingRequired = attribute.is_required && !display;
             if (!display && !missingRequired) return null;
+
+            let optionValue = null;
+            if (attribute.data_type === "enum" && value !== undefined && value !== null && value !== "") {
+                const option = (attribute.options || []).find((item) => Number(item.id) === Number(value));
+                optionValue = option?.value || null;
+            }
+
             return {
                 id: attribute.id,
                 name: attribute.name,
                 code: attribute.code,
+                dataType: attribute.data_type,
+                optionValue,
                 display,
                 isRequired: Boolean(attribute.is_required),
                 missingRequired,
             };
         })
         .filter(Boolean);
+    const rowAttributes = attributesFromRows(source.product_attributes || source.attributes || []);
+    const categoryAttributes = mergeCategoryAttributes(schemaAttributes, rowAttributes);
 
     const reviewVariants = variants.map((variant, index) => ({
         id: variant.id || index,
         axis: source.variantsName || variant.name || "Variant",
+        name: variant.name || source.variantsName || "Variant",
         value: variant.text || (variant.image ? "Image variant" : "Default"),
         price: variant.price,
-        priceWithoutVat: firstPresent(variant.price_without_vat, ""),
-        stock: firstPresent(variant.quantity_in_stock, variant.stock_quantity, variant.stock) ?? REVIEW_STOCK_NOT_LOADED,
+        priceWithoutVat: firstPresent(
+            variant.price_without_vat,
+            calculatePriceWithoutVat(variant.price, source.vat_rate),
+            ""
+        ),
+        stock: firstPresent(variant.quantity_in_stock, variant.stock_quantity, variant.stock, variant.available_quantity) ?? REVIEW_STOCK_NOT_LOADED,
+        stockStatus: stockStatusForReview(variant),
         sku: variant.sku,
         image: imageSource(variant),
         packageDimensions: packageDimensionsForReview(variant),
@@ -414,6 +811,7 @@ export const buildSellerReviewData = (product = {}) => {
 
     return {
         productName: source.name || "",
+        categoryId: source.category?.id || source.category || null,
         categoryName: source.category?.name || source.category_name || "",
         rating: Number(source.rating) || 0,
         totalReviews: Number(source.total_reviews) || 0,
@@ -423,7 +821,7 @@ export const buildSellerReviewData = (product = {}) => {
         vatRate: formatVatRateForInput(normalizeVatRate(source.vat_rate)),
         images,
         categoryAttributes,
-        productParameters: source.parameters || source.product_parameters || [],
+        productParameters: mapProductParametersForReview(source.parameters || source.product_parameters || []),
         variants: reviewVariants,
         variantAxisName: source.variantsName || reviewVariants[0]?.axis || "Variant",
         documents: licenseRows(source.license_file),

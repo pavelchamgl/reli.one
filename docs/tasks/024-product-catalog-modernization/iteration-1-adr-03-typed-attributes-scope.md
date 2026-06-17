@@ -11,7 +11,9 @@
 
 Текущие характеристики товара хранятся в `ProductParameter` как свободные `name/value`. План модернизации вводит category-driven typed attributes.
 
-При этом текущий `ProductVariant` является одноосевой моделью: у всех вариантов одного товара один `name`, а значение варианта задается через text или image. Variant-level typed attributes потребовали бы отдельного redesign вариантов.
+При этом текущий `ProductVariant` является одноосевой моделью: у всех вариантов одного товара один `name`, а значение варианта задаётся через `text` (обязательно) и опционально `image`. Variant-level typed attributes потребовали бы отдельного redesign вариантов.
+
+> **Историческая сноска (2026-06):** до Iteration 7.8 seller API требовал ровно одно из полей `text` или `image`. Правило снято; ADR 03 по-прежнему не меняет границу product-level vs variant-level attributes.
 
 ---
 

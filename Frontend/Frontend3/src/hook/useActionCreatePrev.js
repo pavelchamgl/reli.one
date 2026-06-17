@@ -22,7 +22,6 @@ import {
     deleteLicense,
     setPreviewProduct,
     setValues,
-    setType,
     setAttributeValue,
     setAttributeErrors,
     clearSubmitState
@@ -47,8 +46,7 @@ const rootActions = {
     addLicense,
     deleteLicense,
     setPreviewProduct,
-    setValues, 
-    setType,
+    setValues,
     setAttributeValue,
     setAttributeErrors,
     clearSubmitState

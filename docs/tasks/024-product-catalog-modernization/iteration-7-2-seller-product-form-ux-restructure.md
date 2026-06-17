@@ -117,9 +117,11 @@
 | Category attributes | `ProductAttributeValue` via `/attributes/` | product-level only |
 | Legacy parameters | `ProductParameter` | compatibility fallback |
 | Product images | `BaseProductImage` endpoints | legacy image flow |
-| Variant value | `ProductVariant.text` or `ProductVariant.image` | current variant model |
+| Variant axis name | `ProductVariant.name` | одинаковый для всех вариантов товара (`variantsName`) |
+| Variant value | `ProductVariant.text` | **required** |
+| Variant image | `ProductVariant.image` | optional; можно вместе с `text` |
 | Variant price | `ProductVariant.price` | required |
-| Stock quantity | seller variant stock endpoint | create-flow after variant create |
+| Stock quantity | seller variant stock endpoint | **required** в UI до preview/submit; create-flow после variant create |
 | Package length cm | `ProductVariant.length_mm` | converted `cm -> mm` |
 | Package width cm | `ProductVariant.width_mm` | converted `cm -> mm` |
 | Package height cm | `ProductVariant.height_mm` | converted `cm -> mm` |

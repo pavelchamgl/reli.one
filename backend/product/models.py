@@ -593,29 +593,15 @@ class ProductVariant(models.Model):
         return f"sku: {self.sku} {self.product.name} - {self.name}: {self.text} price: {self.price}"
 
     def clean(self):
-        # Убедитесь, что только одно из полей 'text' или 'image' заполнено
-        if self.text and self.image:
-            raise ValidationError("Поля 'text' и 'image' не могут быть заполнены одновременно. Пожалуйста, заполните только одно из них.")
-        if not self.text and not self.image:
-            raise ValidationError("Одно из полей 'text' или 'image' должно быть заполнено.")
+        if not self.text or not str(self.text).strip():
+            raise ValidationError("Поле 'text' обязательно для заполнения.")
 
-        # Проверяем, есть ли 'product' и имеет ли он 'pk'
         if self.product_id:
-            # Убедитесь, что все варианты продукта имеют одинаковое 'name'
             existing_variants = ProductVariant.objects.filter(product=self.product).exclude(pk=self.pk)
             if existing_variants.exists():
                 first_variant = existing_variants.first()
                 if first_variant.name != self.name:
                     raise ValidationError("Все варианты продукта должны иметь одинаковое значение поля 'name'.")
-
-                # Предотвращаем смешивание вариантов с 'text' и 'image'
-                if (first_variant.text and self.image) or (first_variant.image and self.text):
-                    raise ValidationError(
-                        "Нельзя добавить вариант с 'text', если уже существует вариант с 'image', и наоборот."
-                    )
-        else:
-            # Пропускаем проверки, требующие сохранённого 'product'
-            pass
 
     def save(self, *args, **kwargs):
         if not self.sku:

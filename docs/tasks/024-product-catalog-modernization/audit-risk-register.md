@@ -120,7 +120,7 @@ Feed сейчас читает `barcode` как `gtin`, `article` как `mpn`, 
 **Affected area:** product model, variants, attributes, import  
 **Файлы:** `backend/product/models.py`
 
-Текущий `ProductVariant` — одноосевая модель: все варианты одного товара имеют один `name`, а значение задается через text или image. `CategoryAttributeDefinition.is_variant_attribute` без отдельной модели `ProductVariantAttributeValue` создаст неясную границу данных.
+Текущий `ProductVariant` — одноосевая модель: все варианты одного товара имеют один `name`, значение SKU задаётся обязательным `text` (опциональный `image`). Раньше действовало правило «text XOR image»; с Iteration 7.8 оно снято. `CategoryAttributeDefinition.is_variant_attribute` без отдельной модели `ProductVariantAttributeValue` создаст неясную границу данных.
 
 **Mitigation:**
 

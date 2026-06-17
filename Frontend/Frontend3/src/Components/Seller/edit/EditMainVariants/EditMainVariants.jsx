@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback } from "react"
 import { useSelector } from "react-redux"
 import { useParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
@@ -9,78 +9,43 @@ import EditVariants from "../editVariants/EditVariants"
 
 import styles from "./EditMainVariants.module.scss"
 
-const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err, setErr, errName, setErrName }) => {
-
+const EditMainVariants = ({ err, setErr, errName, setErrName, variantValidation }) => {
     const { id } = useParams()
 
-    const { setParameter, setNewVariants, deleteVariant, fetchDeleteVariant } = useActionSellerEdit()
+    const {
+        setParameter,
+        setNewVariants,
+        updateEditVariant,
+        deleteVariant,
+        fetchDeleteVariant,
+    } = useActionSellerEdit()
 
     const { variantsName, variantsServ } = useSelector(state => state.edit_goods)
 
     const { t } = useTranslation('sellerHome')
 
-    const [variants, setVariants] = useState(variantsServ ? variantsServ : [
-        {
-            id: 1,
-            text: "",
-            price: "",
-            image: null
-        }
-    ])
+    const variants = variantsServ || []
 
-    useEffect(() => {
-        if (variantsServ) {
-            setVariants(variantsServ)
-        }
-
-    }, [variantsName, variantsServ])
-
-    useEffect(() => {
-        setNewVariants(variants)
-    }, [variants])
-
-    // const { setVariantsPrev } = useActionCreatePrev()
-
-    // useEffect(() => {
-    //     setMainVariants(variants)
-    //     let newVariants = []
-
-    //     if (variants.length > 0) {
-    //         newVariants = variants.map((item) => {
-    //             return {
-    //                 ...item,
-    //                 name: name
-    //             }
-    //         })
-    //     }
-    //     setVariantsPrev(newVariants)
-    // }, [variants])
-
-    // useEffect(() => {
-    //     setVariantName(name)
-    // }, [name])
+    const handleVariantChange = useCallback((variantId, patch) => {
+        updateEditVariant({ id: variantId, patch })
+    }, [updateEditVariant])
 
     const handleAddVariant = () => {
-        setVariants((prev) => [
-            ...prev,
+        setNewVariants([
+            ...variants,
             {
                 id: Date.now(),
                 text: "",
                 price: "",
                 image: null,
                 status: "local",
+                quantity_in_stock: "",
                 package_weight_kg: "",
                 package_width_cm: "",
                 package_length_cm: "",
                 package_height_cm: ""
             }
         ])
-    }
-
-    const handleEditVariant = (id, updatedVariant) => {
-        setVariants((prev) =>
-            prev.map((variant) => (variant.id === id ? updatedVariant : variant))
-        )
     }
 
     const handleDeleteVariant = (varId, item) => {
@@ -104,33 +69,32 @@ const EditMainVariants = ({ type, setType, setMainVariants, setVariantName, err,
             </p>
 
             <div className={styles.addStyleWrap}>
-                <input style={{ border: errName ? "1px solid #dc2626" : " 1px solid #ced4d7" }} value={variantsName} onChange={(e) => {
+                <input style={{ border: errName ? "1px solid #dc2626" : " 1px solid #ced4d7" }} value={variantsName || ""} onChange={(e) => {
                     setParameter({ name: "varName", value: e.target.value })
                     if (e.target.value.length > 0) {
                         setErrName(false)
                     }
                 }} type="text" placeholder={t('item.placeholderColorSizeStyle')} />
-                <button onClick={handleAddVariant}>{t('item.addStyle')}</button>
+                <button type="button" onClick={handleAddVariant}>{t('item.addStyle')}</button>
             </div>
-            {errName ? <p className={styles.errText}>{t('item.variantNameIsRequired')}</p> : <></>}
+            {errName ? <p className={styles.errText}>{variantValidation?.name || t('item.variantNameIsRequired')}</p> : null}
 
 
             <div className={styles.variantsWrap}>
                 {variants.length > 0 &&
                     variants.map((item) => (
                         <EditVariants
-                            type={type}
-                            setType={setType}
-                            err={err}
+                            err={err && Boolean(variantValidation?.variants?.[item.id])}
                             setErr={setErr}
+                            fieldErrors={variantValidation?.variants?.[item.id] || {}}
                             key={item.id}
                             handleDeleteVariant={handleDeleteVariant}
                             variant={item}
-                            handleEditVariant={handleEditVariant}
+                            onVariantChange={handleVariantChange}
                         />
                     ))}
             </div>
-            {err ? <p className={styles.errText}>{t('item.dataError')}</p> : <></>}
+            {err ? <p className={styles.errText}>{variantValidation?.section || t('item.dataError')}</p> : null}
         </div>
     )
 }

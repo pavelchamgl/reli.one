@@ -16,11 +16,14 @@ import {
     buildAttributePayload,
     CATEGORY_SCHEMA_NOT_READY_MESSAGE,
     isCategoryAttributeSchemaReady,
+    isProductVariantsValid,
     makeStepResult,
+    normalizeSellerArticle,
     normalizeVatRate,
     normalizeWarrantyMonths,
     stepSucceeded,
-    validateAttributeDraft
+    validateAttributeDraft,
+    validateProductVariants,
 } from "../utils/sellerProductWizard";
 
 export const fetchCreateCategoryAttributeSchema = createAsyncThunk(
@@ -80,12 +83,24 @@ export const fetchCreateProduct = createAsyncThunk(
             });
         }
 
+        const variantValidation = validateProductVariants({
+            variantsName: state.variantsName,
+            variants: state.variantsMain || [],
+        });
+        if (!isProductVariantsValid(variantValidation)) {
+            return rejectWithValue({
+                message: variantValidation.section || "Please fill required variant fields.",
+                variantValidation,
+                stepResults,
+            });
+        }
+
         if (!product?.id) {
             const productResult = await runStep("base_product", () => postSellerProduct({
                 name: state.name,
                 product_description: state.product_description,
                 barcode: state.barcode,
-                article: state.item || String(Date.now()),
+                article: normalizeSellerArticle(state.item),
                 additional_details: state.additional_details,
                 country_of_origin: state.country_of_origin,
                 warranty_months: normalizeWarrantyMonths(state.warranty_months),
@@ -130,7 +145,7 @@ export const fetchCreateProduct = createAsyncThunk(
                     const draftVariant = state.variantsMain?.[index] || {};
                     const quantity = draftVariant.quantity_in_stock;
                     if (quantity === undefined || quantity === null || quantity === "") {
-                        continue;
+                        throw new Error("Stock quantity is required for each variant.");
                     }
                     stockResponses.push(await putSellerVariantStock(productId, variant.id, {
                         quantity_in_stock: Number(quantity),
@@ -215,7 +230,6 @@ const createProdPrevSlice = createSlice({
         variantsMain: [],
         variantsName: "",
         category_name: "",
-        type: "",
         product_parameters: null,
         status: null,
         err: null,
@@ -256,12 +270,19 @@ const createProdPrevSlice = createSlice({
             state.product_description = action.payload
         },
         setCategory: (state, action) => {
-            state.category = action?.payload
-            state.category_name = action?.payload?.name
-            state.attributeValues = {}
-            state.attributeErrors = {}
-            state.attributeSchema = null
-            state.attributeSchemaStatus = "idle"
+            const nextCategory = action?.payload ?? null;
+            const nextCategoryId = nextCategory?.id ?? null;
+            const currentCategoryId = state.category?.id ?? null;
+            const categoryChanged = nextCategoryId !== currentCategoryId;
+
+            state.category = nextCategory;
+            state.category_name = nextCategory?.name ?? "";
+            if (categoryChanged) {
+                state.attributeValues = {};
+                state.attributeErrors = {};
+                state.attributeSchema = null;
+                state.attributeSchemaStatus = "idle";
+            }
         },
         setParametersPrev: (state, action) => {
             state.product_parameters = action.payload
@@ -293,9 +314,6 @@ const createProdPrevSlice = createSlice({
         },
         setValues: (state, action) => {
             Object.assign(state, action.payload)
-        },
-        setType: (state, action) => {
-            state.type = action.payload.type
         },
         setAttributeValue: (state, action) => {
             const { attributeId, value } = action.payload
@@ -371,7 +389,6 @@ export const {
     setVariantsName,
     setPreviewProduct,
     setValues,
-    setType,
     setAttributeValue,
     setAttributeErrors,
     clearSubmitState,

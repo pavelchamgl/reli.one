@@ -4,37 +4,42 @@ import { useTranslation } from "react-i18next"
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
 import closeWhIc from "../../../../assets/Product/closeWhIcon.svg"
-import { validateProductImageFiles } from "../../../../utils/sellerProductWizard"
+import { resolveVariantImagePreview, validateProductImageFiles } from "../../../../utils/sellerProductWizard"
 
 import styles from "./SellerCreateVariant.module.scss"
 
-const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDeleteVariant, type, setType }) => {
+const rejectNegativeValue = (value) => value.includes("-");
+
+const sanitizeDecimalNumericInput = (value) => {
+    if (rejectNegativeValue(value)) return null;
+    return value.replace(/[^0-9.,]/g, "");
+};
+
+const fieldBorderStyle = (fieldErrors, fieldName) => (
+    fieldErrors?.[fieldName] ? { border: "1px solid #dc2626" } : undefined
+);
+
+const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDeleteVariant, fieldErrors = {} }) => {
     const [newVariant, setNewVariant] = useState(variant)
-    const [file, setFile] = useState(null)
-    const [url, setUrl] = useState(null)
+    const [url, setUrl] = useState(() => resolveVariantImagePreview(variant?.image) || null)
     const [fileError, setFileError] = useState("")
 
     const { t } = useTranslation('sellerHome')
 
     useEffect(() => {
-        setNewVariant(variant) // Обновляем локальный стейт, если изменились пропсы
+        setNewVariant(variant)
+        setUrl(resolveVariantImagePreview(variant?.image) || null)
     }, [variant])
 
     useEffect(() => {
         handleEditVariant(newVariant.id, newVariant)
     }, [newVariant])
 
-    useEffect(() => {
-        setNewVariant({ ...newVariant, image: file })
-    }, [file])
-
-
     const handleChangeFile = (e) => {
-        setType({ type: "image" })
         setErr(false)
-        const newFile = e.target.files[0]; // Получаем только один файл
+        const newFile = e.target.files[0];
         if (!newFile) return;
-        const nextError = validateProductImageFiles([newFile]);
+        const nextError = validateProductImageFiles([newFile], t);
         if (nextError) {
             setFileError(nextError)
             e.target.value = ""
@@ -42,139 +47,160 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
         }
         setFileError("")
 
-        setFile(newFile);
-        const url = URL.createObjectURL(newFile);
-        setUrl(url);
+        setUrl(URL.createObjectURL(newFile));
 
         const reader = new FileReader();
         reader.readAsDataURL(newFile);
         reader.onloadend = () => {
             setNewVariant(prevVariant => ({
                 ...prevVariant,
-                image: reader.result // base64-кодированное изображение
+                image: reader.result
             }));
         };
     };
 
     const handleDeleteUrl = (e) => {
-        e.stopPropagation();  // Останавливаем всплытие события, чтобы не открыть input
+        e.stopPropagation();
         setUrl(null);
+        setNewVariant((prevVariant) => ({
+            ...prevVariant,
+            image: null,
+        }));
     }
 
     const handleLabelClick = (e) => {
         if (e.target.tagName === 'BUTTON') {
-
-            // Если кликнули на кнопку, предотвратим открытие input
             e.stopPropagation();
         }
     }
-
-
 
     return (
         <div className={err ? styles.mainErr : styles.main}>
 
             <label className={styles.inpLabel}>
-                <p>Variant value</p>
+                <p>{t('item.variantValue')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
+                    style={fieldBorderStyle(fieldErrors, "text")}
                     value={newVariant.text}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, text: e.target.value }
-                        )
-                        setType({ type: "text" })
+                        setNewVariant({ ...newVariant, text: e.target.value })
                         setErr(false)
                     }}
-                    placeholder={t('item.color_name')}
-                    disabled={type === "image"}
+                    placeholder={t('goods.placeholders.variantValue')}
                 />
+                {fieldErrors.text ? <p className={styles.errText}>{fieldErrors.text}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Sale price</p>
+                <p>{t('item.salePrice')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
+                    style={fieldBorderStyle(fieldErrors, "price")}
                     value={newVariant.price}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, price: e.target.value }
-                        )
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, price: nextValue })
                         setErr(false)
                     }}
-                    placeholder={t('item.price')}
+                    placeholder={t('goods.placeholders.salePrice')}
                 />
+                {fieldErrors.price ? <p className={styles.errText}>{fieldErrors.price}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Stock quantity</p>
+                <p>{t('item.stockQuantity')}</p>
                 <input
                     className={styles.nameInp}
                     type="number"
                     min="0"
+                    style={fieldBorderStyle(fieldErrors, "quantity_in_stock")}
                     value={newVariant.quantity_in_stock ?? ""}
                     onChange={(e) => {
+                        if (rejectNegativeValue(e.target.value)) return;
                         setNewVariant({ ...newVariant, quantity_in_stock: e.target.value })
+                        setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.stockQuantity')}
                 />
+                {fieldErrors.quantity_in_stock ? <p className={styles.errText}>{fieldErrors.quantity_in_stock}</p> : null}
             </label>
 
-            <h5 className={styles.groupTitle}>Package dimensions for delivery</h5>
+            <h5 className={styles.groupTitle}>{t('item.packageDimensions')}</h5>
 
             <label className={styles.inpLabel}>
-                <p>Package weight, kg</p>
+                <p>{t('item.packageWeightKg')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
+                    style={fieldBorderStyle(fieldErrors, "weight")}
                     value={newVariant.weight}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, weight: e.target.value }
-                        )
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, weight: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageWeightKg')}
                 />
+                {fieldErrors.weight ? <p className={styles.errText}>{fieldErrors.weight}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Package width, cm</p>
+                <p>{t('item.packageWidthCm')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
+                    style={fieldBorderStyle(fieldErrors, "width")}
                     value={newVariant.width}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, width: e.target.value }
-                        )
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, width: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageWidthCm')}
                 />
+                {fieldErrors.width ? <p className={styles.errText}>{fieldErrors.width}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Package height, cm</p>
+                <p>{t('item.packageHeightCm')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
+                    style={fieldBorderStyle(fieldErrors, "height")}
                     value={newVariant.height}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, height: e.target.value }
-                        )
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, height: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageHeightCm')}
                 />
+                {fieldErrors.height ? <p className={styles.errText}>{fieldErrors.height}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Package length, cm</p>
+                <p>{t('item.packageLengthCm')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
+                    style={fieldBorderStyle(fieldErrors, "length")}
                     value={newVariant.length}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, length: e.target.value }
-                        )
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, length: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageLengthCm')}
                 />
+                {fieldErrors.length ? <p className={styles.errText}>{fieldErrors.length}</p> : null}
             </label>
 
             {
@@ -187,16 +213,16 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                             </button>
                         </div>
                     ) :
-                    <label className={type === "text" ? styles.addPhotoDivDis : styles.addPhotoDiv} onClick={handleLabelClick}>
+                    <label className={styles.addPhotoDiv} onClick={handleLabelClick}>
                         <p>{t('goods.addPhotos')}</p>
-                        <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
+                        <input onChange={handleChangeFile} type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
                     </label>
             }
             {fileError ? <p className={styles.errText}>{fileError}</p> : null}
 
             <button className={styles.deleteVariantBtn} onClick={() => handleDeleteVariant(variant.id)}>
                 <img src={closeWhIc} alt="" />
-                Delete
+                {t('item.deleteVariant')}
             </button>
         </div>
     )

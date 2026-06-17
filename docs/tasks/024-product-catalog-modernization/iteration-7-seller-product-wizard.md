@@ -61,7 +61,7 @@ Routes объявлены в `Frontend/Frontend3/src/main.jsx`.
 - `CreateLisence` — legacy license file;
 - `CreateCategoryMain` — выбор категории через существующий category selector;
 - `CreateCharacInp` — legacy free-form `ProductParameter`;
-- `SellerCreateVariants` и `SellerCreateVariant` — variants, price, dimensions, text/image variant value;
+- `SellerCreateVariants` и `SellerCreateVariant` — variants, price, dimensions, required `text`, optional `image`;
 - `CreateFormInp`, `CheckBox` — базовые controls.
 
 Redux state:
@@ -77,7 +77,7 @@ Redux state:
 - legacy docs: `license_file`;
 - legacy params: `product_parameters`;
 - dimensions: `lengthMain`, `widthMain`, `heightMain`, `weightMain`;
-- variants: `variantsName`, `variantsMain`, `type`.
+- variants: `variantsName`, `variantsMain`;
 
 Текущий drift, который нужно нормализовать в Iteration 7:
 
@@ -456,8 +456,10 @@ Rules:
 
 - backend генерирует `sku`;
 - `ProductVariant.sku` не задавать и не менять;
-- variant содержит ровно одно из `text` или `image`;
-- dimensions required and positive.
+- `text` обязателен (непустая строка);
+- `image` опционален; допустимы `text` и `image` одновременно;
+- все варианты одного товара имеют одинаковый `name` (ось вариации, например «Color»);
+- `price`, `weight_grams`, `width_mm`, `height_mm`, `length_mm` обязательны и > 0.
 
 `PATCH /api/sellers/products/{id}/variants/{variant_id}/`
 
@@ -584,7 +586,7 @@ UI:
 Backend:
 
 - после variant creation вызвать stock endpoint per variant id;
-- если stock не задан, товар останется `out_of_stock` по existing warehouse policy.
+- `quantity_in_stock` обязателен в create-flow: UI и `fetchCreateProduct` не пропускают пустой stock step.
 
 ### Media first image
 

@@ -7,7 +7,7 @@ import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev"
 
 import styles from "./SellerCreateVariants.module.scss"
 
-const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, errName, setErrName }) => {
+const SellerCreateVariants = ({ err, setErr, setMainVariants, errName, setErrName, variantValidation }) => {
     const { variantsName, variantsMain } = useSelector(state => state.create_prev)
     const [name, setName] = useState("")
     const [variants, setVariants] = useState(variantsMain ? variantsMain : [
@@ -24,34 +24,26 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
         }
     ])
 
-      const { t } = useTranslation('sellerHome')
-
+    const { t } = useTranslation('sellerHome')
 
     const { setVariantsPrev, setVariantsName } = useActionCreatePrev()
 
     useEffect(() => {
         setMainVariants(variants)
-        let newVariants = []
-
-        if (variants.length > 0) {
-            newVariants = variants.map((item) => {
-                return {
-                    ...item,
-                    name: variantsName
-                }
-            })
-        }
+        const newVariants = variants.length > 0
+            ? variants.map((item) => ({
+                ...item,
+                name: variantsName,
+            }))
+            : []
         setVariantsPrev(newVariants)
-    }, [variants])
+    }, [variants, variantsName])
 
     useEffect(() => {
         if (variantsName) {
             setName(variantsName);
         }
     }, [variantsName]);
-
-
-
 
     const handleAddVariant = () => {
         setVariants((prev) => [
@@ -61,10 +53,10 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
                 text: "",
                 price: "",
                 image: null,
-                weight:"",
-                width:"",
-                length:"",
-                height:"",
+                weight: "",
+                width: "",
+                length: "",
+                height: "",
                 quantity_in_stock: ""
             }
         ])
@@ -84,8 +76,8 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
         <div>
             <h4 className={styles.wightTitle}>{t('item.add_styles')}</h4>
             <p className={styles.descText}>
-                1. {t('item.style_name')} 
-                2. {t('item.style_add')} 
+                1. {t('item.style_name')}
+                2. {t('item.style_add')}
                 3. {t('item.optional_style')}
             </p>
 
@@ -99,16 +91,15 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
                 }} type="text" placeholder={t('item.placeholderColorSizeStyle')} />
                 <button onClick={handleAddVariant}>{t('item.addStyle')}</button>
             </div>
-            {errName ? <p className={styles.errText}>{t('item.variantNameIsRequired')}</p> : <></>}
+            {errName ? <p className={styles.errText}>{variantValidation?.name || t('item.variantNameIsRequired')}</p> : null}
 
             <div className={styles.variantsWrap}>
                 {variants.length > 0 &&
                     variants.map((item) => (
                         <SellerCreateVariant
-                            err={err}
+                            err={err && Boolean(variantValidation?.variants?.[item.id])}
                             setErr={setErr}
-                            type={type}
-                            setType={setType}
+                            fieldErrors={variantValidation?.variants?.[item.id] || {}}
                             key={item.id}
                             handleDeleteVariant={handleDeleteVariant}
                             variant={item}
@@ -116,7 +107,7 @@ const SellerCreateVariants = ({ err, setErr, type, setType, setMainVariants, err
                         />
                     ))}
             </div>
-            {err ? <p className={styles.errText}>{t('item.dataError')}</p> : <></>}
+            {err ? <p className={styles.errText}>{variantValidation?.section || t('item.dataError')}</p> : null}
         </div>
     )
 

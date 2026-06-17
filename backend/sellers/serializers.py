@@ -15,6 +15,8 @@ from product.models import (
 from product.compat import get_product_cover_image_url
 from warehouses.models import Warehouse, WarehouseItem
 
+from .models import SellerProfile
+
 
 class ProductParameterSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,6 +69,7 @@ class BulkBaseProductImageSerializer(serializers.Serializer):
 
 class ProductVariantSerializer(serializers.ModelSerializer):
     image = RestrictedBase64ImageField(required=False, allow_null=True)
+    quantity_in_stock = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductVariant
@@ -81,11 +84,12 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             'width_mm',
             'height_mm',
             'length_mm',
+            'quantity_in_stock',
         ]
-        read_only_fields = ['id', 'sku']
+        read_only_fields = ['id', 'sku', 'quantity_in_stock']
         extra_kwargs = {
             'name': {'required': True, 'allow_blank': False},
-            'text': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'text': {'required': True, 'allow_null': False, 'allow_blank': False},
             'price': {'required': True},
             'weight_grams': {'required': True},
             'width_mm': {'required': True},
@@ -96,32 +100,24 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """
         Business rules:
-        1. Variant must contain exactly one of: text or image.
-        2. Weight and all dimensions are required.
-        3. Weight and dimensions must be > 0.
+        1. Variant text is required.
+        2. Variant image is optional.
+        3. Weight and all dimensions are required.
+        4. Weight and dimensions must be > 0.
         Works correctly for create, update and partial_update.
         """
         instance = getattr(self, 'instance', None)
 
         text = attrs.get('text', getattr(instance, 'text', None))
-        image = attrs.get('image', getattr(instance, 'image', None))
         weight_grams = attrs.get('weight_grams', getattr(instance, 'weight_grams', None))
         width_mm = attrs.get('width_mm', getattr(instance, 'width_mm', None))
         height_mm = attrs.get('height_mm', getattr(instance, 'height_mm', None))
         length_mm = attrs.get('length_mm', getattr(instance, 'length_mm', None))
 
-        has_text = text is not None and str(text).strip() != ''
-        has_image = bool(image)
+        errors = {}
 
-        if has_text and has_image:
-            raise serializers.ValidationError({
-                'non_field_errors': ['Variant must contain either text or image, not both.']
-            })
-
-        if not has_text and not has_image:
-            raise serializers.ValidationError({
-                'non_field_errors': ['Variant must contain either text or image.']
-            })
+        if text is None or str(text).strip() == '':
+            errors['text'] = 'This field is required.'
 
         required_numeric_fields = {
             'weight_grams': weight_grams,
@@ -129,8 +125,6 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             'height_mm': height_mm,
             'length_mm': length_mm,
         }
-
-        errors = {}
 
         for field_name, value in required_numeric_fields.items():
             if value is None:
@@ -147,6 +141,34 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(errors)
 
         return attrs
+
+    def get_quantity_in_stock(self, obj):
+        stock_by_variant_id = self.context.get('variant_stock_by_id')
+        if stock_by_variant_id is not None:
+            return stock_by_variant_id.get(obj.id, 0)
+
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+
+        try:
+            seller_profile = request.user.seller_profile
+        except SellerProfile.DoesNotExist:
+            return None
+
+        warehouse_id = seller_profile.default_warehouse_id
+        if not warehouse_id:
+            return None
+
+        quantity = (
+            WarehouseItem.objects.filter(
+                warehouse_id=warehouse_id,
+                product_variant_id=obj.id,
+            )
+            .values_list('quantity_in_stock', flat=True)
+            .first()
+        )
+        return quantity if quantity is not None else 0
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -207,7 +229,7 @@ class ProductVariantSwaggerSerializer(serializers.Serializer):
     sku = serializers.CharField(read_only=True)
 
     name = serializers.CharField(required=True)
-    text = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    text = serializers.CharField(required=True, allow_blank=False)
     image = serializers.CharField(required=False, allow_null=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
 

@@ -267,3 +267,35 @@ class SellerProductStockApiTestCase(APITestCase):
         item = WarehouseItem.objects.get(warehouse=self.default_wh, product_variant=self.variant)
         self.assertEqual(item.quantity_in_stock, 9)
         self.assertEqual(item.reserved_quantity, 4)
+
+    def test_product_detail_includes_variant_quantity_in_stock(self):
+        WarehouseItem.objects.create(
+            warehouse=self.default_wh,
+            product_variant=self.variant,
+            quantity_in_stock=14,
+        )
+
+        response = self.client.get(f"/api/sellers/products/{self.product.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        variant_row = next(item for item in response.data["variants"] if item["id"] == self.variant.id)
+        self.assertEqual(variant_row["quantity_in_stock"], 14)
+
+    def test_product_detail_returns_zero_stock_when_warehouse_item_missing(self):
+        response = self.client.get(f"/api/sellers/products/{self.product.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        variant_row = next(item for item in response.data["variants"] if item["id"] == self.variant.id)
+        self.assertEqual(variant_row["quantity_in_stock"], 0)
+
+    def test_get_variant_stock_returns_current_quantity(self):
+        WarehouseItem.objects.create(
+            warehouse=self.default_wh,
+            product_variant=self.variant,
+            quantity_in_stock=14,
+        )
+
+        response = self.client.get(self._stock_url())
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["quantity_in_stock"], 14)

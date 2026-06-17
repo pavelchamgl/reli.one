@@ -1,5 +1,5 @@
 import mainInstance from "..";
-import { mapVariantDraftToPayload } from "../../utils/sellerProductWizard";
+import { formatApiErrorMessage, mapVariantDraftToPayload } from "../../utils/sellerProductWizard";
 
 export const postSellerProduct = async (obj) => {
     try {
@@ -9,8 +9,7 @@ export const postSellerProduct = async (obj) => {
         console.error("Ошибка при отправке данных продавца:", error);
 
         if (error.response) {
-            // Сервер ответил с кодом ошибки (4xx, 5xx)
-            throw new Error(error.response.data?.message || "Ошибка на сервере");
+            throw new Error(formatApiErrorMessage(error.response.data, "Ошибка на сервере"));
         } else if (error.request) {
             // Запрос был сделан, но ответа нет
             throw new Error("Сервер не отвечает. Проверьте соединение.");
