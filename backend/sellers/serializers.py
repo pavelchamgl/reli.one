@@ -18,6 +18,16 @@ from warehouses.models import Warehouse, WarehouseItem
 from .models import SellerProfile
 
 
+def _get_seller_default_warehouse_id(user) -> int | None:
+    if not user.is_authenticated:
+        return None
+    return (
+        SellerProfile.objects.filter(user_id=user.pk)
+        .values_list('default_warehouse_id', flat=True)
+        .first()
+    )
+
+
 class ProductParameterSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductParameter
@@ -151,14 +161,9 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         if not request or not request.user.is_authenticated:
             return None
 
-        try:
-            seller_profile = request.user.seller_profile
-        except SellerProfile.DoesNotExist:
-            return None
-
-        warehouse_id = seller_profile.default_warehouse_id
+        warehouse_id = _get_seller_default_warehouse_id(request.user)
         if not warehouse_id:
-            return None
+            return 0
 
         quantity = (
             WarehouseItem.objects.filter(
@@ -329,6 +334,35 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'status',
             'rejected_reason',
         ]
+
+    def _build_variant_stock_by_id(self, product: BaseProduct) -> dict[int, int] | None:
+        if self.context.get('variant_stock_by_id') is not None:
+            return self.context['variant_stock_by_id']
+
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+
+        warehouse_id = _get_seller_default_warehouse_id(request.user)
+        if not warehouse_id:
+            return {}
+
+        variant_ids = list(product.variants.values_list('id', flat=True))
+        if not variant_ids:
+            return {}
+
+        stock_rows = WarehouseItem.objects.filter(
+            warehouse_id=warehouse_id,
+            product_variant_id__in=variant_ids,
+        ).values_list('product_variant_id', 'quantity_in_stock')
+
+        return dict(stock_rows)
+
+    def to_representation(self, instance):
+        stock_by_variant_id = self._build_variant_stock_by_id(instance)
+        if stock_by_variant_id is not None:
+            self.context['variant_stock_by_id'] = stock_by_variant_id
+        return super().to_representation(instance)
 
 
 class ProductUpdateSerializer(serializers.ModelSerializer):

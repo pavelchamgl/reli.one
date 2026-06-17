@@ -219,10 +219,30 @@ class SellerProductStockApiTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_missing_default_warehouse_without_warehouse_id_returns_400(self):
-        self.seller_profile.default_warehouse = None
-        self.seller_profile.save(update_fields=["default_warehouse"])
+        no_wh_user = CustomUser.objects.create_user(
+            email="seller-no-default-wh@example.com",
+            password="pass12345",
+            first_name="No",
+            last_name="Warehouse",
+            role=UserRole.SELLER,
+            phone_number="+420730200099",
+        )
+        no_wh_profile = SellerProfile.objects.get(user=no_wh_user)
+        self.assertIsNone(no_wh_profile.default_warehouse_id)
 
-        response = self.client.put(self._stock_url(), {"quantity_in_stock": 7}, format="json")
+        no_wh_product = self._create_product(
+            seller=no_wh_profile,
+            name="Seller Without Default Warehouse",
+            article="4000000099",
+        )
+        no_wh_variant = self._create_variant(no_wh_product, text="NoWH")
+
+        self.client.force_authenticate(no_wh_user)
+        response = self.client.put(
+            f"/api/sellers/products/{no_wh_product.id}/variants/{no_wh_variant.id}/stock/",
+            {"quantity_in_stock": 7},
+            format="json",
+        )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("warehouse_id", response.data)
