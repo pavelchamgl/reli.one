@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
 from .models import (
+    CategoryAttributeDefinition,
+    ProductAttributeValue,
     ProductParameter,
     BaseProductImage,
     BaseProduct,
@@ -15,6 +17,7 @@ from .stock_availability import (
     compute_stock_status,
     variant_available_quantity,
 )
+from .compat import get_product_cover_image_url
 
 
 class ProductParameterSerializer(serializers.ModelSerializer):
@@ -22,6 +25,67 @@ class ProductParameterSerializer(serializers.ModelSerializer):
         model = ProductParameter
         fields = ['id', 'name', 'value']
         read_only_fields = ['id']
+
+
+class CategoryAttributeOptionSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    value = serializers.CharField(read_only=True)
+    label = serializers.CharField(read_only=True)
+    sort_order = serializers.IntegerField(read_only=True)
+
+
+class CategoryAttributeDefinitionSerializer(serializers.Serializer):
+    id = serializers.IntegerField(source='definition.id', read_only=True)
+    code = serializers.CharField(source='definition.code', read_only=True)
+    name = serializers.CharField(source='definition.name', read_only=True)
+    description = serializers.CharField(source='definition.description', read_only=True)
+    data_type = serializers.CharField(source='definition.data_type', read_only=True)
+    unit = serializers.CharField(source='definition.unit', read_only=True)
+    group = serializers.CharField(source='definition.group', read_only=True)
+    is_required = serializers.BooleanField(source='definition.is_required', read_only=True)
+    is_filterable = serializers.BooleanField(source='definition.is_filterable', read_only=True)
+    is_public = serializers.BooleanField(source='definition.is_public', read_only=True)
+    sort_order = serializers.IntegerField(source='definition.sort_order', read_only=True)
+    source_category_id = serializers.IntegerField(source='definition.category_id', read_only=True)
+    is_inherited = serializers.BooleanField(read_only=True)
+    inherited_from_id = serializers.IntegerField(read_only=True, allow_null=True)
+    options = serializers.SerializerMethodField()
+
+    def get_options(self, obj):
+        definition = obj.definition
+        if definition.data_type != CategoryAttributeDefinition.DataType.ENUM:
+            return []
+        return CategoryAttributeOptionSerializer(definition.options.all(), many=True).data
+
+
+class ProductAttributeValueReadSerializer(serializers.ModelSerializer):
+    attribute_definition = serializers.IntegerField(source='attribute_definition_id', read_only=True)
+    code = serializers.CharField(source='attribute_definition.code', read_only=True)
+    data_type = serializers.CharField(source='attribute_definition.data_type', read_only=True)
+    value_option = CategoryAttributeOptionSerializer(read_only=True)
+
+    class Meta:
+        model = ProductAttributeValue
+        fields = [
+            'id',
+            'attribute_definition',
+            'code',
+            'data_type',
+            'value_text',
+            'value_number',
+            'value_boolean',
+            'value_option',
+            'source',
+        ]
+
+
+class ProductAttributeValueWriteSerializer(serializers.Serializer):
+    attribute_definition = serializers.IntegerField()
+    value_text = serializers.CharField(required=False, allow_blank=True)
+    value_number = serializers.DecimalField(required=False, max_digits=18, decimal_places=4)
+    value_boolean = serializers.BooleanField(required=False)
+    value_option = serializers.IntegerField(required=False)
+    source = serializers.CharField(required=False, allow_blank=False, max_length=64)
 
 
 class BaseProductImageSerializer(serializers.ModelSerializer):
@@ -100,6 +164,8 @@ class BaseProductDetailSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'additional_details',
+            'country_of_origin',
+            'warranty_months',
             'category_name',
             'product_parameters',
             'rating',
@@ -207,10 +273,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         request = self.context.get('request')
-        first_image = obj.images.first()
-        if first_image and first_image.image and request:
-            return request.build_absolute_uri(first_image.image.url)
-        return None
+        return get_product_cover_image_url(obj, request=request, absolute=True) if request else None
 
     def get_is_favorite(self, obj):
         request = self.context.get('request')

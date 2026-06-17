@@ -207,7 +207,7 @@ erDiagram
 | `sku` | `CharField(9, unique, editable=False)` | Python-генерация через UUID loop |
 | `product` | `FK(BaseProduct, CASCADE)` | |
 | `name` | `CharField(50)` | Тип вариации (например, «Цвет») |
-| `text` / `image` | `CharField / ImageField` | Взаимоисключающие — валидируется в `clean()` |
+| `text` / `image` | `CharField / ImageField` | `text` обязателен; `image` опционален; допустимы оба — валидируется в `clean()` и seller serializer |
 | `price` | `DecimalField(10,2)` | Цена без НДС и эквайринга |
 | `weight_grams`, `width_mm`, `height_mm`, `length_mm` | `PositiveIntegerField` | Габариты |
 

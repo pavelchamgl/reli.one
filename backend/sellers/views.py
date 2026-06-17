@@ -7,7 +7,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
@@ -32,6 +32,8 @@ from .serializers import (
     BaseProductImageSerializer,
     BulkBaseProductImageSerializer,
     ProductVariantSerializer,
+    ProductVariantStockReadSerializer,
+    ProductVariantStockWriteSerializer,
     ProductVariantSwaggerSerializer,
     ProductVariantPatchSwaggerSerializer,
     LicenseFileReadSerializer,
@@ -39,14 +41,27 @@ from .serializers import (
 )
 from product.models import (
     BaseProduct,
+    Category,
     ProductParameter,
     BaseProductImage,
     ProductVariant,
     LicenseFile,
+    ProductAttributeValue,
+)
+from product.attribute_schema import (
+    category_allows_products,
+    get_effective_attribute_schema,
+    replace_product_attribute_values,
 )
 from product.filters import BaseProductFilter
 from product.pagination import StandardResultsSetPagination
-from product.serializers import BaseProductListSerializer
+from product.serializers import (
+    BaseProductListSerializer,
+    CategoryAttributeDefinitionSerializer,
+    ProductAttributeValueReadSerializer,
+    ProductAttributeValueWriteSerializer,
+)
+from warehouses.models import WarehouseItem
 
 
 @extend_schema_view(
@@ -330,6 +345,88 @@ class ProductParameterViewSet(ModelViewSet):
         return Response(output_data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema(
+    tags=["Seller Category Attributes"],
+    description=(
+        "Return the effective category attribute schema for seller forms and import templates. "
+        "Definitions are inherited from ancestors and child definitions override parent "
+        "definitions by stable `code`."
+    ),
+    responses={status.HTTP_200_OK: OpenApiResponse(description="Effective category attribute schema.")},
+)
+class SellerCategoryAttributeSchemaAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, category_id):
+        if not request.user.is_seller():
+            raise PermissionDenied("Only sellers can access category attribute schema.")
+
+        category = get_object_or_404(Category, pk=category_id)
+        schema = get_effective_attribute_schema(category)
+        serializer = CategoryAttributeDefinitionSerializer(schema, many=True)
+
+        return Response(
+            {
+                "category_id": category.id,
+                "category_name": category.name,
+                "category_allows_products": category_allows_products(category),
+                "attributes": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+@extend_schema(
+    tags=["Seller Product Attributes"],
+    description=(
+        "Read or replace typed product-level attributes for a seller-owned product. "
+        "PUT validates the product category effective schema and required attributes."
+    ),
+    request=ProductAttributeValueWriteSerializer(many=True),
+    responses={status.HTTP_200_OK: ProductAttributeValueReadSerializer(many=True)},
+)
+class SellerProductAttributeValuesAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsSellerOwner]
+
+    def get_product(self, product_id):
+        product = get_object_or_404(BaseProduct.objects.select_related("seller__user", "category"), pk=product_id)
+        if product.seller.user != self.request.user:
+            raise PermissionDenied("You do not own this product.")
+        return product
+
+    def get(self, request, product_id):
+        if not request.user.is_seller():
+            raise PermissionDenied("Only sellers can access product attributes.")
+
+        product = self.get_product(product_id)
+        values = (
+            ProductAttributeValue.objects.filter(product=product)
+            .select_related("attribute_definition", "value_option")
+            .order_by("attribute_definition__sort_order", "id")
+        )
+        serializer = ProductAttributeValueReadSerializer(values, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, product_id):
+        if not request.user.is_seller():
+            raise PermissionDenied("Only sellers can update product attributes.")
+
+        product = self.get_product(product_id)
+        serializer = ProductAttributeValueWriteSerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        with transaction.atomic():
+            values = replace_product_attribute_values(product, serializer.validated_data)
+
+        output_serializer = ProductAttributeValueReadSerializer(
+            ProductAttributeValue.objects.filter(pk__in=[value.pk for value in values])
+            .select_related("attribute_definition", "value_option")
+            .order_by("attribute_definition__sort_order", "id"),
+            many=True,
+        )
+        return Response(output_serializer.data, status=status.HTTP_200_OK)
+
+
 @extend_schema_view(
     list=extend_schema(
         tags=["Seller Product Images"],
@@ -521,9 +618,8 @@ class BaseProductImageViewSet(ModelViewSet):
             "- `width_mm` is required and must be greater than 0\n"
             "- `height_mm` is required and must be greater than 0\n"
             "- `length_mm` is required and must be greater than 0\n"
-            "- variant must contain exactly one of: `text` or `image`\n"
-            "- `text` and `image` cannot be sent together\n"
-            "- `text` and `image` cannot both be empty\n\n"
+            "- `text` is required\n"
+            "- `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP."
@@ -548,6 +644,7 @@ class BaseProductImageViewSet(ModelViewSet):
                 name="Create variant with image",
                 value={
                     "name": "Color",
+                    "text": "Black matte",
                     "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...",
                     "price": "129.99",
                     "weight_grams": 470,
@@ -575,9 +672,8 @@ class BaseProductImageViewSet(ModelViewSet):
             "- `width_mm` is required and must be greater than 0\n"
             "- `height_mm` is required and must be greater than 0\n"
             "- `length_mm` is required and must be greater than 0\n"
-            "- variant must contain exactly one of: `text` or `image`\n"
-            "- `text` and `image` cannot be sent together\n"
-            "- `text` and `image` cannot both be empty\n\n"
+            "- `text` is required\n"
+            "- `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP."
@@ -612,7 +708,8 @@ class BaseProductImageViewSet(ModelViewSet):
             "- `width_mm` must remain present and be greater than 0\n"
             "- `height_mm` must remain present and be greater than 0\n"
             "- `length_mm` must remain present and be greater than 0\n"
-            "- variant must contain exactly one of: `text` or `image`\n\n"
+            "- variant `text` must remain present\n"
+            "- variant `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP."
@@ -692,9 +789,8 @@ class ProductVariantViewSet(ModelViewSet):
             "- `width_mm` is required and must be greater than 0\n"
             "- `height_mm` is required and must be greater than 0\n"
             "- `length_mm` is required and must be greater than 0\n"
-            "- each variant must contain exactly one of: `text` or `image`\n"
-            "- `text` and `image` cannot be sent together\n"
-            "- `text` and `image` cannot both be empty\n\n"
+            "- each variant `text` is required\n"
+            "- each variant `image` is optional\n\n"
             "If `image` is provided, it must be a base64 data URI string like "
             "`data:image/png;base64,...` or `data:image/webp;base64,...`.\n"
             "Allowed image types: JPEG, PNG, WEBP.\n\n"
@@ -717,6 +813,7 @@ class ProductVariantViewSet(ModelViewSet):
                     },
                     {
                         "name": "Color",
+                        "text": "White matte",
                         "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAB4...",
                         "price": "129.99",
                         "weight_grams": 470,
@@ -754,6 +851,86 @@ class ProductVariantViewSet(ModelViewSet):
 
         output_data = self.get_serializer(created_variants, many=True).data
         return Response(output_data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        tags=["Seller Product Variants"],
+        operation_id="product_variant_stock_upsert",
+        description=(
+            "Create or update seller stock for a product variant. "
+            "If `warehouse_id` is omitted, the seller default warehouse is used. "
+            "If `warehouse_id` is provided, it must be the default warehouse or one "
+            "of the seller's allowed warehouses."
+        ),
+        request=ProductVariantStockWriteSerializer,
+        responses={status.HTTP_200_OK: ProductVariantStockReadSerializer},
+    )
+    @action(methods=['get', 'put'], detail=True)
+    def stock(self, request, product_pk=None, pk=None):
+        variant = self.get_object()
+        seller_profile = get_object_or_404(
+            SellerProfile.objects.prefetch_related("warehouses"),
+            user=request.user,
+        )
+
+        warehouse = seller_profile.default_warehouse
+        if warehouse is None:
+            if request.method == 'GET':
+                return Response(
+                    {
+                        "warehouse_id": None,
+                        "variant_id": variant.id,
+                        "sku": variant.sku,
+                        "quantity_in_stock": 0,
+                        "reserved_quantity": 0,
+                        "available_quantity": 0,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            raise ValidationError({
+                "warehouse_id": ["Seller has no default warehouse. Provide an allowed warehouse_id."]
+            })
+
+        if request.method == 'GET':
+            warehouse_item = WarehouseItem.objects.filter(
+                warehouse=warehouse,
+                product_variant=variant,
+            ).first()
+            if warehouse_item is None:
+                return Response(
+                    {
+                        "warehouse_id": warehouse.id,
+                        "variant_id": variant.id,
+                        "sku": variant.sku,
+                        "quantity_in_stock": 0,
+                        "reserved_quantity": 0,
+                        "available_quantity": 0,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            output_serializer = ProductVariantStockReadSerializer(warehouse_item)
+            return Response(output_serializer.data, status=status.HTTP_200_OK)
+
+        serializer = ProductVariantStockWriteSerializer(
+            data=request.data,
+            context={"seller_profile": seller_profile},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        warehouse = serializer.validated_data["warehouse"]
+        quantity = serializer.validated_data["quantity_in_stock"]
+
+        with transaction.atomic():
+            warehouse_item, created = WarehouseItem.objects.select_for_update().get_or_create(
+                warehouse=warehouse,
+                product_variant=variant,
+                defaults={"quantity_in_stock": quantity},
+            )
+            if not created:
+                warehouse_item.quantity_in_stock = quantity
+                warehouse_item.save(update_fields=["quantity_in_stock"])
+
+        output_serializer = ProductVariantStockReadSerializer(warehouse_item)
+        return Response(output_serializer.data, status=status.HTTP_200_OK)
 
 
 @extend_schema_view(

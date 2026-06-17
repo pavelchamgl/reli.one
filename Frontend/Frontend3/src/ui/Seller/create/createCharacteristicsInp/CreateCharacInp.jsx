@@ -6,90 +6,92 @@ import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
 
 import styles from "./CreateCharacInp.module.scss";
 
-const CreateCharacInp = ({ setParameters, err, setErr }) => {
-  const { product_parameters } = useSelector(state => state.create_prev)
-  const [characteristic, setCharacteristic] = useState(product_parameters ? product_parameters :
-    [{
-      id: new Date(),
-      name: "",
-      value: "",
-    }],
-  );
+const DIMENSION_NAMES = new Set(["length", "width", "height", "weight"]);
 
-  const { t } = useTranslation('sellerHome')
+const createEmptyRow = () => ({
+  id: Date.now() + Math.random(),
+  name: "",
+  value: "",
+});
+
+const normalizeRows = (rows = []) => {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return [createEmptyRow()];
+  }
+
+  return rows.map((item, index) => ({
+    ...item,
+    id: item?.id ?? Date.now() + index,
+  }));
+};
+
+const isDimensionRow = (item) => DIMENSION_NAMES.has(String(item?.name || "").trim().toLowerCase());
+
+const CreateCharacInp = ({ setParameters, err, setErr }) => {
+  const { product_parameters } = useSelector(state => state.create_prev);
+  const [characteristic, setCharacteristic] = useState(() => normalizeRows(product_parameters));
+
+  const { t } = useTranslation('sellerHome');
 
   useEffect(() => {
-    setParameters(characteristic)
-  }, [characteristic]);
+    setCharacteristic(normalizeRows(product_parameters));
+  }, [product_parameters]);
+
+  const updateRows = (nextRows) => {
+    setCharacteristic(nextRows);
+    setParameters(nextRows);
+    setErr(false);
+  };
 
   const handleChange = (e, id, type) => {
-    const [ourObj] = characteristic.filter((item) => item.id === id);
-    const otherObj = characteristic.filter((item) => item.id !== id);
+    const nextRows = characteristic.map((item) => {
+      if (item.id !== id) return item;
+      return {
+        ...item,
+        [type === "name" ? "name" : "value"]: e.target.value,
+      };
+    });
 
-    let newObj;
-    if (type === "name") {
-      newObj = { ...ourObj, name: e.target.value };
-    } else {
-      newObj = { ...ourObj, value: e.target.value };
-    }
-
-    setCharacteristic([...otherObj, newObj].sort((a, b) => a.id - b.id));
+    updateRows(nextRows);
   };
 
   const handleAdd = () => {
-
-    setCharacteristic([
-      ...characteristic,
-      {
-        id: new Date(),
-        name: "",
-        value: "",
-      },
-    ]);
+    updateRows([...characteristic, createEmptyRow()]);
   };
 
   const handleDelete = (id) => {
-    const filteredArr = characteristic.filter((item) => item.id !== id);
-    setCharacteristic(filteredArr);
+    const nextRows = characteristic.filter((item) => item.id !== id);
+    updateRows(nextRows.length ? nextRows : [createEmptyRow()]);
   };
+
+  const visibleRows = characteristic.filter((item) => !isDimensionRow(item));
 
   return (
     <div className={styles.main}>
       <div className={styles.titleDiv}>
         <p>{t('goods.characteristics')}</p>
-        <button onClick={handleAdd}>{t('item.add')}</button>
+        <button type="button" onClick={handleAdd}>{t('item.add')}</button>
       </div>
-      {characteristic.length > 0 && characteristic?.map((item) => {
-        if (item?.name === "length" || item?.name === "width" || item?.name === "height" || item?.name === "weight") {
-          return <></>
-        } else {
-          return (
-            <div className={err ? styles.characWrapErr : styles.characWrap} key={item.id}>
-              <input
-                onChange={(e) => {
-                  handleChange(e, item.id, "name");
-                }}
-                type="text"
-                value={item.name}
-                placeholder={`${t('item.column')} 1`}
-              />
-              <input
-                onChange={(e) => {
-                  handleChange(e, item.id, "value");
-                }}
-                type="text"
-                value={item.value}
-                placeholder={`${t('item.column')} 2`}
-              />
-              <button onClick={() => handleDelete(item.id)}>
-                <img src={deleteIcon} alt="Delete characteristic" />
-              </button>
-            </div>
-          )
-        }
-      }
-      )}
-      {err ? <p className={styles.errText}>{t('allParametersAreRequired')}</p> : ""}
+      {visibleRows.map((item) => (
+        <div className={err ? styles.characWrapErr : styles.characWrap} key={item.id}>
+          <input
+            onChange={(e) => handleChange(e, item.id, "name")}
+            type="text"
+            value={item.name}
+            placeholder={t('goods.placeholders.characteristicName')}
+          />
+          <input
+            onChange={(e) => handleChange(e, item.id, "value")}
+            type="text"
+            value={item.value}
+            placeholder={t('goods.placeholders.characteristicValue')}
+          />
+          <button type="button" onClick={() => handleDelete(item.id)} aria-label="Delete characteristic">
+            <img src={deleteIcon} alt="" />
+          </button>
+        </div>
+      ))}
+      {err ? <p className={styles.errText}>{t('allParametersAreRequired')}</p> : null}
     </div>
   );
 };

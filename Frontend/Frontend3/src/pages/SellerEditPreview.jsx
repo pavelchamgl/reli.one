@@ -6,9 +6,8 @@ import { useTranslation } from "react-i18next";
 import { useActionSellerEdit } from "../hook/useActionSellerEdit";
 import SellerPreviewDesktop from "../Components/Seller/preview/SellerPreviewDesctop/SellerPreviewDesktop";
 import SellerPreviewMobile from "../Components/Seller/preview/SellerPreviewMobile/SellerPreviewMobile";
-import Spinner from "../ui/Spiner/Spiner";
-
-import arrRight from "../assets/Payment/arrRightWhite.svg"
+import SellerReviewActions from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewActions";
+import { buildSellerReviewData } from "../utils/sellerProductWizard";
 
 import styles from "../styles/SellerPreviewPage.module.scss";
 
@@ -21,6 +20,7 @@ const SellerEditPreview = () => {
     const { fetchEditProduct } = useActionSellerEdit()
 
     const product = useSelector(state => state.edit_goods)
+    const reviewData = buildSellerReviewData(product)
 
     const { t } = useTranslation('sellerHome')
 
@@ -45,28 +45,32 @@ const SellerEditPreview = () => {
         }
     };
 
+    const actionSlot = (
+        <SellerReviewActions
+            backLabel={t('item.cancel')}
+            submitLabel={t('sendingForModeration')}
+            isLoading={product?.status === "pending"}
+            isSubmitDisabled={reviewData.hasMissingRequiredAttributes}
+            onBack={() => navigate(-1)}
+            onSubmit={handleEdit}
+        />
+    )
 
 
 
     return (
         <div style={{ paddingBottom: "100px" }}>
             <h3 className={styles.title}>{t('goods.creation')}</h3>
-            {isMobile ? <SellerPreviewMobile product={product} /> : <SellerPreviewDesktop product={product} />}
-            <div className={styles.buttonDiv}>
-                <button onClick={() => navigate(-1)}>
-                    {t('item.cancel')}
-                </button>
-                <button onClick={handleEdit} >
-                    {
-                        product?.status === "pending" ?
-                            <Spinner size="16px" /> :
-                            <>
-                                {t('sendingForModeration')}
-                                <img src={arrRight} alt="" />
-                            </>
-                    }
-                </button>
-            </div>
+            {isMobile ? (
+                <SellerPreviewMobile product={product} actionSlot={actionSlot} />
+            ) : (
+                <SellerPreviewDesktop product={product} actionSlot={actionSlot} />
+            )}
+            {reviewData.hasMissingRequiredAttributes ? (
+                <div className={styles.reviewWarning}>
+                    Required category attributes are missing. Return to the form and fill them before sending to moderation.
+                </div>
+            ) : null}
         </div>
     );
 };

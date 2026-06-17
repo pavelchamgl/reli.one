@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db.models import Prefetch
 
+from product.compat import get_gmc_product_identifiers, get_product_cover_image_url
 from product.feed_gmc import GMCFeedConfig, build_item_xml, wrap_feed_xml
 from product.models import BaseProduct, ProductVariant, ProductStatus
 
@@ -28,19 +29,10 @@ def _get_output_path() -> Path:
 
 
 def _pick_main_image_abs(public_domain: str, product: BaseProduct) -> Optional[str]:
-    img = product.images.order_by("id").first()
-    if not img or not getattr(img, "image", None):
+    image_url = get_product_cover_image_url(product, absolute=False)
+    if not image_url:
         return None
-    return public_domain.rstrip("/") + img.image.url
-
-
-def _brand_static_override(product: BaseProduct) -> Optional[str]:
-    mapping = getattr(settings, "GMC_STATIC_BRANDS", None) or {}
-    seller = getattr(product, "seller", None)
-    seller_id = getattr(seller, "id", None)
-    if seller_id in mapping:
-        return mapping[seller_id]
-    return None
+    return public_domain.rstrip("/") + image_url
 
 
 def _product_type_from_category(product: BaseProduct) -> Optional[str]:
@@ -118,11 +110,7 @@ class Command(BaseCommand):
                 skipped_no_image += 1
                 continue
 
-            gtin = (getattr(product, "barcode", "") or "").strip() or None
-            mpn_base = (getattr(product, "article", "") or "").strip() or None
-
-            # Brand for Nutristar (seller_id=43) -> "Nutristar"
-            brand = _brand_static_override(product)
+            identifiers = get_gmc_product_identifiers(product)
 
             product_type = _product_type_from_category(product)
 
@@ -131,16 +119,6 @@ class Command(BaseCommand):
                 if price is None:
                     skipped_no_price += 1
                     continue
-
-                mpn = mpn_base
-
-                # Correct identifier_exists logic
-                if gtin:
-                    identifier_exists = True
-                elif brand and mpn:
-                    identifier_exists = True
-                else:
-                    identifier_exists = False
 
                 t = (product.name or "").strip()
                 vtxt = (getattr(v, "text", None) or getattr(v, "name", None) or "").strip()
@@ -155,10 +133,10 @@ class Command(BaseCommand):
                     image_url_abs=image_abs,
                     price=price,
                     availability="in stock",
-                    brand=brand,
-                    gtin=gtin,
-                    mpn=mpn,
-                    identifier_exists=identifier_exists,
+                    brand=identifiers.brand,
+                    gtin=identifiers.gtin,
+                    mpn=identifiers.mpn,
+                    identifier_exists=identifiers.identifier_exists,
                     item_group_id=str(product.id),
                     product_type=product_type,
                 )

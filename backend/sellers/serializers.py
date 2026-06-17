@@ -2,6 +2,7 @@ import uuid
 import magic
 
 from rest_framework import serializers
+from django.shortcuts import get_object_or_404
 
 from .fields import CustomBase64FileField, RestrictedBase64ImageField
 from product.models import (
@@ -11,6 +12,20 @@ from product.models import (
     ProductParameter,
     LicenseFile,
 )
+from product.compat import get_product_cover_image_url
+from warehouses.models import Warehouse, WarehouseItem
+
+from .models import SellerProfile
+
+
+def _get_seller_default_warehouse_id(user) -> int | None:
+    if not user.is_authenticated:
+        return None
+    return (
+        SellerProfile.objects.filter(user_id=user.pk)
+        .values_list('default_warehouse_id', flat=True)
+        .first()
+    )
 
 
 class ProductParameterSerializer(serializers.ModelSerializer):
@@ -39,10 +54,7 @@ class ProductListSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj):
         request = self.context.get('request')
-        first_image = obj.images.first()
-        if first_image and first_image.image:
-            return request.build_absolute_uri(first_image.image.url)
-        return None
+        return get_product_cover_image_url(obj, request=request, absolute=True) if request else None
 
 
 class BaseProductImageSerializer(serializers.ModelSerializer):
@@ -67,6 +79,7 @@ class BulkBaseProductImageSerializer(serializers.Serializer):
 
 class ProductVariantSerializer(serializers.ModelSerializer):
     image = RestrictedBase64ImageField(required=False, allow_null=True)
+    quantity_in_stock = serializers.SerializerMethodField()
 
     class Meta:
         model = ProductVariant
@@ -81,11 +94,12 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             'width_mm',
             'height_mm',
             'length_mm',
+            'quantity_in_stock',
         ]
-        read_only_fields = ['id', 'sku']
+        read_only_fields = ['id', 'sku', 'quantity_in_stock']
         extra_kwargs = {
             'name': {'required': True, 'allow_blank': False},
-            'text': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'text': {'required': True, 'allow_null': False, 'allow_blank': False},
             'price': {'required': True},
             'weight_grams': {'required': True},
             'width_mm': {'required': True},
@@ -96,32 +110,24 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         """
         Business rules:
-        1. Variant must contain exactly one of: text or image.
-        2. Weight and all dimensions are required.
-        3. Weight and dimensions must be > 0.
+        1. Variant text is required.
+        2. Variant image is optional.
+        3. Weight and all dimensions are required.
+        4. Weight and dimensions must be > 0.
         Works correctly for create, update and partial_update.
         """
         instance = getattr(self, 'instance', None)
 
         text = attrs.get('text', getattr(instance, 'text', None))
-        image = attrs.get('image', getattr(instance, 'image', None))
         weight_grams = attrs.get('weight_grams', getattr(instance, 'weight_grams', None))
         width_mm = attrs.get('width_mm', getattr(instance, 'width_mm', None))
         height_mm = attrs.get('height_mm', getattr(instance, 'height_mm', None))
         length_mm = attrs.get('length_mm', getattr(instance, 'length_mm', None))
 
-        has_text = text is not None and str(text).strip() != ''
-        has_image = bool(image)
+        errors = {}
 
-        if has_text and has_image:
-            raise serializers.ValidationError({
-                'non_field_errors': ['Variant must contain either text or image, not both.']
-            })
-
-        if not has_text and not has_image:
-            raise serializers.ValidationError({
-                'non_field_errors': ['Variant must contain either text or image.']
-            })
+        if text is None or str(text).strip() == '':
+            errors['text'] = 'This field is required.'
 
         required_numeric_fields = {
             'weight_grams': weight_grams,
@@ -129,8 +135,6 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             'height_mm': height_mm,
             'length_mm': length_mm,
         }
-
-        errors = {}
 
         for field_name, value in required_numeric_fields.items():
             if value is None:
@@ -148,6 +152,29 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
         return attrs
 
+    def get_quantity_in_stock(self, obj):
+        stock_by_variant_id = self.context.get('variant_stock_by_id')
+        if stock_by_variant_id is not None:
+            return stock_by_variant_id.get(obj.id, 0)
+
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+
+        warehouse_id = _get_seller_default_warehouse_id(request.user)
+        if not warehouse_id:
+            return 0
+
+        quantity = (
+            WarehouseItem.objects.filter(
+                warehouse_id=warehouse_id,
+                product_variant_id=obj.id,
+            )
+            .values_list('quantity_in_stock', flat=True)
+            .first()
+        )
+        return quantity if quantity is not None else 0
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         request = self.context.get('request')
@@ -156,12 +183,58 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         return representation
 
 
+class ProductVariantStockWriteSerializer(serializers.Serializer):
+    quantity_in_stock = serializers.IntegerField(min_value=0)
+    warehouse_id = serializers.IntegerField(required=False)
+
+    def validate(self, attrs):
+        seller_profile = self.context["seller_profile"]
+        warehouse_id = attrs.get("warehouse_id")
+
+        if warehouse_id is None:
+            warehouse = seller_profile.default_warehouse
+            if warehouse is None:
+                raise serializers.ValidationError({
+                    "warehouse_id": ["Seller has no default warehouse. Provide an allowed warehouse_id."]
+                })
+        else:
+            warehouse = get_object_or_404(Warehouse, pk=warehouse_id)
+            default_warehouse_id = seller_profile.default_warehouse_id
+            is_default = default_warehouse_id is not None and warehouse.id == default_warehouse_id
+            is_allowed = seller_profile.warehouses.filter(pk=warehouse.id).exists()
+            if not (is_default or is_allowed):
+                raise serializers.ValidationError({
+                    "warehouse_id": ["Warehouse is not available for this seller."]
+                })
+
+        attrs["warehouse"] = warehouse
+        return attrs
+
+
+class ProductVariantStockReadSerializer(serializers.ModelSerializer):
+    warehouse_id = serializers.IntegerField(source="warehouse.id", read_only=True)
+    variant_id = serializers.IntegerField(source="product_variant.id", read_only=True)
+    sku = serializers.CharField(source="product_variant.sku", read_only=True)
+    available_quantity = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = WarehouseItem
+        fields = [
+            "warehouse_id",
+            "variant_id",
+            "sku",
+            "quantity_in_stock",
+            "reserved_quantity",
+            "available_quantity",
+        ]
+
+
 class ProductVariantSwaggerSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     sku = serializers.CharField(read_only=True)
 
     name = serializers.CharField(required=True)
-    text = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    text = serializers.CharField(required=True, allow_blank=False)
     image = serializers.CharField(required=False, allow_null=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=True)
 
@@ -244,6 +317,8 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'additional_details',
+            'country_of_origin',
+            'warranty_months',
             'category',
             'category_name',
             'barcode',
@@ -260,6 +335,35 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'rejected_reason',
         ]
 
+    def _build_variant_stock_by_id(self, product: BaseProduct) -> dict[int, int] | None:
+        if self.context.get('variant_stock_by_id') is not None:
+            return self.context['variant_stock_by_id']
+
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return None
+
+        warehouse_id = _get_seller_default_warehouse_id(request.user)
+        if not warehouse_id:
+            return {}
+
+        variant_ids = list(product.variants.values_list('id', flat=True))
+        if not variant_ids:
+            return {}
+
+        stock_rows = WarehouseItem.objects.filter(
+            warehouse_id=warehouse_id,
+            product_variant_id__in=variant_ids,
+        ).values_list('product_variant_id', 'quantity_in_stock')
+
+        return dict(stock_rows)
+
+    def to_representation(self, instance):
+        stock_by_variant_id = self._build_variant_stock_by_id(instance)
+        if stock_by_variant_id is not None:
+            self.context['variant_stock_by_id'] = stock_by_variant_id
+        return super().to_representation(instance)
+
 
 class ProductUpdateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -269,6 +373,8 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'additional_details',
+            'country_of_origin',
+            'warranty_months',
             'category',
             'barcode',
             'article',
@@ -280,6 +386,8 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             'name': {'required': True},
             'product_description': {'required': True},
             'additional_details': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'country_of_origin': {'required': False, 'allow_blank': True},
+            'warranty_months': {'required': False, 'allow_null': True, 'min_value': 1},
             'category': {'required': True},
             'barcode': {'required': False, 'allow_null': True, 'allow_blank': True},
             'article': {'required': True, 'allow_blank': False},
@@ -295,6 +403,8 @@ class ProductPatchSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'additional_details',
+            'country_of_origin',
+            'warranty_months',
             'category',
             'barcode',
             'article',
@@ -305,6 +415,8 @@ class ProductPatchSerializer(serializers.ModelSerializer):
             'name': {'required': False},
             'product_description': {'required': False},
             'additional_details': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'country_of_origin': {'required': False, 'allow_blank': True},
+            'warranty_months': {'required': False, 'allow_null': True, 'min_value': 1},
             'category': {'required': False},
             'barcode': {'required': False, 'allow_null': True, 'allow_blank': True},
             'article': {'required': False, 'allow_blank': False},
@@ -321,6 +433,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'name',
             'product_description',
             'additional_details',
+            'country_of_origin',
+            'warranty_months',
             'category',
             'barcode',
             'article',
@@ -332,6 +446,8 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'name': {'required': True},
             'product_description': {'required': True},
             'additional_details': {'required': False, 'allow_null': True, 'allow_blank': True},
+            'country_of_origin': {'required': False, 'allow_blank': True},
+            'warranty_months': {'required': False, 'allow_null': True, 'min_value': 1},
             'category': {'required': True},
             'barcode': {'required': False, 'allow_null': True, 'allow_blank': True},
             'article': {'required': True, 'allow_blank': False},
