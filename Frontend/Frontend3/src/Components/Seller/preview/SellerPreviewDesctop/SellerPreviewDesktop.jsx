@@ -1,9 +1,9 @@
 import SellerReviewSummary from "../SellerReviewSummary/SellerReviewSummary";
 
-const SellerPreviewDesktop = ({ product }) => {
+const SellerPreviewDesktop = ({ product, actionSlot }) => {
   return (
     <div>
-      <SellerReviewSummary product={product} />
+      <SellerReviewSummary product={product} actionSlot={actionSlot} />
     </div>
   );
 };

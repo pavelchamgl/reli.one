@@ -665,9 +665,126 @@ git diff --check
 - Id-preview может получить Axios response object вместо `response.data`, это уже нужно защищать adapter-тестами.
 - Seller preview может снова разойтись с public product detail, если не выделить prop-driven visual layer.
 
+## Реализовано В Iteration 7.6
+
+- Создан prop-driven presentation layer `SellerReviewProductLayout` без зависимости от public product Redux state.
+- Выровнен layout под v0 reference screenshot:
+  - preview banner с жёлтой точкой, текстом `Preview mode.` и pill `DRAFT` (без Eye icon);
+  - breadcrumb `HOME / CATEGORY / PRODUCT NAME` без `Seller goods`;
+  - gallery ~610px, square stage, circular arrows, thumbnails ~90px, active black border;
+  - product info order: rating → name → category → price → without VAT → variant cards → stock badge → disabled `Add to cart` → delivery;
+  - details: tabs Description/Reviews, accordion Additional details, black-header striped tables;
+  - Additional Seller Details в фиксированном порядке без Moderation status;
+  - documents как sentence-link `You can read the certificate here`;
+  - package dimensions в отдельной black-header секции per variant.
+- Добавлены блоки:
+  - preview banner;
+  - local breadcrumb;
+  - desktop two-column layout;
+  - sticky gallery на desktop;
+  - product info с rating/name/category/price/VAT;
+  - read-only variant selector;
+  - stock badge;
+  - disabled preview-only add-to-cart button;
+  - delivery preview block;
+  - description;
+  - parameters/category attributes table;
+  - variants/stock/package dimensions cards;
+  - documents/license block;
+  - additional seller details table;
+  - review actions slot.
+- `SellerPreviewPage.jsx` и `SellerEditPreview.jsx` сохраняют существующие handlers и передают actions как slot.
+- `/seller/seller-preview/:id` сохраняет loading/error-safe поведение и unwrap `{ data: product }`.
+- Create partial success/retry panel сохранён отдельно от product review layout.
+
+## Созданные/Изменённые Компоненты
+
+- `Frontend/Frontend3/src/Components/Seller/preview/SellerReviewProductLayout/SellerReviewProductLayout.jsx`
+- `Frontend/Frontend3/src/Components/Seller/preview/SellerReviewProductLayout/SellerReviewGallery.jsx`
+- `Frontend/Frontend3/src/Components/Seller/preview/SellerReviewProductLayout/SellerReviewProductInfo.jsx`
+- `Frontend/Frontend3/src/Components/Seller/preview/SellerReviewProductLayout/SellerReviewDetailsSections.jsx`
+- `Frontend/Frontend3/src/Components/Seller/preview/SellerReviewProductLayout/SellerReviewActions.jsx`
+- `Frontend/Frontend3/src/Components/Seller/preview/SellerReviewProductLayout/SellerReviewProductLayout.module.scss`
+- `SellerReviewSummary.jsx` теперь является thin wrapper над normalized review data и новым layout.
+
+## Adapter Notes
+
+- `buildSellerReviewData()` остаётся null-safe.
+- `unwrapProductPreviewResponse()` сохраняет контракт `response.data || response`.
+- Поддержаны create draft, edit draft, public product response и seller product response.
+- Добавлены/сохранены mapping:
+  - images with alt;
+  - variants;
+  - price / `price_without_vat`;
+  - calculated price without VAT fallback;
+  - `stock`, `stockStatus`;
+  - package dimensions from kg/cm draft fields and mm/g API fields;
+  - `country_of_origin`, `warranty_months`, `barcode`, `article`, age flag;
+  - `license_file` as string/object/array;
+  - typed attributes from schema+values or response rows.
+
+## Verification Results
+
+Выполнено:
+
+```bash
+npm --prefix Frontend/Frontend3 run test -- src/redux/sellerProductWizardSlices.test.js
+npm --prefix Frontend/Frontend3 run build
+cd Frontend/Frontend3 && npx playwright test e2e/catalog-regression-smoke.spec.js
+DB_NAME= DB_USER= DB_PASS= DB_HOST= DB_PORT= MEDIA_ROOT=/tmp/reli-media python3 backend/manage.py test product.test_catalog_regression_smoke -v 1
+DB_NAME= DB_USER= DB_PASS= DB_HOST= DB_PORT= MEDIA_ROOT=/tmp/reli-media python3 backend/manage.py test product.test_category_attributes -v 1
+DB_NAME= DB_USER= DB_PASS= DB_HOST= DB_PORT= MEDIA_ROOT=/tmp/reli-media python3 backend/manage.py test sellers.test_product_stock_api sellers.test_category_attribute_api sellers.test_product_additional_details_api -v 1
+```
+
+Результат: все команды прошли; `npm run build` показывает существующие Sass deprecation/chunk size warnings.
+
+Follow-up review fix: `stock=0` отображается как валидное значение в product info, а submit action disabled во время pending/loading для защиты от повторного клика.
+
+Iteration 7.6 visual alignment (2026-06-16): seller preview layout приведён к v0 reference — variant cards со stock status, black-header tables, preview banner/breadcrumb, read-only `Add to cart`, render-regression tests в `sellerProductWizardSlices.test.js`.
+
+## Layout And Typography Guardrails (Seller Product Review)
+
+Зафиксировать как обязательные правила для seller preview / product-detail-like экранов. При обнаружении расхождений исправлять сразу, не оставлять как cosmetic follow-up.
+
+### Horizontal spacing
+
+- Контент review area: `max-width: 1440px`, центрирование `margin-inline: auto`.
+- Дополнительные боковые отступы внутри layout: `padding-inline: clamp(16px, 2.5%, 54px)` на `SellerReviewProductLayout`.
+- Seller shell (`SellerPageContainer`): desktop `102px`, tablet `51px`, mobile `14px`.
+- Product grid: fluid `2.2fr / 2.8fr` (44% gallery / 56% info), gallery cap `max-width: 616px`, mobile `< 900px` — одна колонка.
+
+### Numeric typography (anti «плавающие цифры»)
+
+Проблема: пропорциональные цифры (`oldstyle figures`) и смешение `var(--ft)` с body-font дают разный baseline у цен, VAT, stock и значений в таблицах.
+
+Обязательно для **всего** `SellerReviewProductLayout` (mixin на `.main`) и всех дочерних полей: цены, VAT, stock, variant cards, таблицы, listing info, package dimensions, actions.
+
+```scss
+font-family: var(--ft);
+font-variant-numeric: lining-nums tabular-nums;
+font-feature-settings: "lnum" 1, "tnum" 1;
+line-height: 1.2;
+```
+
+В `SellerReviewProductLayout.module.scss` mixin `stableNumericText` применён к корню `.main`; длинные prose-блоки (`descriptionText`, `additionalDetailsContent`, `bannerText`, `breadcrumb`) используют `line-height: 1.5–1.55` поверх наследуемых цифр.
+
+Не смешивать на одной строке цены разные `line-height` (например `115%` vs `140%`) без необходимости.
+
+### QA checklist при review UI
+
+1. Цена и `Excl. VAT` визуально на одной вертикальной сетке, цифры не «прыгают» по высоте.
+2. При смене variant price/VAT цифры не смещают соседний текст по вертикали.
+3. Боковые поля на desktop не прилипают к краю shell.
+4. Gallery не раздувается шире ~616px на ultrawide.
+
+## Known Follow-ups
+
+- Вынести seller-preview labels в i18n.
+- Добавить e2e assertion, что seller preview routes не вызывают basket/checkout/payment requests.
+- При появлении seller `ProductDocument` API расширить documents block без замены legacy `LicenseFile`.
+
 ## Recommended Commit Message
 
 ```text
-docs: document product review reference implementation plan
+refactor: align seller product review with reference layout
 ```
-

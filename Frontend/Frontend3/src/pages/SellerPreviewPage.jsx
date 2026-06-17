@@ -6,12 +6,11 @@ import { useTranslation } from "react-i18next";
 
 import SellerPreviewDesktop from "../Components/Seller/preview/SellerPreviewDesctop/SellerPreviewDesktop";
 import SellerPreviewMobile from "../Components/Seller/preview/SellerPreviewMobile/SellerPreviewMobile";
+import SellerReviewActions from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewActions";
 import { useActionCreatePrev } from "../hook/useActionCreatePrev";
 import Spinner from "../ui/Spiner/Spiner";
 import { getProductById } from "../api/productsApi";
 import { buildSellerReviewData, formatApiErrorMessage, unwrapProductPreviewResponse } from "../utils/sellerProductWizard";
-
-import arrRight from "../assets/Payment/arrRightWhite.svg"
 
 import styles from "../styles/SellerPreviewPage.module.scss";
 
@@ -39,6 +38,16 @@ const SellerPreviewPage = () => {
   }
 
   const { t } = useTranslation('sellerHome')
+  const actionSlot = (
+    <SellerReviewActions
+      backLabel={t('item.cancel')}
+      submitLabel={t('sendingForModeration')}
+      isLoading={!id && product?.status === "pending"}
+      isSubmitDisabled={Boolean(id) || reviewData.hasMissingRequiredAttributes}
+      onBack={() => navigate(-1)}
+      onSubmit={handleCreate}
+    />
+  )
 
   useEffect(() => {
     if (!id && product?.status === "fulfilled") {
@@ -88,7 +97,11 @@ const SellerPreviewPage = () => {
       ) : null}
       {(!id || previewStatus === "fulfilled") ? (
         <>
-      {isMobile ? <SellerPreviewMobile product={data} /> : <SellerPreviewDesktop product={data} />}
+      {isMobile ? (
+        <SellerPreviewMobile product={data} actionSlot={actionSlot} />
+      ) : (
+        <SellerPreviewDesktop product={data} actionSlot={actionSlot} />
+      )}
       {reviewData.hasMissingRequiredAttributes ? (
         <div className={styles.reviewWarning}>
           Required category attributes are missing. Return to the form and fill them before sending to moderation.
@@ -123,26 +136,6 @@ const SellerPreviewPage = () => {
       ) : null}
         </>
       ) : null}
-      <div className={styles.buttonDiv}>
-        <button onClick={() => navigate(-1)}>
-          {t('item.cancel')}
-        </button>
-        <button onClick={handleCreate} disabled={Boolean(id) || reviewData.hasMissingRequiredAttributes}>
-          {
-            !id && product?.status === "pending" ?
-              <Spinner size="16px" />
-              :
-              (
-                <>
-                  <p>
-                    {t('sendingForModeration')}
-                  </p>
-                  <img src={arrRight} alt="" />
-                </>
-              )
-          }
-        </button>
-      </div>
     </div>
   );
 };
