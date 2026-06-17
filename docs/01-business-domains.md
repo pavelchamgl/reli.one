@@ -115,7 +115,7 @@ graph TD
 |---------|--------------|
 | `Category` | MPTT-дерево: `parent`, `image` |
 | `BaseProduct` | `seller`, `category`, `status` (pending/approved/rejected), `rating`, `vat_rate`, `is_age_restricted` |
-| `ProductVariant` | `sku` (автогенерация 9 символов), `price`, габариты, вес, `text` или `image` вариант |
+| `ProductVariant` | `sku` (автогенерация 9 символов), `price`, габариты, вес; обязательный `text`, опциональный `image`; общий `name` для всех вариантов товара |
 | `ProductParameter` | key/value атрибуты продукта |
 | `BaseProductImage` | автоконвертация в WebP при сохранении |
 | `LicenseFile` | OneToOne к `BaseProduct` |

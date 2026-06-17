@@ -1,3 +1,5 @@
+@use "../../shared/sellerProductForm" as form;
+
 .maskMain {
   display: flex;
   align-items: center;
@@ -76,12 +78,11 @@
   line-height: 70%;
   letter-spacing: -0.01em;
   color: #000;
-  margin-top: clamp(20px, 2.5vw, 40px);
+  margin-top: 0;
 }
 
 .title:after {
-  content: "*";
-  color: #e03838;
+  @include form.sellerFormRequiredMarkAfter;
   width: 8px;
 }
 

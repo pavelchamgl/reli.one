@@ -37,11 +37,181 @@
         "info": "Informace o zboží",
         "category": "Kategorie a typ",
         "description": "Popis",
-        "characteristics": "Vlastnosti",
+        "characteristics": "Charakteristiky",
+        "showAllAttributes": "Zobrazit vše ({{count}})",
+        "hideOptionalAttributes": "Pouze povinná pole",
         "aspectRatio": "Poměr stran 1:1",
         "addPhotos": "+ Přidat fotky",
         "formats": "Formáty: docx, pdf",
-        "categoryIsRequired": "Kategorie je povinná"
+        "categoryIsRequired": "Kategorie je povinná",
+        "categoryAttributesTitle": "Atributy kategorie",
+        "loadingCategorySchema": "Načítání schématu kategorie...",
+        "noTypedAttributes": "Pro tuto kategorii nejsou vyžadovány žádné typované atributy.",
+        "typedAttributesCompatibility": "Typované atributy jsou zobrazeny kvůli kompatibilitě. Úplné uložení úprav bude doplněno později.",
+        "variantsSectionTitle": "Varianty, cena a sklad",
+        "documentsSectionTitle": "Dokumenty",
+        "vatRate": "Sazba DPH, %",
+        "validation": {
+            "vatRateDigits": "Celočíselná část smí obsahovat nejvýše 2 číslice",
+            "nameRequired": "Název je povinný",
+            "descriptionRequired": "Popis je povinný",
+            "itemDigitsOnly": "Položka smí obsahovat pouze číslice",
+            "itemMinLength": "Položka musí mít alespoň 10 číslic",
+            "warrantyPositiveInteger": "Záruka musí být kladné celé číslo",
+            "lengthNumber": "Délka musí být číslo",
+            "widthNumber": "Šířka musí být číslo",
+            "heightNumber": "Výška musí být číslo",
+            "weightNumber": "Hmotnost musí být číslo"
+        },
+        "errors": {
+            "imageRequired": "Obrázek je povinný",
+            "licenseFileFormat": "Licenční soubor musí být PDF nebo DOCX.",
+            "productImageFormat": "Obrázky produktu musí být ve formátu JPG, PNG nebo WEBP.",
+            "attributeRequired": "Tento atribut je povinný.",
+            "attributeValidNumber": "Zadejte platné číslo.",
+            "attributeBoolean": "Vyberte ano nebo ne.",
+            "attributeEnum": "Vyberte jednu z dostupných možností.",
+            "categorySchemaNotReady": "Schéma atributů kategorie není načteno. Znovu načtěte kategorii a zkuste to znovu.",
+            "unableToLoadCategorySchema": "Nepodařilo se načíst schéma kategorie",
+            "fillRequiredCategoryAttributes": "Vyplňte povinné atributy kategorie.",
+            "errorCreatingProduct": "Chyba při vytváření produktu"
+        },
+        "categoryAttributes": {
+            "door_width_mm": "Šířka",
+            "door_height_mm": "Výška",
+            "door_material": "Materiál",
+            "opening_type": "Typ otevírání",
+            "opening_direction": "Směr otevírání",
+            "color": "Barva",
+            "leaf_thickness_mm": "Tloušťka křídla",
+            "security_class": "Bezpečnostní třída",
+            "lock_type": "Typ zámku",
+            "threshold_type": "Typ prahu",
+            "interior_door_type": "Typ interiérových dveří",
+            "core_type": "Typ výplně",
+            "glazing_type": "Prosklení",
+            "glass_type": "Typ skla",
+            "frame_material": "Materiál rámu",
+            "glass_door_type": "Typ skleněných dveří"
+        },
+        "categoryAttributeOptions": {
+            "door_material": {
+                "steel": "Ocel",
+                "wood": "Dřevo",
+                "aluminum": "Hliník",
+                "pvc": "PVC",
+                "mdf": "MDF",
+                "composite": "Kompozit",
+                "glass": "Sklo"
+            },
+            "opening_type": {
+                "single": "Jednokřídlé",
+                "double": "Dvoukřídlé",
+                "one_and_half": "Jedno a půl křídla"
+            },
+            "opening_direction": {
+                "left": "Levé (LH)",
+                "right": "Pravé (RH)",
+                "reversible": "Oboustranné"
+            },
+            "color": {
+                "white": "Bílá",
+                "oak": "Dub",
+                "walnut": "Ořech",
+                "anthracite": "Antracit",
+                "black": "Černá",
+                "grey": "Šedá",
+                "beech": "Buk",
+                "wenge": "Wenge",
+                "custom": "Na míru / RAL"
+            },
+            "security_class": {
+                "rc1": "RC 1",
+                "rc2": "RC 2",
+                "rc3": "RC 3",
+                "rc4": "RC 4"
+            },
+            "lock_type": {
+                "cylinder": "Vložkový zámek",
+                "multipoint": "Vícebodový zámek",
+                "electronic": "Elektronický / chytrý zámek",
+                "none": "Není součástí balení"
+            },
+            "threshold_type": {
+                "standard": "Standardní",
+                "low": "Nízký práh",
+                "barrier_free": "Bezbariérový"
+            },
+            "interior_door_type": {
+                "hinged": "Křídlové",
+                "sliding": "Posuvné",
+                "pocket": "Do pouzdra",
+                "folding": "Skládací",
+                "barn": "Stodolové / loft"
+            },
+            "core_type": {
+                "hollow": "Duté jádro",
+                "honeycomb": "Papírová voština",
+                "solid": "Plné jádro",
+                "particle_board": "Dřevotříska"
+            },
+            "glazing_type": {
+                "none": "Bez prosklení",
+                "clear": "Čiré sklo",
+                "frosted": "Matné",
+                "decorative": "Dekorativní"
+            },
+            "glass_type": {
+                "tempered": "Tvrzené",
+                "laminated": "Vrstvené",
+                "double_glazed": "Dvojsklo",
+                "frosted": "Matné",
+                "tinted": "Tónované"
+            },
+            "frame_material": {
+                "aluminum": "Hliník",
+                "steel": "Ocel",
+                "wood": "Dřevo",
+                "frameless": "Bez rámu"
+            },
+            "glass_door_type": {
+                "swing": "Křídlové",
+                "sliding": "Posuvné",
+                "pivot": "Otočné",
+                "partition": "Přepážka / kancelářské"
+            }
+        },
+        "additionalSellerDetailsTitle": "Další údaje prodejce",
+        "additionalDetailsLabel": "Další podrobnosti",
+        "countryOfOriginLabel": "Země původu",
+        "warrantyMonthsLabel": "Záruka, měsíce",
+        "barcodeLabel": "EAN/UPC čárový kód",
+        "sellerArticleLabel": "Prodejní artikl",
+        "ageRestrictedLabel": "Věkové omezení",
+        "placeholders": {
+            "productName": "např. Kovové vchodové dveře Model 5",
+            "productDescription": "Popište materiál, povrch, rozměry a určení produktu",
+            "vatRate": "např. 21",
+            "additionalDetails": "Montáž, údržba nebo další informace pro kupující (volitelné)",
+            "countryOfOrigin": "např. Česká republika",
+            "warrantyMonths": "např. 12",
+            "barcode": "např. 8591234567890",
+            "sellerArticle": "např. 1234567890",
+            "characteristicName": "např. Typ montáže",
+            "characteristicValue": "např. Skryté panty",
+            "selectCategory": "Vyberte kategorii",
+            "variantValue": "např. Bílá matná",
+            "salePrice": "např. 832,00",
+            "stockQuantity": "např. 12",
+            "packageWeightKg": "např. 25,6",
+            "packageWidthCm": "např. 80",
+            "packageHeightCm": "např. 206",
+            "packageLengthCm": "např. 4",
+            "attributeText": "např. Ocel",
+            "attributeNumber": "např. 210",
+            "attributeNumberCm": "např. 80",
+            "attributeSelect": "Vyberte hodnotu"
+        }
     },
     "item": {
         "add": "+ Přidat položku",
@@ -52,10 +222,10 @@
         "package_width": "Šířka balení",
         "package_height": "Výška balení",
         "package_weight": "Hmotnost včetně balení",
-        "add_styles": "Přidání variant",
-        "style_name": "Uveďte název variant ",
-        "style_add": "Přidejte variantu a nezapomeňte uvést její cenu ",
-        "optional_style": "Volitelně přidejte název a fotografie varianty ",
+        "add_styles": "Možnosti produktu / Varianty",
+        "style_name": "Čím se jednotlivé možnosti liší? Zadejte název skupiny (např. Barva).",
+        "style_add": "Klikněte na + Přidat styl a u každé možnosti zadejte cenu.",
+        "optional_style": "Ke každé možnosti můžete také přidat volitelný obrázek.",
         "preview": "Náhled",
         "cancel": "Zrušit",
         "sent_moderation": "Zboží bylo odesláno ke schválení. Předpokládaná doba schválení je přibližně 24 hodin",
@@ -64,10 +234,30 @@
         "color_name": "Název barvy",
         "price": "Cena",
         "column": "Sloupec",
-        "placeholderColorSizeStyle": "Barva, velikost, styl",
+        "placeholderColorSizeStyle": "např. Barva, Velikost, Materiál",
         "addStyle": "+ Přidat styl",
+        "variantValue": "Hodnota varianty",
+        "salePrice": "Prodejní cena",
+        "stockQuantity": "Množství na skladě",
+        "packageDimensions": "Rozměry balení pro doručení",
+        "packageWeightKg": "Hmotnost balení, kg",
+        "packageWidthCm": "Šířka balení, cm",
+        "packageHeightCm": "Výška balení, cm",
+        "packageLengthCm": "Délka balení, cm",
+        "deleteVariant": "Smazat",
         "variantNameIsRequired": "Název varianty je povinný",
-        "dataError": "Chyba dat: Cena musí být číslo. Každá varianta musí obsahovat buď text nebo obrázek."
+        "dataError": "Vyplňte prosím všechna povinná pole variant.",
+        "variantsSectionError": "Vyplňte prosím všechna povinná pole variant.",
+        "variantTextRequired": "Hodnota varianty je povinná",
+        "variantPriceRequired": "Prodejní cena je povinná",
+        "variantPriceInvalid": "Zadejte platnou cenu",
+        "variantStockRequired": "Množství na skladě je povinné",
+        "variantStockInvalid": "Zadejte platné množství na skladě",
+        "variantPackageWeightRequired": "Hmotnost balení je povinná",
+        "variantPackageWidthRequired": "Šířka balení je povinná",
+        "variantPackageHeightRequired": "Výška balení je povinná",
+        "variantPackageLengthRequired": "Délka balení je povinná",
+        "variantPackageDimensionInvalid": "Zadejte kladné číslo"
     },
     "edits": {
         "editingOfGoods": "Úprava zboží"

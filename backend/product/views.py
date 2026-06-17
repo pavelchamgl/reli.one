@@ -32,6 +32,10 @@ from .stock_availability import (
     annotate_products_with_total_available,
     annotate_variant_queryset_with_available,
 )
+from .public_catalog_filters import (
+    apply_public_catalog_filters,
+    build_category_facets,
+)
 
 
 def build_public_products_queryset(base_qs):
@@ -216,7 +220,24 @@ class SearchView(PublicVisibilityMixin, generics.ListAPIView):
             Q(product_description__icontains=query) |
             Q(product_parameters__name__icontains=query) |
             Q(product_parameters__value__icontains=query) |
-            Q(category__name__icontains=query)
+            Q(category__name__icontains=query) |
+            Q(
+                attribute_values__attribute_definition__is_active=True,
+                attribute_values__attribute_definition__is_public=True,
+                attribute_values__value_text__icontains=query,
+            ) |
+            Q(
+                attribute_values__attribute_definition__is_active=True,
+                attribute_values__attribute_definition__is_public=True,
+                attribute_values__value_option__is_active=True,
+                attribute_values__value_option__value__icontains=query,
+            ) |
+            Q(
+                attribute_values__attribute_definition__is_active=True,
+                attribute_values__attribute_definition__is_public=True,
+                attribute_values__value_option__is_active=True,
+                attribute_values__value_option__label__icontains=query,
+            )
         )
 
         qs = self.apply_public_visibility(qs)
@@ -324,6 +345,7 @@ class CategoryBaseProductListView(PublicVisibilityMixin, generics.ListAPIView):
         qs = BaseProduct.objects.filter(category=category)
         qs = self.apply_public_visibility(qs)
         qs = build_public_products_queryset(qs)
+        qs = apply_public_catalog_filters(qs, self.request.query_params, category)
 
         ordering = self.request.query_params.get("ordering", "-rating")
         return self.apply_ordering(qs, ordering)
@@ -348,6 +370,20 @@ class CategoryBaseProductListView(PublicVisibilityMixin, generics.ListAPIView):
             if desc
             else F(db_field).asc(nulls_last=True)
         )
+
+
+class CategoryFacetMetadataView(PublicVisibilityMixin, APIView):
+    @extend_schema(
+        description="Retrieve public filter/facet metadata for a category.",
+        responses={200: OpenApiResponse(description="Category facet metadata.")},
+        tags=["Product"],
+    )
+    def get(self, request, category_id, *args, **kwargs):
+        category = get_object_or_404(Category, id=category_id)
+        qs = BaseProduct.objects.filter(category=category)
+        qs = self.apply_public_visibility(qs)
+        qs = build_public_products_queryset(qs)
+        return Response(build_category_facets(category, qs), status=status.HTTP_200_OK)
 
 
 @extend_schema(

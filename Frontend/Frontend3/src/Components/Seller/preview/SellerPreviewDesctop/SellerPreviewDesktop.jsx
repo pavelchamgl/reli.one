@@ -1,34 +1,9 @@
-import { Container } from "@mui/material";
-import { useState } from "react";
+import SellerReviewSummary from "../SellerReviewSummary/SellerReviewSummary";
 
-import ProductTab from "../../../Product/ProductTab/ProductTab";
-import PreviewImage from "../../../../ui/Seller/preview/previewImages/PreviewImage";
-import PreviewProductNameRate from "../../../../ui/Seller/preview/previewProductNameRates/PreviewProductNameRate";
-
-import styles from "./SellerPreviewDesktop.module.scss";
-import PreviewCharacteristics from "../../../../ui/Seller/preview/previewCharacteristics/PreviewCharacteristics";
-
-const SellerPreviewDesktop = ({ product }) => {
-  const [section, setSection] = useState("Charakteristika");
-
+const SellerPreviewDesktop = ({ product, actionSlot }) => {
   return (
-    <div style={{ margin: "27px 0 0" }}>
-      <div className={styles.main}>
-        <div className={styles.imageRateDiv}>
-          <PreviewImage product={product} />
-          <div className={styles.detalPageWrap}>
-            <PreviewProductNameRate product={product} />
-            <div className={styles.tabGap}>
-              <ProductTab setTab={setSection} />
-            </div>
-            <PreviewCharacteristics product={product} />
-          </div>
-        </div>
-
-
-
-
-      </div>
+    <div>
+      <SellerReviewSummary product={product} actionSlot={actionSlot} />
     </div>
   );
 };

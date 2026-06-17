@@ -2,10 +2,10 @@ from rest_framework import serializers
 from django.db.models import Max
 
 from product.models import (
-    BaseProductImage,
     BaseProduct,
     ProductVariant
 )
+from product.compat import get_product_cover_image_url
 from .models import (
     Order,
     OrderProduct,
@@ -22,8 +22,7 @@ class BaseProductSerializer(serializers.ModelSerializer):
         fields = ['id', 'image', 'name', 'product_description']
 
     def get_image(self, obj):
-        first_image = obj.images.first()
-        return first_image.image.url if first_image else None
+        return get_product_cover_image_url(obj, absolute=False)
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -98,7 +97,7 @@ class OrderListSerializer(serializers.ModelSerializer):
         order_products = OrderProduct.objects.filter(order=obj)[:3]
         images = []
         for order_product in order_products:
-            base_product_images = order_product.product.product.images.all()[:1]
-            for image in base_product_images:
-                images.append(image.image.url)
+            image_url = get_product_cover_image_url(order_product.product.product, absolute=False)
+            if image_url:
+                images.append(image_url)
         return images

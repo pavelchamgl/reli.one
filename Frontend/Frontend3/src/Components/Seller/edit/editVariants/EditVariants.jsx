@@ -1,202 +1,210 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
 import closeWhIc from "../../../../assets/Product/closeWhIcon.svg"
+import { resolveVariantImagePreview, validateProductImageFiles } from "../../../../utils/sellerProductWizard"
 
 import styles from "./EditVariants.module.scss"
 
-const EditVariants = ({ variant, handleEditVariant, handleDeleteVariant, err, setErr, type, setType }) => {
-    const [newVariant, setNewVariant] = useState(variant)
-    const [file, setFile] = useState(null)
-    const [url, setUrl] = useState(variant ? variant.image : null)
+const fieldBorderStyle = (fieldErrors, fieldName) => (
+    fieldErrors?.[fieldName] ? { border: "1px solid #dc2626" } : undefined
+);
 
-    useEffect(() => {
-        if (variant?.text) {
-            setType("text")
-        } else if (variant?.image) {
-            setType("image")
-        } else {
-            setType(null)
-        }
-    }, [variant])
-
-    // useEffect(() => {
-    //     setNewVariant(variant) // Обновляем локальный стейт, если изменились пропсы
-    // }, [variant])
-
-    // useEffect(() => {
-    //     handleEditVariant(newVariant.id, newVariant)
-    // }, [newVariant])
-
-    useEffect(() => {
-        setNewVariant({ ...newVariant, image: file })
-    }, [file])
-
-    useEffect(() => {
-        handleEditVariant(variant.id, newVariant)
-    }, [newVariant])
+const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setErr, fieldErrors = {} }) => {
+    const [url, setUrl] = useState(() => resolveVariantImagePreview(variant?.image))
+    const [fileError, setFileError] = useState("")
 
     const { t } = useTranslation('sellerHome')
 
+    useEffect(() => {
+        setUrl(resolveVariantImagePreview(variant?.image))
+    }, [variant?.id, variant?.image])
+
+    const patchVariant = (patch) => {
+        onVariantChange(variant.id, patch)
+    }
+
     const handleChangeFile = (e) => {
         setErr(false)
-        const newFile = e.target.files[0]; // Получаем только один файл
+        const newFile = e.target.files[0];
         if (!newFile) return;
+        const nextError = validateProductImageFiles([newFile], t);
+        if (nextError) {
+            setFileError(nextError)
+            e.target.value = ""
+            return;
+        }
+        setFileError("")
 
-        setFile(newFile);
-        const url = URL.createObjectURL(newFile);
-        setUrl(url);
+        setUrl(URL.createObjectURL(newFile));
 
         const reader = new FileReader();
         reader.readAsDataURL(newFile);
         reader.onloadend = () => {
-            setNewVariant(prevVariant => ({
-                ...prevVariant,
-                image: reader.result // base64-кодированное изображение
-            }));
+            patchVariant({
+                image: reader.result,
+            });
         };
     };
 
     const handleDeleteUrl = (e) => {
-        e.stopPropagation();  // Останавливаем всплытие события, чтобы не открыть input
+        e.stopPropagation();
         setUrl(null);
+        patchVariant({ image: null });
     }
 
     const handleLabelClick = (e) => {
         if (e.target.tagName === 'BUTTON') {
-
-            // Если кликнули на кнопку, предотвратим открытие input
             e.stopPropagation();
         }
     }
 
-
-
     return (
         <div className={err ? styles.mainErr : styles.main}>
             <label className={styles.inpLabel}>
-                <p>Name color</p>
+                <p>{t('item.variantValue')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.text}
+                    style={fieldBorderStyle(fieldErrors, "text")}
+                    value={variant.text ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, text: e.target.value }
-                        )
-                        setType("text")
+                        patchVariant({ text: e.target.value })
                         setErr(false)
                     }}
                     placeholder={t('item.color_name')}
-                    disabled={type === "image"}
                 />
+                {fieldErrors.text ? <p className={styles.errText}>{fieldErrors.text}</p> : null}
             </label>
 
+            {variant.sku ? (
+                <label className={styles.inpLabel}>
+                    <p>System SKU</p>
+                    <input
+                        className={styles.nameInp}
+                        type="text"
+                        value={variant.sku}
+                        disabled
+                        readOnly
+                    />
+                </label>
+            ) : null}
+
             <label className={styles.inpLabel}>
-                <p>Price</p>
+                <p>{t('item.salePrice')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.price}
+                    style={fieldBorderStyle(fieldErrors, "price")}
+                    value={variant.price ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, price: e.target.value }
-                        )
+                        patchVariant({ price: e.target.value })
                         setErr(false)
                     }}
                     placeholder={t('item.price')}
                 />
+                {fieldErrors.price ? <p className={styles.errText}>{fieldErrors.price}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Weight grams</p>
+                <p>{t('item.stockQuantity')}</p>
                 <input
                     className={styles.nameInp}
-                    type="text"
-                    value={newVariant.weight}
+                    type="number"
+                    min="0"
+                    style={fieldBorderStyle(fieldErrors, "quantity_in_stock")}
+                    value={variant.quantity_in_stock ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, weight: e.target.value }
-                        )
+                        patchVariant({ quantity_in_stock: e.target.value })
                         setErr(false)
                     }}
                 />
+                {fieldErrors.quantity_in_stock ? <p className={styles.errText}>{fieldErrors.quantity_in_stock}</p> : null}
+            </label>
+
+            <h5 className={styles.groupTitle}>{t('item.packageDimensions')}</h5>
+
+            <label className={styles.inpLabel}>
+                <p>{t('item.packageWeightKg')}</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    style={fieldBorderStyle(fieldErrors, "package_weight_kg")}
+                    value={variant.package_weight_kg ?? ""}
+                    onChange={(e) => {
+                        patchVariant({ package_weight_kg: e.target.value })
+                        setErr(false)
+                    }}
+                />
+                {fieldErrors.package_weight_kg ? <p className={styles.errText}>{fieldErrors.package_weight_kg}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Width mm</p>
+                <p>{t('item.packageWidthCm')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.width}
+                    style={fieldBorderStyle(fieldErrors, "package_width_cm")}
+                    value={variant.package_width_cm ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, width: e.target.value }
-                        )
+                        patchVariant({ package_width_cm: e.target.value })
                         setErr(false)
                     }}
                 />
+                {fieldErrors.package_width_cm ? <p className={styles.errText}>{fieldErrors.package_width_cm}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Height mm</p>
+                <p>{t('item.packageHeightCm')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.height}
+                    style={fieldBorderStyle(fieldErrors, "package_height_cm")}
+                    value={variant.package_height_cm ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, height: e.target.value }
-                        )
+                        patchVariant({ package_height_cm: e.target.value })
                         setErr(false)
                     }}
                 />
+                {fieldErrors.package_height_cm ? <p className={styles.errText}>{fieldErrors.package_height_cm}</p> : null}
             </label>
 
             <label className={styles.inpLabel}>
-                <p>Length mm</p>
+                <p>{t('item.packageLengthCm')}</p>
                 <input
                     className={styles.nameInp}
                     type="text"
-                    value={newVariant.length}
+                    style={fieldBorderStyle(fieldErrors, "package_length_cm")}
+                    value={variant.package_length_cm ?? ""}
                     onChange={(e) => {
-                        setNewVariant({ ...newVariant, length: e.target.value }
-                        )
+                        patchVariant({ package_length_cm: e.target.value })
                         setErr(false)
                     }}
                 />
+                {fieldErrors.package_length_cm ? <p className={styles.errText}>{fieldErrors.package_length_cm}</p> : null}
             </label>
 
-            {/* <div className={styles.priceDiv}>
-                <input
-                    type="text"
-                    value={newVariant.price || ""}
-                    onChange={(e) => {
-                        setNewVariant({ ...newVariant, price: e.target.value })
-                        setErr(false)
-                    }}
-                    placeholder={t('item.price')}
-                />
-                <button onClick={() => handleDeleteVariant(variant.id, variant)}>
-                    <img src={deleteIcon} alt="" />
-                </button>
-            </div> */}
             {
                 url ?
                     (
                         <div className={styles.variantImageWrap}>
                             <img src={url} alt="" />
-                            <button onClick={handleDeleteUrl}>
+                            <button type="button" onClick={handleDeleteUrl}>
                                 <img src={deleteImageIcon} alt="" />
                             </button>
                         </div>
                     ) :
-                    <label className={type === "text" ? styles.addPhotoDivDis : styles.addPhotoDiv} onClick={handleLabelClick}>
+                    <label className={styles.addPhotoDiv} onClick={handleLabelClick}>
                         <p>{t('goods.addPhotos')}</p>
-                        <input disabled={type === "text"} onChange={handleChangeFile} type="file" accept="image/*,video/*" />
+                        <input onChange={handleChangeFile} type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" />
                     </label>
             }
+            {fileError ? <p className={styles.errText}>{fileError}</p> : null}
 
-            <button className={styles.deleteVariantBtn} onClick={() => handleDeleteVariant(variant.id, variant)}>
+            <button className={styles.deleteVariantBtn} type="button" onClick={() => handleDeleteVariant(variant.id, variant)}>
                 <img src={closeWhIc} alt="" />
-                Delete
+                {t('item.deleteVariant')}
             </button>
         </div>
     )

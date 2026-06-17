@@ -1,45 +1,94 @@
   import { useFormik } from "formik";
   import { useNavigate } from "react-router-dom";
-  import { useEffect, useState } from "react";
+  import { useEffect, useMemo, useState } from "react";
   import { useSelector } from "react-redux";
   import { useTranslation } from "react-i18next";
 
-  import { postSellerProduct, postSellerImages, postSellerParameters, postSellerVariants } from "../../../../api/seller/sellerProduct";
   import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
-  import { validateGoods } from "../../../../code/validation/validationGoods";
+  import { getValidateGoods } from "../../../../code/validation/validationGoods";
   import CreateFormInp from "../../../../ui/Seller/create/createFormInp/CreateFormInp";
   import CreateCharacInp from "../../../../ui/Seller/create/createCharacteristicsInp/CreateCharacInp";
   import SellerCreateImage from "../sellerCreateImages/SellerCreateImage";
   import SellerCreateVariants from "../sellerCreateVariants/SellerCreateVariants";
   import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain";
   import CreateLisence from "../createLisence/CreateLisence"
+  import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
+import {
+    getCategorySchemaNotReadyMessage,
+    isCategoryAttributeSchemaReady,
+    isProductVariantsValid,
+    validateAttributeDraft,
+    validateProductVariants,
+} from "../../../../utils/sellerProductWizard";
 
   import styles from "./SellerCreateForm.module.scss";
   import CheckBox from "../../../../ui/CheckBox/CheckBox";
+
+  const FormSection = ({ title, children }) => (
+    <section className={styles.formSection}>
+      {title ? <h3 className={styles.sectionTitle}>{title}</h3> : null}
+      <div className={styles.sectionBody}>{children}</div>
+    </section>
+  );
 
   const
     SellerCreateForm = () => {
       const navigate = useNavigate();
 
+      const {
+        name,
+        lengthMain,
+        product_description,
+        widthMain,
+        heightMain,
+        weightMain,
+        category,
+        variantsName,
+        variantsMain,
+        images,
+        product_parameters,
+        item,
+        barcode,
+        additional_details,
+        country_of_origin,
+        warranty_months,
+        vat_rate,
+        is_age,
+        attributeSchema,
+        attributeValues,
+        attributeErrors,
+        attributeSchemaStatus
+      } = useSelector(state => state.create_prev)
+
       const [files, setFiles] = useState([])
-      const [parameters, setParameters] = useState([])
+      const [parameters, setParameters] = useState(() => (
+        Array.isArray(product_parameters) ? [...product_parameters] : []
+      ))
       const [variants, setVariants] = useState([])
       const [imageErr, setImageErr] = useState(false)
       const [categoryErr, setCategoryErr] = useState(false)
       const [parametersErr, setParametersErr] = useState(false)
       const [varNameErr, setVarNameErr] = useState(false)
       const [varErr, setVarErr] = useState(false)
+      const [variantValidation, setVariantValidation] = useState({ name: null, section: null, variants: {} })
 
-
-      const { name, lengthMain, product_description, widthMain, heightMain, weightMain, category, variantsName, variantsMain, images, product_parameters, item, barcode, additional_details, vat_rate, is_age, type } = useSelector(state => state.create_prev)
-
-      const { setName, setDescription, setCategory, setParametersPrev, setLength, setWidth, setHeigth, setWeight, setValues, setType } = useActionCreatePrev()
+      const {
+        setName,
+        setDescription,
+        setCategory,
+        setParametersPrev,
+        setValues,
+        fetchCreateCategoryAttributeSchema,
+        setAttributeValue,
+        setAttributeErrors
+      } = useActionCreatePrev()
 
       const { categoriesStage } = useSelector(state => state.create)
+      const authToken = useSelector(state => state.auth.token)
 
       const { t } = useTranslation('sellerHome')
 
-
+      const validationSchema = useMemo(() => getValidateGoods(t), [t]);
 
       const formik = useFormik({
         initialValues: {
@@ -52,10 +101,12 @@
           item: item,
           barcode: barcode,
           additional_details: additional_details,
+          country_of_origin: country_of_origin,
+          warranty_months: warranty_months,
           vat_rate: vat_rate,
           is_age: is_age
         },
-        validationSchema: validateGoods,
+        validationSchema,
         onSubmit: (values) => {
 
           setValues({ ...values })
@@ -69,8 +120,17 @@
       // ? preview
 
       useEffect(() => {
-        setCategory(categoriesStage[categoriesStage?.length - 1])
+        const selectedCategory = categoriesStage?.[categoriesStage.length - 1]
+        if (selectedCategory) {
+          setCategory(selectedCategory)
+        }
       }, [categoriesStage])
+
+      useEffect(() => {
+        if (category?.id && authToken?.access) {
+          fetchCreateCategoryAttributeSchema(category.id)
+        }
+      }, [category?.id, authToken?.access])
 
 
       useEffect(() => {
@@ -82,51 +142,31 @@
         const isImagesValid = images.length > 0;
         const isCategoryValid = Boolean(category);
         const isParametersValid =
-          product_parameters?.length > 0 &&
+          !product_parameters?.length ||
           product_parameters.every(
             (item) => item.name?.trim() && item.value?.trim()
           );
-        const isVarNameErrValid = variantsName.length > 0
-        let isVariantValid;
-
-      
-        console.log(type);
-        
-
-        if (type === "text") {
-          isVariantValid =
-            variantsMain?.length > 0 &&
-            variantsMain.every(
-              (item) =>
-                item.price?.trim() &&
-                !isNaN(Number(item.price)) &&
-                item.text?.trim()
-            );
-        } else {
-          isVariantValid =
-            variantsMain?.length > 0 &&
-            variantsMain.every(
-              (item) =>
-                item.price?.trim() &&
-                !isNaN(Number(item.price)) &&
-                item.image?.trim()
-            );
+        const isSchemaReady = isCategoryAttributeSchemaReady(category, attributeSchema, attributeSchemaStatus)
+        const nextAttributeErrors = validateAttributeDraft(attributeSchema?.attributes || [], attributeValues || {}, t)
+        if (isCategoryValid && !isSchemaReady) {
+          nextAttributeErrors.schema = getCategorySchemaNotReadyMessage(t)
         }
-
-          console.log(isVariantValid);
-
-        console.log(variantsMain);
-        
-
-
+        const areAttributesValid = Object.keys(nextAttributeErrors).length === 0
+        const nextVariantValidation = validateProductVariants(
+          { variantsName, variants: variantsMain },
+          t
+        );
+        const isVariantValid = isProductVariantsValid(nextVariantValidation);
 
         setCategoryErr(!isCategoryValid);
         setImageErr(!isImagesValid);
         setParametersErr(!isParametersValid)
-        setVarNameErr(!isVarNameErrValid)
-        setVarErr(!isVariantValid)
+        setVarNameErr(Boolean(nextVariantValidation.name));
+        setVarErr(!isVariantValid);
+        setVariantValidation(nextVariantValidation);
+        setAttributeErrors(nextAttributeErrors)
 
-        if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid) {
+        if (isImagesValid && isCategoryValid && isParametersValid && isVariantValid && areAttributesValid) {
           formik.handleSubmit();
         }
       };
@@ -137,150 +177,144 @@
 
       return (
         <div className={styles.main}>
-          <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
-            setName({ name: e.target.value })
-            formik.handleChange(e)
-          }} titleSize={"big"} required={true} error={formik.errors.name} />
+          <FormSection>
+            <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} />
 
-          <SellerCreateImage setErr={setImageErr} err={imageErr} setFilesMain={setFiles} />
-          <CreateLisence />
-
-          <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} />
-
-          <CreateFormInp
-            name="product_description"
-            value={formik.values.product_description}
-            {...formik}
-            handleChange={(e) => {
-              setDescription(e.target.value)
+            <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
+              setName({ name: e.target.value })
               formik.handleChange(e)
-            }}
-            text={t('goods.description')}
-            titleSize={"small"}
-            required={true}
-            textarea={true}
-            error={formik.errors.product_description}
-          />
+            }} titleSize={"big"} required={true} error={formik.errors.name} placeholder={t('goods.placeholders.productName')} />
+          </FormSection>
 
-          <CreateCharacInp err={parametersErr} setErr={setParametersErr} setParameters={setParameters} />
+          <FormSection>
+            <SellerCreateImage setErr={setImageErr} err={imageErr} setFilesMain={setFiles} />
+          </FormSection>
 
-          <CreateFormInp
-            name='barcode'
-            value={formik.values.barcode}
-            text={t('item.barcode')}
-            titleSize={"small"}
-            {...formik}
-            handleChange={(e) => {
-              setDescription(e.target.value)
-              formik.handleChange(e)
-            }}
+          <FormSection>
+            <CreateFormInp
+              name="product_description"
+              value={formik.values.product_description}
+              {...formik}
+              handleChange={(e) => {
+                setDescription(e.target.value)
+                formik.handleChange(e)
+              }}
+              text={t('goods.description')}
+              titleSize={"small"}
+              required={true}
+              textarea={true}
+              error={formik.errors.product_description}
+              placeholder={t('goods.placeholders.productDescription')}
+            />
+          </FormSection>
 
-          />
-          <CreateFormInp
-            name='item'
-            value={formik.values.item}
-            text={t('item.name')}
-            titleSize={"small"}
-            {...formik}
-            handleChange={formik.handleChange}
-            required={true}
-            error={formik.errors.item}
-            num={true}
-          />
+          <FormSection title={t('goods.categoryAttributesTitle')}>
+            <SellerCategoryAttributesFields
+              schema={attributeSchema?.attributes || []}
+              values={attributeValues}
+              errors={attributeErrors}
+              loading={attributeSchemaStatus === "pending"}
+              onChange={(attributeId, value) => setAttributeValue({ attributeId, value })}
+            />
+            <CreateCharacInp err={parametersErr} setErr={setParametersErr} setParameters={setParameters} />
+          </FormSection>
 
-          <CreateFormInp
-            name="additional_details"
-            value={formik.values.additional_details}
-            {...formik}
-            handleChange={(e) => {
-              formik.handleChange(e)
-            }}
-            text={"Additional details"}
-            // text={t('goods.description')}
-            titleSize={"small"}
-            textarea={true}
-          />
+          <FormSection title={t('goods.variantsSectionTitle')}>
+            <CreateFormInp
+              name='vat_rate'
+              value={formik.values.vat_rate}
+              text={t('goods.vatRate')}
+              titleSize={"small"}
+              {...formik}
+              handleChange={formik.handleChange}
+              error={formik.errors.vat_rate}
+              num={true}
+              decimal={true}
+              placeholder={t('goods.placeholders.vatRate')}
+            />
+            <SellerCreateVariants
+              err={varErr}
+              setErr={setVarErr}
+              errName={varNameErr}
+              setErrName={setVarNameErr}
+              variantValidation={variantValidation}
+              setMainVariants={setVariants}
+            />
+          </FormSection>
 
-          <CreateFormInp
-            name='vat_rate'
-            value={formik.values.vat_rate}
-            // text={t('item.name')}
-            text={'Vat rate'}
-            titleSize={"small"}
-            {...formik}
-            handleChange={formik.handleChange}
-            required={true}
-            error={formik.errors.vat_rate}
-            num={true}
-          />
+          <FormSection title={t('goods.documentsSectionTitle')}>
+            <CreateLisence />
+          </FormSection>
 
-          <label className={styles.isAgeLabel}>
-            <CheckBox check={is_age} onChange={(v) => setValues({ is_age: v })} style={{ borderRadius: "4px" }} />
-            Is age restricted (18+)
-          </label>
-
-          {/* <div className={styles.priceDiv}>
-          <CreateFormInp
-            text={"Your price"}
-            titleSize={"small"}
-            required={true}
-            style={{ width: "calc(100vw)" }}
-          />
-          <CreateFormInp
-            style={{ width: "calc(100vw / 2 - 100px)" }}
-            text={"Discounted price"}
-            titleSize={"small"}
-          />
-        </div> */}
-
-          <h4 className={styles.wightTitle}>{t('item.dimensions_weight')}</h4>
-
-          <CreateFormInp name={"length"}
-            value={formik.values.length}
-            {...formik} handleChange={(e) => {
-              formik.handleChange(e)
-              setLength({ length: e.target.value })
-            }} text={t('item.package_length')}
-            titleSize={"small"}
-            error={formik.errors.length}
-            num={true}
-          />
-
-          <CreateFormInp name={"width"}
-            value={formik.values.width} {
-            ...formik} handleChange={(e) => {
-              formik.handleChange(e)
-              setWidth({ width: e.target.value })
-            }} text={t('item.package_width')}
-            titleSize={"small"}
-            error={formik.errors.width}
-            num={true}
-          />
-
-          <CreateFormInp name={"height"}
-            value={formik.values.height}
-            {...formik} handleChange={(e) => {
-              formik.handleChange(e)
-              setHeigth({ height: e.target.value })
-            }} text={t('item.package_height')}
-            titleSize={"small"}
-            error={formik.errors.height}
-            num={true}
-          />
-
-          <CreateFormInp name={"weight"}
-            value={formik.values.weight}
-            {...formik} handleChange={(e) => {
-              formik.handleChange(e)
-              setWeight({ weight: e.target.value })
-            }} text={t('item.package_weight')}
-            titleSize={"small"}
-            error={formik.errors.weight}
-
-            num={true} />
-
-
-          <SellerCreateVariants err={varErr} setErr={setVarErr} type={type} setType={setType} errName={varNameErr} setErrName={setVarNameErr} setMainVariants={setVariants} />
+          <details className={styles.additionalDetails}>
+            <summary>{t('goods.additionalSellerDetailsTitle')}</summary>
+            <div className={styles.additionalDetailsBody}>
+              <CreateFormInp
+                name="additional_details"
+                value={formik.values.additional_details}
+                {...formik}
+                handleChange={formik.handleChange}
+                text={t('goods.additionalDetailsLabel')}
+                titleSize={"small"}
+                textarea={true}
+                placeholder={t('goods.placeholders.additionalDetails')}
+              />
+              <CreateFormInp
+                name="country_of_origin"
+                value={formik.values.country_of_origin}
+                text={t('goods.countryOfOriginLabel')}
+                titleSize={"small"}
+                {...formik}
+                handleChange={formik.handleChange}
+                placeholder={t('goods.placeholders.countryOfOrigin')}
+              />
+              <CreateFormInp
+                name="warranty_months"
+                value={formik.values.warranty_months}
+                text={t('goods.warrantyMonthsLabel')}
+                titleSize={"small"}
+                {...formik}
+                handleChange={formik.handleChange}
+                error={formik.errors.warranty_months}
+                num={true}
+                digitsOnly={true}
+                placeholder={t('goods.placeholders.warrantyMonths')}
+              />
+              <CreateFormInp
+                name='barcode'
+                value={formik.values.barcode}
+                text={t('goods.barcodeLabel')}
+                titleSize={"small"}
+                {...formik}
+                handleChange={formik.handleChange}
+                digitsOnly={true}
+                placeholder={t('goods.placeholders.barcode')}
+              />
+              <CreateFormInp
+                name='item'
+                value={formik.values.item}
+                text={t('goods.sellerArticleLabel')}
+                titleSize={"small"}
+                {...formik}
+                handleChange={formik.handleChange}
+                error={formik.errors.item}
+                num={true}
+                digitsOnly={true}
+                placeholder={t('goods.placeholders.sellerArticle')}
+              />
+              <label className={styles.isAgeLabel}>
+                <CheckBox
+                  check={is_age}
+                  onChange={(v) => {
+                    setValues({ is_age: v })
+                    formik.setFieldValue("is_age", v)
+                  }}
+                  style={{ borderRadius: "4px" }}
+                />
+                {t('goods.ageRestrictedLabel')}
+              </label>
+            </div>
+          </details>
 
           <div className={styles.footerBtnWrap}>
             <button onClick={() => navigate(-1)}>{t('item.cancel')}</button>

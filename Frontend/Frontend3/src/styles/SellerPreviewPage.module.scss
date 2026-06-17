@@ -42,4 +42,31 @@
       }
     }
   }
+
+  & button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+}
+
+.reviewWarning {
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid #f59e0b;
+  background: #fffbeb;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 150%;
+  color: #78350f;
+}
+
+.previewLoading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 150%;
+  color: #64748b;
 }

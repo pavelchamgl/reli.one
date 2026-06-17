@@ -14,6 +14,7 @@ import { Navigation } from "swiper/modules";
 
 import createMaskImg from "../../../../assets/Seller/create/fileIcon.svg";
 import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
+import { validateLicenseFiles } from "../../../../utils/sellerProductWizard";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
 import arrRight from "../../../../assets/Seller/create/arrRight.svg";
 import deleteCommentImage from "../../../../assets/Product/deleteCommentImage.svg";
@@ -24,6 +25,7 @@ const EditLicense = () => {
     const [imageUrls, setImageUrls] = useState([]);
     const [files, setFiles] = useState([]);
     const [isDisabled, setIsDisabled] = useState(false)
+    const [fileError, setFileError] = useState("")
 
     const isMobile = useMediaQuery({ maxWidth: 427 })
 
@@ -50,7 +52,13 @@ const EditLicense = () => {
 
     const handleChangeFile = (e) => {
         const newFiles = Array.from(e.target.files);
-        const updateFiles = [...files, ...newFiles];
+        const nextError = validateLicenseFiles(newFiles);
+        if (nextError) {
+            setFileError(nextError);
+            e.target.value = "";
+            return;
+        }
+        setFileError("");
 
         const readFilesAsBase64 = (files) => {
             return Promise.all(
@@ -88,6 +96,7 @@ const EditLicense = () => {
     };
 
     const handleDelete = (item) => {
+        setFileError("");
         if (item?.status === "server") {
             fetchDeleteLicense({
                 prodId: id,
@@ -110,12 +119,12 @@ const EditLicense = () => {
                     <input
                         onChange={handleChangeFile}
                         type="file"
-                        accept=".pdf,.doc,.docx"
-                        multiple
+                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         disabled={isDisabled}
                     />
                 </label>
             </div>
+            {fileError ? <p className={styles.errText}>{fileError}</p> : null}
             <div className={styles.sliderContainer}>
                 <>
                     <Swiper

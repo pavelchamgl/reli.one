@@ -5,11 +5,11 @@ const SellerPageContainer = ({ children }) => {
   const isMobile = useMediaQuery({ maxWidth: 400 });
 
   let style = {
-    padding: "0 100px",
+    padding: "0 102px",
   };
   if (isPlanshet) {
     style = {
-      padding: "0 50px",
+      padding: "0 51px",
     };
   }
   if (isMobile) {

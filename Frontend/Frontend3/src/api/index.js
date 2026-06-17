@@ -27,6 +27,25 @@ export function resetNetworkToastShown() {
   networkToastShown = false;
 }
 
+const readTokenFromLocalStorage = () => {
+  try {
+    const raw = localStorage.getItem("token");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.access ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const readTokenFromStore = () => {
+  const token = getInjectedStore()?.getState()?.auth?.token;
+  return token?.access ? token : null;
+};
+
+/** JWT из localStorage `token` или redux-persist `auth` (fallback). */
+export const resolveAuthToken = () => readTokenFromLocalStorage() || readTokenFromStore();
+
 const processQueue = (error, token = null) => {
   failedQueue.forEach(prom => {
     error ? prom.reject(error) : prom.resolve(token);
@@ -38,7 +57,7 @@ const processQueue = (error, token = null) => {
 
 // Добавление интерцептора запроса
 mainInstance.interceptors.request.use(config => {
-  const token = localStorage.getItem("token") ? JSON.parse(localStorage.getItem("token")).access : '';
+  const token = resolveAuthToken()?.access;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -56,7 +75,7 @@ export const formDataInstance = axios.create({
 });
 
 formDataInstance.interceptors.request.use(config => {
-  const token = localStorage.getItem("token") ? JSON.parse(localStorage.getItem("token")).access : '';
+  const token = resolveAuthToken()?.access;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -116,8 +135,8 @@ const responseInterceptor = async (err) => {
   if (err.response?.status === 401 && !originalRequest._retry) {
     originalRequest._retry = true;
 
-    const tokenData = localStorage.getItem("token");
-    if (!tokenData) {
+    const parsedToken = resolveAuthToken();
+    if (!parsedToken?.refresh) {
       return Promise.reject(err);
     }
 
@@ -137,8 +156,6 @@ const responseInterceptor = async (err) => {
     isRefreshing = true;
 
     try {
-      const parsedToken = JSON.parse(tokenData);
-
       const { data } = await axios.post(
         `${BaseURL}/accounts/token/refresh/`,
         { refresh: parsedToken.refresh }

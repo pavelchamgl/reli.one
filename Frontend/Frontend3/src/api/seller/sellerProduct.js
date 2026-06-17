@@ -1,4 +1,5 @@
 import mainInstance from "..";
+import { formatApiErrorMessage, mapVariantDraftToPayload } from "../../utils/sellerProductWizard";
 
 export const postSellerProduct = async (obj) => {
     try {
@@ -8,8 +9,7 @@ export const postSellerProduct = async (obj) => {
         console.error("Ошибка при отправке данных продавца:", error);
 
         if (error.response) {
-            // Сервер ответил с кодом ошибки (4xx, 5xx)
-            throw new Error(error.response.data?.message || "Ошибка на сервере");
+            throw new Error(formatApiErrorMessage(error.response.data, "Ошибка на сервере"));
         } else if (error.request) {
             // Запрос был сделан, но ответа нет
             throw new Error("Сервер не отвечает. Проверьте соединение.");
@@ -82,15 +82,17 @@ export const postSellerVariants = async (id, obj) => {
         throw new Error("Некорректные входные данные: отсутствует ID или список вариантов");
     }
 
-    const queryData = obj.variants.map(({ price, image, text, weight, width, length, height }) => ({
-        price,
-        name: obj.name,
-        weight_grams: weight,
-        width_mm: width,
-        length_mm: length,
-        height_mm: height,
-        ...(image ? { image } : { text }),
-    }));
+    const queryData = obj.variants.map((variant) => mapVariantDraftToPayload(
+        {
+            ...obj.fallbackDimensions,
+            ...variant,
+            weight: variant.weight || variant.package_weight_kg || obj.fallbackDimensions?.weight,
+            width: variant.width || variant.package_width_cm || obj.fallbackDimensions?.width,
+            length: variant.length || variant.package_length_cm || obj.fallbackDimensions?.length,
+            height: variant.height || variant.package_height_cm || obj.fallbackDimensions?.height,
+        },
+        obj.name
+    ));
 
     try {
         const res = await mainInstance.post(
@@ -156,7 +158,4 @@ export const getSellerProductById = async (id) => {
         throw error
     }
 }
-
-
-
 

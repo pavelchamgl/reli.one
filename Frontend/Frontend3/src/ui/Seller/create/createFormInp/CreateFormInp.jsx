@@ -11,7 +11,11 @@ const CreateFormInp = ({
   name,
   value,
   error,
-  num
+  num,
+  digitsOnly = false,
+  decimal = false,
+  disabled = false,
+  placeholder
 }) => {
   const titleClass =
     titleSize === "big"
@@ -22,6 +26,22 @@ const CreateFormInp = ({
         ? styles.titleSRequired
         : styles.titleSmall;
 
+  const handleInputChange = (event) => {
+    let { value } = event.target;
+
+    if (decimal) {
+      value = value.replace(/[^0-9.,]/g, "");
+      event.target.value = value;
+    } else if (digitsOnly) {
+      value = value.replace(/\D/g, "");
+      event.target.value = value;
+    } else if (num && value.includes("-")) {
+      return;
+    }
+
+    handleChange(event);
+  };
+
   return (
     <label style={style} className={error ? styles.labelErr : styles.label}>
       <p className={titleClass}>{text}</p>
@@ -31,16 +51,20 @@ const CreateFormInp = ({
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
-          style={{ fontFamily: num ? "var(--ft)" : "" }}
+          placeholder={placeholder}
+          disabled={disabled}
+          style={{ fontFamily: (num || digitsOnly || decimal) ? "var(--ft)" : undefined }}
         />
         :
         <input
           name={name}
           value={value}
           onBlur={handleBlur}
-          onChange={handleChange}
+          onChange={handleInputChange}
           type="text"
-          style={{ fontFamily: num ? "var(--ft)" : "" }}
+          placeholder={placeholder}
+          disabled={disabled}
+          style={{ fontFamily: (num || digitsOnly || decimal) ? "var(--ft)" : undefined }}
         />
       }
       {error ? <p className={styles.errText}>{error}</p> : <></>}

@@ -1,72 +1,68 @@
-.priceDiv {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 50px;
-}
+@use "../../shared/sellerProductForm" as form;
 
 .main {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  width: 850px;
-  @media (max-width: 1050px) {
-    width: 100%;
+  @include form.sellerFormPageMain;
+}
+
+.formSection {
+  @include form.sellerFormSection;
+}
+
+.sectionTitle {
+  @include form.sellerFormSectionTitle;
+}
+
+.sectionBody {
+  @include form.sellerFormSectionBody;
+}
+
+.additionalDetails {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 24px;
+
+  & summary {
+    cursor: pointer;
+    @include form.sellerFormSectionTitle;
   }
+}
+
+.additionalDetailsBody {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .footerBtnWrap {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 40px;
+  margin-top: 24px;
+
   & button {
-    font-weight: 400;
-    font-size: clamp(14px, 2.5vw, 20px);
-    line-height: 150%;
-    letter-spacing: -0.02em;
+    @include form.sellerFormActionButton;
     text-align: center;
     color: #fff;
     background: #64748b;
-    width: clamp(115px, 2.5vw, 210px);
-    height: clamp(30px, 2.5vw, 39px);
+    width: 210px;
+    height: 40px;
+    border: none;
+    border-radius: 4px;
   }
+
   & button:nth-child(2) {
     background: #047857;
   }
+
   & button:disabled {
     background-color: #81868b;
   }
-}
-
-.wightTitle {
-  font-weight: 400;
-  font-size: clamp(20px, 2.5vw, 30px);
-  color: #000;
-  margin-top: clamp(20px, 2.5vw, 45px);
-  margin-bottom: clamp(10px, 2.5vw, 15px);
-  position: relative;
-  width: max-content;
-  padding-right: 10px;
-}
-
-.wightTitle::after {
-  content: "*";
-  display: block;
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
 }
 
 .isAgeLabel {
   display: flex;
   align-items: center;
   gap: 12px;
-
-  font-weight: 400;
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 1.4;
   color: #000;
 }
-
-
