@@ -143,6 +143,8 @@ stateDiagram-v2
 | Модерация (approve/reject) | Менеджер / Админ |
 | Добавление в избранное | Покупатель |
 
+**Django admin (модерация товаров):** очередь `pending` по умолчанию, approve/reject через `product.services_moderation` и custom URLs в `product/admin.py`. Детали: [iteration-8-admin-moderation-upgrade.md](../tasks/024-product-catalog-modernization/iteration-8-admin-moderation-upgrade.md).
+
 ### Backend apps
 - `product` — модели, views, сериализаторы
 - `sellers` — ViewSets для управления товарами продавца
