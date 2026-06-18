@@ -1,6 +1,6 @@
 # Iteration 7.2 — Seller Product Form UX Restructure
 
-**Статус:** frontend UX restructure  
+**Статус:** done (create + edit UI/UX parity)  
 **Scope:** порядок блоков и полей seller create/edit product form поверх Iteration 7 и 7.1  
 **Язык:** русский, technical terms оставлены на English
 
@@ -157,6 +157,41 @@
 
 ---
 
+## Edit Parity (2026-06)
+
+Create и edit используют один и тот же UX-эталон (секции, i18n, validation, spacing). Edit-only поведение сохранено.
+
+### Shared UI и helpers
+
+| Элемент | Файл / паттерн |
+| --- | --- |
+| Порядок секций, placeholders, input constraints | `SellerCreateForm.jsx` ↔ `EditGoodsForm.jsx` |
+| Категория на edit без re-select | `CreateCategoryMain` + prop `readOnlyCategory={{ id, name }}`; **не** читает `edit_goods` |
+| Legacy characteristics (видимые) | `CreateCharacInp` / `EditGoodsParameters` |
+| Dimension rows filter | `Components/Seller/shared/sellerProductParameters.js` — `isDimensionParameterRow`, `getVisibleProductParameters` |
+| Form validation | `getValidateGoods(t)`, `validateAttributeDraft(..., t)`, `validateProductVariants(..., t)` из `sellerProductWizard.js` |
+
+### Legacy `ProductParameter` dimension rows
+
+Строки с именами `length` / `width` / `height` / `weight` (case-insensitive) **скрыты в UI**, но остаются в Redux/API. Preview/save validation проверяет только **visible** rows через `getVisibleProductParameters`.
+
+### Edit-only (не регрессировать)
+
+- `fetchSellerProductById` + Redux `edit_goods`
+- `status: local|server` для variants, parameters, images, license
+- Server deletes: `fetchDeleteVariant`, `fetchDeleteParameters`, `fetchDeleteImage`, `fetchDeleteLicense`
+- System SKU read-only в variant card
+- Preview: `/seller/edit-preview/:id`
+
+### Tests
+
+```bash
+npm --prefix Frontend/Frontend3 run test -- src/Components/Seller/shared/sellerProductParameters.test.js
+npm --prefix Frontend/Frontend3 run test -- src/redux/sellerProductWizardSlices.test.js
+```
+
+---
+
 ## Manual QA Checklist
 
 1. Открыть create product form.
@@ -177,12 +212,16 @@
 16. Проверить, что package dimensions в edit не смешиваются с physical product dimensions.
 17. Проверить, что SKU в edit read-only, если есть.
 18. Проверить, что unknown future fields не отправляются в API.
+19. Side-by-side `/seller/seller-create` vs `/seller/seller-edit/:id`: секции, шрифты, spacing, variant grid.
+20. CZ locale на edit: нет hardcoded EN в форме.
+21. Edit с dimension-params с API: preview не блокируется из-за скрытых dimension rows.
 
 ---
 
 ## Verification Commands
 
 ```bash
+npm --prefix Frontend/Frontend3 run test -- src/Components/Seller/shared/sellerProductParameters.test.js
 npm --prefix Frontend/Frontend3 run test -- src/redux/sellerProductWizardSlices.test.js
 npm --prefix Frontend/Frontend3 run build
 cd Frontend/Frontend3 && npx playwright test e2e/catalog-regression-smoke.spec.js

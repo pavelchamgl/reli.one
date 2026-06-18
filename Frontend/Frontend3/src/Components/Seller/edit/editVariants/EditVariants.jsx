@@ -7,6 +7,13 @@ import { resolveVariantImagePreview, validateProductImageFiles } from "../../../
 
 import styles from "./EditVariants.module.scss"
 
+const rejectNegativeValue = (value) => value.includes("-");
+
+const sanitizeDecimalNumericInput = (value) => {
+    if (rejectNegativeValue(value)) return null;
+    return value.replace(/[^0-9.,]/g, "");
+};
+
 const fieldBorderStyle = (fieldErrors, fieldName) => (
     fieldErrors?.[fieldName] ? { border: "1px solid #dc2626" } : undefined
 );
@@ -73,14 +80,14 @@ const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setE
                         patchVariant({ text: e.target.value })
                         setErr(false)
                     }}
-                    placeholder={t('item.color_name')}
+                    placeholder={t('goods.placeholders.variantValue')}
                 />
                 {fieldErrors.text ? <p className={styles.errText}>{fieldErrors.text}</p> : null}
             </label>
 
             {variant.sku ? (
                 <label className={styles.inpLabel}>
-                    <p>System SKU</p>
+                    <p>{t('item.systemSku')}</p>
                     <input
                         className={styles.nameInp}
                         type="text"
@@ -99,10 +106,12 @@ const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setE
                     style={fieldBorderStyle(fieldErrors, "price")}
                     value={variant.price ?? ""}
                     onChange={(e) => {
-                        patchVariant({ price: e.target.value })
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        patchVariant({ price: nextValue })
                         setErr(false)
                     }}
-                    placeholder={t('item.price')}
+                    placeholder={t('goods.placeholders.salePrice')}
                 />
                 {fieldErrors.price ? <p className={styles.errText}>{fieldErrors.price}</p> : null}
             </label>
@@ -116,9 +125,11 @@ const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setE
                     style={fieldBorderStyle(fieldErrors, "quantity_in_stock")}
                     value={variant.quantity_in_stock ?? ""}
                     onChange={(e) => {
+                        if (rejectNegativeValue(e.target.value)) return;
                         patchVariant({ quantity_in_stock: e.target.value })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.stockQuantity')}
                 />
                 {fieldErrors.quantity_in_stock ? <p className={styles.errText}>{fieldErrors.quantity_in_stock}</p> : null}
             </label>
@@ -133,9 +144,12 @@ const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setE
                     style={fieldBorderStyle(fieldErrors, "package_weight_kg")}
                     value={variant.package_weight_kg ?? ""}
                     onChange={(e) => {
-                        patchVariant({ package_weight_kg: e.target.value })
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        patchVariant({ package_weight_kg: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageWeightKg')}
                 />
                 {fieldErrors.package_weight_kg ? <p className={styles.errText}>{fieldErrors.package_weight_kg}</p> : null}
             </label>
@@ -148,9 +162,12 @@ const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setE
                     style={fieldBorderStyle(fieldErrors, "package_width_cm")}
                     value={variant.package_width_cm ?? ""}
                     onChange={(e) => {
-                        patchVariant({ package_width_cm: e.target.value })
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        patchVariant({ package_width_cm: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageWidthCm')}
                 />
                 {fieldErrors.package_width_cm ? <p className={styles.errText}>{fieldErrors.package_width_cm}</p> : null}
             </label>
@@ -163,9 +180,12 @@ const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setE
                     style={fieldBorderStyle(fieldErrors, "package_height_cm")}
                     value={variant.package_height_cm ?? ""}
                     onChange={(e) => {
-                        patchVariant({ package_height_cm: e.target.value })
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        patchVariant({ package_height_cm: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageHeightCm')}
                 />
                 {fieldErrors.package_height_cm ? <p className={styles.errText}>{fieldErrors.package_height_cm}</p> : null}
             </label>
@@ -178,9 +198,12 @@ const EditVariants = ({ variant, onVariantChange, handleDeleteVariant, err, setE
                     style={fieldBorderStyle(fieldErrors, "package_length_cm")}
                     value={variant.package_length_cm ?? ""}
                     onChange={(e) => {
-                        patchVariant({ package_length_cm: e.target.value })
+                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        patchVariant({ package_length_cm: nextValue })
                         setErr(false)
                     }}
+                    placeholder={t('goods.placeholders.packageLengthCm')}
                 />
                 {fieldErrors.package_length_cm ? <p className={styles.errText}>{fieldErrors.package_length_cm}</p> : null}
             </label>

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
 
+import { getVisibleProductParameters } from "../../shared/sellerProductParameters";
 import styles from "./EditGoodsParameters.module.scss";
 
 const createEmptyRow = () => ({
@@ -70,27 +71,29 @@ const EditGoodsParameters = ({ parameters, err, setErr }) => {
     }
   };
 
+  const visibleRows = getVisibleProductParameters(characteristic);
+
   return (
     <div className={styles.main}>
       <div className={styles.titleDiv}>
         <p>{t('goods.characteristics')}</p>
         <button type="button" onClick={handleAdd}>{t('item.add')}</button>
       </div>
-      {characteristic.map((item) => (
+      {visibleRows.map((item) => (
         <div className={err ? styles.characWrapErr : styles.characWrap} key={item.id}>
           <input
             onChange={(e) => handleChange(e, item.id, "name")}
             type="text"
             value={item.name}
-            placeholder={`${t('item.column')} 1`}
+            placeholder={t('goods.placeholders.characteristicName')}
           />
           <input
             onChange={(e) => handleChange(e, item.id, "value")}
             type="text"
             value={item.value}
-            placeholder={`${t('item.column')} 2`}
+            placeholder={t('goods.placeholders.characteristicValue')}
           />
-          <button type="button" onClick={() => handleDelete(item)} aria-label="Delete characteristic">
+          <button type="button" onClick={() => handleDelete(item)} aria-label={t('goods.deleteCharacteristic')}>
             <img src={deleteIcon} alt="" />
           </button>
         </div>

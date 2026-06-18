@@ -13,6 +13,7 @@
   import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain";
   import CreateLisence from "../createLisence/CreateLisence"
   import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
+  import { getVisibleProductParameters } from "../../shared/sellerProductParameters";
 import {
     getCategorySchemaNotReadyMessage,
     isCategoryAttributeSchemaReady,
@@ -141,9 +142,10 @@ import {
       const handlePreviewClick = () => {
         const isImagesValid = images.length > 0;
         const isCategoryValid = Boolean(category);
+        const visibleParameters = getVisibleProductParameters(product_parameters);
         const isParametersValid =
-          !product_parameters?.length ||
-          product_parameters.every(
+          !visibleParameters.length ||
+          visibleParameters.every(
             (item) => item.name?.trim() && item.value?.trim()
           );
         const isSchemaReady = isCategoryAttributeSchemaReady(category, attributeSchema, attributeSchemaStatus)

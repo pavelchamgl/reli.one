@@ -52,7 +52,7 @@ const EditLicense = () => {
 
     const handleChangeFile = (e) => {
         const newFiles = Array.from(e.target.files);
-        const nextError = validateLicenseFiles(newFiles);
+        const nextError = validateLicenseFiles(newFiles, t);
         if (nextError) {
             setFileError(nextError);
             e.target.value = "";
@@ -114,7 +114,7 @@ const EditLicense = () => {
             <h3 className={styles.title}>{t('goods.license')}</h3>
             <div className={styles.btnRatioWrap}>
                 <p>{t('goods.formats')}</p>
-                <label className={isDisabled ? styles.addPhotosDisabled : styles.addPhotos}>
+                <label className={styles.addPhotos}>
                     <span>{t('goods.add_file')}</span>
                     <input
                         onChange={handleChangeFile}
@@ -148,7 +148,7 @@ const EditLicense = () => {
                                             // className={error ? styles.maskErr : styles.mask}
                                             className={styles.mask}
                                         >
-                                            <img src={createMaskImg} alt="mask" />
+                                            <img src={createMaskImg} alt="" />
                                         </div>
                                     </SwiperSlide>
                                 ))}
@@ -193,7 +193,7 @@ const EditLicense = () => {
                                                     // className={err ? styles.maskErr : styles.mask}
                                                     className={styles.mask}
                                                 >
-                                                    <img src={createMaskImg} alt="mask" />
+                                                    <img src={createMaskImg} alt="" />
                                                 </div>
                                             </div>
                                         </div>
@@ -203,7 +203,7 @@ const EditLicense = () => {
                                                     ? url?.name.slice(0, 12) + "..." + url?.name.slice(-4)  // Учитываем любое расширение
                                                     : url?.name
                                                 )
-                                                : "dock"
+                                                : t('goods.licenseFileFallback')
                                             }
                                         </p>
                                     </div>
