@@ -264,7 +264,7 @@
         "variantPackageWidthRequired": "Package width is required",
         "variantPackageHeightRequired": "Package height is required",
         "variantPackageLengthRequired": "Package length is required",
-        "variantPackageDimensionInvalid": "Enter a valid positive number"
+        "variantPackageDimensionInvalid": "Enter a positive whole number"
     },
     "edits": {
         "editingOfGoods": "Editing of goods"

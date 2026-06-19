@@ -265,7 +265,7 @@
         "variantPackageWidthRequired": "Šířka balení je povinná",
         "variantPackageHeightRequired": "Výška balení je povinná",
         "variantPackageLengthRequired": "Délka balení je povinná",
-        "variantPackageDimensionInvalid": "Zadejte kladné číslo"
+        "variantPackageDimensionInvalid": "Zadejte kladné celé číslo"
     },
     "edits": {
         "editingOfGoods": "Úprava zboží"

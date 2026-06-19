@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { useTranslation } from "react-i18next";
 
 vi.mock("../ui/Toastify", () => ({
   ErrToast: vi.fn(),
@@ -30,9 +31,9 @@ vi.mock("../api/seller/sellerWizard", () => ({
 }));
 
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
+  useTranslation: vi.fn(() => ({
     t: (key) => key,
-  }),
+  })),
 }));
 
 vi.mock("../../language/i18next", () => ({
@@ -147,10 +148,10 @@ const validCreateVariant = (overrides = {}) => ({
   text: "Black",
   price: "99.90",
   quantity_in_stock: "5",
-  weight: "2",
-  width: "20",
-  height: "10",
-  length: "30",
+  weight: "25.6",
+  width: "800",
+  height: "2060",
+  length: "40",
   image: null,
   ...overrides,
 });
@@ -589,10 +590,10 @@ describe("seller product wizard helpers", () => {
         text: "Black",
         price: "10",
         quantity_in_stock: "5",
-        weight: "2",
-        width: "20",
-        height: "10",
-        length: "30",
+        weight: "25.6",
+        width: "800",
+        height: "2060",
+        length: "40",
       }],
     });
 
@@ -835,10 +836,10 @@ describe("seller product wizard helpers", () => {
           price: "99.90",
           price_without_vat: "82.56",
           quantity_in_stock: "7",
-          length: "30",
-          width: "20",
-          height: "10",
-          weight: "1.5",
+          length: "40",
+          width: "800",
+          height: "2060",
+          weight: "25.6",
         },
       ],
     });
@@ -858,10 +859,10 @@ describe("seller product wizard helpers", () => {
       is_age_restricted: true,
     });
     expect(review.variants[0].packageDimensions).toMatchObject({
-      length: "30",
-      width: "20",
-      height: "10",
-      weight: "1.5",
+      length: "40",
+      width: "800",
+      height: "2060",
+      weight: "25.6",
     });
     expect(review.variants[0].stock).toBe("7");
   });
@@ -1382,6 +1383,20 @@ const renderProductInfo = (review) => render(
 );
 
 describe("seller review product layout regressions", () => {
+  const sellerHomeEnItemLabels = {
+    "item.packageHeightMm": "Package height, mm",
+    "item.packageWidthMm": "Package width, mm",
+    "item.packageLengthMm": "Package length, mm",
+    "item.packageWeightKg": "Package weight, kg",
+  };
+
+  beforeEach(() => {
+    useTranslation.mockImplementation(() => ({
+      t: (key) => sellerHomeEnItemLabels[key] ?? key,
+      i18n: { language: "en" },
+    }));
+  });
+
   it("renders preview banner with Preview mode text only", () => {
     render(
       React.createElement(SellerReviewProductLayout, {
@@ -1570,6 +1585,9 @@ describe("seller review product layout regressions", () => {
   });
 
   it("renders package dimensions for the active variant only", () => {
+    const variantOneDimensions = { height: "2000", width: "900", length: "45", weight: "25.6" };
+    const variantTwoDimensions = { height: "2100", width: "950", length: "48", weight: "26.5" };
+
     const { rerender } = render(
       React.createElement(SellerReviewDetailsSections, {
         review: makeReviewFixture({
@@ -1577,27 +1595,29 @@ describe("seller review product layout regressions", () => {
             {
               id: 1,
               value: "Dark steel",
-              packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+              packageDimensions: variantOneDimensions,
             },
             {
               id: 2,
               value: "Matte black",
-              packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+              packageDimensions: variantTwoDimensions,
             },
           ],
         }),
         activeVariant: {
           id: 1,
           value: "Dark steel",
-          packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+          packageDimensions: variantOneDimensions,
         },
       })
     );
 
-    expect(screen.getByText("item.packageHeightMm")).toBeTruthy();
-    expect(screen.getByText("item.packageLengthMm")).toBeTruthy();
-    expect(screen.getByText("200")).toBeTruthy();
-    expect(screen.queryByText("210")).toBeNull();
+    expect(screen.getByText("Package height, mm")).toBeTruthy();
+    expect(screen.getByText("Package width, mm")).toBeTruthy();
+    expect(screen.getByText("Package length, mm")).toBeTruthy();
+    expect(screen.getByText("Package weight, kg")).toBeTruthy();
+    expect(screen.getByText("45")).toBeTruthy();
+    expect(screen.queryByText("48")).toBeNull();
 
     rerender(
       React.createElement(SellerReviewDetailsSections, {
@@ -1606,25 +1626,25 @@ describe("seller review product layout regressions", () => {
             {
               id: 1,
               value: "Dark steel",
-              packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+              packageDimensions: variantOneDimensions,
             },
             {
               id: 2,
               value: "Matte black",
-              packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+              packageDimensions: variantTwoDimensions,
             },
           ],
         }),
         activeVariant: {
           id: 2,
           value: "Matte black",
-          packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+          packageDimensions: variantTwoDimensions,
         },
       })
     );
 
-    expect(screen.getByText("210")).toBeTruthy();
-    expect(screen.queryByText("200")).toBeNull();
+    expect(screen.getByText("48")).toBeTruthy();
+    expect(screen.queryByText("45")).toBeNull();
   });
 
   it("renders stock zero as 0 instead of Not specified", () => {

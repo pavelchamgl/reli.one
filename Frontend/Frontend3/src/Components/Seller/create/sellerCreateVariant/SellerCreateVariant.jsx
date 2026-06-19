@@ -4,19 +4,15 @@ import { useTranslation } from "react-i18next"
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
 import closeWhIc from "../../../../assets/Product/closeWhIcon.svg"
-import { resolveVariantImagePreview, validateProductImageFiles } from "../../../../utils/sellerProductWizard"
+import {
+    resolveVariantImagePreview,
+    sanitizeIntegerNumericInput,
+    validateProductImageFiles,
+} from "../../../../utils/sellerProductWizard"
 
 import styles from "./SellerCreateVariant.module.scss"
 
 const rejectNegativeValue = (value) => value.includes("-");
-
-const hasDecimalSeparator = (value) => /[.,]/.test(value);
-
-const sanitizeIntegerNumericInput = (value) => {
-    if (rejectNegativeValue(value)) return null;
-    if (hasDecimalSeparator(value)) return null;
-    return value.replace(/[^0-9]/g, "");
-};
 
 const sanitizeDecimalNumericInput = (value) => {
     if (rejectNegativeValue(value)) return null;

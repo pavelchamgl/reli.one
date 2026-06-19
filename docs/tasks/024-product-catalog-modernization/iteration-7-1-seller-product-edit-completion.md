@@ -52,13 +52,13 @@ Backend fields остаются legacy-named:
 Mapping:
 
 - `weight_grams -> package_weight_kg`;
-- `length_mm -> package_length_cm`;
-- `width_mm -> package_width_cm`;
-- `height_mm -> package_height_cm`;
+- `length_mm -> package_length_mm` (direct mm);
+- `width_mm -> package_width_mm` (direct mm);
+- `height_mm -> package_height_mm` (direct mm);
 - `package_weight_kg -> weight_grams`;
-- `package_length_cm -> length_mm`;
-- `package_width_cm -> width_mm`;
-- `package_height_cm -> height_mm`.
+- `package_length_mm -> length_mm`;
+- `package_width_mm -> width_mm`;
+- `package_height_mm -> height_mm`.
 
 В edit-flow package dimensions optional для legacy/server variants:
 
@@ -113,7 +113,7 @@ Existing edit delete endpoint используется только в рамк�
 5. Сменить category и убедиться, что старые typed values исчезли, новая schema загружается заново.
 6. Проверить edit variants:
    - labels показывают package dimensions for delivery;
-   - UI единицы: length/width/height в cm, weight в kg;
+   - UI единицы: length/width/height в mm, weight в kg;
    - сохранение не стирает dimensions, если поля не менялись.
 7. В create-flow выбрать invalid license file (`.doc`, `.docx`) и убедиться, что ошибка показана сразу.
 8. В edit-flow повторить invalid license file check.

@@ -210,6 +210,16 @@ export const gramsToKg = (value) => {
     return String(Number((numberValue / 1000).toFixed(3)));
 };
 
+const rejectNegativeNumericInput = (value) => value.includes("-");
+
+const hasDecimalSeparator = (value) => /[.,]/.test(value);
+
+export const sanitizeIntegerNumericInput = (value) => {
+    if (rejectNegativeNumericInput(value)) return null;
+    if (hasDecimalSeparator(value)) return null;
+    return value.replace(/[^0-9]/g, "");
+};
+
 const dimensionValue = (variant, packageField, legacyField) => (
     variant?.[packageField] !== undefined && variant?.[packageField] !== ""
         ? variant[packageField]
