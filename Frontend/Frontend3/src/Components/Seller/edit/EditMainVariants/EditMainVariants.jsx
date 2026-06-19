@@ -41,9 +41,9 @@ const EditMainVariants = ({ err, setErr, errName, setErrName, variantValidation 
                 status: "local",
                 quantity_in_stock: "",
                 package_weight_kg: "",
-                package_width_cm: "",
-                package_length_cm: "",
-                package_height_cm: ""
+                package_width_mm: "",
+                package_length_mm: "",
+                package_height_mm: ""
             }
         ])
     }

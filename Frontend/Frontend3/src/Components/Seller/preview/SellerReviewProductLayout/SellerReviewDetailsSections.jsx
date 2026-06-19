@@ -56,25 +56,27 @@ const StripedTable = ({ rows, emptyText = "No data added" }) => {
 };
 
 const PackageDimensionsSection = ({ activeVariant }) => {
+  const { t } = useTranslation("sellerHome");
+
   if (!activeVariant) return null;
 
   const dims = activeVariant.packageDimensions || {};
-  const hasDimensions = hasDisplayValue(dims.length)
+  const hasDimensions = hasDisplayValue(dims.height)
     || hasDisplayValue(dims.width)
-    || hasDisplayValue(dims.height)
+    || hasDisplayValue(dims.length)
     || hasDisplayValue(dims.weight);
 
   if (!hasDimensions) return null;
 
   return (
-    <BlackHeaderSection title="Package Dimensions For Delivery">
+    <BlackHeaderSection title={t("item.packageDimensions")}>
       <p className={styles.packageVariantLabel}>{activeVariant.value || "Default"}</p>
       <StripedTable
         rows={[
-          { label: "Package length, cm", value: dims.length },
-          { label: "Package width, cm", value: dims.width },
-          { label: "Package height, cm", value: dims.height },
-          { label: "Package weight, kg", value: dims.weight },
+          { label: t("item.packageHeightMm"), value: dims.height },
+          { label: t("item.packageWidthMm"), value: dims.width },
+          { label: t("item.packageLengthMm"), value: dims.length },
+          { label: t("item.packageWeightKg"), value: dims.weight },
         ]}
         emptyText="No package dimensions added"
       />

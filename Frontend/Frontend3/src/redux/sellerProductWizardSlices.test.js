@@ -503,7 +503,7 @@ describe("seller product wizard helpers", () => {
     expect(formatVatRateForInput("20.50")).toBe("20.5");
   });
 
-  it("maps backend package dimensions to edit kg/cm fields", () => {
+  it("maps backend package dimensions to edit kg/mm fields", () => {
     expect(
       mapVariantApiToEditDraft({
         id: 1,
@@ -514,9 +514,24 @@ describe("seller product wizard helpers", () => {
       })
     ).toMatchObject({
       package_weight_kg: "1.25",
-      package_length_cm: "30.5",
-      package_width_cm: "20",
-      package_height_cm: "7.5",
+      package_length_mm: "305",
+      package_width_mm: "200",
+      package_height_mm: "75",
+    });
+  });
+
+  it("preserves zero mm dimensions when mapping variant api to edit draft", () => {
+    expect(
+      mapVariantApiToEditDraft({
+        id: 1,
+        width_mm: 0,
+        length_mm: 0,
+        height_mm: 0,
+      })
+    ).toMatchObject({
+      package_width_mm: "0",
+      package_length_mm: "0",
+      package_height_mm: "0",
     });
   });
 
@@ -527,9 +542,9 @@ describe("seller product wizard helpers", () => {
         text: "Black",
         image: "data:image/png;base64,abc",
         weight: "1.25",
-        length: "30.5",
-        width: "20",
-        height: "7.5",
+        length: "305",
+        width: "200",
+        height: "75",
       }, "Color")
     ).toMatchObject({
       price: "99.90",
@@ -621,9 +636,9 @@ describe("seller product wizard helpers", () => {
           text: "Black",
           image: null,
           package_weight_kg: "",
-          package_length_cm: "",
-          package_width_cm: "",
-          package_height_cm: "",
+          package_length_mm: "",
+          package_width_mm: "",
+          package_height_mm: "",
         },
         "Color"
       )
@@ -674,9 +689,9 @@ describe("seller product wizard helpers", () => {
     expect(
       areOptionalPackageDimensionsValid({
         package_weight_kg: "",
-        package_length_cm: "",
-        package_width_cm: null,
-        package_height_cm: undefined,
+        package_length_mm: "",
+        package_width_mm: null,
+        package_height_mm: undefined,
       })
     ).toBe(false);
   });
@@ -684,14 +699,14 @@ describe("seller product wizard helpers", () => {
   it("rejects filled invalid edit package dimensions", () => {
     expect(areOptionalPackageDimensionsValid({
       package_weight_kg: "2",
-      package_width_cm: "20",
-      package_height_cm: "10",
-      package_length_cm: "30",
+      package_width_mm: "200",
+      package_height_mm: "100",
+      package_length_mm: "300",
     })).toBe(true);
     expect(areOptionalPackageDimensionsValid({ package_weight_kg: "0" })).toBe(false);
-    expect(areOptionalPackageDimensionsValid({ package_width_cm: "abc" })).toBe(false);
-    expect(areOptionalPackageDimensionsValid({ package_height_cm: "-1" })).toBe(false);
-    expect(areOptionalPackageDimensionsValid({ package_length_cm: "12.5" })).toBe(false);
+    expect(areOptionalPackageDimensionsValid({ package_width_mm: "abc" })).toBe(false);
+    expect(areOptionalPackageDimensionsValid({ package_height_mm: "-1" })).toBe(false);
+    expect(areOptionalPackageDimensionsValid({ package_length_mm: "12.5" })).toBe(false);
   });
 
   it("blocks invalid license formats before upload", () => {
@@ -906,9 +921,9 @@ describe("seller product wizard helpers", () => {
       stock: REVIEW_STOCK_NOT_LOADED,
     });
     expect(review.variants[0].packageDimensions).toMatchObject({
-      length: "30",
-      width: "20",
-      height: "10",
+      length: "300",
+      width: "200",
+      height: "100",
       weight: "1.5",
     });
     expect(review.documents[0]).toMatchObject({ name: "certificate.pdf", status: "server" });
@@ -1021,9 +1036,9 @@ describe("seller product wizard helpers", () => {
       sku: "SKU-31",
     });
     expect(review.variants[0].packageDimensions).toMatchObject({
-      length: "30",
-      width: "20",
-      height: "10",
+      length: "300",
+      width: "200",
+      height: "100",
       weight: "1.5",
     });
     expect(review.categoryAttributes).toEqual([
@@ -1579,7 +1594,8 @@ describe("seller review product layout regressions", () => {
       })
     );
 
-    expect(screen.getByText("Package length, cm")).toBeTruthy();
+    expect(screen.getByText("item.packageHeightMm")).toBeTruthy();
+    expect(screen.getByText("item.packageLengthMm")).toBeTruthy();
     expect(screen.getByText("200")).toBeTruthy();
     expect(screen.queryByText("210")).toBeNull();
 

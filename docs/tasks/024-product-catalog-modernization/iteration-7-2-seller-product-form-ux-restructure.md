@@ -77,7 +77,7 @@
    - stock quantity в create-flow;
    - system `ProductVariant.sku` read-only в edit, если уже есть;
    - package dimensions находятся внутри каждого variant card после price/stock;
-   - package dimensions UI units: `cm/kg`;
+   - package dimensions UI units: `mm/kg`;
    - package dimensions backend fields остаются legacy-named: `length_mm`, `width_mm`, `height_mm`, `weight_grams`;
    - package dimensions не называются physical product dimensions.
 
@@ -122,9 +122,9 @@
 | Variant image | `ProductVariant.image` | optional; можно вместе с `text` |
 | Variant price | `ProductVariant.price` | required |
 | Stock quantity | seller variant stock endpoint | **required** в UI до preview/submit; create-flow после variant create |
-| Package length cm | `ProductVariant.length_mm` | converted `cm -> mm` |
-| Package width cm | `ProductVariant.width_mm` | converted `cm -> mm` |
-| Package height cm | `ProductVariant.height_mm` | converted `cm -> mm` |
+| Package length mm | `ProductVariant.length_mm` | direct mm |
+| Package width mm | `ProductVariant.width_mm` | direct mm |
+| Package height mm | `ProductVariant.height_mm` | direct mm |
 | Package weight kg | `ProductVariant.weight_grams` | converted `kg -> g` |
 | License file | legacy `LicenseFile` | PDF/DOCX only |
 

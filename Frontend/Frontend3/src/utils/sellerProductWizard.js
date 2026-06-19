@@ -216,15 +216,23 @@ const dimensionValue = (variant, packageField, legacyField) => (
         : variant?.[legacyField]
 );
 
+const parseMmValue = (value) => {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue) || !Number.isInteger(numberValue) || numberValue <= 0) {
+        return null;
+    }
+    return numberValue;
+};
+
 export const mapVariantDraftToPayload = (variant, fallbackName) => {
     const payload = {
         price: variant.price,
         name: variant.name || fallbackName,
         text: variant.text ?? "",
         weight_grams: kgToGrams(dimensionValue(variant, "package_weight_kg", "weight")),
-        width_mm: cmToMm(dimensionValue(variant, "package_width_cm", "width")),
-        length_mm: cmToMm(dimensionValue(variant, "package_length_cm", "length")),
-        height_mm: cmToMm(dimensionValue(variant, "package_height_cm", "height")),
+        width_mm: parseMmValue(dimensionValue(variant, "package_width_mm", "width")),
+        length_mm: parseMmValue(dimensionValue(variant, "package_length_mm", "length")),
+        height_mm: parseMmValue(dimensionValue(variant, "package_height_mm", "height")),
     };
 
     if (hasVariantImageValue(variant.image)) {
@@ -240,9 +248,9 @@ export const mapVariantApiToEditDraft = (variant) => ({
     text: variant?.text ?? "",
     quantity_in_stock: variant?.quantity_in_stock ?? "",
     package_weight_kg: gramsToKg(variant?.weight_grams),
-    package_width_cm: mmToCm(variant?.width_mm),
-    package_length_cm: mmToCm(variant?.length_mm),
-    package_height_cm: mmToCm(variant?.height_mm),
+    package_width_mm: variant?.width_mm != null && variant?.width_mm !== "" ? String(variant.width_mm) : "",
+    package_length_mm: variant?.length_mm != null && variant?.length_mm !== "" ? String(variant.length_mm) : "",
+    package_height_mm: variant?.height_mm != null && variant?.height_mm !== "" ? String(variant.height_mm) : "",
 });
 
 export const mapSellerProductVariantsForEdit = (variants = []) => (
@@ -254,9 +262,9 @@ export const mapSellerProductVariantsForEdit = (variants = []) => (
 
 export const addPackageDimensionsToPayload = (payload, variant) => {
     const weight = kgToGrams(dimensionValue(variant, "package_weight_kg", "weight"));
-    const width = cmToMm(dimensionValue(variant, "package_width_cm", "width"));
-    const length = cmToMm(dimensionValue(variant, "package_length_cm", "length"));
-    const height = cmToMm(dimensionValue(variant, "package_height_cm", "height"));
+    const width = parseMmValue(dimensionValue(variant, "package_width_mm", "width"));
+    const length = parseMmValue(dimensionValue(variant, "package_length_mm", "length"));
+    const height = parseMmValue(dimensionValue(variant, "package_height_mm", "height"));
 
     if (weight !== null) payload.weight_grams = weight;
     if (width !== null) payload.width_mm = width;
@@ -288,10 +296,10 @@ export const areOptionalPackageDimensionsValid = (variant) => (
 );
 
 const VARIANT_DIMENSION_FIELDS = [
-    { packageField: "package_weight_kg", legacyField: "weight" },
-    { packageField: "package_width_cm", legacyField: "width" },
-    { packageField: "package_height_cm", legacyField: "height" },
-    { packageField: "package_length_cm", legacyField: "length" },
+    { packageField: "package_weight_kg", legacyField: "weight", isMm: false },
+    { packageField: "package_width_mm", legacyField: "width", isMm: true },
+    { packageField: "package_height_mm", legacyField: "height", isMm: true },
+    { packageField: "package_length_mm", legacyField: "length", isMm: true },
 ];
 
 const resolveVariantMessage = (messageKey, t) => (
@@ -303,13 +311,18 @@ const isPositiveNumericValue = (value) => {
     return Number.isFinite(numberValue) && numberValue > 0;
 };
 
+const isPositiveIntegerValue = (value) => {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) && Number.isInteger(numberValue) && numberValue > 0;
+};
+
 export const areRequiredPackageDimensionsValid = (variant) => (
-    VARIANT_DIMENSION_FIELDS.every(({ packageField, legacyField }) => {
+    VARIANT_DIMENSION_FIELDS.every(({ packageField, legacyField, isMm }) => {
         const value = dimensionValue(variant, packageField, legacyField);
         if (value === undefined || value === null || value === "") {
             return false;
         }
-        return isPositiveNumericValue(value);
+        return isMm ? isPositiveIntegerValue(value) : isPositiveNumericValue(value);
     })
 );
 
@@ -337,16 +350,16 @@ export const validateVariantDraft = (variant, t) => {
         }
     }
 
-    VARIANT_DIMENSION_FIELDS.forEach(({ packageField, legacyField }) => {
+    VARIANT_DIMENSION_FIELDS.forEach(({ packageField, legacyField, isMm }) => {
         const value = dimensionValue(variant, packageField, legacyField);
         const fieldKey = variant && Object.prototype.hasOwnProperty.call(variant, packageField)
             ? packageField
             : legacyField;
         const errorKey = {
             package_weight_kg: "variantPackageWeightRequired",
-            package_width_cm: "variantPackageWidthRequired",
-            package_height_cm: "variantPackageHeightRequired",
-            package_length_cm: "variantPackageLengthRequired",
+            package_width_mm: "variantPackageWidthRequired",
+            package_height_mm: "variantPackageHeightRequired",
+            package_length_mm: "variantPackageLengthRequired",
             weight: "variantPackageWeightRequired",
             width: "variantPackageWidthRequired",
             height: "variantPackageHeightRequired",
@@ -357,7 +370,8 @@ export const validateVariantDraft = (variant, t) => {
             errors[fieldKey] = resolveVariantMessage(errorKey, t);
             return;
         }
-        if (!isPositiveNumericValue(value)) {
+        const isValid = isMm ? isPositiveIntegerValue(value) : isPositiveNumericValue(value);
+        if (!isValid) {
             errors[fieldKey] = resolveVariantMessage("variantPackageDimensionInvalid", t);
         }
     });
@@ -688,20 +702,20 @@ const licenseRows = (licenseFile) => {
 };
 
 const packageDimensionsForReview = (variant = {}) => ({
-    length: firstPresent(
-        variant.package_length_cm,
-        variant.length,
-        variant.length_mm ? mmToCm(variant.length_mm) : ""
+    height: firstPresent(
+        variant.package_height_mm,
+        variant.height,
+        variant.height_mm !== undefined && variant.height_mm !== null ? String(variant.height_mm) : ""
     ),
     width: firstPresent(
-        variant.package_width_cm,
+        variant.package_width_mm,
         variant.width,
-        variant.width_mm ? mmToCm(variant.width_mm) : ""
+        variant.width_mm !== undefined && variant.width_mm !== null ? String(variant.width_mm) : ""
     ),
-    height: firstPresent(
-        variant.package_height_cm,
-        variant.height,
-        variant.height_mm ? mmToCm(variant.height_mm) : ""
+    length: firstPresent(
+        variant.package_length_mm,
+        variant.length,
+        variant.length_mm !== undefined && variant.length_mm !== null ? String(variant.length_mm) : ""
     ),
     weight: firstPresent(
         variant.package_weight_kg,
