@@ -1,8 +1,16 @@
 import uuid
 import magic
 
+from django.conf import settings
 from rest_framework import serializers
 from django.shortcuts import get_object_or_404
+
+from product.license_validators import (
+    LICENSE_ALLOWED_MIMES,
+    LICENSE_EMPTY_FILE_MESSAGE,
+    LICENSE_SIZE_EXCEEDED_MESSAGE,
+    LICENSE_UNSUPPORTED_TYPE_MESSAGE,
+)
 
 from .fields import CustomBase64FileField, RestrictedBase64ImageField
 from product.models import (
@@ -265,18 +273,20 @@ class LicenseFileWriteSerializer(serializers.ModelSerializer):
         read_only_fields = ["id"]
 
     def validate_file(self, file_obj):
+        if not file_obj.size:
+            raise serializers.ValidationError(LICENSE_EMPTY_FILE_MESSAGE)
+
+        if file_obj.size > settings.MAX_UPLOAD_SIZE:
+            raise serializers.ValidationError(LICENSE_SIZE_EXCEEDED_MESSAGE)
+
         chunk = file_obj.read(2048)
         file_obj.seek(0)
         real_mime = magic.from_buffer(chunk, mime=True)
 
-        allowed_mimes = {
-            "application/pdf": "pdf",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
-        }
-        if real_mime not in allowed_mimes:
-            raise serializers.ValidationError("Требуется PDF или DOCX.")
+        if real_mime not in LICENSE_ALLOWED_MIMES:
+            raise serializers.ValidationError(LICENSE_UNSUPPORTED_TYPE_MESSAGE)
 
-        extension = allowed_mimes[real_mime]
+        extension = LICENSE_ALLOWED_MIMES[real_mime]
         unique_basename = str(uuid.uuid4())
         file_obj.name = f"{unique_basename}.{extension}"
 

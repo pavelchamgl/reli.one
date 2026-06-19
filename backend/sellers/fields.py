@@ -7,6 +7,8 @@ from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
 from django.core.files.base import ContentFile
 
+from product.license_validators import LICENSE_EMPTY_FILE_MESSAGE
+
 
 class CustomBase64FileField(serializers.FileField):
     """
@@ -14,7 +16,7 @@ class CustomBase64FileField(serializers.FileField):
     Не делает проверку MIME — просто декодирование.
     """
     def to_internal_value(self, data):
-        pattern = re.compile(r'^data:(?P<mime>[^;]+);base64,(?P<base64data>.+)$')
+        pattern = re.compile(r'^data:(?P<mime>[^;]+);base64,(?P<base64data>.*)$')
         match = pattern.match(data)
         if not match:
             raise serializers.ValidationError("Not a valid data URI scheme.")
@@ -24,6 +26,9 @@ class CustomBase64FileField(serializers.FileField):
             decoded_file = base64.b64decode(b64data)
         except Exception as e:
             raise serializers.ValidationError(f"Base64 decode error: {str(e)}")
+
+        if not decoded_file:
+            raise serializers.ValidationError(LICENSE_EMPTY_FILE_MESSAGE)
 
         return ContentFile(decoded_file)
 

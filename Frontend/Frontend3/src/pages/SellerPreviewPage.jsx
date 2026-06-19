@@ -10,7 +10,7 @@ import SellerReviewActions from "../Components/Seller/preview/SellerReviewProduc
 import { useActionCreatePrev } from "../hook/useActionCreatePrev";
 import Spinner from "../ui/Spiner/Spiner";
 import { getProductById } from "../api/productsApi";
-import { buildSellerReviewData, formatApiErrorMessage, unwrapProductPreviewResponse } from "../utils/sellerProductWizard";
+import { buildSellerReviewData, formatApiErrorMessage, formatSellerWizardApiError, unwrapProductPreviewResponse } from "../utils/sellerProductWizard";
 
 import styles from "../styles/SellerPreviewPage.module.scss";
 
@@ -124,7 +124,9 @@ const SellerPreviewPage = () => {
             {(product.submitStepResults || [])
               .filter((item) => item.status === "rejected")
               .map((item) => (
-                <li key={item.step}>{item.step}: {formatApiErrorMessage(item.error, "Unknown error")}</li>
+                <li key={item.step}>
+                  {item.step}: {formatSellerWizardApiError(item.error, t, "Unknown error")}
+                </li>
               ))}
           </ul>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>

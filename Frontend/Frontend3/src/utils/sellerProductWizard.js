@@ -11,6 +11,11 @@ export const SELLER_WIZARD_MESSAGE_KEYS = {
     attributeBoolean: "goods.errors.attributeBoolean",
     attributeEnum: "goods.errors.attributeEnum",
     licenseFileFormat: "goods.errors.licenseFileFormat",
+    licenseFileSize: "goods.errors.licenseFileSize",
+    licenseFileEmpty: "goods.errors.licenseFileEmpty",
+    licenseFileReadError: "goods.errors.licenseFileReadError",
+    licenseAlreadyExists: "goods.errors.licenseAlreadyExists",
+    licenseUploadFailed: "goods.errors.licenseUploadFailed",
     productImageFormat: "goods.errors.productImageFormat",
 };
 
@@ -24,7 +29,12 @@ export const SELLER_WIZARD_MESSAGE_FALLBACKS = {
     [SELLER_WIZARD_MESSAGE_KEYS.attributeValidNumber]: "Enter a valid number.",
     [SELLER_WIZARD_MESSAGE_KEYS.attributeBoolean]: "Choose true or false.",
     [SELLER_WIZARD_MESSAGE_KEYS.attributeEnum]: "Choose one of the available options.",
-    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat]: "License file must be PDF or DOCX.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat]: "License file must be JPG, JPEG, PNG, or PDF.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileSize]: "License file must be smaller than 13 MB.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileEmpty]: "The selected file is empty.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileReadError]: "Could not read the selected file. Please try again.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseAlreadyExists]: "A license file already exists. Delete it before uploading a new one.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed]: "Could not upload the license file. Check the format and size, then try again.",
     [SELLER_WIZARD_MESSAGE_KEYS.productImageFormat]: "Product images must be JPG, PNG, or WEBP.",
 };
 
@@ -34,8 +44,38 @@ const resolveWizardMessage = (messageKey, t) => (
 
 export const translateSellerWizardError = (message, t) => {
     if (!message || !t) return message || "";
+    const mapped = mapLicenseApiError(message, t);
+    if (mapped !== message) return mapped;
     const entry = Object.entries(SELLER_WIZARD_MESSAGE_FALLBACKS).find(([, text]) => text === message);
     return entry ? t(entry[0]) : message;
+};
+
+export const formatSellerWizardApiError = (error, t, fallback = "Unknown error") => {
+    const message = formatApiErrorMessage(error, fallback);
+    return translateSellerWizardError(message, t);
+};
+
+const LICENSE_API_ERROR_PATTERNS = [
+    { includes: "Unsupported file type", key: SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat },
+    { includes: "File size exceeds", key: SELLER_WIZARD_MESSAGE_KEYS.licenseFileSize },
+    { includes: "uploaded file is empty", key: SELLER_WIZARD_MESSAGE_KEYS.licenseFileEmpty },
+    { includes: "already exists", key: SELLER_WIZARD_MESSAGE_KEYS.licenseAlreadyExists },
+    { includes: "Base64 decode error", key: SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed },
+    { includes: "Not a valid data URI scheme", key: SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed },
+];
+
+export const mapLicenseApiError = (message, t) => {
+    if (!message) {
+        return resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed, t);
+    }
+    const normalized = String(message);
+    const matchedPattern = LICENSE_API_ERROR_PATTERNS.find(({ includes }) => (
+        normalized.toLowerCase().includes(includes.toLowerCase())
+    ));
+    if (matchedPattern) {
+        return resolveWizardMessage(matchedPattern.key, t);
+    }
+    return normalized;
 };
 
 export const getCategorySchemaNotReadyMessage = (t) => (
@@ -502,20 +542,42 @@ export const LICENSE_FILE_ERROR_MESSAGE = SELLER_WIZARD_MESSAGE_FALLBACKS[
 
 const LICENSE_MIME_TYPES = new Set([
     "application/pdf",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "image/jpeg",
+    "image/png",
 ]);
+
+const LICENSE_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png"]);
+
+const LICENSE_EXTENSION_MIME_TYPES = {
+    pdf: new Set(["application/pdf"]),
+    jpg: new Set(["image/jpeg"]),
+    jpeg: new Set(["image/jpeg"]),
+    png: new Set(["image/png"]),
+};
+
+export const LICENSE_MAX_BYTES = 13 * 1024 * 1024;
 
 export const validateLicenseFile = (file, t) => {
     if (!file) return null;
 
+    if (!file.size) {
+        return resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseFileEmpty, t);
+    }
+
     const errorMessage = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat, t);
     const extension = file.name?.split(".").pop()?.toLowerCase();
-    const hasAllowedExtension = extension === "pdf" || extension === "docx";
+    const hasAllowedExtension = LICENSE_EXTENSIONS.has(extension);
     const hasMime = Boolean(file.type);
     const hasAllowedMime = LICENSE_MIME_TYPES.has(file.type);
+    const extensionMimeTypes = LICENSE_EXTENSION_MIME_TYPES[extension];
+    const hasMatchingMime = !hasMime || (hasAllowedMime && extensionMimeTypes?.has(file.type));
 
     if (!hasAllowedExtension) return errorMessage;
-    if (hasMime && !hasAllowedMime) return errorMessage;
+    if (!hasMatchingMime) return errorMessage;
+
+    if (file.size > LICENSE_MAX_BYTES) {
+        return resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseFileSize, t);
+    }
 
     return null;
 };

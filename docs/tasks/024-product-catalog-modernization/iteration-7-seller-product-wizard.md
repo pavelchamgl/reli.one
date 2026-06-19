@@ -616,10 +616,8 @@ Iteration 7:
 - использовать legacy `LicenseFile`;
 - показывать ограничение “один документ”;
 - валидация frontend должна соответствовать backend `LicenseFile` limitations;
-- legacy `LicenseFile` write endpoint принимает PDF и DOCX по MIME;
-- JPEG не является допустимым license/document format;
-- текущий frontend может показывать `.doc`, но backend `.doc` не принимает;
-- frontend validation в Iteration 7 должна разрешать PDF/DOCX и запрещать JPEG/`.doc`;
+- legacy `LicenseFile` write endpoint принимает PDF, JPG/JPEG и PNG по MIME;
+- frontend validation разрешает JPG, JPEG, PNG, PDF и запрещает DOCX;
 - не переходить на `ProductDocument`.
 
 ---

@@ -13,6 +13,18 @@ import { Navigation } from "swiper/modules";
 import { useActionCreatePrev } from "../../../../hook/useActionCreatePrev";
 import { validateLicenseFiles } from "../../../../utils/sellerProductWizard";
 
+const LICENSE_ACCEPT = ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png";
+const LICENSE_NAME_PATTERN = /\.(pdf|jpe?g|png)$/i;
+
+const isLicenseImagePreview = (item) => {
+    const source = item?.base64 || item?.file_url || item?.url || "";
+    if (typeof source !== "string") return false;
+    if (/^data:image\//i.test(source)) return true;
+    return /\.(jpe?g|png)(\?|$)/i.test(item?.name || source);
+};
+
+const licensePreviewSrc = (item) => item?.base64 || item?.file_url || item?.url || "";
+
 import createMaskImg from "../../../../assets/Seller/create/fileIcon.svg";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
 import arrRight from "../../../../assets/Seller/create/arrRight.svg";
@@ -72,7 +84,7 @@ const CreateLisence = () => {
                         };
 
                         reader.onerror = () => {
-                            reject(new Error("Ошибка чтения файла"));
+                            reject(new Error("license-file-read-error"));
                         };
                     });
                 })
@@ -87,8 +99,8 @@ const CreateLisence = () => {
                     return [...prevUrls, ...base64Images]
                 })
             })
-            .catch((error) => {
-                console.error("Ошибка при кодировании файлов:", error);
+            .catch(() => {
+                setFileError(t('goods.errors.licenseFileReadError'));
             });
     };
 
@@ -116,7 +128,7 @@ const CreateLisence = () => {
                         disabled={isDisabled}
                         onChange={handleChangeFile}
                         type="file"
-                        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        accept={LICENSE_ACCEPT}
                     />
                 </label>
             </div>
@@ -185,21 +197,26 @@ const CreateLisence = () => {
                                                 </button>
                                             </div>
                                             <div className={styles.smallMaskWrap}>
-                                                <div
-                                                    // className={err ? styles.maskErr : styles.mask}
-                                                    className={styles.mask}
-                                                >
-                                                    <img src={createMaskImg} alt="mask" />
+                                                <div className={styles.mask}>
+                                                    {isLicenseImagePreview(url) ? (
+                                                        <img
+                                                            src={licensePreviewSrc(url)}
+                                                            alt={url?.name || t('goods.license')}
+                                                            className={styles.mediaPreview}
+                                                        />
+                                                    ) : (
+                                                        <img src={createMaskImg} alt="mask" />
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                         <p className={styles.fileName}>
-                                            {/\.(pdf|docx)$/i.test(url?.name)
+                                            {LICENSE_NAME_PATTERN.test(url?.name || "")
                                                 ? (url?.name.length > 19
-                                                    ? url?.name.slice(0, 12) + "..." + url?.name.slice(-4)  // Учитываем любое расширение
+                                                    ? url?.name.slice(0, 12) + "..." + url?.name.slice(-4)
                                                     : url?.name
                                                 )
-                                                : "dock"
+                                                : t('goods.licenseFileFallback')
                                             }
                                         </p>
                                     </div>

@@ -1,5 +1,10 @@
 import mainInstance from "..";
-import { formatApiErrorMessage, mapVariantDraftToPayload } from "../../utils/sellerProductWizard";
+import {
+    formatApiErrorMessage,
+    mapVariantDraftToPayload,
+    SELLER_WIZARD_MESSAGE_FALLBACKS,
+    SELLER_WIZARD_MESSAGE_KEYS,
+} from "../../utils/sellerProductWizard";
 
 export const postSellerProduct = async (obj) => {
     try {
@@ -128,15 +133,19 @@ export const postSellerLisence = async (id, obj) => {
 
         return res.data;
     } catch (error) {
-        console.error("Error uploading license:", error);
-
         if (error.response) {
-            throw new Error(error.response.data?.message || "Server error while uploading license");
-        } else if (error.request) {
-            throw new Error("No response from the server. Please check the connection.");
-        } else {
-            throw new Error("An unknown error occurred");
+            throw new Error(formatApiErrorMessage(
+                error.response.data,
+                SELLER_WIZARD_MESSAGE_FALLBACKS[SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed]
+            ));
         }
+        if (error.request) {
+            throw new Error("No response from the server. Please check the connection.");
+        }
+        throw new Error(
+            error.message
+            || SELLER_WIZARD_MESSAGE_FALLBACKS[SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed]
+        );
     }
 };
 

@@ -10,10 +10,12 @@ import {
     putSellerVariantStock,
 } from "../api/seller/sellerWizard";
 import { ErrToast } from "../ui/Toastify";
+import i18n from "../../language/i18next";
 import {
     buildAttributePayload,
     CATEGORY_SCHEMA_NOT_READY_MESSAGE,
     formatApiErrorMessage,
+    formatSellerWizardApiError,
     isCategoryAttributeSchemaReady,
     mapEditVariantDraftToPatchPayload,
     mapSellerProductVariantsForEdit,
@@ -24,6 +26,8 @@ import {
     validateAttributeDraft,
     valuesFromAttributeRows
 } from "../utils/sellerProductWizard";
+
+const tSellerHome = (key) => i18n.t(key, { ns: "sellerHome" });
 
 // Получить продукт по ID
 export const fetchSellerProductById = createAsyncThunk(
@@ -267,7 +271,11 @@ export const fetchEditProduct = createAsyncThunk(
             await Promise.all(requests);
 
         } catch (error) {
-            return rejectWithValue(error?.response?.data || "An error occurred while editing the product.");
+            return rejectWithValue(
+                error?.response?.data
+                || error?.message
+                || "An error occurred while editing the product."
+            );
         }
     }
 );
@@ -598,7 +606,11 @@ const editGoodsSlice = createSlice({
             state.err = null;
         })
         build.addCase(fetchEditProduct.rejected, (state, action) => {
-            const message = formatApiErrorMessage(action.payload, "An error occurred while editing the product.");
+            const message = formatSellerWizardApiError(
+                action.payload,
+                tSellerHome,
+                "An error occurred while editing the product."
+            );
             state.status = "rejected";
             state.err = message;
             if (action.payload?.attributeErrors) {
