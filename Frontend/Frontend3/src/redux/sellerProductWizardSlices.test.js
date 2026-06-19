@@ -85,7 +85,6 @@ import {
   unwrapProductPreviewResponse,
   validateProductImageFile,
   validateProductImageFiles,
-  formatApiErrorMessage,
   formatSellerWizardApiError,
   LICENSE_MAX_BYTES,
   mapLicenseApiError,
