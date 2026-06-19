@@ -44,7 +44,7 @@
         "hideOptionalAttributes": "Pouze povinná pole",
         "aspectRatio": "Poměr stran 1:1",
         "addPhotos": "+ Přidat fotky",
-        "formats": "Formáty: JPG, JPEG, PNG, PDF",
+        "formats": "Formáty: JPG, JPEG, PNG, WebP, PDF",
         "categoryIsRequired": "Kategorie je povinná",
         "categoryAttributesTitle": "Atributy kategorie",
         "loadingCategorySchema": "Načítání schématu kategorie...",
@@ -67,7 +67,7 @@
         },
         "errors": {
             "imageRequired": "Obrázek je povinný",
-            "licenseFileFormat": "Licenční soubor musí být JPG, JPEG, PNG nebo PDF.",
+            "licenseFileFormat": "Licenční soubor musí být JPG, JPEG, PNG, WebP nebo PDF.",
             "licenseFileSize": "Licenční soubor musí být menší než 13 MB.",
             "licenseFileEmpty": "Vybraný soubor je prázdný.",
             "licenseFileReadError": "Soubor se nepodařilo načíst. Zkuste to znovu.",

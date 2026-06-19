@@ -16,14 +16,14 @@ import createMaskImg from "../../../../assets/Seller/create/fileIcon.svg";
 import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
 import { validateLicenseFiles } from "../../../../utils/sellerProductWizard";
 
-const LICENSE_ACCEPT = ".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png";
-const LICENSE_NAME_PATTERN = /\.(pdf|jpe?g|png)$/i;
+const LICENSE_ACCEPT = ".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp";
+const LICENSE_NAME_PATTERN = /\.(pdf|jpe?g|png|webp)$/i;
 
 const isLicenseImagePreview = (item) => {
     const source = item?.base64 || item?.file_url || item?.url || "";
     if (typeof source !== "string") return false;
     if (/^data:image\//i.test(source)) return true;
-    return /\.(jpe?g|png)(\?|$)/i.test(item?.name || source);
+    return /\.(jpe?g|png|webp)(\?|$)/i.test(item?.name || source);
 };
 
 const licensePreviewSrc = (item) => item?.base64 || item?.file_url || item?.url || "";

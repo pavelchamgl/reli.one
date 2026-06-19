@@ -696,21 +696,18 @@ describe("seller product wizard helpers", () => {
   });
 
   it("blocks invalid license formats before upload", () => {
+    const formatError = "License file must be JPG, JPEG, PNG, WebP, or PDF.";
     expect(validateLicenseFile(new File(["x"], "license.doc", { type: "application/msword" }))).toBe(
-      "License file must be JPG, JPEG, PNG, or PDF."
+      formatError
     );
     expect(validateLicenseFile(new File(["x"], "license.docx", {
       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    }))).toBe(
-      "License file must be JPG, JPEG, PNG, or PDF."
-    );
-    expect(validateLicenseFile(new File(["x"], "license.webp", { type: "image/webp" }))).toBe(
-      "License file must be JPG, JPEG, PNG, or PDF."
-    );
+    }))).toBe(formatError);
     expect(validateLicenseFile(new File(["x"], "license.pdf", { type: "application/pdf" }))).toBeNull();
     expect(validateLicenseFile(new File(["x"], "license.jpg", { type: "image/jpeg" }))).toBeNull();
     expect(validateLicenseFile(new File(["x"], "license.jpeg", { type: "image/jpeg" }))).toBeNull();
     expect(validateLicenseFile(new File(["x"], "license.png", { type: "image/png" }))).toBeNull();
+    expect(validateLicenseFile(new File(["x"], "license.webp", { type: "image/webp" }))).toBeNull();
   });
 
   it("rejects empty and oversized license files before upload", () => {
@@ -726,8 +723,12 @@ describe("seller product wizard helpers", () => {
   });
 
   it("rejects license files with mismatched mime type", () => {
+    const formatError = "License file must be JPG, JPEG, PNG, WebP, or PDF.";
     expect(validateLicenseFile(new File(["x"], "license.png", { type: "application/pdf" }))).toBe(
-      "License file must be JPG, JPEG, PNG, or PDF."
+      formatError
+    );
+    expect(validateLicenseFile(new File(["x"], "license.webp", { type: "image/png" }))).toBe(
+      formatError
     );
   });
 
@@ -735,10 +736,10 @@ describe("seller product wizard helpers", () => {
     expect(validateLicenseFiles([
       new File(["x"], "license.pdf", { type: "application/pdf" }),
       new File(["x"], "photo.doc", { type: "application/msword" }),
-    ])).toBe("License file must be JPG, JPEG, PNG, or PDF.");
+    ])).toBe("License file must be JPG, JPEG, PNG, WebP, or PDF.");
   });
 
-  it("allows single PDF, JPG, JPEG, or PNG license selection", () => {
+  it("allows single PDF, JPG, JPEG, PNG, or WebP license selection", () => {
     expect(validateLicenseFiles([
       new File(["x"], "license.pdf", { type: "application/pdf" }),
     ])).toBeNull();
@@ -748,11 +749,14 @@ describe("seller product wizard helpers", () => {
     expect(validateLicenseFiles([
       new File(["x"], "license.png", { type: "image/png" }),
     ])).toBeNull();
+    expect(validateLicenseFiles([
+      new File(["x"], "license.webp", { type: "image/webp" }),
+    ])).toBeNull();
   });
 
   it("maps backend license API errors to wizard messages", () => {
     const t = (key) => key;
-    expect(mapLicenseApiError("Unsupported file type. Allowed: PDF, JPG, PNG.", t)).toBe(
+    expect(mapLicenseApiError("Unsupported file type. Allowed: PDF, JPG, PNG, WebP.", t)).toBe(
       "goods.errors.licenseFileFormat"
     );
     expect(mapLicenseApiError("File size exceeds the maximum allowed size (13 MB).", t)).toBe(
@@ -766,12 +770,12 @@ describe("seller product wizard helpers", () => {
   it("translates license upload API payload through formatSellerWizardApiError", () => {
     const t = (key) => key;
     expect(formatSellerWizardApiError(
-      { file: ["Unsupported file type. Allowed: PDF, JPG, PNG."] },
+      { file: ["Unsupported file type. Allowed: PDF, JPG, PNG, WebP."] },
       t,
       "Unknown error"
     )).toBe("goods.errors.licenseFileFormat");
     expect(translateSellerWizardError(
-      "Unsupported file type. Allowed: PDF, JPG, PNG.",
+      "Unsupported file type. Allowed: PDF, JPG, PNG, WebP.",
       t
     )).toBe("goods.errors.licenseFileFormat");
   });

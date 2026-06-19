@@ -57,6 +57,12 @@ def _minimal_docx() -> bytes:
     return b"PK\x03\x04" + b"\x00" * 64
 
 
+def _minimal_webp() -> bytes:
+    return base64.b64decode(
+        "UklGRiQAAABXRUJQVlA4IBgAAAAwAQCdASoBAAEAAQAcJaQAA3AA/vuUAAA="
+    )
+
+
 def _to_data_uri(content: bytes, mime: str) -> str:
     encoded = base64.b64encode(content).decode("ascii")
     return f"data:{mime};base64,{encoded}"
@@ -153,6 +159,27 @@ class LicenseFileApiTests(TestCase):
             name="license.png",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+
+    def test_post_valid_webp(self):
+        product = self._create_product()
+        response = self._post_license(
+            product.id,
+            content=_minimal_webp(),
+            mime="image/webp",
+            name="license.webp",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+
+    def test_post_webp_mismatched_bytes_rejected(self):
+        product = self._create_product()
+        response = self._post_license(
+            product.id,
+            content=b"not-a-valid-webp",
+            mime="image/webp",
+            name="license.webp",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, response.data)
+        self.assertIn(LICENSE_UNSUPPORTED_TYPE_MESSAGE, _response_file_error(response))
 
     def test_post_docx_rejected(self):
         product = self._create_product()

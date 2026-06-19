@@ -29,7 +29,7 @@ export const SELLER_WIZARD_MESSAGE_FALLBACKS = {
     [SELLER_WIZARD_MESSAGE_KEYS.attributeValidNumber]: "Enter a valid number.",
     [SELLER_WIZARD_MESSAGE_KEYS.attributeBoolean]: "Choose true or false.",
     [SELLER_WIZARD_MESSAGE_KEYS.attributeEnum]: "Choose one of the available options.",
-    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat]: "License file must be JPG, JPEG, PNG, or PDF.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat]: "License file must be JPG, JPEG, PNG, WebP, or PDF.",
     [SELLER_WIZARD_MESSAGE_KEYS.licenseFileSize]: "License file must be smaller than 13 MB.",
     [SELLER_WIZARD_MESSAGE_KEYS.licenseFileEmpty]: "The selected file is empty.",
     [SELLER_WIZARD_MESSAGE_KEYS.licenseFileReadError]: "Could not read the selected file. Please try again.",
@@ -544,15 +544,17 @@ const LICENSE_MIME_TYPES = new Set([
     "application/pdf",
     "image/jpeg",
     "image/png",
+    "image/webp",
 ]);
 
-const LICENSE_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png"]);
+const LICENSE_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png", "webp"]);
 
 const LICENSE_EXTENSION_MIME_TYPES = {
     pdf: new Set(["application/pdf"]),
     jpg: new Set(["image/jpeg"]),
     jpeg: new Set(["image/jpeg"]),
     png: new Set(["image/png"]),
+    webp: new Set(["image/webp"]),
 };
 
 export const LICENSE_MAX_BYTES = 13 * 1024 * 1024;

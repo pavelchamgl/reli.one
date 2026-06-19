@@ -43,7 +43,7 @@
         "hideOptionalAttributes": "Show required only",
         "aspectRatio": "Aspect ratio 1:1",
         "addPhotos": "+ Add photos",
-        "formats": "Formats: JPG, JPEG, PNG, PDF",
+        "formats": "Formats: JPG, JPEG, PNG, WebP, PDF",
         "categoryIsRequired": "Category is required",
         "categoryAttributesTitle": "Category attributes",
         "loadingCategorySchema": "Loading category schema...",
@@ -66,7 +66,7 @@
         },
         "errors": {
             "imageRequired": "Image is required",
-            "licenseFileFormat": "License file must be JPG, JPEG, PNG, or PDF.",
+            "licenseFileFormat": "License file must be JPG, JPEG, PNG, WebP, or PDF.",
             "licenseFileSize": "License file must be smaller than 13 MB.",
             "licenseFileEmpty": "The selected file is empty.",
             "licenseFileReadError": "Could not read the selected file. Please try again.",
