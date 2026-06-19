@@ -20,6 +20,7 @@ import {
     isProductVariantsValid,
     validateAttributeDraft,
     validateProductVariants,
+    getBrandNameFieldError,
 } from "../../../../utils/sellerProductWizard";
 
 import styles from "./EditGoodsForm.module.scss"
@@ -58,6 +59,7 @@ const EditGoodsForm = () => {
         product,
         parameters,
         name,
+        brand_name,
         product_description,
         length,
         width,
@@ -81,7 +83,8 @@ const EditGoodsForm = () => {
         attributeSchema,
         attributeValues,
         attributeErrors,
-        attributeSchemaStatus
+        attributeSchemaStatus,
+        fieldErrors,
     } = useSelector(state => state.edit_goods)
 
     const { categoriesStage } = useSelector(state => state.create)
@@ -90,10 +93,12 @@ const EditGoodsForm = () => {
     const { t } = useTranslation('sellerHome')
 
     const validationSchema = useMemo(() => getValidateGoods(t), [t]);
+    const brandApiError = useMemo(() => getBrandNameFieldError(fieldErrors, t), [fieldErrors, t]);
 
     const formik = useFormik({
         initialValues: {
             name: "",
+            brand_name: "",
             product_description: "",
             length: "",
             width: "",
@@ -179,6 +184,7 @@ const EditGoodsForm = () => {
             // Обновляем значения формы
             formik.setValues({
                 name: name ?? "",
+                brand_name: brand_name ?? "",
                 product_description: product_description ?? "",
                 length: length ?? "", // Используем значение length, если параметр найден
                 width: width ?? "",  // Используем значение width, если параметр найден
@@ -221,6 +227,11 @@ const EditGoodsForm = () => {
                             : null
                     }
                 />
+
+                <CreateFormInp text={t('goods.brand')} name="brand_name" value={formik.values.brand_name} {...formik} handleChange={(e) => {
+                    formik.handleChange(e)
+                    setParameter({ name: "brand_name", value: e.target.value })
+                }} titleSize={"big"} required={false} error={formik.errors.brand_name || brandApiError} placeholder={t('goods.placeholders.brand')} />
 
                 <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
                     formik.handleChange(e)

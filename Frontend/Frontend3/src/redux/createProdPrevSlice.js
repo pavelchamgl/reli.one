@@ -12,19 +12,22 @@ import {
     putSellerVariantStock
 } from "../api/seller/sellerWizard"
 import { ErrToast } from "../ui/Toastify";
+import i18n from "../../language/i18next";
 import {
     buildAttributePayload,
+    buildSellerProductCreatePayload,
     CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+    formatSellerWizardApiError,
     isCategoryAttributeSchemaReady,
     isProductVariantsValid,
     makeStepResult,
-    normalizeSellerArticle,
     normalizeVatRate,
-    normalizeWarrantyMonths,
     stepSucceeded,
     validateAttributeDraft,
     validateProductVariants,
 } from "../utils/sellerProductWizard";
+
+const tSellerHome = (key) => i18n.t(key, { ns: "sellerHome" });
 
 export const fetchCreateCategoryAttributeSchema = createAsyncThunk(
     "createProdPrev/fetchCreateCategoryAttributeSchema",
@@ -43,7 +46,11 @@ const runStep = async (step, callback) => {
         const payload = await callback();
         return makeStepResult(step, "fulfilled", payload);
     } catch (error) {
-        return makeStepResult(step, "rejected", error);
+        const result = makeStepResult(step, "rejected", error);
+        if (error?.response?.data) {
+            result.apiErrorData = error.response.data;
+        }
+        return result;
     }
 };
 
@@ -96,23 +103,16 @@ export const fetchCreateProduct = createAsyncThunk(
         }
 
         if (!product?.id) {
-            const productResult = await runStep("base_product", () => postSellerProduct({
-                name: state.name,
-                product_description: state.product_description,
-                barcode: state.barcode,
-                article: normalizeSellerArticle(state.item),
-                additional_details: state.additional_details,
-                country_of_origin: state.country_of_origin,
-                warranty_months: normalizeWarrantyMonths(state.warranty_months),
-                vat_rate: normalizeVatRate(state.vat_rate),
-                is_age_restricted: Boolean(state.is_age),
-                category: state.category?.id || null,
-            }));
+            const productResult = await runStep("base_product", () => postSellerProduct(
+                buildSellerProductCreatePayload(state)
+            ));
 
             stepResults.push(productResult);
             if (productResult.status === "rejected" || !productResult.payload?.id) {
+                const fieldErrors = productResult.apiErrorData || {};
                 return rejectWithValue({
                     message: productResult.error || "Error while creating the product",
+                    fieldErrors,
                     stepResults,
                 });
             }
@@ -217,6 +217,7 @@ const createProdPrevSlice = createSlice({
     name: "createProdPrev",
     initialState: {
         name: "",
+        brand_name: "",
         rating: "1.0",
         total_reviews: 0,
         license_file: [],
@@ -245,6 +246,7 @@ const createProdPrevSlice = createSlice({
         attributeValues: {},
         attributeErrors: {},
         attributeSchemaStatus: "idle",
+        fieldErrors: {},
         submitStepResults: [],
         createdProductId: null,
         createdVariants: [],
@@ -253,6 +255,9 @@ const createProdPrevSlice = createSlice({
     reducers: {
         setName: (state, action) => {
             state.name = action.payload.name
+        },
+        setBrandName: (state, action) => {
+            state.brand_name = action.payload.brand_name
         },
         setLength: (state, action) => {
             state.lengthMain = action.payload?.length
@@ -350,6 +355,7 @@ const createProdPrevSlice = createSlice({
             .addCase(fetchCreateProduct.pending, (state) => {
                 state.status = "pending"
                 state.err = null
+                state.fieldErrors = {}
             })
             .addCase(fetchCreateProduct.fulfilled, (state, action) => {
                 state.status = action.payload.partialSuccess ? "partial_success" : "fulfilled"
@@ -360,13 +366,32 @@ const createProdPrevSlice = createSlice({
                 state.partialSuccess = action.payload.partialSuccess
             })
             .addCase(fetchCreateProduct.rejected, (state, action) => {
+                const payload = action.payload || {};
+                const fieldErrors = payload.fieldErrors || {};
+                const hasApiFieldErrors = Object.keys(fieldErrors).length > 0;
+                const message = hasApiFieldErrors
+                    ? formatSellerWizardApiError(
+                        fieldErrors,
+                        tSellerHome,
+                        "Error while creating the product"
+                    )
+                    : (
+                        typeof payload.message === "string"
+                            ? payload.message
+                            : formatSellerWizardApiError(
+                                payload,
+                                tSellerHome,
+                                "Error while creating the product"
+                            )
+                    );
                 state.status = "rejected"
-                state.err = action.payload?.message || action.payload
+                state.err = message
+                state.fieldErrors = fieldErrors
                 if (action.payload?.attributeErrors) {
                     state.attributeErrors = action.payload.attributeErrors
                 }
                 state.submitStepResults = action.payload?.stepResults || state.submitStepResults
-                ErrToast(action.payload?.message || action.payload || "Ошибка при создании продукта")
+                ErrToast(message)
             })
     }
 })
@@ -375,6 +400,7 @@ export const {
     addLicense,
     deleteLicense,
     setName,
+    setBrandName,
     setDescription,
     setCategory,
     setParametersPrev,

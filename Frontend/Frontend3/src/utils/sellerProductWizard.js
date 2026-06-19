@@ -17,6 +17,8 @@ export const SELLER_WIZARD_MESSAGE_KEYS = {
     licenseAlreadyExists: "goods.errors.licenseAlreadyExists",
     licenseUploadFailed: "goods.errors.licenseUploadFailed",
     productImageFormat: "goods.errors.productImageFormat",
+    brandMinLength: "goods.validation.brandMinLength",
+    brandMaxLength: "goods.validation.brandMaxLength",
 };
 
 export const SELLER_WIZARD_MESSAGE_FALLBACKS = {
@@ -36,6 +38,13 @@ export const SELLER_WIZARD_MESSAGE_FALLBACKS = {
     [SELLER_WIZARD_MESSAGE_KEYS.licenseAlreadyExists]: "A license file already exists. Delete it before uploading a new one.",
     [SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed]: "Could not upload the license file. Check the format and size, then try again.",
     [SELLER_WIZARD_MESSAGE_KEYS.productImageFormat]: "Product images must be JPG, PNG, or WEBP.",
+    [SELLER_WIZARD_MESSAGE_KEYS.brandMinLength]: "Brand must be at least 2 characters",
+    [SELLER_WIZARD_MESSAGE_KEYS.brandMaxLength]: "Brand must be at most 150 characters",
+};
+
+export const BRAND_NAME_API_ERROR_CODES = {
+    brand_min_length: SELLER_WIZARD_MESSAGE_KEYS.brandMinLength,
+    brand_max_length: SELLER_WIZARD_MESSAGE_KEYS.brandMaxLength,
 };
 
 const resolveWizardMessage = (messageKey, t) => (
@@ -44,16 +53,47 @@ const resolveWizardMessage = (messageKey, t) => (
 
 export const translateSellerWizardError = (message, t) => {
     if (!message || !t) return message || "";
+    const mappedBrand = mapBrandNameApiError(message, t);
+    if (mappedBrand !== message) return mappedBrand;
     const mapped = mapLicenseApiError(message, t);
     if (mapped !== message) return mapped;
     const entry = Object.entries(SELLER_WIZARD_MESSAGE_FALLBACKS).find(([, text]) => text === message);
     return entry ? t(entry[0]) : message;
 };
 
-export const formatSellerWizardApiError = (error, t, fallback = "Unknown error") => {
+export const resolveWizardApiErrorMessage = (error, t, fallback = "Unknown error") => {
+    if (error === undefined || error === null || error === "") {
+        return fallback;
+    }
+    if (typeof error === "string") {
+        return translateSellerWizardError(error, t) || fallback;
+    }
+    if (typeof error === "object" && !Array.isArray(error)) {
+        const brandError = getBrandNameFieldError(error, t);
+        if (brandError) return brandError;
+
+        for (const [field, value] of Object.entries(error)) {
+            if (field === "message" || field === "attributeErrors") continue;
+            const raw = Array.isArray(value) ? value[0] : value;
+            if (raw === undefined || raw === null || raw === "") continue;
+            const mapped = field === "brand_name"
+                ? mapBrandNameApiError(raw, t)
+                : translateSellerWizardError(String(raw), t);
+            if (mapped) return mapped;
+        }
+
+        if (typeof error.message === "string") {
+            return translateSellerWizardError(error.message, t) || fallback;
+        }
+    }
+
     const message = formatApiErrorMessage(error, fallback);
-    return translateSellerWizardError(message, t);
+    return translateSellerWizardError(message, t) || fallback;
 };
+
+export const formatSellerWizardApiError = (error, t, fallback = "Unknown error") => (
+    resolveWizardApiErrorMessage(error, t, fallback)
+);
 
 const LICENSE_API_ERROR_PATTERNS = [
     { includes: "Unsupported file type", key: SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat },
@@ -76,6 +116,26 @@ export const mapLicenseApiError = (message, t) => {
         return resolveWizardMessage(matchedPattern.key, t);
     }
     return normalized;
+};
+
+export const mapBrandNameApiError = (codeOrMessage, t) => {
+    if (codeOrMessage === undefined || codeOrMessage === null || codeOrMessage === "") {
+        return "";
+    }
+    const code = String(codeOrMessage).trim();
+    const messageKey = BRAND_NAME_API_ERROR_CODES[code];
+    if (messageKey) {
+        return resolveWizardMessage(messageKey, t);
+    }
+    return code;
+};
+
+export const getBrandNameFieldError = (apiError, t) => {
+    if (!apiError || typeof apiError !== "object") return null;
+    const brandError = apiError.brand_name;
+    if (brandError === undefined || brandError === null) return null;
+    const raw = Array.isArray(brandError) ? brandError[0] : brandError;
+    return mapBrandNameApiError(raw, t) || null;
 };
 
 export const getCategorySchemaNotReadyMessage = (t) => (
@@ -166,6 +226,83 @@ export const normalizeSellerArticle = (value) => {
     const trimmed = String(value ?? "").trim();
     if (/^\d{10}$/.test(trimmed)) return trimmed;
     return String(Date.now()).slice(-10);
+};
+
+export const normalizeBrandName = (value) => String(value ?? "").trim().replace(/\s+/g, " ");
+
+export const buildSellerProductCreatePayload = ({
+    name,
+    brand_name,
+    product_description,
+    barcode,
+    item,
+    additional_details,
+    country_of_origin,
+    warranty_months,
+    vat_rate,
+    is_age,
+    category,
+}) => {
+    const payload = {
+        name,
+        product_description,
+        barcode,
+        article: normalizeSellerArticle(item),
+        additional_details,
+        country_of_origin,
+        warranty_months: normalizeWarrantyMonths(warranty_months),
+        vat_rate: normalizeVatRate(vat_rate),
+        is_age_restricted: Boolean(is_age),
+        category: category?.id || null,
+    };
+    const normalizedBrandName = normalizeBrandName(brand_name);
+    if (normalizedBrandName) {
+        payload.brand_name = normalizedBrandName;
+    }
+    return payload;
+};
+
+export const buildSellerProductPatchPayload = ({
+    name,
+    brand_name,
+    originalBrandName,
+    product_description,
+    categoryId,
+    item,
+    barcode,
+    additional_details,
+    country_of_origin,
+    warranty_months,
+    vat_rate,
+    is_age,
+}) => {
+    const payload = {
+        name,
+        product_description,
+        category: categoryId,
+        article: item || String(Date.now()),
+        barcode,
+        additional_details,
+        country_of_origin,
+        warranty_months: normalizeWarrantyMonths(warranty_months),
+        vat_rate: normalizeVatRate(vat_rate),
+        is_age_restricted: Boolean(is_age),
+    };
+
+    const normalizedBrandName = normalizeBrandName(brand_name);
+    const normalizedOriginalBrandName = normalizeBrandName(originalBrandName);
+
+    if (normalizedBrandName === normalizedOriginalBrandName) {
+        return payload;
+    }
+    if (!normalizedBrandName && normalizedOriginalBrandName) {
+        payload.brand_name = "";
+        return payload;
+    }
+    if (normalizedBrandName) {
+        payload.brand_name = normalizedBrandName;
+    }
+    return payload;
 };
 
 export const openSellerDocumentUrl = (url) => {
@@ -920,6 +1057,7 @@ export const buildSellerReviewData = (product = {}) => {
         deliveryText: PREVIEW_DELIVERY_TEXT,
         additionalDetails: {
             additional_details: source.additional_details || "",
+            brand_name: source.brand_name || "",
             country_of_origin: source.country_of_origin || "",
             warranty_months: source.warranty_months ?? "",
             barcode: source.barcode || "",

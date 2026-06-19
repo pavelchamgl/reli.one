@@ -51,7 +51,7 @@
 1. **Основная информация**
    - Категория;
    - Название товара;
-   - Brand скрыт до появления seller brand read/write API;
+   - Brand — manual text input (iteration 7.9);
 
    Category стоит первым полем, потому что от неё зависит schema typed attributes и дальнейшая структура seller form.
 
@@ -105,7 +105,7 @@
 | --- | --- | --- |
 | Категория | `BaseProduct.category` | required |
 | Название товара | `BaseProduct.name` | required |
-| Brand | `BaseProduct.brand` | follow-up: seller serializer/API не принимает field, активное UI field скрыто |
+| Brand | `BaseProduct.brand` via `brand_name` write | implemented in 7.9: text input → resolve/create `Brand`, read `brand_id` / `brand_name` / `brand_status` |
 | Description | `BaseProduct.product_description` | required |
 | Additional details | `BaseProduct.additional_details` | optional, находится в accordion `Additional seller details` |
 | Country of origin | нет текущего поля | optional frontend-only field, не отправляется в API |
@@ -147,7 +147,7 @@
 
 ## Known Follow-Ups
 
-- Сделать seller brand read/write API and UI.
+- ~~Сделать seller brand read/write API and UI.~~ Done in iteration 7.9.
 - Сделать backend create `article` optional или явно разделить seller article и required internal identifier.
 - Добавить video upload отдельной итерацией.
 - Подключить `ProductDocument` write-flow для сертификатов/инструкций.
@@ -200,7 +200,7 @@ npm --prefix Frontend/Frontend3 run test -- src/redux/sellerProductWizardSlices.
 4. Проверить, что `VAT rate` находится в `Variants, price and stock`, визуально optional, а пустое значение уходит как `0`.
 5. Проверить порядок accordion `Additional seller details`: `additional_details` → `Country of origin` → `Warranty` → `EAN/UPC barcode` → `Seller article` → `Age restricted`.
 6. Проверить, что seller article визуально optional.
-7. Проверить, что Brand, `HS code`, `Packaging material`, `Seller note` не показаны как активные поля.
+7. Проверить, что `HS code`, `Packaging material`, `Seller note` не показаны как активные поля; Brand — активное поле после 7.9.
 8. Проверить, что `Country of origin` и `Warranty` редактируются в UI, но не уходят в create/edit API payload.
 9. Проверить, что `additional_details`, barcode, article и age restricted сохраняются в существующие backend fields.
 10. Проверить, что category typed required attributes блокируют preview до `POST /products/`.
@@ -236,7 +236,7 @@ git diff --check
 ## Risks
 
 - Backend create serializer still requires `article`, while UX treats seller article as optional. Frontend keeps compatibility fallback until backend contract changes.
-- Brand exists in backend foundation, but seller create/edit serializer does not expose it yet; active UI field is hidden until seller API is ready.
+- Brand seller read/write implemented in iteration 7.9 (manual text → resolve/create `Brand`).
 - Future fields are hidden to avoid fake persistence.
 - Edit stock is not shown because current edit product payload does not provide stock quantity per variant.
 - Empty `VAT rate` is normalized by frontend payload building to `0`; backend contract is not changed.

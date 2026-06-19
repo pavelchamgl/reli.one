@@ -10,23 +10,23 @@ import {
 
 import styles from "./SellerReviewProductLayout.module.scss";
 
-export const LISTING_INFORMATION_TITLE = "Listing Information";
+export const LISTING_INFORMATION_TITLE_KEY = "goods.listingInformationTitle";
 
 const LISTING_INFO_ROWS = [
-  { key: "country_of_origin", label: "Country of origin", field: "country_of_origin" },
-  { key: "warranty_months", label: "Warranty, months", field: "warranty_months" },
-  {
-    key: "age_restricted",
-    label: "Age restricted",
-    getValue: (details) => (details.is_age_restricted ? "Yes" : ""),
-  },
+  { key: "brand_name", labelKey: "goods.brand", field: "brand_name" },
+  { key: "country_of_origin", labelKey: "goods.countryOfOriginLabel", field: "country_of_origin" },
+  { key: "warranty_months", labelKey: "goods.warrantyMonthsLabel", field: "warranty_months" },
+  { key: "age_restricted", labelKey: "goods.ageRestrictedLabel", isAgeRestricted: true },
 ];
 
 const hasDisplayValue = (value) => value !== undefined && value !== null && value !== "";
 
-const EmptyValue = ({ children = "Not specified" }) => (
-  <span className={styles.emptyValue}>{children}</span>
-);
+const EmptyValue = ({ children }) => {
+  const { t } = useTranslation("sellerHome");
+  return (
+    <span className={styles.emptyValue}>{children ?? t("goods.notSpecified")}</span>
+  );
+};
 
 const BlackHeaderSection = ({ title, children }) => (
   <section className={styles.blackHeaderSection}>
@@ -35,10 +35,12 @@ const BlackHeaderSection = ({ title, children }) => (
   </section>
 );
 
-const StripedTable = ({ rows, emptyText = "No data added" }) => {
+const StripedTable = ({ rows, emptyText }) => {
+  const { t } = useTranslation("sellerHome");
+  const resolvedEmptyText = emptyText ?? t("goods.reviewNoDataAdded");
   const visibleRows = rows.filter((row) => hasDisplayValue(row.value) || row.alwaysShow);
 
-  if (!visibleRows.length) return <EmptyValue>{emptyText}</EmptyValue>;
+  if (!visibleRows.length) return <EmptyValue>{resolvedEmptyText}</EmptyValue>;
 
   return (
     <dl className={styles.stripedTable}>
@@ -78,17 +80,18 @@ const PackageDimensionsSection = ({ activeVariant }) => {
           { label: t("item.packageLengthMm"), value: dims.length },
           { label: t("item.packageWeightKg"), value: dims.weight },
         ]}
-        emptyText="No package dimensions added"
+        emptyText={t("goods.reviewNoPackageDimensions")}
       />
     </BlackHeaderSection>
   );
 };
 
 const DocumentSentence = ({ documents }) => {
+  const { t } = useTranslation("sellerHome");
   const document = documents[0];
 
   if (!document?.url) {
-    return <EmptyValue>No license or certificate added</EmptyValue>;
+    return <EmptyValue>{t("goods.reviewNoDocuments")}</EmptyValue>;
   }
 
   const handleOpenDocument = (event) => {
@@ -98,14 +101,14 @@ const DocumentSentence = ({ documents }) => {
 
   return (
     <p className={styles.documentSentence}>
-      You can read the certificate{" "}
+      {t("goods.reviewCertificatePrefix")}{" "}
       <a
         href={document.url}
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleOpenDocument}
       >
-        here
+        {t("goods.reviewCertificateLink")}
       </a>
     </p>
   );
@@ -116,7 +119,7 @@ const buildCharacteristicRows = (review, t) => [
     key: `attribute-${attribute.id}`,
     label: translateCategoryAttributeName(attribute.code, attribute.name, t),
     value: attribute.missingRequired
-      ? <span className={styles.warningText}>Required value is missing</span>
+      ? <span className={styles.warningText}>{t("goods.reviewRequiredAttributeMissing")}</span>
       : attribute.dataType === "enum" && attribute.optionValue
         ? translateCategoryAttributeOption(attribute.code, {
             value: attribute.optionValue,
@@ -141,17 +144,17 @@ const SellerReviewDetailsSections = ({ review, activeVariant }) => {
 
   const listingInfoRows = LISTING_INFO_ROWS.map((row) => ({
     key: row.key,
-    label: row.label,
-    value: row.getValue
-      ? row.getValue(review.additionalDetails)
+    label: t(row.labelKey),
+    value: row.isAgeRestricted
+      ? (review.additionalDetails?.is_age_restricted ? t("goods.yes") : "")
       : review.additionalDetails[row.field],
   }));
 
   return (
     <div className={styles.details}>
       <div className={styles.tabsRow} aria-label="Product details sections">
-        <span className={styles.tabActive}>Description</span>
-        <span className={styles.tabMuted} aria-hidden="true">Reviews</span>
+        <span className={styles.tabActive}>{t("goods.reviewDescriptionTab")}</span>
+        <span className={styles.tabMuted} aria-hidden="true">{t("goods.reviewReviewsTab")}</span>
       </div>
 
       <p className={styles.descriptionText}>{review.description || <EmptyValue />}</p>
@@ -163,7 +166,7 @@ const SellerReviewDetailsSections = ({ review, activeVariant }) => {
           onClick={() => setAdditionalDetailsOpen((open) => !open)}
           aria-expanded={additionalDetailsOpen}
         >
-          Additional details
+          {t("goods.additionalSellerDetailsTitle")}
           <ChevronDown
             size={18}
             className={additionalDetailsOpen ? styles.chevronOpen : ""}
@@ -175,20 +178,26 @@ const SellerReviewDetailsSections = ({ review, activeVariant }) => {
         ) : null}
       </div>
 
-      <BlackHeaderSection title="Parameters / Characteristics">
+      <BlackHeaderSection title={t("goods.reviewParametersSectionTitle")}>
         {review.hasMissingRequiredAttributes ? (
-          <p className={styles.sectionWarning}>Required category attributes are missing.</p>
+          <p className={styles.sectionWarning}>{t("goods.reviewMissingRequiredAttributes")}</p>
         ) : null}
-        <StripedTable rows={characteristicRows} emptyText="No category attributes or legacy parameters added" />
+        <StripedTable
+          rows={characteristicRows}
+          emptyText={t("goods.reviewNoCharacteristics")}
+        />
       </BlackHeaderSection>
 
-      <BlackHeaderSection title={LISTING_INFORMATION_TITLE}>
-        <StripedTable rows={listingInfoRows} emptyText="No listing information added" />
+      <BlackHeaderSection title={t(LISTING_INFORMATION_TITLE_KEY)}>
+        <StripedTable
+          rows={listingInfoRows}
+          emptyText={t("goods.reviewNoListingInformation")}
+        />
       </BlackHeaderSection>
 
       <PackageDimensionsSection activeVariant={activeVariant} />
 
-      <BlackHeaderSection title="Documents">
+      <BlackHeaderSection title={t("goods.documentsSectionTitle")}>
         <DocumentSentence documents={review.documents} />
       </BlackHeaderSection>
     </div>

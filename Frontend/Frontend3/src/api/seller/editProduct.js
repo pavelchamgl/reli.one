@@ -18,7 +18,7 @@ export const patchProduct = async (prodId, obj) => {
         return res.data; // Возвращаем `data`
     } catch (error) {
         console.error("Error while updating product:", error?.response?.data || error.message);
-        throw new Error("An error occurred while updating the product."); // Возвращаем ошибку на английском
+        throw error;
     }
 };
 

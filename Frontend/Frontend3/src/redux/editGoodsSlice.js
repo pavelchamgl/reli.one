@@ -13,6 +13,7 @@ import { ErrToast } from "../ui/Toastify";
 import i18n from "../../language/i18next";
 import {
     buildAttributePayload,
+    buildSellerProductPatchPayload,
     CATEGORY_SCHEMA_NOT_READY_MESSAGE,
     formatApiErrorMessage,
     formatSellerWizardApiError,
@@ -21,8 +22,6 @@ import {
     mapSellerProductVariantsForEdit,
     mapVariantApiToEditDraft,
     formatVatRateForInput,
-    normalizeVatRate,
-    normalizeWarrantyMonths,
     validateAttributeDraft,
     valuesFromAttributeRows
 } from "../utils/sellerProductWizard";
@@ -169,7 +168,7 @@ export const fetchEditProduct = createAsyncThunk(
         try {
             const state = getState().edit_goods;
             const {
-                name, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file, item, barcode, additional_details, country_of_origin, warranty_months, vat_rate, is_age
+                name, brand_name, originalBrandName, product_description, categoryId, images, parameters, length, lengthId, weight, weightId, width, widthId, height, heightId, variantsName, variantsServ, license_file, item, barcode, additional_details, country_of_origin, warranty_months, vat_rate, is_age
             } = state;
 
             if (categoryId && !isCategoryAttributeSchemaReady({ id: categoryId }, state.attributeSchema, state.attributeSchemaStatus)) {
@@ -235,18 +234,20 @@ export const fetchEditProduct = createAsyncThunk(
 
             // Формируем массив запросов
             const requests = [
-                patchProduct(id, {
+                patchProduct(id, buildSellerProductPatchPayload({
                     name,
+                    brand_name,
+                    originalBrandName,
                     product_description,
-                    category: categoryId,
-                    article: item || String(Date.now()),
+                    categoryId,
+                    item,
                     barcode,
                     additional_details,
                     country_of_origin,
-                    warranty_months: normalizeWarrantyMonths(warranty_months),
-                    vat_rate: normalizeVatRate(vat_rate),
-                    is_age_restricted: Boolean(is_age),
-                })
+                    warranty_months,
+                    vat_rate,
+                    is_age,
+                }))
             ];
 
             if (license_file && license_file?.status === "local") {
@@ -291,6 +292,8 @@ const editGoodsSlice = createSlice({
         variantsName: "",
         variantsServ: null,
         name: "",
+        brand_name: "",
+        originalBrandName: "",
         rating: "1.0",
         total_reviews: 0,
         license_file: null,
@@ -330,6 +333,7 @@ const editGoodsSlice = createSlice({
         attributeErrors: {},
         attributeSchemaStatus: "idle",
         attributeValuesStatus: "idle",
+        fieldErrors: {},
 
     },
     reducers: {
@@ -344,6 +348,12 @@ const editGoodsSlice = createSlice({
                 return {
                     ...state,
                     product_description: action.payload.value
+                }
+            }
+            if (action.payload?.name === "brand_name") {
+                return {
+                    ...state,
+                    brand_name: action.payload.value
                 }
             }
             if (action.payload?.name === "length") {
@@ -482,6 +492,8 @@ const editGoodsSlice = createSlice({
                 : null
 
             state.name = payload.name
+            state.brand_name = payload.brand_name || ""
+            state.originalBrandName = payload.brand_name || ""
             state.product_description = payload.product_description
             state.item = payload.article || ""
             state.barcode = payload.barcode || ""
@@ -600,19 +612,25 @@ const editGoodsSlice = createSlice({
         build.addCase(fetchEditProduct.pending, (state) => {
             state.status = "pending";
             state.err = null;
+            state.fieldErrors = {};
         })
         build.addCase(fetchEditProduct.fulfilled, (state) => {
             state.status = "fulfilled";
             state.err = null;
+            state.fieldErrors = {};
         })
         build.addCase(fetchEditProduct.rejected, (state, action) => {
+            const apiError = (
+                action.payload && typeof action.payload === "object" && !Array.isArray(action.payload)
+            ) ? action.payload : {};
             const message = formatSellerWizardApiError(
-                action.payload,
+                apiError,
                 tSellerHome,
                 "An error occurred while editing the product."
             );
             state.status = "rejected";
             state.err = message;
+            state.fieldErrors = apiError;
             if (action.payload?.attributeErrors) {
                 state.attributeErrors = action.payload.attributeErrors;
             }

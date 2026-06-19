@@ -14,7 +14,7 @@ export const postSellerProduct = async (obj) => {
         console.error("Ошибка при отправке данных продавца:", error);
 
         if (error.response) {
-            throw new Error(formatApiErrorMessage(error.response.data, "Ошибка на сервере"));
+            throw error;
         } else if (error.request) {
             // Запрос был сделан, но ответа нет
             throw new Error("Сервер не отвечает. Проверьте соединение.");

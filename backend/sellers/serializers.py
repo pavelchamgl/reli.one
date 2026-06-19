@@ -23,6 +23,7 @@ from product.models import (
 from product.compat import get_product_cover_image_url
 from warehouses.models import Warehouse, WarehouseItem
 
+from .brand_services import normalize_brand_name, resolve_brand_from_text, validate_brand_name_length
 from .models import SellerProfile
 
 
@@ -307,6 +308,46 @@ class LicenseFileReadSerializer(serializers.ModelSerializer):
         return None
 
 
+class ProductBrandWriteMixin(metaclass=serializers.SerializerMetaclass):
+    brand_name = serializers.CharField(
+        write_only=True,
+        required=False,
+        allow_blank=True,
+        trim_whitespace=True,
+    )
+
+    def validate_brand_name(self, value):
+        normalized = normalize_brand_name(value)
+        if not normalized:
+            return ""
+        validation_error = validate_brand_name_length(normalized)
+        if validation_error:
+            raise serializers.ValidationError(validation_error)
+        return normalized
+
+    def _apply_brand_name(self, validated_data):
+        if 'brand_name' not in validated_data:
+            return validated_data
+
+        brand_name = validated_data.pop('brand_name')
+        if not brand_name:
+            validated_data['brand'] = None
+            return validated_data
+
+        request = self.context.get('request')
+        user = request.user if request and request.user.is_authenticated else None
+        validated_data['brand'] = resolve_brand_from_text(brand_name, user=user)
+        return validated_data
+
+    def create(self, validated_data):
+        validated_data = self._apply_brand_name(validated_data)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data = self._apply_brand_name(validated_data)
+        return super().update(instance, validated_data)
+
+
 class ProductDetailSerializer(serializers.ModelSerializer):
     product_parameters = ProductParameterSerializer(many=True, read_only=True)
     license_file = LicenseFileReadSerializer(
@@ -318,6 +359,9 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         source='category.name',
         read_only=True
     )
+    brand_id = serializers.IntegerField(source='brand.id', read_only=True, allow_null=True)
+    brand_name = serializers.CharField(source='brand.name', read_only=True, allow_null=True)
+    brand_status = serializers.CharField(source='brand.status', read_only=True, allow_null=True)
     variants = ProductVariantSerializer(many=True, read_only=True)
 
     class Meta:
@@ -331,6 +375,9 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'warranty_months',
             'category',
             'category_name',
+            'brand_id',
+            'brand_name',
+            'brand_status',
             'barcode',
             'article',
             'product_parameters',
@@ -375,7 +422,7 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         return super().to_representation(instance)
 
 
-class ProductUpdateSerializer(serializers.ModelSerializer):
+class ProductUpdateSerializer(ProductBrandWriteMixin, serializers.ModelSerializer):
     class Meta:
         model = BaseProduct
         fields = [
@@ -386,6 +433,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
             'country_of_origin',
             'warranty_months',
             'category',
+            'brand_name',
             'barcode',
             'article',
             'vat_rate',
@@ -406,7 +454,7 @@ class ProductUpdateSerializer(serializers.ModelSerializer):
         }
 
 
-class ProductPatchSerializer(serializers.ModelSerializer):
+class ProductPatchSerializer(ProductBrandWriteMixin, serializers.ModelSerializer):
     class Meta:
         model = BaseProduct
         fields = [
@@ -416,6 +464,7 @@ class ProductPatchSerializer(serializers.ModelSerializer):
             'country_of_origin',
             'warranty_months',
             'category',
+            'brand_name',
             'barcode',
             'article',
             'vat_rate',
@@ -435,7 +484,7 @@ class ProductPatchSerializer(serializers.ModelSerializer):
         }
 
 
-class ProductCreateSerializer(serializers.ModelSerializer):
+class ProductCreateSerializer(ProductBrandWriteMixin, serializers.ModelSerializer):
     class Meta:
         model = BaseProduct
         fields = [
@@ -446,6 +495,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             'country_of_origin',
             'warranty_months',
             'category',
+            'brand_name',
             'barcode',
             'article',
             'vat_rate',
