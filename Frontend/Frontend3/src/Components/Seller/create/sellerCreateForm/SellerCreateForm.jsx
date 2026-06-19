@@ -13,12 +13,14 @@
   import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain";
   import CreateLisence from "../createLisence/CreateLisence"
   import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
+  import { getVisibleProductParameters } from "../../shared/sellerProductParameters";
 import {
     getCategorySchemaNotReadyMessage,
     isCategoryAttributeSchemaReady,
     isProductVariantsValid,
-    validateAttributeDraft,
-    validateProductVariants,
+  validateAttributeDraft,
+  validateProductVariants,
+  getBrandNameFieldError,
 } from "../../../../utils/sellerProductWizard";
 
   import styles from "./SellerCreateForm.module.scss";
@@ -37,6 +39,7 @@ import {
 
       const {
         name,
+        brand_name,
         lengthMain,
         product_description,
         widthMain,
@@ -57,7 +60,8 @@ import {
         attributeSchema,
         attributeValues,
         attributeErrors,
-        attributeSchemaStatus
+        attributeSchemaStatus,
+        fieldErrors,
       } = useSelector(state => state.create_prev)
 
       const [files, setFiles] = useState([])
@@ -74,6 +78,7 @@ import {
 
       const {
         setName,
+        setBrandName,
         setDescription,
         setCategory,
         setParametersPrev,
@@ -89,10 +94,12 @@ import {
       const { t } = useTranslation('sellerHome')
 
       const validationSchema = useMemo(() => getValidateGoods(t), [t]);
+      const brandApiError = useMemo(() => getBrandNameFieldError(fieldErrors, t), [fieldErrors, t]);
 
       const formik = useFormik({
         initialValues: {
           name: name ? name : "",
+          brand_name: brand_name ? brand_name : "",
           product_description: product_description ? product_description : "",
           length: lengthMain ? lengthMain : "",
           width: widthMain ? widthMain : "",
@@ -141,9 +148,10 @@ import {
       const handlePreviewClick = () => {
         const isImagesValid = images.length > 0;
         const isCategoryValid = Boolean(category);
+        const visibleParameters = getVisibleProductParameters(product_parameters);
         const isParametersValid =
-          !product_parameters?.length ||
-          product_parameters.every(
+          !visibleParameters.length ||
+          visibleParameters.every(
             (item) => item.name?.trim() && item.value?.trim()
           );
         const isSchemaReady = isCategoryAttributeSchemaReady(category, attributeSchema, attributeSchemaStatus)
@@ -179,6 +187,11 @@ import {
         <div className={styles.main}>
           <FormSection>
             <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} />
+
+            <CreateFormInp text={t('goods.brand')} name="brand_name" value={formik.values.brand_name} {...formik} handleChange={(e) => {
+              setBrandName({ brand_name: e.target.value })
+              formik.handleChange(e)
+            }} titleSize={"big"} required={false} error={formik.errors.brand_name || brandApiError} placeholder={t('goods.placeholders.brand')} />
 
             <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
               setName({ name: e.target.value })

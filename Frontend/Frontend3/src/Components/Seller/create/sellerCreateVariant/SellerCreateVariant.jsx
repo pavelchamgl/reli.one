@@ -4,7 +4,11 @@ import { useTranslation } from "react-i18next"
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg"
 import deleteImageIcon from "../../../../assets/Product/deleteCommentImage.svg"
 import closeWhIc from "../../../../assets/Product/closeWhIcon.svg"
-import { resolveVariantImagePreview, validateProductImageFiles } from "../../../../utils/sellerProductWizard"
+import {
+    resolveVariantImagePreview,
+    sanitizeIntegerNumericInput,
+    validateProductImageFiles,
+} from "../../../../utils/sellerProductWizard"
 
 import styles from "./SellerCreateVariant.module.scss"
 
@@ -132,6 +136,60 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
             <h5 className={styles.groupTitle}>{t('item.packageDimensions')}</h5>
 
             <label className={styles.inpLabel}>
+                <p>{t('item.packageHeightMm')}</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    style={fieldBorderStyle(fieldErrors, "height")}
+                    value={newVariant.height}
+                    onChange={(e) => {
+                        const nextValue = sanitizeIntegerNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, height: nextValue })
+                        setErr(false)
+                    }}
+                    placeholder={t('goods.placeholders.packageHeightMm')}
+                />
+                {fieldErrors.height ? <p className={styles.errText}>{fieldErrors.height}</p> : null}
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>{t('item.packageWidthMm')}</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    style={fieldBorderStyle(fieldErrors, "width")}
+                    value={newVariant.width}
+                    onChange={(e) => {
+                        const nextValue = sanitizeIntegerNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, width: nextValue })
+                        setErr(false)
+                    }}
+                    placeholder={t('goods.placeholders.packageWidthMm')}
+                />
+                {fieldErrors.width ? <p className={styles.errText}>{fieldErrors.width}</p> : null}
+            </label>
+
+            <label className={styles.inpLabel}>
+                <p>{t('item.packageLengthMm')}</p>
+                <input
+                    className={styles.nameInp}
+                    type="text"
+                    style={fieldBorderStyle(fieldErrors, "length")}
+                    value={newVariant.length}
+                    onChange={(e) => {
+                        const nextValue = sanitizeIntegerNumericInput(e.target.value);
+                        if (nextValue === null) return;
+                        setNewVariant({ ...newVariant, length: nextValue })
+                        setErr(false)
+                    }}
+                    placeholder={t('goods.placeholders.packageLengthMm')}
+                />
+                {fieldErrors.length ? <p className={styles.errText}>{fieldErrors.length}</p> : null}
+            </label>
+
+            <label className={styles.inpLabel}>
                 <p>{t('item.packageWeightKg')}</p>
                 <input
                     className={styles.nameInp}
@@ -147,60 +205,6 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                     placeholder={t('goods.placeholders.packageWeightKg')}
                 />
                 {fieldErrors.weight ? <p className={styles.errText}>{fieldErrors.weight}</p> : null}
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>{t('item.packageWidthCm')}</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    style={fieldBorderStyle(fieldErrors, "width")}
-                    value={newVariant.width}
-                    onChange={(e) => {
-                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
-                        if (nextValue === null) return;
-                        setNewVariant({ ...newVariant, width: nextValue })
-                        setErr(false)
-                    }}
-                    placeholder={t('goods.placeholders.packageWidthCm')}
-                />
-                {fieldErrors.width ? <p className={styles.errText}>{fieldErrors.width}</p> : null}
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>{t('item.packageHeightCm')}</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    style={fieldBorderStyle(fieldErrors, "height")}
-                    value={newVariant.height}
-                    onChange={(e) => {
-                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
-                        if (nextValue === null) return;
-                        setNewVariant({ ...newVariant, height: nextValue })
-                        setErr(false)
-                    }}
-                    placeholder={t('goods.placeholders.packageHeightCm')}
-                />
-                {fieldErrors.height ? <p className={styles.errText}>{fieldErrors.height}</p> : null}
-            </label>
-
-            <label className={styles.inpLabel}>
-                <p>{t('item.packageLengthCm')}</p>
-                <input
-                    className={styles.nameInp}
-                    type="text"
-                    style={fieldBorderStyle(fieldErrors, "length")}
-                    value={newVariant.length}
-                    onChange={(e) => {
-                        const nextValue = sanitizeDecimalNumericInput(e.target.value);
-                        if (nextValue === null) return;
-                        setNewVariant({ ...newVariant, length: nextValue })
-                        setErr(false)
-                    }}
-                    placeholder={t('goods.placeholders.packageLengthCm')}
-                />
-                {fieldErrors.length ? <p className={styles.errText}>{fieldErrors.length}</p> : null}
             </label>
 
             {

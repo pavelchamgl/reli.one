@@ -1,9 +1,18 @@
 import * as yup from "yup"
+import { normalizeBrandName } from "../../utils/sellerProductWizard";
 
 const msg = (t, key, fallback) => (t ? t(key) : fallback);
 
 export const getValidateGoods = (t) => yup.object().shape({
     name: yup.string().required(msg(t, "goods.validation.nameRequired", "Name is required")),
+    brand_name: yup.string()
+        .transform((value) => normalizeBrandName(value))
+        .test(
+            "brand-min-length",
+            msg(t, "goods.validation.brandMinLength", "Brand must be at least 2 characters"),
+            (value) => !value || value.length >= 2
+        )
+        .max(150, msg(t, "goods.validation.brandMaxLength", "Brand must be at most 150 characters")),
     product_description: yup.string().required(msg(t, "goods.validation.descriptionRequired", "Description is required")),
     item: yup.string()
         .matches(/^\d+$/, { message: msg(t, "goods.validation.itemDigitsOnly", "Item must contain only numbers"), excludeEmptyString: true })

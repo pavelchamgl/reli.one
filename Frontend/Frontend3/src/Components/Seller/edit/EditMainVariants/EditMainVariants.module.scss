@@ -1,27 +1,27 @@
+@use "../../shared/sellerProductForm" as form;
+
 .wightTitle {
-  font-weight: 400;
-  font-size: clamp(20px, 2.5vw, 30px);
+  font-weight: 500;
+  font-size: clamp(16px, 2.5vw, 18px);
+  line-height: normal;
+  letter-spacing: normal;
   color: #000;
-  margin-top: clamp(20px, 2.5vw, 45px);
-  margin-bottom: clamp(10px, 2.5vw, 15px);
   position: relative;
+  margin-bottom: clamp(5px, 2.5vw, 10px);
   width: max-content;
   padding-right: 10px;
 }
 
 .wightTitle::after {
-  content: "*";
-  display: block;
-  position: absolute;
-  top: 0;
-  right: 0;
-  color: red;
+  @include form.sellerFormRequiredMarkAfter;
 }
 
 .descText {
   font-weight: 400;
-  font-size: clamp(14px, 2.5vw, 18px);
+  font-size: clamp(12px, 2vw, 14px);
+  line-height: 1.45;
   color: #64748b;
+  margin: 0 0 clamp(8px, 2vw, 12px);
 }
 
 .addStyleWrap {
@@ -30,13 +30,10 @@
   gap: clamp(14px, 2.5vw, 20px);
   margin-top: clamp(15px, 2.5vw, 25px);
   & input {
-    width: 100%;
-    border: 1px solid #ced4d7;
-    height: clamp(36px, 2.5vw, 46px);
+    @include form.sellerFormFieldInput;
+    height: 44px;
+    padding: 10px 12px;
     background: #fafafa;
-    padding-left: 11px;
-    font-weight: 400;
-    font-size: clamp(14px, 2.5vw, 16px);
     color: #7d7d7d;
     outline-color: #cbcdce;
   }
@@ -56,11 +53,11 @@
 }
 
 .variantsWrap {
-  margin-top: clamp(15px, 2.5vw, 20px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   flex-wrap: wrap;
   gap: clamp(14px, 2.5vw, 16px);
+  margin-top: clamp(15px, 2.5vw, 20px);
 }
 
 .errText {

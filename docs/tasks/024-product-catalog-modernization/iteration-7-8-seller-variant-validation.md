@@ -50,7 +50,7 @@
 
 - `ProductVariant.sku` generation.
 - Stock endpoint contract (`PUT .../stock/`).
-- Delivery dimensions storage: `mm` / `g` на варианте; UI package fields в `cm` / `kg`.
+- Delivery dimensions storage: `mm` / `g` на варианте; UI package fields в `mm` / `kg`.
 - Category attributes (product-level) — отдельно, см. cheatsheet doors.
 
 ---

@@ -9,7 +9,7 @@ import { translateCategoryName } from "../../../../../utils/sellerCatalogI18n";
 
 import styles from "./CreateCategoryMain.module.scss";
 
-const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
+const CreateCategoryMain = ({ readOnlyCategory = null, err = false, setErr }) => {
     const [stage, setStage] = useState(1);
     const [open, setOpen] = useState(false);
     const [isTouched, setIsTouched] = useState(false)
@@ -18,16 +18,14 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
     const { categories, categoriesStage } = useSelector((state) => state.create);
     const { category } = useSelector((state) => state.create_prev);
 
-    // Ref для обёртки select
     const selectRef = useRef(null);
 
     const { t } = useTranslation(["sellerHome", "translation"])
 
-    // Закрытие при клике вне select
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (selectRef.current && !selectRef.current.contains(event.target)) {
-                setOpen(false); // Закрыть, если клик был вне компонента
+                setOpen(false);
             }
         };
 
@@ -48,10 +46,14 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
     }, [open]);
 
     useEffect(() => {
-        if (category) {
+        if (readOnlyCategory?.name) {
+            setErr(false)
+            return
+        }
+        if (category || categoriesStage?.length > 0) {
             setErr(false)
         }
-    }, [category])
+    }, [readOnlyCategory, category, categoriesStage])
 
     return (
         <div>
@@ -82,8 +84,8 @@ const CreateCategoryMain = ({ category_name = null, err = false, setErr }) => {
                                 );
                             })}
                         </p>
-                    ) : category_name ? (
-                        <p>{translateCategoryName(category?.id, category_name, t)}</p>
+                    ) : readOnlyCategory?.name ? (
+                        <p>{translateCategoryName(readOnlyCategory.id, readOnlyCategory.name, t)}</p>
                     ) : (
                         <p>{t('goods.placeholders.selectCategory')}</p>
                     )}

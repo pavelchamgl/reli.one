@@ -11,7 +11,14 @@ export const SELLER_WIZARD_MESSAGE_KEYS = {
     attributeBoolean: "goods.errors.attributeBoolean",
     attributeEnum: "goods.errors.attributeEnum",
     licenseFileFormat: "goods.errors.licenseFileFormat",
+    licenseFileSize: "goods.errors.licenseFileSize",
+    licenseFileEmpty: "goods.errors.licenseFileEmpty",
+    licenseFileReadError: "goods.errors.licenseFileReadError",
+    licenseAlreadyExists: "goods.errors.licenseAlreadyExists",
+    licenseUploadFailed: "goods.errors.licenseUploadFailed",
     productImageFormat: "goods.errors.productImageFormat",
+    brandMinLength: "goods.validation.brandMinLength",
+    brandMaxLength: "goods.validation.brandMaxLength",
 };
 
 export const SELLER_WIZARD_MESSAGE_FALLBACKS = {
@@ -24,8 +31,20 @@ export const SELLER_WIZARD_MESSAGE_FALLBACKS = {
     [SELLER_WIZARD_MESSAGE_KEYS.attributeValidNumber]: "Enter a valid number.",
     [SELLER_WIZARD_MESSAGE_KEYS.attributeBoolean]: "Choose true or false.",
     [SELLER_WIZARD_MESSAGE_KEYS.attributeEnum]: "Choose one of the available options.",
-    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat]: "License file must be PDF or DOCX.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat]: "License file must be JPG, JPEG, PNG, WebP, or PDF.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileSize]: "License file must be smaller than 13 MB.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileEmpty]: "The selected file is empty.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseFileReadError]: "Could not read the selected file. Please try again.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseAlreadyExists]: "A license file already exists. Delete it before uploading a new one.",
+    [SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed]: "Could not upload the license file. Check the format and size, then try again.",
     [SELLER_WIZARD_MESSAGE_KEYS.productImageFormat]: "Product images must be JPG, PNG, or WEBP.",
+    [SELLER_WIZARD_MESSAGE_KEYS.brandMinLength]: "Brand must be at least 2 characters",
+    [SELLER_WIZARD_MESSAGE_KEYS.brandMaxLength]: "Brand must be at most 150 characters",
+};
+
+export const BRAND_NAME_API_ERROR_CODES = {
+    brand_min_length: SELLER_WIZARD_MESSAGE_KEYS.brandMinLength,
+    brand_max_length: SELLER_WIZARD_MESSAGE_KEYS.brandMaxLength,
 };
 
 const resolveWizardMessage = (messageKey, t) => (
@@ -34,8 +53,89 @@ const resolveWizardMessage = (messageKey, t) => (
 
 export const translateSellerWizardError = (message, t) => {
     if (!message || !t) return message || "";
+    const mappedBrand = mapBrandNameApiError(message, t);
+    if (mappedBrand !== message) return mappedBrand;
+    const mapped = mapLicenseApiError(message, t);
+    if (mapped !== message) return mapped;
     const entry = Object.entries(SELLER_WIZARD_MESSAGE_FALLBACKS).find(([, text]) => text === message);
     return entry ? t(entry[0]) : message;
+};
+
+export const resolveWizardApiErrorMessage = (error, t, fallback = "Unknown error") => {
+    if (error === undefined || error === null || error === "") {
+        return fallback;
+    }
+    if (typeof error === "string") {
+        return translateSellerWizardError(error, t) || fallback;
+    }
+    if (typeof error === "object" && !Array.isArray(error)) {
+        const brandError = getBrandNameFieldError(error, t);
+        if (brandError) return brandError;
+
+        for (const [field, value] of Object.entries(error)) {
+            if (field === "message" || field === "attributeErrors") continue;
+            const raw = Array.isArray(value) ? value[0] : value;
+            if (raw === undefined || raw === null || raw === "") continue;
+            const mapped = field === "brand_name"
+                ? mapBrandNameApiError(raw, t)
+                : translateSellerWizardError(String(raw), t);
+            if (mapped) return mapped;
+        }
+
+        if (typeof error.message === "string") {
+            return translateSellerWizardError(error.message, t) || fallback;
+        }
+    }
+
+    const message = formatApiErrorMessage(error, fallback);
+    return translateSellerWizardError(message, t) || fallback;
+};
+
+export const formatSellerWizardApiError = (error, t, fallback = "Unknown error") => (
+    resolveWizardApiErrorMessage(error, t, fallback)
+);
+
+const LICENSE_API_ERROR_PATTERNS = [
+    { includes: "Unsupported file type", key: SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat },
+    { includes: "File size exceeds", key: SELLER_WIZARD_MESSAGE_KEYS.licenseFileSize },
+    { includes: "uploaded file is empty", key: SELLER_WIZARD_MESSAGE_KEYS.licenseFileEmpty },
+    { includes: "already exists", key: SELLER_WIZARD_MESSAGE_KEYS.licenseAlreadyExists },
+    { includes: "Base64 decode error", key: SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed },
+    { includes: "Not a valid data URI scheme", key: SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed },
+];
+
+export const mapLicenseApiError = (message, t) => {
+    if (!message) {
+        return resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed, t);
+    }
+    const normalized = String(message);
+    const matchedPattern = LICENSE_API_ERROR_PATTERNS.find(({ includes }) => (
+        normalized.toLowerCase().includes(includes.toLowerCase())
+    ));
+    if (matchedPattern) {
+        return resolveWizardMessage(matchedPattern.key, t);
+    }
+    return normalized;
+};
+
+export const mapBrandNameApiError = (codeOrMessage, t) => {
+    if (codeOrMessage === undefined || codeOrMessage === null || codeOrMessage === "") {
+        return "";
+    }
+    const code = String(codeOrMessage).trim();
+    const messageKey = BRAND_NAME_API_ERROR_CODES[code];
+    if (messageKey) {
+        return resolveWizardMessage(messageKey, t);
+    }
+    return code;
+};
+
+export const getBrandNameFieldError = (apiError, t) => {
+    if (!apiError || typeof apiError !== "object") return null;
+    const brandError = apiError.brand_name;
+    if (brandError === undefined || brandError === null) return null;
+    const raw = Array.isArray(brandError) ? brandError[0] : brandError;
+    return mapBrandNameApiError(raw, t) || null;
 };
 
 export const getCategorySchemaNotReadyMessage = (t) => (
@@ -128,6 +228,83 @@ export const normalizeSellerArticle = (value) => {
     return String(Date.now()).slice(-10);
 };
 
+export const normalizeBrandName = (value) => String(value ?? "").trim().replace(/\s+/g, " ");
+
+export const buildSellerProductCreatePayload = ({
+    name,
+    brand_name,
+    product_description,
+    barcode,
+    item,
+    additional_details,
+    country_of_origin,
+    warranty_months,
+    vat_rate,
+    is_age,
+    category,
+}) => {
+    const payload = {
+        name,
+        product_description,
+        barcode,
+        article: normalizeSellerArticle(item),
+        additional_details,
+        country_of_origin,
+        warranty_months: normalizeWarrantyMonths(warranty_months),
+        vat_rate: normalizeVatRate(vat_rate),
+        is_age_restricted: Boolean(is_age),
+        category: category?.id || null,
+    };
+    const normalizedBrandName = normalizeBrandName(brand_name);
+    if (normalizedBrandName) {
+        payload.brand_name = normalizedBrandName;
+    }
+    return payload;
+};
+
+export const buildSellerProductPatchPayload = ({
+    name,
+    brand_name,
+    originalBrandName,
+    product_description,
+    categoryId,
+    item,
+    barcode,
+    additional_details,
+    country_of_origin,
+    warranty_months,
+    vat_rate,
+    is_age,
+}) => {
+    const payload = {
+        name,
+        product_description,
+        category: categoryId,
+        article: item || String(Date.now()),
+        barcode,
+        additional_details,
+        country_of_origin,
+        warranty_months: normalizeWarrantyMonths(warranty_months),
+        vat_rate: normalizeVatRate(vat_rate),
+        is_age_restricted: Boolean(is_age),
+    };
+
+    const normalizedBrandName = normalizeBrandName(brand_name);
+    const normalizedOriginalBrandName = normalizeBrandName(originalBrandName);
+
+    if (normalizedBrandName === normalizedOriginalBrandName) {
+        return payload;
+    }
+    if (!normalizedBrandName && normalizedOriginalBrandName) {
+        payload.brand_name = "";
+        return payload;
+    }
+    if (normalizedBrandName) {
+        payload.brand_name = normalizedBrandName;
+    }
+    return payload;
+};
+
 export const openSellerDocumentUrl = (url) => {
     if (!url) return;
 
@@ -170,11 +347,29 @@ export const gramsToKg = (value) => {
     return String(Number((numberValue / 1000).toFixed(3)));
 };
 
+const rejectNegativeNumericInput = (value) => value.includes("-");
+
+const hasDecimalSeparator = (value) => /[.,]/.test(value);
+
+export const sanitizeIntegerNumericInput = (value) => {
+    if (rejectNegativeNumericInput(value)) return null;
+    if (hasDecimalSeparator(value)) return null;
+    return value.replace(/[^0-9]/g, "");
+};
+
 const dimensionValue = (variant, packageField, legacyField) => (
     variant?.[packageField] !== undefined && variant?.[packageField] !== ""
         ? variant[packageField]
         : variant?.[legacyField]
 );
+
+const parseMmValue = (value) => {
+    const numberValue = Number(value);
+    if (!Number.isFinite(numberValue) || !Number.isInteger(numberValue) || numberValue <= 0) {
+        return null;
+    }
+    return numberValue;
+};
 
 export const mapVariantDraftToPayload = (variant, fallbackName) => {
     const payload = {
@@ -182,9 +377,9 @@ export const mapVariantDraftToPayload = (variant, fallbackName) => {
         name: variant.name || fallbackName,
         text: variant.text ?? "",
         weight_grams: kgToGrams(dimensionValue(variant, "package_weight_kg", "weight")),
-        width_mm: cmToMm(dimensionValue(variant, "package_width_cm", "width")),
-        length_mm: cmToMm(dimensionValue(variant, "package_length_cm", "length")),
-        height_mm: cmToMm(dimensionValue(variant, "package_height_cm", "height")),
+        width_mm: parseMmValue(dimensionValue(variant, "package_width_mm", "width")),
+        length_mm: parseMmValue(dimensionValue(variant, "package_length_mm", "length")),
+        height_mm: parseMmValue(dimensionValue(variant, "package_height_mm", "height")),
     };
 
     if (hasVariantImageValue(variant.image)) {
@@ -200,9 +395,9 @@ export const mapVariantApiToEditDraft = (variant) => ({
     text: variant?.text ?? "",
     quantity_in_stock: variant?.quantity_in_stock ?? "",
     package_weight_kg: gramsToKg(variant?.weight_grams),
-    package_width_cm: mmToCm(variant?.width_mm),
-    package_length_cm: mmToCm(variant?.length_mm),
-    package_height_cm: mmToCm(variant?.height_mm),
+    package_width_mm: variant?.width_mm != null && variant?.width_mm !== "" ? String(variant.width_mm) : "",
+    package_length_mm: variant?.length_mm != null && variant?.length_mm !== "" ? String(variant.length_mm) : "",
+    package_height_mm: variant?.height_mm != null && variant?.height_mm !== "" ? String(variant.height_mm) : "",
 });
 
 export const mapSellerProductVariantsForEdit = (variants = []) => (
@@ -214,9 +409,9 @@ export const mapSellerProductVariantsForEdit = (variants = []) => (
 
 export const addPackageDimensionsToPayload = (payload, variant) => {
     const weight = kgToGrams(dimensionValue(variant, "package_weight_kg", "weight"));
-    const width = cmToMm(dimensionValue(variant, "package_width_cm", "width"));
-    const length = cmToMm(dimensionValue(variant, "package_length_cm", "length"));
-    const height = cmToMm(dimensionValue(variant, "package_height_cm", "height"));
+    const width = parseMmValue(dimensionValue(variant, "package_width_mm", "width"));
+    const length = parseMmValue(dimensionValue(variant, "package_length_mm", "length"));
+    const height = parseMmValue(dimensionValue(variant, "package_height_mm", "height"));
 
     if (weight !== null) payload.weight_grams = weight;
     if (width !== null) payload.width_mm = width;
@@ -248,10 +443,10 @@ export const areOptionalPackageDimensionsValid = (variant) => (
 );
 
 const VARIANT_DIMENSION_FIELDS = [
-    { packageField: "package_weight_kg", legacyField: "weight" },
-    { packageField: "package_width_cm", legacyField: "width" },
-    { packageField: "package_height_cm", legacyField: "height" },
-    { packageField: "package_length_cm", legacyField: "length" },
+    { packageField: "package_weight_kg", legacyField: "weight", isMm: false },
+    { packageField: "package_width_mm", legacyField: "width", isMm: true },
+    { packageField: "package_height_mm", legacyField: "height", isMm: true },
+    { packageField: "package_length_mm", legacyField: "length", isMm: true },
 ];
 
 const resolveVariantMessage = (messageKey, t) => (
@@ -263,13 +458,18 @@ const isPositiveNumericValue = (value) => {
     return Number.isFinite(numberValue) && numberValue > 0;
 };
 
+const isPositiveIntegerValue = (value) => {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) && Number.isInteger(numberValue) && numberValue > 0;
+};
+
 export const areRequiredPackageDimensionsValid = (variant) => (
-    VARIANT_DIMENSION_FIELDS.every(({ packageField, legacyField }) => {
+    VARIANT_DIMENSION_FIELDS.every(({ packageField, legacyField, isMm }) => {
         const value = dimensionValue(variant, packageField, legacyField);
         if (value === undefined || value === null || value === "") {
             return false;
         }
-        return isPositiveNumericValue(value);
+        return isMm ? isPositiveIntegerValue(value) : isPositiveNumericValue(value);
     })
 );
 
@@ -297,16 +497,16 @@ export const validateVariantDraft = (variant, t) => {
         }
     }
 
-    VARIANT_DIMENSION_FIELDS.forEach(({ packageField, legacyField }) => {
+    VARIANT_DIMENSION_FIELDS.forEach(({ packageField, legacyField, isMm }) => {
         const value = dimensionValue(variant, packageField, legacyField);
         const fieldKey = variant && Object.prototype.hasOwnProperty.call(variant, packageField)
             ? packageField
             : legacyField;
         const errorKey = {
             package_weight_kg: "variantPackageWeightRequired",
-            package_width_cm: "variantPackageWidthRequired",
-            package_height_cm: "variantPackageHeightRequired",
-            package_length_cm: "variantPackageLengthRequired",
+            package_width_mm: "variantPackageWidthRequired",
+            package_height_mm: "variantPackageHeightRequired",
+            package_length_mm: "variantPackageLengthRequired",
             weight: "variantPackageWeightRequired",
             width: "variantPackageWidthRequired",
             height: "variantPackageHeightRequired",
@@ -317,7 +517,8 @@ export const validateVariantDraft = (variant, t) => {
             errors[fieldKey] = resolveVariantMessage(errorKey, t);
             return;
         }
-        if (!isPositiveNumericValue(value)) {
+        const isValid = isMm ? isPositiveIntegerValue(value) : isPositiveNumericValue(value);
+        if (!isValid) {
             errors[fieldKey] = resolveVariantMessage("variantPackageDimensionInvalid", t);
         }
     });
@@ -502,20 +703,44 @@ export const LICENSE_FILE_ERROR_MESSAGE = SELLER_WIZARD_MESSAGE_FALLBACKS[
 
 const LICENSE_MIME_TYPES = new Set([
     "application/pdf",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
 ]);
+
+const LICENSE_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png", "webp"]);
+
+const LICENSE_EXTENSION_MIME_TYPES = {
+    pdf: new Set(["application/pdf"]),
+    jpg: new Set(["image/jpeg"]),
+    jpeg: new Set(["image/jpeg"]),
+    png: new Set(["image/png"]),
+    webp: new Set(["image/webp"]),
+};
+
+export const LICENSE_MAX_BYTES = 13 * 1024 * 1024;
 
 export const validateLicenseFile = (file, t) => {
     if (!file) return null;
 
+    if (!file.size) {
+        return resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseFileEmpty, t);
+    }
+
     const errorMessage = resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseFileFormat, t);
     const extension = file.name?.split(".").pop()?.toLowerCase();
-    const hasAllowedExtension = extension === "pdf" || extension === "docx";
+    const hasAllowedExtension = LICENSE_EXTENSIONS.has(extension);
     const hasMime = Boolean(file.type);
     const hasAllowedMime = LICENSE_MIME_TYPES.has(file.type);
+    const extensionMimeTypes = LICENSE_EXTENSION_MIME_TYPES[extension];
+    const hasMatchingMime = !hasMime || (hasAllowedMime && extensionMimeTypes?.has(file.type));
 
     if (!hasAllowedExtension) return errorMessage;
-    if (hasMime && !hasAllowedMime) return errorMessage;
+    if (!hasMatchingMime) return errorMessage;
+
+    if (file.size > LICENSE_MAX_BYTES) {
+        return resolveWizardMessage(SELLER_WIZARD_MESSAGE_KEYS.licenseFileSize, t);
+    }
 
     return null;
 };
@@ -624,20 +849,20 @@ const licenseRows = (licenseFile) => {
 };
 
 const packageDimensionsForReview = (variant = {}) => ({
-    length: firstPresent(
-        variant.package_length_cm,
-        variant.length,
-        variant.length_mm ? mmToCm(variant.length_mm) : ""
+    height: firstPresent(
+        variant.package_height_mm,
+        variant.height,
+        variant.height_mm !== undefined && variant.height_mm !== null ? String(variant.height_mm) : ""
     ),
     width: firstPresent(
-        variant.package_width_cm,
+        variant.package_width_mm,
         variant.width,
-        variant.width_mm ? mmToCm(variant.width_mm) : ""
+        variant.width_mm !== undefined && variant.width_mm !== null ? String(variant.width_mm) : ""
     ),
-    height: firstPresent(
-        variant.package_height_cm,
-        variant.height,
-        variant.height_mm ? mmToCm(variant.height_mm) : ""
+    length: firstPresent(
+        variant.package_length_mm,
+        variant.length,
+        variant.length_mm !== undefined && variant.length_mm !== null ? String(variant.length_mm) : ""
     ),
     weight: firstPresent(
         variant.package_weight_kg,
@@ -832,6 +1057,7 @@ export const buildSellerReviewData = (product = {}) => {
         deliveryText: PREVIEW_DELIVERY_TEXT,
         additionalDetails: {
             additional_details: source.additional_details || "",
+            brand_name: source.brand_name || "",
             country_of_origin: source.country_of_origin || "",
             warranty_months: source.warranty_months ?? "",
             barcode: source.barcode || "",

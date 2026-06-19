@@ -6,58 +6,33 @@ import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 
-// Импорты стилей Swiper
 import "swiper/css";
 import "swiper/css/navigation";
 
-// Импорт модулей Swiper
 import { Navigation } from "swiper/modules";
 import { validateProductImageFiles } from "../../../../utils/sellerProductWizard";
 
 import createMaskImg from "../../../../assets/Seller/create/maskImg.svg";
 import arrLeft from "../../../../assets/Seller/create/arrLeft.svg";
 import arrRight from "../../../../assets/Seller/create/arrRight.svg";
-import deleteCommentImage from "../../../../assets/Product/deleteCommentImage.svg";
 
 import styles from "./SellerEditImages.module.scss";
 
 
 const SellerEditImages = ({ err, setErr }) => {
-    const [imageUrls, setImageUrls] = useState([]);
     const [files, setFiles] = useState([]);
     const [fileError, setFileError] = useState("");
 
     const { id } = useParams()
     const isMobile = useMediaQuery({ maxWidth: 427 })
 
-    const { fetchGetImages, deleteImage, fetchDeleteImage, setImages } = useActionSellerEdit()
+    const { deleteImage, fetchDeleteImage, setImages } = useActionSellerEdit()
 
     const { images } = useSelector(state => state.edit_goods)
 
     const arr = 6
 
     const { t } = useTranslation('sellerHome')
-
-
-    // useEffect(() => {
-    //     // setFilesMain(files)
-
-    //     let imagesArr = [];
-
-    //     if (imageUrls?.length > 0) {
-
-    //         imagesArr = imageUrls.map((item) => {
-    //             return {
-    //                 image_url: item
-    //             }
-    //         })
-    //     }
-    // }, [imageUrls, files])
-
-    // useEffect(() => {
-    //     fetchGetImages(id)
-    // }, [id])
-
 
     useEffect(() => {
         if (images?.length > 0) {
@@ -67,7 +42,7 @@ const SellerEditImages = ({ err, setErr }) => {
 
     const handleChangeFile = (e) => {
         const newFiles = Array.from(e.target.files);
-        const nextError = validateProductImageFiles(newFiles);
+        const nextError = validateProductImageFiles(newFiles, t);
         if (nextError) {
             setFileError(nextError);
             e.target.value = "";
@@ -110,10 +85,6 @@ const SellerEditImages = ({ err, setErr }) => {
                 imageId: url.id
             })
         }
-        // const updatedFiles = files.filter((_, i) => i !== index);
-        // const updatedUrls = imageUrls.filter((_, i) => i !== index);
-        // setFiles(updatedFiles);
-        // setImageUrls(updatedUrls);
     };
 
     return (
@@ -134,87 +105,78 @@ const SellerEditImages = ({ err, setErr }) => {
             <div className={styles.sliderContainer}>
                 <>
                     <Swiper
-                        modules={isMobile ? [] : [Navigation]} // Условно подключаем Navigation
+                        modules={isMobile ? [] : [Navigation]}
                         navigation={
                             !isMobile && {
                                 nextEl: `.${styles.swiperButtonNext}`,
                                 prevEl: `.${styles.swiperButtonPrev}`,
                             }
                         }
-                        spaceBetween={20} // Расстояние между слайдами
-                        slidesPerView="auto" // Количество слайдов
+                        spaceBetween={20}
+                        slidesPerView="auto"
                         className={styles.swiper}
                         direction="horizontal"
                     >
-                        {images?.length === 0 || !images ? (
-                            <div className={styles.smallMaskWrap}>
-                                {Array.from({ length: arr }, (_, index) => (
-                                    <SwiperSlide key={index} className={styles.swiperSlide}>
-
-                                        <div className={err ? styles.maskErr : styles.mask}>
-                                            <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="mask" />
-                                        </div>
-
-                                    </SwiperSlide>
-                                ))}
-                            </div>
-                        ) : (
-                            images?.map((url, index) => (
-                                <SwiperSlide key={index} className={styles.swiperSlide}>
-                                    <div
-                                        className={styles.imageWrapper}
-                                        onMouseEnter={(e) =>
-                                            e.currentTarget.classList.add(styles.hovered)
-                                        }
-                                        onMouseLeave={(e) =>
-                                            e.currentTarget.classList.remove(styles.hovered)
-                                        }
-                                    >
-                                        <div className={styles.deleteWrap}>
-                                            <button
-                                                className={styles.deleteButton}
-                                                onClick={() => handleDelete(url)}
+                        {images?.map((url, index) => (
+                            <SwiperSlide key={`image-${url?.id ?? index}`} className={styles.swiperSlide}>
+                                <div
+                                    className={styles.imageWrapper}
+                                    onMouseEnter={(e) =>
+                                        e.currentTarget.classList.add(styles.hovered)
+                                    }
+                                    onMouseLeave={(e) =>
+                                        e.currentTarget.classList.remove(styles.hovered)
+                                    }
+                                >
+                                    <div className={styles.deleteWrap}>
+                                        <button
+                                            type="button"
+                                            className={styles.deleteButton}
+                                            onClick={() => handleDelete(url)}
+                                        >
+                                            <svg
+                                                width="14"
+                                                height="14"
+                                                viewBox="0 0 14 14"
+                                                fill="none"
+                                                xmlns="http://www.w3.org/2000/svg"
                                             >
-                                                <svg
-                                                    width="14"
-                                                    height="14"
-                                                    viewBox="0 0 14 14"
-                                                    fill="none"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                >
-                                                    <path
-                                                        d="M13 13L7.00002 7.00002M7.00002 7.00002L1 1M7.00002 7.00002L13 1M7.00002 7.00002L1 13"
-                                                        stroke="#D55B5B"
-                                                        strokeWidth="2"
-                                                        strokeLinecap="round"
-                                                        strokeLinejoin="round"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        <img
-                                            className={styles.mediaPreview}
-                                            src={url?.image_url}
-                                            alt={`Preview ${index}`}
-                                        />
+                                                <path
+                                                    d="M13 13L7.00002 7.00002M7.00002 7.00002L1 1M7.00002 7.00002L13 1M7.00002 7.00002L1 13"
+                                                    stroke="#D55B5B"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                />
+                                            </svg>
+                                        </button>
                                     </div>
-                                </SwiperSlide>
-                            ))
-                        )}
+                                    <img
+                                        className={styles.mediaPreview}
+                                        src={url?.image_url}
+                                        alt=""
+                                    />
+                                </div>
+                            </SwiperSlide>
+                        ))}
+                        {Array.from({ length: Math.max(0, arr - (images?.length ?? 0)) }, (_, index) => (
+                            <SwiperSlide key={`placeholder-${index}`} className={styles.swiperSlide}>
+                                <div className={err ? styles.maskErr : styles.mask}>
+                                    <img style={{ width: "18px", height: "18px" }} src={createMaskImg} alt="" />
+                                </div>
+                            </SwiperSlide>
+                        ))}
                     </Swiper>
-                    <button className={styles.swiperButtonPrev}>
+                    <button type="button" className={styles.swiperButtonPrev}>
                         <img src={arrLeft} alt="" />
                     </button>
-                    <button className={styles.swiperButtonNext}>
+                    <button type="button" className={styles.swiperButtonNext}>
                         <img src={arrRight} alt="" />
                     </button>
                 </>
             </div>
-            {fileError ? <p className={styles.errText}>{fileError}</p> : <></>}
-            {err ? <p className={styles.errText}>Image is required</p> : <></>}
-
-
-            {/* Кнопки навигации */}
+            {fileError ? <p className={styles.errText}>{fileError}</p> : null}
+            {err ? <p className={styles.errText}>{t('goods.errors.imageRequired')}</p> : null}
         </div>
     );
 };

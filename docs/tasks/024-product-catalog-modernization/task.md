@@ -277,9 +277,9 @@ Seller UI:
 - `product_width_cm`
 - `product_height_cm`
 - `product_weight_kg`
-- `package_length_cm`
-- `package_width_cm`
-- `package_height_cm`
+- `package_length_mm`
+- `package_width_mm`
+- `package_height_mm`
 - `package_weight_kg`
 
 Правила:
