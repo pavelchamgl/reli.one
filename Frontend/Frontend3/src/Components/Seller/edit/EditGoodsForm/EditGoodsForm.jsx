@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormik } from "formik";
 import { useNavigate, useParams } from "react-router-dom";
 import { useActionSellerEdit } from "../../../../hook/useActionSellerEdit";
@@ -10,15 +10,17 @@ import CreateFormInp from "../../../../ui/Seller/create/createFormInp/CreateForm
 import CreateCategoryMain from "../../../../ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain";
 import SellerEditImages from "../sellerEditImage/SellerEditImages";
 import EditMainVariants from "../EditMainVariants/EditMainVariants";
-import { validateGoods } from "../../../../code/validation/validationGoods";
+import { getValidateGoods } from "../../../../code/validation/validationGoods";
 import EditLicense from "../EditLicense/EditLicense";
 import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
+import { getVisibleProductParameters } from "../../shared/sellerProductParameters";
 import {
-    CATEGORY_SCHEMA_NOT_READY_MESSAGE,
+    getCategorySchemaNotReadyMessage,
     isCategoryAttributeSchemaReady,
     isProductVariantsValid,
     validateAttributeDraft,
     validateProductVariants,
+    getBrandNameFieldError,
 } from "../../../../utils/sellerProductWizard";
 
 import styles from "./EditGoodsForm.module.scss"
@@ -57,6 +59,7 @@ const EditGoodsForm = () => {
         product,
         parameters,
         name,
+        brand_name,
         product_description,
         length,
         width,
@@ -80,7 +83,8 @@ const EditGoodsForm = () => {
         attributeSchema,
         attributeValues,
         attributeErrors,
-        attributeSchemaStatus
+        attributeSchemaStatus,
+        fieldErrors,
     } = useSelector(state => state.edit_goods)
 
     const { categoriesStage } = useSelector(state => state.create)
@@ -88,9 +92,13 @@ const EditGoodsForm = () => {
 
     const { t } = useTranslation('sellerHome')
 
+    const validationSchema = useMemo(() => getValidateGoods(t), [t]);
+    const brandApiError = useMemo(() => getBrandNameFieldError(fieldErrors, t), [fieldErrors, t]);
+
     const formik = useFormik({
         initialValues: {
             name: "",
+            brand_name: "",
             product_description: "",
             length: "",
             width: "",
@@ -105,7 +113,7 @@ const EditGoodsForm = () => {
             vat_rate: vat_rate,
             is_age: is_age
         },
-        validationSchema: validateGoods,
+        validationSchema,
         onSubmit: (values) => {
 
             setValues({ ...values })
@@ -136,14 +144,15 @@ const EditGoodsForm = () => {
         const isSchemaReady = isCategoryValid
             ? isCategoryAttributeSchemaReady(schemaCategory, attributeSchema, attributeSchemaStatus)
             : false;
-        const nextAttributeErrors = validateAttributeDraft(attributeSchema?.attributes || [], attributeValues || {})
+        const nextAttributeErrors = validateAttributeDraft(attributeSchema?.attributes || [], attributeValues || {}, t)
         if (isCategoryValid && !isSchemaReady) {
-            nextAttributeErrors.schema = CATEGORY_SCHEMA_NOT_READY_MESSAGE
+            nextAttributeErrors.schema = getCategorySchemaNotReadyMessage(t)
         }
         const areAttributesValid = Object.keys(nextAttributeErrors).length === 0
+        const visibleParameters = getVisibleProductParameters(parameters);
         const isParametersValid =
-            !parameters?.length ||
-            parameters.every(
+            !visibleParameters.length ||
+            visibleParameters.every(
                 (item) => item.name?.trim() && item.value?.trim()
             );
         const nextVariantValidation = validateProductVariants(
@@ -168,7 +177,6 @@ const EditGoodsForm = () => {
 
 
 
-
     useEffect(() => {
         if (product) {
             // Находим значения параметров в массиве product_parameters
@@ -176,6 +184,7 @@ const EditGoodsForm = () => {
             // Обновляем значения формы
             formik.setValues({
                 name: name ?? "",
+                brand_name: brand_name ?? "",
                 product_description: product_description ?? "",
                 length: length ?? "", // Используем значение length, если параметр найден
                 width: width ?? "",  // Используем значение width, если параметр найден
@@ -206,19 +215,35 @@ const EditGoodsForm = () => {
     return (
         <div className={styles.main}>
             <FormSection>
-                <CreateCategoryMain err={categoryErr} setErr={setCategoryErr} category_name={product?.category_name} />
+                <CreateCategoryMain
+                    err={categoryErr}
+                    setErr={setCategoryErr}
+                    readOnlyCategory={
+                        (category_name || product?.category_name)
+                            ? {
+                                id: categoryId ?? null,
+                                name: category_name || product?.category_name,
+                            }
+                            : null
+                    }
+                />
+
+                <CreateFormInp text={t('goods.brand')} name="brand_name" value={formik.values.brand_name} {...formik} handleChange={(e) => {
+                    formik.handleChange(e)
+                    setParameter({ name: "brand_name", value: e.target.value })
+                }} titleSize={"big"} required={false} error={formik.errors.brand_name || brandApiError} placeholder={t('goods.placeholders.brand')} />
 
                 <CreateFormInp text={t('goods.name')} name="name" value={formik.values.name} {...formik} handleChange={(e) => {
                     formik.handleChange(e)
                     setParameter({ name: "name", value: e.target.value })
-                }} titleSize={"big"} required={true} error={formik.errors.name} />
+                }} titleSize={"big"} required={true} error={formik.errors.name} placeholder={t('goods.placeholders.productName')} />
             </FormSection>
 
-            <FormSection title="Media files">
+            <FormSection>
                 <SellerEditImages err={imageErr} setErr={setImageErr} />
             </FormSection>
 
-            <FormSection title="Description">
+            <FormSection>
                 <CreateFormInp
                     name="product_description"
                     value={formik.values.product_description}
@@ -232,10 +257,11 @@ const EditGoodsForm = () => {
                     required={true}
                     textarea={true}
                     error={formik.errors.product_description}
+                    placeholder={t('goods.placeholders.productDescription')}
                 />
             </FormSection>
 
-            <FormSection title="Category attributes">
+            <FormSection title={t('goods.categoryAttributesTitle')}>
                 <SellerCategoryAttributesFields
                     schema={attributeSchema?.attributes || []}
                     values={attributeValues}
@@ -246,15 +272,18 @@ const EditGoodsForm = () => {
                 <EditGoodsParameters parameters={parameters} err={parametersErr} setErr={setParametersErr} />
             </FormSection>
 
-            <FormSection title="Variants, price and stock">
+            <FormSection title={t('goods.variantsSectionTitle')}>
                 <CreateFormInp
                     name='vat_rate'
                     value={formik.values.vat_rate}
-                    text={'VAT rate'}
+                    text={t('goods.vatRate')}
                     titleSize={"small"}
                     {...formik}
                     handleChange={formik.handleChange}
                     error={formik.errors.vat_rate}
+                    num={true}
+                    decimal={true}
+                    placeholder={t('goods.placeholders.vatRate')}
                 />
                 <EditMainVariants
                     err={varErr}
@@ -265,56 +294,65 @@ const EditGoodsForm = () => {
                 />
             </FormSection>
 
-            <FormSection title="Documents">
+            <FormSection title={t('goods.documentsSectionTitle')}>
                 <EditLicense />
             </FormSection>
 
             <details className={styles.additionalDetails}>
-                <summary>Additional seller details</summary>
+                <summary>{t('goods.additionalSellerDetailsTitle')}</summary>
                 <div className={styles.additionalDetailsBody}>
                     <CreateFormInp
                         name="additional_details"
                         value={formik.values.additional_details}
                         {...formik}
                         handleChange={formik.handleChange}
-                        text={"Additional details"}
+                        text={t('goods.additionalDetailsLabel')}
                         titleSize={"small"}
                         textarea={true}
+                        placeholder={t('goods.placeholders.additionalDetails')}
                     />
                     <CreateFormInp
                         name="country_of_origin"
                         value={formik.values.country_of_origin}
-                        text="Country of origin"
+                        text={t('goods.countryOfOriginLabel')}
                         titleSize={"small"}
                         {...formik}
                         handleChange={formik.handleChange}
+                        placeholder={t('goods.placeholders.countryOfOrigin')}
                     />
                     <CreateFormInp
                         name="warranty_months"
                         value={formik.values.warranty_months}
-                        text="Warranty, months"
+                        text={t('goods.warrantyMonthsLabel')}
                         titleSize={"small"}
                         {...formik}
                         handleChange={formik.handleChange}
                         error={formik.errors.warranty_months}
                         num={true}
+                        digitsOnly={true}
+                        placeholder={t('goods.placeholders.warrantyMonths')}
                     />
                     <CreateFormInp
                         name='barcode'
                         value={formik.values.barcode}
-                        text="EAN/UPC barcode"
+                        text={t('goods.barcodeLabel')}
                         titleSize={"small"}
                         {...formik}
                         handleChange={formik.handleChange}
+                        digitsOnly={true}
+                        placeholder={t('goods.placeholders.barcode')}
                     />
                     <CreateFormInp
                         name='item'
                         value={formik.values.item}
-                        text="Seller article"
+                        text={t('goods.sellerArticleLabel')}
                         titleSize={"small"}
                         {...formik}
                         handleChange={formik.handleChange}
                         error={formik.errors.item}
+                        num={true}
+                        digitsOnly={true}
+                        placeholder={t('goods.placeholders.sellerArticle')}
                     />
                     <label className={styles.isAgeLabel}>
                         <CheckBox
@@ -325,7 +363,7 @@ const EditGoodsForm = () => {
                             }}
                             style={{ borderRadius: "4px" }}
                         />
-                        Age restricted
+                        {t('goods.ageRestrictedLabel')}
                     </label>
                 </div>
             </details>
@@ -334,7 +372,7 @@ const EditGoodsForm = () => {
             <div className={styles.footerBtnWrap}>
                 <button onClick={() => navigate(-1)}>{t('item.cancel')}</button>
                 <button
-                    disabled={!formik.isValid}
+                    disabled={!formik.isValid || !variantsName?.trim() || variantsServ.length === 0}
                     onClick={() => {
                         handlePreviewClick()
                     }}>{t('item.preview')}</button>

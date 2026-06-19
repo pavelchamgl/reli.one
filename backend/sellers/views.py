@@ -88,17 +88,20 @@ from warehouses.models import WarehouseItem
             "Create a new product for the authenticated seller. "
             "The product supports the main description fields together with the additional "
             "business fields required by the current seller flow: "
-            "`additional_details`, `barcode`, `article`, `vat_rate`, and `is_age_restricted`.\n\n"
+            "`additional_details`, `barcode`, `article`, `vat_rate`, `is_age_restricted`, "
+            "and optional `brand_name` (free text; resolved to a `Brand` record when provided).\n\n"
             "Important notes:\n"
             "- `name` is required\n"
             "- `product_description` is required\n"
             "- `category` is required\n"
             "- `article` is required\n"
             "- `vat_rate` is required\n"
+            "- `brand_name` is optional; omit or send blank to leave brand unset\n"
             "- `barcode` is optional\n"
             "- `additional_details` is optional\n"
             "- `is_age_restricted` is optional\n\n"
-            "The response returns the full product representation via `ProductDetailSerializer`."
+            "The response returns the full product representation via `ProductDetailSerializer`, "
+            "including `brand_id`, `brand_name`, and `brand_status` (null when no brand is linked)."
         ),
         request=ProductCreateSerializer,
         responses={status.HTTP_201_CREATED: ProductDetailSerializer},
@@ -109,9 +112,11 @@ from warehouses.models import WarehouseItem
             "Fully update (PUT) a product belonging to the authenticated seller.\n\n"
             "This endpoint updates the seller product using the current business fields: "
             "`name`, `product_description`, `additional_details`, `category`, `barcode`, "
-            "`article`, `vat_rate`, and `is_age_restricted`.\n\n"
+            "`article`, `vat_rate`, `is_age_restricted`, and optional `brand_name` "
+            "(free text; resolved to a `Brand` when provided, blank clears the link).\n\n"
             "For full update, provide the complete product payload required by "
-            "`ProductUpdateSerializer`."
+            "`ProductUpdateSerializer`. Response includes `brand_id`, `brand_name`, "
+            "and `brand_status`."
         ),
         request=ProductUpdateSerializer,
         responses={status.HTTP_200_OK: ProductDetailSerializer},
@@ -123,8 +128,12 @@ from warehouses.models import WarehouseItem
             "Only the fields that need to be changed may be sent in the request, "
             "while the final saved product remains validated by the backend business rules.\n\n"
             "Supports partial changes for the current seller product fields, including: "
-            "`additional_details`, `barcode`, `article`, `vat_rate`, and `is_age_restricted`.\n\n"
-            "The response returns the full updated product via `ProductDetailSerializer`."
+            "`additional_details`, `barcode`, `article`, `vat_rate`, `is_age_restricted`, "
+            "and optional `brand_name`. Omit `brand_name` to leave the current brand unchanged; "
+            "send `brand_name` as an empty string to clear the brand link; send non-empty text "
+            "to resolve/create and attach a `Brand`.\n\n"
+            "The response returns the full updated product via `ProductDetailSerializer`, "
+            "including `brand_id`, `brand_name`, and `brand_status`."
         ),
         request=ProductPatchSerializer,
         responses={status.HTTP_200_OK: ProductDetailSerializer},

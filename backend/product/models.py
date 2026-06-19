@@ -9,7 +9,6 @@ from mptt.models import MPTTModel, TreeForeignKey
 from django.db.models import Min
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
-from django.template.defaultfilters import filesizeformat
 from django.core.files.base import ContentFile
 from django.db.models.functions import Lower
 
@@ -170,22 +169,10 @@ class BaseProduct(models.Model):
         return None
 
 
-def validate_file_extension(value):
-    import os
-    ext = os.path.splitext(value.name)[1]
-    valid_extensions = ['.pdf', 'jpeg']
-    if not ext.lower() in valid_extensions:
-        raise ValidationError(
-            'Invalid file format. Valid formats: .pdf, .jpeg'
-        )
-
-
-def validate_file_size(value):
-    filesize = value.size
-    if filesize > settings.MAX_UPLOAD_SIZE:
-        raise ValidationError(
-            f'File size exceeds the maximum allowable file size: {filesizeformat(settings.MAX_UPLOAD_SIZE)}.'
-        )
+from product.license_validators import (
+    validate_license_file_extension as validate_file_extension,
+    validate_license_file_size as validate_file_size,
+)
 
 
 class ProductParameter(models.Model):

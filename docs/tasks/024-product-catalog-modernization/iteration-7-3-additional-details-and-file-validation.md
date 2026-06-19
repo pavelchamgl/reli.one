@@ -115,7 +115,7 @@ Rollback:
 6. Enter invalid warranty (`0`, `-1`, `12.5`, text); verify field-level error before save.
 7. Upload JPG/PNG/WEBP product images; verify preview and submit work.
 8. Select SVG/video or mixed valid+invalid images; verify immediate error and no preview.
-9. Verify license validation still allows only PDF/DOCX.
+9. Verify license validation allows JPG, JPEG, PNG, WebP, PDF and rejects DOCX, empty files, and files over 13 MB.
 10. Verify VAT returned as `"0.00"` is displayed as `"0"` in edit UI.
 11. Verify public product detail still opens and does not expose `reserved_quantity`.
 

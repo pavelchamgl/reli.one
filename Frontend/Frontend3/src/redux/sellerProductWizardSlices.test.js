@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { render, screen } from "@testing-library/react";
 import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
+import { useTranslation } from "react-i18next";
 
 vi.mock("../ui/Toastify", () => ({
   ErrToast: vi.fn(),
@@ -30,15 +31,21 @@ vi.mock("../api/seller/sellerWizard", () => ({
 }));
 
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
+  useTranslation: vi.fn(() => ({
     t: (key) => key,
-  }),
+  })),
+}));
+
+vi.mock("../../language/i18next", () => ({
+  default: {
+    t: (key) => key,
+  },
 }));
 
 import SellerReviewActions from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewActions.jsx";
 import SellerReviewDetailsSections, {
   LISTING_INFO_ROWS,
-  LISTING_INFORMATION_TITLE,
+  LISTING_INFORMATION_TITLE_KEY,
 } from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewDetailsSections.jsx";
 import SellerReviewProductInfo from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewProductInfo.jsx";
 import SellerReviewProductLayout from "../Components/Seller/preview/SellerReviewProductLayout/SellerReviewProductLayout.jsx";
@@ -62,6 +69,8 @@ import { validateGoods } from "../code/validation/validationGoods.js";
 import {
   areOptionalPackageDimensionsValid,
   buildAttributePayload,
+  buildSellerProductCreatePayload,
+  buildSellerProductPatchPayload,
   buildSellerReviewData,
   CATEGORY_SCHEMA_NOT_READY_MESSAGE,
   formatApiErrorMessage,
@@ -73,12 +82,19 @@ import {
   mapProductParametersForReview,
   mapVariantApiToEditDraft,
   normalizeSellerArticle,
+  normalizeBrandName,
   normalizeVatRate,
   openSellerDocumentUrl,
   REVIEW_STOCK_NOT_LOADED,
   unwrapProductPreviewResponse,
   validateProductImageFile,
   validateProductImageFiles,
+  formatSellerWizardApiError,
+  getBrandNameFieldError,
+  LICENSE_MAX_BYTES,
+  mapBrandNameApiError,
+  mapLicenseApiError,
+  translateSellerWizardError,
   validateLicenseFile,
   validateLicenseFiles,
   validateProductVariants,
@@ -137,10 +153,10 @@ const validCreateVariant = (overrides = {}) => ({
   text: "Black",
   price: "99.90",
   quantity_in_stock: "5",
-  weight: "2",
-  width: "20",
-  height: "10",
-  length: "30",
+  weight: "25.6",
+  width: "800",
+  height: "2060",
+  length: "40",
   image: null,
   ...overrides,
 });
@@ -205,6 +221,7 @@ describe("seller product wizard create guards", () => {
     });
     store.dispatch(setCreateValues({
       name: "Door",
+      brand_name: "Samsung",
       product_description: "Front door",
       additional_details: "Steel",
       country_of_origin: "Czech Republic",
@@ -226,6 +243,7 @@ describe("seller product wizard create guards", () => {
     expect(result.type).toBe(fetchCreateProduct.fulfilled.type);
     expect(postSellerProduct).toHaveBeenCalledWith(expect.objectContaining({
       name: "Door",
+      brand_name: "Samsung",
       product_description: "Front door",
       category: 10,
       vat_rate: "21",
@@ -241,6 +259,48 @@ describe("seller product wizard create guards", () => {
     expect(postSellerProduct.mock.calls[0][0].article).toMatch(/^\d{10}$/);
   });
 
+  it("omits brand_name from create payload when brand field is empty", async () => {
+    postSellerProduct.mockResolvedValue({ id: 123 });
+    const store = makeCreateStore();
+    store.dispatch(setCreateCategory({ id: 10, name: "Doors" }));
+    store.dispatch({
+      type: fetchCreateCategoryAttributeSchema.fulfilled.type,
+      payload: { attributes: [] },
+    });
+    store.dispatch(setCreateValues({
+      name: "Door",
+      brand_name: "   ",
+      product_description: "Front door",
+      vat_rate: "21",
+      variantsName: "Color",
+      variantsMain: [validCreateVariant()],
+    }));
+
+    const result = await store.dispatch(fetchCreateProduct());
+
+    expect(result.type).toBe(fetchCreateProduct.fulfilled.type);
+    expect(postSellerProduct.mock.calls[0][0]).not.toHaveProperty("brand_name");
+  });
+
+  it("buildSellerProductCreatePayload omits empty brand_name", () => {
+    const payload = buildSellerProductCreatePayload({
+      name: "Door",
+      brand_name: "  ",
+      product_description: "Desc",
+      barcode: "",
+      item: "",
+      additional_details: "",
+      country_of_origin: "",
+      warranty_months: "",
+      vat_rate: "21",
+      is_age: false,
+      category: { id: 10 },
+    });
+
+    expect(payload).not.toHaveProperty("brand_name");
+    expect(payload.name).toBe("Door");
+  });
+
   it("maps empty VAT to zero in product create payload", async () => {
     postSellerProduct.mockResolvedValue({ id: 123 });
     const store = makeCreateStore();
@@ -251,6 +311,7 @@ describe("seller product wizard create guards", () => {
     });
     store.dispatch(setCreateValues({
       name: "Door",
+      brand_name: "Samsung",
       product_description: "Front door",
       vat_rate: "",
       variantsName: "Color",
@@ -268,15 +329,48 @@ describe("seller product wizard create guards", () => {
   it("rejects invalid warranty months in form validation", async () => {
     await expect(validateGoods.validate({
       name: "Door",
+      brand_name: "Samsung",
       product_description: "Front door",
       warranty_months: "12.5",
     })).rejects.toThrow("Warranty must be a positive whole number");
 
     await expect(validateGoods.validate({
       name: "Door",
+      brand_name: "Samsung",
       product_description: "Front door",
       warranty_months: "12",
     })).resolves.toMatchObject({ warranty_months: "12" });
+  });
+
+  it("normalizes brand name and rejects invalid values", async () => {
+    expect(normalizeBrandName("  Samsung   Galaxy  ")).toBe("Samsung Galaxy");
+
+    await expect(validateGoods.validate({
+      name: "Door",
+      brand_name: "",
+      product_description: "Front door",
+    })).resolves.toMatchObject({ brand_name: "" });
+
+    await expect(validateGoods.validate({
+      name: "Door",
+      brand_name: "A",
+      product_description: "Front door",
+    })).rejects.toThrow("Brand must be at least 2 characters");
+
+    await expect(validateGoods.validate({
+      name: "Door",
+      brand_name: "Samsung",
+      product_description: "Front door",
+    })).resolves.toMatchObject({ brand_name: "Samsung" });
+  });
+
+  it("maps brand API error codes to i18n keys", () => {
+    const t = (key) => key;
+    expect(mapBrandNameApiError("brand_min_length", t)).toBe("goods.validation.brandMinLength");
+    expect(mapBrandNameApiError("brand_max_length", t)).toBe("goods.validation.brandMaxLength");
+    expect(getBrandNameFieldError({ brand_name: ["brand_min_length"] }, t)).toBe(
+      "goods.validation.brandMinLength"
+    );
   });
 });
 
@@ -413,6 +507,8 @@ describe("seller product wizard edit submit guards", () => {
         attributeSchemaStatus: "idle",
         attributeValuesStatus: "idle",
         name: "Door",
+        brand_name: "Philips",
+        originalBrandName: "Philips",
         product_description: "Desc",
         additional_details: "Seller notes",
         country_of_origin: "Poland",
@@ -441,8 +537,105 @@ describe("seller product wizard edit submit guards", () => {
       vat_rate: "0",
       is_age_restricted: true,
     }));
+    expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("brand_name");
     expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("countryOfOrigin");
     expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("warranty");
+  });
+
+  it("omits brand_name from edit patch when brand is unchanged", async () => {
+    patchProduct.mockResolvedValue({});
+    const store = makeEditStore({
+      edit_goods: {
+        id: 77,
+        categoryId: 10,
+        attributeSchema: { attributes: [] },
+        attributeSchemaStatus: "fulfilled",
+        attributeValues: {},
+        attributeErrors: {},
+        name: "Door",
+        brand_name: "Samsung",
+        originalBrandName: "Samsung",
+        product_description: "Desc",
+        item: "1234567890",
+        vat_rate: "21",
+        images: [],
+        parameters: [],
+        variantsServ: [],
+      },
+    });
+
+    await store.dispatch(fetchEditProduct(77));
+
+    expect(patchProduct.mock.calls[0][1]).not.toHaveProperty("brand_name");
+  });
+
+  it("sends empty brand_name on edit patch when brand is cleared", async () => {
+    patchProduct.mockResolvedValue({});
+    const store = makeEditStore({
+      edit_goods: {
+        id: 77,
+        categoryId: 10,
+        attributeSchema: { attributes: [] },
+        attributeSchemaStatus: "fulfilled",
+        attributeValues: {},
+        attributeErrors: {},
+        name: "Door",
+        brand_name: "",
+        originalBrandName: "Samsung",
+        product_description: "Desc",
+        item: "1234567890",
+        vat_rate: "21",
+        images: [],
+        parameters: [],
+        variantsServ: [],
+      },
+    });
+
+    await store.dispatch(fetchEditProduct(77));
+
+    expect(patchProduct.mock.calls[0][1]).toMatchObject({ brand_name: "" });
+  });
+
+  it("sends new brand_name on edit patch when brand is changed", async () => {
+    patchProduct.mockResolvedValue({});
+    const store = makeEditStore({
+      edit_goods: {
+        id: 77,
+        categoryId: 10,
+        attributeSchema: { attributes: [] },
+        attributeSchemaStatus: "fulfilled",
+        attributeValues: {},
+        attributeErrors: {},
+        name: "Door",
+        brand_name: "Sony",
+        originalBrandName: "Samsung",
+        product_description: "Desc",
+        item: "1234567890",
+        vat_rate: "21",
+        images: [],
+        parameters: [],
+        variantsServ: [],
+      },
+    });
+
+    await store.dispatch(fetchEditProduct(77));
+
+    expect(patchProduct.mock.calls[0][1]).toMatchObject({ brand_name: "Sony" });
+  });
+
+  it("buildSellerProductPatchPayload omits brand when legacy product had no brand and field is empty", () => {
+    const payload = buildSellerProductPatchPayload({
+      name: "Door",
+      brand_name: "",
+      originalBrandName: "",
+      product_description: "Desc",
+      categoryId: 10,
+      item: "1234567890",
+      vat_rate: "21",
+      is_age: false,
+    });
+
+    expect(payload).not.toHaveProperty("brand_name");
   });
 });
 
@@ -493,7 +686,7 @@ describe("seller product wizard helpers", () => {
     expect(formatVatRateForInput("20.50")).toBe("20.5");
   });
 
-  it("maps backend package dimensions to edit kg/cm fields", () => {
+  it("maps backend package dimensions to edit kg/mm fields", () => {
     expect(
       mapVariantApiToEditDraft({
         id: 1,
@@ -504,9 +697,24 @@ describe("seller product wizard helpers", () => {
       })
     ).toMatchObject({
       package_weight_kg: "1.25",
-      package_length_cm: "30.5",
-      package_width_cm: "20",
-      package_height_cm: "7.5",
+      package_length_mm: "305",
+      package_width_mm: "200",
+      package_height_mm: "75",
+    });
+  });
+
+  it("preserves zero mm dimensions when mapping variant api to edit draft", () => {
+    expect(
+      mapVariantApiToEditDraft({
+        id: 1,
+        width_mm: 0,
+        length_mm: 0,
+        height_mm: 0,
+      })
+    ).toMatchObject({
+      package_width_mm: "0",
+      package_length_mm: "0",
+      package_height_mm: "0",
     });
   });
 
@@ -517,9 +725,9 @@ describe("seller product wizard helpers", () => {
         text: "Black",
         image: "data:image/png;base64,abc",
         weight: "1.25",
-        length: "30.5",
-        width: "20",
-        height: "7.5",
+        length: "305",
+        width: "200",
+        height: "75",
       }, "Color")
     ).toMatchObject({
       price: "99.90",
@@ -564,10 +772,10 @@ describe("seller product wizard helpers", () => {
         text: "Black",
         price: "10",
         quantity_in_stock: "5",
-        weight: "2",
-        width: "20",
-        height: "10",
-        length: "30",
+        weight: "25.6",
+        width: "800",
+        height: "2060",
+        length: "40",
       }],
     });
 
@@ -611,9 +819,9 @@ describe("seller product wizard helpers", () => {
           text: "Black",
           image: null,
           package_weight_kg: "",
-          package_length_cm: "",
-          package_width_cm: "",
-          package_height_cm: "",
+          package_length_mm: "",
+          package_width_mm: "",
+          package_height_mm: "",
         },
         "Color"
       )
@@ -664,9 +872,9 @@ describe("seller product wizard helpers", () => {
     expect(
       areOptionalPackageDimensionsValid({
         package_weight_kg: "",
-        package_length_cm: "",
-        package_width_cm: null,
-        package_height_cm: undefined,
+        package_length_mm: "",
+        package_width_mm: null,
+        package_height_mm: undefined,
       })
     ).toBe(false);
   });
@@ -674,45 +882,104 @@ describe("seller product wizard helpers", () => {
   it("rejects filled invalid edit package dimensions", () => {
     expect(areOptionalPackageDimensionsValid({
       package_weight_kg: "2",
-      package_width_cm: "20",
-      package_height_cm: "10",
-      package_length_cm: "30",
+      package_width_mm: "200",
+      package_height_mm: "100",
+      package_length_mm: "300",
     })).toBe(true);
     expect(areOptionalPackageDimensionsValid({ package_weight_kg: "0" })).toBe(false);
-    expect(areOptionalPackageDimensionsValid({ package_width_cm: "abc" })).toBe(false);
-    expect(areOptionalPackageDimensionsValid({ package_height_cm: "-1" })).toBe(false);
-    expect(areOptionalPackageDimensionsValid({ package_length_cm: "12.5" })).toBe(false);
+    expect(areOptionalPackageDimensionsValid({ package_width_mm: "abc" })).toBe(false);
+    expect(areOptionalPackageDimensionsValid({ package_height_mm: "-1" })).toBe(false);
+    expect(areOptionalPackageDimensionsValid({ package_length_mm: "12.5" })).toBe(false);
   });
 
   it("blocks invalid license formats before upload", () => {
-    expect(validateLicenseFile(new File(["x"], "license.jpg", { type: "image/jpeg" }))).toBe(
-      "License file must be PDF or DOCX."
-    );
+    const formatError = "License file must be JPG, JPEG, PNG, WebP, or PDF.";
     expect(validateLicenseFile(new File(["x"], "license.doc", { type: "application/msword" }))).toBe(
-      "License file must be PDF or DOCX."
+      formatError
     );
-    expect(validateLicenseFile(new File(["x"], "license.pdf", { type: "application/pdf" }))).toBeNull();
     expect(validateLicenseFile(new File(["x"], "license.docx", {
       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    }))).toBeNull();
+    }))).toBe(formatError);
+    expect(validateLicenseFile(new File(["x"], "license.pdf", { type: "application/pdf" }))).toBeNull();
+    expect(validateLicenseFile(new File(["x"], "license.jpg", { type: "image/jpeg" }))).toBeNull();
+    expect(validateLicenseFile(new File(["x"], "license.jpeg", { type: "image/jpeg" }))).toBeNull();
+    expect(validateLicenseFile(new File(["x"], "license.png", { type: "image/png" }))).toBeNull();
+    expect(validateLicenseFile(new File(["x"], "license.webp", { type: "image/webp" }))).toBeNull();
+  });
+
+  it("rejects empty and oversized license files before upload", () => {
+    expect(validateLicenseFile(new File([], "license.pdf", { type: "application/pdf" }))).toBe(
+      "The selected file is empty."
+    );
+    const oversized = new File([new Uint8Array(LICENSE_MAX_BYTES + 1)], "license.pdf", {
+      type: "application/pdf",
+    });
+    expect(validateLicenseFile(oversized)).toBe(
+      "License file must be smaller than 13 MB."
+    );
+  });
+
+  it("rejects license files with mismatched mime type", () => {
+    const formatError = "License file must be JPG, JPEG, PNG, WebP, or PDF.";
+    expect(validateLicenseFile(new File(["x"], "license.png", { type: "application/pdf" }))).toBe(
+      formatError
+    );
+    expect(validateLicenseFile(new File(["x"], "license.webp", { type: "image/png" }))).toBe(
+      formatError
+    );
   });
 
   it("rejects mixed license selection when any file is invalid", () => {
     expect(validateLicenseFiles([
       new File(["x"], "license.pdf", { type: "application/pdf" }),
-      new File(["x"], "photo.jpg", { type: "image/jpeg" }),
-    ])).toBe("License file must be PDF or DOCX.");
+      new File(["x"], "photo.doc", { type: "application/msword" }),
+    ])).toBe("License file must be JPG, JPEG, PNG, WebP, or PDF.");
   });
 
-  it("allows single PDF or DOCX license selection", () => {
+  it("allows single PDF, JPG, JPEG, PNG, or WebP license selection", () => {
     expect(validateLicenseFiles([
       new File(["x"], "license.pdf", { type: "application/pdf" }),
     ])).toBeNull();
     expect(validateLicenseFiles([
-      new File(["x"], "license.docx", {
-        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      }),
+      new File(["x"], "license.jpg", { type: "image/jpeg" }),
     ])).toBeNull();
+    expect(validateLicenseFiles([
+      new File(["x"], "license.png", { type: "image/png" }),
+    ])).toBeNull();
+    expect(validateLicenseFiles([
+      new File(["x"], "license.webp", { type: "image/webp" }),
+    ])).toBeNull();
+  });
+
+  it("maps backend license API errors to wizard messages", () => {
+    const t = (key) => key;
+    expect(mapLicenseApiError("Unsupported file type. Allowed: PDF, JPG, PNG, WebP.", t)).toBe(
+      "goods.errors.licenseFileFormat"
+    );
+    expect(mapLicenseApiError("File size exceeds the maximum allowed size (13 MB).", t)).toBe(
+      "goods.errors.licenseFileSize"
+    );
+    expect(mapLicenseApiError("A license file already exists for this product.", t)).toBe(
+      "goods.errors.licenseAlreadyExists"
+    );
+  });
+
+  it("translates license upload API payload through formatSellerWizardApiError", () => {
+    const t = (key) => key;
+    expect(formatSellerWizardApiError(
+      { file: ["Unsupported file type. Allowed: PDF, JPG, PNG, WebP."] },
+      t,
+      "Unknown error"
+    )).toBe("goods.errors.licenseFileFormat");
+    expect(formatSellerWizardApiError(
+      { brand_name: ["brand_min_length"] },
+      t,
+      "Unknown error"
+    )).toBe("goods.validation.brandMinLength");
+    expect(translateSellerWizardError(
+      "Unsupported file type. Allowed: PDF, JPG, PNG, WebP.",
+      t
+    )).toBe("goods.errors.licenseFileFormat");
   });
 
   it("blocks invalid product image formats before upload", () => {
@@ -740,6 +1007,7 @@ describe("seller product wizard helpers", () => {
       category: { id: 1, name: "Entry doors" },
       product_description: "Strong door",
       additional_details: "Seller note",
+      brand_name: "Samsung",
       country_of_origin: "Czech Republic",
       warranty_months: "24",
       barcode: "1234567890123",
@@ -756,10 +1024,10 @@ describe("seller product wizard helpers", () => {
           price: "99.90",
           price_without_vat: "82.56",
           quantity_in_stock: "7",
-          length: "30",
-          width: "20",
-          height: "10",
-          weight: "1.5",
+          length: "40",
+          width: "800",
+          height: "2060",
+          weight: "25.6",
         },
       ],
     });
@@ -772,6 +1040,7 @@ describe("seller product wizard helpers", () => {
     expect(review.totalReviews).toBe(13);
     expect(review.additionalDetails).toMatchObject({
       additional_details: "Seller note",
+      brand_name: "Samsung",
       country_of_origin: "Czech Republic",
       warranty_months: "24",
       barcode: "1234567890123",
@@ -779,10 +1048,10 @@ describe("seller product wizard helpers", () => {
       is_age_restricted: true,
     });
     expect(review.variants[0].packageDimensions).toMatchObject({
-      length: "30",
-      width: "20",
-      height: "10",
-      weight: "1.5",
+      length: "40",
+      width: "800",
+      height: "2060",
+      weight: "25.6",
     });
     expect(review.variants[0].stock).toBe("7");
   });
@@ -842,9 +1111,9 @@ describe("seller product wizard helpers", () => {
       stock: REVIEW_STOCK_NOT_LOADED,
     });
     expect(review.variants[0].packageDimensions).toMatchObject({
-      length: "30",
-      width: "20",
-      height: "10",
+      length: "300",
+      width: "200",
+      height: "100",
       weight: "1.5",
     });
     expect(review.documents[0]).toMatchObject({ name: "certificate.pdf", status: "server" });
@@ -957,9 +1226,9 @@ describe("seller product wizard helpers", () => {
       sku: "SKU-31",
     });
     expect(review.variants[0].packageDimensions).toMatchObject({
-      length: "30",
-      width: "20",
-      height: "10",
+      length: "300",
+      width: "200",
+      height: "100",
       weight: "1.5",
     });
     expect(review.categoryAttributes).toEqual([
@@ -1235,6 +1504,7 @@ describe("seller product wizard helpers", () => {
     });
     store.dispatch(setCreateValues({
       name: "Door",
+      brand_name: "Samsung",
       product_description: "Front door",
       images: [{ image_url: "data:image/png;base64,ok" }],
       variantsName: "Color",
@@ -1280,6 +1550,7 @@ const makeReviewFixture = (overrides = {}) => ({
   ],
   additionalDetails: {
     additional_details: "Manufactured to EN 1627.",
+    brand_name: "Reli Door",
     country_of_origin: "Czech Republic",
     warranty_months: "24",
     barcode: "8594012345678",
@@ -1303,6 +1574,43 @@ const renderProductInfo = (review) => render(
 );
 
 describe("seller review product layout regressions", () => {
+  const sellerHomeEnItemLabels = {
+    "goods.brand": "Brand",
+    "goods.countryOfOriginLabel": "Country of origin",
+    "goods.warrantyMonthsLabel": "Warranty, months",
+    "goods.ageRestrictedLabel": "Age restricted",
+    "goods.listingInformationTitle": "Listing Information",
+    "goods.notSpecified": "Not specified",
+    "goods.yes": "Yes",
+    "goods.no": "No",
+    "goods.reviewDescriptionTab": "Description",
+    "goods.reviewReviewsTab": "Reviews",
+    "goods.additionalSellerDetailsTitle": "Additional seller details",
+    "goods.reviewParametersSectionTitle": "Parameters / Characteristics",
+    "goods.reviewNoListingInformation": "No listing information added",
+    "goods.reviewNoCharacteristics": "No category attributes or legacy parameters added",
+    "goods.reviewNoPackageDimensions": "No package dimensions added",
+    "goods.reviewNoDocuments": "No license or certificate added",
+    "goods.reviewCertificatePrefix": "You can read the certificate",
+    "goods.reviewCertificateLink": "here",
+    "goods.reviewRequiredAttributeMissing": "Required value is missing",
+    "goods.reviewMissingRequiredAttributes": "Required category attributes are missing.",
+    "goods.reviewNoDataAdded": "No data added",
+    "goods.documentsSectionTitle": "Documents",
+    "item.packageDimensions": "Package dimensions",
+    "item.packageHeightMm": "Package height, mm",
+    "item.packageWidthMm": "Package width, mm",
+    "item.packageLengthMm": "Package length, mm",
+    "item.packageWeightKg": "Package weight, kg",
+  };
+
+  beforeEach(() => {
+    useTranslation.mockImplementation(() => ({
+      t: (key) => sellerHomeEnItemLabels[key] ?? key,
+      i18n: { language: "en" },
+    }));
+  });
+
   it("renders preview banner with Preview mode text only", () => {
     render(
       React.createElement(SellerReviewProductLayout, {
@@ -1437,12 +1745,15 @@ describe("seller review product layout regressions", () => {
       })
     );
 
-    expect(screen.getByText(LISTING_INFORMATION_TITLE)).toBeTruthy();
+    expect(screen.getByText(sellerHomeEnItemLabels[LISTING_INFORMATION_TITLE_KEY])).toBeTruthy();
 
     const labels = screen.getAllByRole("term").map((node) => node.textContent);
-    const listingLabels = LISTING_INFO_ROWS.map((row) => row.label);
+    const listingLabels = LISTING_INFO_ROWS.map((row) => (
+      row.labelKey ? sellerHomeEnItemLabels[row.labelKey] ?? row.labelKey : row.label
+    ));
 
     expect(labels.filter((label) => listingLabels.includes(label))).toEqual([
+      "Brand",
       "Country of origin",
       "Warranty, months",
     ]);
@@ -1450,6 +1761,23 @@ describe("seller review product layout regressions", () => {
     expect(screen.queryByText("Seller article")).toBeNull();
     expect(screen.queryByText("Age restricted")).toBeNull();
     expect(screen.queryByText("Moderation status")).toBeNull();
+  });
+
+  it("hides brand listing row when brand value is empty", () => {
+    render(
+      React.createElement(SellerReviewDetailsSections, {
+        review: makeReviewFixture({
+          additionalDetails: {
+            ...makeReviewFixture().additionalDetails,
+            brand_name: "",
+          },
+        }),
+        activeVariant: makeReviewFixture().variants[0],
+      })
+    );
+
+    expect(screen.queryByText("Brand")).toBeNull();
+    expect(screen.getByText("Country of origin")).toBeTruthy();
   });
 
   it("renders age restricted only when product is age restricted", () => {
@@ -1491,6 +1819,9 @@ describe("seller review product layout regressions", () => {
   });
 
   it("renders package dimensions for the active variant only", () => {
+    const variantOneDimensions = { height: "2000", width: "900", length: "45", weight: "25.6" };
+    const variantTwoDimensions = { height: "2100", width: "950", length: "48", weight: "26.5" };
+
     const { rerender } = render(
       React.createElement(SellerReviewDetailsSections, {
         review: makeReviewFixture({
@@ -1498,26 +1829,29 @@ describe("seller review product layout regressions", () => {
             {
               id: 1,
               value: "Dark steel",
-              packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+              packageDimensions: variantOneDimensions,
             },
             {
               id: 2,
               value: "Matte black",
-              packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+              packageDimensions: variantTwoDimensions,
             },
           ],
         }),
         activeVariant: {
           id: 1,
           value: "Dark steel",
-          packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+          packageDimensions: variantOneDimensions,
         },
       })
     );
 
-    expect(screen.getByText("Package length, cm")).toBeTruthy();
-    expect(screen.getByText("200")).toBeTruthy();
-    expect(screen.queryByText("210")).toBeNull();
+    expect(screen.getByText("Package height, mm")).toBeTruthy();
+    expect(screen.getByText("Package width, mm")).toBeTruthy();
+    expect(screen.getByText("Package length, mm")).toBeTruthy();
+    expect(screen.getByText("Package weight, kg")).toBeTruthy();
+    expect(screen.getByText("45")).toBeTruthy();
+    expect(screen.queryByText("48")).toBeNull();
 
     rerender(
       React.createElement(SellerReviewDetailsSections, {
@@ -1526,25 +1860,25 @@ describe("seller review product layout regressions", () => {
             {
               id: 1,
               value: "Dark steel",
-              packageDimensions: { length: "200", width: "90", height: "10", weight: "45" },
+              packageDimensions: variantOneDimensions,
             },
             {
               id: 2,
               value: "Matte black",
-              packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+              packageDimensions: variantTwoDimensions,
             },
           ],
         }),
         activeVariant: {
           id: 2,
           value: "Matte black",
-          packageDimensions: { length: "210", width: "95", height: "11", weight: "48" },
+          packageDimensions: variantTwoDimensions,
         },
       })
     );
 
-    expect(screen.getByText("210")).toBeTruthy();
-    expect(screen.queryByText("200")).toBeNull();
+    expect(screen.getByText("48")).toBeTruthy();
+    expect(screen.queryByText("45")).toBeNull();
   });
 
   it("renders stock zero as 0 instead of Not specified", () => {

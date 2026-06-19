@@ -5,6 +5,7 @@ import { useMemo } from "react"
 import {
     addLicense,
     setName,
+    setBrandName,
     setDescription,
     setCategory,
     setParametersPrev,
@@ -29,6 +30,7 @@ import {
 
 const rootActions = {
     setName,
+    setBrandName,
     setDescription,
     setCategory,
     setParametersPrev,

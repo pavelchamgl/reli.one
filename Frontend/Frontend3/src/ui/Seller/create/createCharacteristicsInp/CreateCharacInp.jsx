@@ -3,10 +3,9 @@ import { useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 
 import deleteIcon from "../../../../assets/Seller/create/deleteIcon.svg";
+import { getVisibleProductParameters } from "../../../../Components/Seller/shared/sellerProductParameters";
 
 import styles from "./CreateCharacInp.module.scss";
-
-const DIMENSION_NAMES = new Set(["length", "width", "height", "weight"]);
 
 const createEmptyRow = () => ({
   id: Date.now() + Math.random(),
@@ -24,8 +23,6 @@ const normalizeRows = (rows = []) => {
     id: item?.id ?? Date.now() + index,
   }));
 };
-
-const isDimensionRow = (item) => DIMENSION_NAMES.has(String(item?.name || "").trim().toLowerCase());
 
 const CreateCharacInp = ({ setParameters, err, setErr }) => {
   const { product_parameters } = useSelector(state => state.create_prev);
@@ -64,7 +61,7 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
     updateRows(nextRows.length ? nextRows : [createEmptyRow()]);
   };
 
-  const visibleRows = characteristic.filter((item) => !isDimensionRow(item));
+  const visibleRows = getVisibleProductParameters(characteristic);
 
   return (
     <div className={styles.main}>
@@ -86,7 +83,7 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
             value={item.value}
             placeholder={t('goods.placeholders.characteristicValue')}
           />
-          <button type="button" onClick={() => handleDelete(item.id)} aria-label="Delete characteristic">
+          <button type="button" onClick={() => handleDelete(item.id)} aria-label={t('goods.deleteCharacteristic')}>
             <img src={deleteIcon} alt="" />
           </button>
         </div>

@@ -1,5 +1,10 @@
 import mainInstance from "..";
-import { formatApiErrorMessage, mapVariantDraftToPayload } from "../../utils/sellerProductWizard";
+import {
+    formatApiErrorMessage,
+    mapVariantDraftToPayload,
+    SELLER_WIZARD_MESSAGE_FALLBACKS,
+    SELLER_WIZARD_MESSAGE_KEYS,
+} from "../../utils/sellerProductWizard";
 
 export const postSellerProduct = async (obj) => {
     try {
@@ -9,7 +14,7 @@ export const postSellerProduct = async (obj) => {
         console.error("Ошибка при отправке данных продавца:", error);
 
         if (error.response) {
-            throw new Error(formatApiErrorMessage(error.response.data, "Ошибка на сервере"));
+            throw error;
         } else if (error.request) {
             // Запрос был сделан, но ответа нет
             throw new Error("Сервер не отвечает. Проверьте соединение.");
@@ -87,9 +92,9 @@ export const postSellerVariants = async (id, obj) => {
             ...obj.fallbackDimensions,
             ...variant,
             weight: variant.weight || variant.package_weight_kg || obj.fallbackDimensions?.weight,
-            width: variant.width || variant.package_width_cm || obj.fallbackDimensions?.width,
-            length: variant.length || variant.package_length_cm || obj.fallbackDimensions?.length,
-            height: variant.height || variant.package_height_cm || obj.fallbackDimensions?.height,
+            width: variant.width || variant.package_width_mm || obj.fallbackDimensions?.width,
+            length: variant.length || variant.package_length_mm || obj.fallbackDimensions?.length,
+            height: variant.height || variant.package_height_mm || obj.fallbackDimensions?.height,
         },
         obj.name
     ));
@@ -128,15 +133,19 @@ export const postSellerLisence = async (id, obj) => {
 
         return res.data;
     } catch (error) {
-        console.error("Error uploading license:", error);
-
         if (error.response) {
-            throw new Error(error.response.data?.message || "Server error while uploading license");
-        } else if (error.request) {
-            throw new Error("No response from the server. Please check the connection.");
-        } else {
-            throw new Error("An unknown error occurred");
+            throw new Error(formatApiErrorMessage(
+                error.response.data,
+                SELLER_WIZARD_MESSAGE_FALLBACKS[SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed]
+            ));
         }
+        if (error.request) {
+            throw new Error("No response from the server. Please check the connection.");
+        }
+        throw new Error(
+            error.message
+            || SELLER_WIZARD_MESSAGE_FALLBACKS[SELLER_WIZARD_MESSAGE_KEYS.licenseUploadFailed]
+        );
     }
 };
 

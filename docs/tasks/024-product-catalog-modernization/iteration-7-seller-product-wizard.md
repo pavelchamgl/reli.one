@@ -100,14 +100,23 @@ Redux state:
 
 - `Frontend/Frontend3/src/Components/Seller/edit/EditGoodsForm/EditGoodsForm.jsx`.
 
-Переиспользуемые блоки:
+Переиспользуемые блоки (shared с create):
 
-- `SellerEditImages`;
-- `EditLicense`;
-- `CreateCategoryMain`;
-- `EditGoodsParameters`;
-- `EditMainVariants` и `EditVariants`;
-- `CreateFormInp`, `CheckBox`.
+- `CreateCategoryMain` — на edit: `readOnlyCategory={{ id, name }}` для отображения категории без re-select; **не** читает `edit_goods` slice;
+- `CreateFormInp`, `CheckBox`, `SellerCategoryAttributesFields`;
+- `CreateCharacInp` / `EditGoodsParameters` — один UX для legacy characteristics; dimension rows скрыты через `sellerProductParameters.js`.
+
+Edit-only блоки:
+
+- `SellerEditImages` — `status: local|server`, `fetchDeleteImage`;
+- `EditLicense` — `fetchDeleteLicense`;
+- `EditMainVariants` / `EditVariants` — System SKU read-only, `fetchDeleteVariant`, package dimensions в variant card.
+
+Shared validation/helpers:
+
+- `getValidateGoods(t)` — formik schema;
+- `validateAttributeDraft(..., t)`, `validateProductVariants(..., t)` — preview gate;
+- `getVisibleProductParameters(parameters)` — visible-only validation legacy characteristics (dimension rows excluded).
 
 Redux state:
 
@@ -607,10 +616,8 @@ Iteration 7:
 - использовать legacy `LicenseFile`;
 - показывать ограничение “один документ”;
 - валидация frontend должна соответствовать backend `LicenseFile` limitations;
-- legacy `LicenseFile` write endpoint принимает PDF и DOCX по MIME;
-- JPEG не является допустимым license/document format;
-- текущий frontend может показывать `.doc`, но backend `.doc` не принимает;
-- frontend validation в Iteration 7 должна разрешать PDF/DOCX и запрещать JPEG/`.doc`;
+- legacy `LicenseFile` write endpoint принимает PDF, JPG/JPEG, PNG и WebP по MIME;
+- frontend validation разрешает JPG, JPEG, PNG, WebP, PDF и запрещает DOCX;
 - не переходить на `ProductDocument`.
 
 ---

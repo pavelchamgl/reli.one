@@ -394,6 +394,8 @@ npm --prefix Frontend/Frontend3 run build
 
 ## Iteration 8 — Admin/moderation upgrade
 
+**Статус:** done (repo-scope)  
+**Детальная спецификация:** [iteration-8-admin-moderation-upgrade.md](./iteration-8-admin-moderation-upgrade.md)  
 **Рекомендуемый агент:** Codex 5.3 Medium.
 
 ### Цель
@@ -402,11 +404,11 @@ npm --prefix Frontend/Frontend3 run build
 
 ### Tasks
 
-1. Добавить admin inlines для brand/media/documents/attributes.
-2. Добавить moderation actions approve/reject, если их нет.
-3. Согласовать `ProductModerationEvent` с existing `approved_by/approved_at/rejected_reason`.
-4. Сделать readonly/audit fields для moderation history.
-5. Добавить фильтры admin по pending media/documents/brand.
+1. [x] Добавить admin inlines для brand/media/documents/attributes.
+2. [x] Добавить moderation actions approve/reject (`services_moderation.py` + custom admin URLs).
+3. [ ] Согласовать `ProductModerationEvent` — **deferred** (используются `approved_by/approved_at/rejected_reason`).
+4. [x] Сделать readonly/audit fields для moderation history.
+5. [x] Добавить фильтры admin по pending media/documents/brand.
 
 ### Files likely touched
 

@@ -1,0 +1,24 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+  <div class="content">
+    <h1>Approve product #{{ product.pk }}</h1>
+
+    <p>
+      Product: <strong>{{ product.name }}</strong><br/>
+      Seller: <strong>{{ product.seller.user.email }}</strong><br/>
+      Current status: <strong>{{ product.get_status_display }}</strong>
+    </p>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="submit-row">
+        <input type="submit" value="Approve" class="default">
+        <a class="button cancel-link" href="{% url 'admin:product_baseproduct_change' product.pk %}">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

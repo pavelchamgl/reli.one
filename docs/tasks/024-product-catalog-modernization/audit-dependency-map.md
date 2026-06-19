@@ -64,8 +64,10 @@ Frontend edit flow:
 
 | Файл | Контракт |
 | --- | --- |
-| `Frontend/Frontend3/src/redux/editGoodsSlice.js` | Product core update ограничен name/description/category; dimensions редактируются как `ProductParameter`; dimensions варианта не обновляются |
-| `Frontend/Frontend3/src/Components/Seller/edit/EditGoodsForm/EditGoodsForm.jsx` | Форма сохраняет старую логику параметров и не управляет остатками |
+| `Frontend/Frontend3/src/redux/editGoodsSlice.js` | Load/save через `edit_goods`; `status: local\|server` для variants/parameters/images/license; server deletes; package dimensions mapping `package_*_kg/cm` ↔ `weight_grams`/`length_mm`/… |
+| `Frontend/Frontend3/src/Components/Seller/edit/EditGoodsForm/EditGoodsForm.jsx` | UI/UX parity с `SellerCreateForm`; preview → `/seller/edit-preview/:id`; validation через `getValidateGoods(t)`, `getVisibleProductParameters`, `validateProductVariants` |
+| `Frontend/Frontend3/src/Components/Seller/shared/sellerProductParameters.js` | Shared filter: dimension legacy rows (`length/width/height/weight`) скрыты в UI; visible-only validation |
+| `Frontend/Frontend3/src/ui/Seller/create/createCategory/createCategoryMain/CreateCategoryMain.jsx` | Shared category picker; edit передаёт `readOnlyCategory={{ id, name }}` без чтения `edit_goods` |
 | `Frontend/Frontend3/src/api/seller/editProduct.js` | API helpers для edit-flow |
 | `Frontend/Frontend3/src/hook/useActionSellerEdit.js` | Hook связывает edit-form actions и Redux/API слой |
 
