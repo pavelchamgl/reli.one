@@ -50,7 +50,9 @@ const StripedTable = ({ rows, emptyText }) => {
           key={row.key || row.label}
         >
           <dt>{row.label}</dt>
-          <dd>{row.value}</dd>
+          <dd>
+            {row.technical ? <span translate="no">{row.value}</span> : row.value}
+          </dd>
         </div>
       ))}
     </dl>
@@ -75,10 +77,10 @@ const PackageDimensionsSection = ({ activeVariant }) => {
       <p className={styles.packageVariantLabel}>{activeVariant.value || "Default"}</p>
       <StripedTable
         rows={[
-          { label: t("item.packageHeightMm"), value: dims.height },
-          { label: t("item.packageWidthMm"), value: dims.width },
-          { label: t("item.packageLengthMm"), value: dims.length },
-          { label: t("item.packageWeightKg"), value: dims.weight },
+          { label: t("item.packageHeightMm"), value: dims.height, technical: true },
+          { label: t("item.packageWidthMm"), value: dims.width, technical: true },
+          { label: t("item.packageLengthMm"), value: dims.length, technical: true },
+          { label: t("item.packageWeightKg"), value: dims.weight, technical: true },
         ]}
         emptyText={t("goods.reviewNoPackageDimensions")}
       />
@@ -127,6 +129,7 @@ const buildCharacteristicRows = (review, t) => [
           }, t)
         : attribute.display,
     alwaysShow: attribute.missingRequired,
+    technical: attribute.dataType === "number" && !attribute.missingRequired,
   })),
   ...review.productParameters.map((parameter, index) => ({
     key: `parameter-${parameter.id || parameter.name || index}`,
@@ -148,6 +151,7 @@ const SellerReviewDetailsSections = ({ review, activeVariant }) => {
     value: row.isAgeRestricted
       ? (review.additionalDetails?.is_age_restricted ? t("goods.yes") : "")
       : review.additionalDetails[row.field],
+    technical: row.field === "warranty_months",
   }));
 
   return (

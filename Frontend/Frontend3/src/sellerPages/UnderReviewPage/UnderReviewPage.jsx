@@ -1,5 +1,5 @@
-import { SellerOnboardingLayout } from '@/components/seller/onboarding';
-import { UnderReviewStatusView } from '@/components/seller/onboarding/views/status';
+import { SellerOnboardingLayout } from '@/Components/Seller/onboarding';
+import { UnderReviewStatusView } from '@/Components/Seller/onboarding/views/status';
 import { underReviewStatusDefaults } from '@/features/seller-onboarding/statusPageDefaults';
 
 const UnderReviewPage = () => {

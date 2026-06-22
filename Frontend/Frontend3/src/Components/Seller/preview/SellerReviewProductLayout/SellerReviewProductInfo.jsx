@@ -54,7 +54,7 @@ const SellerReviewProductInfo = ({ review, activeVariantId, onActiveVariantChang
             "& .MuiRating-icon": { fontFamily: "var(--ft)" },
           }}
         />
-        <span className={styles.ratingCount}>{review.totalReviews}</span>
+        <span className={styles.ratingCount} translate="no">{review.totalReviews}</span>
       </div>
 
       <div className={styles.titleBlock}>
@@ -63,10 +63,10 @@ const SellerReviewProductInfo = ({ review, activeVariantId, onActiveVariantChang
       </div>
 
       <div className={styles.priceBlock}>
-        <p className={styles.price}>{formatCurrency(price) || "Price not specified"}</p>
+        <p className={styles.price} translate="no">{formatCurrency(price) || "Price not specified"}</p>
         <p className={styles.withoutVat}>
-          Excl. VAT ({vatRateLabel}%):{" "}
-          <span className={styles.withoutVatValue}>
+          Excl. VAT (<span translate="no">{vatRateLabel}</span>%):{" "}
+          <span className={styles.withoutVatValue} translate="no">
             {formatCurrency(priceWithoutVat) || "Not specified"}
           </span>
         </p>
@@ -123,6 +123,7 @@ const SellerReviewProductInfo = ({ review, activeVariantId, onActiveVariantChang
                       styles.variantCardPrice,
                       isVariantOutOfStock ? styles.variantCardMuted : "",
                     ].filter(Boolean).join(" ")}
+                    translate="no"
                   >
                     {formatCurrency(variant.price)}
                   </span>
@@ -140,7 +141,7 @@ const SellerReviewProductInfo = ({ review, activeVariantId, onActiveVariantChang
 
       {activeVariant?.sku ? (
         <div className={styles.variantMetaLine}>
-          <span>SKU: {activeVariant.sku}</span>
+          <span>SKU: <span translate="no">{activeVariant.sku}</span></span>
         </div>
       ) : null}
 

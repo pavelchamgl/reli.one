@@ -1,0 +1,29 @@
+# Нормализация концов строк: текстовые файлы хранятся и выгружаются с LF.
+# Предотвращает «фантомные» diff'ы из-за CRLF/LF (см. docs/tasks/026).
+* text=auto eol=lf
+
+# Скрипты, которым CRLF нужен намеренно (Windows).
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Шелл-скрипты всегда LF.
+*.sh text eol=lf
+
+# Бинарные файлы — не трогать.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+*.mp4 binary
+*.mov binary
+*.webm binary

@@ -118,14 +118,17 @@ const SellerPreviewPage = () => {
         }}>
           <strong>Product created with incomplete data.</strong>
           <p style={{ margin: "8px 0" }}>
-            Product ID: {product.createdProductId}. Failed steps can be retried without creating a duplicate product.
+            Product ID: <span translate="no">{product.createdProductId}</span>.
+            {" "}Failed steps can be retried without creating a duplicate product.
           </p>
           <ul style={{ margin: "0 0 12px", paddingLeft: "18px" }}>
             {(product.submitStepResults || [])
               .filter((item) => item.status === "rejected")
               .map((item) => (
                 <li key={item.step}>
-                  {item.step}: {formatSellerWizardApiError(item.error, t, "Unknown error")}
+                  <span translate="no">{item.step}</span>
+                  {": "}
+                  {formatSellerWizardApiError(item.error, t, "Unknown error")}
                 </li>
               ))}
           </ul>

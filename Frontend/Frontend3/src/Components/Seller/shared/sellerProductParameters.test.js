@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+    areProductParametersValid,
     getVisibleProductParameters,
     isDimensionParameterRow,
+    isEmptyParameterRow,
 } from "./sellerProductParameters.js";
 
 describe("sellerProductParameters", () => {
@@ -37,6 +39,72 @@ describe("sellerProductParameters", () => {
                 { name: "Color", value: "Red" },
                 { name: "Material", value: "Cotton" },
             ]);
+        });
+    });
+
+    describe("isEmptyParameterRow", () => {
+        it("treats rows with both name and value blank as empty", () => {
+            expect(isEmptyParameterRow({ name: "", value: "" })).toBe(true);
+            expect(isEmptyParameterRow({ name: "   ", value: "\t" })).toBe(true);
+            expect(isEmptyParameterRow({})).toBe(true);
+            expect(isEmptyParameterRow(null)).toBe(true);
+        });
+
+        it("treats rows with any non-blank field as non-empty", () => {
+            expect(isEmptyParameterRow({ name: "Color", value: "" })).toBe(false);
+            expect(isEmptyParameterRow({ name: "", value: "Red" })).toBe(false);
+            expect(isEmptyParameterRow({ name: "Color", value: "Red" })).toBe(false);
+        });
+    });
+
+    describe("areProductParametersValid", () => {
+        it("treats untouched / empty input as valid (block is optional)", () => {
+            expect(areProductParametersValid(null)).toBe(true);
+            expect(areProductParametersValid(undefined)).toBe(true);
+            expect(areProductParametersValid([])).toBe(true);
+        });
+
+        it("ignores fully empty placeholder rows (add -> delete leftover)", () => {
+            expect(areProductParametersValid([{ name: "", value: "" }])).toBe(true);
+            expect(
+                areProductParametersValid([
+                    { name: "", value: "" },
+                    { name: "   ", value: "" },
+                ])
+            ).toBe(true);
+        });
+
+        it("treats a partially filled row as invalid", () => {
+            expect(areProductParametersValid([{ name: "Color", value: "" }])).toBe(false);
+            expect(areProductParametersValid([{ name: "", value: "Red" }])).toBe(false);
+        });
+
+        it("treats fully filled rows as valid", () => {
+            expect(
+                areProductParametersValid([
+                    { name: "Color", value: "Red" },
+                    { name: "Material", value: "Cotton" },
+                ])
+            ).toBe(true);
+        });
+
+        it("validates only the partially filled row among mixed rows", () => {
+            expect(
+                areProductParametersValid([
+                    { name: "Color", value: "Red" },
+                    { name: "", value: "" },
+                    { name: "Material", value: "" },
+                ])
+            ).toBe(false);
+        });
+
+        it("excludes dimension rows from validation", () => {
+            expect(
+                areProductParametersValid([
+                    { name: "Length", value: "" },
+                    { name: "Color", value: "Red" },
+                ])
+            ).toBe(true);
         });
     });
 });

@@ -42,6 +42,8 @@ const CreateFormInp = ({
     handleChange(event);
   };
 
+  const isTechnicalInput = num || digitsOnly || decimal;
+
   return (
     <label style={style} className={error ? styles.labelErr : styles.label}>
       <p className={titleClass}>{text}</p>
@@ -53,7 +55,8 @@ const CreateFormInp = ({
           onBlur={handleBlur}
           placeholder={placeholder}
           disabled={disabled}
-          style={{ fontFamily: (num || digitsOnly || decimal) ? "var(--ft)" : undefined }}
+          translate={isTechnicalInput ? "no" : undefined}
+          style={{ fontFamily: isTechnicalInput ? "var(--ft)" : undefined }}
         />
         :
         <input
@@ -64,10 +67,11 @@ const CreateFormInp = ({
           type="text"
           placeholder={placeholder}
           disabled={disabled}
-          style={{ fontFamily: (num || digitsOnly || decimal) ? "var(--ft)" : undefined }}
+          translate={isTechnicalInput ? "no" : undefined}
+          style={{ fontFamily: isTechnicalInput ? "var(--ft)" : undefined }}
         />
       }
-      {error ? <p className={styles.errText}>{error}</p> : <></>}
+      <p className={styles.errText} hidden={!error}>{error || ""}</p>
     </label>
   );
 };

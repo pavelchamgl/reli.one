@@ -88,7 +88,7 @@ const CreateCharacInp = ({ setParameters, err, setErr }) => {
           </button>
         </div>
       ))}
-      {err ? <p className={styles.errText}>{t('allParametersAreRequired')}</p> : null}
+      <p className={styles.errText} hidden={!err}>{err ? t('allParametersAreRequired') : ""}</p>
     </div>
   );
 };
