@@ -2,7 +2,11 @@
 
 **Priority:** P1
 **Complexity:** Medium
-**Status:** Done (код + тесты; ручная проверка с реальным переводом — за продактом)
+**Status:**
+- **Phase 1 (устойчивость + отключение перевода):** Done (код + тесты; ручная
+  проверка с реальным переводом — за продактом).
+- **Phase 2 (возврат автоперевода RU/UK без краша):** Planned — см. раздел
+  [Phase 2](#phase-2--возврат-автоперевода-rуuk-для-продавца-вариант-3) ниже.
 
 ## Цель
 
@@ -302,15 +306,209 @@ DOM-инжектирующее расширение.
 
 ---
 
+---
+
+# Phase 2 — Возврат автоперевода RU/UK для продавца (Вариант 3)
+
+**Priority:** P1 · **Complexity:** Medium · **Status:** Planned
+
+## Цель
+
+Вернуть автоперевод страницы средствами браузера (Google Translate / встроенный
+перевод Chrome / Яндекс.Браузер) для продавцов с русским/украинским языком,
+**не возвращая** краш `NotFoundError: Failed to execute 'removeChild' on 'Node'`
+на `/seller/seller-create` и `/seller/seller-preview`.
+
+То есть: снять глобальную блокировку перевода, добавленную в Phase 1, но
+устранить **первопричину** падения, а не подавлять переводчик.
+
+## Контекст
+
+В Phase 1 перевод был полностью отключён (`<meta name="google" content="notranslate">`
++ `translate="no"` на `#root`). Это безопасно, но лишает русско-/украиноязычных
+продавцов автоперевода интерфейса (родная локализация в i18n — только en/cz).
+
+Корень краша: переводчик оборачивает текст-узел в `<font>` и перемещает его;
+React при reconciliation вызывает `removeChild`/`insertBefore` на узле, который
+уже не его прямой потомок → DOM кидает `NotFoundError`. Канонический фикс
+сообщества React — «защитный» monkey-patch `Node.prototype.removeChild` и
+`insertBefore`, которые не бросают исключение при операции над узлом из чужого
+родителя. Это позволяет оставить перевод включённым.
+
+Решение по охвату (согласовано): перевести **весь** интерфейс продавца, но
+**защитить от перевода технические/числовые токены** (цены, SKU, ID товара,
+штрихкод, ставка VAT, габариты, гарантия, артикул), т.к. Google Translate может
+искажать форматирование чисел и кодов.
+
+## Scope (область)
+
+- `Frontend/Frontend3/index.html` — снять `<meta name="google" content="notranslate">`
+  и `translate="no"` с `#root`.
+- Новый util `src/utils/domTranslateGuard.js` — `installDomTranslateGuard()`,
+  подключение в `src/main.jsx` **до** `ReactDOM.createRoot`.
+- Снять точечные `translate="no"` с **i18n-текстов** ошибок валидации
+  (`CreateFormInp`, `CreateCharacInp`, `SellerCreateImage`) — их перевод полезен
+  продавцу; always-mounted `hidden`-паттерн из Phase 1 сохраняем.
+- Проставить `translate="no"` на **технические/числовые** токены в:
+  - `src/Components/Seller/preview/**` (`SellerPreview*`, `SellerReview*`):
+    цена, sale price, stock qty, system SKU, габариты упаковки, штрихкод.
+  - `src/Components/Seller/create/sellerCreateVariants/SellerCreateVariants.jsx`
+    — отображаемые числовые значения вариантов (не плейсхолдеры).
+  - `src/pages/SellerPreviewPage.jsx` — баннер `partial_success`: защитить
+    `Product ID` и коды шагов, но разрешить перевод поясняющего текста.
+- Тесты на guard и на охват `translate="no"` технических токенов.
+
+## Не входит в задачу
+
+- Перевод средствами приложения (полноценный i18n RU/UK) — отдельный backlog.
+- Изменение бизнес-логики, валидации, контрактов API.
+- Возврат/изменение `ErrorBoundary` (остаётся как страховка; на самом фолбэке
+  `translate="no"` сохраняем осознанно — фолбэк редкий и не должен сам падать).
+- Глобальная правка всех страниц вне seller create/preview.
+
+## Зависимости
+
+- Phase 1 этой же задачи (ErrorBoundary, always-mounted `hidden`-паттерн) — основа.
+
+## Риски
+
+- **Monkey-patch глобальных DOM-методов.** `removeChild`/`insertBefore`
+  переопределяются на уровне всего приложения. Митигация: «глотать» операцию
+  только когда `child.parentNode !== this` (иначе — оригинальное поведение),
+  защита от двойного патча (idempotent), подробный комментарий-обоснование, без
+  изменения сигнатур/возвращаемых значений в нормальном пути.
+- **Искажение чисел/кодов переводчиком.** Google Translate меняет
+  форматирование чисел и может «переводить» коды. Митигация: строгий аудит и
+  `translate="no"` на всех технических/числовых токенах (Iteration 8).
+- **Возврат churn текст-узлов** при включённом переводе. Митигация: guard +
+  always-mounted `hidden`-паттерн снижают частоту проблемных reconciliation;
+  ErrorBoundary ловит остаточные случаи.
+- **Качество машинного перевода поверх en/cz.** Перевод RU/UK — машинный, по
+  верх английского интерфейса. Принято продуктово как осознанный компромисс.
+
+## Definition of Done (Phase 2)
+
+- [ ] Автоперевод браузера на RU и UK **включается** на `/seller/seller-create`
+      и `/seller/seller-preview` (нет `notranslate`/`translate="no"` на `#root`).
+- [ ] При включённом переводе заполнение формы, появление ошибок валидации,
+      «Предпросмотр» и «Отправить на модерацию» **не вызывают** краш/белый экран.
+- [ ] `installDomTranslateGuard()` подключён в `main.jsx` до первого рендера,
+      идемпотентен, «глотает» только cross-parent операции.
+- [ ] Технические/числовые токены (цена, sale price, stock, SKU, ID, штрихкод,
+      VAT, габариты, гарантия, артикул) защищены `translate="no"` и **не**
+      искажаются переводчиком.
+- [ ] i18n-тексты ошибок валидации снова переводятся (с них снят `translate="no"`),
+      always-mounted `hidden`-паттерн сохранён.
+- [ ] Добавлены тесты: guard (cross-parent no-throw + нормальный путь),
+      охват `translate="no"` техн. токенов; обновлены тесты Phase 1, где
+      проверялся `translate="no"` на узлах ошибок.
+- [ ] `npm run lint` (0 errors) и `npm run test` зелёные во Frontend3.
+- [ ] Ручная проверка в Chrome: перевод EN→RU и EN→UK, оба критичных экрана,
+      числа/коды не искажены, краша нет (evidence: видео/скрин).
+
+---
+
+## Iteration 7 — DOM translate guard (главный фикс)
+
+### Цель
+Сделать React устойчивым к мутациям переводчика на уровне DOM, чтобы перевод
+можно было включить безопасно.
+
+### Действия
+- Создать `src/utils/domTranslateGuard.js` с `installDomTranslateGuard()`:
+  переопределить `Node.prototype.removeChild` и `Node.prototype.insertBefore`
+  так, чтобы при `child.parentNode !== this` (или `referenceNode.parentNode !== this`)
+  возвращать узел без выброса исключения; иначе — вызывать оригинал.
+- Сделать идемпотентным (флаг на функции/модуле), чтобы StrictMode и повторные
+  импорты не патчили дважды.
+- Подключить вызов в начале `src/main.jsx` **до** `ReactDOM.createRoot(...)`.
+- Не логировать PII; опциональный `console.warn` только в dev.
+
+### Output
+- `domTranslateGuard.js` + подключение в `main.jsx`.
+
+### Статус
+- [ ] Guard done
+
+---
+
+## Iteration 8 — Точечный re-open перевода
+
+### Цель
+Включить перевод интерфейса и защитить технические/числовые токены.
+
+### Действия
+- `index.html`: удалить `<meta name="google" content="notranslate" />` и
+  `translate="no"` с `#root`.
+- Снять `translate="no"` с i18n-узлов ошибок валидации в `CreateFormInp`,
+  `CreateCharacInp`, `SellerCreateImage` (паттерн `hidden={!error}` оставить).
+- Провести аудит и проставить `translate="no"` на технические/числовые токены
+  в превью/ревью и вариантах (цена, sale price, stock, SKU, ID, штрихкод, VAT,
+  габариты, гарантия, артикул). В баннере `partial_success` защитить `Product ID`
+  и коды шагов, оставив перевод поясняющего текста.
+
+### Ограничения
+- Не менять тексты, ключи i18n, условия появления ошибок и бизнес-логику.
+
+### Output
+- Diff по `index.html` и перечисленным компонентам.
+
+### Статус
+- [ ] Re-open done
+
+---
+
+## Iteration 9 — Tests
+
+### Цель
+Зафиксировать работу guard и охват защиты технических токенов; обновить тесты
+Phase 1.
+
+### Действия
+- `domTranslateGuard.test.js`: после установки `removeChild`/`insertBefore` с
+  «чужим» родителем не бросают и возвращают узел; с правильным родителем
+  работают как обычно; повторная установка не ломает поведение.
+- Тест устойчивости: смонтировать критичный компонент, перенести текст-узел в
+  `<font>`, переключить состояние ошибки — с установленным guard краша нет.
+- Обновить тесты `CreateFormInp`/`CreateCharacInp`/`SellerCreateImage`: убрать/
+  инвертировать ассерты на `translate="no"` у узлов ошибок (теперь переводимы),
+  оставить проверку `hidden`-поведения.
+- Тесты охвата: технические токены в превью/вариантах несут `translate="no"`.
+
+### Output
+- Новый `*.test.js(x)` + обновлённые тесты Phase 1.
+
+### Статус
+- [ ] Tests done
+
+---
+
+## Iteration 10 — Validation
+
+### Сценарии для проверки
+- [ ] Chrome перевод EN→RU: форма создания и превью переведены, краша нет.
+- [ ] Chrome перевод EN→UK: то же.
+- [ ] Невалидный сабмит при включённом переводе → ошибки видны, без краша.
+- [ ] Валидный сабмит → превью → «Отправить на модерацию» → успех, без белого
+      экрана.
+- [ ] Числа/коды (цена, SKU, ID, штрихкод, габариты, VAT) не искажены переводом.
+- [ ] `npm run lint` ✅, `npm run test` ✅ (Frontend3).
+- [ ] Evidence (видео/скрин) приложены.
+
+### Статус
+- [ ] Validation complete
+
+---
+
 ## Привязка к коду
 
 | Тип | Файлы |
 |-----|-------|
 | **Document** | `Frontend/Frontend3/index.html` |
-| **Bootstrap/Error** | `Frontend/Frontend3/src/main.jsx`, новый `ErrorBoundary` компонент |
+| **Bootstrap/Error** | `Frontend/Frontend3/src/main.jsx`, `ErrorBoundary` компонент, **Phase 2:** `src/utils/domTranslateGuard.js` |
 | **Forms (render)** | `src/ui/Seller/create/createFormInp/CreateFormInp.jsx`, `src/ui/Seller/create/createCharacteristicsInp/CreateCharacInp.jsx`, `src/Components/Seller/create/sellerCreateImages/SellerCreateImage.jsx`, `src/Components/Seller/create/sellerCreateForm/SellerCreateForm.jsx` |
-| **Preview** | `src/pages/SellerPreviewPage.jsx` |
-| **Tests** | новые `*.test.jsx` рядом с компонентами выше |
+| **Preview / Review (Phase 2 техн. токены)** | `src/pages/SellerPreviewPage.jsx`, `src/Components/Seller/preview/**` (`SellerPreviewDesktop`, `SellerPreviewMobile`, `SellerReview*`), `src/Components/Seller/create/sellerCreateVariants/SellerCreateVariants.jsx` |
+| **Tests** | новые `*.test.jsx`/`*.test.js` рядом с компонентами и `src/utils/domTranslateGuard.test.js` |
 | **Backend API** | Не меняется |
 
 ## Заметки для агента-исполнителя

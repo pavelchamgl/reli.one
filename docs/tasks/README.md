@@ -133,10 +133,10 @@ graph TD
 | **022** | [**ares-onboarding-automation**](./022-ares-onboarding-automation/task.md) | P1 | High | 008 | **IN PROGRESS:** ARES CZ company lookup по IČO: assisted prefill + entry modal + submit verification for moderator; auto-approve pilot deferred behind evidence gate; см. `task.md` |
 | **023** | [**ares-self-employed-assist**](./023-ares-self-employed-assist/task.md) | P1 | High | 022 | **PLANNED follow-up:** self-employed Czech-only ARES assist по IČO after 022 MVP company/shared ARES foundation is closed |
 | **024** | [**product-catalog-modernization**](./024-product-catalog-modernization/task.md) | P1 | High | — | **DRAFT** после архитектурного ревью: модернизация товарного каталога (атрибуты категории, варианты, facets, импорт) |
-| **025** | [**translate-resilient-frontend**](./025-translate-resilient-frontend/task.md) | P1 | Medium | 024 | **PLANNED:** устойчивость Frontend3 к автопереводу браузера + глобальный ErrorBoundary на seller create/preview |
+| **025** | [**translate-resilient-frontend**](./025-translate-resilient-frontend/task.md) | P1 | Medium | 024 | **Phase 1 DONE:** устойчивость + ErrorBoundary + отключение автоперевода на seller create/preview. **Phase 2 PLANNED:** возврат автоперевода RU/UK через DOM-guard (Вариант 3) — см. [Phase 2](./025-translate-resilient-frontend/task.md#phase-2--возврат-автоперевода-rуuk-для-продавца-вариант-3) |
 | **026** | [**eol-normalization-policy**](./026-eol-normalization-policy/task.md) | P3 | Low | — | **DONE (repo-scope, forward-only):** политика нормализации EOL через `.gitattributes` |
 | **027** | [**frontend-path-case-normalization**](./027-frontend-path-case-normalization/task.md) | P2 | Medium | — | **DONE:** нормализация регистра путей каталога компонентов Frontend3 (подтверждено на CI, Linux) |
-| **028** | [**seller-characteristics-optional-validation**](./028-seller-characteristics-optional-validation/task.md) | P2 | Low | 024 | **PLANNED:** блок «Characteristics» должен оставаться опциональным после add/delete (seller create/edit) |
+| **028** | [**seller-characteristics-optional-validation**](./028-seller-characteristics-optional-validation/task.md) | P2 | Low | 024 | **DONE (repo-scope):** блок «Characteristics» снова опционален после add/delete (seller create/edit); хелпер `areProductParametersValid` + тесты |
 
 ## Отложенные задачи (Deferred / backlog)
 
