@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
-import { SellerOnboardingLayout } from '@/components/seller/onboarding';
-import { VerifiedSellerStatusView } from '@/components/seller/onboarding/views/status';
+import { SellerOnboardingLayout } from '@/Components/Seller/onboarding';
+import { VerifiedSellerStatusView } from '@/Components/Seller/onboarding/views/status';
 import { verifiedSellerStatusDefaults } from '@/features/seller-onboarding/statusPageDefaults';
 
 const VerifiedAnalyt = () => {
