@@ -2,7 +2,7 @@
 
 **Priority:** P2
 **Complexity:** Medium (риск выше из-за case-insensitive FS)
-**Status:** Done (repo-scope, Вариант 2 — заглавный `Components/`)
+**Status:** Done — подтверждено на CI (Linux, run #77, commit `aacdbe7`)
 
 ## Цель
 
@@ -82,8 +82,8 @@ pre-commit хук.
       обновлены.
 - [x] `npm run lint` (0 errors) и `npm run test` (49 файлов, 446 тестов)
       зелёные; прод-сборка `npm run build` проходит.
-- [~] Проверка на case-sensitive окружении (CI/Linux/Docker) — финальный гейт
-      на CI после коммита/пуша (локально macOS case-insensitive не ловит).
+- [x] Проверка на case-sensitive окружении: CI (Linux) зелёный — run #77,
+      commit `aacdbe7`, jobs `frontend3`/`e2e_frontend3`/`e2e_fullstack` ✅.
 - [x] pre-commit хук обновлён: теперь запрещает строчный `src/components/`
       (`.git/hooks/pre-commit`, локальный).
 - [x] Документация в docs обновлена (этот файл).
@@ -192,7 +192,9 @@ pre-commit хук.
 - [x] Регистровых дублей в индексе — 0.
 - [x] `rg "@/components/"`/`components/(ui|seller)` по `src` → 0 ссылок.
 - [x] `npm run lint` ✅ (0 errors), `npm run test` ✅ (446), `npm run build` ✅.
-- [~] Чистый `git clone` на case-sensitive окружении — финальный гейт на CI.
+- [x] Case-exact аудит импортов: 120 alias + 1020 relative → 0 реальных проблем.
+- [x] Рантайм-смоук (`npm run preview`): онбординг-страницы грузятся без ошибок.
+- [x] CI на Linux зелёный (run #77, commit `aacdbe7`).
 - [x] pre-commit хук обновлён под новую конвенцию.
 
 ### Статус
