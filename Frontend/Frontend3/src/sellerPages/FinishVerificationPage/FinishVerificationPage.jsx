@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { getOnboardingStatus } from '../../api/seller/onboarding';
-import { SellerOnboardingLayout } from '@/components/seller/onboarding';
-import { FinishVerificationStatusView } from '@/components/seller/onboarding/views/status';
+import { SellerOnboardingLayout } from '@/Components/Seller/onboarding';
+import { FinishVerificationStatusView } from '@/Components/Seller/onboarding/views/status';
 import { resolveOnboardingDataStepPath } from '@/features/seller-onboarding/resolveOnboardingRoute';
 import {
   countCompletedOnboardingSteps,

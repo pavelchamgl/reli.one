@@ -5,6 +5,12 @@
     "cs": "Čeština",
     "de": "Němčina",
     "catalog": "Katalog",
+    "errorBoundary": {
+        "title": "Něco se pokazilo",
+        "description": "Stránku se nepodařilo správně zobrazit. K tomu může dojít, když je zapnutý automatický překlad stránky v prohlížeči. Načtěte stránku znovu nebo se vraťte zpět.",
+        "reload": "Načíst znovu",
+        "back": "Zpět"
+    },
     "_headerAndFooter": "headerAndFooter",
     "footer_additional": {
         "company": "Společnost",

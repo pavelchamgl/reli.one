@@ -132,6 +132,11 @@ graph TD
 | **020** | [**product-stock-availability-api**](./020-product-stock-availability-api/task.md) | P1 | Low–Med | 013 (repo), FE-014 | **DONE (repo-scope):** catalog API fields `total_available_quantity`, `stock_status`; см. `task.md` |
 | **022** | [**ares-onboarding-automation**](./022-ares-onboarding-automation/task.md) | P1 | High | 008 | **IN PROGRESS:** ARES CZ company lookup по IČO: assisted prefill + entry modal + submit verification for moderator; auto-approve pilot deferred behind evidence gate; см. `task.md` |
 | **023** | [**ares-self-employed-assist**](./023-ares-self-employed-assist/task.md) | P1 | High | 022 | **PLANNED follow-up:** self-employed Czech-only ARES assist по IČO after 022 MVP company/shared ARES foundation is closed |
+| **024** | [**product-catalog-modernization**](./024-product-catalog-modernization/task.md) | P1 | High | — | **DRAFT** после архитектурного ревью: модернизация товарного каталога (атрибуты категории, варианты, facets, импорт) |
+| **025** | [**translate-resilient-frontend**](./025-translate-resilient-frontend/task.md) | P1 | Medium | 024 | **DONE:** Phase 1 (ErrorBoundary + render hardening) + Phase 2 (DOM translate guard, re-open browser translate RU/UK, protect technical tokens) — см. [task.md](./025-translate-resilient-frontend/task.md) |
+| **026** | [**eol-normalization-policy**](./026-eol-normalization-policy/task.md) | P3 | Low | — | **DONE (repo-scope, forward-only):** политика нормализации EOL через `.gitattributes` |
+| **027** | [**frontend-path-case-normalization**](./027-frontend-path-case-normalization/task.md) | P2 | Medium | — | **DONE:** нормализация регистра путей каталога компонентов Frontend3 (подтверждено на CI, Linux) |
+| **028** | [**seller-characteristics-optional-validation**](./028-seller-characteristics-optional-validation/task.md) | P2 | Low | 024 | **DONE (repo-scope):** блок «Characteristics» снова опционален после add/delete (seller create/edit); хелпер `areProductParametersValid` + тесты |
 
 ## Отложенные задачи (Deferred / backlog)
 
@@ -272,7 +277,14 @@ docs/tasks/
 └── 018-full-stack-e2e-ci-implementation/task.md
 └── 019-e2e-catalog-fixture/task.md
 └── 020-product-stock-availability-api/task.md
+└── 021-ci-annotations-lint-warnings/task.md
 └── 022-ares-onboarding-automation/task.md
+└── 023-ares-self-employed-assist/task.md
+└── 024-product-catalog-modernization/task.md
+└── 025-translate-resilient-frontend/task.md
+└── 026-eol-normalization-policy/task.md
+└── 027-frontend-path-case-normalization/task.md
+└── 028-seller-characteristics-optional-validation/task.md
 ```
 
 См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).

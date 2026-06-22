@@ -5,6 +5,12 @@
     "cs": "Czech",
     "de": "German",
     "catalog": "Catalogue",
+    "errorBoundary": {
+        "title": "Something went wrong",
+        "description": "The page could not be displayed correctly. This can happen when the browser's automatic page translation is enabled. Please reload the page or go back.",
+        "reload": "Reload page",
+        "back": "Go back"
+    },
     "_headerAndFooter": "headerAndFooter",
     "footer_additional": {
         "company": "Company",
