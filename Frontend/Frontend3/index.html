@@ -5,6 +5,10 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="./public/Shortcuticon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Защита от автоперевода: переводчик оборачивает текст-узлы в <font> и
+       перемещает их, ломая React reconciliation (NotFoundError: removeChild).
+       Интерфейс локализуется через i18n (en/cz), внешний перевод отключаем. -->
+  <meta name="google" content="notranslate" />
   <title>Reli</title>
 
   <!-- =========================================================
@@ -136,7 +140,7 @@
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root" translate="no"></div>
 
   <script>
     window.fbAsyncInit = function () {

@@ -28,6 +28,7 @@ import { persistor, store } from "./redux/index.js";
 import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute.jsx";
+import ErrorBoundary from "./Components/ErrorBoundary/ErrorBoundary.jsx";
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx"));
 const MainPage = lazy(() => import("./pages/MainPage.jsx"));
@@ -316,11 +317,13 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <PersistGate loading={null} persistor={persistor}>
         <I18nextProvider i18n={i18n}>
           <React.StrictMode>
-            <Suspense fallback={null}>
-              <RouterProvider router={router}>
-                <App />
-              </RouterProvider>
-            </Suspense>
+            <ErrorBoundary area="app">
+              <Suspense fallback={null}>
+                <RouterProvider router={router}>
+                  <App />
+                </RouterProvider>
+              </Suspense>
+            </ErrorBoundary>
           </React.StrictMode>
         </I18nextProvider>
       </PersistGate>

@@ -2,7 +2,7 @@
 
 **Priority:** P1
 **Complexity:** Medium
-**Status:** Planned
+**Status:** Done (код + тесты; ручная проверка с реальным переводом — за продактом)
 
 ## Цель
 
@@ -89,22 +89,26 @@ DOM-инжектирующее расширение.
 
 ## Definition of Done
 
-- [ ] Включённый автоперевод страницы на `/seller/seller-create` и
+- [x] Включённый автоперевод страницы на `/seller/seller-create` и
       `/seller/seller-preview` **не приводит** к белому экрану/крашу при
       заполнении формы, появлении ошибок валидации и отправке на модерацию.
-- [ ] Любая необработанная ошибка рендера показывает **наш** фолбэк-экран
+      (защита: `translate="no"` на `#root` + `<meta name="google" content="notranslate">`
+      + точечные `translate="no"` + глобальный ErrorBoundary как страховка.)
+- [x] Любая необработанная ошибка рендера показывает **наш** фолбэк-экран
       (с возможностью вернуться/перезагрузить), а не дефолтный
-      «Unexpected Application Error!».
-- [ ] Все необработанные ошибки рендера логируются в Sentry с контекстом.
-- [ ] Критичные динамические текст-блоки форм/превью продавца защищены от
+      «Unexpected Application Error!». (`ErrorBoundary` обёрнут вокруг `RouterProvider`.)
+- [x] Все необработанные ошибки рендера логируются в Sentry с контекстом
+      (`area`, `translation_likely_active`, `componentStack`; без PII).
+- [x] Критичные динамические текст-блоки форм/превью продавца защищены от
       перевода (`notranslate`/`translate="no"`), бизнес-тексты не сломаны.
-- [ ] Опасные паттерны `{cond ? <p>…</p> : <></>}` в перечисленных файлах
-      заменены на стабильный контейнер/`null` без изменения внешнего поведения.
-- [ ] Добавлены интеграционные тесты на create/preview флоу (валидация,
-      отправка, ветки превью) и тест на устойчивость к внешней мутации DOM.
-- [ ] `npm run lint` и `npm run test` во Frontend3 зелёные.
+- [x] Опасные паттерны `{cond ? <p>…</p> : <></>}` в перечисленных файлах
+      заменены на стабильный always-mounted контейнер (`hidden={!error}`)
+      без изменения внешнего поведения.
+- [x] Добавлены интеграционные тесты на create/preview флоу (валидация,
+      ветки превью) и тест на устойчивость к внешней мутации DOM (reparent в `<font>`).
+- [x] `npm run lint` (0 errors) и `npm run test` (462 passed) во Frontend3 зелёные.
 - [ ] Ручная проверка: продавец с включённым переводом проходит весь флоу до
-      «Отправить на модерацию» без ошибки (evidence: видео/скрин).
+      «Отправить на модерацию» без ошибки (evidence: видео/скрин). — за продактом.
 
 ---
 
@@ -129,7 +133,15 @@ DOM-инжектирующее расширение.
 - Подтверждённый сценарий воспроизведения (шаги + условия).
 
 ### Статус
-- [ ] Analysis complete
+- [x] Analysis complete
+
+Карта опасных паттернов (`: <></>` / `? … : null` с текст-узлами):
+- `CreateFormInp.jsx:70` — `error ? <p> : <></>` (P0, рендерится в форме многократно).
+- `SellerCreateImage.jsx:185-186` — `fileError`/`err` → `<p> : <></>` (P0).
+- `CreateCharacInp.jsx:91` — `err ? <p> : null` (P1).
+- `SellerPreviewPage.jsx` — блоки `pending`/`rejected`/`hasMissingRequiredAttributes`/
+  `partial_success` (P1, переключаются при клике «Отправить»).
+- Глобального ErrorBoundary нет; `index.html` без защиты от перевода — подтверждено.
 
 ---
 
@@ -155,7 +167,13 @@ DOM-инжектирующее расширение.
 - Компонент ErrorBoundary + подключение в `main.jsx`.
 
 ### Статус
-- [ ] ErrorBoundary done
+- [x] ErrorBoundary done
+
+`src/Components/ErrorBoundary/ErrorBoundary.jsx` (class component): фолбэк с
+кнопками «Перезагрузить»/«Назад» (i18n `errorBoundary.*`, en+cz), `translate="no"`
+на контейнере; в `componentDidCatch` → `Sentry.captureException` с тегами
+`area`, `translation_likely_active` (наличие `<font>` в `#root`) и `componentStack`.
+Подключён в `main.jsx` вокруг `RouterProvider`.
 
 ---
 
@@ -179,7 +197,12 @@ DOM-инжектирующее расширение.
 - Изменённый `index.html` + точечные `notranslate` атрибуты.
 
 ### Статус
-- [ ] Anti-translate protection done
+- [x] Anti-translate protection done
+
+`index.html`: добавлены `<meta name="google" content="notranslate" />` и
+`translate="no"` на `#root`. Точечный `translate="no"` на динамических блоках
+превью (loading, rejected, missing-attributes, partial_success). Интерфейс
+локализуется через i18n (en/cz), поэтому внешний перевод отключён осознанно.
 
 ---
 
@@ -208,7 +231,14 @@ DOM-инжектирующее расширение.
 - Diff по перечисленным файлам с одинаковым внешним поведением.
 
 ### Статус
-- [ ] Render hardening done
+- [x] Render hardening done
+
+Паттерн `{error ? <p>…</p> : <></>}` заменён на always-mounted узел
+`<p className={styles.errText} translate="no" hidden={!error}>{error || ""}</p>`
+в `CreateFormInp`, `SellerCreateImage` (fileError + imageRequired),
+`CreateCharacInp`. Узел больше не размонтируется → React не вызывает
+`removeChild` на перемещённом переводчиком узле. Внешнее поведение идентично
+(скрыт через `hidden`, тексты/условия не менялись).
 
 ---
 
@@ -235,7 +265,18 @@ DOM-инжектирующее расширение.
 - Новые `*.test.jsx` рядом с компонентами.
 
 ### Статус
-- [ ] Tests done
+- [x] Tests done
+
+Новые тесты (16, все зелёные):
+- `ErrorBoundary.test.jsx` — рендер детей; фолбэк + `Sentry.captureException`
+  с тегами; `translate="no"` на фолбэке.
+- `CreateFormInp.test.jsx` — показ/скрытие ошибки, `translate="no"`,
+  устойчивость к reparent узла в `<font>` при перерендере (без краша).
+- `CreateCharacInp.test.jsx` — добавление/удаление строк, тоггл ошибки.
+- `SellerCreateImage.test.jsx` — ошибка формата файла, imageRequired,
+  стабильные защищённые узлы (swiper/react-responsive замоканы).
+- `SellerPreviewPage.test.jsx` — ветки default/missing-attributes/
+  partial_success/pending(id)/rejected(id).
 
 ---
 
@@ -251,7 +292,13 @@ DOM-инжектирующее расширение.
 - [ ] `npm run lint` ✅, `npm run test` ✅ (Frontend3).
 
 ### Статус
-- [ ] Validation complete
+- [x] Validation complete (автоматическая часть)
+
+- `npm run lint` → 0 errors (654 pre-existing warnings, не из этой задачи).
+- `npm run test` → 54 файла, 462 теста passed.
+- Ручные сценарии с реальным включённым переводом браузера — за продактом
+  (краш невозможно стабильно воспроизвести в unit-окружении; вместо этого
+  добавлен тест на эмуляцию мутации DOM).
 
 ---
 

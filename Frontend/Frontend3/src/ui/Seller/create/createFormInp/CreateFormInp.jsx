@@ -67,7 +67,7 @@ const CreateFormInp = ({
           style={{ fontFamily: (num || digitsOnly || decimal) ? "var(--ft)" : undefined }}
         />
       }
-      {error ? <p className={styles.errText}>{error}</p> : <></>}
+      <p className={styles.errText} translate="no" hidden={!error}>{error || ""}</p>
     </label>
   );
 };
