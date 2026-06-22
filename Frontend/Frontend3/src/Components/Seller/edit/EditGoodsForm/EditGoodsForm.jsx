@@ -13,7 +13,7 @@ import EditMainVariants from "../EditMainVariants/EditMainVariants";
 import { getValidateGoods } from "../../../../code/validation/validationGoods";
 import EditLicense from "../EditLicense/EditLicense";
 import SellerCategoryAttributesFields from "../../shared/SellerCategoryAttributesFields";
-import { getVisibleProductParameters } from "../../shared/sellerProductParameters";
+import { areProductParametersValid } from "../../shared/sellerProductParameters";
 import {
     getCategorySchemaNotReadyMessage,
     isCategoryAttributeSchemaReady,
@@ -149,12 +149,7 @@ const EditGoodsForm = () => {
             nextAttributeErrors.schema = getCategorySchemaNotReadyMessage(t)
         }
         const areAttributesValid = Object.keys(nextAttributeErrors).length === 0
-        const visibleParameters = getVisibleProductParameters(parameters);
-        const isParametersValid =
-            !visibleParameters.length ||
-            visibleParameters.every(
-                (item) => item.name?.trim() && item.value?.trim()
-            );
+        const isParametersValid = areProductParametersValid(parameters);
         const nextVariantValidation = validateProductVariants(
             { variantsName, variants: variantsServ },
             t

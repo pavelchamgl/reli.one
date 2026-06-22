@@ -1,10 +1,16 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { screen, fireEvent } from "@testing-library/react";
 
 import { renderWithProviders } from "../../../../test/test-utils.jsx";
+import { areProductParametersValid } from "../../../../Components/Seller/shared/sellerProductParameters.js";
 import CreateCharacInp from "./CreateCharacInp";
 
 const noop = () => {};
+
+const lastParameters = (setParameters) => {
+  const calls = setParameters.mock.calls;
+  return calls.length ? calls[calls.length - 1][0] : [];
+};
 
 describe("CreateCharacInp", () => {
   it("renders one empty row by default and adds rows", () => {
@@ -53,5 +59,37 @@ describe("CreateCharacInp", () => {
     errNode = container.querySelector("p[translate='no']");
     expect(errNode).toBeVisible();
     expect(errNode).toHaveTextContent("allParametersAreRequired");
+  });
+
+  it("stays optional after add -> type -> delete (leftover empty row is valid)", () => {
+    const setParameters = vi.fn();
+    renderWithProviders(
+      <CreateCharacInp setParameters={setParameters} setErr={noop} err={false} />
+    );
+
+    fireEvent.click(screen.getByText("item.add"));
+
+    const nameInputs = screen.getAllByPlaceholderText(
+      "goods.placeholders.characteristicName"
+    );
+    fireEvent.change(nameInputs[1], { target: { value: "Color" } });
+
+    fireEvent.click(screen.getAllByLabelText("goods.deleteCharacteristic")[1]);
+
+    expect(areProductParametersValid(lastParameters(setParameters))).toBe(true);
+  });
+
+  it("becomes invalid when a row has only the name filled", () => {
+    const setParameters = vi.fn();
+    renderWithProviders(
+      <CreateCharacInp setParameters={setParameters} setErr={noop} err={false} />
+    );
+
+    const nameInputs = screen.getAllByPlaceholderText(
+      "goods.placeholders.characteristicName"
+    );
+    fireEvent.change(nameInputs[0], { target: { value: "Color" } });
+
+    expect(areProductParametersValid(lastParameters(setParameters))).toBe(false);
   });
 });
