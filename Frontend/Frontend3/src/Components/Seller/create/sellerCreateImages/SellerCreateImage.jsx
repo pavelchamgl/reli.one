@@ -182,8 +182,8 @@ const SellerCreateImage = ({ err, setErr }) => {
           </button>
         </>
       </div>
-      <p className={styles.errText} translate="no" hidden={!fileError}>{fileError || ""}</p>
-      <p className={styles.errText} translate="no" hidden={!err}>{err ? t('goods.errors.imageRequired') : ""}</p>
+      <p className={styles.errText} hidden={!fileError}>{fileError || ""}</p>
+      <p className={styles.errText} hidden={!err}>{err ? t('goods.errors.imageRequired') : ""}</p>
 
       {/* Кнопки навигации */}
     </div>

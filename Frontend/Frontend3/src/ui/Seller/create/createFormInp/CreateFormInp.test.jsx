@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { render, screen } from "@testing-library/react";
 
+import { installDomTranslateGuard } from "../../../../utils/domTranslateGuard.js";
 import CreateFormInp from "./CreateFormInp";
 
 const baseProps = {
@@ -11,20 +12,34 @@ const baseProps = {
 };
 
 describe("CreateFormInp", () => {
-  it("shows the error text and protects it from translation", () => {
+  beforeAll(() => {
+    installDomTranslateGuard();
+  });
+
+  it("shows validation error text without blocking browser translation", () => {
     render(<CreateFormInp {...baseProps} error="Required field" />);
 
     const errNode = screen.getByText("Required field");
     expect(errNode).toBeVisible();
-    expect(errNode).toHaveAttribute("translate", "no");
+    expect(errNode).not.toHaveAttribute("translate", "no");
+  });
+
+  it("protects technical numeric inputs from translation", () => {
+    const { container } = render(
+      <CreateFormInp {...baseProps} name="vat_rate" digitsOnly value="21" />
+    );
+
+    expect(container.querySelector("input[translate='no']")).toBeInTheDocument();
   });
 
   it("keeps a stable, hidden error node when there is no error", () => {
     const { container } = render(<CreateFormInp {...baseProps} />);
 
-    const errNode = container.querySelector("p[translate='no']");
-    expect(errNode).toBeInTheDocument();
-    expect(errNode).not.toBeVisible();
+    const errNode = container.querySelector("p.errText, .errText");
+    const errByClass = container.querySelector('[class*="errText"]');
+    expect(errByClass).toBeInTheDocument();
+    expect(errByClass).not.toBeVisible();
+    expect(errNode ?? errByClass).not.toBeVisible();
   });
 
   it("survives external DOM mutation (translator reparents node) on re-render", () => {
@@ -32,13 +47,11 @@ describe("CreateFormInp", () => {
       <CreateFormInp {...baseProps} error="Required field" />
     );
 
-    const errNode = container.querySelector("p[translate='no']");
-    // Эмулируем автопереводчик: переносим управляемый React узел под чужой <font>.
+    const errNode = container.querySelector('[class*="errText"]');
     const font = document.createElement("font");
     errNode.parentNode.insertBefore(font, errNode);
     font.appendChild(errNode);
 
-    // Старый паттерн `error ? <p/> : <></>` тут падал бы NotFoundError на removeChild.
     expect(() =>
       rerender(<CreateFormInp {...baseProps} error={undefined} />)
     ).not.toThrow();

@@ -63,19 +63,19 @@ describe("SellerPreviewPage", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows a translation-protected warning when required attributes are missing", () => {
+  it("shows a translatable warning when required attributes are missing", () => {
     buildSellerReviewData.mockReturnValue({ hasMissingRequiredAttributes: true });
 
-    const { container } = renderWithProviders(<SellerPreviewPage />, {
+    renderWithProviders(<SellerPreviewPage />, {
       storeInstance: setupStore({ create_prev: createPrevState() }),
     });
 
     const warning = screen.getByText(/Required category attributes are missing/);
     expect(warning).toBeVisible();
-    expect(container.querySelector("[translate='no']")).toBeInTheDocument();
+    expect(warning.closest("[translate='no']")).toBeNull();
   });
 
-  it("renders a translation-protected partial-success banner", () => {
+  it("protects only technical tokens in the partial-success banner", () => {
     renderWithProviders(<SellerPreviewPage />, {
       storeInstance: setupStore({
         create_prev: createPrevState({
@@ -86,12 +86,16 @@ describe("SellerPreviewPage", () => {
       }),
     });
 
-    const banner = screen.getByText(/Product created with incomplete data/);
-    expect(banner).toBeVisible();
-    expect(banner.closest("[translate='no']")).toBeInTheDocument();
+    expect(screen.getByText(/Product created with incomplete data/)).toBeVisible();
+    expect(screen.getByText("42")).toHaveAttribute("translate", "no");
+    expect(screen.getByText("images")).toHaveAttribute("translate", "no");
+    expect(
+      screen.getByText(/Failed steps can be retried/)
+        .closest("[translate='no']")
+    ).toBeNull();
   });
 
-  it("shows a protected loading state while fetching an existing product preview", () => {
+  it("shows a translatable loading state while fetching an existing product preview", () => {
     getProductById.mockReturnValue(new Promise(() => {}));
 
     renderWithProviders(
@@ -105,7 +109,7 @@ describe("SellerPreviewPage", () => {
     );
 
     const loading = screen.getByText(/Loading product preview/);
-    expect(loading.closest("[translate='no']")).toBeInTheDocument();
+    expect(loading.closest("[translate='no']")).toBeNull();
   });
 
   it("shows an error message when the product preview fails to load", async () => {

@@ -45,18 +45,18 @@ describe("CreateCharacInp", () => {
     ).toHaveLength(1);
   });
 
-  it("toggles the translation-protected required error without unmounting it", () => {
+  it("toggles the required error without unmounting the node", () => {
     const { container, rerender } = renderWithProviders(
       <CreateCharacInp setParameters={noop} setErr={noop} err={false} />
     );
 
-    let errNode = container.querySelector("p[translate='no']");
+    const errNode = container.querySelector('[class*="errText"]');
     expect(errNode).toBeInTheDocument();
     expect(errNode).not.toBeVisible();
+    expect(errNode).not.toHaveAttribute("translate", "no");
 
     rerender(<CreateCharacInp setParameters={noop} setErr={noop} err={true} />);
 
-    errNode = container.querySelector("p[translate='no']");
     expect(errNode).toBeVisible();
     expect(errNode).toHaveTextContent("allParametersAreRequired");
   });

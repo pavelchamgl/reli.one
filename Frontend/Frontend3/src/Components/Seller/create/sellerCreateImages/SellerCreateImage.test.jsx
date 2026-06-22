@@ -18,7 +18,7 @@ vi.mock("react-responsive", () => ({
 const noop = () => {};
 
 describe("SellerCreateImage", () => {
-  it("shows a translation-protected file validation error for unsupported files", () => {
+  it("shows a file validation error for unsupported files", () => {
     renderWithProviders(<SellerCreateImage err={false} setErr={noop} />);
 
     const fileInput = document.querySelector('input[type="file"]');
@@ -27,7 +27,7 @@ describe("SellerCreateImage", () => {
 
     const errNode = screen.getByText("goods.errors.productImageFormat");
     expect(errNode).toBeVisible();
-    expect(errNode).toHaveAttribute("translate", "no");
+    expect(errNode).not.toHaveAttribute("translate", "no");
   });
 
   it("shows the image-required error only when err is true and keeps it mounted otherwise", () => {
@@ -35,14 +35,14 @@ describe("SellerCreateImage", () => {
       <SellerCreateImage err={false} setErr={noop} />
     );
 
-    const protectedNodes = container.querySelectorAll("p[translate='no']");
-    expect(protectedNodes.length).toBe(2);
-    protectedNodes.forEach((node) => expect(node).not.toBeVisible());
+    const errNodes = container.querySelectorAll('[class*="errText"]');
+    expect(errNodes.length).toBe(2);
+    errNodes.forEach((node) => expect(node).not.toBeVisible());
 
     rerender(<SellerCreateImage err={true} setErr={noop} />);
 
     const requiredNode = screen.getByText("goods.errors.imageRequired");
     expect(requiredNode).toBeVisible();
-    expect(requiredNode).toHaveAttribute("translate", "no");
+    expect(requiredNode).not.toHaveAttribute("translate", "no");
   });
 });

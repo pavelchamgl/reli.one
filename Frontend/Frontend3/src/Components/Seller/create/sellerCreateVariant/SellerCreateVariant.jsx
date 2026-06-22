@@ -102,6 +102,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                 <input
                     className={styles.nameInp}
                     type="text"
+                    translate="no"
                     style={fieldBorderStyle(fieldErrors, "price")}
                     value={newVariant.price}
                     onChange={(e) => {
@@ -121,6 +122,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                     className={styles.nameInp}
                     type="number"
                     min="0"
+                    translate="no"
                     style={fieldBorderStyle(fieldErrors, "quantity_in_stock")}
                     value={newVariant.quantity_in_stock ?? ""}
                     onChange={(e) => {
@@ -140,6 +142,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                 <input
                     className={styles.nameInp}
                     type="text"
+                    translate="no"
                     style={fieldBorderStyle(fieldErrors, "height")}
                     value={newVariant.height}
                     onChange={(e) => {
@@ -158,6 +161,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                 <input
                     className={styles.nameInp}
                     type="text"
+                    translate="no"
                     style={fieldBorderStyle(fieldErrors, "width")}
                     value={newVariant.width}
                     onChange={(e) => {
@@ -176,6 +180,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                 <input
                     className={styles.nameInp}
                     type="text"
+                    translate="no"
                     style={fieldBorderStyle(fieldErrors, "length")}
                     value={newVariant.length}
                     onChange={(e) => {
@@ -194,6 +199,7 @@ const SellerCreateVariant = ({ err, setErr, variant, handleEditVariant, handleDe
                 <input
                     className={styles.nameInp}
                     type="text"
+                    translate="no"
                     style={fieldBorderStyle(fieldErrors, "weight")}
                     value={newVariant.weight}
                     onChange={(e) => {

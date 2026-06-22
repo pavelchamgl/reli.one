@@ -1638,8 +1638,9 @@ describe("seller review product layout regressions", () => {
   it("renders Excl. VAT line with VAT rate and price without VAT", () => {
     renderProductInfo(makeReviewFixture());
 
-    expect(screen.getByText(/Excl\. VAT \(21%\):/)).toBeTruthy();
-    expect(screen.getByText("687.60 €")).toBeTruthy();
+    const vatLine = screen.getByText("687.60 €").closest("p");
+    expect(vatLine?.textContent).toMatch(/Excl\. VAT \(21%\):/);
+    expect(screen.getByText("687.60 €")).toHaveAttribute("translate", "no");
   });
 
   it("renders disabled Add to cart without basket behavior", () => {
@@ -1908,7 +1909,8 @@ describe("seller review product layout regressions", () => {
     expect(screen.queryByText("Stock: Not specified")).toBeNull();
     expect(screen.getAllByText("OUT_OF_STOCK").length).toBeGreaterThan(0);
     expect(screen.queryByTestId("stock-badge")).toBeNull();
-    expect(screen.getByText("SKU: SKU-1")).toBeTruthy();
+    expect(screen.getByText("SKU-1")).toHaveAttribute("translate", "no");
+    expect(screen.getByText(/SKU:/)).toBeTruthy();
   });
 
   it("disables submit action while loading", () => {

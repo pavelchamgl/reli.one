@@ -1,5 +1,8 @@
 import "./styles/tailwind-shadcn.css";
+import { installDomTranslateGuard } from "./utils/domTranslateGuard.js";
 import * as Sentry from "@sentry/react";
+
+installDomTranslateGuard();
 import i18n from "../language/i18next.js";
 import { I18nextProvider } from "react-i18next";
 import React, { lazy, Suspense } from "react";

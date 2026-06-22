@@ -87,13 +87,13 @@ const SellerPreviewPage = () => {
     <div style={{ paddingBottom: "100px" }}>
       <h3 className={styles.title}>{t('goods.creation')}</h3>
       {id && previewStatus === "pending" ? (
-        <div className={styles.previewLoading} translate="no">
+        <div className={styles.previewLoading}>
           <Spinner size="20px" />
           <span>Loading product preview...</span>
         </div>
       ) : null}
       {id && previewStatus === "rejected" ? (
-        <div className={styles.reviewWarning} translate="no">{previewError}</div>
+        <div className={styles.reviewWarning}>{previewError}</div>
       ) : null}
       {(!id || previewStatus === "fulfilled") ? (
         <>
@@ -103,12 +103,12 @@ const SellerPreviewPage = () => {
         <SellerPreviewDesktop product={data} actionSlot={actionSlot} />
       )}
       {reviewData.hasMissingRequiredAttributes ? (
-        <div className={styles.reviewWarning} translate="no">
+        <div className={styles.reviewWarning}>
           Required category attributes are missing. Return to the form and fill them before sending to moderation.
         </div>
       ) : null}
       {!id && product?.status === "partial_success" ? (
-        <div translate="no" style={{
+        <div style={{
           margin: "24px 0",
           padding: "16px",
           border: "1px solid #f59e0b",
@@ -118,14 +118,17 @@ const SellerPreviewPage = () => {
         }}>
           <strong>Product created with incomplete data.</strong>
           <p style={{ margin: "8px 0" }}>
-            Product ID: {product.createdProductId}. Failed steps can be retried without creating a duplicate product.
+            Product ID: <span translate="no">{product.createdProductId}</span>.
+            {" "}Failed steps can be retried without creating a duplicate product.
           </p>
           <ul style={{ margin: "0 0 12px", paddingLeft: "18px" }}>
             {(product.submitStepResults || [])
               .filter((item) => item.status === "rejected")
               .map((item) => (
                 <li key={item.step}>
-                  {item.step}: {formatSellerWizardApiError(item.error, t, "Unknown error")}
+                  <span translate="no">{item.step}</span>
+                  {": "}
+                  {formatSellerWizardApiError(item.error, t, "Unknown error")}
                 </li>
               ))}
           </ul>
