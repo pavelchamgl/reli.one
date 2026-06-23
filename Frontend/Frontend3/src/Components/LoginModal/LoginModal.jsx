@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { Dialog } from "@mui/material";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -17,14 +18,18 @@ import { setToken } from "../../redux/authSlice";
 import { useActionPayment } from "../../hook/useActionPayment.js";
 import GoogleAuth from "../Auth/googleAuth/GoogleAuth.jsx";
 import FacebookAuth from "../Auth/facebookAuth/FacebookAuth.jsx";
+import AccountTypeModal from "./AccountTypeModal.jsx";
+import { getSellerRegistrationUrl } from "./accountTypeRegistration.js";
 
 const LoginModal = ({ open, handleClose, text, basket = false }) => {
   const [regErr, setRegErr] = useState("");
-  const [isLogged, setIsLoged] = useState(false)
+  const [isLogged, setIsLoged] = useState(false);
+  const [accountTypeOpen, setAccountTypeOpen] = useState(false);
 
   const { t } = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const currentBasket = useSelector((state) => state.basket.basket) || [];
   const baskets = useSelector((state) => state.basket.baskets) || [];
@@ -113,7 +118,41 @@ const LoginModal = ({ open, handleClose, text, basket = false }) => {
     }
   }, [isLogged, baskets, handleClose, setIsBuy, navigate]);
 
+  const handleCloseAccountTypeModal = () => {
+    flushSync(() => {
+      setAccountTypeOpen(false);
+    });
+  };
+
+  useEffect(() => {
+    setAccountTypeOpen(false);
+  }, [location.pathname]);
+
+  const handleOpenAccountType = () => {
+    handleClose();
+    setAccountTypeOpen(true);
+  };
+
+  const handleBuyerRegistration = () => {
+    flushSync(() => {
+      setAccountTypeOpen(false);
+      handleClose();
+    });
+    if (location.pathname !== "/sign_up") {
+      navigate("/sign_up");
+    }
+  };
+
+  const handleSellerRegistration = () => {
+    flushSync(() => {
+      setAccountTypeOpen(false);
+      handleClose();
+    });
+    window.location.assign(getSellerRegistrationUrl());
+  };
+
   return (
+    <>
     <Dialog open={open} onClose={handleClose}>
       <div className={styles.modal}>
         <div className={styles.modalTitleDiv}>
@@ -180,9 +219,13 @@ const LoginModal = ({ open, handleClose, text, basket = false }) => {
 
             <p className={styles.registerLink}>
               {t("dont_have_acc")}{" "}
-              <Link onClick={handleClose} to="/sign_up">
-                {t("register_here")}
-              </Link>
+              <button
+                type="button"
+                className={styles.registerBtn}
+                onClick={handleOpenAccountType}
+              >
+                {t("create_an_account")}
+              </button>
             </p>
           </div>
         </div>
@@ -196,6 +239,15 @@ const LoginModal = ({ open, handleClose, text, basket = false }) => {
         </div>
       </div>
     </Dialog>
+    {accountTypeOpen && (
+      <AccountTypeModal
+        open
+        onClose={handleCloseAccountTypeModal}
+        onBuyerClick={handleBuyerRegistration}
+        onSellerClick={handleSellerRegistration}
+      />
+    )}
+    </>
   );
 };
 
