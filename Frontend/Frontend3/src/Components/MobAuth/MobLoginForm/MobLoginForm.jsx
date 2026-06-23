@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { flushSync } from "react-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -8,6 +9,8 @@ import { login } from "../../../api/auth";
 import CheckBox from "../../../ui/CheckBox/CheckBox";
 import closeEye from "../../../assets/Input/closeEyesIcon.svg";
 import openEye from "../../../assets/Input/openEyesIcon.svg";
+import AccountTypeModal from "../../LoginModal/AccountTypeModal.jsx";
+import { getSellerRegistrationUrl } from "../../LoginModal/accountTypeRegistration.js";
 
 import styles from "./MobLoginForm.module.scss";
 
@@ -20,12 +23,14 @@ import FacebookAuth from "../../Auth/facebookAuth/FacebookAuth";
 
 const MobLoginForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const { t } = useTranslation();
 
   const [type, setType] = useState("password");
   const [regErr, setRegErr] = useState("");
-  const [isLogged, setIsLoged] = useState(false)
+  const [isLogged, setIsLoged] = useState(false);
+  const [accountTypeOpen, setAccountTypeOpen] = useState(false);
 
 
   const basketLocal = useSelector((state) => state.basket.basket) || [];
@@ -118,6 +123,36 @@ const MobLoginForm = () => {
     setType(type === "password" ? "text" : "password");
   };
 
+  useEffect(() => {
+    setAccountTypeOpen(false);
+  }, [location.pathname]);
+
+  const handleCloseAccountTypeModal = () => {
+    flushSync(() => {
+      setAccountTypeOpen(false);
+    });
+  };
+
+  const handleOpenAccountType = () => {
+    setAccountTypeOpen(true);
+  };
+
+  const handleBuyerRegistration = () => {
+    flushSync(() => {
+      setAccountTypeOpen(false);
+    });
+    if (location.pathname !== "/sign_up") {
+      navigate("/sign_up");
+    }
+  };
+
+  const handleSellerRegistration = () => {
+    flushSync(() => {
+      setAccountTypeOpen(false);
+    });
+    window.location.assign(getSellerRegistrationUrl());
+  };
+
   return (
     <div className={styles.main}>
       <p className={styles.title}>{t("login")}</p>
@@ -175,10 +210,11 @@ const MobLoginForm = () => {
         <div>
           <span>{t("dont_have_acc")}</span>
           <button
-            onClick={() => navigate("/sign_up")}
+            type="button"
+            onClick={handleOpenAccountType}
             className={styles.regBtn}
           >
-            {t("register_here")}
+            {t("create_an_account")}
           </button>
         </div>
       </div>
@@ -190,6 +226,15 @@ const MobLoginForm = () => {
           <FacebookAuth setIsLoged={setIsLoged} setRegErr={setRegErr} syncBasket={syncBasket} />
         </div>
       </div>
+
+      {accountTypeOpen && (
+        <AccountTypeModal
+          open
+          onClose={handleCloseAccountTypeModal}
+          onBuyerClick={handleBuyerRegistration}
+          onSellerClick={handleSellerRegistration}
+        />
+      )}
     </div>
   );
 };
