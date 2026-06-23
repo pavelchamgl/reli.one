@@ -1,0 +1,90 @@
+.modal {
+  width: 580px;
+  max-width: calc(100vw - 32px);
+  padding: 30px;
+}
+
+.modalTitleDiv {
+  display: flex;
+  justify-content: space-between;
+  height: 43px;
+  border-bottom: 2px solid black;
+  align-items: flex-start;
+  margin-bottom: 20px;
+
+  p {
+    padding-top: 2px;
+    font-weight: 600;
+    font-size: 18px;
+    line-height: 130%;
+    letter-spacing: 0.02em;
+    color: #191919;
+  }
+
+  button {
+    background-color: transparent;
+  }
+}
+
+.subtitle {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 140%;
+  color: #191919;
+  margin-bottom: 24px;
+}
+
+.cardsWrap {
+  display: flex;
+  gap: 20px;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+}
+
+.card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid #191919;
+  border-radius: 2px;
+  padding: 24px 20px;
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 130%;
+  color: #191919;
+}
+
+.cardDesc {
+  flex: 1;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 140%;
+  color: #191919;
+}
+
+.cardBtn {
+  border: 1px solid #191919;
+  border-radius: 2px;
+  padding: 14px 20px;
+  width: 100%;
+  background: #000000;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 120%;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: #ffffff;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #f7cd56;
+    color: #191919;
+    border-color: #f7cd56;
+  }
+}
