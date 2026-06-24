@@ -137,6 +137,7 @@ graph TD
 | **026** | [**eol-normalization-policy**](./026-eol-normalization-policy/task.md) | P3 | Low | — | **DONE (repo-scope, forward-only):** политика нормализации EOL через `.gitattributes` |
 | **027** | [**frontend-path-case-normalization**](./027-frontend-path-case-normalization/task.md) | P2 | Medium | — | **DONE:** нормализация регистра путей каталога компонентов Frontend3 (подтверждено на CI, Linux) |
 | **028** | [**seller-characteristics-optional-validation**](./028-seller-characteristics-optional-validation/task.md) | P2 | Low | 024 | **DONE (repo-scope):** блок «Characteristics» снова опционален после add/delete (seller create/edit); хелпер `areProductParametersValid` + тесты |
+| **029** | [**seller-preview-translate-hardening**](./029-seller-preview-translate-hardening/task.md) | P2 | Low–Med | 025 | **DONE:** hard navigation success-потока seller preview, RouteErrorBoundary как errorElement, телеметрия guard, CI-проверка бандла |
 
 ## Отложенные задачи (Deferred / backlog)
 
@@ -285,6 +286,7 @@ docs/tasks/
 └── 026-eol-normalization-policy/task.md
 └── 027-frontend-path-case-normalization/task.md
 └── 028-seller-characteristics-optional-validation/task.md
+└── 029-seller-preview-translate-hardening/task.md
 ```
 
 См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).

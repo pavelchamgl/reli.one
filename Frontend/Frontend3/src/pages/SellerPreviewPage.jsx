@@ -51,8 +51,7 @@ const SellerPreviewPage = () => {
 
   useEffect(() => {
     if (!id && product?.status === "fulfilled") {
-      navigate("/seller/goods-list");
-      window.location.reload();
+      window.location.assign("/seller/goods-list");
     }
 
   }, [id, product?.status]);
