@@ -13,7 +13,19 @@ const AccountTypeModal = ({ open, onClose, onBuyerClick, onSellerClick }) => {
   }
 
   return (
-    <Dialog open onClose={onClose} keepMounted={false}>
+    <Dialog
+      open
+      onClose={onClose}
+      keepMounted={false}
+      PaperProps={{
+        sx: {
+          width: "100%",
+          maxWidth: { xs: "calc(100% - 32px)", sm: "580px" },
+          margin: "16px auto",
+          padding: 0,
+        },
+      }}
+    >
       <div className={styles.modal}>
         <div className={styles.modalTitleDiv}>
           <p>{t("create_an_account")}</p>
