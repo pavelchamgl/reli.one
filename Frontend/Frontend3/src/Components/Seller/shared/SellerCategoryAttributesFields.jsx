@@ -69,7 +69,7 @@ const SellerCategoryAttributesFields = ({
     const placeholderForAttribute = (attribute) => {
         if (attribute.data_type === "number") {
             return isMmStoredNumberAttribute(attribute)
-                ? t("goods.placeholders.attributeNumberCm")
+                ? t("goods.placeholders.attributeNumberMm")
                 : t("goods.placeholders.attributeNumber");
         }
         if (attribute.data_type === "enum") {

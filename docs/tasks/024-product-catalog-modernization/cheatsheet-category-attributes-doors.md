@@ -149,9 +149,10 @@ Facets строятся только для `is_filterable=true` и `is_public=t
 
 | Слой | Поведение |
 |------|-----------|
-| API / БД | `value_number` хранится в **мм** (`door_width_mm`, `door_height_mm`, …) |
-| UI продавца | ввод в **см**; конвертация в `sellerProductWizard.js` (`cmToMm` / `mmToCm`) |
-| Preview / каталог | отображение канонического значения в **мм** |
+| API / БД | `value_number` хранится в **мм** (`door_width_mm`, `door_height_mm`, …); сериализация Decimal может быть `800.0000` |
+| UI продавца | Ввод в **мм** напрямую ([Task 030](../../030-category-attributes-mm-input/task.md)): label `, mm`, placeholder `e.g. 800`; create `/seller/seller-create` и edit `/seller/seller-edit/:id`; passthrough в `sellerProductWizard.js` (без `cmToMm` / `mmToCm`); при load из API — `formatNumberInputValue` (`800.0000` → `800`) |
+| Preview seller | Значение формы = мм → `"800 mm"` |
+| Публичный каталог | `${value} ${unit}` — каноническое значение в **мм** |
 
 ### `door_material` — опции enum
 

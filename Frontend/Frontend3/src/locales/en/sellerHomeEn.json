@@ -236,6 +236,7 @@
             "attributeText": "e.g. Steel",
             "attributeNumber": "e.g. 210",
             "attributeNumberCm": "e.g. 80",
+            "attributeNumberMm": "e.g. 800",
             "attributeSelect": "Select value"
         }
     },
