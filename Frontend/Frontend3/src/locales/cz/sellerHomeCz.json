@@ -237,6 +237,7 @@
             "attributeText": "např. Ocel",
             "attributeNumber": "např. 210",
             "attributeNumberCm": "např. 80",
+            "attributeNumberMm": "např. 800",
             "attributeSelect": "Vyberte hodnotu"
         }
     },

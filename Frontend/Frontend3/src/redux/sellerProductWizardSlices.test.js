@@ -110,11 +110,11 @@ const mmWidthAttribute = {
   unit: "mm",
 };
 
-describe("category attribute mm storage with cm input", () => {
-  it("converts cm form values to mm in API payload", () => {
+describe("category attribute mm storage with mm input", () => {
+  it("passes mm form values through to API payload (create and edit save)", () => {
     const payload = buildAttributePayload(
       [mmWidthAttribute],
-      { 10: "80" }
+      { 10: "800" }
     );
 
     expect(payload).toEqual([
@@ -122,22 +122,45 @@ describe("category attribute mm storage with cm input", () => {
     ]);
   });
 
-  it("converts mm API values to cm for the edit form", () => {
+  it("loads mm API values into the edit form without conversion", () => {
     const values = valuesFromAttributeRows(
       [{ attribute_definition: 10, data_type: "number", value_number: "800" }],
       [mmWidthAttribute]
     );
 
-    expect(values).toEqual({ 10: "80" });
+    expect(values).toEqual({ 10: "800" });
   });
 
-  it("shows mm in seller review when form stores cm", () => {
+  it("strips trailing decimal zeros when loading mm API values", () => {
+    expect(valuesFromAttributeRows(
+      [{ attribute_definition: 10, data_type: "number", value_number: "800.0000" }],
+      [mmWidthAttribute]
+    )).toEqual({ 10: "800" });
+
+    expect(valuesFromAttributeRows(
+      [{ attribute_definition: 10, data_type: "number", value_number: "800,0000" }],
+      [mmWidthAttribute]
+    )).toEqual({ 10: "800" });
+  });
+
+  it("shows mm in seller review when form stores mm (create and edit preview)", () => {
     const review = buildSellerReviewData({
       attributeSchema: { attributes: [mmWidthAttribute] },
-      attributeValues: { 10: "80" },
+      attributeValues: { 10: "800" },
     });
 
     expect(review.categoryAttributes[0].display).toBe("800 mm");
+  });
+
+  it("preserves mm values on edit round-trip without double conversion", () => {
+    const apiRow = { attribute_definition: 10, data_type: "number", value_number: "800" };
+    const values = valuesFromAttributeRows([apiRow], [mmWidthAttribute]);
+    const payload = buildAttributePayload([mmWidthAttribute], values);
+
+    expect(values).toEqual({ 10: "800" });
+    expect(payload).toEqual([
+      { attribute_definition: 10, value_number: "800" },
+    ]);
   });
 });
 

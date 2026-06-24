@@ -176,28 +176,20 @@ export const isMmStoredNumberAttribute = (attribute) => (
 );
 
 export const attributeInputUnit = (attribute) => {
-    if (isMmStoredNumberAttribute(attribute)) return "cm";
+    if (isMmStoredNumberAttribute(attribute)) return "mm";
     return attribute?.unit || "";
 };
 
 const attributeValueNumberForApi = (attribute, value) => {
     if (isMmStoredNumberAttribute(attribute)) {
-        const mm = cmToMm(value);
-        return mm !== null ? String(mm) : String(value);
+        return String(value);
     }
     return String(value);
 };
 
-const attributeValueNumberForForm = (attribute, valueNumber, schemaAttributes = []) => {
-    const attributeMeta = schemaAttributes.find(
-        (item) => Number(item.id) === Number(attribute?.attribute_definition ?? attribute?.id)
-    ) || attribute;
-
-    if (isMmStoredNumberAttribute(attributeMeta)) {
-        return mmToCm(valueNumber);
-    }
-    return valueNumber || "";
-};
+const attributeValueNumberForForm = (attribute, valueNumber) => (
+    formatNumberInputValue(valueNumber)
+);
 
 export const kgToGrams = (value) => {
     const numberValue = Number(value);
@@ -213,6 +205,14 @@ export const normalizeVatRate = (value) => {
 export const formatVatRateForInput = (value) => {
     if (value === undefined || value === null || value === "") return "";
     const numberValue = Number(value);
+    if (!Number.isFinite(numberValue)) return String(value);
+    return String(numberValue);
+};
+
+const formatNumberInputValue = (value) => {
+    if (value === undefined || value === null || value === "") return "";
+    const stringValue = String(value).trim().replace(",", ".");
+    const numberValue = Number(stringValue);
     if (!Number.isFinite(numberValue)) return String(value);
     return String(numberValue);
 };
@@ -881,9 +881,8 @@ const attributeDisplayValue = (attribute, value) => {
     }
     if (attribute.data_type === "number") {
         if (isMmStoredNumberAttribute(attribute)) {
-            const mm = cmToMm(value);
-            if (mm === null) return value !== "" && value !== undefined ? String(value) : "";
-            return `${mm} mm`;
+            const normalized = formatNumberInputValue(value);
+            return normalized ? `${normalized} mm` : "";
         }
         return `${value}${attribute.unit ? ` ${attribute.unit}` : ""}`;
     }
@@ -893,7 +892,8 @@ const attributeDisplayValue = (attribute, value) => {
 const attributeRowDisplayValue = (row) => {
     if (row.value_text !== undefined && row.value_text !== null && row.value_text !== "") return row.value_text;
     if (row.value_number !== undefined && row.value_number !== null && row.value_number !== "") {
-        return `${row.value_number}${row.unit ? ` ${row.unit}` : ""}`;
+        const normalized = formatNumberInputValue(row.value_number);
+        return `${normalized}${row.unit ? ` ${row.unit}` : ""}`;
     }
     if (row.value_boolean !== undefined && row.value_boolean !== null && row.value_boolean !== "") {
         return row.value_boolean ? "Yes" : "No";
