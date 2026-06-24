@@ -26,4 +26,9 @@ describe("main.jsx bootstrap wiring", () => {
     expect(boundaryIndex).toBeGreaterThan(-1);
     expect(routerIndex).toBeGreaterThan(boundaryIndex);
   });
+
+  it("registers RouteErrorBoundary as router errorElement", () => {
+    expect(mainSource).toContain("RouteErrorBoundary");
+    expect(mainSource).toContain("errorElement: appRouteErrorElement");
+  });
 });

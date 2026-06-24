@@ -101,6 +101,13 @@ jobs:
       - name: Build
         run: npm run build --if-present
 
+      - name: Verify DOM translate guard in production bundle
+        run: |
+          if ! grep -q 'parentNode!==this' dist/assets/index-*.js; then
+            echo "DOM translate guard pattern not found in dist/assets/index-*.js"
+            exit 1
+          fi
+
   e2e_frontend3:
     runs-on: ubuntu-latest
     defaults:
