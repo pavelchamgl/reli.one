@@ -1,6 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import { Routes, Route } from "react-router-dom";
+
+const navigateMock = vi.fn();
+
+vi.mock("react-router-dom", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
 
 import { renderWithProviders } from "../test/test-utils.jsx";
 import { setupStore } from "../redux/index.js";
@@ -47,9 +57,38 @@ const createPrevState = (overrides = {}) => ({
 });
 
 describe("SellerPreviewPage", () => {
+  const originalLocationDescriptor = Object.getOwnPropertyDescriptor(window, "location");
+
   beforeEach(() => {
     vi.clearAllMocks();
+    navigateMock.mockReset();
     buildSellerReviewData.mockReturnValue({ hasMissingRequiredAttributes: false });
+  });
+
+  afterEach(() => {
+    if (originalLocationDescriptor) {
+      Object.defineProperty(window, "location", originalLocationDescriptor);
+    }
+  });
+
+  it("performs a single hard navigation to goods-list on create success", () => {
+    const assignMock = vi.fn();
+    const reloadMock = vi.fn();
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { ...window.location, assign: assignMock, reload: reloadMock },
+    });
+
+    renderWithProviders(<SellerPreviewPage />, {
+      storeInstance: setupStore({
+        create_prev: createPrevState({ status: "fulfilled" }),
+      }),
+    });
+
+    expect(assignMock).toHaveBeenCalledTimes(1);
+    expect(assignMock).toHaveBeenCalledWith("/seller/goods-list");
+    expect(navigateMock).not.toHaveBeenCalled();
+    expect(reloadMock).not.toHaveBeenCalled();
   });
 
   it("renders the desktop preview without warnings for a valid draft", () => {

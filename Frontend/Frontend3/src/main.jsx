@@ -32,6 +32,9 @@ import { PersistGate } from "redux-persist/integration/react";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import ProtectedRoute from "./Components/ProtectedRoute/ProtectedRoute.jsx";
 import ErrorBoundary from "./Components/ErrorBoundary/ErrorBoundary.jsx";
+import RouteErrorBoundary from "./Components/ErrorBoundary/RouteErrorBoundary.jsx";
+
+const appRouteErrorElement = <RouteErrorBoundary area="app" />;
 
 const HomePage = lazy(() => import("./pages/HomePage.jsx"));
 const MainPage = lazy(() => import("./pages/MainPage.jsx"));
@@ -103,6 +106,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <HomePage />,
+    errorElement: appRouteErrorElement,
     children: [
       {
         path: "/",
@@ -176,22 +180,30 @@ const router = createBrowserRouter([
       }
     ],
   },
-  { path: "/products-seller/:id", element: <SellerIdPage /> },
+  {
+    path: "/products-seller/:id",
+    element: <SellerIdPage />,
+    errorElement: appRouteErrorElement,
+  },
   {
     path: "/basket",
     element: <BasketPage />,
+    errorElement: appRouteErrorElement,
   },
   {
     path: "/payment",
     element: <PaymentPage />,
+    errorElement: appRouteErrorElement,
   },
   {
     path: "*",
     element: <HomePage />,
+    errorElement: appRouteErrorElement,
   },
   {
     path: "/seller",
     element: <SellerPage />,
+    errorElement: appRouteErrorElement,
     children: [
       {
         path: "goods-choice",
