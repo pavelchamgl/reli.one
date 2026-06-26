@@ -1,0 +1,32 @@
+Předmět: Reli.one — jak začít prodávat, pokud jste se zaregistrovali jako kupující
+
+---
+
+Dobrý den{{RECIPIENT_NAME}}!
+
+Pokud jste se na Reli.one zaregistrovali jako kupující, ale chcete prodávat zboží, níže najdete stručný návod. V příloze jsou tři PDF s postupným popisem a screenshoty rozhraní.
+
+DŮLEŽITÉ: účty kupujícího a prodávajícího jsou různé typy účtů. Nelze se zaregistrovat jako prodávající se stejným e-mailem, pokud je již obsazen účtem kupujícího.
+
+PŘÍLOHY:
+1. 01-novaya-registraciya-prodavca-cz.pdf — nová registrace prodávajícího
+2. 02-uzhe-est-akkaunt-pokupatelya-cz.pdf — pokud již máte účet kupujícího
+3. 03-vykladka-tovarov-cz.pdf — vystavení zboží po schválení
+
+RYCHLÝ POSTUP:
+1. Zaregistrujte se jako prodávající (nebo kontaktujte podporu kvůli převodu účtu)
+2. Potvrďte e-mail kódem ze zprávy
+3. Zvolte typ: OSVČ / živnostník nebo společnost
+4. Vyplňte údaje, bankovní rekvizity, adresy a nahrajte dokumenty
+5. Odešlete žádost ke kontrole a vyčkejte na schválení
+6. Přidejte zboží v panelu prodávajícího
+
+ODKAZY:
+• Registrace prodávajícího: https://reli.one/seller/create-account
+• Přihlášení do panelu: https://reli.one/seller/login
+
+Pokud je váš e-mail již registrován jako kupující, napište na office@reli.one s předmětem „Převod účtu na prodávajícího“ — pomůžeme.
+
+S pozdravem,
+Tým Reli.one
+https://reli.one

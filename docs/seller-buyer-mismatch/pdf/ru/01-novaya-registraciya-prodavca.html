@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reli.one — Новая регистрация продавца</title>
+  <link rel="stylesheet" href="../styles-compact-full-figures.css" />
+</head>
+<body>
+
+<section class="cover">
+  <div class="brand">Reli.one · Инструкция для продавцов</div>
+  <h1>Новая регистрация продавца</h1>
+  <p class="subtitle">
+    Пошаговое руководство для пользователей, которые ещё не регистрировались на Reli.one
+    или готовы создать отдельный аккаунт продавца с новым email.
+  </p>
+  <p class="meta">Версия: июнь 2026</p>
+</section>
+
+<h2>1. Выбор типа аккаунта</h2>
+<p>
+  На Reli.one существуют <strong>два независимых типа аккаунта</strong>: покупатель и продавец.
+  Если вы хотите продавать товары, при регистрации выберите вариант <strong>«Стать продавцом» / Become a seller</strong>,
+  а не «Зарегистрироваться как покупатель».
+</p>
+
+<figure class="figure">
+  <img src="../../screenshots/en/00-account-type-modal.png" alt="Выбор типа аккаунта: покупатель или продавец" />
+  <figcaption>Рис. 1 — Окно выбора типа аккаунта при регистрации на сайте</figcaption>
+</figure>
+
+<div class="note">
+  <strong>Прямая ссылка для регистрации продавца:</strong>
+  <a href="https://reli.one/seller/create-account">https://reli.one/seller/create-account</a>
+</div>
+
+<h2>2. Создание аккаунта продавца</h2>
+
+<div class="step">
+  <h3>Шаг 2.1 — Заполните регистрационную форму</h3>
+  <p>Откройте страницу регистрации продавца и укажите:</p>
+  <ul>
+    <li>имя и фамилию;</li>
+    <li>email (будет использоваться для входа и уведомлений);</li>
+    <li>номер телефона;</li>
+    <li>пароль и подтверждение пароля.</li>
+  </ul>
+  <p>Требования к паролю:</p>
+  <ul>
+    <li>не менее 8 символов;</li>
+    <li>минимум 1 заглавная буква;</li>
+    <li>минимум 1 цифра;</li>
+    <li>минимум 1 спецсимвол из набора <code>!@#$%^&amp;*</code>.</li>
+  </ul>
+  <p>Установите галочку согласия с условиями и политикой конфиденциальности, затем нажмите <strong>Sign Up</strong>.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/01-seller-create-account.png" alt="Форма регистрации продавца" />
+    <figcaption>Рис. 2 — Страница «Create Your Seller Account»</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Шаг 2.2 — Подтвердите email</h3>
+  <p>
+    На указанный email придёт 6-значный код. Введите его на странице подтверждения.
+    Если письмо не пришло, проверьте папку «Спам» или запросите повторную отправку кода.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/02-seller-create-verify.png" alt="Подтверждение email кодом OTP" />
+    <figcaption>Рис. 3 — Подтверждение email (OTP)</figcaption>
+  </figure>
+</div>
+
+<h2>3. Онбординг продавца</h2>
+<p>
+  После подтверждения email начинается процесс верификации продавца (онбординг).
+  Его нужно пройти полностью, прежде чем вы сможете выкладывать товары.
+</p>
+
+<div class="step">
+  <h3>Шаг 3.1 — Выберите тип продавца</h3>
+  <ul>
+    <li><strong>Self-employed / sole proprietor</strong> — ИП, самозанятый, физическое лицо с предпринимательской деятельностью;</li>
+    <li><strong>Company / legal entity</strong> — юридическое лицо (компания).</li>
+  </ul>
+  <p>Набор запрашиваемых данных и документов зависит от выбранного типа.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/03-seller-type.png" alt="Выбор типа продавца" />
+    <figcaption>Рис. 4 — Выбор типа: ИП или компания</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Шаг 3.2 — Автозаполнение по IČO через публичный реестр (для чешских продавцов)</h3>
+
+  <p>
+    Если ваша компания или предпринимательская деятельность зарегистрирована в <strong>Чехии</strong>,
+    Reli.one может подтянуть часть юридических и налоговых данных из <strong>публичного реестра</strong>
+    по номеру <strong>IČO</strong>.
+  </p>
+
+  <div class="note">
+    <strong>Это вспомогательная функция, не обязательная.</strong> Вы всегда можете нажать
+    «Fill manually» / «Заполнить вручную» и ввести данные без запроса к реестру. Автозаполнение
+    <strong>не заменяет</strong> загрузку документов и ручную модерацию заявки.
+  </div>
+
+  <h3>Что такое IČO</h3>
+  <p>
+    <strong>IČO</strong> (Identifikační číslo osoby) — 8-значный идентификационный номер
+    юридического лица или предпринимателя в Чехии. Перед запросом к публичному реестру система проверяет формат
+    и контрольную сумму IČO. Некорректный номер не отправляется в реестр.
+  </p>
+
+  <h3>Где доступна функция</h3>
+  <table>
+    <thead>
+      <tr><th>Тип продавца</th><th>Где в интерфейсе</th><th>Кнопка загрузки</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Company / legal entity</strong></td>
+        <td>Страница <a href="https://reli.one/seller/seller-company">https://reli.one/seller/seller-company</a> — при первом входе показывается модальное окно; далее блок «Company information»</td>
+        <td><em>Load from public registry</em></td>
+      </tr>
+      <tr>
+        <td><strong>Self-employed / sole proprietor</strong></td>
+        <td>Страница <a href="https://reli.one/seller/seller-info">https://reli.one/seller/seller-info</a> — при первом входе модальное окно; далее блок «Tax information»</td>
+        <td><em>Load from public registry</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Пошагово: компания (Company)</h3>
+  <ol>
+    <li>Выберите тип <strong>Company / legal entity</strong> и перейдите на <a href="https://reli.one/seller/seller-company">https://reli.one/seller/seller-company</a>.</li>
+    <li>При первом открытии появится окно <strong>«Prefill Czech company legal data»</strong>.</li>
+    <li>Введите чешское IČO (8 цифр) и нажмите <strong>Load from public registry</strong>.</li>
+    <li>Проверьте блок <strong>Public registry preview</strong>: название, IČO, организационно-правовая форма, юридический адрес, подсказка DIČ.</li>
+    <li>Нажмите <strong>Apply to onboarding</strong> — данные попадут в форму (только в пустые поля).</li>
+    <li>При необходимости повторите загрузку в блоке Company information кнопкой <strong>Load from public registry</strong>, затем <strong>Apply to form</strong>.</li>
+    <li>Если публичный реестр вернул данные представителя, в превью может появиться блок <strong>Representative suggestions</strong> — нажмите <strong>Apply representative</strong>, чтобы подставить ФИО и роль (данные остаются редактируемыми).</li>
+    <li>Исправьте ошибки вручную, заполните оставшиеся поля и продолжите онбординг.</li>
+  </ol>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08-company-ares-modal.png" alt="Модальное окно автозаполнения из публичного реестра для компании" />
+    <figcaption>Рис. 5 — Стартовое окно автозаполнения для компании (ввод IČO)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08a-company-ares-modal-loaded.png" alt="Модальное окно компании с заполненным IČO и данными из публичного реестра" />
+    <figcaption>Рис. 6 — Введён IČO, получены данные из публичного реестра (Public registry preview)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/09-company-ares-preview.png" alt="Превью данных из публичного реестра для компании" />
+    <figcaption>Рис. 7 — Превью данных из публичного реестра и кнопка «Apply to form» в блоке Company information</figcaption>
+  </figure>
+
+  <h3>Пошагово: ИП / самозанятый (Self-employed)</h3>
+  <ol>
+    <li>Выберите тип <strong>Self-employed / sole proprietor</strong> и откройте <a href="https://reli.one/seller/seller-info">https://reli.one/seller/seller-info</a>.</li>
+    <li>При первом входе появится окно <strong>«Prefill Czech business/tax details»</strong>.</li>
+    <li>Введите IČO и нажмите <strong>Load from public registry</strong>.</li>
+    <li>Проверьте превью: название в реестре, IČO, юридический адрес, подсказка DIČ/TIN.</li>
+    <li>Нажмите <strong>Apply to onboarding</strong>.</li>
+    <li>Те же действия доступны в блоке <strong>Tax information</strong>: поле IČO → <strong>Load from public registry</strong> → <strong>Apply to form</strong>.</li>
+    <li>Дозаполните личные данные, документы, банк, склады и адреса вручную.</li>
+  </ol>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08-self-employed-ares-modal.png" alt="Модальное окно автозаполнения из публичного реестра для ИП" />
+    <figcaption>Рис. 8 — Стартовое окно автозаполнения для самозанятого / ИП</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08a-self-employed-ares-modal-loaded.png" alt="Модальное окно ИП с заполненным IČO и данными из публичного реестра" />
+    <figcaption>Рис. 9 — Введён IČO, получены данные из публичного реестра (Public registry preview)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/09-self-employed-ares-preview.png" alt="Превью данных из публичного реестра в блоке налоговой информации" />
+    <figcaption>Рис. 10 — Превью в блоке Tax information и кнопка «Apply to form»</figcaption>
+  </figure>
+
+  <h3>Какие поля может заполнить публичный реестр</h3>
+  <table>
+    <thead>
+      <tr><th>Данные из публичного реестра</th><th>Компания</th><th>ИП / самозанятый</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Название (obchodní jméno)</td><td>Company name</td><td>Registry name (справочно)</td></tr>
+      <tr><td>IČO</td><td>Business ID (IČO)</td><td>IČO</td></tr>
+      <tr><td>Организационно-правовая форма</td><td>Legal form</td><td>—</td></tr>
+      <tr><td>Страна регистрации</td><td>Czech Republic (CZ)</td><td>Tax country = CZ</td></tr>
+      <tr><td>Юридический адрес (улица, город, индекс)</td><td>Company address</td><td>Address (налоговый блок)</td></tr>
+      <tr><td>DIČ (подсказка)</td><td>TIN / DIČ</td><td>TIN (как hint)</td></tr>
+      <tr><td>Представитель (ФИО, роль)</td><td>Representative (подсказка)</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warning">
+    <strong>DIČ из публичного реестра — только подсказка.</strong> Это налоговый идентификатор из реестра;
+    он <strong>не подтверждает</strong> статус плательщика НДС (DPH/VAT). Проверьте DIČ/TIN
+    и при необходимости исправьте вручную перед отправкой заявки.
+  </div>
+
+  <h3>Что публичный реестр не заполняет (нужно ввести вручную)</h3>
+  <ul>
+    <li>телефон и email (кроме уже указанных при регистрации);</li>
+    <li>банковские реквизиты (IBAN, SWIFT/BIC, владелец счёта);</li>
+    <li>для компании — полные персональные данные представителя (дата рождения, гражданство), если не применена подсказка;</li>
+    <li>адрес склада отгрузки;</li>
+    <li>адрес возвратов;</li>
+    <li>загружаемые документы (удостоверение личности, выписка, подтверждение адреса и т.д.).</li>
+  </ul>
+
+  <h3>Ошибки и особые случаи</h3>
+  <table>
+    <thead>
+      <tr><th>Ситуация</th><th>Что делать</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Неверный формат IČO</td>
+        <td>Исправьте номер (8 цифр, корректная контрольная сумма) и повторите запрос</td>
+      </tr>
+      <tr>
+        <td>IČO не найден в публичном реестре</td>
+        <td>Продолжите заполнение формы вручную — это штатный сценарий</td>
+      </tr>
+      <tr>
+        <td>Публичный реестр временно недоступен</td>
+        <td>Повторите позже или заполните все поля вручную</td>
+      </tr>
+      <tr>
+        <td>Предупреждение <em>Inactive company</em> / <em>Inactive registry record</em></td>
+        <td>Субъект в реестре неактивен (например, ликвидирован). Проверьте IČO; заявка всё равно проходит ручную модерацию</td>
+      </tr>
+      <tr>
+        <td>DIČ «Derived from IČO»</td>
+        <td>Реестр не вернул DIČ — система предложила вычисленную подсказку. Обязательно проверьте значение</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    После отправки заявки (<strong>Submit for Verification</strong>) backend дополнительно сверяет
+    данные с публичным реестром и сохраняет результат как <strong>подсказку для модератора</strong>.
+    Это не отменяет ручную проверку: статус заявки — <em>Pending verification</em> до решения команды Reli.one.
+  </div>
+
+  <p>
+    <strong>Ограничение:</strong> на текущий момент автозаполнение из публичного реестра работает для субъектов,
+    зарегистрированных в <strong>Чехии</strong>. Для других стран заполняйте форму вручную.
+  </p>
+</div>
+
+<div class="step">
+  <h3>Шаг 3.3 — Заполните данные и загрузите документы</h3>
+  <p>Для самозанятого / ИП система последовательно запросит:</p>
+  <ol>
+    <li>личные данные (дата рождения, гражданство, телефон);</li>
+    <li>налоговую информацию (страна, ИНН/TIN, при необходимости IČO);</li>
+    <li>адрес;</li>
+    <li>банковские реквизиты (IBAN, SWIFT/BIC, владелец счёта);</li>
+    <li>адрес склада отгрузки;</li>
+    <li>адрес для возвратов;</li>
+    <li>документы (удостоверение личности, подтверждение адреса и др.).</li>
+  </ol>
+  <p>Допустимые форматы документов: PDF, JPG, PNG. Максимальный размер файла — 10 МБ.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/04-seller-info.png" alt="Заполнение данных продавца" />
+    <figcaption>Рис. 11 — Форма «Seller information» (данные и документы)</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Шаг 3.4 — Проверьте данные и отправьте заявку</h3>
+  <p>
+    На экране проверки убедитесь, что все блоки заполнены корректно, и нажмите
+    <strong>Submit for Verification</strong>. Статус заявки изменится на
+    <em>Pending verification</em> — ожидание решения администратора.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/05-seller-review.png" alt="Проверка данных перед отправкой" />
+    <figcaption>Рис. 12 — Экран проверки перед отправкой заявки</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Шаг 3.5 — Дождитесь одобрения</h3>
+  <p>
+    После отправки вы увидите подтверждение, что заявка принята. Решение принимает команда Reli.one.
+    При одобрении вы получите доступ к кабинету продавца; при отклонении — письмо с причиной
+    и возможность исправить данные и подать заявку повторно.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/06-application-submitted.png" alt="Заявка отправлена на проверку" />
+    <figcaption>Рис. 13 — Заявка отправлена (Pending Verification)</figcaption>
+  </figure>
+</div>
+
+<h2>4. Что дальше</h2>
+<p>
+  После одобрения откройте кабинет продавца:
+  <a href="https://reli.one/seller/login">https://reli.one/seller/login</a>
+  и перейдите к разделу товаров. Подробная инструкция по выкладке — в отдельном PDF
+  «Выкладка товаров».
+</p>
+
+<div class="footer">
+  Reli.one · Инструкция актуальна для текущей версии платформы (июнь 2026).
+</div>
+
+</body>
+</html>

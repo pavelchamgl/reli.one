@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reli.one — New Seller Registration</title>
+  <link rel="stylesheet" href="../styles-compact-full-figures.css" />
+</head>
+<body>
+
+<section class="cover">
+  <div class="brand">Reli.one · Seller instructions</div>
+  <h1>New Seller Registration</h1>
+  <p class="subtitle">
+    Step-by-step guide for users who have not yet registered on Reli.one
+    or are ready to create a separate seller account with a new email address.
+  </p>
+  <p class="meta">Version: June 2026</p>
+</section>
+
+<h2>1. Choosing an account type</h2>
+<p>
+  Reli.one has <strong>two independent account types</strong>: buyer and seller.
+  If you want to sell products, choose <strong>Become a seller</strong> during registration,
+  not “Sign up as a buyer”.
+</p>
+
+<figure class="figure">
+  <img src="../../screenshots/en/00-account-type-modal.png" alt="Choosing account type: buyer or seller" />
+  <figcaption>Fig. 1 — Account type selection dialog during site registration</figcaption>
+</figure>
+
+<div class="note">
+  <strong>Direct link for seller registration:</strong>
+  <a href="https://reli.one/seller/create-account">https://reli.one/seller/create-account</a>
+</div>
+
+<h2>2. Creating a seller account</h2>
+
+<div class="step">
+  <h3>Step 2.1 — Complete the registration form</h3>
+  <p>Open the seller registration page and enter:</p>
+  <ul>
+    <li>first and last name;</li>
+    <li>email (used for login and notifications);</li>
+    <li>phone number;</li>
+    <li>password and password confirmation.</li>
+  </ul>
+  <p>Password requirements:</p>
+  <ul>
+    <li>at least 8 characters;</li>
+    <li>at least 1 uppercase letter;</li>
+    <li>at least 1 digit;</li>
+    <li>at least 1 special character from <code>!@#$%^&amp;*</code>.</li>
+  </ul>
+  <p>Check the box to agree to the terms and privacy policy, then click <strong>Sign Up</strong>.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/01-seller-create-account.png" alt="Seller registration form" />
+    <figcaption>Fig. 2 — “Create Your Seller Account” page</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Step 2.2 — Confirm your email</h3>
+  <p>
+    A 6-digit code will be sent to the email address you provided. Enter it on the confirmation page.
+    If you do not receive the email, check your Spam folder or request a new code.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/02-seller-create-verify.png" alt="Email confirmation with OTP code" />
+    <figcaption>Fig. 3 — Email confirmation (OTP)</figcaption>
+  </figure>
+</div>
+
+<h2>3. Seller onboarding</h2>
+<p>
+  After email confirmation, the seller verification process (onboarding) begins.
+  You must complete it fully before you can list products.
+</p>
+
+<div class="step">
+  <h3>Step 3.1 — Choose seller type</h3>
+  <ul>
+    <li><strong>Self-employed / sole proprietor</strong> — sole trader, self-employed person, or individual engaged in business activity;</li>
+    <li><strong>Company / legal entity</strong> — legal entity (company).</li>
+  </ul>
+  <p>The data and documents requested depend on the type you select.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/03-seller-type.png" alt="Choosing seller type" />
+    <figcaption>Fig. 4 — Choosing type: sole proprietor or company</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Step 3.2 — Autofill by IČO via public registry (for Czech sellers)</h3>
+
+  <p>
+    If your company or business activity is registered in the <strong>Czech Republic</strong>,
+    Reli.one can pull some legal and tax data from the <strong>public registry</strong>
+    using your <strong>IČO</strong> number.
+  </p>
+
+  <div class="note">
+    <strong>This is an optional helper feature.</strong> You can always click
+    <strong>Fill manually</strong> and enter data without querying the registry. Autofill
+    does <strong>not replace</strong> document uploads or manual review of your application.
+  </div>
+
+  <h3>What is IČO</h3>
+  <p>
+    <strong>IČO</strong> (Identifikační číslo osoby) is an 8-digit identification number
+    for a legal entity or entrepreneur in the Czech Republic. Before querying the public registry, the system validates the IČO format
+    and checksum. An invalid number is not sent to the registry.
+  </p>
+
+  <h3>Where the feature is available</h3>
+  <table>
+    <thead>
+      <tr><th>Seller type</th><th>Where in the interface</th><th>Load button</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Company / legal entity</strong></td>
+        <td>Page <a href="https://reli.one/seller/seller-company">https://reli.one/seller/seller-company</a> — a modal dialog appears on first visit; later the “Company information” block</td>
+        <td><em>Load from public registry</em></td>
+      </tr>
+      <tr>
+        <td><strong>Self-employed / sole proprietor</strong></td>
+        <td>Page <a href="https://reli.one/seller/seller-info">https://reli.one/seller/seller-info</a> — a modal dialog appears on first visit; later the “Tax information” block</td>
+        <td><em>Load from public registry</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Step by step: company (Company)</h3>
+  <ol>
+    <li>Select type <strong>Company / legal entity</strong> and go to <a href="https://reli.one/seller/seller-company">https://reli.one/seller/seller-company</a>.</li>
+    <li>On first open, a <strong>“Prefill Czech company legal data”</strong> dialog appears.</li>
+    <li>Enter a Czech IČO (8 digits) and click <strong>Load from public registry</strong>.</li>
+    <li>Review the <strong>Public registry preview</strong> block: name, IČO, legal form, registered address, DIČ hint.</li>
+    <li>Click <strong>Apply to onboarding</strong> — data is copied into the form (empty fields only).</li>
+    <li>If needed, repeat the load in the Company information block with <strong>Load from public registry</strong>, then <strong>Apply to form</strong>.</li>
+    <li>If the public registry returned representative data, the preview may show a <strong>Representative suggestions</strong> block — click <strong>Apply representative</strong> to fill in name and role (data remains editable).</li>
+    <li>Correct any errors manually, complete remaining fields, and continue onboarding.</li>
+  </ol>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08-company-ares-modal.png" alt="Public registry autofill modal for a company" />
+    <figcaption>Fig. 5 — Initial autofill dialog for a company (enter IČO)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08a-company-ares-modal-loaded.png" alt="Company modal with IČO entered and public registry data loaded" />
+    <figcaption>Fig. 6 — IČO entered, data received from the public registry (Public registry preview)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/09-company-ares-preview.png" alt="Public registry data preview for a company" />
+    <figcaption>Fig. 7 — Public registry preview and “Apply to form” button in the Company information block</figcaption>
+  </figure>
+
+  <h3>Step by step: sole proprietor / self-employed (Self-employed)</h3>
+  <ol>
+    <li>Select type <strong>Self-employed / sole proprietor</strong> and open <a href="https://reli.one/seller/seller-info">https://reli.one/seller/seller-info</a>.</li>
+    <li>On first visit, a <strong>“Prefill Czech business/tax details”</strong> dialog appears.</li>
+    <li>Enter IČO and click <strong>Load from public registry</strong>.</li>
+    <li>Review the preview: registry name, IČO, registered address, DIČ/TIN hint.</li>
+    <li>Click <strong>Apply to onboarding</strong>.</li>
+    <li>The same actions are available in the <strong>Tax information</strong> block: IČO field → <strong>Load from public registry</strong> → <strong>Apply to form</strong>.</li>
+    <li>Complete personal data, documents, bank details, warehouses, and addresses manually.</li>
+  </ol>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08-self-employed-ares-modal.png" alt="Public registry autofill modal for a sole proprietor" />
+    <figcaption>Fig. 8 — Initial autofill dialog for self-employed / sole proprietor</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/08a-self-employed-ares-modal-loaded.png" alt="Sole proprietor modal with IČO entered and public registry data loaded" />
+    <figcaption>Fig. 9 — IČO entered, data received from the public registry (Public registry preview)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/09-self-employed-ares-preview.png" alt="Public registry preview in the tax information block" />
+    <figcaption>Fig. 10 — Preview in the Tax information block and “Apply to form” button</figcaption>
+  </figure>
+
+  <h3>Fields the public registry can fill</h3>
+  <table>
+    <thead>
+      <tr><th>Public registry data</th><th>Company</th><th>Sole proprietor / self-employed</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Name (obchodní jméno)</td><td>Company name</td><td>Registry name (reference only)</td></tr>
+      <tr><td>IČO</td><td>Business ID (IČO)</td><td>IČO</td></tr>
+      <tr><td>Legal form</td><td>Legal form</td><td>—</td></tr>
+      <tr><td>Country of registration</td><td>Czech Republic (CZ)</td><td>Tax country = CZ</td></tr>
+      <tr><td>Registered address (street, city, postal code)</td><td>Company address</td><td>Address (tax block)</td></tr>
+      <tr><td>DIČ (hint)</td><td>TIN / DIČ</td><td>TIN (as hint)</td></tr>
+      <tr><td>Representative (name, role)</td><td>Representative (hint)</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warning">
+    <strong>DIČ from the public registry is only a hint.</strong> This is a tax identifier from the registry;
+    it does <strong>not confirm</strong> VAT payer status (DPH/VAT). Verify DIČ/TIN
+    and correct it manually if needed before submitting your application.
+  </div>
+
+  <h3>What the public registry does not fill (enter manually)</h3>
+  <ul>
+    <li>phone and email (except those already provided during registration);</li>
+    <li>bank details (IBAN, SWIFT/BIC, account holder);</li>
+    <li>for a company — full representative personal data (date of birth, citizenship) if the hint was not applied;</li>
+    <li>shipping warehouse address;</li>
+    <li>returns address;</li>
+    <li>uploaded documents (ID, company extract, proof of address, etc.).</li>
+  </ul>
+
+  <h3>Errors and special cases</h3>
+  <table>
+    <thead>
+      <tr><th>Situation</th><th>What to do</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Invalid IČO format</td>
+        <td>Correct the number (8 digits, valid checksum) and retry the request</td>
+      </tr>
+      <tr>
+        <td>IČO not found in the public registry</td>
+        <td>Continue filling the form manually — this is a normal scenario</td>
+      </tr>
+      <tr>
+        <td>Public registry temporarily unavailable</td>
+        <td>Try again later or fill all fields manually</td>
+      </tr>
+      <tr>
+        <td>Warning <em>Inactive company</em> / <em>Inactive registry record</em></td>
+        <td>The entity is inactive in the registry (e.g., liquidated). Verify IČO; the application still goes through manual review</td>
+      </tr>
+      <tr>
+        <td>DIČ “Derived from IČO”</td>
+        <td>The registry did not return DIČ — the system suggested a computed value. Always verify the value</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    After submitting your application (<strong>Submit for Verification</strong>), the backend additionally cross-checks
+    data against the public registry and stores the result as a <strong>hint for the moderator</strong>.
+    This does not replace manual review: application status remains <em>Pending verification</em> until the Reli.one team decides.
+  </div>
+
+  <p>
+    <strong>Limitation:</strong> at present, public registry autofill works for entities
+    registered in the <strong>Czech Republic</strong>. For other countries, fill the form manually.
+  </p>
+</div>
+
+<div class="step">
+  <h3>Step 3.3 — Complete your details and upload documents</h3>
+  <p>For self-employed / sole proprietor, the system will sequentially request:</p>
+  <ol>
+    <li>personal data (date of birth, citizenship, phone);</li>
+    <li>tax information (country, TIN, IČO if applicable);</li>
+    <li>address;</li>
+    <li>bank details (IBAN, SWIFT/BIC, account holder);</li>
+    <li>shipping warehouse address;</li>
+    <li>returns address;</li>
+    <li>documents (ID, proof of address, etc.).</li>
+  </ol>
+  <p>Accepted document formats: PDF, JPG, PNG. Maximum file size — 10 MB.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/04-seller-info.png" alt="Completing seller details" />
+    <figcaption>Fig. 11 — “Seller information” form (details and documents)</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Step 3.4 — Review your data and submit the application</h3>
+  <p>
+    On the review screen, make sure all sections are filled in correctly, then click
+    <strong>Submit for Verification</strong>. Application status changes to
+    <em>Pending verification</em> — awaiting administrator decision.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/05-seller-review.png" alt="Review before submission" />
+    <figcaption>Fig. 12 — Review screen before submitting the application</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Step 3.5 — Wait for approval</h3>
+  <p>
+    After submission, you will see confirmation that your application was received. The Reli.one team makes the decision.
+    If approved, you gain access to the seller dashboard; if rejected — an email with the reason
+    and the option to correct your data and resubmit.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/en/06-application-submitted.png" alt="Application submitted for review" />
+    <figcaption>Fig. 13 — Application submitted (Pending Verification)</figcaption>
+  </figure>
+</div>
+
+<h2>4. What’s next</h2>
+<p>
+  After approval, open the seller dashboard at
+  <a href="https://reli.one/seller/login">https://reli.one/seller/login</a>
+  and go to the products section. Detailed listing instructions are in a separate PDF:
+  “Listing Products”.
+</p>
+
+<div class="footer">
+  Reli.one · Instructions reflect the current platform version (June 2026).
+</div>
+
+</body>
+</html>

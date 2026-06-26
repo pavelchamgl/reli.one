@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reli.one — Nová registrace prodejce</title>
+  <link rel="stylesheet" href="../styles-compact-full-figures.css" />
+</head>
+<body>
+
+<section class="cover">
+  <div class="brand">Reli.one · Instrukce pro prodejce</div>
+  <h1>Nová registrace prodejce</h1>
+  <p class="subtitle">
+    Podrobný průvodce pro uživatele, kteří se na Reli.one ještě nezaregistrovali
+    nebo jsou připraveni vytvořit samostatný účet prodejce s novým e-mailem.
+  </p>
+  <p class="meta">Verze: červen 2026</p>
+</section>
+
+<h2>1. Výběr typu účtu</h2>
+<p>
+  Na Reli.one existují <strong>dva nezávislé typy účtů</strong>: kupující a prodejce.
+  Pokud chcete prodávat zboží, při registraci vyberte možnost <strong>«Stát se prodejcem»</strong>,
+  nikoli «Registrovat se jako kupující».
+</p>
+
+<figure class="figure">
+  <img src="../../screenshots/cz/00-account-type-modal.png" alt="Výběr typu účtu: kupující nebo prodejce" />
+  <figcaption>Obr. 1 — Okno výběru typu účtu při registraci na webu</figcaption>
+</figure>
+
+<div class="note">
+  <strong>Přímý odkaz pro registraci prodejce:</strong>
+  <a href="https://reli.one/seller/create-account">https://reli.one/seller/create-account</a>
+</div>
+
+<h2>2. Vytvoření účtu prodejce</h2>
+
+<div class="step">
+  <h3>Krok 2.1 — Vyplnění registračního formuláře</h3>
+  <p>Otevřete stránku registrace prodejce a uveďte:</p>
+  <ul>
+    <li>jméno a příjmení;</li>
+    <li>e-mail (bude použit pro přihlášení a oznámení);</li>
+    <li>telefonní číslo;</li>
+    <li>heslo a potvrzení hesla.</li>
+  </ul>
+  <p>Požadavky na heslo:</p>
+  <ul>
+    <li>alespoň 8 znaků;</li>
+    <li>minimálně 1 velké písmeno;</li>
+    <li>minimálně 1 číslice;</li>
+    <li>minimálně 1 speciální znak ze sady <code>!@#$%^&amp;*</code>.</li>
+  </ul>
+  <p>Zaškrtněte souhlas s podmínkami a zásadami ochrany osobních údajů, poté klikněte na <strong>Registrovat se</strong>.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/01-seller-create-account.png" alt="Formulář registrace prodejce" />
+    <figcaption>Obr. 2 — Stránka «Vytvořte si účet prodejce»</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Krok 2.2 — Ověření e-mailu</h3>
+  <p>
+    Na uvedený e-mail přijde 6místný kód. Zadejte jej na stránce ověření.
+    Pokud e-mail nepřišel, zkontrolujte složku spam nebo požádejte o opětovné odeslání kódu.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/02-seller-create-verify.png" alt="Ověření e-mailu kódem OTP" />
+    <figcaption>Obr. 3 — Ověření e-mailu (OTP)</figcaption>
+  </figure>
+</div>
+
+<h2>3. Onboarding prodejce</h2>
+<p>
+  Po ověření e-mailu začíná proces ověření prodejce (onboarding).
+  Je nutné jej projít celý, než budete moci vystavovat zboží.
+</p>
+
+<div class="step">
+  <h3>Krok 3.1 — Vyberte typ prodejce</h3>
+  <ul>
+    <li><strong>OSVČ (samostatně výdělečně činná osoba)</strong> — fyzická osoba s podnikatelskou činností;</li>
+    <li><strong>Společnost – právnická osoba</strong> — právnická osoba (firma).</li>
+  </ul>
+  <p>Požadované údaje a dokumenty závisí na zvoleném typu.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/03-seller-type.png" alt="Výběr typu prodejce" />
+    <figcaption>Obr. 4 — Výběr typu: OSVČ nebo společnost</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Krok 3.2 — Automatické doplnění podle IČO z veřejného rejstříku (pro české prodejce)</h3>
+
+  <p>
+    Pokud je vaše společnost nebo podnikatelská činnost registrována v <strong>České republice</strong>,
+    Reli.one může načíst část právních a daňových údajů z <strong>veřejného rejstříku</strong>
+    podle čísla <strong>IČO</strong>.
+  </p>
+
+  <div class="note">
+    <strong>Toto je pomocná funkce, není povinná.</strong> Vždy můžete kliknout na
+    «Vyplnit ručně» a zadat údaje bez dotazu do rejstříku. Automatické doplnění
+    <strong>nenahrazuje</strong> nahrání dokumentů ani ruční moderaci žádosti.
+  </div>
+
+  <h3>Co je IČO</h3>
+  <p>
+    <strong>IČO</strong> (Identifikační číslo osoby) — 8místné identifikační číslo
+    právnické osoby nebo podnikatele v České republice. Před dotazem do veřejného rejstříku systém ověří formát
+    a kontrolní součet IČO. Neplatné číslo do rejstříku neodesílá.
+  </p>
+
+  <h3>Kde je funkce dostupná</h3>
+  <table>
+    <thead>
+      <tr><th>Typ prodejce</th><th>Kde v rozhraní</th><th>Tlačítko načtení</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Společnost – právnická osoba</strong></td>
+        <td>Stránka <a href="https://reli.one/seller/seller-company">https://reli.one/seller/seller-company</a> — při prvním vstupu se zobrazí modální okno; dále blok «Informace o společnosti»</td>
+        <td><em>Načíst z veřejného rejstříku</em></td>
+      </tr>
+      <tr>
+        <td><strong>OSVČ (samostatně výdělečně činná osoba)</strong></td>
+        <td>Stránka <a href="https://reli.one/seller/seller-info">https://reli.one/seller/seller-info</a> — při prvním vstupu modální okno; dále blok «Daňové údaje»</td>
+        <td><em>Načíst z veřejného rejstříku</em></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Krok za krokem: společnost</h3>
+  <ol>
+    <li>Vyberte typ <strong>Společnost – právnická osoba</strong> a přejděte na <a href="https://reli.one/seller/seller-company">https://reli.one/seller/seller-company</a>.</li>
+    <li>Při prvním otevření se zobrazí okno <strong>«Předvyplnit právní údaje české společnosti»</strong>.</li>
+    <li>Zadejte české IČO (8 číslic) a klikněte na <strong>Načíst z veřejného rejstříku</strong>.</li>
+    <li>Zkontrolujte blok <strong>Náhled z veřejného rejstříku</strong>: název, IČO, právní forma, sídlo, nápověda DIČ.</li>
+    <li>Klikněte na <strong>Použít v onboardingu</strong> — údaje se doplní do formuláře (pouze do prázdných polí).</li>
+    <li>V případě potřeby opakujte načtení v bloku Informace o společnosti tlačítkem <strong>Načíst z veřejného rejstříku</strong>, poté <strong>Použít ve formuláři</strong>.</li>
+    <li>Pokud veřejný rejstřík vrátil údaje o zástupci, v náhledu se může objevit blok <strong>Návrhy zástupců</strong> — klikněte na <strong>Použít zástupce</strong>, aby se doplnilo jméno a role (údaje zůstávají editovatelné).</li>
+    <li>Opravte chyby ručně, doplňte zbývající pole a pokračujte v onboardingu.</li>
+  </ol>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/08-company-ares-modal.png" alt="Modální okno automatického doplnění z veřejného rejstříku pro společnost" />
+    <figcaption>Obr. 5 — Úvodní okno automatického doplnění pro společnost (zadání IČO)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/08a-company-ares-modal-loaded.png" alt="Modální okno společnosti s vyplněným IČO a údaji z veřejného rejstříku" />
+    <figcaption>Obr. 6 — Zadané IČO, načtené údaje z veřejného rejstříku (Náhled z veřejného rejstříku)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/09-company-ares-preview.png" alt="Náhled údajů z veřejného rejstříku pro společnost" />
+    <figcaption>Obr. 7 — Náhled z veřejného rejstříku a tlačítko «Použít ve formuláři» v bloku Informace o společnosti</figcaption>
+  </figure>
+
+  <h3>Krok za krokem: OSVČ</h3>
+  <ol>
+    <li>Vyberte typ <strong>OSVČ (samostatně výdělečně činná osoba)</strong> a otevřete <a href="https://reli.one/seller/seller-info">https://reli.one/seller/seller-info</a>.</li>
+    <li>Při prvním vstupu se zobrazí okno <strong>«Předvyplnit české podnikatelské a daňové údaje»</strong>.</li>
+    <li>Zadejte IČO a klikněte na <strong>Načíst z veřejného rejstříku</strong>.</li>
+    <li>Zkontrolujte náhled: název v rejstříku, IČO, sídlo, nápověda DIČ/TIN.</li>
+    <li>Klikněte na <strong>Použít v onboardingu</strong>.</li>
+    <li>Stejné kroky jsou dostupné v bloku <strong>Daňové údaje</strong>: pole IČO → <strong>Načíst z veřejného rejstříku</strong> → <strong>Použít ve formuláři</strong>.</li>
+    <li>Ručně doplňte osobní údaje, dokumenty, banku, sklady a adresy.</li>
+  </ol>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/08-self-employed-ares-modal.png" alt="Modální okno automatického doplnění z veřejného rejstříku pro OSVČ" />
+    <figcaption>Obr. 8 — Úvodní okno automatického doplnění pro OSVČ</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/08a-self-employed-ares-modal-loaded.png" alt="Modální okno OSVČ s vyplněným IČO a údaji z veřejného rejstříku" />
+    <figcaption>Obr. 9 — Zadané IČO, načtené údaje z veřejného rejstříku (Náhled z veřejného rejstříku)</figcaption>
+  </figure>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/09-self-employed-ares-preview.png" alt="Náhled údajů z veřejného rejstříku v bloku daňových údajů" />
+    <figcaption>Obr. 10 — Náhled v bloku Daňové údaje a tlačítko «Použít ve formuláři»</figcaption>
+  </figure>
+
+  <h3>Která pole může doplnit veřejný rejstřík</h3>
+  <table>
+    <thead>
+      <tr><th>Údaje z veřejného rejstříku</th><th>Společnost</th><th>OSVČ</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Název (obchodní jméno)</td><td>Název společnosti</td><td>Název v rejstříku (informativně)</td></tr>
+      <tr><td>IČO</td><td>IČO</td><td>IČO</td></tr>
+      <tr><td>Právní forma</td><td>Právní forma</td><td>—</td></tr>
+      <tr><td>Země registrace</td><td>Česká republika (CZ)</td><td>Daňová rezidence = CZ</td></tr>
+      <tr><td>Sídlo (ulice, město, PSČ)</td><td>Adresa společnosti</td><td>Adresa (daňový blok)</td></tr>
+      <tr><td>DIČ (nápověda)</td><td>DIČ (TIN)</td><td>DIČ (jako nápověda)</td></tr>
+      <tr><td>Zástupce (jméno, role)</td><td>Zástupce (nápověda)</td><td>—</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warning">
+    <strong>DIČ z veřejného rejstříku je pouze nápověda.</strong> Je to daňový identifikátor z rejstříku;
+    <strong>neověřuje</strong> status plátce DPH (VAT). Zkontrolujte DIČ/TIN
+    a v případě potřeby opravte ručně před odesláním žádosti.
+  </div>
+
+  <h3>Co veřejný rejstřík nedoplní (nutné zadat ručně)</h3>
+  <ul>
+    <li>telefon a e-mail (kromě údajů uvedených při registraci);</li>
+    <li>bankovní údaje (IBAN, SWIFT/BIC, majitel účtu);</li>
+    <li>pro společnost — úplné osobní údaje zástupce (datum narození, státní příslušnost), pokud nebyla použita nápověda;</li>
+    <li>adresa odesílacího skladu;</li>
+    <li>adresa pro vrácení zboží;</li>
+    <li>nahrávané dokumenty (průkaz totožnosti, výpis, potvrzení adresy apod.).</li>
+  </ul>
+
+  <h3>Chyby a zvláštní případy</h3>
+  <table>
+    <thead>
+      <tr><th>Situace</th><th>Co dělat</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Neplatný formát IČO</td>
+        <td>Opravte číslo (8 číslic, správný kontrolní součet) a opakujte dotaz</td>
+      </tr>
+      <tr>
+        <td>IČO nebylo nalezeno ve veřejném rejstříku</td>
+        <td>Pokračujte ručním vyplněním formuláře — to je běžný scénář</td>
+      </tr>
+      <tr>
+        <td>Veřejný rejstřík je dočasně nedostupný</td>
+        <td>Zkuste to později nebo vyplňte všechna pole ručně</td>
+      </tr>
+      <tr>
+        <td>Upozornění <em>Neaktivní společnost</em> / <em>Neaktivní záznam v rejstříku</em></td>
+        <td>Subjekt v rejstříku je neaktivní (např. v likvidaci). Zkontrolujte IČO; žádost stále prochází ruční moderací</td>
+      </tr>
+      <tr>
+        <td>DIČ «Odvozená nápověda DIČ»</td>
+        <td>Rejstřík nevrátil DIČ — systém nabídl vypočtenou nápovědu. Hodnotu vždy ověřte</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    Po odeslání žádosti (<strong>Odeslat k ověření</strong>) backend dodatečně porovná
+    údaje s veřejným rejstříkem a uloží výsledek jako <strong>nápovědu pro moderátora</strong>.
+    To nezruší ruční kontrolu: stav žádosti zůstává <em>Čeká na ověření</em> do rozhodnutí týmu Reli.one.
+  </div>
+
+  <p>
+    <strong>Omezení:</strong> v současnosti automatické doplnění z veřejného rejstříku funguje pro subjekty
+    registrované v <strong>České republice</strong>. Pro ostatní země vyplňte formulář ručně.
+  </p>
+</div>
+
+<div class="step">
+  <h3>Krok 3.3 — Vyplnění údajů a nahrání dokumentů</h3>
+  <p>Pro OSVČ systém postupně vyžádá:</p>
+  <ol>
+    <li>osobní údaje (datum narození, státní příslušnost, telefon);</li>
+    <li>daňové údaje (země, DIČ/TIN, v případě potřeby IČO);</li>
+    <li>adresu;</li>
+    <li>bankovní údaje (IBAN, SWIFT/BIC, majitel účtu);</li>
+    <li>adresu odesílacího skladu;</li>
+    <li>adresu pro vrácení zboží;</li>
+    <li>dokumenty (průkaz totožnosti, potvrzení adresy apod.).</li>
+  </ol>
+  <p>Povolené formáty dokumentů: PDF, JPG, PNG. Maximální velikost souboru — 10 MB.</p>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/04-seller-info.png" alt="Vyplnění údajů prodejce" />
+    <figcaption>Obr. 11 — Formulář «Informace o prodejci» (údaje a dokumenty)</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Krok 3.4 — Kontrola údajů a odeslání žádosti</h3>
+  <p>
+    Na obrazovce kontroly ověřte, že všechny bloky jsou správně vyplněny, a klikněte na
+    <strong>Odeslat k ověření</strong>. Stav žádosti se změní na
+    <em>Čeká na ověření</em> — čekání na rozhodnutí administrátora.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/05-seller-review.png" alt="Kontrola údajů před odesláním" />
+    <figcaption>Obr. 12 — Obrazovka kontroly před odesláním žádosti</figcaption>
+  </figure>
+</div>
+
+<div class="step">
+  <h3>Krok 3.5 — Čekání na schválení</h3>
+  <p>
+    Po odeslání uvidíte potvrzení, že žádost byla přijata. Rozhodnutí přijímá tým Reli.one.
+    Po schválení získáte přístup do prodejního panelu; při zamítnutí — e-mail s důvodem
+    a možnost opravit údaje a podat žádost znovu.
+  </p>
+
+  <figure class="figure">
+    <img src="../../screenshots/cz/06-application-submitted.png" alt="Žádost odeslána ke kontrole" />
+    <figcaption>Obr. 13 — Žádost odeslána (Čeká na ověření)</figcaption>
+  </figure>
+</div>
+
+<h2>4. Co dál</h2>
+<p>
+  Po schválení otevřete prodejní panel:
+  <a href="https://reli.one/seller/login">https://reli.one/seller/login</a>
+  a přejděte do sekce zboží. Podrobná instrukce k vystavení je v samostatném PDF
+  «Vystavení zboží».
+</p>
+
+<div class="footer">
+  Reli.one · Instrukce platí pro aktuální verzi platformy (červen 2026).
+</div>
+
+</body>
+</html>

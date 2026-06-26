@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reli.one — Vystavení zboží</title>
+  <link rel="stylesheet" href="../styles-compact-full-figures.css" />
+</head>
+<body>
+
+<section class="cover">
+  <div class="brand">Reli.one · Instrukce pro prodejce</div>
+  <h1>Vystavení zboží</h1>
+  <p class="subtitle">
+    Jak přidat zboží do katalogu po schválení žádosti prodejce.
+    Zboží prochází moderací před publikací.
+  </p>
+  <p class="meta">Verze: červen 2026</p>
+</section>
+
+<h2>1. Předpoklady</h2>
+<ul>
+  <li>Účet prodejce je vytvořen a e-mail ověřen;</li>
+  <li>Onboarding je dokončen, žádost má stav <strong>Schváleno</strong>;</li>
+  <li>Můžete se přihlásit do panelu: <a href="https://reli.one/seller/login">https://reli.one/seller/login</a>.</li>
+</ul>
+
+<div class="note">
+  Před schválením žádosti jsou sekce správy zboží nedostupné nebo přesměrují na onboarding.
+</div>
+
+<h2>2. Sekce «Zboží»</h2>
+<p>
+  Po přihlášení otevřete sekci <strong>Zboží</strong>. Na úvodní stránce jsou dostupné dvě akce:
+</p>
+<ul>
+  <li><strong>Seznam zboží</strong> — prohlížení již vytvořeného zboží;</li>
+  <li><strong>Přidání zboží</strong> — vytvoření nového zboží.</li>
+</ul>
+
+<figure class="figure">
+  <img src="../../screenshots/cz/20-goods-choice.png" alt="Výběr akce se zbožím" />
+  <figcaption>Obr. 1 — Stránka https://reli.one/seller/goods-choice</figcaption>
+</figure>
+
+<h2>3. Vytvoření zboží</h2>
+<p>Klikněte na <strong>Přidání zboží</strong> nebo přejděte na <a href="https://reli.one/seller/seller-create">https://reli.one/seller/seller-create</a>.</p>
+
+<h3>3.1. Povinná pole</h3>
+<p>
+  Část polí je stejná pro všechno zboží. Jiná část — <strong>atributy kategorie</strong> —
+  se načte automaticky po výběru kategorie a může se lišit pro různé kategorie
+  a podkategorie.
+</p>
+
+<h4>Vždy povinné</h4>
+<table>
+  <thead>
+    <tr><th>Pole</th><th>Popis</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Kategorie</td><td>Kategorie katalogu. Obvykle se vybírá konečná (listová) kategorie; v některých větvích je povoleno zboží i v nadřazené kategorii.</td></tr>
+    <tr><td>Název zboží</td><td>Název zboží</td></tr>
+    <tr><td>Popis</td><td>Popis zboží</td></tr>
+    <tr><td>Fotografie</td><td>Minimálně jeden obrázek (JPG, PNG, WebP)</td></tr>
+    <tr><td>Sazba DPH, %</td><td>Sazba DPH. Pokud pole zůstane prázdné, systém uloží hodnotu 0 %.</td></tr>
+    <tr><td>Název typu varianty</td><td>Název typu varianty (např. «Velikost», «Barva»)</td></tr>
+    <tr><td>Varianty</td><td>Minimálně jedna varianta. U každé varianty jsou povinné: hodnota, cena, skladová zásoba, hmotnost balení a rozměry (délka, šířka, výška) — pro výpočet dopravy.</td></tr>
+  </tbody>
+</table>
+
+<h4>Atributy kategorie a podkategorie</h4>
+<p>
+  Po výběru kategorie formulář načte schéma atributů. Do něj patří:
+</p>
+<ul>
+  <li>atributy definované pro vybranou kategorii;</li>
+  <li>atributy nadřazených kategorií (dědí se v podkategoriích);</li>
+  <li>při shodě kódu atributu v podkategorii se použije definice z podkategorie.</li>
+</ul>
+<p>
+  Povinné k vyplnění jsou pouze pole označené ve schématu jako required
+  (typy: text, číslo, ano/ne, výběr ze seznamu). Pokud kategorie nemá povinné atributy,
+  tento blok lze přeskočit. Při změně kategorie se schéma znovu načte — pole zkontrolujte znovu.
+</p>
+
+<div class="note">
+  Blok <strong>Charakteristiky</strong> (libovolné páry «název — hodnota») není povinný.
+  Pokud však začnete vyplňovat řádek charakteristiky, musíte uvést jak název, tak hodnotu.
+</div>
+
+<h3>3.2. Volitelná pole</h3>
+<ul>
+  <li>Značka — textem, od 2 znaků;</li>
+  <li>Artikl prodejce — pouze číslice, nejméně 10. Pokud neuvedete, systém vygeneruje artikl automaticky;</li>
+  <li>EAN/UPC barcode — čárový kód;</li>
+  <li>Další informace — doplňující údaje;</li>
+  <li>Země původu — země původu;</li>
+  <li>Záruka, měsíce — záruka v měsících (celé číslo &gt; 0);</li>
+  <li>18+ / věkové omezení — označení věkového omezení;</li>
+  <li>Licence / Certifikát — certifikát nebo licence (PDF, JPG, PNG, WebP, do 13 MB).</li>
+</ul>
+
+<figure class="figure">
+  <img src="../../screenshots/cz/21-seller-create.png" alt="Formulář vytvoření zboží" />
+  <figcaption>Obr. 2 — Formulář vytvoření zboží https://reli.one/seller/seller-create</figcaption>
+</figure>
+
+<h2>4. Náhled a odeslání k moderaci</h2>
+<p>
+  Po vyplnění formuláře klikněte na tlačítko <strong>Náhled</strong> ve spodní části stránky vytvoření zboží —
+  otevře se obrazovka náhledu. Zkontrolujte popis, charakteristiky, varianty a obrázky,
+  poté klikněte na <strong>Odesílání k moderaci</strong>.
+</p>
+<p>
+  Zboží získá stav <em>Ve schvalování</em>. Orientační čas moderace je přibližně 24 hodin.
+  Po schválení se zboží objeví ve veřejném katalogu se stavem <em>Aktivní</em>.
+</p>
+
+<figure class="figure">
+  <img src="../../screenshots/cz/22-seller-preview.png" alt="Náhled zboží před moderací" />
+  <figcaption>Obr. 3 — Náhled před odesláním k moderaci</figcaption>
+</figure>
+
+<h2>5. Kontrolní seznam před odesláním</h2>
+<ol>
+  <li>Kategorie je vybrána správně; všechny povinné atributy kategorie a podkategorie jsou vyplněny.</li>
+  <li>Popis je srozumitelný, bez chyb, s uvedením klíčových vlastností.</li>
+  <li>Fotografie jsou ostré, poměr stran 1:1, zboží je dobře vidět.</li>
+  <li>U každé varianty jsou uvedeny hodnota, cena, zásoba a rozměry balení.</li>
+  <li>Sazba DPH je uvedena správně; artikl prodejce je zkontrolován (nebo ponechán pro automatické vygenerování).</li>
+  <li>V případě potřeby je přiložen certifikát / licence.</li>
+</ol>
+
+<h2>6. Časté chyby</h2>
+<table>
+  <thead>
+    <tr><th>Problém</th><th>Řešení</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Nenačte se schéma atributů kategorie</td>
+      <td>Znovu vyberte kategorii nebo obnovte stránku. Ujistěte se, že je vybrána kategorie, ve které je povoleno vytvářet zboží</td>
+    </tr>
+    <tr>
+      <td>Nejsou vidět potřebné atributy</td>
+      <td>Atributy závisí na kategorii: část je definována v nadřazené kategorii, část v podkategorii. Vyberte přesnou kategorii zboží</td>
+    </tr>
+    <tr>
+      <td>Tlačítko odeslání je neaktivní v náhledu</td>
+      <td>Zkontrolujte povinné atributy a varianty</td>
+    </tr>
+    <tr>
+      <td>Zboží dlouho «Ve schvalování»</td>
+      <td>Počkejte na rozhodnutí moderátora; při prodlevě &gt; 48 h — kontaktujte podporu</td>
+    </tr>
+    <tr>
+      <td>Zboží zamítnuto</td>
+      <td>Opravte připomínky a odešlete znovu přes Upravit</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>7. Správa seznamu zboží</h2>
+<p>
+  Veškeré vaše zboží je dostupné na stránce <a href="https://reli.one/seller/goods-list">https://reli.one/seller/goods-list</a>.
+  Použijte záložky pro filtrování:
+</p>
+<ul>
+  <li><strong>Aktivní</strong> — schválené a publikované;</li>
+  <li><strong>Ve schvalování</strong> — čekají na kontrolu;</li>
+  <li><strong>Neschváleno</strong> — rozpracované a zamítnuté.</li>
+</ul>
+<p>
+  U každého zboží jsou dostupné akce <strong>Upravit</strong> a <strong>Smaž</strong>.
+  Při úpravě schváleného zboží se jeho stav opět změní na <em>Čeká na schválení</em> —
+  zboží dočasně zmizí z katalogu do opětovné moderace.
+</p>
+
+<figure class="figure">
+  <img src="../../screenshots/cz/23-goods-list.png" alt="Seznam zboží prodejce" />
+  <figcaption>Obr. 4 — Seznam zboží s filtry podle stavu</figcaption>
+</figure>
+
+<div class="footer">
+  Reli.one · Prodejní panel: https://reli.one/seller/login
+</div>
+
+</body>
+</html>

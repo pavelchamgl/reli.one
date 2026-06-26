@@ -1,0 +1,109 @@
+@import url("./styles.css");
+
+@page {
+  margin: 12mm 14mm 14mm 14mm;
+}
+
+body {
+  font-size: 10pt;
+  line-height: 1.45;
+}
+
+/* Inline header вместо отдельной страницы-обложки */
+.cover {
+  page-break-after: avoid;
+  min-height: auto;
+  display: block;
+  padding: 0 0 6mm;
+  margin-bottom: 4mm;
+  border-bottom: 1px solid #ddd;
+}
+
+.cover .brand {
+  margin-bottom: 3mm;
+}
+
+.cover h1 {
+  font-size: 20pt;
+  margin: 0 0 3mm;
+}
+
+.cover .subtitle {
+  font-size: 11pt;
+  max-width: none;
+}
+
+.cover .meta {
+  margin-top: 4mm;
+}
+
+h2 {
+  font-size: 13pt;
+  margin: 5mm 0 2.5mm;
+  padding-top: 1mm;
+}
+
+h3 {
+  font-size: 11pt;
+  margin: 3.5mm 0 2mm;
+}
+
+h4 {
+  font-size: 10.5pt;
+  margin: 3mm 0 2mm;
+  page-break-after: avoid;
+}
+
+p, ul, ol {
+  margin: 0 0 2.5mm;
+}
+
+li {
+  margin-bottom: 1.5mm;
+}
+
+.note, .warning {
+  padding: 3mm 4mm;
+  margin: 3mm 0;
+  font-size: 9.5pt;
+}
+
+.step {
+  margin-bottom: 3mm;
+  page-break-inside: auto;
+}
+
+.figure {
+  margin: 3mm 0 5mm;
+  page-break-inside: auto;
+}
+
+/* Скриншоты без изменений — полная ширина, как в базовом styles.css */
+.figure img {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: block;
+}
+
+.figure figcaption {
+  margin-top: 1.5mm;
+}
+
+table {
+  font-size: 9pt;
+  margin: 2.5mm 0 3.5mm;
+}
+
+th, td {
+  padding: 2mm 2.5mm;
+}
+
+.page-break {
+  page-break-before: auto;
+}
+
+.footer {
+  margin-top: 6mm;
+  padding-top: 3mm;
+}

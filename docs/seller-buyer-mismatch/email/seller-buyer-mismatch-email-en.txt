@@ -1,0 +1,32 @@
+Subject: Reli.one — how to start selling if you registered as a buyer
+
+---
+
+Hello{{RECIPIENT_NAME}}!
+
+If you registered on Reli.one as a buyer but would like to sell products, below is a short guide. Three PDF attachments with step-by-step screenshots are included.
+
+IMPORTANT: buyer and seller accounts are different account types. You cannot register as a seller with the same email if it is already used by a buyer account.
+
+ATTACHMENTS:
+1. 01-novaya-registraciya-prodavca-en.pdf — new seller registration
+2. 02-uzhe-est-akkaunt-pokupatelya-en.pdf — if you already have a buyer account
+3. 03-vykladka-tovarov-en.pdf — listing products after approval
+
+QUICK START:
+1. Register as a seller (or contact support to convert your account)
+2. Confirm your email with the code from the message
+3. Choose seller type: self-employed / sole proprietor or company
+4. Fill in your details, bank details, addresses, and upload documents
+5. Submit your application for review and wait for approval
+6. Add products in the seller panel
+
+LINKS:
+• Seller registration: https://reli.one/seller/create-account
+• Seller panel login: https://reli.one/seller/login
+
+If your email is already registered as a buyer, email office@reli.one with the subject “Convert account to seller” — we will help.
+
+Best regards,
+The Reli.one Team
+https://reli.one

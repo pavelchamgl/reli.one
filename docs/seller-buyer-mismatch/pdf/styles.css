@@ -1,0 +1,151 @@
+@page {
+  size: A4;
+  margin: 18mm 16mm 20mm 16mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.55;
+  color: #1a1a1a;
+  margin: 0;
+  padding: 0;
+}
+
+.cover {
+  page-break-after: always;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12mm 0;
+}
+
+.cover .brand {
+  font-size: 10pt;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 12mm;
+}
+
+.cover h1 {
+  font-size: 26pt;
+  line-height: 1.2;
+  margin: 0 0 8mm;
+  font-weight: 700;
+}
+
+.cover .subtitle {
+  font-size: 13pt;
+  color: #444;
+  max-width: 140mm;
+}
+
+.cover .meta {
+  margin-top: 18mm;
+  font-size: 10pt;
+  color: #666;
+}
+
+h2 {
+  font-size: 15pt;
+  margin: 10mm 0 4mm;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 12pt;
+  margin: 6mm 0 3mm;
+  page-break-after: avoid;
+}
+
+p, ul, ol {
+  margin: 0 0 4mm;
+}
+
+ul, ol {
+  padding-left: 5mm;
+}
+
+li {
+  margin-bottom: 2mm;
+}
+
+.note {
+  background: #f5f8ff;
+  border-left: 3px solid #3b5bdb;
+  padding: 4mm 5mm;
+  margin: 5mm 0;
+  font-size: 10.5pt;
+}
+
+.warning {
+  background: #fff8f0;
+  border-left: 3px solid #e67700;
+  padding: 4mm 5mm;
+  margin: 5mm 0;
+  font-size: 10.5pt;
+}
+
+.step {
+  page-break-inside: avoid;
+  margin-bottom: 6mm;
+}
+
+.figure {
+  margin: 5mm 0 8mm;
+  page-break-inside: avoid;
+}
+
+.figure img {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: block;
+}
+
+.figure figcaption {
+  font-size: 9.5pt;
+  color: #555;
+  margin-top: 2mm;
+}
+
+a {
+  color: #1c4ed8;
+  word-break: break-all;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4mm 0 6mm;
+  font-size: 10pt;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 2.5mm 3mm;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: #f7f7f7;
+}
+
+.footer {
+  margin-top: 10mm;
+  padding-top: 4mm;
+  border-top: 1px solid #ddd;
+  font-size: 9pt;
+  color: #666;
+}
+
+.page-break {
+  page-break-before: always;
+}

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reli.one — Listing Products</title>
+  <link rel="stylesheet" href="../styles-compact-full-figures.css" />
+</head>
+<body>
+
+<section class="cover">
+  <div class="brand">Reli.one · Seller instructions</div>
+  <h1>Listing Products</h1>
+  <p class="subtitle">
+    How to add a product to the catalog after your seller application is approved.
+    Products are moderated before publication.
+  </p>
+  <p class="meta">Version: June 2026</p>
+</section>
+
+<h2>1. Prerequisites</h2>
+<ul>
+  <li>Seller account created and email confirmed;</li>
+  <li>Onboarding completed, application status is <strong>Approved</strong>;</li>
+  <li>You can log in to the dashboard: <a href="https://reli.one/seller/login">https://reli.one/seller/login</a>.</li>
+</ul>
+
+<div class="note">
+  Before application approval, product management sections are unavailable or redirect to onboarding.
+</div>
+
+<h2>2. “Goods” section</h2>
+<p>
+  After logging in, open the <strong>Goods</strong> section. The start page offers two actions:
+</p>
+<ul>
+  <li><strong>List of goods</strong> — view products you have already created;</li>
+  <li><strong>Adding goods</strong> — create a new product.</li>
+</ul>
+
+<figure class="figure">
+  <img src="../../screenshots/en/20-goods-choice.png" alt="Choosing a product action" />
+  <figcaption>Fig. 1 — Page https://reli.one/seller/goods-choice</figcaption>
+</figure>
+
+<h2>3. Creating a product</h2>
+<p>Click <strong>Adding goods</strong> or go to <a href="https://reli.one/seller/seller-create">https://reli.one/seller/seller-create</a>.</p>
+
+<h3>3.1. Required fields</h3>
+<p>
+  Some fields are the same for all products. Others — <strong>category attributes</strong> —
+  are loaded automatically after you select a category and may differ for different categories
+  and subcategories.
+</p>
+
+<h4>Always required</h4>
+<table>
+  <thead>
+    <tr><th>Field</th><th>Description</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Category</td><td>Catalog category. Usually select a leaf (final) category; in some branches, products are also allowed in a parent category.</td></tr>
+    <tr><td>Goods name</td><td>Product name</td></tr>
+    <tr><td>Description</td><td>Product description</td></tr>
+    <tr><td>Photo</td><td>At least one image (JPG, PNG, WebP)</td></tr>
+    <tr><td>VAT rate, %</td><td>VAT rate. If left empty, the system saves 0%.</td></tr>
+    <tr><td>Variant type name</td><td>Variant type name (e.g., “Size”, “Color”)</td></tr>
+    <tr><td>Variants</td><td>At least one variant. For each variant, required: value, price, stock quantity, package weight, and dimensions (length, width, height) — for shipping calculation.</td></tr>
+  </tbody>
+</table>
+
+<h4>Category and subcategory attributes</h4>
+<p>
+  After you select a category, the form loads an attribute schema. It includes:
+</p>
+<ul>
+  <li>attributes defined for the selected category;</li>
+  <li>attributes from parent categories (inherited in subcategories);</li>
+  <li>when an attribute code matches in a child category, the subcategory definition is used.</li>
+</ul>
+<p>
+  Only fields marked as required in the schema must be filled in
+  (types: text, number, yes/no, select from list). If a category has no required attributes,
+  you can skip this block. When you change the category, the schema reloads — review the fields again.
+</p>
+
+<div class="note">
+  The <strong>Characteristics</strong> block (custom “name — value” pairs) is optional.
+  However, if you start filling in a characteristic row, you must provide both name and value.
+</div>
+
+<h3>3.2. Optional fields</h3>
+<ul>
+  <li>Brand — brand name (text, at least 2 characters);</li>
+  <li>Seller article — seller SKU (digits only, at least 10). If omitted, the system generates an article automatically;</li>
+  <li>EAN/UPC barcode — barcode;</li>
+  <li>Additional details — additional information;</li>
+  <li>Country of origin — country of origin;</li>
+  <li>Warranty, months — warranty in months (integer &gt; 0);</li>
+  <li>18+ / age restricted — age restriction flag;</li>
+  <li>License / Certificate — certificate or license (PDF, JPG, PNG, WebP, up to 13 MB).</li>
+</ul>
+
+<figure class="figure">
+  <img src="../../screenshots/en/21-seller-create.png" alt="Product creation form" />
+  <figcaption>Fig. 2 — Product creation form https://reli.one/seller/seller-create</figcaption>
+</figure>
+
+<h2>4. Preview and submit for moderation</h2>
+<p>
+  After completing the form, click <strong>Preview</strong> at the bottom of the product creation page —
+  the preview screen opens. Review the description, characteristics, variants, and images,
+  then click <strong>Sending for moderation</strong>.
+</p>
+<p>
+  The product status becomes <em>On moderation</em>. Typical moderation time is about 24 hours.
+  After approval, the product appears in the public catalog with status <em>Active</em>.
+</p>
+
+<figure class="figure">
+  <img src="../../screenshots/en/22-seller-preview.png" alt="Product preview before moderation" />
+  <figcaption>Fig. 3 — Preview before submitting for moderation</figcaption>
+</figure>
+
+<h2>5. Pre-submission checklist</h2>
+<ol>
+  <li>Category is correct; all required category and subcategory attributes are filled in.</li>
+  <li>Description is clear, typo-free, and includes key characteristics.</li>
+  <li>Photos are sharp, 1:1 aspect ratio, product is clearly visible.</li>
+  <li>Each variant has value, price, stock, and package dimensions.</li>
+  <li>VAT rate is correct; seller article is verified (or left for auto-generation).</li>
+  <li>Certificate / license attached if required.</li>
+</ol>
+
+<h2>6. Common issues</h2>
+<table>
+  <thead>
+    <tr><th>Problem</th><th>Solution</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Category attribute schema does not load</td>
+      <td>Reselect the category or refresh the page. Make sure you selected a category where product creation is allowed</td>
+    </tr>
+    <tr>
+      <td>Expected attributes are missing</td>
+      <td>Attributes depend on category: some are defined in the parent category, others in the subcategory. Select the exact product category</td>
+    </tr>
+    <tr>
+      <td>Submit button inactive on preview</td>
+      <td>Check required attributes and variants</td>
+    </tr>
+    <tr>
+      <td>Product stuck “On moderation”</td>
+      <td>Wait for moderator decision; if delayed &gt; 48 h — contact support</td>
+    </tr>
+    <tr>
+      <td>Product rejected</td>
+      <td>Fix the feedback and resubmit via Edit</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>7. Managing the product list</h2>
+<p>
+  All your products are available at <a href="https://reli.one/seller/goods-list">https://reli.one/seller/goods-list</a>.
+  Use tabs to filter:
+</p>
+<ul>
+  <li><strong>Active</strong> — approved and published;</li>
+  <li><strong>On moderation</strong> — awaiting review;</li>
+  <li><strong>Not moderated</strong> — drafts and rejected items.</li>
+</ul>
+<p>
+  For each product, <strong>Edit</strong> (edit) and <strong>Del</strong> (delete) are available.
+  When you edit an approved product, its status changes to <em>Pending</em> again —
+  the product is temporarily removed from the catalog until re-moderation.
+</p>
+
+<figure class="figure">
+  <img src="../../screenshots/en/23-goods-list.png" alt="Seller product list" />
+  <figcaption>Fig. 4 — Product list with status filters</figcaption>
+</figure>
+
+<div class="footer">
+  Reli.one · Seller dashboard: https://reli.one/seller/login
+</div>
+
+</body>
+</html>
