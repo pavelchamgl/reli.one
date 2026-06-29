@@ -176,6 +176,7 @@ python -m pytest sellers -q
 - `ProductModerationEvent` — audit history отложена; используются `approved_by` / `approved_at` / `rejected_reason`.
 - Переключение `compat.get_product_cover_image` на approved `ProductMedia` — отдельная follow-up итерация (ADR-05 Phase 6).
 - Вынести `ManagerOrAdminOnlyMixin` в shared module (сейчас импорт из `sellers.admin`).
+- Schema-driven `ProductAttributeValue` admin UX (summary, compact inline, save via `attribute_schema`, optional approve required check) → [**Task 036**](../../036-admin-product-attributes-moderation-ux/task.md).
 
 ---
 

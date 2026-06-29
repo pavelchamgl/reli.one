@@ -437,6 +437,10 @@ pytest backend/product backend/sellers -q
 
 Admin/moderation actions делать additive. При rollback public visibility filters должны оставаться строгими.
 
+### Follow-up (после Iteration 8)
+
+- [**Task 036 — Admin product attributes moderation UX**](../../036-admin-product-attributes-moderation-ux/task.md): schema-driven summary, compact inline, save через `replace_product_attribute_values`, optional approve check для required attributes (без retroactive блокировки legacy products без attribute rows).
+
 ---
 
 ## Iteration 9 — Import/enrichment foundation

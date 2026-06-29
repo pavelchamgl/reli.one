@@ -139,6 +139,7 @@ graph TD
 | **028** | [**seller-characteristics-optional-validation**](./028-seller-characteristics-optional-validation/task.md) | P2 | Low | 024 | **DONE (repo-scope):** блок «Characteristics» снова опционален после add/delete (seller create/edit); хелпер `areProductParametersValid` + тесты |
 | **029** | [**seller-preview-translate-hardening**](./029-seller-preview-translate-hardening/task.md) | P2 | Low–Med | 025 | **DONE:** hard navigation success-потока seller preview, RouteErrorBoundary как errorElement, телеметрия guard, CI-проверка бандла |
 | **030** | [**category-attributes-mm-input**](./030-category-attributes-mm-input/task.md) | P2 | Low | 024 | **DONE:** category attributes с `unit=mm` — ввод в мм на seller create/edit (passthrough в `sellerProductWizard.js`; нормализация `800.0000` → `800`; БД без изменений) |
+| **036** | [**admin-product-attributes-moderation-ux**](./036-admin-product-attributes-moderation-ux/task.md) | P2 | Medium | 024 (Iter 5, 8), 030 | **Planned** — schema-driven attributes summary + compact admin inline + save via `attribute_schema` |
 
 ## Отложенные задачи (Deferred / backlog)
 
@@ -289,6 +290,7 @@ docs/tasks/
 └── 028-seller-characteristics-optional-validation/task.md
 └── 029-seller-preview-translate-hardening/task.md
 └── 030-category-attributes-mm-input/task.md
+└── 036-admin-product-attributes-moderation-ux/task.md
 ```
 
 См. также: [`docs/operations/database-backup-restore.md`](../operations/database-backup-restore.md) (runbook PostgreSQL / восстановление в e2e); **[Seller onboarding flow](../seller-onboarding-flow.md)** (продуктово-техническое описание API и статусов).
