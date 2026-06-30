@@ -18,6 +18,7 @@ from .stock_availability import (
     variant_available_quantity,
 )
 from .compat import get_product_cover_image_url
+from .services.pricing import convert_canonical_amount, get_display_currency
 
 
 class ProductParameterSerializer(serializers.ModelSerializer):
@@ -105,6 +106,7 @@ class BaseProductImageSerializer(serializers.ModelSerializer):
 class ProductVariantSerializer(serializers.ModelSerializer):
     price = serializers.DecimalField(source="price_with_acquiring", max_digits=10, decimal_places=2)
     price_without_vat = serializers.SerializerMethodField()
+    currency = serializers.CharField(read_only=True)
     available_quantity = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
     stock_status = serializers.SerializerMethodField()
@@ -119,6 +121,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
             'image',
             'price',
             'price_without_vat',
+            'currency',
             'available_quantity',
             'is_available',
             'stock_status',
@@ -139,6 +142,14 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         request = self.context.get('request')
+        currency = get_display_currency(request)
+        representation['currency'] = currency
+        representation['price'] = str(
+            convert_canonical_amount(instance.price_with_acquiring, currency)
+        )
+        representation['price_without_vat'] = str(
+            convert_canonical_amount(instance.price_without_vat, currency)
+        )
         if instance.image and request:
             representation['image'] = request.build_absolute_uri(instance.image.url)
         return representation
@@ -235,6 +246,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     is_favorite = serializers.SerializerMethodField()
     price = serializers.DecimalField(source='final_min_price', max_digits=10, decimal_places=2, read_only=True)
+    currency = serializers.CharField(read_only=True)
     ordered_count = serializers.IntegerField(source='ordered_quantity', read_only=True)
     seller_id = serializers.IntegerField(source='seller.id', read_only=True)
     is_age_restricted = serializers.BooleanField(read_only=True)
@@ -251,6 +263,7 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             'product_parameters',
             'image',
             'price',
+            'currency',
             'rating',
             'total_reviews',
             'is_favorite',
@@ -281,6 +294,18 @@ class BaseProductListSerializer(serializers.ModelSerializer):
             user = request.user
             return Favorite.objects.filter(user=user, product=obj).exists()
         return False
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+        currency = get_display_currency(request)
+        representation['currency'] = currency
+        canonical_price = getattr(instance, 'final_min_price', None)
+        if canonical_price is not None:
+            representation['price'] = str(
+                convert_canonical_amount(canonical_price, currency)
+            )
+        return representation
 
 
 class CategorySearchViewSerializer(serializers.ModelSerializer):

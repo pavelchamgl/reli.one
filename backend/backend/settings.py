@@ -617,6 +617,15 @@ GMC_STATIC_BRANDS = {
     43: "Nutristar",
 }
 
+# Multi-currency (см. ADR pricing-and-fx-policy). Канон — CZK.
+DEFAULT_DISPLAY_CURRENCY = os.getenv("DEFAULT_DISPLAY_CURRENCY", "CZK")
+SUPPORTED_DISPLAY_CURRENCIES = [
+    c.strip().upper()
+    for c in os.getenv("SUPPORTED_DISPLAY_CURRENCIES", "CZK,EUR").split(",")
+    if c.strip()
+]
+FX_RATE_MARKUP = os.getenv("FX_RATE_MARKUP", "0.30")  # CZK/EUR, аддит. маркап к курсу
+
 # ---------------------------------------------------------------------------
 # Sentry — error monitoring
 # Активируется только при наличии SENTRY_DSN и DEBUG=False.

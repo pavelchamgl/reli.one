@@ -1,5 +1,6 @@
+# Migration artifacts (task 031 — monetary data, do not commit)
+backend/_migration_artifacts/
 
-# It was in the project before me
 
 backend/static/
 backend/logs/

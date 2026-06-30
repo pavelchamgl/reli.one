@@ -2,7 +2,7 @@
 
 **Priority:** P1
 **Complexity:** High
-**Status:** Planned
+**Status:** Done
 **ADR:** `docs/tasks/031-multi-currency-pricing-fx/adr-pricing-and-fx-policy.md`
 
 > Исполнитель: агент Cursor, модель **Composer 2.5 Fast**.
@@ -96,25 +96,25 @@
 
 ## Definition of Done
 
-- [ ] `migrate_prices_eur_to_czk`: курс берётся из CNB на **текущую дату запуска**
+- [x] `migrate_prices_eur_to_czk`: курс берётся из CNB на **текущую дату запуска**
       (сегодня, TZ Europe/Prague; без `--date` на prod); `--dry-run` показывает
       план + курс без записи; реальный прогон делает бэкап, пересчёт
       `CZK = ceil(EUR × rate)`, пишет audit-report JSON; есть обратимость
       (reverse из backup или `--reverse`); повтор требует `--allow-rerun`.
-- [ ] `get_czk_per_eur_for_date(date)` в `cnb_service.py` (CNB JSON API `?date=`),
+- [x] `get_czk_per_eur_for_date(date)` в `cnb_service.py` (CNB JSON API `?date=`),
       без изменения сигнатуры `get_czk_per_eur()`.
-- [ ] `pricing.py`: `get_display_currency(request)`,
+- [x] `pricing.py`: `get_display_currency(request)`,
       `convert_canonical_amount(amount_czk, currency)` по спецификации.
-- [ ] `settings.py`: `DEFAULT_DISPLAY_CURRENCY=CZK`, `SUPPORTED_DISPLAY_CURRENCIES`,
+- [x] `settings.py`: `DEFAULT_DISPLAY_CURRENCY=CZK`, `SUPPORTED_DISPLAY_CURRENCIES`,
       `FX_RATE_MARKUP` (через `os.getenv`).
-- [ ] Сериализаторы отдают цену в валюте запроса (дефолт CZK) + поле `currency`.
-- [ ] CZK: `ceil` до целой кроны; EUR: `ceil(czk / (rate − markup), 0.01)`.
-- [ ] Тесты `test_pricing.py` (unit + API) и `test_price_migration.py` зелёные;
+- [x] Сериализаторы отдают цену в валюте запроса (дефолт CZK) + поле `currency`.
+- [x] CZK: `ceil` до целой кроны; EUR: `ceil(czk / (rate − markup), 0.01)`.
+- [x] Тесты `test_pricing.py` (unit + API) и `test_price_migration.py` зелёные;
       курс замокан.
-- [ ] `cd backend && pytest product -q` — без регресса.
-- [ ] Миграций схемы нет: `python manage.py makemigrations --check --dry-run` чисто
+- [x] `cd backend && pytest product -q` — без регресса.
+- [x] Миграций схемы нет: `python manage.py makemigrations --check --dry-run` чисто
       (команда меняет **данные**, не схему).
-- [ ] Документация: чекбоксы + раздел «Результаты (evidence)» заполнены.
+- [x] Документация: чекбоксы + раздел «Результаты (evidence)» заполнены.
 
 ---
 
@@ -296,10 +296,17 @@ def get_czk_per_eur_for_date(date) -> Decimal:
 - Оценить кол-во строк `ProductVariant` для миграции (read-only запрос/анализ).
 - Уточнить формат CNB JSON API (`exrates/daily?date=`) для `get_czk_per_eur_for_date`.
 ### Output
-- Список точек правки; подтверждение, что курс миграции берётся из CNB на дату
-  (ручной курс — только аварийный override).
+- Точки правки: `ProductVariantSerializer.to_representation` (price, price_without_vat, currency),
+  `BaseProductListSerializer.to_representation` (price, currency); аннотация `final_min_price` в views
+  остаётся в каноне CZK; `pricing.py`, `settings.py`, `cnb_service.get_czk_per_eur_for_date`,
+  команда `migrate_prices_eur_to_czk`.
+- `ProductVariant.price`: `DecimalField(max_digits=10, decimal_places=2)`, min 0.01; сейчас семантика EUR
+  брутто с НДС; `price_with_acquiring = price × ACQUIRING_RATE(1.04)`.
+- CNB JSON API: `GET …/exrates/daily?date=YYYY-MM-DD&lang=EN` → `rates[].currencyCode=EUR`, `amount`, `rate`.
+- Курс миграции — CNB на дату запуска; ручной только через `--rate --force-manual-rate`.
+- Кол-во строк для миграции: prod БД недоступна локально (`.env` → `postgres_e2e`); оценка — все `ProductVariant`.
 ### Статус
-- [ ]
+- [x]
 
 ## Iteration 2 — Tests-first
 ### Цель
@@ -321,9 +328,9 @@ def get_czk_per_eur_for_date(date) -> Decimal:
 - reverse из backup восстанавливает EUR-цены.
 - manual override: `--rate --force-manual-rate` → `rate.source=manual_override`.
 ### Output
-- Красные тесты до Iteration 3–4.
+- 20 тестов в `test_pricing.py` + `test_price_migration.py`; курс/CNB замоканы.
 ### Статус
-- [ ]
+- [x]
 
 ## Iteration 3 — Pricing service + config
 ### Действия
@@ -333,7 +340,7 @@ def get_czk_per_eur_for_date(date) -> Decimal:
 ### Output
 - Unit-тесты pricing зелёные.
 ### Статус
-- [ ]
+- [x]
 
 ## Iteration 4 — CNB date helper + migration command
 ### Цель
@@ -351,8 +358,9 @@ def get_czk_per_eur_for_date(date) -> Decimal:
 - Маркап и эквайринг к миграции не применять. Логировать без PII.
 ### Output
 - Тесты миграции зелёные; команда идемпотентна (report + `--allow-rerun`); reverse работает.
+- `--date` на prod (`DEBUG=False`) → `CommandError`.
 ### Статус
-- [ ]
+- [x]
 
 ## Iteration 5 — Wire serializers
 ### Действия
@@ -362,29 +370,40 @@ def get_czk_per_eur_for_date(date) -> Decimal:
 ### Output
 - API-тесты зелёные.
 ### Статус
-- [ ]
+- [x]
 
 ## Iteration 6 — Validation & Docs
 ### Проверки
-- [ ] `cd backend && pytest product/test_pricing.py product/test_price_migration.py -q`.
-- [ ] `cd backend && pytest product -q` — без регресса.
-- [ ] `python manage.py makemigrations --check --dry-run` — изменений схемы нет.
+- [x] `cd backend && pytest product/test_pricing.py product/test_price_migration.py -q`.
+- [x] `cd backend && pytest product -q` — без регресса (80 passed).
+- [x] `python manage.py makemigrations --check --dry-run` — изменений схемы нет.
 ### Документация
 - Чекбоксы + «Результаты (evidence)»: файлы, итоги тестов, курс миграции (дата + CNB-значение),
   пути backup/report.
 ### Статус
-- [ ]
+- [x]
 
 ---
 
 ## Результаты выполнения (evidence)
-_Заполняется исполнителем._
-- Изменённые/созданные файлы:
-- Курс миграции (дата + CNB CZK/EUR, source):
-- Пути backup / report:
-- Тесты (pricing / migration / product):
-- makemigrations --check:
-- Подтверждение: CZK-канон, EUR — конвертация с маркапом; checkout/delivery/frontend не затронуты.
+- **Изменённые/созданные файлы:**
+  - `backend/product/services/__init__.py`, `backend/product/services/pricing.py`
+  - `backend/product/test_pricing.py`, `backend/product/test_price_migration.py`
+  - `backend/product/management/commands/migrate_prices_eur_to_czk.py`
+  - `backend/delivery/services/cnb_service.py` — `get_czk_per_eur_for_date`, `CnbRateNotAvailableError`
+  - `backend/backend/settings.py` — блок multi-currency
+  - `backend/product/serializers.py` — `currency` + конвертация в `to_representation`
+  - `.gitignore` — `backend/_migration_artifacts/`
+- **Курс миграции (дата + CNB CZK/EUR, source):** e2e-прогон **2026-06-30** — CNB `24.260000` CZK/EUR,
+  source `cnb_json_api`; 158 variants updated. На prod — без `--date`, после 15:00 Europe/Prague.
+- **Пути backup / report (e2e):**
+  - backup: `backend/_migration_artifacts/price_migration_backup_2026-06-30.json`
+  - report: `backend/_migration_artifacts/price_migration_report_2026-06-30.json`
+  - summary: EUR min/max `1.85`–`15000.00` → CZK `45`–`363900`
+- **Тесты:** `pytest product/test_pricing.py product/test_price_migration.py` — 20 passed;
+  `pytest product -q` — 80 passed, без регресса.
+- **makemigrations --check:** `No changes detected`.
+- **Подтверждение:** канон CZK; EUR — display-only конвертация с `FX_RATE_MARKUP`; checkout/delivery/frontend не затронуты.
 
 ---
 
