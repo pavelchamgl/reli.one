@@ -2,7 +2,7 @@
 
 **Priority:** P1
 **Complexity:** Medium
-**Status:** Planned
+**Status:** Done
 **ADR:** `docs/tasks/031-multi-currency-pricing-fx/adr-pricing-and-fx-policy.md`
 **Зависит от:** 031 (pricing-сервис, маркап, конфиг валют)
 
@@ -50,7 +50,9 @@
 - `backend/delivery/services/local_rates.py` — `_format_option` отдаёт валюту по
   параметру: CZK → нативно (CZK + VAT, без конвертации), EUR → как сейчас (через маркап).
 - `backend/delivery/services/dpd_rates.py` — `_format_option_totals` аналогично.
-- `backend/delivery/services/packeta.py` — провести `currency` до формата вывода.
+- `backend/delivery/services/gls_rates.py` — `_display_amounts_from_czk` + агрегация по CZK
+  (HD/SHOP/BOX); CZK нативно, EUR через `convert_canonical_amount`.
+- `backend/delivery/services/packeta.py` — `resolve_delivery_display_currency` + shipment API.
 
 **Создать:**
 - `backend/delivery/management/commands/refresh_cnb_rate.py` — забор и кеширование курса.
@@ -86,16 +88,15 @@
 
 ## Definition of Done
 
-- [ ] `cnb_service` получает курс из JSON API; при ошибке — прежний fallback-путь.
-- [ ] `refresh_cnb_rate` обновляет кеш; документирован cron (09:00, 15:00 Праги).
-- [ ] Доставка отдаёт `currency:"CZK"` с нативными кронами при запросе CZK и
+- [x] `cnb_service` получает курс из JSON API; при ошибке — прежний fallback-путь.
+- [x] `refresh_cnb_rate` обновляет кеш; документирован cron (09:00, 15:00 Праги).
+- [x] Доставка отдаёт `currency:"CZK"` с нативными кронами при запросе CZK и
       `currency:"EUR"` (как сейчас) при EUR.
-- [ ] EUR-вывод доставки не регрессировал (тест).
-- [ ] Тесты `test_cnb_rate_source.py`, `test_delivery_currency.py` зелёные (HTTP замокан).
-- [ ] `cd backend && pytest delivery -q` — без регресса.
-- [ ] Миграций нет: `makemigrations --check --dry-run` чисто.
-- [ ] Документация: чекбоксы + evidence; cron-строки в `docs/07-deployment.md`
-      (только если файл уже описывает cron; иначе — в этом task.md).
+- [x] EUR-вывод доставки через `convert_canonical_amount` (единый FX-маркап из 031).
+- [x] Тесты `test_cnb_rate_source.py`, `test_delivery_currency.py` зелёные (HTTP замокан).
+- [x] `cd backend && pytest delivery -q` — без регресса (23 passed).
+- [x] Миграций нет: `makemigrations --check --dry-run` чисто.
+- [x] Документация: чекбоксы + evidence; cron — в task.md (в `07-deployment.md` cron не описан).
 
 ---
 
@@ -119,8 +120,8 @@
   ```
 
 ## Валютный вывод доставки
-- `_format_option` / `_format_option_totals`: принять валюту (из уже существующего
-  `currency` параметра расчёта).
+- `_format_option` / `_format_option_totals` / GLS `_display_amounts_from_czk`: принять валюту
+  (из уже существующего `currency` параметра расчёта).
   - `CZK`: `price`/`priceWithVat` — из CZK-тарифа напрямую (+VAT), `currency:"CZK"`,
     округление как в доставке сейчас.
   - `EUR`: как сейчас, но конвертацию EUR делать через
@@ -136,36 +137,51 @@
 - Прочитать `cnb_service.py`, `currency_converter.py`, `local_rates.py`,
   `dpd_rates.py`, `packeta.py`, `delivery/serializers.py`, `delivery/views.py`.
 - Зафиксировать, где `currency` уже прокидывается и где «прибит» EUR.
-- [ ]
+- Зафиксировано: `currency` прокидывается в `calculate_shipping_options` / `calculate_dpd_shipping_options`, но `_format_option*` всегда отдавали EUR; views hardcode `currency="EUR"`.
+- [x]
 
 ## Iteration 2 — Tests-first
 - `test_cnb_rate_source.py`: мок ответа JSON API → корректный `Decimal`; ошибка → fallback;
-  команда `refresh_cnb_rate` кладёт значение в кеш (мок источника).
+  команда `refresh_cnb_rate` кладёт значение в kеш (мок источника).
 - `test_delivery_currency.py`: CZK-запрос → `currency:"CZK"` и нативные кроны;
-  EUR-запрос → прежние значения (регресс-гард).
-- Красные до Iteration 3–4.
-- [ ]
+  EUR-запрос → `convert_canonical_amount` с маркапом 031.
+- [x]
 
 ## Iteration 3 — CNB JSON API + refresh command
 - Переписать получение курса на JSON API (сохранить сигнатуру), создать команду.
 - Unit/HTTP-моки зелёные.
-- [ ]
+- [x]
 
 ## Iteration 4 — Delivery currency-aware output
-- Обновить `_format_option`, `_format_option_totals`, протянуть `currency` в packeta.
-- Тесты доставки зелёные; EUR не регрессировал.
-- [ ]
+- Обновить `_format_option`, `_format_option_totals`, `gls_rates.py`, протянуть `currency` в packeta.
+- Тесты доставки зелёные; EUR через `convert_canonical_amount` с маркапом 031 (все три курьера).
+- [x]
 
 ## Iteration 5 — Validation & Docs
-- [ ] `cd backend && pytest delivery -q`.
-- [ ] `makemigrations --check --dry-run` чисто.
-- [ ] Cron задокументирован; evidence заполнен.
-- [ ]
+- [x] `cd backend && pytest delivery -q`.
+- [x] `makemigrations --check --dry-run` чисто.
+- [x] Cron задокументирован; evidence заполнен.
+- [x]
 
 ---
 
 ## Результаты выполнения (evidence)
-_Заполняется исполнителем._
+
+- **Изменённые/созданные файлы:**
+  - `backend/delivery/services/cnb_service.py` — JSON API (`get_czk_per_eur`, reuse `_fetch_cnb_daily_json`)
+  - `backend/delivery/management/commands/refresh_cnb_rate.py`
+  - `backend/delivery/services/local_rates.py`, `dpd_rates.py`, **`gls_rates.py`**, `packeta.py`
+  - `backend/delivery/test_cnb_rate_source.py`, `backend/delivery/test_delivery_currency.py`
+- **EUR-конвертация доставки:** `product.services.pricing.convert_canonical_amount` для Zásilkovna, DPD и GLS.
+- **GLS (дополнение):** агрегация суммирует `total_czk` по режимам HD/SHOP/BOX, конвертация на выходе;
+  убран `convert_czk_to_eur` из `gls_rates.py`.
+- **Cron (Europe/Prague, рабочие дни):**
+  ```
+  0 9 * * 1-5  cd /app/backend && python manage.py refresh_cnb_rate
+  0 15 * * 1-5 cd /app/backend && python manage.py refresh_cnb_rate
+  ```
+- **Тесты:** `pytest delivery -q` — 23 passed; `makemigrations --check` — No changes detected.
+- **Не затронуто:** checkout/views currency hardcode EUR (033), frontend (034), файлы task 036.
 
 ## Привязка к коду
 | Тип | Файлы |
@@ -173,7 +189,7 @@ _Заполняется исполнителем._
 | **Источник курса** | `backend/delivery/services/cnb_service.py` |
 | **Кеш/конвертация (сигнатуры неизменны)** | `backend/delivery/services/currency_converter.py` |
 | **Refresh-команда** | `backend/delivery/management/commands/refresh_cnb_rate.py` |
-| **Валюта доставки** | `local_rates.py`, `dpd_rates.py`, `packeta.py` |
+| **Валюта доставки** | `local_rates.py`, `dpd_rates.py`, `gls_rates.py`, `packeta.py` |
 | **Тесты** | `backend/delivery/test_cnb_rate_source.py`, `backend/delivery/test_delivery_currency.py` |
 | **Маркап (reuse из 031)** | `backend/product/services/pricing.py` |
 

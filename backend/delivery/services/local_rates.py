@@ -6,7 +6,8 @@ from django.conf import settings
 
 from product.models import ProductVariant
 from delivery.models import ShippingRate
-from delivery.services.currency_converter import convert_czk_to_eur
+from delivery.services.packeta import resolve_delivery_display_currency
+from product.services.pricing import convert_canonical_amount
 
 logger = logging.getLogger(__name__)
 
@@ -106,21 +107,33 @@ def _pick_rate(country: str, channel: str, category: str, weight_kg: Decimal) ->
             )
 
 
-def _format_option(rate_obj: ShippingRate, total_czk: Decimal, is_oversize: bool = False) -> Dict:
+def _format_option(
+    rate_obj: ShippingRate,
+    total_czk: Decimal,
+    currency: str = "EUR",
+    is_oversize: bool = False,
+) -> Dict:
     """
-    Приводим стоимость к EUR, затем начисляем VAT (после конвертации).
+    Форматирует стоимость доставки в запрошенной валюте.
+    CZK — нативные кроны (+VAT); EUR — через pricing-сервис с FX-маркапом.
     """
+    display_currency = resolve_delivery_display_currency(currency)
     total_czk = _round2(total_czk)
-    price_eur = _round2(convert_czk_to_eur(total_czk))
-    price_eur_vat = _round2(price_eur * (Decimal("1") + VAT_RATE))
+
+    if display_currency == "CZK":
+        price_net = total_czk
+        price_gross = _round2(total_czk * (Decimal("1") + VAT_RATE))
+    else:
+        price_net = convert_canonical_amount(total_czk, "EUR")
+        price_gross = _round2(price_net * (Decimal("1") + VAT_RATE))
 
     return {
         "courier": rate_obj.courier_service.name or "Zásilkovna",
         "service": "Pick-up point" if rate_obj.channel == "PUDO" else "Home Delivery",
         "channel": rate_obj.channel,
-        "price": price_eur,
-        "priceWithVat": price_eur_vat,
-        "currency": "EUR",
+        "price": price_net,
+        "priceWithVat": price_gross,
+        "currency": display_currency,
         "estimate": rate_obj.estimate or "",
         "isOversize": is_oversize,
     }
@@ -267,7 +280,9 @@ def calculate_shipping_options(
 
             logger.debug("Zásilkovna PUDO: base=%s fuel=%s toll=%s cod=%s total=%s",
                          base, fuel, toll, cod_fee, total_czk)
-            options.append(_format_option(rate, total_czk, is_oversize=(chargeable_weight > 5 or sum_sides > 120)))
+            options.append(
+                _format_option(rate, total_czk, currency=currency, is_oversize=(chargeable_weight > 5 or sum_sides > 120))
+            )
         except Exception as e:
             logger.info("Zásilkovna PUDO skipped: %s", e)
     else:
@@ -287,7 +302,9 @@ def calculate_shipping_options(
 
             logger.debug("Zásilkovna HD: base=%s fuel=%s toll=%s cod=%s total=%s",
                          base, fuel, toll, cod_fee, total_czk)
-            options.append(_format_option(rate, total_czk, is_oversize=(chargeable_weight > 5 or sum_sides > 120)))
+            options.append(
+                _format_option(rate, total_czk, currency=currency, is_oversize=(chargeable_weight > 5 or sum_sides > 120))
+            )
         except Exception as e:
             logger.info("Zásilkovna HD skipped: %s", e)
     else:

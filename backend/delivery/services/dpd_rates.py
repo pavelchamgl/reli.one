@@ -8,7 +8,8 @@ from django.conf import settings
 
 from product.models import ProductVariant
 from delivery.models import ShippingRate
-from delivery.services.currency_converter import convert_czk_to_eur
+from delivery.services.packeta import resolve_delivery_display_currency
+from product.services.pricing import convert_canonical_amount
 from delivery.services.dpd_split import split_items_into_parcels_dpd
 
 
@@ -118,26 +119,39 @@ def _pick_rate_dpd(*, country: str, channel: str, weight_tag: str, category: Opt
     return rate
 
 
-def _format_option_totals(*, rate: ShippingRate, net_total_eur: Decimal, parcels_count: int, label: str) -> Dict[str, Any]:
-    """
-    Формирует опцию по ИТОГО суммам (EUR net), VAT считается ОДИН раз от total.
-    """
-    net_total_eur = net_total_eur.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    vat_total_eur = (net_total_eur * VAT_RATE).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    gross_total_eur = (net_total_eur + vat_total_eur).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+def _format_option_totals(
+    *,
+    rate: ShippingRate,
+    net_total_czk: Decimal,
+    currency: str,
+    parcels_count: int,
+    label: str,
+) -> Dict[str, Any]:
+    """Формирует опцию по итоговым суммам; VAT считается один раз от net total."""
+    display_currency = resolve_delivery_display_currency(currency)
+    net_total_czk = net_total_czk.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    if display_currency == "CZK":
+        net_total = net_total_czk
+        vat_total = (net_total * VAT_RATE).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        gross_total = (net_total + vat_total).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    else:
+        net_total = convert_canonical_amount(net_total_czk, "EUR")
+        vat_total = (net_total * VAT_RATE).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        gross_total = (net_total + vat_total).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     logger.info(
-        "DPD final %s: parcels=%d, net_eur=%s, vat_eur=%s, gross_eur=%s",
-        rate.channel, parcels_count, net_total_eur, vat_total_eur, gross_total_eur
+        "DPD final %s: parcels=%d, net=%s %s, vat=%s, gross=%s",
+        rate.channel, parcels_count, net_total, display_currency, vat_total, gross_total
     )
 
     return {
         "courier": rate.courier_service.name,
         "service": label,
-        "channel": rate.channel,  # "PUDO" | "HD"
-        "price": net_total_eur,
-        "priceWithVat": gross_total_eur,
-        "currency": "EUR",
+        "channel": rate.channel,
+        "price": net_total,
+        "priceWithVat": gross_total,
+        "currency": display_currency,
         "estimate": rate.estimate or "",
     }
 
@@ -189,7 +203,7 @@ def calculate_dpd_shipping_options(
             parcels = split_items_into_parcels_dpd(items, variant_map, service=delivery_type)
             logger.info("DPD parcels count for %s/%s: %d", c, channel, len(parcels))
 
-            net_total_eur = Decimal("0.00")
+            net_total_czk = Decimal("0.00")
             last_rate: Optional[ShippingRate] = None
             label = ""
 
@@ -212,22 +226,20 @@ def calculate_dpd_shipping_options(
                          "S2H": "Shop2Home (Home delivery)",
                          "HD":  "Home Delivery (Classic export)"}[channel]
 
-                # Конвертируем И СУММИРУЕМ только net (EUR) по всем посылкам
-                net_eur = convert_czk_to_eur(base_czk).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-                net_total_eur += net_eur
+                net_total_czk += base_czk
                 last_rate = rate
 
                 logger.info(
-                    "DPD parcel #%d: gross=%.2f kg, volumetric=%.2f kg, chargeable=%.2f kg, tag=%s, czk=%s -> net_eur=%s",
-                    idx, gross_kg, vol_kg, chargeable, tag, base_czk, net_eur
+                    "DPD parcel #%d: gross=%.2f kg, volumetric=%.2f kg, chargeable=%.2f kg, tag=%s, czk=%s",
+                    idx, gross_kg, vol_kg, chargeable, tag, base_czk
                 )
 
             if last_rate:
-                # Итог по опции: VAT считаем ОДИН раз от общей net суммы
                 results.append(
                     _format_option_totals(
                         rate=last_rate,
-                        net_total_eur=net_total_eur,
+                        net_total_czk=net_total_czk,
+                        currency=currency,
                         parcels_count=len(parcels),
                         label=label,
                     )

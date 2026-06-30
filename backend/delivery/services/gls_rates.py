@@ -9,7 +9,8 @@ from django.conf import settings
 
 from product.models import ProductVariant
 from delivery.models import ShippingRate
-from delivery.services.currency_converter import convert_czk_to_eur
+from delivery.services.packeta import resolve_delivery_display_currency
+from product.services.pricing import convert_canonical_amount
 from delivery.services.gls_split import split_items_into_parcels_gls
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,25 @@ GLS_PUDO_DISCOUNT_CZK = Decimal("27.00")
 # Надбавки
 GLS_FUEL_PCT = Decimal(str(getattr(settings, "GLS_FUEL_PCT", "0.011")))
 GLS_TOLL_PER_KG_CZK = Decimal(str(getattr(settings, "GLS_TOLL_PER_KG_CZK", "1.47")))
+
+
+def _round2(x: Decimal) -> Decimal:
+    return x.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def _display_amounts_from_czk(total_czk: Decimal, currency: str) -> Dict[str, Any]:
+    """CZK — нативные кроны + VAT; EUR — через pricing-сервис с FX-маркапом."""
+    display_currency = resolve_delivery_display_currency(currency)
+    total_czk = _round2(total_czk)
+
+    if display_currency == "CZK":
+        net = total_czk
+        gross = _round2(total_czk * (Decimal("1") + VAT_RATE))
+    else:
+        net = convert_canonical_amount(total_czk, "EUR")
+        gross = _round2(net * (Decimal("1") + VAT_RATE))
+
+    return {"price": net, "priceWithVat": gross, "currency": display_currency}
 
 
 def _ceil_kg(x: Decimal) -> Decimal:
@@ -160,17 +180,11 @@ def _calc_hd_for_parcel(
     toll_czk = _toll_surcharge_czk(weight)
 
     total_czk = base_czk + cod_fee + fuel_czk + toll_czk
-
-    net_eur = convert_czk_to_eur(total_czk).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    gross_eur = (net_eur * (Decimal("1") + VAT_RATE)).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
+    amounts = _display_amounts_from_czk(total_czk, currency)
 
     logger.info(
         "GLS HD parcel: weight=%s kg, size=%sx%sx%s cm, sum=%s -> "
-        "base=%s CZK, fuel=%s, toll=%s, cod=%s, total=%s CZK (%.2f EUR net)",
+        "base=%s CZK, fuel=%s, toll=%s, cod=%s, total=%s CZK (%s %s net)",
         weight,
         L,
         W,
@@ -181,16 +195,17 @@ def _calc_hd_for_parcel(
         toll_czk,
         cod_fee,
         total_czk,
-        net_eur,
+        amounts["price"],
+        amounts["currency"],
     )
 
     return {
         "courier": rate.courier_service.name or "GLS",
         "service": "Home Delivery",
         "channel": "HD",
-        "price": net_eur,
-        "priceWithVat": gross_eur,
-        "currency": currency,
+        "price": amounts["price"],
+        "priceWithVat": amounts["priceWithVat"],
+        "currency": amounts["currency"],
         "estimate": rate.estimate or "",
         "base_czk": base_czk,
         "total_czk": total_czk,
@@ -239,17 +254,11 @@ def _calc_pudo_for_parcel(
     cod_fee = Decimal("0")  # COD для PUDO не допускаем
 
     total_czk = base_czk + fuel_czk + toll_czk + cod_fee
-
-    net_eur = convert_czk_to_eur(total_czk).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
-    gross_eur = (net_eur * (Decimal("1") + VAT_RATE)).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
-    )
+    amounts = _display_amounts_from_czk(total_czk, currency)
 
     logger.info(
         "GLS PUDO parcel: weight=%s kg, size=%sx%sx%s cm, sum=%s -> "
-        "base=%s CZK (HD-%s), fuel=%s, toll=%s, total=%s CZK (%.2f EUR net)",
+        "base=%s CZK (HD-%s), fuel=%s, toll=%s, total=%s CZK (%s %s net)",
         weight,
         L,
         W,
@@ -260,17 +269,18 @@ def _calc_pudo_for_parcel(
         fuel_czk,
         toll_czk,
         total_czk,
-        net_eur,
+        amounts["price"],
+        amounts["currency"],
     )
 
     return {
         "courier": hd_rate.courier_service.name or "GLS",
-        "service": "Pick-up point",  # на выходе мы можем переименовать в SHOP/BOX
+        "service": "Pick-up point",
         "channel": "PUDO",
-        "price": net_eur,
-        "priceWithVat": gross_eur,
-        "currency": currency,
-        "estimate": "",  # в прайсе GLS для PSD/Locker отдельного estimate нет
+        "price": amounts["price"],
+        "priceWithVat": amounts["priceWithVat"],
+        "currency": amounts["currency"],
+        "estimate": "",
         "base_czk": base_czk,
         "total_czk": total_czk,
     }
@@ -343,8 +353,8 @@ def calculate_gls_shipping_options(
         len(parcels_box),
     )
 
-    # Накапливаем NET по режимам (HD/SHOP/BOX)
-    per_mode_net: Dict[str, Decimal] = {
+    # Накапливаем CZK по режимам (HD/SHOP/BOX), конвертация — на агрегате
+    per_mode_czk: Dict[str, Decimal] = {
         "HD": Decimal("0.00"),
         "SHOP": Decimal("0.00"),
         "BOX": Decimal("0.00"),
@@ -362,7 +372,7 @@ def calculate_gls_shipping_options(
                 currency=currency,
                 address_bundle=address_bundle,
             )
-            per_mode_net["HD"] += o["price"]
+            per_mode_czk["HD"] += o["total_czk"]
             last_meta["HD"] = {
                 "courier": o.get("courier", "GLS"),
                 "service": o.get("service", "Home Delivery"),
@@ -383,7 +393,7 @@ def calculate_gls_shipping_options(
                     currency=currency,
                     address_bundle=address_bundle,
                 )
-                per_mode_net["SHOP"] += o["price"]
+                per_mode_czk["SHOP"] += o["total_czk"]
                 last_meta["SHOP"] = {
                     "courier": o.get("courier", "GLS"),
                     # логически это Parcel Shop
@@ -407,7 +417,7 @@ def calculate_gls_shipping_options(
                     currency=currency,
                     address_bundle=address_bundle,
                 )
-                per_mode_net["BOX"] += o["price"]
+                per_mode_czk["BOX"] += o["total_czk"]
                 last_meta["BOX"] = {
                     "courier": o.get("courier", "GLS"),
                     # логически это Parcel Box (Locker)
@@ -429,58 +439,49 @@ def calculate_gls_shipping_options(
     }
 
     # Собираем HD
-    if modes_ok["HD"] and per_mode_net["HD"] > 0:
-        net = per_mode_net["HD"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        gross = (net * (Decimal("1") + VAT_RATE)).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
+    if modes_ok["HD"] and per_mode_czk["HD"] > 0:
+        amounts = _display_amounts_from_czk(per_mode_czk["HD"], currency)
         meta = last_meta.get("HD", {})
         options.append(
             {
                 "courier": meta.get("courier", "GLS"),
                 "service": meta.get("service", "Home Delivery"),
                 "channel": "HD",
-                "price": net,
-                "priceWithVat": gross,
-                "currency": currency,
+                "price": amounts["price"],
+                "priceWithVat": amounts["priceWithVat"],
+                "currency": amounts["currency"],
                 "estimate": meta.get("estimate", ""),
             }
         )
 
     # Собираем SHOP (ParcelShop)
-    if modes_ok["SHOP"] and per_mode_net["SHOP"] > 0:
-        net = per_mode_net["SHOP"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        gross = (net * (Decimal("1") + VAT_RATE)).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
+    if modes_ok["SHOP"] and per_mode_czk["SHOP"] > 0:
+        amounts = _display_amounts_from_czk(per_mode_czk["SHOP"], currency)
         meta = last_meta.get("SHOP", {})
         options.append(
             {
                 "courier": meta.get("courier", "GLS"),
                 "service": "SHOP",
                 "channel": "PUDO",
-                "price": net,
-                "priceWithVat": gross,
-                "currency": currency,
+                "price": amounts["price"],
+                "priceWithVat": amounts["priceWithVat"],
+                "currency": amounts["currency"],
                 "estimate": meta.get("estimate", ""),
             }
         )
 
     # Собираем BOX (ParcelBox)
-    if modes_ok["BOX"] and per_mode_net["BOX"] > 0:
-        net = per_mode_net["BOX"].quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-        gross = (net * (Decimal("1") + VAT_RATE)).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
+    if modes_ok["BOX"] and per_mode_czk["BOX"] > 0:
+        amounts = _display_amounts_from_czk(per_mode_czk["BOX"], currency)
         meta = last_meta.get("BOX", {})
         options.append(
             {
                 "courier": meta.get("courier", "GLS"),
                 "service": "BOX",
                 "channel": "PUDO",
-                "price": net,
-                "priceWithVat": gross,
-                "currency": currency,
+                "price": amounts["price"],
+                "priceWithVat": amounts["priceWithVat"],
+                "currency": amounts["currency"],
                 "estimate": meta.get("estimate", ""),
             }
         )

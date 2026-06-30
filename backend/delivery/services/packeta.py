@@ -11,6 +11,12 @@ from urllib3.util.retry import Retry
 logger = logging.getLogger(__name__)
 
 
+def resolve_delivery_display_currency(currency: str | None) -> str:
+    """Normalize display currency for Packeta/Zásilkovna shipping quotes."""
+    code = (currency or "EUR").strip().upper()
+    return "CZK" if code == "CZK" else "EUR"
+
+
 class PacketaService:
     API_URL = "https://www.zasilkovna.cz/api/rest"
 
@@ -133,7 +139,7 @@ class PacketaService:
             "weight":        f"{weight_kg:.2f}",
             "value":         f"{value_amount:.2f}",
             "cod":           f"{cod_amount:.2f}",
-            "currency":      currency,
+            "currency":      resolve_delivery_display_currency(currency),
         }
         tree = self._send_xml("createPacket", attrs)
         packet_id = tree.findtext("result/id")
@@ -171,7 +177,7 @@ class PacketaService:
             "weight":        f"{weight_kg:.2f}",
             "value":         f"{value_amount:.2f}",
             "cod":           f"{cod_amount:.2f}",
-            "currency":      currency,
+            "currency":      resolve_delivery_display_currency(currency),
         }
         tree = self._send_xml("createPacket", attrs)
         packet_id = tree.findtext("result/id")
